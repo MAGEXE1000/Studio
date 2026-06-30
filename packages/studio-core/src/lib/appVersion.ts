@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.52';
+export const NATIVE_VERSION = '3.7.53';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,8 +60,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Repaired all production DevTools Dashboard buttons, ensuring robust handling of missing cached APK paths for Replay Last Install, Open Cached APK, and Open Download Folder.",
-      "Satisfied TypeScript checks by ensuring all code paths in the dashboard button handlers return a value.",
+      "Repaired the Android UI of the Updater Debug Tools screen.",
+      "Eliminated automatic scroll-into-view viewport jumping and vertical layout shifts.",
+      "Removed nested scrollable containers from the log console and chronological event timeline to ensure a single active scroll container, resolving touch event unreliability and gesture conflicts on Android WebViews.",
     ],
   },
 ];

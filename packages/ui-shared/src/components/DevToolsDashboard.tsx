@@ -368,7 +368,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     advanced: true,
   });
   const [buttonStates, setButtonStates] = useState<Record<string, 'idle' | 'running' | 'success' | 'failure'>>({});
-  const consoleEndRef = useRef<HTMLDivElement>(null);
+  // consoleEndRef removed to prevent WebView viewport shifting
 
   const [nativeInstallerDetails, setNativeInstallerDetails] = useState<any>(null);
   const [nativeDeviceInfo, setNativeDeviceInfo] = useState<any>(null);
@@ -379,11 +379,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
   const [auditResults, setAuditResults] = useState<Array<{ name: string; status: 'success' | 'failed'; message: string }>>([]);
   const triggerSimRender = () => setSimUpdateCount(prev => prev + 1);
 
-  useEffect(() => {
-    if (updaterTabMode === 'laboratory') {
-      consoleEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [simUpdateCount, updaterTabMode]);
+  // scrollIntoView useEffect removed to prevent automatic jumping to bottom
 
   const isMountedRef = useRef(true);
   useEffect(() => {
@@ -3183,7 +3179,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 </div>
               </div>
 
-              <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 4 }}>
                 {filteredTimeline.length === 0 ? (
                   <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic', padding: '10px 0', textAlign: 'center' }}>
                     No logs match current search or filters.
@@ -3204,7 +3200,6 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                     );
                   })
                 )}
-                <div ref={consoleEndRef} />
               </div>
             </div>
           </div>
@@ -3266,7 +3261,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 <DiagnosticField label="Rejected Transitions" value={String(rejectedTransitions.length)} />
               </div>
               <CollapsibleSection title={`Show State History (${transitionHistory.length})`} collapsed={stateHistoryCollapsed} onToggle={() => setStateHistoryCollapsed(!stateHistoryCollapsed)}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 150, overflowY: 'auto', background: 'rgba(0,0,0,0.15)', padding: 8, borderRadius: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: 'rgba(0,0,0,0.15)', padding: 8, borderRadius: 8 }}>
                   {transitionHistory.length === 0 ? (
                     <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>No state transitions recorded.</div>
                   ) : (
@@ -3329,7 +3324,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 <span className="material-symbols-outlined" style={{ fontSize: 18 }}>view_headline</span>
                 Chronological Event Timeline
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto', background: 'rgba(0,0,0,0.25)', padding: 8, borderRadius: 8, fontFamily: 'monospace', fontSize: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: 'rgba(0,0,0,0.25)', padding: 8, borderRadius: 8, fontFamily: 'monospace', fontSize: 10 }}>
                 {unifiedTimeline.length === 0 ? (
                   <div style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'sans-serif' }}>No execution timeline recorded.</div>
                 ) : (

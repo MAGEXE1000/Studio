@@ -1,3 +1,4 @@
 ### Fixed
-- Repaired all production DevTools Dashboard buttons, ensuring robust handling of missing cached APK paths for Replay Last Install, Open Cached APK, and Open Download Folder.
-- Satisfied TypeScript checks by ensuring all code paths in the dashboard button handlers return a value.
+- Repaired the Android UI of the Updater Debug Tools screen.
+- Eliminated automatic scroll-into-view viewport jumping and vertical layout shifts.
+- Removed nested scrollable containers from the log console and chronological event timeline to ensure a single active scroll container, resolving touch event unreliability and gesture conflicts on Android WebViews.

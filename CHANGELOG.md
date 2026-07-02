@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.56
+
+### Fixed
+- Fixed devtools copy diagnostics scope and undefined variables.
+- Added direct touch event listeners to accordion header components.
+- Resolved bottom viewport layout scroll padding and navigation overlay coverage.
+
 ## 3.7.55
 
 ### Fixed

@@ -18,6 +18,7 @@ export type OtaUpdateState =
   | 'signature_mismatch'
   | 'versionCode_low'
   | 'waiting_for_confirmation'
+  | 'pending_user_action'
   | 'completed';
 
 
@@ -134,9 +135,11 @@ export function transitionToState(state: OtaUpdateState, reason: string) {
   } else if (current === 'ready_to_install') {
     isValid = ['waiting_for_confirmation', 'installing', 'failed', 'idle'].includes(state);
   } else if (current === 'waiting_for_confirmation') {
-    isValid = ['installing', 'failed', 'idle', 'installed'].includes(state);
+    isValid = ['installing', 'failed', 'idle', 'installed', 'pending_user_action'].includes(state);
   } else if (current === 'installing') {
-    isValid = ['installed', 'install_failed', 'failed', 'idle', 'waiting_for_confirmation'].includes(state);
+    isValid = ['installed', 'install_failed', 'failed', 'idle', 'waiting_for_confirmation', 'pending_user_action'].includes(state);
+  } else if (current === 'pending_user_action') {
+    isValid = ['installed', 'failed', 'idle'].includes(state);
   } else if (current === 'installed') {
     isValid = ['idle', 'checking'].includes(state);
   } else if (['download_failed', 'sha_failed', 'eligibility_failed', 'install_failed'].includes(current)) {

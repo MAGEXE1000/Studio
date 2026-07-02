@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.57
+
+### Fixed
+- Completely rebuilt Developer Options Updater Debugging section.
+- Fixed clipboard size limits, preventing native process binder transaction failures.
+- Unified JS log traces with native and state timeline buffers.
+- Fixed state machine transition validations for pending user actions.
+
 ## 3.7.56
 
 ### Fixed

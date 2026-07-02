@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { APP_VERSION, compareSemver, normalizeSemver } from './appVersion';
+import { AppInstaller } from './apkDownloader';
 import { isNative, shouldUseAndroidApkUpdater } from './capgoUpdater';
 import { nativeSet, NATIVE_PREFS } from './nativePrefs';
 import { useChordStore } from '../store/useChordStore';
@@ -28,7 +29,7 @@ import { verifyFileIntegrity } from './updater/integrityVerification';
 import { runEligibilityCheck } from './updater/eligibilityVerification';
 import { triggerNativeInstall, processLastInstallResult } from './updater/installer';
 import { runSignatureMismatchRecovery, isRecovering, setIsRecovering } from './updater/recovery';
-import { updaterSimulation, setSimulateStatusCallback, addJsLog, triggerSimulatedStatus } from './updater/updaterSimulation';
+import { updaterSimulation, setSimulateStatusCallback, simulateStatusCallback, addJsLog, triggerSimulatedStatus } from './updater/updaterSimulation';
 import { validateLocalApk, deleteLocalApk, getLocalApkPath, recordDismissal, shouldShowRecoveryReminder } from './updater/cacheManager';
 import {
   otaDebugLogs,
@@ -1165,8 +1166,8 @@ function initializeGlobalOtaListeners() {
     addJsLog(`[Global Listener Event] Received status ${status}: ${message} (progress ${progress}%)`);
     
     // Log to installer database
-    if (isNative() && typeof AppInstaller.logInstallerEvent === 'function') {
-      void AppInstaller.logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
+    if (isNative() && typeof (AppInstaller as any).logInstallerEvent === 'function') {
+      void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
     }
 
     if (status === -2) {

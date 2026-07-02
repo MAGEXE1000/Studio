@@ -28,6 +28,7 @@ export interface UpdaterSimulation {
   injectDownloadFailure: boolean;
   injectChecksumFailure: boolean;
   injectNetworkTimeout: boolean;
+  simulateDownloadThrottling: boolean;
 }
 
 export const updaterSimulation: UpdaterSimulation = {
@@ -56,6 +57,7 @@ export const updaterSimulation: UpdaterSimulation = {
   injectDownloadFailure: false,
   injectChecksumFailure: false,
   injectNetworkTimeout: false,
+  simulateDownloadThrottling: false,
 };
 
 // Logs and timelines stored in memory

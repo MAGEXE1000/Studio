@@ -112,7 +112,24 @@ Source:
 
 ---
 
-## 6. Definition of Done (DoD)
+## 6. Mandatory Workflow Integration
+
+This repository integrates documentation directly into the development cycle. Adhering to the following workflow components is mandatory:
+
+* **Onboarding & Contribution**: Refer to [contributing.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/contributing.md) for onboarding procedures.
+* **AI Protocols**: Refer to [ai_workflow.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ai_workflow.md) for mandatory checklist prompts and validation steps.
+* **Standard Checklists**: Refer to [engineering_checklists.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_checklists.md) for reusable testing, release, and code review lists.
+* **Doc Validation**: Refer to [documentation_validation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/documentation_validation.md) to verify that links, references, and configurations remain synced on changes.
+
+Source:
+* `docs/contributing.md`
+* `docs/ai_workflow.md`
+* `docs/engineering_checklists.md`
+* `docs/documentation_validation.md`
+
+---
+
+## 7. Definition of Done (DoD)
 
 An implementation is considered complete only when it meets the following criteria:
 

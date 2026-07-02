@@ -14,6 +14,8 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
+      - 'docs/**'
+      - 'scripts/validate-documentation.mjs'
   pull_request:
     branches: [main]
     paths:
@@ -27,6 +29,8 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
+      - 'docs/**'
+      - 'scripts/validate-documentation.mjs'
 
 jobs:
   ci:
@@ -50,6 +54,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Validate Documentation
+        run: pnpm docs:validate
 
       - name: Enforce Import Boundaries
         run: pnpm lint:imports

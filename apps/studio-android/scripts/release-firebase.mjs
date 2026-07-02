@@ -678,8 +678,19 @@ const checkUrl = async (url) => {
   }
 };
 
-let status = await checkUrl(githubApkUrl);
-console.log(`release-firebase: URL status for ${githubApkUrl} = ${status}`);
+let status = 0;
+const maxAttempts = 15;
+for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  status = await checkUrl(githubApkUrl);
+  console.log(`release-firebase: URL status for ${githubApkUrl} (attempt ${attempt}/${maxAttempts}) = ${status}`);
+  if (status === 200) {
+    break;
+  }
+  if (attempt < maxAttempts) {
+    console.log('release-firebase: Waiting 5 seconds for asset propagation...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+}
 if (status !== 200) {
   console.error(`release-firebase: ✗ APK URL returned non-200 status code: ${status}`);
   process.exit(1);

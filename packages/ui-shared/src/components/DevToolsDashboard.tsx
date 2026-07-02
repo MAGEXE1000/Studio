@@ -191,11 +191,7 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
             e.stopPropagation();
             setShowWarnings(!showWarnings);
           }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setShowWarnings(!showWarnings);
-          }}
+          
           style={{
             padding: '4px 10px',
             borderRadius: '6px',
@@ -219,11 +215,7 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
                 e.stopPropagation();
                 handleCopyAll();
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleCopyAll();
-              }}
+              
               style={{
                 padding: '4px 8px',
                 borderRadius: '6px',
@@ -318,11 +310,7 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
                       e.stopPropagation();
                       handleCopyWarning(w);
                     }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleCopyWarning(w);
-                    }}
+                    
                     style={{
                       padding: '2px 6px',
                       borderRadius: '4px',
@@ -1154,11 +1142,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
           e.stopPropagation();
           onToggle();
         }}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onToggle();
-        }}
+        
         style={{
           width: '100%',
           padding: '12px 16px',
@@ -1625,11 +1609,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
               e.stopPropagation();
               onToggle();
             }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggle();
-            }}
+            
             style={{
               width: '100%',
               padding: '16px 20px',
@@ -1702,13 +1682,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             onClick();
             triggerSimRender();
           }}
-          onTouchEnd={(e) => {
-            if (disabled) return;
-            e.preventDefault();
-            e.stopPropagation();
-            onClick();
-            triggerSimRender();
-          }}
+          
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -1771,12 +1745,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             if (state === 'running') return;
             runProductionAction(label, actionId, onClick);
           }}
-          onTouchEnd={(e) => {
-            if (state === 'running') return;
-            e.preventDefault();
-            e.stopPropagation();
-            runProductionAction(label, actionId, onClick);
-          }}
+          
           style={{ 
             background: bg, 
             border: border, 
@@ -2399,28 +2368,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                   triggerSimRender();
                   showToast('Simulation settings wiped');
                 }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  updaterSimulation.forceUpdateAvailable = false;
-                  updaterSimulation.forceNoUpdate = false;
-                  updaterSimulation.forceDowngrade = false;
-                  updaterSimulation.forceMetadataFailure = false;
-                  updaterSimulation.forceShaFailure = false;
-                  updaterSimulation.forceSignatureMismatch = false;
-                  updaterSimulation.forceInvalidApk = false;
-                  updaterSimulation.forceDownloadFailure = false;
-                  updaterSimulation.forceDownloadTimeout = false;
-                  updaterSimulation.forceRecoveryMode = false;
-                  updaterSimulation.forceCachedApk = false;
-                  updaterSimulation.forceResumeDownload = false;
-                  updaterSimulation.forceInstallSuccess = false;
-                  updaterSimulation.forceInstallFailure = false;
-                  updaterSimulation.forceUserCancel = false;
-                  updaterSimulation.forcePendingUserAction = false;
-                  triggerSimRender();
-                  showToast('Simulation settings wiped');
-                }}
+                
                 style={{ flex: 1, minWidth: '120px', padding: '10px', borderRadius: '10px', background: '#007aff', color: '#fff', border: 'none', fontWeight: 800, fontSize: '11px', cursor: 'pointer', outline: 'none' }}
                 className="hover:brightness-110"
               >
@@ -2432,12 +2380,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                   resetOtaUpdateState();
                   showToast('State machine reset');
                 }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  resetOtaUpdateState();
-                  showToast('State machine reset');
-                }}
+                
                 style={{ flex: 1, minWidth: '120px', padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', color: '#ee7d77', border: '1px solid rgba(239, 68, 68, 0.25)', fontWeight: 800, fontSize: '11px', cursor: 'pointer', outline: 'none' }}
                 className="hover:bg-white/10"
               >
@@ -2451,13 +2394,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                     AppInstaller.openUnknownAppSourcesSettings();
                   }
                 }}
-                onTouchEnd={(e) => {
-                  if (isNative()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    AppInstaller.openUnknownAppSourcesSettings();
-                  }
-                }}
+                
                 style={{ flex: 1, minWidth: '120px', padding: '10px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', color: '#e7e5e4', border: '1px solid rgba(72,72,72,0.15)', fontWeight: 800, fontSize: '11px', cursor: isNative() ? 'pointer' : 'not-allowed', opacity: isNative() ? 1 : 0.4, outline: 'none' }}
                 className="hover:bg-white/10"
               >
@@ -2604,11 +2541,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             </div>
             <button 
               onClick={() => handleCopyAction('Complete Report', () => generateFullEngineeringReport())}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleCopyAction('Complete Report', () => generateFullEngineeringReport());
-              }}
+              
               style={{ padding: '12px', borderRadius: '10px', background: '#007aff', color: '#fff', border: 'none', fontWeight: 800, fontSize: '12px', cursor: 'pointer', outline: 'none' }}
               className="hover:brightness-110"
             >
@@ -4227,12 +4160,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 const report = generateFullEngineeringReport();
                 handleCopyText(report, 'Complete Report');
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const report = generateFullEngineeringReport();
-                handleCopyText(report, 'Complete Report');
-              }}
+              
               style={{
                 padding: '12px',
                 background: '#007AFF',
@@ -4266,21 +4194,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 const { Share } = await import('@capacitor/share');
                 await Share.share({ title: 'Cached APK', url: lastPath.startsWith('file://') ? lastPath : `file://${lastPath}` });
               }}
-              onTouchEnd={async (e) => {
-                if (!isNative()) {
-                  showToast('Share only available on mobile device.');
-                  return;
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                const lastPath = localStorage.getItem('studio:downloadedApkPath') || '';
-                if (!lastPath) {
-                  showToast('No cached APK to share.');
-                  return;
-                }
-                const { Share } = await import('@capacitor/share');
-                await Share.share({ title: 'Cached APK', url: lastPath.startsWith('file://') ? lastPath : `file://${lastPath}` });
-              }}
+              
               style={{
                 padding: '12px',
                 background: 'transparent',
@@ -4309,16 +4223,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 });
                 handleCopyText(txt, 'Timeline');
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                let txt = `=== UNIFIED TIMELINE ===\n`;
-                unifiedTimeline.forEach(e => {
-                  const timeStr = new Date(e.time).toLocaleTimeString();
-                  txt += `[${timeStr}] [${e.type.toUpperCase()}] ${e.text} ${e.details ? ` - ${e.details}` : ''}\n`;
-                });
-                handleCopyText(txt, 'Timeline');
-              }}
+              
               style={{
                 padding: '12px',
                 background: 'transparent',
@@ -4342,12 +4247,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                 setSectionsCollapsed(prev => ({ ...prev, simulation: false }));
                 showToast('Simulation lab expanded');
               }}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setSectionsCollapsed(prev => ({ ...prev, simulation: false }));
-                showToast('Simulation lab expanded');
-              }}
+              
               style={{
                 padding: '12px',
                 background: 'transparent',

@@ -69,6 +69,76 @@ interface WarningItem {
   duplicateCount: number;
 }
 
+interface AccordionSectionProps {
+  title: string;
+  icon: string;
+  collapsed: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+const AccordionSection = ({ 
+  title, 
+  icon,
+  collapsed, 
+  onToggle, 
+  children 
+}: AccordionSectionProps) => {
+  return (
+    <div style={{
+      background: 'rgba(25, 26, 26, 0.6)',
+      border: '1px solid rgba(72, 72, 72, 0.15)',
+      borderRadius: 16,
+      marginBottom: 12,
+      overflow: 'hidden'
+    }}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        style={{
+          width: '100%',
+          padding: '16px 20px',
+          background: 'transparent',
+          border: 'none',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          outline: 'none'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className="material-symbols-outlined" style={{ color: collapsed ? '#9d9da6' : '#007aff', fontSize: 20 }}>
+            {icon}
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: '#e7e5e4', fontFamily: 'Manrope' }}>
+            {title}
+          </span>
+        </div>
+        <span className="material-symbols-outlined" style={{ 
+          color: '#acabaa', 
+          fontSize: 20,
+          transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+          transition: 'transform 0.2s ease'
+        }}>
+          expand_more
+        </span>
+      </button>
+      {!collapsed && (
+        <div style={{ 
+          padding: '0 20px 20px 20px', 
+          borderTop: '1px solid rgba(72, 72, 72, 0.15)',
+          paddingTop: '16px'
+        }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface WarningsInspectorProps {
   logs: any[];
   showToast: (msg: string) => void;
@@ -371,6 +441,9 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
 
   // scrollIntoView useEffect removed to prevent automatic jumping to bottom
 
+  const [autoScroll, setAutoScroll] = useState(true);
+  const logContainerRef = useRef<HTMLDivElement>(null);
+
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
@@ -378,6 +451,12 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       isMountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (subView === 'updater' && autoScroll && logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [filteredTimeline, autoScroll, subView]);
 
   const refreshData = async () => {
     try {
@@ -1588,69 +1667,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       }
     };
 
-    // Components & UI Helpers
-    const AccordionSection = ({ 
-      title, 
-      icon,
-      collapsed, 
-      onToggle, 
-      children 
-    }) => {
-      return (
-        <div style={{
-          background: 'rgba(25, 26, 26, 0.6)',
-          border: '1px solid rgba(72, 72, 72, 0.15)',
-          borderRadius: 16,
-          marginBottom: 12,
-          overflow: 'hidden'
-        }}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
-            
-            style={{
-              width: '100%',
-              padding: '16px 20px',
-              background: 'transparent',
-              border: 'none',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              cursor: 'pointer',
-              outline: 'none'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span className="material-symbols-outlined" style={{ color: collapsed ? '#9d9da6' : '#007aff', fontSize: 20 }}>
-                {icon}
-              </span>
-              <span style={{ fontWeight: 700, fontSize: 14, color: '#e7e5e4', fontFamily: 'Manrope' }}>
-                {title}
-              </span>
-            </div>
-            <span className="material-symbols-outlined" style={{ 
-              color: '#acabaa', 
-              fontSize: 20,
-              transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-              transition: 'transform 0.2s ease'
-            }}>
-              expand_more
-            </span>
-          </button>
-          {!collapsed && (
-            <div style={{ 
-              padding: '0 20px 20px 20px', 
-              borderTop: '1px solid rgba(72, 72, 72, 0.15)',
-              paddingTop: '16px'
-            }}>
-              {children}
-            </div>
-          )}
-        </div>
-      );
-    };
+;
 
     const renderSimulationCard = (
       label,
@@ -1786,14 +1803,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       );
     };
 
-    const [autoScroll, setAutoScroll] = useState(true);
-    const logContainerRef = useRef(null);
 
-    useEffect(() => {
-      if (autoScroll && logContainerRef.current) {
-        logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-      }
-    }, [filteredTimeline, autoScroll]);
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: '120px' }}>

@@ -17,7 +17,7 @@ Chordex Studio enforces version parameters:
 
 Source:
 * `apps/studio-android/android/app/build.gradle`
-* `scripts/sync-version.mjs`
+* `apps/studio-android/scripts/sync-version.mjs`
 
 ---
 

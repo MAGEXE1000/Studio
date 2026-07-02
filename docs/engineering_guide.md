@@ -158,6 +158,7 @@ Refer to these targeted subsystem and architecture guides for implementation det
     - [Testing & Verification Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/testing.md)
     - [Release Process Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/release_process.md)
     - [Architectural Decision Records (ADR)](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture_decisions.md)
+    - [Report Templates Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/report_templates.md)
 *   **Reference Maps**:
     - [AI Context Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ai-context-map.md)
     - [Project Structure Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/project-structure.md)
@@ -169,6 +170,21 @@ Refer to these targeted subsystem and architecture guides for implementation det
     - [Troubleshooting Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md)
     - [Repository Health & Architecture Audit Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_audit.md)
     - [Legacy Backups Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/backups/v3.6.81-stable-before-cleanup.md)
+*   **Knowledge Repository**:
+    - [Long-Term Android Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/android.md)
+    - [Long-Term Firebase Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/firebase.md)
+    - [Long-Term React Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/react.md)
+    - [Long-Term OTA Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/ota.md)
+    - [Long-Term Build Commands](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/build.md)
+    - [Long-Term Native Updater Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/updater.md)
+    - [Long-Term Architecture Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/architecture.md)
+    - [Long-Term Performance Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/performance.md)
+    - [Long-Term Diagnostics Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/debugging.md)
+    - [Long-Term Design Patterns](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/patterns.md)
+    - [Lessons Learned Database](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/lessons_learned.md)
+*   **Session Logs**:
+    - [Session Logs Index](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/session_logs/index.md)
+    - [Session Log 01 (2026-07-02)](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/session_logs/2026-07-02_session-01.md)
 
 Source:
 * `docs/`

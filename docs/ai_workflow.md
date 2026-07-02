@@ -4,24 +4,24 @@ This document defines the mandatory, enforceable operating procedures, context l
 
 ---
 
-## 1. Context Loading Strategy
+## 1. Context Loading Strategy & Platform Folders
 
 To conserve context window usage, reduce token cost, and prevent model attention drift, the AI must load **only** the minimum documentation required for the current task scope. Never load unnecessary documents.
 
-### Task Category Mapping
+### Task Category Mapping & Limits
 
-| Task Category | Minimum Required Documentation |
-|---|---|
-| **Bug Fix** | `engineering_guide.md` • `ai_workflow.md` • `debugging.md` • `ai-context-map.md` |
-| **Large Feature** | `engineering_guide.md` • `ai_workflow.md` • `engineering_checklists.md` • `project-structure.md` |
-| **OTA Subsystem** | `engineering_guide.md` • `ai_workflow.md` • `ota_updater.md` • `firebase.md` |
-| **Android / APK** | `engineering_guide.md` • `ai_workflow.md` • `android.md` • `coding_standards.md` |
-| **Web / Netlify** | `engineering_guide.md` • `ai_workflow.md` • `web.md` • `coding_standards.md` |
-| **Documentation** | `engineering_guide.md` • `ai_workflow.md` • `documentation_validation.md` |
-| **Architecture** | `engineering_guide.md` • `ai_workflow.md` • `architecture.md` • `architecture_decisions.md` |
-| **Release / CI** | `engineering_guide.md` • `ai_workflow.md` • `release_process.md` |
-| **Performance** | `engineering_guide.md` • `ai_workflow.md` • `performance.md` |
-| **Refactor** | `engineering_guide.md` • `ai_workflow.md` • `coding_standards.md` • `codebase-size-report.md` |
+| Task Category | Required Documentation | Optional Documentation | Folders to Inspect | Max Recommended Context |
+|---|---|---|---|---|
+| **Bug Fix** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/debugging.md` | `docs/ai-context-map.md`<br>`knowledge/debugging.md` | `packages/studio-core/src/`<br>`apps/studio-android/src/` | ~30k tokens |
+| **Android / APK** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/android.md` | `docs/coding_standards.md`<br>`knowledge/android.md` | `apps/studio-android/android/`<br>`packages/ui-android/` | ~40k tokens |
+| **Web / Netlify** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/web.md` | `docs/coding_standards.md`<br>`knowledge/build.md` | `apps/studio-web/`<br>`packages/ui-web/` | ~30k tokens |
+| **OTA Subsystem** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/ota_updater.md` | `docs/firebase.md`<br>`knowledge/ota.md`<br>`knowledge/updater.md` | `packages/studio-core/src/lib/updater/` | ~50k tokens |
+| **Documentation** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/documentation_validation.md` | `session_logs/index.md` | `docs/` | ~20k tokens |
+| **Architecture** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/architecture.md` | `docs/architecture_decisions.md`<br>`knowledge/architecture.md` | `docs/architecture/` | ~30k tokens |
+| **Release / CI** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/release_process.md` | `knowledge/build.md` | `.github/workflows/` | ~30k tokens |
+| **Performance** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/performance.md` | `knowledge/performance.md` | `packages/studio-core/src/store/` | ~40k tokens |
+| **Refactor** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/coding_standards.md` | `docs/codebase-size-report.md` | `packages/ui-shared/src/` | ~45k tokens |
+| **New Feature** | `docs/engineering_guide.md`<br>`docs/ai_workflow.md`<br>`docs/engineering_checklists.md` | `docs/project-structure.md`<br>`knowledge/patterns.md` | `packages/ui-shared/src/` | ~60k tokens |
 
 Source:
 * [engineering_guide.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_guide.md#L115-L129)
@@ -34,8 +34,8 @@ Before writing any code or modifying any file, the AI must output this completed
 
 - [ ] **1. Identify Category**: Classify the task into a standard category from Section 1.
 - [ ] **2. Load Minimum Docs**: Load only the specific documents mapped to that category.
-- [ ] **3. Verify Scope**: Confirm boundaries (Android in `apps/studio-android`, Web in `apps/studio-web`, Shared in `packages/studio-core`).
-- [ ] **4. Check Knowledge Base**: Verify if the target logic is already explained in documentation (refer to Section 6: Knowledge Reuse).
+- [ ] **3. Search Knowledge Base**: Search `knowledge/` folder (Section 6) before checking code files.
+- [ ] **4. Verify Scope**: Confirm boundaries (Android in `apps/studio-android`, Web in `apps/studio-web`, Shared in `packages/studio-core`).
 - [ ] **5. Generate Plan**: Write a concise, 1-page implementation plan (refer to Section 4).
 
 ---
@@ -70,7 +70,7 @@ The Implementation Plan must be concise (maximum 1 page) and detail:
 
 To conserve tokens and reduce chat noise, the AI must operate silently. 
 
-- **Do NOT Output Chatty Narrative**: Avoid conversational updates like "Let's inspect...", "Wonderful, now let's verify...", "I will check...".
+- **Do NOT Output Chatty Narrative**: Avoid conversational updates like "Let's inspect...", "Wonderful, now let's verify...", "I will check...", "Perfect...".
 - **Allowed Outputs**: The AI is permitted to expose only:
   1. The Session Start Checklist and Implementation Plan.
   2. Concise progress checkpoints (e.g. updating task status files).
@@ -80,13 +80,14 @@ To conserve tokens and reduce chat noise, the AI must operate silently.
 
 ## 6. Knowledge Reuse Policy
 
-AI sessions must never spend time or context rediscovering information already documented in the repository.
+Before inspecting raw repository source code files, the AI must search the `knowledge/` directory:
 
-- **Docs First**: If a configuration parameter, system component, or native bridge design is already described in the documentation, use it immediately.
-- **Outdated Code Scans**: Only inspect code files to double check details if the local documentation appears outdated or explicitly requests future validation.
+- **Search Knowledge Base First**: If the logic, parameters, or configurations are already documented inside `knowledge/` or `lessons_learned.md`, reuse it immediately. Do not spend tokens rediscovering it.
+- **Outdated Code Scans**: Only inspect code files if the local documentation appears outdated, has verification markers, or if there is a conflict.
+- **Documenting Conflict**: If documentation conflicts with code findings, document the discrepancy in the session log first before updating references.
 
 Source:
-* [coding_standards.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/coding_standards.md#L7-L17)
+* [lessons_learned.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/lessons_learned.md)
 
 ---
 

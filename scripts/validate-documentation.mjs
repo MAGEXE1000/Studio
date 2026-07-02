@@ -81,10 +81,21 @@ function validateFile(absoluteFilePath) {
   let currentHeader = null;
   let hasContentUnderHeader = false;
   let inSourceBlock = false;
+  let inCodeBlock = false;
 
   lines.forEach((line, index) => {
     const lineNum = index + 1;
     const trimmed = line.trim();
+
+    // Skip code blocks
+    if (trimmed.startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      return;
+    }
+
+    if (inCodeBlock) {
+      return;
+    }
 
     // Detect Source: blocks
     if (trimmed.startsWith('Source:')) {

@@ -1,71 +1,102 @@
 # Chordex Studio — AI Engineering Workflow
 
-This document establishes the mandatory engineering workflow, model responsibility allocations, and anti-hallucination protocols for all future AI agents (including ChatGPT, Claude, and Antigravity) participating in the project.
+This document defines the mandatory, enforceable operating procedures, model responsibilities, and verification rules for all AI sessions in the project. Compliance with this workflow is required before any code modification, refactoring, or documentation task.
 
 ---
 
 ## 1. Purpose
 
-This workflow exists to ensure that every future code modification, debugging session, refactoring task, and documentation update maintains the highest level of architectural integrity. In the Chordex Studio project:
-* **Quality over Speed**: Correctness, type safety, platform boundaries, and regression testing must always be prioritized over implementation speed.
-* **Source of Truth**: The documentation files in `docs/` (specifically `engineering_guide.md`) are the sole sources of architectural truth. Coding must never precede a thorough audit of these files.
+This workflow exists to guarantee that every implementation preserves the project's architecture, prevents regressions, and isolates root causes directly.
+* **Strict Quality Focus**: Correctness and structural integrity always take priority over implementation speed.
+* **Repository as Truth**: The codebase configuration and source files are the ultimate source of truth. Documentation must accurately mirror the codebase.
 
 Source:
 * `docs/engineering_guide.md`
 
 ---
 
-## 2. AI Roles & Responsibilities
+## 2. Session Start Checklist (MANDATORY)
 
-To optimize execution and validation quality, tasks are distributed across models:
+Before writing any code or modifying any file, the AI must complete and output this checklist:
 
-### ChatGPT
-* **Responsibilities**: High-level systems architecture design, implementation planning, technical planning analysis, prompt synthesis, and strategy review.
-* **Constraint**: Must not edit the codebase files directly.
+1. [ ] **Read Master Guide**: Read `docs/engineering_guide.md`.
+2. [ ] **Read Workflow Rules**: Read `docs/ai_workflow.md` to establish current constraints.
+3. [ ] **Read Relevant Documentation**: Read the platform-specific documentation corresponding to the task (e.g., `android.md`, `ota_updater.md`, `firebase.md`).
+4. [ ] **Understand Platform Boundaries**: Confirm where the changes belong (Web-only under `apps/studio-web` and `packages/ui-web`, Android-only under `apps/studio-android` and `packages/ui-android`).
+5. [ ] **Identify Affected Modules**: List the specific directories, packages, and files involved.
+6. [ ] **Generate Implementation Plan**: Formulate a step-by-step plan details document (described in Section 4).
 
-### Antigravity (Gemini)
-* **Responsibilities**: Code implementation, repository navigation, refactoring executions, build verifications, testing suite execution, file documentation, and Git staging/commit/push commands.
-* **Rule**: Must read the core engineering documents, understand platform scopes, and run verification builds before editing code.
+Source:
+* `docs/engineering_guide.md`
 
-### Claude Opus
-* **Responsibilities**: Independent senior code audits, logical error analysis, deep debugging path validation, and architectural regression checks.
-* **Rule**: Acts as an independent reviewer. Must not be used for massive repository-wide code updates.
+---
+
+## 3. The Evidence Rule (MANDATORY)
+
+Every architectural or system statement written by the AI must be backed by concrete repository evidence.
+* **Source Citations**: Whenever presenting facts, config values, or API behaviors, include a `Source:` reference mapping the relative repository file paths.
+* **Handling Unknowns**: If evidence cannot be found directly in the repository code or configs, the AI must explicitly state that the parameter is unknown. **Never invent configurations, stores, variables, or system dependencies.**
 
 Source:
 * `docs/coding_standards.md`
 
 ---
 
-## 3. Standard Implementation Workflow
+## 4. Planning Rule (MANDATORY)
 
-Every feature implementation or system update must follow these 13 steps in exact order:
+Before changing code, the AI must outline and print a structured implementation plan containing:
 
-1. **Read**: Review `docs/engineering_guide.md`.
-2. **Review Specific Docs**: Read platform-specific documentation matching the task (e.g. `android.md`, `ota_updater.md`, `firebase.md`).
-3. **Understand**: Formulate a clear definition of the problem and desired behaviors.
-4. **Locate Root Cause**: Isolate where the existing system deviates from specifications.
-5. **Create Implementation Plan**: Outline file additions/modifications and alternatives.
-6. **Validate Assumptions**: Double check type systems, API behaviors, and configs.
-7. **Implement**: Write clean, modular, and refactored code.
-8. **Build**: Execute target builds (e.g. `pnpm run build:android:web`).
-9. **Test**: Run unit and integration tests (`pnpm run test:web`, `pnpm run test:android`).
-10. **Regression Test**: Manually verify previous app behaviors and offline data cache access.
-11. **Commit**: Stage files explicitly and write a semantic commit message.
-12. **Push**: Push commits to the current remote branch.
-13. **Produce Report**: Output a detailed engineering report summarizing the task.
+* **Problem**: A concise summary of the observed bug or the requested feature.
+* **Root Cause**: The isolated line of code or structural defect causing the issue.
+* **Files Affected**: The precise paths of the target files to modify.
+* **Implementation Strategy**: A step-by-step description of the refactoring and coding approach.
+* **Regression Risks**: Potential impacts on secondary systems (such as offline caches, database states, auth tokens, or cross-platform execution).
+* **Validation Plan**: The tests, builds, and manual verification steps to execute.
 
 Source:
 * `docs/debugging.md`
-* `docs/testing.md`
 
 ---
 
-## 4. Bug Investigation Workflow
+## 5. Architecture Protection Rule (MANDATORY)
 
-Never attempt to resolve bugs by applying trial-and-error changes.
-* **Stop and Research**: Gather logs (`jsLogs`, `nativeLogsList`), check states (`globalOtaState`), and read related architecture files.
-* **Isolate Root Cause**: Prove the exact line or transaction sequence causing the error.
-* **Avoid Workarounds**: Do not wrap buggy blocks in conditional escapes. Refactor the underlying logic to fix the root cause.
+* **focused fixes**: Never replace or re-create large modules, libraries, or updater state machines when a focused fix, refactor, or simple extraction is sufficient.
+* **No Redundancy**: Extend existing utilities, hooks, and services rather than introducing duplicate helper functions or parallel architectures.
+
+Source:
+* `docs/coding_standards.md`
+
+---
+
+## 6. Context Optimization Rule (MANDATORY)
+
+To conserve model context limits and prevent attention drift:
+* **Selective File Reads**: Read only the files necessary to perform the task.
+* **Reuse Existing Code**: Check existing packages (`packages/studio-core/` and `packages/ui-shared/`) before importing third-party libraries.
+* **Limit Global Scans**: Avoid scanning the entire repository unless major architectural mappings are required.
+
+Source:
+* `docs/performance.md`
+
+---
+
+## 7. Repository Truth Rule (MANDATORY)
+
+* **Alignment**: Documentation files under `docs/` must align with the current state of the repository.
+* **Discrepancy Resolution**: If documentation and code disagree, the AI must investigate the discrepancy first. Never overwrite code or documentation blindly. Document the resolved behavior in `docs/architecture_decisions.md`.
+
+Source:
+* `docs/architecture_decisions.md`
+
+---
+
+## 8. Failure Recovery Protocol (MANDATORY)
+
+If two implementation attempts fail to compile, build, or pass regression tests:
+1. **Stop Coding**: Halt all code modifications immediately.
+2. **Collect Evidence**: Compile the compiler logs, state dumps, and test traces.
+3. **Review Architecture**: Re-examine the baseline code design to isolate the incorrect assumption.
+4. **Independent Review**: Explicitly request a code review and validation audit by **Claude Opus** before attempting further code changes.
 
 Source:
 * `docs/debugging.md`
@@ -73,29 +104,7 @@ Source:
 
 ---
 
-## 5. Large Feature Workflow
-
-Before executing large features:
-* **Identify Reusable Logic**: Extend existing components and hooks rather than duplicating CSS layouts or database layers.
-* **Enforce Platform Boundaries**: Verify that Web-only features remain under `apps/studio-web` and `packages/ui-web`, while Android Capacitor code remains in `apps/studio-android` and `packages/ui-android`.
-
-Source:
-* `docs/architecture.md`
-* `docs/coding_standards.md`
-
----
-
-## 6. Documentation Rules
-
-* **Documentation First**: When an architectural change is planned, document it in `docs/architecture_decisions.md` and update `engineering_guide.md` before making any code modifications.
-* **Metadata Sources**: Important factual statements must include a `Source:` annotation at the end of the section citing the file path from which the information was derived.
-
-Source:
-* `docs/architecture_decisions.md`
-
----
-
-## 7. Commit & Release Rules
+## 9. Commit & Release Rules (MANDATORY)
 
 ### Git Commit Guidelines
 * **No wildcards**: Do not run `git add .` or `git add -A`. Stage files individually.
@@ -112,11 +121,21 @@ Source:
 
 ---
 
-## 8. Anti-Hallucination & Regression Rules
+## 10. Post-Implementation Checklist (MANDATORY)
 
-* **Do Not Invent**: Never invent libraries, stores, Capacitor interfaces, CSS variables, or APIs.
-* **Flag Unknowns**: If a system parameter or configuration cannot be proven directly from repository files, explicitly label it as `"Current documented assumption (requires future validation)"` or remove it.
-* **Cross-Platform Verification**: Verify that fixing a bug on Android does not break Web execution, and vice versa.
+A task is only complete and ready to report when the following checks are met and output:
+
+* [ ] **Build Success**: The workspace builds successfully (`pnpm build`).
+* [ ] **TypeScript Type Safety**: All TypeScript checks pass with zero errors (`pnpm run typecheck:libs`).
+* [ ] **No Linter Regressions**: The code complies with codebase conventions and import boundaries.
+* [ ] **Android Compilation**: Native Web view builds compile cleanly without warnings.
+* [ ] **Web Compilation**: Web SPA builds compile cleanly without warnings.
+* [ ] **Architecture Preserved**: Reused existing hooks, stores, and utilities. No duplicate code remains.
+* [ ] **Documentation Updated**: The relevant documents in `docs/` and `docs/architecture_decisions.md` have been updated.
+* [ ] **Staging Verified**: Staged only modified documentation/source files explicitly.
+* [ ] **Commit Created**: Semantic commit message matches guidelines.
+* [ ] **Push Completed**: Pushed code directly to the active remote branch.
+* [ ] **Report Output**: A detailed engineering report is produced.
 
 Source:
-* `docs/known_issues.md`
+* `docs/testing.md`

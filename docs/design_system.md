@@ -4,24 +4,41 @@ This document specifies typography, dark mode color configurations, spacing grid
 
 ---
 
-## 1. Dark Mode Color Configurations (Aspirational Style Tokens)
+## 1. Dark Mode Color Configurations (Registered Theme Tokens)
 
-The design system uses a dark mode palette. While color variables are not currently registered as global CSS custom properties, the following styling values are applied inline across components:
+The design system uses a dark mode palette registered globally as CSS custom properties under the `@theme` block in the workspace stylesheets. These can be transitioned natively and dynamically.
 
-| Aspirational Token | Usage | CSS Hex Value | Purpose |
-|---|---|---|---|
-| **`--bg-base`** | App background | `#0e0e0e` | Solid near-black base |
-| **`--bg-surface`** | Component cards | `rgba(25, 26, 26, 0.6)` | Translucent gray backing |
-| **`--border-subtle`**| Element borders | `rgba(72, 72, 72, 0.15)` | Low-contrast containment outline |
-| **`--text-primary`** | Main headers | `#e7e5e4` | High-contrast warm off-white |
-| **`--text-secondary`**| Subtitles / details| `#acabaa` | Muted neutral gray |
-| **`--primary`** | Accent / interactive| `#007aff` | Sleek Material 3 Blue |
-| **`--warning`** | Warnings / alerts | `#f59e0b` | Soft amber warning gold |
-| **`--error`** | Error messages | `#ee7d77` | Warm pastel red |
+### A. Core Tailwind Theme Color Variables
+These variables map to the Material 3 design system components:
+
+| Variable | Default Value | Purpose |
+|---|---|---|
+| `--color-surface` | `var(--app-bg)` | App canvas background color |
+| `--color-surface-container` | `var(--app-surface)` | Card and panel wrapper background |
+| `--color-on-surface` | `#e7e5e4` | High-contrast text on cards |
+| `--color-on-surface-variant` | `#acabaa` | Muted secondary label text |
+| `--color-primary` | `#c6c6c7` | Main call-to-actions borders and text |
+| `--color-tertiary-container`| `var(--studio-accent-to)` | Theme accent background (e.g. blue) |
+| `--color-error` | `#ee7d77` | Error tags and validation states |
+
+### B. Typed Custom Properties (Registered via `@property`)
+These custom properties enforce a syntax check so they can be smoothly animated by CSS transition engines:
+
+*   **`--app-bg`**: Initial value `#0e0e0e` (base background).
+*   **`--app-surface-lowest`**: Initial value `#000000` (black).
+*   **`--app-surface`**: Initial value `#191a1a` (default card container).
+*   **`--app-surface-highest`**: Initial value `#252626` (high-contrast header/active item).
+*   **`--c-text-primary`**: Initial value `#e7e5e4` (off-white).
+*   **`--c-text-secondary`**: Initial value `#acabaa` (gray).
+
+### C. Radius & Font Tokens
+- **Font Headline / Sans**: `"Manrope", sans-serif`
+- **Font Label**: `"Inter", sans-serif`
+- **Standard Radii**: `--radius-sm` (0.25rem), `--radius-md` (0.5rem), `--radius-lg` (0.75rem), `--radius-xl` (1rem), `--radius-2xl` (1.5rem), `--radius-3xl` (2rem), `--radius-full` (9999px).
 
 Source:
-* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
-* `packages/ui-shared/src/components/AccountCard.tsx`
+* [index.css](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/src/index.css#L39-L121)
+* [index.css](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-web/src/index.css#L39-L77)
 
 ---
 

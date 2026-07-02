@@ -1,6 +1,13 @@
 # Codebase Size & Context Cost Report — Chordex Studio
 
-This report catalogs the largest files, data structures, and assets in the codebase to evaluate token footprint impact and design future splitting strategies.
+> [!NOTE]
+> **SNAPSHOT REPORT**: This document is a static, point-in-time snapshot of the codebase sizes and lines of code. It serves as an architectural evaluation tool rather than a dynamically updated script output.
+> - **Generation Timestamp**: 2026-07-02T05:51:00Z
+> - **Target Commit Hash**: `cd0f26c4f3f2c962bde171845d02ca12492feb7f`
+> - **Generation Command (PowerShell)**:
+>   ```powershell
+>   $files = @("apps/studio-android/public/stage-core/app.js", "packages/ui-shared/src/components/StudioHub.tsx", "packages/ui-shared/src/panels/DrumEditor.tsx", "packages/ui-shared/src/components/AccountCard.tsx", "apps/studio-android/src/EmergencyDebugOverlay.tsx", "packages/ui-shared/src/panels/SongsPanel.tsx", "packages/studio-core/src/lib/sync.ts", "packages/studio-core/src/lib/syncBackends/supabaseRealtime.ts", "packages/studio-core/src/lib/syncBackends/firebaseLegacy.ts", "packages/studio-core/src/data/progressions.ts", "packages/studio-core/src/lib/otaUpdate.ts", "packages/ui-shared/src/components/UpdateIndicator.tsx"); foreach ($f in $files) { $lines = (Get-Content $f | Measure-Object -Line).Lines; Write-Output "$lines  $f" }
+>   ```
 
 ---
 

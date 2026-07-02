@@ -88,3 +88,79 @@ Before finalizing a release, complete the following verification steps:
 Source:
 * `.github/workflows/android-release.yml`
 * `packages/studio-core/src/lib/otaUpdate.ts`
+
+---
+
+## 5. Web Deployment (Netlify)
+
+Web application compilation and deployment are managed via Netlify:
+
+- **Auto-Publishing**: Commits pushed or merged to the `main` branch automatically trigger Netlify to run the production build script (`pnpm run build:web`).
+- **Pre-deployment Verification**:
+  1. Build assets locally using `pnpm run build:web`.
+  2. Confirm type safety: `pnpm run typecheck:web`.
+- **Cache Invalidation**: Netlify deployment hooks clear standard CDN caches. Hashed files in `/assets/**` are marked as immutable for browser caching, while `/index.html` and service worker files (`/sw.js`) are configured with `no-store` headers to guarantee instant updates.
+
+Source:
+* [netlify.toml](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/netlify.toml)
+* [UPDATE_PIPELINE_NOTES.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/UPDATE_PIPELINE_NOTES.md#L7-L20)
+
+---
+
+## 6. Hotfix Workflow
+
+When a critical bug is discovered in production:
+
+1.  **Branch Creation**: Branch directly from the corresponding production release tag (e.g. `release-v3.7.56` or `main` depending on active state):
+    ```bash
+    git checkout -b hotfix/bug-description
+    ```
+2.  **Implementation**: Fix the root cause directly, following the Bug Fix Checklist.
+3.  **Local Validation**: Test across target platforms (Android WebView and Web browser SPA).
+4.  **Cherry-pick / Merge**: Merge the hotfix branch back to `main` via PR, and cherry-pick to any active release branches.
+5.  **Trigger Release**: Manually trigger the release workflow on GitHub Actions. Incremented `versionCode` (+1) is mandatory.
+
+Source:
+* [engineering_checklists.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_checklists.md#L26-L36)
+
+---
+
+## 7. Rollback Procedures
+
+Follow these steps to revert a deployment in case of critical production failures:
+
+### A. Web Rollback (Netlify)
+If a web deployment introduces breaking regressions:
+1.  Navigate to the Netlify Dashboard > **Deploys**.
+2.  Select the last stable deploy from the history list.
+3.  Click **Preview** to verify, then click **Publish Deploy** to lock the production build to that previous stable revision.
+
+### B. Android OTA Rollback
+If a published APK update is broken, the OTA state machine will trigger rollback fallback recovery mechanisms:
+1.  **Client-Side Auto-Recovery**: If the app fails to boot or update successfully, the client registers `consecutiveFailures: 5` and transitions to Recovery Mode. This deletes the cached broken APK, resets providers, and prompts the user with diagnostics options.
+2.  **Server-Side Revocation**: To stop the rollout of a broken update immediately:
+    - Update `app-release.json` on Firebase Hosting to point to the previous stable `versionCode`, `versionName`, and `apkUrl` hash.
+    - Android clients fetching the metadata will see that their active version is equal to or greater than the target, aborting the download prompt.
+
+Source:
+* [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts#L88-L90)
+* [troubleshooting.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md#L65-L77)
+
+---
+
+## 8. Emergency Release Procedure
+
+If the GitHub Actions CI pipeline is stuck or offline and an emergency release is required:
+
+1.  **Local APK Assembly**: Run the production build locally:
+    ```bash
+    pnpm run build:android:web
+    npx cap sync android
+    ```
+2.  **Native Signing**: Open Android Studio (`npx cap open android`) and build the signed APK using the release Keystore file.
+3.  **Manual Asset Upload**: Upload the compiled APK to GitHub Releases manually under a new semantic tag release.
+4.  **Metadata Deployment**: Deploy version metadata directly to Firebase Hosting using the Firebase CLI:
+    ```bash
+    firebase deploy --only hosting
+    ```
+5.  **Verify CDN**: Fetch the public `version.json` and `app-release.json` from the browser to confirm propagation.

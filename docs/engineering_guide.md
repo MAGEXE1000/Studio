@@ -71,16 +71,11 @@ Source:
 
 ## 4. Platform Separation & Boundaries
 
-To prevent compilation leaks, the monorepo strictly separates platform-specific dependencies:
-
-* **Android changes stay in Android**: Native Gradle configurations, native Java plugins, and Android UI components (touch safety, back handlers, safe-area wrappers) belong under `apps/studio-android` and `packages/ui-android`.
-* **Web changes stay in Web**: Netlify redirects, desktop-specific landing docks, and Vite web-only scripts belong under `apps/studio-web` and `packages/ui-web`.
-* **Shared Logic stays in Core/Lib**: Core states, utilities, API callers, and OTA logic belong in `packages/studio-core` and the `lib/` workspace packages. They are not allowed to import native Capacitor plugins directly without environment checks (`isNative()`).
-* **Shared UI stays in ui-shared**: Platform-neutral component templates belong in `packages/ui-shared`.
+To prevent compilation leaks, the monorepo strictly separates platform-specific dependencies. Detailed layout boundaries, dependencies, and environment separation checks are defined in the central coding standards guide.
 
 Source:
-* `scripts/verify-bundle-separation.mjs`
-* `scripts/enforce-platform-scope.mjs`
+* [coding_standards.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/coding_standards.md#L44-L56)
+* [platform-separation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/platform-separation.md)
 
 ---
 
@@ -140,3 +135,40 @@ An implementation is considered complete only when it meets the following criter
 * [ ] **Touch Safety**: All interactive targets are easy to tap and do not suffer from scrolling touch-interception bugs.
 * [ ] **Platform Isolation**: Web modifications are not loaded in the native WebView, and native interfaces handle fallback scenarios elegantly on web configurations.
 * [ ] **Documentation**: Any system behavior changes are recorded in the engineering docs.
+
+---
+
+## 8. Index of Reference Guides
+
+Refer to these targeted subsystem and architecture guides for implementation details:
+
+*   **Platform Guides**:
+    - [Android Platform Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/android.md)
+    - [Web Platform Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/web.md)
+*   **Backend & Gating**:
+    - [Firebase Services Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/firebase.md)
+    - [Supabase Synchronization Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/supabase.md)
+    - [Permissions & Feature Gating Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/permissions.md)
+    - [Authentication Architecture Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/auth.md)
+*   **Standards & Telemetry**:
+    - [Coding Standards Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/coding_standards.md)
+    - [Design System Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/design_system.md)
+    - [Performance Optimization Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/performance.md)
+    - [Debugging & Diagnostics Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/debugging.md)
+    - [Testing & Verification Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/testing.md)
+    - [Release Process Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/release_process.md)
+    - [Architectural Decision Records (ADR)](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture_decisions.md)
+*   **Reference Maps**:
+    - [AI Context Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ai-context-map.md)
+    - [Project Structure Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/project-structure.md)
+    - [Codebase Size & Context Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/codebase-size-report.md)
+    - [Roadmap & Milestone Tracker](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/roadmap.md)
+    - [Known Issues Log](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/known_issues.md)
+    - [Environment Setup Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/environment_setup.md)
+    - [Legacy Migration Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/migration_map.md)
+    - [Troubleshooting Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md)
+    - [Repository Health & Architecture Audit Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_audit.md)
+    - [Legacy Backups Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/backups/v3.6.81-stable-before-cleanup.md)
+
+Source:
+* `docs/`

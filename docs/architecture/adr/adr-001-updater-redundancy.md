@@ -38,9 +38,9 @@ Several failure modes compromised updater reliability:
 -   **Do not bypass eligibility checks on retries**: Any retry session must recheck package signatures and versionCode rules to prevent malicious packages from executing.
 
 ## Files Affected
--   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
--   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/otaUpdate.ts)
--   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/ui-shared/src/components/UpdateIndicator.tsx)
+-   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+-   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
+-   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)
 
 ## Rollback & Future Considerations
 -   **Rollback**: Remove `consecutiveInstallFailures` checks and replace the failover loop in `downloadUpdate` with a single URL fetch.

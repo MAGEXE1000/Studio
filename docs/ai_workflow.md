@@ -1,141 +1,116 @@
 # Chordex Studio — AI Engineering Workflow
 
-This document defines the mandatory, enforceable operating procedures, model responsibilities, and verification rules for all AI sessions in the project. Compliance with this workflow is required before any code modification, refactoring, or documentation task.
+This document defines the mandatory, enforceable operating procedures, context loading strategies, execution models, and silent verification rules for all AI sessions in the project. Compliance with this workflow is required before any task.
 
 ---
 
-## 1. Purpose
+## 1. Context Loading Strategy
 
-This workflow exists to guarantee that every implementation preserves the project's architecture, prevents regressions, and isolates root causes directly.
-* **Strict Quality Focus**: Correctness and structural integrity always take priority over implementation speed.
-* **Repository as Truth**: The codebase configuration and source files are the ultimate source of truth. Documentation must accurately mirror the codebase.
+To conserve context window usage, reduce token cost, and prevent model attention drift, the AI must load **only** the minimum documentation required for the current task scope. Never load unnecessary documents.
+
+### Task Category Mapping
+
+| Task Category | Minimum Required Documentation |
+|---|---|
+| **Bug Fix** | `engineering_guide.md` • `ai_workflow.md` • `debugging.md` • `ai-context-map.md` |
+| **Large Feature** | `engineering_guide.md` • `ai_workflow.md` • `engineering_checklists.md` • `project-structure.md` |
+| **OTA Subsystem** | `engineering_guide.md` • `ai_workflow.md` • `ota_updater.md` • `firebase.md` |
+| **Android / APK** | `engineering_guide.md` • `ai_workflow.md` • `android.md` • `coding_standards.md` |
+| **Web / Netlify** | `engineering_guide.md` • `ai_workflow.md` • `web.md` • `coding_standards.md` |
+| **Documentation** | `engineering_guide.md` • `ai_workflow.md` • `documentation_validation.md` |
+| **Architecture** | `engineering_guide.md` • `ai_workflow.md` • `architecture.md` • `architecture_decisions.md` |
+| **Release / CI** | `engineering_guide.md` • `ai_workflow.md` • `release_process.md` |
+| **Performance** | `engineering_guide.md` • `ai_workflow.md` • `performance.md` |
+| **Refactor** | `engineering_guide.md` • `ai_workflow.md` • `coding_standards.md` • `codebase-size-report.md` |
 
 Source:
-* `docs/engineering_guide.md`
+* [engineering_guide.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_guide.md#L115-L129)
 
 ---
 
 ## 2. Session Start Checklist (MANDATORY)
 
-Before writing any code or modifying any file, the AI must complete and output this checklist:
+Before writing any code or modifying any file, the AI must output this completed checklist:
 
-1. [ ] **Read Master Guide**: Read `docs/engineering_guide.md`.
-2. [ ] **Read Workflow Rules**: Read `docs/ai_workflow.md` to establish current constraints.
-3. [ ] **Read Relevant Documentation**: Read the platform-specific documentation corresponding to the task (e.g., `android.md`, `ota_updater.md`, `firebase.md`).
-4. [ ] **Understand Platform Boundaries**: Confirm where the changes belong (Web-only under `apps/studio-web` and `packages/ui-web`, Android-only under `apps/studio-android` and `packages/ui-android`).
-5. [ ] **Identify Affected Modules**: List the specific directories, packages, and files involved.
-6. [ ] **Generate Implementation Plan**: Formulate a step-by-step plan details document (described in Section 4).
-
-Source:
-* `docs/engineering_guide.md`
+- [ ] **1. Identify Category**: Classify the task into a standard category from Section 1.
+- [ ] **2. Load Minimum Docs**: Load only the specific documents mapped to that category.
+- [ ] **3. Verify Scope**: Confirm boundaries (Android in `apps/studio-android`, Web in `apps/studio-web`, Shared in `packages/studio-core`).
+- [ ] **4. Check Knowledge Base**: Verify if the target logic is already explained in documentation (refer to Section 6: Knowledge Reuse).
+- [ ] **5. Generate Plan**: Write a concise, 1-page implementation plan (refer to Section 4).
 
 ---
 
-## 3. The Evidence Rule (MANDATORY)
+## 3. Session Execution Model (8-Step Order)
 
-Every architectural or system statement written by the AI must be backed by concrete repository evidence.
-* **Source Citations**: Whenever presenting facts, config values, or API behaviors, include a `Source:` reference mapping the relative repository file paths.
-* **Handling Unknowns**: If evidence cannot be found directly in the repository code or configs, the AI must explicitly state that the parameter is unknown. **Never invent configurations, stores, variables, or system dependencies.**
+To minimize error rates and avoid wasteful edit/validate loops, sessions must proceed linearly through these 8 steps:
 
-Source:
-* `docs/coding_standards.md`
-
----
-
-## 4. Planning Rule (MANDATORY)
-
-Before changing code, the AI must outline and print a structured implementation plan containing:
-
-* **Problem**: A concise summary of the observed bug or the requested feature.
-* **Root Cause**: The isolated line of code or structural defect causing the issue.
-* **Files Affected**: The precise paths of the target files to modify.
-* **Implementation Strategy**: A step-by-step description of the refactoring and coding approach.
-* **Regression Risks**: Potential impacts on secondary systems (such as offline caches, database states, auth tokens, or cross-platform execution).
-* **Validation Plan**: The tests, builds, and manual verification steps to execute.
-
-Source:
-* `docs/debugging.md`
+1.  **Context Load**: Load the minimum required documents (Section 1).
+2.  **Implementation Plan**: Produce a concise, maximum 1-page plan.
+3.  **Approval Gate**: Wait for user/system approval if in planning mode.
+4.  **Repository Analysis**: Perform all code searches, file inspections, and root-cause analysis first.
+5.  **Implementation**: Execute all code changes in one clean pass. Do not write partial code.
+6.  **Validations**: Run the compilers, test suites, and documentation validators.
+7.  **Commit**: Create a staged commit using semantic commit formatting.
+8.  **Push**: Push directly to the current working branch.
 
 ---
 
-## 5. Architecture Protection Rule (MANDATORY)
+## 4. Planning Rule
 
-* **focused fixes**: Never replace or re-create large modules, libraries, or updater state machines when a focused fix, refactor, or simple extraction is sufficient.
-* **No Redundancy**: Extend existing utilities, hooks, and services rather than introducing duplicate helper functions or parallel architectures.
-
-Source:
-* `docs/coding_standards.md`
-
----
-
-## 6. Context Optimization Rule (MANDATORY)
-
-To conserve model context limits and prevent attention drift:
-* **Selective File Reads**: Read only the files necessary to perform the task.
-* **Reuse Existing Code**: Check existing packages (`packages/studio-core/` and `packages/ui-shared/`) before importing third-party libraries.
-* **Limit Global Scans**: Avoid scanning the entire repository unless major architectural mappings are required.
-
-Source:
-* `docs/performance.md`
+The Implementation Plan must be concise (maximum 1 page) and detail:
+- **Problem**: Short description of the issue or feature.
+- **Root Cause**: The exact files and lines identified during analysis.
+- **Files Affected**: Target filepaths to modify.
+- **Implementation Strategy**: A step-by-step list of modifications.
+- **Validation Plan**: Test commands (`pnpm test:web`, `pnpm docs:validate`) to execute.
 
 ---
 
-## 7. Repository Truth Rule (MANDATORY)
+## 5. Silent Execution Mode
 
-* **Alignment**: Documentation files under `docs/` must align with the current state of the repository.
-* **Discrepancy Resolution**: If documentation and code disagree, the AI must investigate the discrepancy first. Never overwrite code or documentation blindly. Document the resolved behavior in `docs/architecture_decisions.md`.
+To conserve tokens and reduce chat noise, the AI must operate silently. 
 
-Source:
-* `docs/architecture_decisions.md`
-
----
-
-## 8. Failure Recovery Protocol (MANDATORY)
-
-If two implementation attempts fail to compile, build, or pass regression tests:
-1. **Stop Coding**: Halt all code modifications immediately.
-2. **Collect Evidence**: Compile the compiler logs, state dumps, and test traces.
-3. **Review Architecture**: Re-examine the baseline code design to isolate the incorrect assumption.
-4. **Independent Review**: Explicitly request a code review and validation audit by **Claude Opus** before attempting further code changes.
-
-Source:
-* `docs/debugging.md`
-* `docs/troubleshooting.md`
+- **Do NOT Output Chatty Narrative**: Avoid conversational updates like "Let's inspect...", "Wonderful, now let's verify...", "I will check...".
+- **Allowed Outputs**: The AI is permitted to expose only:
+  1. The Session Start Checklist and Implementation Plan.
+  2. Concise progress checkpoints (e.g. updating task status files).
+  3. The final, structured Engineering Report (refer to Section 7).
 
 ---
 
-## 9. Commit & Release Rules (MANDATORY)
+## 6. Knowledge Reuse Policy
 
-### Git Commit Guidelines
-* **No wildcards**: Do not run `git add .` or `git add -A`. Stage files individually.
-* **Semantic Commits**: Messages must be prefixed with `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`, followed by a lowercase description.
+AI sessions must never spend time or context rediscovering information already documented in the repository.
 
-### Release Workflow
-Before any release trigger:
-* Confirm `versionCode` increments by exactly `+1`.
-* Verify `versionName` semantic tags match.
-* Run regression tests and confirm remote public CDN endpoints (`version.json`, `app-release.json`) update correctly.
+- **Docs First**: If a configuration parameter, system component, or native bridge design is already described in the documentation, use it immediately.
+- **Outdated Code Scans**: Only inspect code files to double check details if the local documentation appears outdated or explicitly requests future validation.
 
 Source:
-* `docs/release_process.md`
+* [coding_standards.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/coding_standards.md#L7-L17)
 
 ---
 
-## 10. Post-Implementation Checklist (MANDATORY)
+## 7. Output Quality (Engineering Report Format)
 
-A task is only complete and ready to report when the following checks are met and output:
+The final response must consist only of a structured report containing:
 
-* [ ] **Build Success**: The workspace builds successfully (`pnpm build`).
-* [ ] **TypeScript Type Safety**: All TypeScript checks pass with zero errors (`pnpm run typecheck:libs`).
-* [ ] **No Linter Regressions**: The code complies with codebase conventions and import boundaries.
-* [ ] **Android Compilation**: Native Web view builds compile cleanly without warnings.
-* [ ] **Web Compilation**: Web SPA builds compile cleanly without warnings.
-* [ ] **Architecture Preserved**: Reused existing hooks, stores, and utilities. No duplicate code remains.
-* [ ] **Documentation Updated**: The relevant documents in `docs/` and `docs/architecture_decisions.md` have been updated.
-* [ ] **Staging Verified**: Staged only modified documentation/source files explicitly.
-* [ ] **Commit Created**: Semantic commit message matches guidelines.
-* [ ] **Push Completed**: Pushed code directly to the active remote branch.
-* [ ] **Report Output**: A detailed engineering report is produced.
+*   **Summary**: A concise description of the completed work.
+*   **Files Modified / Created**: Explicit list of filepaths.
+*   **Validation**: Commands executed and results.
+*   **Commit Hash**: The generated commit hash.
+*   **Risks**: Any potential platform boundaries or regression impacts.
+*   **Recommendations**: Clean future improvements.
+
+Remove all conversational filler and narrative summaries.
+
+---
+
+## 8. Failure Recovery Protocol
+
+If two implementation attempts fail to compile or build:
+1.  **Stop Coding**: Halt all code modifications immediately.
+2.  **Collect Evidence**: Gather compiler error traces.
+3.  **Independent Review**: Explicitly recommend a logical review by **Claude Opus** before making any further edits.
 
 Source:
-* `docs/testing.md`
+* [troubleshooting.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md)

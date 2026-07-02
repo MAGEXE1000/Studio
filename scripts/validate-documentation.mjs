@@ -5,54 +5,76 @@ const workspaceRoot = process.cwd();
 const docsDir = path.join(workspaceRoot, 'docs');
 
 const issues = [];
+const allDocs = []; // Array of absolute paths to all md files
+const docLinkTargets = new Set(); // Set of absolute paths of md files that are linked to
 
 function logIssue(level, document, line, problem, correction) {
   issues.push({ level, document, line, problem, correction });
 }
 
-// Helper to check if a file exists relative to workspace root
-function verifyPathExists(filePath, docFile, lineNum, contextStr) {
-  // Normalize path separators
+// Recursively find all markdown files in a directory
+function getMdFilesRecursive(dir) {
+  let results = [];
+  if (!fs.existsSync(dir)) return results;
+  const list = fs.readdirSync(dir);
+  for (const file of list) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    if (stat && stat.isDirectory()) {
+      if (file !== 'node_modules' && file !== '.git') {
+        results = results.concat(getMdFilesRecursive(filePath));
+      }
+    } else if (file.endsWith('.md')) {
+      results.push(filePath);
+    }
+  }
+  return results;
+}
+
+// Normalize and verify if a path exists, registering it if it's another markdown file
+function verifyPathExists(filePath, docFile, lineNum) {
   let normalizedPath = filePath.replace(/\\/g, '/');
 
-  // Handle absolute file:/// links by extracting the path after the workspace folder name 'Studio'
+  // Handle absolute file:/// links
   if (normalizedPath.startsWith('file:///')) {
     const studioIdx = normalizedPath.indexOf('/Studio/');
     if (studioIdx !== -1) {
-      normalizedPath = normalizedPath.substring(studioIdx + 8); // length of '/Studio/'
+      normalizedPath = normalizedPath.substring(studioIdx + 8); // strip up to '/Studio/'
     } else {
-      // Fallback: strip file:/// and try resolving
       normalizedPath = normalizedPath.replace('file:///', '');
       if (normalizedPath.match(/^[a-zA-Z]:/)) {
-        // Windows absolute path
         normalizedPath = path.normalize(normalizedPath);
       }
     }
   }
 
-  // Resolve relative to workspace root if not absolute
-  const absolutePath = path.isAbsolute(normalizedPath) 
-    ? normalizedPath 
-    : path.join(workspaceRoot, normalizedPath);
-
   // Strip anchor references (e.g. #L10-L20)
-  const cleanPath = absolutePath.split('#')[0];
+  const cleanUrl = normalizedPath.split('#')[0];
 
-  if (!fs.existsSync(cleanPath)) {
+  // Resolve to absolute path on disk (relative to workspace root)
+  const absolutePath = path.isAbsolute(cleanUrl) 
+    ? cleanUrl 
+    : path.resolve(workspaceRoot, cleanUrl);
+
+  if (!fs.existsSync(absolutePath)) {
     logIssue(
       'ERROR',
       docFile,
       lineNum,
-      `Referenced path does not exist: "${filePath}" (resolved to: "${cleanPath}")`,
+      `Referenced path does not exist: "${filePath}" (resolved to: "${absolutePath}")`,
       `Verify the file or directory exists in the repository, or update the reference.`
     );
+  } else {
+    // If it's a valid local markdown document, register it as linked
+    if (absolutePath.endsWith('.md')) {
+      docLinkTargets.add(path.normalize(absolutePath).toLowerCase());
+    }
   }
 }
 
-function validateFile(file) {
-  const filePath = path.join(docsDir, file);
-  const relativeDocPath = path.relative(workspaceRoot, filePath);
-  const content = fs.readFileSync(filePath, 'utf8');
+function validateFile(absoluteFilePath) {
+  const relativeDocPath = path.relative(workspaceRoot, absoluteFilePath);
+  const content = fs.readFileSync(absoluteFilePath, 'utf8');
   const lines = content.split('\n');
 
   const headers = new Set();
@@ -72,7 +94,7 @@ function validateFile(file) {
 
     // Process source files in Source block
     if (inSourceBlock) {
-      if (trimmed === '' || trimmed.startsWith('#')) {
+      if (trimmed === '' || trimmed.startsWith('#') || trimmed.startsWith('---')) {
         inSourceBlock = false;
       } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
         let pathRef = trimmed.substring(2).trim();
@@ -83,9 +105,9 @@ function validateFile(file) {
         } else {
           pathRef = pathRef.replace(/`/g, '').trim();
         }
-        // Skip links that are already verified via link matching
+        // Skip markdown links already validated by link matching
         if (!pathRef.startsWith('[')) {
-          verifyPathExists(pathRef, relativeDocPath, lineNum, 'Source Reference');
+          verifyPathExists(pathRef, relativeDocPath, lineNum);
         }
       }
     }
@@ -137,6 +159,10 @@ function validateFile(file) {
     ];
 
     placeholders.forEach(p => {
+      // Allow the documentation_validation document itself to list the strings for explanation
+      if (relativeDocPath.endsWith('documentation_validation.md')) {
+        return;
+      }
       if (p.pattern.test(line)) {
         logIssue(
           'WARNING',
@@ -148,20 +174,19 @@ function validateFile(file) {
       }
     });
 
-    // Detect Markdown Links
-    // Match standard markdown links [label](url)
+    // Detect Markdown Links [label](url)
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     let linkMatch;
     while ((linkMatch = linkRegex.exec(line)) !== null) {
       const label = linkMatch[1];
       const url = linkMatch[2].trim();
 
-      // Skip web external URLs, mailto links, pure anchor links, or dummy parameters
+      // Skip external, mailto, anchor or dummy urls
       if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('#') || url === 'url' || url === 'path') {
         continue;
       }
 
-      verifyPathExists(url, relativeDocPath, lineNum, `Markdown Link [${label}]`);
+      verifyPathExists(url, relativeDocPath, lineNum);
     }
   });
 
@@ -184,19 +209,47 @@ if (!fs.existsSync(docsDir)) {
   process.exit(1);
 }
 
-const docFiles = fs.readdirSync(docsDir).filter(file => file.endsWith('.md'));
+// 1. Collect all documents recursively
+const files = getMdFilesRecursive(docsDir);
+files.forEach(file => {
+  allDocs.push(path.normalize(file));
+});
 
-docFiles.forEach(file => {
+// 2. Validate content and extract links
+allDocs.forEach(file => {
   validateFile(file);
 });
 
-console.log(`Scanned ${docFiles.length} documentation files.\n`);
+// 3. Detect and report orphan files
+// An orphan is any markdown file that is NOT present in docLinkTargets
+// We exclude the master entry points from being orphans
+const ignoredOrphans = new Set([
+  path.normalize(path.join(docsDir, 'engineering_guide.md')).toLowerCase(),
+  path.normalize(path.join(docsDir, 'architecture/internal-index.md')).toLowerCase()
+]);
+
+allDocs.forEach(file => {
+  const normalizedFile = file.toLowerCase();
+  if (ignoredOrphans.has(normalizedFile)) return;
+  if (!docLinkTargets.has(normalizedFile)) {
+    const relativePath = path.relative(workspaceRoot, file);
+    logIssue(
+      'WARNING',
+      relativePath,
+      1,
+      `Orphan document: No other documents link to this file.`,
+      `Add a markdown link pointing to this file from another active guide (e.g. internal-index.md).`
+    );
+  }
+});
+
+console.log(`Scanned ${allDocs.length} documentation files.\n`);
 
 const errors = issues.filter(i => i.level === 'ERROR');
 const warnings = issues.filter(i => i.level === 'WARNING');
 
 if (issues.length === 0) {
-  console.log('✓ Validation passed! All file references exist and no placeholders were found.');
+  console.log('✓ Validation passed! All file references exist and no placeholders or orphans were found.');
   process.exit(0);
 }
 

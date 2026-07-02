@@ -30,8 +30,8 @@ graph TD
 ## 2. Core Modules
 1.  **Downloader**: Coordinates mirror resolution (GitHub Release ↔ Firebase Hosting ↔ Secondary Mirror), executes Range-based partial HTTP resume, and tracks download speed and progress.
 2.  **Verifier**: Inspects downloaded APKs for integrity (SHA-256 validation), package matching (`com.chordex.app`), production signing certificate fingerprint matching, and versionCode constraints.
-3.  **Installer**: Native Capacitor wrapper ([AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)) coordinating the Android `PackageInstaller` Session API and legacy `ACTION_VIEW` intent fallbacks.
-4.  **Handoff Receiver**: Android `BroadcastReceiver` ([InstallReceiver.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java)) catching install success/failure feedback intents from the operating system.
+3.  **Installer**: Native Capacitor wrapper ([AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)) coordinating the Android `PackageInstaller` Session API and legacy `ACTION_VIEW` intent fallbacks.
+4.  **Handoff Receiver**: Android `BroadcastReceiver` ([InstallReceiver.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java)) catching install success/failure feedback intents from the operating system.
 5.  **Diagnostics Engine**: Telemetry tracker compiling connectivity tests, storage limits, and error stacktraces into exportable JSON health reports.
 
 ---

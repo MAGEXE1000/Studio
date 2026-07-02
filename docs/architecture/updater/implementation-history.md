@@ -17,10 +17,10 @@ This document serves as the project's engineering log, recording major updates, 
 -   **Date**: June 27, 2026
 -   **Release Target**: `v3.7.2` (versionCode `129`)
 -   **Files Modified**:
-    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
-    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/apkDownloader.ts)
-    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/otaUpdate.ts)
-    -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/ui-shared/src/components/UpdateIndicator.tsx)
+    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts)
+    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
+    -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)
 -   **Reason for Change**: Prevent update lock-ups caused by interrupted downloads, single-point release servers, or PackageInstaller session blocks.
 -   **Key Decisions**:
     -   Implemented smart resume (`downloadFileWithResume`) via HTTP Range requests in native Java.
@@ -40,8 +40,8 @@ This document serves as the project's engineering log, recording major updates, 
 -   **Date**: June 27, 2026
 -   **Release Target**: `v3.7.1` (versionCode `128`)
 -   **Files Modified**:
-    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
-    -   [appVersion.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/appVersion.ts)
+    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+    -   [appVersion.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/appVersion.ts)
 -   **Reason for Change**: Support compile-safe Android 14 in-place downgrades and fix update indicator z-index layer clipping.
 -   **Key Decisions**:
     -   Refactored `setRequestDowngrade(true)` to compile using dynamically resolved reflection lookups, preventing build script compile-time exceptions.

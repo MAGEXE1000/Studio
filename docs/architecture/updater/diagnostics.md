@@ -19,9 +19,9 @@ The diagnostics subsystem records operations, network handshakes, integrity chec
 ---
 
 ## 2. Failure & Timeout Detection
--   **Download Failures**: Caught in the connection streams of [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java) (HTTP response code checks, missing assets, content length mismatch).
--   **Validation Failures**: Caught in [apkDownloader.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/apkDownloader.ts) (hash comparisons, signature verification blocks).
--   **Install Failures**: Caught in [InstallReceiver.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java) (handling OS broadcast status codes like `STATUS_FAILURE_INVALID` or `STATUS_FAILURE_ABORTED`).
+-   **Download Failures**: Caught in the connection streams of [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java) (HTTP response code checks, missing assets, content length mismatch).
+-   **Validation Failures**: Caught in [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts) (hash comparisons, signature verification blocks).
+-   **Install Failures**: Caught in [InstallReceiver.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java) (handling OS broadcast status codes like `STATUS_FAILURE_INVALID` or `STATUS_FAILURE_ABORTED`).
 
 ---
 

@@ -143,3 +143,22 @@ Source:
 Source:
 * `docs/ai_workflow.md`
 * `docs/troubleshooting.md`
+
+---
+
+## 11. Pre-Commit Engineering Validation Checklist (MANDATORY)
+
+Before triggering any commit or submitting a pull request, the developer or AI agent must verify the following repository states:
+
+- [ ] **1. Documentation Validation**: Run `pnpm docs:validate`. Ensure 0 errors are reported. All template placeholders must be resolved, and no orphan documents may exist.
+- [ ] **2. Architecture References**: Confirm that all new guides or altered sections contain a trailing `Source:` reference block mapping back to source files on disk.
+- [ ] **3. Import Boundaries**: Run `pnpm lint:imports` to verify package import boundaries.
+- [ ] **4. Platform Separation**: Run `pnpm scope:check` (e.g. for web, apk, shared) to ensure that no platform-specific code has leaked across boundaries.
+- [ ] **5. Generated Reports**: Verify that all generated files (such as size reports or coverage logs) are updated with the current timestamp and Git commit hash.
+- [ ] **6. Broken Link Check**: Check that all internal document links (`file:///...` or relative urls) resolve successfully to active paths on disk.
+- [ ] **7. ADR Consistency**: Ensure that no new code behaviors contradict established decisions recorded in `docs/architecture_decisions.md` or `docs/architecture/adr/`.
+- [ ] **8. Repository Consistency**: Run `pnpm run typecheck:libs` and compile packages to verify that the workspace builds cleanly with zero compiler warnings.
+
+Source:
+* `docs/coding_standards.md`
+* `docs/release_process.md`

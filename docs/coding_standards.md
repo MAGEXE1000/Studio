@@ -74,3 +74,22 @@ To comply with the React **Rules of Hooks**:
 
 Source:
 * `packages/ui-shared/src/components/DevToolsDashboard.tsx`
+
+---
+
+## 5. Platform-Scope & Version Control Standards
+
+To maintain project architecture and code separation, future implementations must follow these strict operational rules:
+
+*   **Scope Isolation**: A WEB-classified task must not alter Android/APK-owned files. An APK-classified task must not alter Web-owned files.
+*   **Build Boundaries**: Android-only changes must not trigger Netlify builds.
+*   **UI Purity**: Never copy complete Web layouts directly into Android. Never copy Android navigation elements directly into Web.
+*   **No Silent Expansions**: Never silently expand a task to both platforms.
+*   **Version Control Constraints**: Never silently bump versions. Maintain Web at `4.0.0` and Android at the latest release version.
+*   **Security & Credentials**: Never print, embed, or retrieve credentials, secrets, or GitHub tokens in Git URLs. Keystore files must never be committed.
+*   **Explicit Git Staging**: Do not run `git add .` or `git add -A`. Stage target files individually using explicit path names.
+*   **Testing Integrity**: Never describe untested behavior as verified. Never represent no-op tests as passing tests.
+*   **Fail-Closed Releases**: Never weaken production signing or metadata verification. Release flows must enforce the production signer certificate fingerprint: `900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`.
+
+Source:
+* [AGENTS.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/AGENTS.md#L28-L39)

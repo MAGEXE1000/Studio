@@ -34,8 +34,8 @@ Studio
     -   Hosting native custom Java plugins (`AppInstallerPlugin.java` and `InstallReceiver.java`).
     -   Configuring AndroidManifest.xml and FileProvider permissions.
 *   **Main Files**:
-    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
-    -   [InstallReceiver.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java)
+    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+    -   [InstallReceiver.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java)
 *   **Public APIs**: None (container package).
 *   **Dependencies**: `packages/studio-core`, `packages/ui-shared`.
 *   **Consuming Modules**: None.
@@ -61,8 +61,8 @@ Studio
     -   Handling OTA update checking, mirror resolution, downloading triggers, and eligibility checks.
     -   Interacting with native preferences and native file providers.
 *   **Main Files**:
-    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/otaUpdate.ts)
-    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/apkDownloader.ts)
+    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
+    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts)
 *   **Public APIs**: `useOtaUpdate`, `applyUpdate`, `applyUpdateDirect`, `runUpdaterHealthCheck`, `getDiagnosticsReport`, `shareDownloadedApk`.
 *   **Dependencies**: Capacitor Core plugins, Zustand.
 *   **Consuming Modules**: `apps/studio-android`, `apps/studio-web`, `packages/ui-shared`.
@@ -75,7 +75,7 @@ Studio
 *   **Responsibilities**:
     -   Rendering custom UI panels, settings indicators, and update dialogs.
 *   **Main Files**:
-    -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/ui-shared/src/components/UpdateIndicator.tsx)
+    -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)
 *   **Public APIs**: `<UpdateIndicator />`, hub layouts.
 *   **Dependencies**: `packages/studio-core`.
 *   **Consuming Modules**: `apps/studio-android`, `apps/studio-web`.

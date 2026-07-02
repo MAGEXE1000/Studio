@@ -17,8 +17,8 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: The updater dialog gets stuck at "Downloading update (0%)" or "Retry 1/3 in...".
 -   **Possible Causes**: Network unreachable, DNS resolution failures, or target mirror file deleted/not found (HTTP 404).
 -   **Relevant Files**:
-    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/apkDownloader.ts)
-    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts)
+    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
 -   **Diagnostics to Inspect**:
     -   `otaDebugLogs.downloadStatus`
     -   `otaDebugLogs.currentDownloadSource`
@@ -33,8 +33,8 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: Download completes 100%, status flashes, but the OS Package Installer confirmation overlay never displays.
 -   **Possible Causes**: Background Activity Launch (BAL) restrictions (Android 14+), session token timeout, or pending intent collision.
 -   **Relevant Files**:
-    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
-    -   [InstallReceiver.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java)
+    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+    -   [InstallReceiver.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java)
 -   **Diagnostics to Inspect**:
     -   `otaDebugLogs.installerLaunchStatus`
     -   `otaDebugLogs.installError`
@@ -49,7 +49,7 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: Download succeeds but stays at "Verifying update" before transitioning to "Update download failed" (hash validation failed).
 -   **Possible Causes**: Partially downloaded files corrupted during stream write, or file size/hash mismatch on the release server.
 -   **Relevant Files**:
-    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/apkDownloader.ts)
+    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts)
 -   **Diagnostics to Inspect**:
     -   `otaDiagnostics.shaExpected`
     -   `otaDiagnostics.shaCalculated`
@@ -64,7 +64,7 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: Dialog transitions directly to "Manual reinstall required" stating that signing certificate has changed.
 -   **Possible Causes**: App signed with a development debug keystore attempting to update using a production release APK (or vice versa).
 -   **Relevant Files**:
-    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/apkDownloader.ts)
+    -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts)
 -   **Diagnostics to Inspect**:
     -   `otaDebugLogs.installedSigningSha256`
     -   `otaDebugLogs.downloadedSigningSha256`
@@ -78,7 +78,7 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: App is unable to resolve updates, showing network error details.
 -   **Possible Causes**: Cloudflare/GitHub API rate limits, server outages, or corporate firewall restrictions.
 -   **Relevant Files**:
-    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/studio-core/src/lib/otaUpdate.ts)
+    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
 -   **Diagnostics to Inspect**:
     -   `otaDebugLogs.fetchedVersionJson`
     -   `otaDebugLogs.fetchedAppReleaseJson`
@@ -93,7 +93,7 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: Redirects to system settings or prompt appears: "automatic installation blocked".
 -   **Possible Causes**: Android default security blocks sideloading apps from unknown sources.
 -   **Relevant Files**:
-    -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/Studio/chordex-app/packages/ui-shared/src/components/UpdateIndicator.tsx)
+    -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)
 -   **Diagnostics to Inspect**:
     -   `otaDiagnostics.permissionState`
 -   **Recovery Procedure**:
@@ -106,7 +106,7 @@ This document describes troubleshooting and recovery paths for common updater fa
 -   **Symptoms**: "Invalid update package: Android versionCode is not newer than installed".
 -   **Possible Causes**: User attempts to click a release rollback version code lower than the installed build without enabling downgrade support.
 -   **Relevant Files**:
-    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/Studio/chordex-app/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
+    -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
 -   **Diagnostics to Inspect**:
     -   `otaDebugLogs.installedVersionCode`
     -   `otaDebugLogs.downloadedVersionCode`

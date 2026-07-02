@@ -1207,6 +1207,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
           key={actionId}
           disabled={disabled || state === 'running'}
           onClick={() => {
+            console.log(`BUTTON PRESSED:\n${label}`);
+            addJsLog(`BUTTON PRESSED:\n${label}`);
             executeLabAction(actionId, label, async () => {
               return await onClick();
             });
@@ -1882,7 +1884,11 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         {/* Tab Switcher */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 4, background: 'rgba(255,255,255,0.03)', padding: 4, borderRadius: 8 }}>
           <button
-            onClick={() => setUpdaterTabMode('laboratory')}
+            onClick={() => {
+              console.log("BUTTON PRESSED:\nUpdater Laboratory Tab");
+              addJsLog("BUTTON PRESSED:\nUpdater Laboratory Tab");
+              setUpdaterTabMode('laboratory');
+            }}
             style={{
               flex: 1,
               padding: '8px 10px',
@@ -1899,7 +1905,11 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             Updater Laboratory
           </button>
           <button
-            onClick={() => setUpdaterTabMode('diagnostics')}
+            onClick={() => {
+              console.log("BUTTON PRESSED:\nDiagnostics Dashboard Tab");
+              addJsLog("BUTTON PRESSED:\nDiagnostics Dashboard Tab");
+              setUpdaterTabMode('diagnostics');
+            }}
             style={{
               flex: 1,
               padding: '8px 10px',
@@ -1980,7 +1990,11 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                   Automated Functional Audit
                 </div>
                 <button
-                  onClick={runAutomatedAudit}
+                  onClick={() => {
+                    console.log("BUTTON PRESSED:\nRun Functional Audit");
+                    addJsLog("BUTTON PRESSED:\nRun Functional Audit");
+                    runAutomatedAudit();
+                  }}
                   disabled={auditStatus === 'running'}
                   style={{
                     padding: '6px 12px',
@@ -3727,7 +3741,11 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            onClick={handleGoBack}
+            onClick={() => {
+              console.log("BUTTON PRESSED:\nBack to Developer Panel");
+              addJsLog("BUTTON PRESSED:\nBack to Developer Panel");
+              handleGoBack();
+            }}
             className="btn-smooth"
             style={{
               background: 'rgba(255,255,255,0.06)',

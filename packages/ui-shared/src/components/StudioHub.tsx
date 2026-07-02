@@ -2946,6 +2946,15 @@ function HubSettings({
     padding: '0 20px',
     paddingBottom: 'var(--content-bottom-pad)',
     animation: `${slideAnim} 300ms cubic-bezier(0.25,0.46,0.45,0.94) both`,
+    height: '100%',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    boxSizing: 'border-box',
+    position: 'absolute',
+    inset: 0,
+    overflow: 'hidden',
+    zIndex: 100,
   };
 
   function renderHelpContent() {
@@ -5889,8 +5898,17 @@ User Agent: [Automatically Generated]
     overflow: 'hidden',
   };
 
-  const subStyle = {
+  const subStyle: React.CSSProperties = {
     animation: `slide-forward 250ms ease both`,
+    height: '100%',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    boxSizing: 'border-box',
+    position: 'absolute',
+    inset: 0,
+    overflow: 'hidden',
+    zIndex: 100,
   };
 
   /* ── MOBILE DRILL DOWN LAYOUTS ──────────────────────────────────── */

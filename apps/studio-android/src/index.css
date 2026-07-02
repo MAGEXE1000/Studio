@@ -1998,3 +1998,17 @@ html.web-desktop.light.amoled .app-sub-app-container {
   }
 }
 
+/* Safeguard Settings Panel Sheets to fill layout bounds and receive touch events properly on Android WebViews */
+.settings-panel-sheet {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  background: #000000 !important;
+  z-index: 100 !important;
+}
+

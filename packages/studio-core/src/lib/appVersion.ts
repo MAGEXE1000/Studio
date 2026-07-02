@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.53';
+export const NATIVE_VERSION = '3.7.54';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,9 +60,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Repaired the Android UI of the Updater Debug Tools screen.",
-      "Eliminated automatic scroll-into-view viewport jumping and vertical layout shifts.",
-      "Removed nested scrollable containers from the log console and chronological event timeline to ensure a single active scroll container, resolving touch event unreliability and gesture conflicts on Android WebViews.",
+      "Fixed touch event interception on Android WebViews for the Updater Debug Tools.",
+      "Constrained layout sheets to fill bounds correctly with flex direction, preventing coordinate offset mismatches.",
+      "Added detailed button-press touch logging instrumentation across all debug buttons.",
     ],
   },
 ];

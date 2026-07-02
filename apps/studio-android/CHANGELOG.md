@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.54
+
+### Fixed
+- Fixed touch event interception on Android WebViews for the Updater Debug Tools.
+- Constrained layout sheets to fill bounds correctly with flex direction, preventing coordinate offset mismatches.
+- Added detailed button-press touch logging instrumentation across all debug buttons.
+
 ## 3.7.53
 
 ### Fixed

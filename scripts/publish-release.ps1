@@ -40,13 +40,33 @@ Write-Host "Waiting 15 seconds for the workflow run to initialize..."
 Start-Sleep -Seconds 15
 
 Write-Host "4. Finding the active workflow run..."
-$Run = gh run list --workflow=release.yml --branch $BranchName --limit 1 --json databaseId,status,conclusion | ConvertFrom-Json
-if (-not $Run) {
-    Write-Error "Could not find any runs for release.yml on branch $BranchName"
-    exit 1
+$RunId = $null
+$RunStatusLabel = "unknown"
+for ($attempt = 1; $attempt -le 12; $attempt++) {
+    $Runs = gh run list --workflow=release.yml --branch $BranchName --limit 5 --json databaseId,status,conclusion | ConvertFrom-Json
+    if ($Runs) {
+        foreach ($r in $Runs) {
+            if ($r.status -eq "queued" -or $r.status -eq "in_progress") {
+                $RunId = $r.databaseId
+                $RunStatusLabel = $r.status
+                break
+            }
+        }
+    }
+    if ($RunId) { break }
+    Write-Host "Waiting for new run to register (attempt $attempt/12)..."
+    Start-Sleep -Seconds 10
 }
-$RunId = $Run[0].databaseId
-Write-Host "Found run ID: $RunId. Status: $($Run[0].status)"
+if (-not $RunId) {
+    if ($Runs) {
+        $RunId = $Runs[0].databaseId
+        $RunStatusLabel = $Runs[0].status
+    } else {
+        Write-Error "Could not find any runs for release.yml on branch $BranchName"
+        exit 1
+    }
+}
+Write-Host "Found run ID: $RunId. Status: $RunStatusLabel"
 
 Write-Host "5. Monitoring workflow run $RunId until completion..."
 while ($true) {

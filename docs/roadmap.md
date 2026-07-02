@@ -18,6 +18,9 @@ This document outlines active development goals, short-term milestones, and long
 | **Phase 3** | **Audio Optimizations**| Integration of low-latency native audio engines | `v3.8.0` | **Planned** |
 | **Phase 4** | **Real-time Jamming**| Multi-client websocket audio synchronization | `v3.9.0` | **Planned** |
 
+Source:
+* `CHANGELOG.md`
+
 ---
 
 ## 2. Milestone Focus Details
@@ -33,3 +36,7 @@ This document outlines active development goals, short-term milestones, and long
 ### Long-Term: Real-Time Jam Session Sync
 * **Websocket Audio Sync**: Enable users to synchronize sequencer grids and tracks in real-time.
 * **P2P Audio Streaming**: Implement WebRTC audio transport layers for instant vocal monitoring across remote clients.
+
+Source:
+* `packages/studio-core/src/lib/audioContextOptions.ts`
+* `packages/studio-core/src/lib/drumAudio.ts`

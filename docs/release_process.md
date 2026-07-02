@@ -15,6 +15,10 @@ Chordex Studio enforces version parameters:
   node scripts/sync-version.mjs
   ```
 
+Source:
+* `apps/studio-android/android/app/build.gradle`
+* `scripts/sync-version.mjs`
+
 ---
 
 ## 2. Git Workflow & Commit Rules
@@ -39,31 +43,35 @@ Commits must conform to Semantic Commits specifications:
 
 ## 3. Deployment Pipeline (GitHub Actions)
 
-Deployments are automated through Github Actions.
+Deployments are manually triggered via the GitHub Actions user interface using the `workflow_dispatch` event handler:
 
 ```
-┌───────────┐       ┌────────────────────┐       ┌────────────────────┐
-│ Push Tag  │       │  Trigger Workflow  │       │ Compile & Assemble │
-│ (v3.7.56) ├──────>│   (release.yml)    ├──────>│    Signed APKs     │
-└───────────┘       └─────────┬──────────┘       └─────────┬──────────┘
-                                │                            │
-                                ▼                            ▼
-                      ┌────────────────────┐       ┌────────────────────┐
-                      │Publish GitHub Release│      │ Deploy Metadata to │
-                      │   with APK & SHA   │       │  Firebase Hosting  │
-                      └────────────────────┘       └────────────────────┘
+┌──────────────────┐       ┌────────────────────┐       ┌────────────────────┐
+│ Trigger UI Build ├──────>│  Trigger Workflow  ├──────>│ Compile & Assemble │
+│ (inputs: v_name) │       │(android-release.yml)│      │    Signed APKs     │
+└──────────────────┘       └─────────┬──────────┘       └─────────┬──────────┘
+                                     │                            │
+                                     ▼                            ▼
+                           ┌────────────────────┐       ┌────────────────────┐
+                           │Publish GitHub Release│      │ Deploy Metadata to │
+                           │   with APK & SHA   │       │  Firebase Hosting  │
+                           └────────────────────┘       └────────────────────┘
 ```
 
 ### Steps
-1. **Trigger**: Push a version tag matching `v*` (e.g., `git tag v3.7.56` & `git push origin v3.7.56`).
-2. **Build Stage**: The runner launches `release.yml`, executing:
+1. **Trigger**: Navigate to Actions on GitHub, select **Android Release Pipeline**, and click **Run workflow**. Fill in the required inputs: `version_name`, `version_code`, and optional `note`.
+2. **Build Stage**: The runner launches `android-release.yml`, executing:
    * Linters and unit testing suites.
    * Compiles the React distribution bundles.
-   * Runs Android Gradle tasks, signing the release APK.
-3. **GitHub Release Stage**: Publishes a new release containing:
-   * Compiled signed APK (`studio-release.apk`).
-   * Integrity checksum signature (`studio-release.sha256`).
+   * Decodes base64 keystore credentials and compiles the release APK.
+3. **GitHub Release Stage**: Publishes a new release tag containing:
+   * Compiled signed APK (`studio-[version_name].apk`).
+   * Integrity checksum signature (`studio-[version_name].sha256`).
 4. **Hosting Distribution Stage**: Deploys the latest metadata files (`version.json` and `app-release.json`) directly to Firebase Hosting.
+
+Source:
+* `.github/workflows/android-release.yml`
+* `.github/workflows/release.yml`
 
 ---
 
@@ -74,5 +82,9 @@ Before finalizing a release, complete the following verification steps:
 * [ ] **Public Metadata Verification**: Fetch metadata parameters:
   * URL: `https://studio-30f44.web.app/version.json` -> verify version matches the tag.
   * URL: `https://studio-30f44.web.app/app-release.json` -> verify `apkUrl`, `sha256`, and `versionCode` are correct.
-* [ ] **Updater Auto-Detect**: Launch an older app version (e.g., `3.7.55`) and verify that it detects the new version (`3.7.56`), downloads it, and launches the install prompt.
+* [ ] **Updater Auto-Detect**: Launch an older app version and verify that it detects the new version, downloads it, and launches the install prompt.
 * [ ] **Regression Verification**: Ensure that offline database synchronization and backing tracks work correctly post-install.
+
+Source:
+* `.github/workflows/android-release.yml`
+* `packages/studio-core/src/lib/otaUpdate.ts`

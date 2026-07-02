@@ -13,21 +13,39 @@ This guide details common engineering failures, build issues, OTA errors, and sy
   org.gradle.jvmargs=-Xmx3072m -XX:MaxPermSize=512m
   ```
 
+Source:
+* `apps/studio-android/android/gradle.properties`
+
 ### Keystore Signature Mismatch
 * **Symptom**: Staged builds fail to install over current packages, displaying "App not installed as package conflicts with an existing package".
 * **Resolution**: Keystore configurations differ. Uninstall the previous version from the device completely (`adb uninstall com.chordex.app`) and install the new build to re-establish signature alignment.
+
+### Missing Signing Secrets in CI Pipeline
+* **Symptom**: Triggering `android-release.yml` fails at step "Assert Production Signing Secrets".
+* **Resolution**: Ensure that the following secrets are configured in GitHub Repository Settings:
+  * `ANDROID_KEYSTORE_BASE64`
+  * `ANDROID_KEYSTORE_PASSWORD`
+  * `ANDROID_KEY_ALIAS`
+  * `ANDROID_KEY_PASSWORD`
+
+Source:
+* `.github/workflows/android-release.yml`
 
 ---
 
 ## 2. OTA & PackageInstaller Failures
 
-The native `AppInstaller` plugin returns specific failure codes from the Android OS.
+The native `AppInstallerPlugin` plugin returns specific failure codes from the Android OS.
 
 | Code | Label / OS Reason | Possible Cause | Resolution |
 |---|---|---|---|
 | **`STATUS_FAILURE_STORAGE (6)`** | Storage Full | Not enough free space to cache or expand the update APK. | Clean system temporary cache or delete media files. |
 | **`STATUS_FAILURE_CONFLICT (5)`**| Signature Conflict | The downloaded APK was signed with a different key certificate. | Verify the CI signing key variables or trigger clean reinstalls. |
 | **`STATUS_FAILURE_INCOMPATIBLE`**| Version Low / Incompatible | The target APK's `versionCode` is lower than the active code. | Ensure that target release metadata is correct. |
+
+Source:
+* `apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java`
+* `packages/studio-core/src/lib/otaUpdate.ts`
 
 ### Download Session Timeouts
 * **Symptom**: The updater remains stuck in the `downloading` state and then transitions to `failed` with network errors.
@@ -39,7 +57,10 @@ The native `AppInstaller` plugin returns specific failure codes from the Android
 
 ### Firebase Firestore Permission Errors
 * **Symptom**: Database calls fail with `FirebaseError: [code=permission-denied]: Missing or insufficient permissions`.
-* **Resolution**: Verify that the user authentication credentials are valid. If accessing specific documents, ensure that the active document's `userId` matches the authenticated `request.auth.uid` parameters.
+* **Resolution**: Verify that the user authentication credentials are valid. Ensure the document path matches permissions mapped in `firestore.rules`.
+
+Source:
+* `firestore.rules`
 
 ### CDN Metadata Propagation Delay
 * **Symptom**: Triggering a new release succeeds, but clients continue checking and fetching old version configurations.
@@ -47,10 +68,13 @@ The native `AppInstaller` plugin returns specific failure codes from the Android
   ```json
   "headers": [
     {
-      "source": "/app-release.json",
+      "source": "/@(version.json|app-release.json)",
       "headers": [
-        { "key": "Cache-Control", "value": "max-age=0, no-cache, no-store, must-revalidate" }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }
       ]
     }
   ]
   ```
+
+Source:
+* `firebase.json`

@@ -1,6 +1,6 @@
 # Chordex Studio — Master Engineering Guide
 
-This document serves as the master engineering guide and single source of truth for the Chordex Studio monorepo. Every developer, architect, and agent must read and verify their implementations against this guide first.
+This document serves as the master engineering guide and single source of truth for the Chordex Studio monorepo. Every developer, architect, and agent must read and reference this guide first.
 
 ---
 
@@ -9,9 +9,9 @@ This document serves as the master engineering guide and single source of truth 
 Chordex Studio is a high-performance, cross-platform audio station, chords practice suite, interactive sequencer, and vocal tuning workshop. 
 
 ### Key Objectives
-* **Unified Core Logic**: Leverage a shared core package (`@workspace/studio-core`) across both web and native Android builds to guarantee consistency in business rules, offline database storage, and state machine behaviors.
+* **Unified Core Logic**: Leverage a shared core package (`@workspace/studio-core`) across both web and native Android builds to guarantee consistency in business rules, local storage caching, and state machine behaviors.
 * **Low-Latency Audio Engine**: Deliver real-time audio playback, tuning, and sequencing capabilities natively on Android and in HTML5 browser environments.
-* **Resilient Offline-First Sync**: Sync user configurations, practice sessions, and custom song databases seamlessly to Firebase (with Supabase Realtime synchronization fallbacks).
+* **Resilient Offline-First Sync**: Sync user configurations, practice sessions, and custom song databases seamlessly to Firestore or Supabase Realtime synchronization backends.
 * **Robust OTA Updates**: Deploy bug fixes, performance upgrades, and assets dynamically via a secure native OTA (Over-the-Air) updater engine.
 
 ---
@@ -26,15 +26,26 @@ studio/
 │   ├── studio-android/       # Capacitor + React + Vite Android client
 │   └── studio-web/           # React + Vite desktop web deployment
 ├── packages/
-│   ├── studio-core/          # Core state stores, OTA engines, offline db, services
+│   ├── studio-core/          # Core state stores, OTA engines, local storage interfaces, services
 │   ├── ui-shared/            # Platform-neutral Material 3 UI component library
 │   ├── ui-android/           # Touchsafe adapters, back gesture handlers, safe areas
 │   └── ui-web/               # Desktop workspace docks and netlify views
+├── lib/
+│   ├── api-client-react/     # API Client hooks for frontend integration
+│   ├── api-spec/             # JSON API Specifications and endpoints
+│   ├── api-zod/              # Zod schemas for API request validation
+│   └── db/                   # Database clients and schema definitions
 ├── docs/                     # Production engineering specifications & documentation
 ├── scripts/                  # Version manager, sync, and release automation scripts
+├── supabase/                 # Supabase configuration, schema migrations, and edge functions
+├── firebase-public/          # Web deployment assets targeted by Firebase Hosting
+├── firebase-public-android/  # Android web asset bundles targeted by Firebase Hosting
 ├── package.json              # Workspace manifest
 └── pnpm-workspace.yaml       # Workspace definition
 ```
+
+Source:
+* `pnpm-workspace.yaml`
 
 ---
 
@@ -47,9 +58,14 @@ studio/
 | **Framework** | `React` | Hooks-first functional component architecture |
 | **Build Engine** | `Vite` + `ESBuild` | Low-overhead bundler, fast dev reloading |
 | **Native Bridge** | `Capacitor` | Core app plugins, native android views |
-| **State Store** | `Zustand` | Lightweight decoupled hooks and actions |
-| **Offline Sync** | `Firebase` / `Supabase` | Firestore rules, authentication, realtime synchronization |
-| **Styling** | `CSS` / `Tailwind` | Material 3 themes, safe-area adaptation |
+| **State Store** | `Zustand` | Lightweight decoupled hooks and actions (`useChordStore`, `useDrumStore`) |
+| **Offline Sync** | `Firebase` / `Supabase` | Auth, sync engine (Supabase Realtime configured as default provider) |
+| **Styling** | `CSS` / `Tailwind` | Inline utility styles, Material 3 layouts, safe-area adaptation |
+
+Source:
+* `package.json`
+* `pnpm-workspace.yaml`
+* `packages/studio-core/src/store/`
 
 ---
 
@@ -57,10 +73,14 @@ studio/
 
 To prevent compilation leaks, the monorepo strictly separates platform-specific dependencies:
 
-* **Android changes stay in Android**: Native Gradle configurations, native plugins, and Android UI components (touch safety, back handlers, safe-area wrappers) belong under `apps/studio-android` and `packages/ui-android`.
+* **Android changes stay in Android**: Native Gradle configurations, native Java plugins, and Android UI components (touch safety, back handlers, safe-area wrappers) belong under `apps/studio-android` and `packages/ui-android`.
 * **Web changes stay in Web**: Netlify redirects, desktop-specific landing docks, and Vite web-only scripts belong under `apps/studio-web` and `packages/ui-web`.
-* **Shared Logic stays in Core**: Core states, utilities, API callers, and OTA logic belong in `packages/studio-core` and are not allowed to import native Cordova/Capacitor plugins directly without environment checks (`isNative()`).
+* **Shared Logic stays in Core/Lib**: Core states, utilities, API callers, and OTA logic belong in `packages/studio-core` and the `lib/` workspace packages. They are not allowed to import native Capacitor plugins directly without environment checks (`isNative()`).
 * **Shared UI stays in ui-shared**: Platform-neutral component templates belong in `packages/ui-shared`.
+
+Source:
+* `scripts/verify-bundle-separation.mjs`
+* `scripts/enforce-platform-scope.mjs`
 
 ---
 
@@ -79,28 +99,20 @@ graph TD
     UIAndroid -->|Depends on| UIShared
     UIWeb -->|Depends on| UIShared
     UIShared -->|Depends on| Core
+    UIShared -->|Depends on| DBCli[lib/db]
+    UIShared -->|Depends on| APIReact[lib/api-client-react]
 ```
 
----
-
-## 6. Engineering Principles
-
-### Root-Cause-First Debugging
-* Never apply a band-aid fix or a temporary visual patch.
-* Locate the root origin of a bug (e.g., race condition in storage, missing listener binding, incorrect type check).
-* Refactor the system core rather than wrapping a buggy handler with conditional bypasses.
-
-### Component Reuse
-* Extend existing component templates and custom abstractions rather than writing duplicate UI elements or layout styles.
-* Place shared components in `packages/ui-shared`.
-
-### Performance Hygiene
-* Prevent redundant rendering cycles by utilizing React `useMemo` and `useCallback` strategically.
-* Always clean up event listeners, periodic interval timers, and database subscriptions in cleanup hooks.
+Source:
+* `apps/studio-android/package.json`
+* `apps/studio-web/package.json`
+* `packages/ui-shared/package.json`
+* `packages/ui-android/package.json`
+* `packages/ui-web/package.json`
 
 ---
 
-## 7. Definition of Done (DoD)
+## 6. Definition of Done (DoD)
 
 An implementation is considered complete only when it meets the following criteria:
 

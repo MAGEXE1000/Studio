@@ -1,6 +1,6 @@
 # Chordex Studio — Coding Standards
 
-This document establishes the mandatory engineering rules, directory ownership principles, and code quality expectations for the project.
+This document establishes the coding rules, directory ownership guidelines, and code quality recommendations for the project.
 
 ---
 
@@ -15,18 +15,29 @@ This document establishes the mandatory engineering rules, directory ownership p
 * Refactor existing functions instead of copying logic or creating parallel helpers.
 * Prefer clean, descriptive naming conventions. Maintain comments and docstrings.
 
+Source:
+* `AGENTS.md`
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx` (e.g. centralized copy handler)
+
 ---
 
 ## 2. Code Quality & Modularity
 
-### Modularization Limits
-* **File Length Limit**: Keep code files under `1000` lines of code. If a file grows beyond this threshold, split components, helpers, or hooks into separate module directories.
+### Modularization Guidelines (Aspirational Style Guidelines)
+* **File Length Recommendation**: Developers should strive to keep code files under `1000` lines of code. If a file grows beyond this threshold, consider splitting components, helpers, or hooks into separate module directories.
+  * *Note*: This is an architectural recommendation; it is not enforced by linter build scripts.
 * **Component Splitting**: Do not define functional components inside rendering loops or nested helper functions. Define them at the file or module level to avoid DOM reconstruction and state loss during renders.
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx` (extracted AccordionSection)
 
 ### Strict Typing Rules
 * **No `any`**: Explicitly declare type interfaces or aliases. Avoid using `any` unless absolutely necessary (such as wrapping external untyped JavaScript libraries).
 * **Strict Null Checks**: Safely handle undefined/null states by utilizing optional chaining (`?.`) and nullish coalescing (`??`) operators.
 * **Store Actions**: Decouple state mutations from components by declaring them inside store actions (e.g., in Zustand).
+
+Source:
+* `tsconfig.base.json` (strict checking enabled)
 
 ---
 
@@ -38,6 +49,10 @@ To prevent compiler leaks or runtime exceptions across different platforms:
 * **Web Boundaries**: Netlify config modifications, web landing docks, and Vite web scripts must remain in web-specific packages (`apps/studio-web` and `packages/ui-web`). They must not leak into Android packages.
 * **Android Boundaries**: Native Android Gradle keys, native views, and Capacitor plugin dependencies must remain in Android packages (`apps/studio-android` and `packages/ui-android`).
 * **Shared Logic**: General helpers and platform-neutral components belong in `packages/studio-core` and `packages/ui-shared`.
+
+Source:
+* `scripts/verify-bundle-separation.mjs`
+* `scripts/enforce-platform-scope.mjs`
 
 ---
 
@@ -56,3 +71,6 @@ To comply with the React **Rules of Hooks**:
     };
   }, []);
   ```
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`

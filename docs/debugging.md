@@ -1,10 +1,10 @@
 # Chordex Studio — Debugging & Diagnostics Guide
 
-This document defines the mandatory debugging workflows, telemetry collection systems, and root-cause analysis instructions.
+This document defines the debugging workflows, telemetry collection systems, and root-cause analysis instructions.
 
 ---
 
-## 1. Mandatory 10-Step Debugging Workflow
+## 1. 10-Step Debugging Workflow
 
 Do not write or modify code when diagnosing a defect. Always follow this 10-step engineering workflow:
 
@@ -13,6 +13,7 @@ Do not write or modify code when diagnosing a defect. Always follow this 10-step
 │ 1. Understand   ├─────>│ 2. Gather       ├─────>│ 3. Read Related ├─────┐
 │    Problem      │      │    Evidence     │      │    Architecture │     │
 └─────────────────┘      └─────────────────┘      └─────────────────┘     │
+                                                                          │
                                                                           ▼
 ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐     ┌─────────────────┐
 │ 7. Refactor &   │<─────│ 6. Validate     │<─────│ 5. Produce Plan │<────┤ 4. Locate Root  │
@@ -38,6 +39,9 @@ Do not write or modify code when diagnosing a defect. Always follow this 10-step
 9. **Test Regressions**: Validate that credentials and offline databases load correctly.
 10. **Document & Report**: Update the relevant engineering docs and push changes to the repository.
 
+Source:
+* `AGENTS.md`
+
 ---
 
 ## 2. Diagnostics Telemetry Collection
@@ -45,24 +49,21 @@ Do not write or modify code when diagnosing a defect. Always follow this 10-step
 To inspect client operations, the app integrates diagnostic reporting overlays inside the developer panel.
 
 ### Log Tracing Arrays
-* **`stateTimeline`**: Records state machine transitions (`IDLE` -> `CHECKING` -> `DOWNLOADED`).
+* **`stateTimeline`**: Records state machine transitions.
 * **`jsLogs`**: Captures frontend React console warnings, errors, and informational logs.
 * **`nativeLogsList`**: Records Android PackageInstaller callback responses and system events.
 
 ### Snapshot Generation
-Copy buttons inside the DevTools panel compile reports via `generateFullEngineeringReport()` to export system states:
+Copy buttons inside the DevTools panel compile reports via `generateFullEngineeringReport()` to export system states.
+
+To prevent transaction failures inside the Android OS Clipboard service (which caps transactional IPC payloads), the dashboard UI limits clipboard copy operations to a maximum of `400,000` characters:
 ```typescript
-const handleCopyText = async (text: string, label: string) => {
-  try {
-    if (isNative() && typeof AppInstaller !== 'undefined') {
-      await AppInstaller.copyToClipboard(text);
-    } else {
-      await navigator.clipboard.writeText(text);
-    }
-    showToast(`${label} copied to clipboard`);
-  } catch (err) {
-    showToast(`Failed to copy ${label}`);
-  }
-};
+if (text.length > 400000) {
+  textToCopy = text.substring(text.length - 400000);
+  textToCopy = `[WARNING: Report truncated to the last 400,000 characters due to Android clipboard size limits]\n\n...[TRUNCATED]...\n\n` + textToCopy;
+}
 ```
-To avoid native clipboard failures, payloads exceeding `400,000` characters are truncated from the tail end automatically.
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
+* `packages/studio-core/src/lib/updater/diagnostics.ts`

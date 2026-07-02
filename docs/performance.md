@@ -1,6 +1,6 @@
 # Chordex Studio — Performance Optimization Guide
 
-This document describes runtime efficiency standards, garbage collection, bundle optimization, and React rendering rules.
+This document describes runtime efficiency standards, garbage collection, and React rendering rules.
 
 ---
 
@@ -9,7 +9,7 @@ This document describes runtime efficiency standards, garbage collection, bundle
 To maintain a fluid interface (60fps on mobile viewports), keep render cycles minimal:
 
 ### Memoization
-* **`useMemo`**: Apply to computationally expensive operations, such as parsing arrays or filtering search queries (e.g., search indexing of console log timelines).
+* **`useMemo`**: Apply to computationally expensive operations, such as parsing arrays or filtering search queries.
   ```typescript
   const filteredTimeline = useMemo(() => {
     return stateTimeline.filter(t => t.message.includes(searchQuery));
@@ -19,6 +19,9 @@ To maintain a fluid interface (60fps on mobile viewports), keep render cycles mi
 
 ### Nested Definitions Avoidance
 * Do not declare functional React components inside other functional components. React treats nested definitions as new component types on every render, tearing down and rebuilding the DOM. This causes input focus loss, UI flickering, and heavy rendering pipelines.
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
 
 ---
 
@@ -35,6 +38,10 @@ Do not import entire Zustand state objects into components. When you reference a
   const activeSong = useChordStore(state => state.activeSong); // Only re-renders when activeSong changes
   ```
 
+Source:
+* `packages/studio-core/src/store/useChordStore.ts`
+* `packages/studio-core/src/store/useDrumStore.ts`
+
 ---
 
 ## 3. Dynamic Loading & Chunking
@@ -46,20 +53,23 @@ Do not import entire Zustand state objects into components. When you reference a
   await Share.share({ title: 'Cached APK', url: filePath });
   ```
 
-### Rollup Manual Chunks
-Vite splits production builds into segmented JS files to prevent single large bundles. Configure manual chunks inside `vite.config.ts`:
-```typescript
-build: {
-  rollupOptions: {
-    output: {
-      manualChunks: {
-        'react-vendor': ['react', 'react-dom'],
-        'firebase-vendor': ['firebase/app', 'firebase/firestore']
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
+
+### Rollup Manual Chunks (Aspirational / Future Recommendation)
+* *Note*: The following chunking logic is recommended to split production bundles and eliminate chunk size warnings, but is not currently active in the default configuration files:
+  ```typescript
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'firebase-vendor': ['firebase/app', 'firebase/firestore']
+        }
       }
     }
   }
-}
-```
+  ```
 
 ---
 
@@ -78,3 +88,6 @@ To prevent memory leaks:
   }, []);
   ```
 * **Periodic Timers**: Clear all active `setInterval` or `setTimeout` processes in component unmount functions.
+
+Source:
+* `packages/studio-core/src/lib/capgoUpdater.ts`

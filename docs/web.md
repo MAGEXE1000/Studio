@@ -12,21 +12,43 @@ The web application compiles React code into static SPA files deployed to Conten
 * **Asset Optimization**: Bundles are minified via ESBuild and split into dynamic chunks to improve initial page load speeds.
 * **Platform Exclusivity**: Web views and Netlify redirects stay in web-focused packages. They are not allowed to load native Android assemblies or query Capacitor interfaces directly.
 
+Source:
+* `apps/studio-web/package.json`
+* `apps/studio-web/vite.config.ts`
+
 ---
 
 ## 2. Netlify Hosting & Routing (`netlify.toml`)
 
-To support client-side routers (e.g. React Router SPA routes), Netlify is configured to redirect all request paths back to `index.html`:
+Netlify serves as the primary hosting provider for the desktop web build. It handles client-side routers by redirecting routes back to `index.html`, and proxies OTA requests directly to Firebase Hosting to act as an OTA distribution mirror:
 
 ```toml
+[[redirects]]
+  from = "/version.json"
+  to = "https://studio-30f44.web.app/version.json"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/app-release.json"
+  to = "https://studio-30f44.web.app/app-release.json"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/apk/*"
+  to = "https://studio-30f44.web.app/apk/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
 ```
 
-This prevents `404 Not Found` errors when users refresh deep application links (such as `/songs/123` or `/practice`).
+Source:
+* `netlify.toml`
 
 ---
 
@@ -46,7 +68,7 @@ The web client adapts automatically between mobile viewports and desktop resolut
 
 Since native bridge utilities are missing in standard browsers, the core package falls back to web standard APIs:
 
-* **Web Clipboard Fallback**: If the native `AppInstaller` bridge is absent, copy controls route content via `navigator.clipboard.writeText(text)`:
+* **Web Clipboard Fallback**: If the native `AppInstallerPlugin` bridge is absent, copy controls route content via `navigator.clipboard.writeText(text)`:
   ```typescript
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(text);
@@ -54,4 +76,8 @@ Since native bridge utilities are missing in standard browsers, the core package
     throw new Error('Clipboard API not supported in this browser.');
   }
   ```
-* **Offline LocalStorage**: Offline database features fall back to standard `localStorage` indices if native SQLite instances are blocked or uninstalled.
+* **Offline LocalStorage**: Offline database features fall back to standard `localStorage` indices if native Preferences interfaces are blocked or uninstalled.
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
+* `packages/studio-core/src/lib/nativePrefs.ts`

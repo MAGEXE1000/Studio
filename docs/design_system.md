@@ -1,14 +1,14 @@
 # Chordex Studio — Design System
 
-This document specifies typography, dark mode color palettes, spacing grids, component templates, and safe-area guidelines.
+This document specifies typography, dark mode color configurations, spacing grids, component templates, and safe-area guidelines.
 
 ---
 
-## 1. Color Palette (Material 3 Sleek Dark Mode)
+## 1. Dark Mode Color Configurations (Aspirational Style Tokens)
 
-The design system uses a curated, premium dark mode palette. Avoid using basic saturated red, blue, or green colors.
+The design system uses a dark mode palette. While color variables are not currently registered as global CSS custom properties, the following styling values are applied inline across components:
 
-| Token | Usage | CSS Value | Visual / Purpose |
+| Aspirational Token | Usage | CSS Hex Value | Purpose |
 |---|---|---|---|
 | **`--bg-base`** | App background | `#0e0e0e` | Solid near-black base |
 | **`--bg-surface`** | Component cards | `rgba(25, 26, 26, 0.6)` | Translucent gray backing |
@@ -18,6 +18,10 @@ The design system uses a curated, premium dark mode palette. Avoid using basic s
 | **`--primary`** | Accent / interactive| `#007aff` | Sleek Material 3 Blue |
 | **`--warning`** | Warnings / alerts | `#f59e0b` | Soft amber warning gold |
 | **`--error`** | Error messages | `#ee7d77` | Warm pastel red |
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
+* `packages/ui-shared/src/components/AccountCard.tsx`
 
 ---
 
@@ -31,6 +35,10 @@ We use Google Fonts to establish a clean interface hierarchy:
 * **Headings & Metrics (Manrope)**: Applied to titles, status counters, and stats grids.
   * Weight: `Manrope 700` or `Manrope 800`
   * Font-Family fallback: `'Manrope', system-ui, sans-serif`
+
+Source:
+* `packages/ui-shared/package.json` (depends on `@fontsource/inter` and `@fontsource/manrope`)
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
 
 ---
 
@@ -51,8 +59,11 @@ padding: 16px 20px;
 Buttons feature transition states and scaling feedback:
 * **Default Accent State**: `background: #007aff; color: #fff;`
 * **Subtle Secondary State**: `background: rgba(255,255,255,0.05); color: #e7e5e4; border: 1px solid rgba(72,72,72,0.15);`
-* **Hover State**: Increased brightness (`brightness-110` or `hover:bg-white/10`).
+* **Hover State**: Increased brightness (`hover:brightness-110` or `hover:bg-white/10`).
 * **Active Press State**: Slight scale transform transition (`active:scale-95`).
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
 
 ---
 
@@ -63,3 +74,6 @@ Buttons feature transition states and scaling feedback:
 * **Safe Areas**: Scrollable views must include a bottom padding offset to prevent buttons from overlapping with native OS bars:
   * Regular pages: `padding-bottom: calc(env(safe-area-inset-bottom) + 20px)`
   * Overlay dashboard views: `padding-bottom: calc(var(--content-bottom-pad, 96px) + 80px)`
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`

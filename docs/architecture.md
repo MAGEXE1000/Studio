@@ -28,11 +28,17 @@ Chordex Studio is composed of five active functional subsystems built on a share
 * **Groovex**: An interactive backing track generator with dynamic tempo and instrumentation controls.
 * **Vocalex**: A vocal tuning sandbox incorporating microphone frequency analyzer waves and multi-track recording takes.
 
+Source:
+* `packages/ui-shared/src/components/StudioHub.tsx`
+* `packages/ui-shared/src/panels/`
+* `packages/ui-shared/src/vocalex/`
+* `packages/ui-shared/src/groovex/`
+
 ---
 
 ## 2. Package Topology & Responsibilities
 
-The codebase divides responsibilities across shared modules and platform packages:
+The codebase divides responsibilities across shared modules, library workspaces, and platform packages:
 
 ```
                           ┌─────────────────────────┐
@@ -54,20 +60,30 @@ The codebase divides responsibilities across shared modules and platform package
        │   (Android UI)    │         │ (Shared)  │         │      (Web UI)     │
        └───────────────────┘         └─────┬─────┘         └───────────────────┘
                                            │
-                                           ▼
-                                     ┌───────────┐
-                                     │studio-core│
-                                     │  (Core)   │
-                                     └───────────┘
+                                           ├──────────────────────┐
+                                           ▼                      ▼
+                                     ┌───────────┐          ┌───────────┐
+                                     │studio-core│          │   lib/*   │
+                                     │  (Core)   │          │ (Drizzle/ │
+                                     └───────────┘          │Zod/API/DB)│
+                                                            └───────────┘
 ```
 
 ### Packages
 * **`apps/studio-android`**: Android build workspace running under Capacitor. Wraps compiled assets into the native app package shell.
-* **`apps/studio-web`**: Web target build directory, deployed to Netlify using optimized SPA assets.
-* **`packages/studio-core`**: The single source of truth for business logic. Contains audio samplers, Firestore synchronization logic, settings stores, updates lifecycle hooks, and internationalization directories.
-* **`packages/ui-shared`**: Core component library containing layouts, modal sheets, panels, and devtools.
-* **`packages/ui-android`**: Custom views implementing Capacitor plugins, Android navigation interfaces, and notch/status bar spacing rules.
-* **`packages/ui-web`**: Specialized desktop UI controls and landing portals.
+* **`apps/studio-web`**: Web target build directory, deployed to Netlify.
+* **`packages/studio-core`**: Core business logic. Contains audio samplers (`drumAudio.ts`), synchronization logic (`syncEngine.ts`), state stores (`store/`), updates lifecycle hooks, and translation keys.
+* **`packages/ui-shared`**: Common component library containing layout wrappers, practice sheets, and panels.
+* **`packages/ui-android`**: Android components implementing Capacitor interfaces, back gestures, and system bar spacings.
+* **`packages/ui-web`**: Web-only landing panels and desktop utilities.
+* **`lib/db`**: Decoupled Drizzle ORM client, schemas, and configurations.
+* **`lib/api-spec`**: API specification registry.
+* **`lib/api-zod`**: Zod verification structures.
+* **`lib/api-client-react`**: React bindings for API calls.
+
+Source:
+* `pnpm-workspace.yaml`
+* `packages/`
 
 ---
 
@@ -90,22 +106,39 @@ Stagex executes sandbox scripts in a separate document context to prevent execut
 └────────────────────────────────┘            └────────────────────────────────┘
 ```
 
+Source:
+* `apps/studio-android/public/stage-core/app.js`
+* `packages/ui-android/src/components/StageCorePanel.tsx`
+* `packages/ui-shared/src/components/StageCorePanel.tsx`
+
 ### State Storage & State Flow
-All system configurations and state variables use `zustand` stores. The stores partition state logically:
-* **`useChordStore`**: User dashboard layout settings, developer modes, active dashboard tabs, active subviews.
-* **`useAuthStore`**: Firebase authentication profile mapping, permissions credentials, active user roles.
-* **`useOtaStore`**: Current updater states (Idle, Checking, Downloading, Ready to Install, Failed).
+System configurations and parameters use Zustand stores. Active stores are:
+* **`useChordStore`**: Core states for songs catalog, selected tabs, layout preferences, and active subview tags.
+* **`useDrumStore`**: Drum sequencer parameters, track channels, instruments sound maps, step selections, and BPM values.
+* **`globalOtaState`**: Mutable state machine state tracking updates (`idle`, `checking`, `update_available`, `downloading`, `verifying_sha`, `ready_to_install`, `installing`, `installed`, `failed`).
+
+Source:
+* `packages/studio-core/src/store/useChordStore.ts`
+* `packages/studio-core/src/store/useDrumStore.ts`
+* `packages/studio-core/src/lib/otaUpdate.ts`
 
 ### Offline Synchronization Flow
+The offline database synchronization flow relies on Drizzle schema engines, queue listeners, and Supabase / Firestore backend endpoints.
+
 ```
-┌───────────┐         ┌──────────────┐         ┌───────────┐
-│ React UI  │────────>│ Zustand Store│────────>│ SQLite/Local │
-│ Mutations │         │    Actions   │         │    Cache  │
-└───────────┘         └──────┬───────┘         └─────┬─────┘
-                             │                       │
-                             ▼                       ▼
-                      ┌──────────────┐         ┌───────────┐
-                      │ Sync Engine  ├────────>│ Cloud DB  │
-                      │ Queue Handler│         │(Firestore)│
-                      └──────────────┘         └───────────┘
+┌───────────┐         ┌──────────────┐         ┌─────────────────────────┐
+│ React UI  │────────>│ Zustand Store│────────>│      Local Cache        │
+│ Mutations │         │    Actions   │         │ (LocalStorage/Prefs/DB) │
+└───────────┘         └──────┬───────┘         └────────────┬────────────┘
+                             │                              │
+                             ▼                              ▼
+                      ┌──────────────┐         ┌─────────────────────────┐
+                      │ Sync Engine  ├────────>│        Cloud DB         │
+                      │ Queue Handler│         │  (Supabase/Firestore)   │
+                      └──────────────┘         └─────────────────────────┘
 ```
+
+Source:
+* `packages/studio-core/src/lib/syncEngine.ts`
+* `packages/studio-core/src/lib/sync.ts`
+* `packages/studio-core/src/lib/auth.ts`

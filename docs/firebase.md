@@ -20,9 +20,15 @@ This document describes the Firebase database schemas, authentication architectu
 ```
 
 * **Firebase Authentication**: User accounts authorization system. Handles email/password and anonymous credentials.
-* **Cloud Firestore**: Document database storing user preferences, chords sessions, sequencer templates, and practice progress.
-* **Cloud Storage**: Hosts compiled APK release files, assets packs, and changelog markdown fragments.
-* **Firebase Hosting**: Distributes compiled web SPA packages and houses public OTA check files (`version.json`, `app-release.json`).
+* **Cloud Firestore**: Document database storing user configurations and user preferences.
+* **Cloud Storage**: Hosts user profile assets (avatars) and user-uploaded media content.
+* **Firebase Hosting**: Distributes compiled web assets and houses public OTA check metadata files (`version.json`, `app-release.json`).
+  * Target folder `firebase-public/`: Deployed for standard web browser SPA routes.
+  * Target folder `firebase-public-android/`: Deployed for native Capacitor web asset loads.
+
+Source:
+* `firebase.json`
+* `packages/studio-core/src/lib/firebase.ts`
 
 ---
 
@@ -39,21 +45,20 @@ Located at Hosting root `/version.json`. Specifies the latest valid version tag.
 ```
 
 ### App Release Package Manifest (`app-release.json`)
-Located at Hosting root `/app-release.json`. Defines the target release file, version labels, minimum requirements, and integrity checks.
+Located at Hosting root `/app-release.json`. Defines the target release file, version labels, and integrity checks.
 ```json
 {
   "version": "3.7.56",
   "versionCode": 184,
-  "apkUrl": "https://github.com/MAGEXE1000/Studio/releases/download/v3.7.56/studio-release.apk",
+  "apkUrl": "https://github.com/MAGEXE1000/Studio/releases/download/v3.7.56/studio-3.7.56.apk",
   "sha256": "4a7b8c...d9ef01",
-  "mandatory": false,
-  "changelog": [
-    "Improved diagnostics dashboard styling",
-    "Resolved touch interception bugs on scrolling views",
-    "Cleaned up React hooks compiler errors"
-  ]
+  "apkSizeBytes": 14720386
 }
 ```
+
+Source:
+* `firebase-public/app-release.json`
+* `firebase-public/version.json`
 
 ---
 
@@ -67,32 +72,49 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /sessions/{sessionId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      match /{allPaths=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
 ```
+
+Source:
+* `firestore.rules`
 
 ---
 
 ## 4. Cloud Storage Rules (`storage.rules`)
 
-Storage buckets separate public release binaries from private user audio recording uploads:
+Storage buckets partition user assets using strict size limits and content-type validations:
 
 ```javascript
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /releases/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.admin == true;
+    match /users/{userId}/profile/avatar.jpg {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId 
+                   && request.resource.size < 2 * 1024 * 1024 
+                   && request.resource.contentType.matches('image/.*');
+    }
+    match /users/{userId}/profile/avatar.webp {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId 
+                   && request.resource.size < 2 * 1024 * 1024 
+                   && request.resource.contentType.matches('image/.*');
     }
     match /users/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId 
+                   && request.resource.size < 5 * 1024 * 1024 
+                   && request.resource.contentType.matches('image/.*');
     }
   }
 }
 ```
+
+Source:
+* `storage.rules`

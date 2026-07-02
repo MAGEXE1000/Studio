@@ -17,6 +17,9 @@ This document records the design decisions, alternatives, chosen solutions, and 
 * **Files Affected**: `package.json`, `pnpm-workspace.yaml`, `tsconfig.json`.
 * **Expected Impact**: Faster local builds, guaranteed version consistency.
 
+Source:
+* `pnpm-workspace.yaml`
+
 ---
 
 ## ADR 002: Decoupled Logic using Zustand State Stores
@@ -32,6 +35,10 @@ This document records the design decisions, alternatives, chosen solutions, and 
 * **Files Affected**: `packages/studio-core/src/store/`.
 * **Expected Impact**: Improved CPU frames, modular stores.
 
+Source:
+* `packages/studio-core/src/store/useChordStore.ts`
+* `packages/studio-core/src/store/useDrumStore.ts`
+
 ---
 
 ## ADR 003: Native PackageInstaller Bridge for In-App Updates
@@ -44,8 +51,12 @@ This document records the design decisions, alternatives, chosen solutions, and 
   * *Option B*: Integrate the official Google Play In-App Updates SDK. (Requires distribution exclusively through Google Play, blocking sideloads).
 * **Chosen Solution**: Native Java `PackageInstaller` Session Bridge.
 * **Reasoning**: Empowers the application to stream APK files directly to the Android OS installation daemon, receiving transactional state events (storage full, signature conflict, install success) natively.
-* **Files Affected**: `packages/studio-core/src/lib/capgoUpdater.ts`, `apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstaller.java`.
+* **Files Affected**: `packages/studio-core/src/lib/capgoUpdater.ts`, `apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java`.
 * **Expected Impact**: 100% reliable updater callbacks, sandboxed installation progress updates.
+
+Source:
+* `apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java`
+* `packages/studio-core/src/lib/updater/installer.ts`
 
 ---
 
@@ -61,3 +72,6 @@ This document records the design decisions, alternatives, chosen solutions, and 
 * **Reasoning**: Ensures all hooks execute in a consistent, static order on every render cycle, and prevents child components from rebuilding their DOM node tree during parent state changes.
 * **Files Affected**: `packages/ui-shared/src/components/DevToolsDashboard.tsx`.
 * **Expected Impact**: Zero React lifecycle compiler warnings, resolved input focus loss.
+
+Source:
+* `packages/ui-shared/src/components/DevToolsDashboard.tsx`

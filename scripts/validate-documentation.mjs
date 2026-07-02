@@ -3,6 +3,8 @@ import path from 'path';
 
 const workspaceRoot = process.cwd();
 const docsDir = path.join(workspaceRoot, 'docs');
+const knowledgeDir = path.join(workspaceRoot, 'knowledge');
+const sessionLogsDir = path.join(workspaceRoot, 'session_logs');
 
 const issues = [];
 const allDocs = []; // Array of absolute paths to all md files
@@ -82,6 +84,8 @@ function validateFile(absoluteFilePath) {
   let hasContentUnderHeader = false;
   let inSourceBlock = false;
   let inCodeBlock = false;
+  let hasH1 = false;
+  let hasSourceBlock = false;
 
   lines.forEach((line, index) => {
     const lineNum = index + 1;
@@ -97,9 +101,15 @@ function validateFile(absoluteFilePath) {
       return;
     }
 
+    // Check for H1 header
+    if (trimmed.startsWith('# ')) {
+      hasH1 = true;
+    }
+
     // Detect Source: blocks
     if (trimmed.startsWith('Source:')) {
       inSourceBlock = true;
+      hasSourceBlock = true;
       return;
     }
 
@@ -171,7 +181,7 @@ function validateFile(absoluteFilePath) {
 
     placeholders.forEach(p => {
       // Allow the documentation_validation document itself to list the strings for explanation
-      if (relativeDocPath.endsWith('documentation_validation.md')) {
+      if (relativeDocPath.endsWith('documentation_validation.md') || relativeDocPath.endsWith('report_templates.md')) {
         return;
       }
       if (p.pattern.test(line)) {
@@ -211,18 +221,39 @@ function validateFile(absoluteFilePath) {
       `Add content to this section or remove the header.`
     );
   }
+
+  // Validate missing required elements
+  if (!hasH1) {
+    logIssue(
+      'WARNING',
+      relativeDocPath,
+      1,
+      `Missing H1 Title header`,
+      `Every active document should start with a "# title" header.`
+    );
+  }
+
+  if (!hasSourceBlock && relativeDocPath.startsWith('docs/')) {
+    logIssue(
+      'WARNING',
+      relativeDocPath,
+      lines.length,
+      `Missing Source reference block`,
+      `Every reference document should end with a trailing "Source:" list pointing to its source files.`
+    );
+  }
 }
 
 console.log('--- Starting Documentation Validation ---');
 
-if (!fs.existsSync(docsDir)) {
-  console.error(`ERROR: Docs directory "${docsDir}" does not exist.`);
-  process.exit(1);
-}
+// 1. Collect all documents recursively from docs, knowledge, and session_logs directories
+const mdFiles = [
+  ...getMdFilesRecursive(docsDir),
+  ...getMdFilesRecursive(knowledgeDir),
+  ...getMdFilesRecursive(sessionLogsDir)
+];
 
-// 1. Collect all documents recursively
-const files = getMdFilesRecursive(docsDir);
-files.forEach(file => {
+mdFiles.forEach(file => {
   allDocs.push(path.normalize(file));
 });
 
@@ -232,8 +263,6 @@ allDocs.forEach(file => {
 });
 
 // 3. Detect and report orphan files
-// An orphan is any markdown file that is NOT present in docLinkTargets
-// We exclude the master entry points from being orphans
 const ignoredOrphans = new Set([
   path.normalize(path.join(docsDir, 'engineering_guide.md')).toLowerCase(),
   path.normalize(path.join(docsDir, 'architecture/internal-index.md')).toLowerCase()
@@ -249,7 +278,7 @@ allDocs.forEach(file => {
       relativePath,
       1,
       `Orphan document: No other documents link to this file.`,
-      `Add a markdown link pointing to this file from another active guide (e.g. internal-index.md).`
+      `Add a markdown link pointing to this file from another active guide (e.g. engineering_guide.md).`
     );
   }
 });

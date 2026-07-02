@@ -12,7 +12,7 @@ function getLatestLogFile() {
 
   const files = fs.readdirSync(logsDir)
     .filter(f => f.endsWith('.md') && f !== 'index.md')
-    .sort(); // Lexicographical sort works because naming is YYYY-MM-DD_session-N.md
+    .sort();
 
   if (files.length === 0) {
     console.error('ERROR: No session log files found.');
@@ -29,13 +29,15 @@ function parseLogAndGenerateSummary(filePath) {
   let branch = 'unknown';
   let commit = 'unknown';
   let taskTitle = 'unknown';
-  let engineer = 'unknown';
   let date = 'unknown';
 
   let completedWork = [];
   let openWork = [];
-  let bugs = [];
-  let futureWork = [];
+  let blockers = [];
+  let knownIssues = [];
+  let discoveries = [];
+  let lessons = [];
+  let nextSteps = [];
 
   let currentSection = null;
 
@@ -43,77 +45,117 @@ function parseLogAndGenerateSummary(filePath) {
     const trimmed = line.trim();
 
     // Parse metadata
-    if (trimmed.startsWith('- **Repository Branch**:')) {
+    if (trimmed.startsWith('- **Repository Branch**:') || trimmed.startsWith('- **Branch**:')) {
       branch = trimmed.split('**:')[1].trim().replace(/`/g, '');
-    } else if (trimmed.startsWith('- **Current Commit**:')) {
+    } else if (trimmed.startsWith('- **Current Commit**:') || trimmed.startsWith('- **Commit hash**:')) {
       commit = trimmed.split('**:')[1].trim().replace(/`/g, '');
-    } else if (trimmed.startsWith('- **Task Title**:')) {
+    } else if (trimmed.startsWith('- **Task Title**:') || trimmed.startsWith('- **Task objective**:')) {
       taskTitle = trimmed.split('**:')[1].trim();
-    } else if (trimmed.startsWith('- **Engineer**:')) {
-      engineer = trimmed.split('**:')[1].trim();
     } else if (trimmed.startsWith('- **Date**:')) {
       date = trimmed.split('**:')[1].trim();
     }
 
     // Identify sections
-    if (trimmed.startsWith('## Execution Timeline')) {
+    if (trimmed.startsWith('## Execution Timeline') || trimmed.startsWith('## Timeline')) {
       currentSection = 'timeline';
-    } else if (trimmed.startsWith('## Bugs Discovered')) {
+    } else if (trimmed.startsWith('## Bugs Found') || trimmed.startsWith('## Bugs Discovered')) {
       currentSection = 'bugs';
-    } else if (trimmed.startsWith('## Future Work')) {
-      currentSection = 'future';
-    } else if (trimmed.startsWith('## Final Report')) {
-      currentSection = 'report';
+    } else if (trimmed.startsWith('## Open Questions') || trimmed.startsWith('## Blocker') || trimmed.startsWith('## Remaining Issues')) {
+      currentSection = 'blockers';
+    } else if (trimmed.startsWith('## Architectural Discoveries') || trimmed.startsWith('## Engineering Decisions')) {
+      currentSection = 'discoveries';
+    } else if (trimmed.startsWith('## Lessons Learned')) {
+      currentSection = 'lessons';
+    } else if (trimmed.startsWith('## Future Work') || trimmed.startsWith('## Recommended Next Steps') || trimmed.startsWith('## Recommended next steps')) {
+      currentSection = 'next';
     } else if (trimmed.startsWith('##') || trimmed.startsWith('---')) {
-      if (currentSection !== 'timeline' && currentSection !== 'bugs' && currentSection !== 'future' && currentSection !== 'report') {
+      if (currentSection !== 'timeline' && currentSection !== 'bugs' && currentSection !== 'blockers' && currentSection !== 'discoveries' && currentSection !== 'lessons' && currentSection !== 'next') {
         currentSection = null;
       }
     }
 
-    // Collect checklist items or bullet points under sections
-    if (currentSection === 'timeline' && (trimmed.startsWith('- [x]') || trimmed.startsWith('* [x]'))) {
-      completedWork.push(trimmed.substring(5).trim());
-    } else if (currentSection === 'timeline' && (trimmed.startsWith('- [ ]') || trimmed.startsWith('* [ ]'))) {
-      openWork.push(trimmed.substring(5).trim());
-    } else if (currentSection === 'bugs' && (trimmed.startsWith('- ') || trimmed.startsWith('* '))) {
-      bugs.push(trimmed.substring(2).trim());
-    } else if (currentSection === 'future' && (trimmed.startsWith('- ') || trimmed.startsWith('* '))) {
-      futureWork.push(trimmed.substring(2).trim());
+    // Collect list items
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const item = trimmed.substring(2).trim();
+      if (currentSection === 'timeline') {
+        if (item.startsWith('[x]')) completedWork.push(item.substring(3).trim());
+        else if (item.startsWith('[ ]')) openWork.push(item.substring(3).trim());
+      } else if (currentSection === 'bugs') {
+        knownIssues.push(item);
+      } else if (currentSection === 'blockers') {
+        blockers.push(item);
+      } else if (currentSection === 'discoveries') {
+        discoveries.push(item);
+      } else if (currentSection === 'lessons') {
+        lessons.push(item);
+      } else if (currentSection === 'next') {
+        nextSteps.push(item);
+      }
     }
   });
 
-  // Output transition summary brief
-  console.log(`=== AI SESSION RESUME BRIEF ===`);
-  console.log(`Task:   ${taskTitle}`);
-  console.log(`Date:   ${date}`);
-  console.log(`Agent:  ${engineer}`);
-  console.log(`Branch: ${branch}`);
-  console.log(`Commit: ${commit}`);
-  console.log(`================================`);
-  console.log(`\n### Completed Work:`);
+  // Calculate estimated context
+  // Standard context: engineering_guide + ai_workflow + debugging = ~25k tokens
+  const estimatedContext = "25k - 40k tokens";
+
+  // Print AI-optimized resume brief
+  console.log(`=== SESSION RESUME BRIEF ===`);
+  console.log(`branch: ${branch}`);
+  console.log(`commit: ${commit}`);
+  console.log(`task:   ${taskTitle}`);
+  console.log(`date:   ${date}`);
+  console.log(`context_est: ${estimatedContext}`);
+  console.log(`============================`);
+  
+  console.log(`\n[COMPLETED WORK]`);
   if (completedWork.length > 0) {
-    completedWork.forEach(w => console.log(`✓ ${w}`));
+    completedWork.forEach(w => console.log(`* ${w}`));
   } else {
-    console.log(`- None logged.`);
+    console.log(`* None.`);
   }
 
-  console.log(`\n### Open Work / Next Steps:`);
+  console.log(`\n[OPEN WORK]`);
   if (openWork.length > 0) {
-    openWork.forEach(w => console.log(`☐ ${w}`));
+    openWork.forEach(w => console.log(`* ${w}`));
   } else {
-    console.log(`✓ All session tasks completed.`);
+    console.log(`* None.`);
   }
 
-  if (bugs.length > 0) {
-    console.log(`\n### Bugs Discovered:`);
-    bugs.forEach(b => console.log(`⚠ ${b}`));
+  console.log(`\n[CURRENT BLOCKERS]`);
+  if (blockers.length > 0) {
+    blockers.forEach(b => console.log(`* ${b}`));
+  } else {
+    console.log(`* None.`);
   }
 
-  if (futureWork.length > 0) {
-    console.log(`\n### Recommended Future Work:`);
-    futureWork.forEach(f => console.log(`→ ${f}`));
+  console.log(`\n[KNOWN ISSUES]`);
+  if (knownIssues.length > 0) {
+    knownIssues.forEach(i => console.log(`* ${i}`));
+  } else {
+    console.log(`* None.`);
   }
-  console.log(`================================`);
+
+  console.log(`\n[ARCHITECTURAL DISCOVERIES]`);
+  if (discoveries.length > 0) {
+    discoveries.forEach(d => console.log(`* ${d}`));
+  } else {
+    console.log(`* None.`);
+  }
+
+  console.log(`\n[LESSONS LEARNED]`);
+  if (lessons.length > 0) {
+    lessons.forEach(l => console.log(`* ${l}`));
+  } else {
+    console.log(`* None.`);
+  }
+
+  console.log(`\n[RECOMMENDED NEXT STEP]`);
+  if (nextSteps.length > 0) {
+    console.log(`* ${nextSteps[0]}`);
+  } else {
+    console.log(`* Continue feature implementation.`);
+  }
+  console.log(`============================`);
 }
 
 const latestLog = getLatestLogFile();

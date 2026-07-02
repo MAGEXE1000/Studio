@@ -5,7 +5,7 @@ export default function StateMachineVisualizer() {
   const history = transitionHistory || [];
 
   return (
-    <div className="bg-surface-container-low p-6 rounded-2xl space-y-8">
+    <div className="bg-black border border-outline-variant/10 p-6 rounded-2xl space-y-8">
       {history.length === 0 ? (
         <div className="text-on-surface-variant/30 text-xs italic">
           No transitions recorded yet. Standing by.

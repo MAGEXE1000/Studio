@@ -128,10 +128,10 @@ export default function LiveConsole({
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl overflow-hidden flex flex-col h-80 shadow-inner">
+      <div className="bg-black border border-outline-variant/10 rounded-xl overflow-hidden flex flex-col h-80 shadow-inner">
         {/* Search Bar Header */}
-        <div className="flex items-center gap-3 p-3 bg-surface-container-high/50 border-b border-outline-variant/5">
-          <div className="flex-1 flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/10">
+        <div className="flex items-center gap-3 p-3 bg-black border-b border-outline-variant/5">
+          <div className="flex-1 flex items-center gap-2 bg-[#161616] px-3 py-1.5 rounded-lg border border-outline-variant/10">
             <span className="material-symbols-outlined text-sm text-on-surface-variant">search</span>
             <input 
               className="bg-transparent border-none text-xs text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 w-full font-mono outline-none" 
@@ -149,7 +149,7 @@ export default function LiveConsole({
         </div>
 
         {/* Filter Category Row */}
-        <div className="flex gap-1 overflow-x-auto px-3 py-2 bg-surface-container-high/20 border-b border-outline-variant/5 scrollbar-none">
+        <div className="flex gap-1 overflow-x-auto px-3 py-2 bg-black border-b border-outline-variant/5 scrollbar-none">
           {(['all', 'js', 'native', 'state', 'errors', 'warnings'] as const).map(mode => (
             <button
               key={mode}
@@ -157,7 +157,7 @@ export default function LiveConsole({
               className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-colors outline-none whitespace-nowrap ${
                 filterMode === mode 
                   ? 'bg-tertiary text-on-tertiary-fixed' 
-                  : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-highest'
+                  : 'bg-[#161616] text-on-surface-variant hover:bg-white/10'
               }`}
             >
               {mode}
@@ -168,7 +168,7 @@ export default function LiveConsole({
         {/* Timeline Log Viewport */}
         <div 
           ref={scrollContainerRef}
-          className="flex-1 p-4 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-2 bg-[#0e0e0e]"
+          className="flex-1 p-4 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-2 bg-black"
         >
           {filteredTimeline.length === 0 ? (
             <div className="text-on-surface-variant/30 text-center py-8 italic">

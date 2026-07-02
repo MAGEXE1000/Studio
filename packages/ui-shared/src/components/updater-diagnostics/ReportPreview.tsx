@@ -23,7 +23,7 @@ export default function ReportPreview({
   );
 
   return (
-    <div className="bg-surface-container p-6 rounded-xl border border-outline-variant/10 shadow-lg select-text">
+    <div className="bg-black p-6 rounded-xl border border-outline-variant/10 shadow-lg select-text">
       <div className="prose prose-invert prose-sm max-w-none mono-text text-[11px] text-on-surface-variant leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap word-break-all select-text font-mono">
         {reportText}
       </div>

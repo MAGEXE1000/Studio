@@ -43,7 +43,7 @@ export default function ProductionActions({ showToast, triggerRefresh, addJsLog 
         onClick={() => runAction('Check for Updates', setChecking, async () => {
           await checkForUpdate(true, 'dev_tools', 'Check for Updates button tapped');
         })}
-        className="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
+        className="bg-black hover:bg-white/5 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
           <span className={`material-symbols-outlined ${checking ? 'animate-spin' : ''}`}>refresh</span>
@@ -60,7 +60,7 @@ export default function ProductionActions({ showToast, triggerRefresh, addJsLog 
         onClick={() => runAction('Download APK', setDownloading, async () => {
           await downloadUpdate('Download APK button tapped');
         })}
-        className="bg-surface-container-high hover:bg-surface-bright p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
+        className="bg-black hover:bg-white/5 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
           <span className={`material-symbols-outlined ${downloading ? 'animate-bounce' : ''}`}>download</span>

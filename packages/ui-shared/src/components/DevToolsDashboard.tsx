@@ -1167,7 +1167,10 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
 
     return (
       <div style={{
-        padding: '12px 20px',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+        paddingBottom: '12px',
+        paddingLeft: '20px',
+        paddingRight: '20px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         display: 'flex',
         alignItems: 'center',
@@ -2017,8 +2020,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '16px 18px',
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: '#000000',
+              border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: '14px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
@@ -2228,7 +2231,10 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         <>
           {/* HEADER */}
           <div style={{
-            padding: '16px 20px',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingBottom: '16px',
+            paddingLeft: '20px',
+            paddingRight: '20px',
             borderBottom: '1px solid rgba(255,255,255,0.08)',
             display: 'flex',
             alignItems: 'center',
@@ -2265,8 +2271,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
           <div style={{
             margin: '16px 20px 4px',
             padding: '16px 18px',
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: '#000000',
+            border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '14px',
             display: 'flex',
             alignItems: 'center',
@@ -2315,8 +2321,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
           <div style={{
             padding: '12px 16px',
             margin: '12px 16px 4px',
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: '#000000',
+            border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '16px',
             display: 'grid',
             gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',

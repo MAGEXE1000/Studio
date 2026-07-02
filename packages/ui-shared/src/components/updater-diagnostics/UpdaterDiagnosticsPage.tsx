@@ -31,10 +31,10 @@ interface AccordionSectionProps {
 
 function AccordionSection({ title, icon, isOpen, onToggle, children }: AccordionSectionProps) {
   return (
-    <div className="bg-surface-container/60 backdrop-blur-md border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm transition-all duration-300">
+    <div className="bg-black border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm transition-all duration-300">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-5 text-left outline-none border-none bg-transparent cursor-pointer select-none active:bg-surface-container-high/40 transition-colors"
+        className="w-full flex items-center justify-between p-5 text-left outline-none border-none bg-transparent cursor-pointer select-none active:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-on-surface-variant text-[20px]">{icon}</span>
@@ -221,9 +221,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   };
 
   return (
-    <div className="bg-[#0e0e0e] text-[#e7e5e4] min-h-screen overflow-x-hidden relative flex flex-col font-body">
+    <div className="bg-[#000000] text-[#e7e5e4] min-h-screen overflow-x-hidden relative flex flex-col font-body">
       {/* Top sticky app bar */}
-      <header className="w-full sticky top-0 z-50 bg-[#0e0e0e] flex items-center justify-between px-6 py-4 border-b border-[#484848]/10 backdrop-blur-md">
+      <header className="w-full sticky top-0 z-50 bg-[#000000] flex items-center justify-between px-6 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-4 border-b border-[#484848]/10 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
@@ -246,7 +246,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
       </header>
 
       {/* Main Content viewport */}
-      <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-28 flex-1 select-none">
+      <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 select-none">
         
         {/* Telemetry Accordion */}
         <AccordionSection 
@@ -298,8 +298,10 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
           onToggle={() => toggleAccordion('diagnostics')}
         >
           <DiagnosticsStack 
-            nativeLogsList={nativeLogsList}
+            nativeDeviceInfo={nativeDeviceInfo}
             nativeInstallerDetails={nativeInstallerDetails}
+            localApkDetails={localApkDetails}
+            nativeLogsList={nativeLogsList}
             showToast={showToast}
           />
         </AccordionSection>
@@ -348,51 +350,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
 
       </main>
 
-      {/* Sticky Bottom Nav Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-xl flex justify-around items-center h-16 pb-safe border-t border-[#484848]/15">
-        {/* Copy Report */}
-        <button 
-          onClick={handleCopyReport}
-          className="p-3 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center transition-transform active:scale-90 outline-none"
-          title="Copy Report"
-        >
-          <span className="material-symbols-outlined">save</span>
-        </button>
-
-        {/* Share APK */}
-        <button 
-          onClick={handleShareApk}
-          className="p-3 text-[#acabaa] hover:text-[#e7e5e4] transition-colors active:scale-90 outline-none"
-          title="Share APK"
-        >
-          <span className="material-symbols-outlined">share</span>
-        </button>
-
-        {/* Print Timeline */}
-        <button 
-          onClick={handlePrintLogs}
-          className="p-3 text-[#acabaa] hover:text-[#e7e5e4] transition-colors active:scale-90 outline-none"
-          title="Print Timeline"
-        >
-          <span className="material-symbols-outlined">print</span>
-        </button>
-
-        {/* Toggle Simulation Tab */}
-        <button 
-          onClick={() => {
-            setAccordions(prev => ({ ...prev, simulation: true }));
-            showToast('Simulation Laboratory expanded');
-          }}
-          className="p-3 text-[#acabaa] hover:text-[#e7e5e4] transition-colors active:scale-90 outline-none"
-          title="Configure Simulations"
-        >
-          <span className="material-symbols-outlined">edit</span>
-        </button>
-      </nav>
-
       {/* Toast Notification Container */}
       {toastMsg && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-surface-container-high border border-outline-variant/10 px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce">
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-surface-container-high border border-outline-variant/10 px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce">
           <span className="material-symbols-outlined text-[16px] text-green-400">done</span>
           {toastMsg}
         </div>

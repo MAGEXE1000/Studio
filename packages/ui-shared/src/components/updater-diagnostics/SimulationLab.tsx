@@ -180,12 +180,12 @@ export default function SimulationLab({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="space-y-6 bg-black">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black">
         {/* Simulate Update Available */}
         <button 
           onClick={simulateUpdateAvailable}
-          className="flex items-center justify-between bg-surface-container p-4 rounded-xl hover:bg-surface-bright transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
+          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
         >
           <span className="text-sm font-semibold text-on-surface">Simulate Update Available</span>
           <span className="material-symbols-outlined text-on-surface-variant">chevron_right</span>
@@ -194,7 +194,7 @@ export default function SimulationLab({
         {/* Simulate Failure */}
         <button 
           onClick={simulateFailure}
-          className="flex items-center justify-between bg-surface-container p-4 rounded-xl hover:bg-surface-bright transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
+          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
         >
           <span className="text-sm font-semibold text-error">Simulate Failure</span>
           <span className="material-symbols-outlined text-error/50">warning</span>
@@ -203,11 +203,11 @@ export default function SimulationLab({
         {/* Toggle Network Throttling */}
         <button 
           onClick={toggleThrottling}
-          className="flex items-center justify-between bg-surface-container p-4 rounded-xl hover:bg-surface-bright transition-all text-left outline-none border border-outline-variant/10 w-full active:scale-[0.98]"
+          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 w-full active:scale-[0.98]"
         >
           <span className="text-sm font-semibold text-on-surface">Toggle Network Throttling</span>
           <div className={`w-8 h-4 rounded-full flex items-center px-0.5 transition-colors ${
-            throttled ? 'bg-tertiary' : 'bg-surface-container-highest'
+            throttled ? 'bg-tertiary' : 'bg-[#161616]'
           }`}>
             <div className={`w-3 h-3 bg-white rounded-full transition-transform ${
               throttled ? 'translate-x-4' : 'translate-x-0'
@@ -218,7 +218,7 @@ export default function SimulationLab({
         {/* Reset State Machine */}
         <button 
           onClick={resetStateMachine}
-          className="flex items-center justify-between bg-surface-container p-4 rounded-xl hover:bg-surface-bright transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
+          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
         >
           <span className="text-sm font-semibold text-on-surface">Reset State Machine</span>
           <span className="material-symbols-outlined text-on-surface-variant">restart_alt</span>
@@ -236,7 +236,7 @@ export default function SimulationLab({
         {isNative() && (
           <button 
             onClick={() => AppInstaller.openUnknownAppSourcesSettings()}
-            className="flex-1 min-w-[120px] py-2.5 rounded-lg bg-surface-container-high border border-outline-variant/10 text-on-surface font-bold text-xs hover:bg-surface-bright active:scale-95 transition-all outline-none"
+            className="flex-1 min-w-[120px] py-2.5 rounded-lg bg-black border border-outline-variant/10 text-on-surface font-bold text-xs hover:bg-white/5 active:scale-95 transition-all outline-none"
           >
             Unknown Apps Permission
           </button>
@@ -244,7 +244,7 @@ export default function SimulationLab({
       </div>
 
       {/* Automated QA Functional Audit */}
-      <div className="mt-4 pt-4 border-t border-outline-variant/10">
+      <div className="mt-4 pt-4 border-t border-outline-variant/10 bg-black">
         <div className="flex justify-between items-center">
           <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">QA Functional Audit</span>
           <button
@@ -257,7 +257,7 @@ export default function SimulationLab({
         </div>
 
         {auditStatus !== 'idle' && (
-          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-lg p-3 font-mono text-[10px] max-h-32 overflow-y-auto space-y-1.5 mt-3">
+          <div className="bg-black border border-outline-variant/10 rounded-lg p-3 font-mono text-[10px] max-h-32 overflow-y-auto space-y-1.5 mt-3">
             {auditResults.map((res, idx) => (
               <div key={idx} className="flex justify-between items-center">
                 <span className="text-[#e7e5e4]">{res.name}</span>

@@ -101,7 +101,16 @@ export function generateFullEngineeringReport(
   sections.push(`OS_VERSION: ${data.device.osVersion}`);
   sections.push(`STORAGE_FREE: ${data.device.storageAvailable}`);
   sections.push(`NETWORK_STATE: ${data.device.networkState}`);
-  sections.push(`BATTERY_LEVEL: ${data.device.batteryLevel}%`);
+  sections.push(`BATTERY_LEVEL: ${data.device.batteryLevel}`);
+  sections.push('---');
+
+  sections.push('## ENVIRONMENT_AND_BUILD');
+  sections.push(`• user_agent: ${data.device.userAgent}`);
+  sections.push(`• host_platform: ${data.device.platform}`);
+  sections.push(`• package_name: ${data.device.packageName}`);
+  sections.push(`• version_name: ${data.device.versionName}`);
+  sections.push(`• version_code: ${data.device.versionCode}`);
+  sections.push(`• supported_abis: ${JSON.stringify(data.device.supportedABIs)}`);
   sections.push('---');
 
   sections.push('## STATE_SNAPSHOT');
@@ -135,6 +144,30 @@ export function generateFullEngineeringReport(
   }
   sections.push('---');
 
+  sections.push('## STAGEX_DIAGNOSTICS');
+  sections.push(JSON.stringify(data.stagexDiagnostics, null, 2));
+  sections.push('---');
+
+  sections.push('## PERFORMANCE_METRICS');
+  if (data.perfStats.length > 0) {
+    data.perfStats.forEach(stat => {
+      sections.push(`• [${stat.component}] renderCount: ${stat.renderCount} | totalDuration: ${stat.totalDurationMs}ms`);
+    });
+  } else {
+    sections.push('No performance stats recorded.');
+  }
+  sections.push('---');
+
+  sections.push('## RUNTIME_ERRORS');
+  if (data.errors.length > 0) {
+    data.errors.forEach((err, idx) => {
+      sections.push(`[${idx + 1}] [${new Date(err.timestamp || Date.now()).toLocaleTimeString()}] ${err.message}`);
+    });
+  } else {
+    sections.push('No runtime errors recorded.');
+  }
+  sections.push('---');
+
   sections.push('## STATE_TRANSITIONS');
   if (data.stateTransitions.length > 0) {
     data.stateTransitions.forEach(t => {
@@ -152,6 +185,26 @@ export function generateFullEngineeringReport(
     });
   } else {
     sections.push('No rejected transitions.');
+  }
+  sections.push('---');
+
+  sections.push('## JS_EXECUTION_CONSOLE_LOGS');
+  if (data.logs.length > 0) {
+    data.logs.forEach(log => {
+      sections.push(`[${new Date(log.timestamp).toLocaleTimeString()}] [${log.level.toUpperCase()}] [${log.module}] ${log.message}`);
+    });
+  } else {
+    sections.push('No JS console logs recorded.');
+  }
+  sections.push('---');
+
+  sections.push('## NATIVE_INSTALLER_LOGS');
+  if (data.nativeLogs.length > 0) {
+    data.nativeLogs.forEach(log => {
+      sections.push(`[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${log.stage || 'N/A'}] Status: ${log.status} - Message: ${log.message || 'N/A'}`);
+    });
+  } else {
+    sections.push('No native installer logs available.');
   }
 
   return sections.join('\n');

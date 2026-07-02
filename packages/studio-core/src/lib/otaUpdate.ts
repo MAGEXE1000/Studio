@@ -370,14 +370,16 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
       const natVer = await getNativeVersion();
       const natVerCode = await getNativeVersionCode();
 
+      const realRemote = await fetchRemoteVersion();
+
       let remote;
       if (updaterSimulation.forceUpdateAvailable) {
         remote = {
           version: '3.7.99',
           versionCode: 999,
           mandatory: updaterSimulation.forceMandatoryUpdate,
-          apkUrl: 'https://cdn.example.com/studio-3.7.99.apk',
-          apkSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+          apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
+          apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3',
           changelog: 'Simulated update release notes.',
           releaseNotes: { added: ['Feature A'], improved: ['Performance B'], fixed: ['Bug C'] }
         };
@@ -396,12 +398,12 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
           version: '3.7.10',
           versionCode: 10,
           mandatory: false,
-          apkUrl: 'https://cdn.example.com/studio-3.7.10.apk',
-          apkSha256: '1234567890'
+          apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
+          apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3'
         };
         addJsLog(`Simulation override: Forcing Downgrade (v3.7.10)`);
       } else {
-        remote = await fetchRemoteVersion();
+        remote = realRemote;
       }
 
       if (remote) {
@@ -1154,6 +1156,57 @@ function initializeGlobalOtaListeners() {
     window.addEventListener('focus', onFocus);
     window.addEventListener('pageshow', onFocus);
     window.addEventListener('online', onFocus);
+  }
+
+  // Global PackageInstaller event handler
+  const handleInstallStatusChange = (eventData: any) => {
+    const { status, message, progress } = eventData;
+    console.log(`[OTA Global Listener] Received status ${status}: ${message} (progress ${progress}%)`);
+    addJsLog(`[Global Listener Event] Received status ${status}: ${message} (progress ${progress}%)`);
+    
+    // Log to installer database
+    if (isNative() && typeof AppInstaller.logInstallerEvent === 'function') {
+      void AppInstaller.logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
+    }
+
+    if (status === -2) {
+      updateGlobalState({ statusText: `Installing...` });
+    } else if (status === -1) {
+      transitionToState('pending_user_action', 'PackageInstaller requires user interaction');
+      updateGlobalState({ statusText: 'Tap Install to confirm...' });
+    } else if (status === 0) {
+      transitionToState('installed', 'PackageInstaller status SUCCESS');
+      updateGlobalState({ statusText: 'Install succeeded!' });
+    } else if (status === 3) {
+      transitionToState('failed', 'User cancelled installation');
+    } else {
+      transitionToState('failed', `Install failed: ${message || `code ${status}`}`);
+    }
+  };
+
+  if (typeof window !== 'undefined') {
+    (window as any).triggerOtaInstallStatus = (eventData: any) => {
+      handleInstallStatusChange(eventData);
+      if (simulateStatusCallback) {
+        try {
+          simulateStatusCallback(eventData);
+        } catch (_) {}
+      }
+    };
+  }
+
+  if (isNative() && isAppInstallerAvailable()) {
+    void (async () => {
+      try {
+        await (AppInstaller as any).addListener('onInstallStatusChanged', (eventData: any) => {
+          if (typeof (window as any).triggerOtaInstallStatus === 'function') {
+            (window as any).triggerOtaInstallStatus(eventData);
+          }
+        });
+      } catch (e) {
+        console.warn('[OTA] Failed to register global native status listener:', e);
+      }
+    })();
   }
 
   if (isNative()) {

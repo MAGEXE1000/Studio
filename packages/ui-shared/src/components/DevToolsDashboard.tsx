@@ -623,7 +623,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
   const getUnifiedTimeline = () => {
     const list: Array<{ time: number; type: 'js' | 'native' | 'state'; text: string; details?: string }> = [];
     
-    jsLogs.forEach(log => {
+    getLogs().forEach(log => {
       list.push({ time: log.timestamp, type: 'js', text: log.message });
     });
 
@@ -649,7 +649,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     return list;
   };
 
-  const unifiedTimeline = useMemo(() => getUnifiedTimeline(), [nativeLogsList, versionUpdates, simUpdateCount]);
+  const unifiedTimeline = useMemo(() => getUnifiedTimeline(), [nativeLogsList, versionUpdates, simUpdateCount, logs]);
 
   const filteredTimeline = useMemo(() => {
     let list = unifiedTimeline;
@@ -680,32 +680,85 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     return list;
   }, [unifiedTimeline, logFilterMode, logSearchQuery]);
 
-  // Copy Diagnostics
-  const handleCopyDiagnostics = () => {
-    const dump = {
+  const buildDiagnosticDataObject = () => {
+    const devInfo = nativeDeviceInfo || {};
+    const installer = nativeInstallerDetails || {};
+    return {
       appVersion: APP_VERSION,
       timestamp: new Date().toISOString(),
       device: {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
-        isNative: isNative()
+        isNative: isNative(),
+        manufacturer: devInfo.manufacturer || 'N/A',
+        model: devInfo.model || 'N/A',
+        osVersion: devInfo.osVersion || 'N/A',
+        supportedABIs: devInfo.supportedAbis || [],
+        packageName: devInfo.packageName || 'N/A',
+        versionName: devInfo.versionName || 'N/A',
+        versionCode: devInfo.versionCode || 'N/A',
+        storageAvailable: devInfo.storageAvailable || 'N/A'
       },
       settings: {
         theme: settings.theme,
         appMode: settings.appMode,
         developerMode: settings.developerMode
       },
-      errors: errors,
+      errors: getErrors(),
       perfStats: Array.from(perf.entries()).map(([k, v]) => ({ component: k, ...v })),
-      logs: logs.slice(-50),
+      logs: getLogs(),
       stagexDiagnostics: stagex,
       otaDiagnostics: otaDiagnostics,
-      otaDebugLogs: otaDebugLogs
+      otaDebugLogs: otaDebugLogs,
+      activityLifecycle: activityLifecycleTimeline,
+      stateTransitions: transitionHistory,
+      rejectedTransitions: rejectedTransitions,
+      installerSession: installer,
+      localApkDetails: localApkDetails,
+      nativeLogs: nativeLogsList
     };
+  };
 
-    navigator.clipboard.writeText(JSON.stringify(dump, null, 2))
-      .then(() => showToast('Diagnostics copied to clipboard!'))
-      .catch(() => showToast('Copy failed.'));
+  // Copy Diagnostics
+  const handleCopyDiagnostics = async () => {
+    try {
+      const data = buildDiagnosticDataObject();
+      await handleCopyText(JSON.stringify(data, null, 2), 'Diagnostics JSON');
+    } catch (_) {}
+  };
+
+  const copyCombinedLogs = async () => {
+    let txt = '=== COMBINED JS AND NATIVE LOGS ===\n';
+    const data = buildDiagnosticDataObject();
+    const combined = [
+      ...data.logs.map(l => ({ time: l.timestamp, msg: `[JS] ${l.message}` })),
+      ...data.nativeLogs.map(l => ({ time: l.timestamp || Date.now(), msg: `[NATIVE] [${l.stage}] Status: ${l.status} - Message: ${l.message}` }))
+    ].sort((a, b) => a.time - b.time);
+    combined.forEach(c => {
+      txt += `[${new Date(c.time).toLocaleTimeString()}] ${c.msg}\n`;
+    });
+    await handleCopyText(txt, 'Combined Logs');
+    return txt;
+  };
+
+  const copyJsLogs = async () => {
+    let txt = '=== JS CONSOLE LOGS ===\n';
+    const data = buildDiagnosticDataObject();
+    data.logs.forEach(log => {
+      txt += `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}\n`;
+    });
+    await handleCopyText(txt, 'JS Logs');
+    return txt;
+  };
+
+  const copyNativeLogs = async () => {
+    let txt = '=== NATIVE SYSTEM LOGS ===\n';
+    const data = buildDiagnosticDataObject();
+    data.nativeLogs.forEach(log => {
+      txt += `[${log.stage || 'N/A'}] Status: ${log.status || 'N/A'} - Message: ${log.message || 'N/A'}\n`;
+    });
+    await handleCopyText(txt, 'Native Logs');
+    return txt;
   };
 
   // Collapsible views state
@@ -1025,12 +1078,12 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         };
 
         await verifyCopy('Copy Everything', () => exportEverything(), 'APPLICATION & BUILD INFO');
-        await verifyCopy('Copy Timeline', () => handleCopyText('=== UNIFIED TIMELINE ===\n[10:00:00] Test', 'Timeline'), 'UNIFIED TIMELINE');
-        await verifyCopy('Copy Diagnostics', () => handleCopyText(JSON.stringify(otaDiagnostics, null, 2), 'Diagnostics'), 'consecutiveFailures');
+        await verifyCopy('Copy Timeline', () => exportTimelineMarkdown(), 'Timeline');
+        await verifyCopy('Copy Diagnostics', () => handleCopyDiagnostics(), 'consecutiveFailures');
         await verifyCopy('Export Report', () => exportEngineeringReport(), 'APPLICATION & BUILD INFO');
-        await verifyCopy('Copy Logs', () => handleCopyText('=== COMBINED JS AND NATIVE LOGS ===', 'Logs'), 'COMBINED JS AND NATIVE LOGS');
-        await verifyCopy('Copy JS Logs', () => handleCopyText('=== JS CONSOLE LOGS ===', 'JS Logs'), 'JS CONSOLE LOGS');
-        await verifyCopy('Copy Native Logs', () => handleCopyText('=== NATIVE SYSTEM LOGS ===', 'Native Logs'), 'NATIVE SYSTEM LOGS');
+        await verifyCopy('Copy Logs', () => copyCombinedLogs(), 'COMBINED JS AND NATIVE LOGS');
+        await verifyCopy('Copy JS Logs', () => copyJsLogs(), 'JS CONSOLE LOGS');
+        await verifyCopy('Copy Native Logs', () => copyNativeLogs(), 'NATIVE SYSTEM LOGS');
 
         // 13. APK Buttons Verification (simulate exist / no-exist)
         const originalPath = localStorage.getItem('studio:downloadedApkPath');
@@ -1534,9 +1587,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       return txt;
     };
     const generateFullEngineeringReport = () => {
+      const data = buildDiagnosticDataObject();
       const diag = getAutoDiagnostics();
-      const devInfo = nativeDeviceInfo || {};
-      const installer = nativeInstallerDetails || {};
       
       let r = `==================================================\n`;
       r += `1. APPLICATION & BUILD INFO\n`;
@@ -1544,64 +1596,64 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       r += `Application Name:       Chordex Studio\n`;
       r += `App Version:            ${APP_VERSION_LABEL}\n`;
       r += `Native Version:         ${NATIVE_VERSION}\n`;
-      r += `VersionCode:            ${devInfo.versionCode ?? 'N/A'}\n`;
+      r += `VersionCode:            ${data.device.versionCode ?? 'N/A'}\n`;
       r += `Vite Git Commit:        ${import.meta.env?.VITE_GIT_COMMIT_SHA || 'unknown'}\n`;
       r += `Build Timestamp:        ${import.meta.env?.VITE_BUILD_TIMESTAMP || 'unknown'}\n`;
-      r += `Update Type/Channel:    ${otaDebugLogs.updateType || 'N/A'}\n\n`;
+      r += `Update Type/Channel:    ${data.otaDebugLogs.updateType || 'N/A'}\n\n`;
       
       r += `==================================================\n`;
       r += `2. DEVICE & HARDWARE\n`;
       r += `==================================================\n`;
-      r += `Manufacturer:           ${devInfo.manufacturer || 'N/A'}\n`;
-      r += `Model:                  ${devInfo.model || 'N/A'}\n`;
-      r += `Android OS Version:     ${devInfo.osVersion || 'N/A'}\n`;
-      r += `Supported ABIs:         ${devInfo.supportedAbis ? JSON.stringify(devInfo.supportedAbis) : 'N/A'}\n`;
-      r += `Storage Available:      ${devInfo.storageAvailable || 'N/A'}\n`;
+      r += `Manufacturer:           ${data.device.manufacturer || 'N/A'}\n`;
+      r += `Model:                  ${data.device.model || 'N/A'}\n`;
+      r += `Android OS Version:     ${data.device.osVersion || 'N/A'}\n`;
+      r += `Supported ABIs:         ${data.device.supportedABIs ? JSON.stringify(data.device.supportedABIs) : 'N/A'}\n`;
+      r += `Storage Available:      ${data.device.storageAvailable || 'N/A'}\n`;
       r += `Network Online:         ${navigator.onLine ? 'Connected' : 'Offline'}\n\n`;
       
       r += `==================================================\n`;
       r += `3. UPDATER STATE & STATE MACHINE\n`;
       r += `==================================================\n`;
-      r += `Current State:          ${globalOtaState.updateState}\n`;
-      r += `Updater Status:         ${globalOtaState.updateAvailable ? 'Update Available' : 'Idle'}\n`;
+      r += `Current State:          ${data.otaDiagnostics.updateState || data.otaDebugLogs.updateState || 'idle'}\n`;
+      r += `Updater Status:         ${data.otaDiagnostics.updateAvailable ? 'Update Available' : 'Idle'}\n`;
       r += `Recovery Diagnostics:   ${updaterSimulation.forceRecoveryMode || localStorage.getItem('studio:recoveryMode') ? 'ACTIVE' : 'INACTIVE'}\n\n`;
       
       r += `==================================================\n`;
       r += `4. DOWNLOAD & INSTALLER INFORMATION\n`;
       r += `==================================================\n`;
-      r += `Download URL:           ${globalOtaState.apkUrl || globalOtaState.downloadUrl || 'N/A'}\n`;
-      r += `Download Status:        ${otaDebugLogs.downloadStatus || 'N/A'}\n`;
-      r += `Download Progress:      ${globalOtaState.progress ? `${Math.round(globalOtaState.progress * 100)}%` : '0%'}\n`;
-      r += `SHA Verification:       ${otaDebugLogs.shaVerification || 'N/A'}\n`;
-      r += `Eligibility Results:    ${otaDebugLogs.eligibilityFinalInstall || 'N/A'}\n\n`;
+      r += `Download URL:           ${data.otaDiagnostics.apkUrl || data.otaDiagnostics.downloadUrl || 'N/A'}\n`;
+      r += `Download Status:        ${data.otaDebugLogs.downloadStatus || 'N/A'}\n`;
+      r += `Download Progress:      ${data.otaDiagnostics.progress ? `${Math.round(data.otaDiagnostics.progress * 100)}%` : '0%'}\n`;
+      r += `SHA Verification:       ${data.otaDebugLogs.shaVerification || 'N/A'}\n`;
+      r += `Eligibility Results:    ${data.otaDebugLogs.eligibilityFinalInstall || 'N/A'}\n\n`;
       
       r += `==================================================\n`;
       r += `5. PACKAGEINSTALLER MONITOR\n`;
       r += `==================================================\n`;
-      r += `Session ID:             ${installer.sessionId ?? -1}\n`;
-      r += `Session State:          ${installer.sessionState || 'None'}\n`;
-      r += `PendingIntent Status:   ${installer.pendingIntentCreated ? 'CREATED' : 'NONE'}\n`;
-      r += `confirmIntent Status:   ${installer.confirmIntentCreated ? 'CREATED' : 'NONE'}\n`;
-      r += `Last Native Status:     ${installer.lastStatusMessage || 'None'}\n`;
-      r += `Last Native Code:       ${installer.lastStatusCode ?? -999}\n`;
-      r += `Install Progress:       ${installer.progress ?? 'N/A'}\n\n`;
+      r += `Session ID:             ${data.installerSession.sessionId ?? -1}\n`;
+      r += `Session State:          ${data.installerSession.sessionState || 'None'}\n`;
+      r += `PendingIntent Status:   ${data.installerSession.pendingIntentCreated ? 'CREATED' : 'NONE'}\n`;
+      r += `confirmIntent Status:   ${data.installerSession.confirmIntentCreated ? 'CREATED' : 'NONE'}\n`;
+      r += `Last Native Status:     ${data.installerSession.lastStatusMessage || 'None'}\n`;
+      r += `Last Native Code:       ${data.installerSession.lastStatusCode ?? -999}\n`;
+      r += `Install Progress:       ${data.installerSession.progress ?? 'N/A'}\n\n`;
       
       r += `==================================================\n`;
       r += `6. APK METADATA DETAILS\n`;
       r += `==================================================\n`;
       r += `Installed APK Metadata:\n`;
-      r += `  Package Name:         ${devInfo.packageName || 'N/A'}\n`;
-      r += `  Version Name:         ${devInfo.versionName || 'N/A'}\n`;
-      r += `  Version Code:         ${devInfo.versionCode || 'N/A'}\n\n`;
+      r += `  Package Name:         ${data.device.packageName || 'N/A'}\n`;
+      r += `  Version Name:         ${data.device.versionName || 'N/A'}\n`;
+      r += `  Version Code:         ${data.device.versionCode || 'N/A'}\n\n`;
       
       r += `Downloaded APK Metadata:\n`;
-      if (localApkDetails) {
-        r += `  Package Name:         ${localApkDetails.packageName || 'N/A'}\n`;
-        r += `  Version Name:         ${localApkDetails.versionName || 'N/A'}\n`;
-        r += `  Version Code:         ${localApkDetails.versionCode || 'N/A'}\n`;
-        r += `  Signing SHA-256:      ${localApkDetails.signingSha256 || 'N/A'}\n`;
-        r += `  Debuggable:           ${localApkDetails.debuggable ? 'TRUE' : 'FALSE'}\n`;
-        r += `  Valid APK:            ${localApkDetails.isValidApk ? 'TRUE' : 'FALSE'}\n`;
+      if (data.localApkDetails) {
+        r += `  Package Name:         ${data.localApkDetails.packageName || 'N/A'}\n`;
+        r += `  Version Name:         ${data.localApkDetails.versionName || 'N/A'}\n`;
+        r += `  Version Code:         ${data.localApkDetails.versionCode || 'N/A'}\n`;
+        r += `  Signing SHA-256:      ${data.localApkDetails.signingSha256 || 'N/A'}\n`;
+        r += `  Debuggable:           ${data.localApkDetails.debuggable ? 'TRUE' : 'FALSE'}\n`;
+        r += `  Valid APK:            ${data.localApkDetails.isValidApk ? 'TRUE' : 'FALSE'}\n`;
       } else {
         r += `  No downloaded APK details inspected yet.\n`;
       }
@@ -1610,10 +1662,10 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       r += `==================================================\n`;
       r += `7. ACTIVITY LIFECYCLE TIMELINE\n`;
       r += `==================================================\n`;
-      if (activityLifecycleTimeline.length === 0) {
+      if (data.activityLifecycle.length === 0) {
         r += `No lifecycle events recorded.\n`;
       } else {
-        activityLifecycleTimeline.forEach(a => {
+        data.activityLifecycle.forEach(a => {
           r += `[${new Date(a.timestamp).toLocaleTimeString()}] ${a.stage}\n`;
         });
       }
@@ -1622,22 +1674,22 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       r += `==================================================\n`;
       r += `8. STATE TRANSITION HISTORY\n`;
       r += `==================================================\n`;
-      if (transitionHistory.length === 0) {
+      if (data.stateTransitions.length === 0) {
         r += `No transitions recorded.\n`;
       } else {
-        transitionHistory.forEach(t => {
+        data.stateTransitions.forEach(t => {
           r += `[${new Date(t.timestamp).toLocaleTimeString()}] ${t.from} -> ${t.to} (${t.reason}) [${t.durationMs}ms] ${t.invalid ? '(INVALID)' : ''}\n`;
         });
       }
       r += `\n`;
-
+ 
       r += `==================================================\n`;
       r += `9. REJECTED TRANSITIONS\n`;
       r += `==================================================\n`;
-      if (rejectedTransitions.length === 0) {
+      if (data.rejectedTransitions.length === 0) {
         r += `No rejected transitions recorded.\n`;
       } else {
-        rejectedTransitions.forEach(t => {
+        data.rejectedTransitions.forEach(t => {
           r += `[${new Date(t.timestamp).toLocaleTimeString()}] From ${t.from} -> ${t.attempted} (Reason: ${t.reason})\n`;
         });
       }
@@ -1658,33 +1710,33 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       r += `==================================================\n`;
       r += `11. NATIVE SYSTEM LOGS\n`;
       r += `==================================================\n`;
-      if (nativeLogsList.length === 0) {
+      if (data.nativeLogs.length === 0) {
         r += `No native PackageInstaller callback logs recorded.\n`;
       } else {
-        nativeLogsList.forEach(log => {
+        data.nativeLogs.forEach(log => {
           r += `[${log.stage || 'N/A'}] Status: ${log.status || 'N/A'} - Message: ${log.message || 'N/A'}\n`;
         });
       }
       r += `\n`;
-
+ 
       r += `==================================================\n`;
       r += `12. JS CONSOLE LOGS\n`;
       r += `==================================================\n`;
-      if (jsLogs.length === 0) {
+      if (data.logs.length === 0) {
         r += `No JS logs recorded.\n`;
       } else {
-        jsLogs.forEach(log => {
+        data.logs.forEach(log => {
           r += `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}\n`;
         });
       }
       r += `\n`;
-
+ 
       r += `==================================================\n`;
       r += `13. UNIFIED LOGS\n`;
       r += `==================================================\n`;
       const combined = [
-        ...jsLogs.map(l => ({ time: l.timestamp, msg: `[JS] ${l.message}` })),
-        ...nativeLogsList.map(l => ({ time: l.timestamp || Date.now(), msg: `[NATIVE] [${l.stage}] Status: ${l.status} - Message: ${l.message}` }))
+        ...data.logs.map(l => ({ time: l.timestamp, msg: `[JS] ${l.message}` })),
+        ...data.nativeLogs.map(l => ({ time: l.timestamp || Date.now(), msg: `[NATIVE] [${l.stage}] Status: ${l.status} - Message: ${l.message}` }))
       ].sort((a, b) => a.time - b.time);
       if (combined.length === 0) {
         r += `No logs recorded.\n`;
@@ -1694,18 +1746,18 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         });
       }
       r += `\n`;
-
+ 
       r += `==================================================\n`;
       r += `14. WARNINGS, ERRORS & EXCEPTIONS\n`;
       r += `==================================================\n`;
       r += `WARNINGS:\n`;
       let warningsList: string[] = [];
-      jsLogs.forEach(l => {
+      data.logs.forEach(l => {
         if (l.message.toLowerCase().includes('warning') || l.message.toLowerCase().includes('warn')) {
           warningsList.push(`[JS] [${new Date(l.timestamp).toLocaleTimeString()}] ${l.message}`);
         }
       });
-      nativeLogsList.forEach(l => {
+      data.nativeLogs.forEach(l => {
         const msg = l.message || '';
         const stat = l.status || '';
         if (msg.toLowerCase().includes('warning') || msg.toLowerCase().includes('warn') || stat.toLowerCase().includes('warning') || stat.toLowerCase().includes('warn')) {
@@ -1720,9 +1772,9 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         });
       }
       r += `\n`;
-
+ 
       r += `ERRORS & EXCEPTIONS:\n`;
-      const errs = getErrors();
+      const errs = data.errors;
       if (errs.length === 0) {
         r += `  No exceptions captured by the Error Boundary.\n`;
       } else {
@@ -1739,7 +1791,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         });
       }
       r += `\n`;
-
+ 
       r += `==================================================\n`;
       r += `15. REACT DIAGNOSTICS\n`;
       r += `==================================================\n`;
@@ -1748,29 +1800,29 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       r += `Hook:                  useMemo (filteredTimeline)\n`;
       r += `Line:                  Hoisted to top-level (unconditional execution)\n`;
       r += `Resolution:            Hoisted to avoid dynamic Hook order changes on tab switches.\n\n`;
-
+ 
       r += `==================================================\n`;
       r += `16. OTA DIAGNOSTICS SUMMARY\n`;
       r += `==================================================\n`;
-      r += `Exception Message:     ${otaDiagnostics.exceptionMessage || 'N/A'}\n`;
-      r += `Failure Reason:        ${otaDiagnostics.failureReason || 'N/A'}\n`;
-      r += `Download URL:          ${otaDiagnostics.downloadUrl || 'N/A'}\n`;
-      r += `Apk Path:              ${otaDiagnostics.apkPath || 'N/A'}\n`;
-      r += `File Size:             ${otaDiagnostics.fileSize || 'N/A'}\n`;
-      r += `SHA Expected:          ${otaDiagnostics.shaExpected || 'N/A'}\n`;
-      r += `SHA Calculated:        ${otaDiagnostics.shaCalculated || 'N/A'}\n`;
-      r += `Installer Result:      ${otaDiagnostics.installerResult || 'N/A'}\n`;
-      r += `Permission State:      ${otaDiagnostics.permissionState || 'N/A'}\n`;
-      r += `Android Version:       ${otaDiagnostics.androidVersion || 'N/A'}\n`;
-      r += `Device Model:          ${otaDiagnostics.deviceModel || 'N/A'}\n`;
-      r += `Timestamp:             ${otaDiagnostics.timestamp || 'N/A'}\n`;
-      r += `Architecture:          ${otaDiagnostics.architecture || 'N/A'}\n`;
-      r += `Device Locale:         ${otaDiagnostics.deviceLocale || 'N/A'}\n`;
-      r += `Storage Available:     ${otaDiagnostics.storageAvailable || 'N/A'}\n`;
-      r += `Network State:         ${otaDiagnostics.networkState || 'N/A'}\n`;
-      r += `Status Code:           ${otaDiagnostics.statusCode ?? 'N/A'}\n`;
-      r += `Status Text:           ${otaDiagnostics.statusText || 'N/A'}\n\n`;
-
+      r += `Exception Message:     ${data.otaDiagnostics.exceptionMessage || 'N/A'}\n`;
+      r += `Failure Reason:        ${data.otaDiagnostics.failureReason || 'N/A'}\n`;
+      r += `Download URL:          ${data.otaDiagnostics.downloadUrl || 'N/A'}\n`;
+      r += `Apk Path:              ${data.otaDiagnostics.apkPath || 'N/A'}\n`;
+      r += `File Size:             ${data.otaDiagnostics.fileSize || 'N/A'}\n`;
+      r += `SHA Expected:          ${data.otaDiagnostics.shaExpected || 'N/A'}\n`;
+      r += `SHA Calculated:        ${data.otaDiagnostics.shaCalculated || 'N/A'}\n`;
+      r += `Installer Result:      ${data.otaDiagnostics.installerResult || 'N/A'}\n`;
+      r += `Permission State:      ${data.otaDiagnostics.permissionState || 'N/A'}\n`;
+      r += `Android Version:       ${data.otaDiagnostics.androidVersion || 'N/A'}\n`;
+      r += `Device Model:          ${data.otaDiagnostics.deviceModel || 'N/A'}\n`;
+      r += `Timestamp:             ${data.otaDiagnostics.timestamp || 'N/A'}\n`;
+      r += `Architecture:          ${data.otaDiagnostics.architecture || 'N/A'}\n`;
+      r += `Device Locale:         ${data.otaDiagnostics.deviceLocale || 'N/A'}\n`;
+      r += `Storage Available:     ${data.otaDiagnostics.storageAvailable || 'N/A'}\n`;
+      r += `Network State:         ${data.otaDiagnostics.networkState || 'N/A'}\n`;
+      r += `Status Code:           ${data.otaDiagnostics.statusCode ?? 'N/A'}\n`;
+      r += `Status Text:           ${data.otaDiagnostics.statusText || 'N/A'}\n\n`;
+ 
       r += `==================================================\n`;
       r += `17. NEXT RECOMMENDED ACTION & RECOMMENDATIONS\n`;
       r += `==================================================\n`;
@@ -2975,15 +3027,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                     'None.',
                     'copyLogsCombined',
                     async () => {
-                      let txt = '=== COMBINED JS AND NATIVE LOGS ===\n';
-                      const combined = [
-                        ...jsLogs.map(l => ({ time: l.timestamp, msg: `[JS] ${l.message}` })),
-                        ...nativeLogsList.map(l => ({ time: l.timestamp || Date.now(), msg: `[NATIVE] [${l.stage}] Status: ${l.status} - Message: ${l.message}` }))
-                      ].sort((a, b) => a.time - b.time);
-                      combined.forEach(c => {
-                        txt += `[${new Date(c.time).toLocaleTimeString()}] ${c.msg}\n`;
-                      });
-                      await handleCopyText(txt, 'Combined Logs');
+                      await copyCombinedLogs();
                     },
                     'secondary'
                   )}
@@ -2994,11 +3038,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                     'None.',
                     'copyJsLogsOnly',
                     async () => {
-                      let txt = '=== JS CONSOLE LOGS ===\n';
-                      jsLogs.forEach(log => {
-                        txt += `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}\n`;
-                      });
-                      await handleCopyText(txt, 'JS Logs');
+                      await copyJsLogs();
                     },
                     'secondary'
                   )}
@@ -3009,11 +3049,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                     'None.',
                     'copyNativeLogsOnly',
                     async () => {
-                      let txt = '=== NATIVE SYSTEM LOGS ===\n';
-                      nativeLogsList.forEach(log => {
-                        txt += `[${log.stage || 'N/A'}] Status: ${log.status || 'N/A'} - Message: ${log.message || 'N/A'}\n`;
-                      });
-                      await handleCopyText(txt, 'Native Logs');
+                      await copyNativeLogs();
                     },
                     'secondary'
                   )}
@@ -3024,11 +3060,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                     'None.',
                     'expPkgInst',
                     async () => {
-                      let txt = '=== PACKAGE INSTALLER EVENTS ===\n';
-                      nativeLogsList.forEach(log => {
-                        txt += `[${log.stage}] Status: ${log.status} - Message: ${log.message}\n`;
-                      });
-                      await handleCopyText(txt, 'PackageInstaller Events');
+                      await copyNativeLogs();
                     },
                     'secondary'
                   )}
@@ -4943,7 +4975,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {!settings.developerMode ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#ef4444', marginBottom: 16 }}>terminal</span>
@@ -4962,7 +4994,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'apps' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Apps Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {renderAppsView()}
           </div>
         </div>
@@ -4971,7 +5003,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'stagex' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Stagex Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {renderStagexView()}
           </div>
         </div>
@@ -4980,7 +5012,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'updater' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Updater Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {renderUpdaterView()}
           </div>
         </div>
@@ -5002,7 +5034,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>Storage</button>
             <button style={tabBtnStyle('providers')} onClick={() => setActiveTab('providers')}>Module Panels ({activeProviders.length})</button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {activeTab === 'state' && renderStateTab()}
             {activeTab === 'storage' && renderStorageTab()}
             {activeTab === 'providers' && renderProvidersTab()}
@@ -5028,7 +5060,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             <button style={tabBtnStyle('events')} onClick={() => setActiveTab('events')}>Events ({events.length})</button>
             <button style={tabBtnStyle('nav')} onClick={() => setActiveTab('nav')}>Navigation Stack</button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {activeTab === 'logs' && renderLogsTab()}
             {activeTab === 'errors' && renderErrorsTab()}
             {activeTab === 'events' && renderEventsTab()}
@@ -5041,7 +5073,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'performance' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Performance Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {renderPerfTab()}
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['performance', 'perf']} />
           </div>
@@ -5051,7 +5083,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'network' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Network Sniffer')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
             {renderNetworkTab()}
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['network', 'sync']} />
           </div>

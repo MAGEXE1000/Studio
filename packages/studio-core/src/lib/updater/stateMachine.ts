@@ -120,7 +120,7 @@ export function transitionToState(state: OtaUpdateState, reason: string) {
   } else if (current === 'checking') {
     isValid = ['update_available', 'manual_apk_required', 'idle', 'failed'].includes(state);
   } else if (current === 'update_available') {
-    isValid = state === 'downloading';
+    isValid = ['downloading', 'idle', 'failed'].includes(state);
   } else if (current === 'manual_apk_required') {
     isValid = ['idle', 'checking'].includes(state);
   } else if (current === 'downloading') {

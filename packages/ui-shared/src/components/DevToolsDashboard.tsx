@@ -719,6 +719,367 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     };
   };
 
+  const handleCopyText = async (text: string, label: string) => {
+    const stageLog = (stage: string) => {
+      console.log(`[Copy Stage - ${label}] ${stage}`);
+      addJsLog(`[Copy Stage - ${label}] ${stage}`);
+    };
+
+    stageLog("Handler entered");
+    try {
+      stageLog("Data collected");
+      stageLog(`Data size: ${text.length} characters`);
+
+      const { Capacitor } = await import('@capacitor/core');
+      const isAndroid = Capacitor.getPlatform() === 'android';
+      stageLog(`Clipboard write started. Target environment: ${isAndroid ? 'Android' : 'Web'}`);
+
+      if (isAndroid || isNative()) {
+        let textToCopy = text;
+        if (text.length > 400000) {
+          textToCopy = text.substring(text.length - 400000);
+          textToCopy = `[WARNING: Report truncated to the last 400,000 characters due to Android clipboard size limits]\n\n...[TRUNCATED]...\n\n` + textToCopy;
+          stageLog("Warning: Data truncated due to size limits");
+          showToast(`${label} copied (truncated due to size limits)`);
+        }
+        await AppInstaller.copyToClipboard({ text: textToCopy });
+      } else {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          throw new Error('Web clipboard API not available.');
+        }
+      }
+
+      stageLog("Clipboard write finished successfully");
+      showToast(`${label} copied to clipboard!`);
+    } catch (err: any) {
+      stageLog(`Failure: ${err?.message || String(err)}`);
+      showToast(`Copy failed: ${err?.message || String(err)}`);
+      throw err;
+    }
+  };
+
+  const getAutoDiagnostics = () => {
+    const err = globalOtaState.error || otaDebugLogs.installError;
+    const status = nativeInstallerDetails?.lastStatusCode ?? -999;
+    
+    if (!err && status === -999) return null;
+
+    let failedStage = 'Unknown';
+    let reason = err || 'An error occurred during update processing.';
+    let suggestedCause = 'Underlying native session failed to commit or start confirmation activity.';
+    let suggestedFix = 'Please reset the state completely, check internet connectivity, and ensure unknown sources permission is granted.';
+
+    const errStr = String(err).toLowerCase();
+    
+    if (errStr.includes('download') || (globalOtaState.updateState as string) === 'download_failed') {
+      failedStage = 'Downloading';
+      reason = err || 'Download failed or timed out.';
+      suggestedCause = 'Network connectivity issues, unresolvable download server URL, or file system storage access denied.';
+      suggestedFix = 'Ensure your internet connection is active, try clean cache, or select custom backup APK mirror.';
+    } else if (errStr.includes('sha') || (globalOtaState.updateState as string) === 'sha_failed') {
+      failedStage = 'Verification (SHA-256)';
+      reason = err || 'SHA-256 checksum validation failed.';
+      suggestedCause = 'The downloaded APK does not match the expected SHA-256 hash. The download might be corrupted or incomplete.';
+      suggestedFix = 'Retry the download, or toggle Force SHA Failure off. Check if CDN caches old versions.';
+    } else if (errStr.includes('eligibility') || (globalOtaState.updateState as string) === 'eligibility_failed') {
+      failedStage = 'Pre-install Eligibility Verification';
+      reason = err || 'The system declared the package ineligible.';
+      suggestedCause = otaDebugLogs.eligibilityReason === 'signature_mismatch'
+        ? 'Signature mismatch: The downloaded APK is signed with a different key than the installed app.'
+        : otaDebugLogs.eligibilityReason === 'versionCode_low'
+        ? 'Version downgrade: The remote versionCode is lower than the local one.'
+        : 'Incompatible platform, architecture ABI mismatch, or corrupted APK package parsing error.';
+      suggestedFix = otaDebugLogs.eligibilityReason === 'signature_mismatch'
+        ? 'A full clean reinstall is required (uninstall current app manually first to avoid signature conflict).'
+        : 'Enable downgrade options inside simulator, or perform a clean manual install.';
+    } else if (status !== -999) {
+      failedStage = 'Native PackageInstaller Handoff';
+      if (status === 3) {
+        reason = 'User Cancelled (STATUS_FAILURE_ABORTED)';
+        suggestedCause = 'User clicked "Cancel" on the system install confirmation screen.';
+        suggestedFix = 'Rerun the update trigger and click "Update" instead of "Cancel".';
+      } else if (status === 5) {
+        reason = 'Signature Conflict (STATUS_FAILURE_CONFLICT)';
+        suggestedCause = 'System blocked package installation because the new APK signature does not match the previously installed signature.';
+        suggestedFix = 'Manually uninstall the app, then retry to perform a clean install.';
+      } else if (status === 7) {
+        reason = 'Downgrade Blocked (STATUS_FAILURE_INCOMPATIBLE)';
+        suggestedCause = 'The system blocks installing an APK with a lower versionCode than the current app.';
+        suggestedFix = 'Ensure the new update version has a higher versionCode, or perform a manual clean install.';
+      } else if (status === 6) {
+        reason = 'Storage Full (STATUS_FAILURE_STORAGE)';
+        suggestedCause = 'The device has insufficient available flash storage memory to install the APK package.';
+        suggestedFix = 'Free up space in the device storage and retry.';
+      } else if (status === 2) {
+        reason = 'Blocked by System Policy (STATUS_FAILURE_BLOCKED)';
+        suggestedCause = 'System security settings or administrator policies block unknown sources installations.';
+        suggestedFix = 'Open Android unknown app sources settings and explicitly grant install permissions to Studio.';
+      } else {
+        reason = `PackageInstaller code ${status}: ${nativeInstallerDetails?.lastStatusMessage || 'Unknown error'}`;
+        suggestedCause = 'The PackageInstaller subsystem returned a system exception during commit execution.';
+        suggestedFix = 'Re-try the installation or inspect native device logs via ADB/Diagnostics.';
+      }
+    }
+
+    return {
+      failedStage,
+      reason,
+      exceptionStack: otaDebugLogs.lastExceptionStackTrace || 'None',
+      suggestedCause,
+      suggestedFix
+    };
+  };
+
+  const generateFullEngineeringReport = () => {
+    const data = buildDiagnosticDataObject();
+    const diag = getAutoDiagnostics();
+    
+    let r = `==================================================\n`;
+    r += `1. APPLICATION & BUILD INFO\n`;
+    r += `==================================================\n`;
+    r += `Application Name:       Chordex Studio\n`;
+    r += `App Version:            ${APP_VERSION_LABEL}\n`;
+    r += `Native Version:         ${NATIVE_VERSION}\n`;
+    r += `VersionCode:            ${data.device.versionCode ?? 'N/A'}\n`;
+    r += `Vite Git Commit:        ${import.meta.env?.VITE_GIT_COMMIT_SHA || 'unknown'}\n`;
+    r += `Package Name:           ${data.device.packageName || 'N/A'}\n`;
+    r += `Build Type:             ${data.device.buildType || 'N/A'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `2. REMOTE METADATA COMPARISON\n`;
+    r += `==================================================\n`;
+    r += `Remote Version:         ${data.device.remoteVersion || 'N/A'}\n`;
+    r += `Checking Method:        dev_tools / automated\n`;
+    r += `Update Available:       ${data.device.updateAvailable ? 'YES' : 'NO'}\n`;
+    r += `Mandatory Update:       ${data.device.mandatoryUpdate ? 'YES' : 'NO'}\n`;
+    r += `Install State:          ${data.device.updateState || 'N/A'}\n`;
+    r += `Download Progress:      ${data.device.progress !== undefined ? `${Math.round(data.device.progress * 100)}%` : '0%'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `3. AUTO-DIAGNOSTICS PRE-INSTALL STATUS\n`;
+    r += `==================================================\n`;
+    if (diag) {
+      r += `Failed Stage:           ${diag.failedStage}\n`;
+      r += `Reason:                 ${diag.reason}\n`;
+      r += `Suggested Cause:        ${diag.suggestedCause}\n`;
+      r += `Suggested Fix:          ${diag.suggestedFix}\n\n`;
+    } else {
+      r += `Auto-Diagnostics Result: PASS (No active failures detected)\n\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `4. INTEGRITY CHECK (SHA-256)\n`;
+    r += `==================================================\n`;
+    r += `Expected Hash:          ${data.device.apkSha256 || 'N/A'}\n`;
+    r += `Calculated Hash:        ${data.device.shaVerification || 'N/A'}\n`;
+    r += `Match Integrity Status: ${data.device.apkSha256 && data.device.shaVerification && data.device.apkSha256 === data.device.shaVerification ? 'VERIFIED' : 'MISMATCH / PENDING'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `5. PRE-INSTALL ELIGIBILITY STATUS\n`;
+    r += `==================================================\n`;
+    r += `Eligibility Verdict:    ${data.device.apkEligibilityResult || 'PENDING / UNKNOWN'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `6. PACKAGE INSTALLER METRICS\n`;
+    r += `==================================================\n`;
+    r += `Session ID:             ${data.nativeInstaller.sessionId !== undefined && data.nativeInstaller.sessionId !== -1 ? String(data.nativeInstaller.sessionId) : 'None'}\n`;
+    r += `Session Stage:          ${data.nativeInstaller.sessionState || 'N/A'}\n`;
+    r += `PendingIntent:          ${data.nativeInstaller.pendingIntentCreated ? 'YES' : 'NO'}\n`;
+    r += `IntentSender:           ${data.nativeInstaller.intentSenderCreated ? 'YES' : 'NO'}\n`;
+    r += `Intent Fired:           ${data.nativeInstaller.intentFired ? 'YES' : 'NO'}\n`;
+    r += `Last Status Code:       ${data.nativeInstaller.lastStatusCode !== undefined && data.nativeInstaller.lastStatusCode !== -999 ? String(data.nativeInstaller.lastStatusCode) : 'None'}\n`;
+    r += `Last Status Message:    ${data.nativeInstaller.lastStatusMessage || 'N/A'}\n`;
+    r += `Last Callback Time:     ${data.nativeInstaller.lastStatusTimestamp ? new Date(data.nativeInstaller.lastStatusTimestamp).toLocaleTimeString() : 'N/A'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `7. SYSTEM & DEVICE CONTEXT\n`;
+    r += `==================================================\n`;
+    r += `Android OS version:     ${data.otaDiagnostics.androidVersion || 'N/A'}\n`;
+    r += `SDK Level:              ${data.otaDiagnostics.sdkInt ?? 'N/A'}\n`;
+    r += `Manufacturer/Model:     ${data.otaDiagnostics.manufacturer || 'N/A'} ${data.otaDiagnostics.model || 'N/A'}\n`;
+    r += `ABI Architecture:       ${data.otaDiagnostics.architecture || 'N/A'}\n`;
+    r += `Install Source:         ${data.otaDiagnostics.installerPackage || 'N/A'}\n`;
+    r += `Has Install Permission: ${data.otaDiagnostics.canRequestPackageInstalls ? 'YES' : 'NO'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `8. RECOVERY & FAULT INJECTION STATE\n`;
+    r += `==================================================\n`;
+    r += `Consecutive Failures:   ${data.otaDiagnostics.consecutiveFailures ?? 0}\n`;
+    r += `Recovery Mode State:    ${data.otaDiagnostics.recoveryMode ? 'ACTIVE' : 'INACTIVE'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `9. SYSTEM STATE MACHINE HISTORY\n`;
+    r += `==================================================\n`;
+    if (data.transitions.length === 0) {
+      r += `No transitions recorded.\n\n`;
+    } else {
+      data.transitions.forEach((t, i) => {
+        r += `[${i + 1}] ${t.from} -> ${t.to} (Duration: ${t.durationMs}ms) - Reason: ${t.reason}${t.invalid ? ' [INVALID TRANSITION]' : ''}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `10. REJECTED STATE TRANSITIONS\n`;
+    r += `==================================================\n`;
+    if (rejectedTransitions.length === 0) {
+      r += `No rejected transitions recorded.\n\n`;
+    } else {
+      rejectedTransitions.forEach((t, i) => {
+        r += `[${i + 1}] ${t.from} -> ${t.to} - Reason: ${t.reason}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `11. ACTIVE USER SIMULATION PARAMETERS\n`;
+    r += `==================================================\n`;
+    r += `forceUpdateAvailable:   ${updaterSimulation.forceUpdateAvailable ? 'YES' : 'NO'}\n`;
+    r += `forceNoUpdate:          ${updaterSimulation.forceNoUpdate ? 'YES' : 'NO'}\n`;
+    r += `forceDowngrade:         ${updaterSimulation.forceDowngrade ? 'YES' : 'NO'}\n`;
+    r += `forceMetadataFailure:   ${updaterSimulation.forceMetadataFailure ? 'YES' : 'NO'}\n`;
+    r += `forceDownloadFailure:   ${updaterSimulation.forceDownloadFailure ? 'YES' : 'NO'}\n`;
+    r += `forceDownloadTimeout:   ${updaterSimulation.forceDownloadTimeout ? 'YES' : 'NO'}\n`;
+    r += `forceShaFailure:        ${updaterSimulation.forceShaFailure ? 'YES' : 'NO'}\n`;
+    r += `forceSignatureMismatch: ${updaterSimulation.forceSignatureMismatch ? 'YES' : 'NO'}\n`;
+    r += `forceInvalidApk:        ${updaterSimulation.forceInvalidApk ? 'YES' : 'NO'}\n`;
+    r += `forceInstallSuccess:    ${updaterSimulation.forceInstallSuccess ? 'YES' : 'NO'}\n`;
+    r += `forceInstallFailure:    ${updaterSimulation.forceInstallFailure ? 'YES' : 'NO'}\n`;
+    r += `forceUserCancel:        ${updaterSimulation.forceUserCancel ? 'YES' : 'NO'}\n`;
+    r += `forcePendingUserAction: ${updaterSimulation.forcePendingUserAction ? 'YES' : 'NO'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `12. NATIVE SYSTEM EVENT HISTORIES\n`;
+    r += `==================================================\n`;
+    if (data.nativeLogs.length === 0) {
+      r += `No native event history recorded.\n\n`;
+    } else {
+      data.nativeLogs.forEach((l, i) => {
+        r += `[${i + 1}] Stage: ${l.stage || 'N/A'} - Status: ${l.status || 'N/A'} - Message: ${l.message || 'N/A'}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `13. ACTIVITY LIFECYCLE MONITOR\n`;
+    r += `==================================================\n`;
+    if (activityLifecycleTimeline.length === 0) {
+      r += `No lifecycle focus events recorded.\n\n`;
+    } else {
+      activityLifecycleTimeline.forEach((a, i) => {
+        r += `[${i + 1}] [${new Date(a.timestamp).toLocaleTimeString()}] Stage: ${a.stage}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `14. ERROR CONSOLE SUMMARY\n`;
+    r += `==================================================\n`;
+    if (errors.length === 0) {
+      r += `No system exceptions in buffers.\n\n`;
+    } else {
+      errors.forEach((e, i) => {
+        r += `[${i + 1}] [${new Date(e.timestamp).toLocaleTimeString()}] ${e.message}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `15. CHRONOLOGICAL JS TIMELINE\n`;
+    r += `==================================================\n`;
+    if (data.logs.length === 0) {
+      r += `No JS console log items in buffer.\n\n`;
+    } else {
+      data.logs.forEach((log, i) => {
+        r += `[${i + 1}] [${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `16. CHRONOLOGICAL COMBINED TIMELINE\n`;
+    r += `==================================================\n`;
+    if (unifiedTimeline.length === 0) {
+      r += `No combined timeline items recorded.\n\n`;
+    } else {
+      unifiedTimeline.forEach((e, i) => {
+        const timeStr = new Date(e.time).toLocaleTimeString();
+        r += `[${i + 1}] [${timeStr}] [${e.type.toUpperCase()}] ${e.text} ${e.details ? ` - ${e.details}` : ''}\n`;
+      });
+      r += `\n`;
+    }
+
+    r += `==================================================\n`;
+    r += `17. SYSTEM STATS & METRICS\n`;
+    r += `==================================================\n`;
+    r += `Device Locale:         ${data.otaDiagnostics.deviceLocale || 'N/A'}\n`;
+    r += `Storage Available:     ${data.otaDiagnostics.storageAvailable || 'N/A'}\n`;
+    r += `Network State:         ${data.otaDiagnostics.networkState || 'N/A'}\n`;
+    r += `Status Code:           ${data.otaDiagnostics.statusCode ?? 'N/A'}\n`;
+    r += `Status Text:           ${data.otaDiagnostics.statusText || 'N/A'}\n\n`;
+
+    r += `==================================================\n`;
+    r += `18. NEXT RECOMMENDED ACTION & RECOMMENDATIONS\n`;
+    r += `==================================================\n`;
+    if (diag) {
+      r += `Suggested Fix: ${diag.suggestedFix}\n`;
+    } else if (globalOtaState.updateState === 'waiting_for_confirmation') {
+      r += `The PackageInstaller has launched the system prompt. The user needs to confirm the installation.\n`;
+    } else if (globalOtaState.updateState === 'ready_to_install') {
+      r += `The update package is ready. Execute 'Trigger Install' to prompt the user.\n`;
+    } else if (globalOtaState.updateAvailable) {
+      r += `An update is available remote. Execute 'Trigger Download' to retrieve the package.\n`;
+    } else {
+      r += `All systems nominal. No actions required.\n`;
+    }
+    r += `\n`;
+    
+    r += `==================================================\n`;
+    r += `END OF REPORT\n`;
+    r += `==================================================`;
+    return r;
+  };
+
+  const exportTimelineMarkdown = async () => {
+    let md = `# Unified Chronological Timeline\n\n| Type | Timestamp | Event / Details |\n|---|---|---|\n`;
+    unifiedTimeline.forEach(e => {
+      const timeStr = new Date(e.time).toLocaleTimeString();
+      md += `| **${e.type.toUpperCase()}** | ${timeStr} | ${e.text} ${e.details ? `(${e.details})` : ''} |\n`;
+    });
+    await handleCopyText(md, 'Timeline Markdown');
+    return md;
+  };
+
+  const exportCompleteTimelineJSON = async () => {
+    const json = JSON.stringify(unifiedTimeline, null, 2);
+    await handleCopyText(json, 'Unified Timeline JSON');
+    return json;
+  };
+
+  const exportCompleteTimelineText = async () => {
+    let txt = `=== UNIFIED CHRONOLOGICAL TIMELINE ===\n`;
+    unifiedTimeline.forEach(e => {
+      const timeStr = new Date(e.time).toLocaleTimeString();
+      txt += `[${timeStr}] [${e.type.toUpperCase()}] ${e.text} ${e.details ? ` - ${e.details}` : ''}\n`;
+    });
+    await handleCopyText(txt, 'Timeline Plain Text');
+    return txt;
+  };
+
+  const exportEngineeringReport = async () => {
+    const report = generateFullEngineeringReport();
+    await handleCopyText(report, 'Complete Engineering Report');
+    return report;
+  };
+
+  const exportEverything = async () => {
+    const report = generateFullEngineeringReport();
+    await handleCopyText(report, 'All Diagnostics Combined');
+    return report;
+  };
+
   // Copy Diagnostics
   const handleCopyDiagnostics = async () => {
     try {
@@ -787,7 +1148,15 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       overflow: 'hidden'
     }}>
       <button
-        onClick={onToggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggle();
+        }}
         style={{
           width: '100%',
           padding: '12px 16px',
@@ -1561,375 +1930,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
 
 
 
-    const exportTimelineMarkdown = async () => {
-      let md = `# Unified Chronological Timeline\n\n| Type | Timestamp | Event / Details |\n|---|---|---|\n`;
-      unifiedTimeline.forEach(e => {
-        const timeStr = new Date(e.time).toLocaleTimeString();
-        md += `| **${e.type.toUpperCase()}** | ${timeStr} | ${e.text} ${e.details ? `(${e.details})` : ''} |\n`;
-      });
-      await handleCopyText(md, 'Timeline Markdown');
-      return md;
-    };
-
-    const exportCompleteTimelineJSON = async () => {
-      const json = JSON.stringify(unifiedTimeline, null, 2);
-      await handleCopyText(json, 'Unified Timeline JSON');
-      return json;
-    };
-
-    const exportCompleteTimelineText = async () => {
-      let txt = `=== UNIFIED CHRONOLOGICAL TIMELINE ===\n`;
-      unifiedTimeline.forEach(e => {
-        const timeStr = new Date(e.time).toLocaleTimeString();
-        txt += `[${timeStr}] [${e.type.toUpperCase()}] ${e.text} ${e.details ? ` - ${e.details}` : ''}\n`;
-      });
-      await handleCopyText(txt, 'Timeline Plain Text');
-      return txt;
-    };
-    const generateFullEngineeringReport = () => {
-      const data = buildDiagnosticDataObject();
-      const diag = getAutoDiagnostics();
-      
-      let r = `==================================================\n`;
-      r += `1. APPLICATION & BUILD INFO\n`;
-      r += `==================================================\n`;
-      r += `Application Name:       Chordex Studio\n`;
-      r += `App Version:            ${APP_VERSION_LABEL}\n`;
-      r += `Native Version:         ${NATIVE_VERSION}\n`;
-      r += `VersionCode:            ${data.device.versionCode ?? 'N/A'}\n`;
-      r += `Vite Git Commit:        ${import.meta.env?.VITE_GIT_COMMIT_SHA || 'unknown'}\n`;
-      r += `Build Timestamp:        ${import.meta.env?.VITE_BUILD_TIMESTAMP || 'unknown'}\n`;
-      r += `Update Type/Channel:    ${data.otaDebugLogs.updateType || 'N/A'}\n\n`;
-      
-      r += `==================================================\n`;
-      r += `2. DEVICE & HARDWARE\n`;
-      r += `==================================================\n`;
-      r += `Manufacturer:           ${data.device.manufacturer || 'N/A'}\n`;
-      r += `Model:                  ${data.device.model || 'N/A'}\n`;
-      r += `Android OS Version:     ${data.device.osVersion || 'N/A'}\n`;
-      r += `Supported ABIs:         ${data.device.supportedABIs ? JSON.stringify(data.device.supportedABIs) : 'N/A'}\n`;
-      r += `Storage Available:      ${data.device.storageAvailable || 'N/A'}\n`;
-      r += `Network Online:         ${navigator.onLine ? 'Connected' : 'Offline'}\n\n`;
-      
-      r += `==================================================\n`;
-      r += `3. UPDATER STATE & STATE MACHINE\n`;
-      r += `==================================================\n`;
-      r += `Current State:          ${data.otaDiagnostics.updateState || data.otaDebugLogs.updateState || 'idle'}\n`;
-      r += `Updater Status:         ${data.otaDiagnostics.updateAvailable ? 'Update Available' : 'Idle'}\n`;
-      r += `Recovery Diagnostics:   ${updaterSimulation.forceRecoveryMode || localStorage.getItem('studio:recoveryMode') ? 'ACTIVE' : 'INACTIVE'}\n\n`;
-      
-      r += `==================================================\n`;
-      r += `4. DOWNLOAD & INSTALLER INFORMATION\n`;
-      r += `==================================================\n`;
-      r += `Download URL:           ${data.otaDiagnostics.apkUrl || data.otaDiagnostics.downloadUrl || 'N/A'}\n`;
-      r += `Download Status:        ${data.otaDebugLogs.downloadStatus || 'N/A'}\n`;
-      r += `Download Progress:      ${data.otaDiagnostics.progress ? `${Math.round(data.otaDiagnostics.progress * 100)}%` : '0%'}\n`;
-      r += `SHA Verification:       ${data.otaDebugLogs.shaVerification || 'N/A'}\n`;
-      r += `Eligibility Results:    ${data.otaDebugLogs.eligibilityFinalInstall || 'N/A'}\n\n`;
-      
-      r += `==================================================\n`;
-      r += `5. PACKAGEINSTALLER MONITOR\n`;
-      r += `==================================================\n`;
-      r += `Session ID:             ${data.installerSession.sessionId ?? -1}\n`;
-      r += `Session State:          ${data.installerSession.sessionState || 'None'}\n`;
-      r += `PendingIntent Status:   ${data.installerSession.pendingIntentCreated ? 'CREATED' : 'NONE'}\n`;
-      r += `confirmIntent Status:   ${data.installerSession.confirmIntentCreated ? 'CREATED' : 'NONE'}\n`;
-      r += `Last Native Status:     ${data.installerSession.lastStatusMessage || 'None'}\n`;
-      r += `Last Native Code:       ${data.installerSession.lastStatusCode ?? -999}\n`;
-      r += `Install Progress:       ${data.installerSession.progress ?? 'N/A'}\n\n`;
-      
-      r += `==================================================\n`;
-      r += `6. APK METADATA DETAILS\n`;
-      r += `==================================================\n`;
-      r += `Installed APK Metadata:\n`;
-      r += `  Package Name:         ${data.device.packageName || 'N/A'}\n`;
-      r += `  Version Name:         ${data.device.versionName || 'N/A'}\n`;
-      r += `  Version Code:         ${data.device.versionCode || 'N/A'}\n\n`;
-      
-      r += `Downloaded APK Metadata:\n`;
-      if (data.localApkDetails) {
-        r += `  Package Name:         ${data.localApkDetails.packageName || 'N/A'}\n`;
-        r += `  Version Name:         ${data.localApkDetails.versionName || 'N/A'}\n`;
-        r += `  Version Code:         ${data.localApkDetails.versionCode || 'N/A'}\n`;
-        r += `  Signing SHA-256:      ${data.localApkDetails.signingSha256 || 'N/A'}\n`;
-        r += `  Debuggable:           ${data.localApkDetails.debuggable ? 'TRUE' : 'FALSE'}\n`;
-        r += `  Valid APK:            ${data.localApkDetails.isValidApk ? 'TRUE' : 'FALSE'}\n`;
-      } else {
-        r += `  No downloaded APK details inspected yet.\n`;
-      }
-      r += `\n`;
-      
-      r += `==================================================\n`;
-      r += `7. ACTIVITY LIFECYCLE TIMELINE\n`;
-      r += `==================================================\n`;
-      if (data.activityLifecycle.length === 0) {
-        r += `No lifecycle events recorded.\n`;
-      } else {
-        data.activityLifecycle.forEach(a => {
-          r += `[${new Date(a.timestamp).toLocaleTimeString()}] ${a.stage}\n`;
-        });
-      }
-      r += `\n`;
-      
-      r += `==================================================\n`;
-      r += `8. STATE TRANSITION HISTORY\n`;
-      r += `==================================================\n`;
-      if (data.stateTransitions.length === 0) {
-        r += `No transitions recorded.\n`;
-      } else {
-        data.stateTransitions.forEach(t => {
-          r += `[${new Date(t.timestamp).toLocaleTimeString()}] ${t.from} -> ${t.to} (${t.reason}) [${t.durationMs}ms] ${t.invalid ? '(INVALID)' : ''}\n`;
-        });
-      }
-      r += `\n`;
- 
-      r += `==================================================\n`;
-      r += `9. REJECTED TRANSITIONS\n`;
-      r += `==================================================\n`;
-      if (data.rejectedTransitions.length === 0) {
-        r += `No rejected transitions recorded.\n`;
-      } else {
-        data.rejectedTransitions.forEach(t => {
-          r += `[${new Date(t.timestamp).toLocaleTimeString()}] From ${t.from} -> ${t.attempted} (Reason: ${t.reason})\n`;
-        });
-      }
-      r += `\n`;
-      
-      r += `==================================================\n`;
-      r += `10. CHRONOLOGICAL EVENT TIMELINE\n`;
-      r += `==================================================\n`;
-      if (unifiedTimeline.length === 0) {
-        r += `Timeline empty.\n`;
-      } else {
-        unifiedTimeline.forEach(e => {
-          r += `[${new Date(e.time).toLocaleTimeString()}] [${e.type.toUpperCase()}] ${e.text} ${e.details ? `(${e.details})` : ''}\n`;
-        });
-      }
-      r += `\n`;
-      
-      r += `==================================================\n`;
-      r += `11. NATIVE SYSTEM LOGS\n`;
-      r += `==================================================\n`;
-      if (data.nativeLogs.length === 0) {
-        r += `No native PackageInstaller callback logs recorded.\n`;
-      } else {
-        data.nativeLogs.forEach(log => {
-          r += `[${log.stage || 'N/A'}] Status: ${log.status || 'N/A'} - Message: ${log.message || 'N/A'}\n`;
-        });
-      }
-      r += `\n`;
- 
-      r += `==================================================\n`;
-      r += `12. JS CONSOLE LOGS\n`;
-      r += `==================================================\n`;
-      if (data.logs.length === 0) {
-        r += `No JS logs recorded.\n`;
-      } else {
-        data.logs.forEach(log => {
-          r += `[${new Date(log.timestamp).toLocaleTimeString()}] ${log.message}\n`;
-        });
-      }
-      r += `\n`;
- 
-      r += `==================================================\n`;
-      r += `13. UNIFIED LOGS\n`;
-      r += `==================================================\n`;
-      const combined = [
-        ...data.logs.map(l => ({ time: l.timestamp, msg: `[JS] ${l.message}` })),
-        ...data.nativeLogs.map(l => ({ time: l.timestamp || Date.now(), msg: `[NATIVE] [${l.stage}] Status: ${l.status} - Message: ${l.message}` }))
-      ].sort((a, b) => a.time - b.time);
-      if (combined.length === 0) {
-        r += `No logs recorded.\n`;
-      } else {
-        combined.forEach(c => {
-          r += `[${new Date(c.time).toLocaleTimeString()}] ${c.msg}\n`;
-        });
-      }
-      r += `\n`;
- 
-      r += `==================================================\n`;
-      r += `14. WARNINGS, ERRORS & EXCEPTIONS\n`;
-      r += `==================================================\n`;
-      r += `WARNINGS:\n`;
-      let warningsList: string[] = [];
-      data.logs.forEach(l => {
-        if (l.message.toLowerCase().includes('warning') || l.message.toLowerCase().includes('warn')) {
-          warningsList.push(`[JS] [${new Date(l.timestamp).toLocaleTimeString()}] ${l.message}`);
-        }
-      });
-      data.nativeLogs.forEach(l => {
-        const msg = l.message || '';
-        const stat = l.status || '';
-        if (msg.toLowerCase().includes('warning') || msg.toLowerCase().includes('warn') || stat.toLowerCase().includes('warning') || stat.toLowerCase().includes('warn')) {
-          warningsList.push(`[NATIVE] [${l.stage}] Status: ${l.status} - Message: ${l.message}`);
-        }
-      });
-      if (warningsList.length === 0) {
-        r += `  No warnings detected in logs.\n`;
-      } else {
-        warningsList.forEach(w => {
-          r += `  ${w}\n`;
-        });
-      }
-      r += `\n`;
- 
-      r += `ERRORS & EXCEPTIONS:\n`;
-      const errs = data.errors;
-      if (errs.length === 0) {
-        r += `  No exceptions captured by the Error Boundary.\n`;
-      } else {
-        errs.forEach((e, idx) => {
-          r += `  Error #${idx + 1}:\n`;
-          r += `    Timestamp: ${new Date(e.timestamp).toLocaleString()}\n`;
-          r += `    Source:    ${e.source}\n`;
-          r += `    Module:    ${e.module}\n`;
-          r += `    Message:   ${e.message}\n`;
-          if (e.stack) {
-            r += `    Stack:\n${e.stack}\n`;
-          }
-          r += `\n`;
-        });
-      }
-      r += `\n`;
- 
-      r += `==================================================\n`;
-      r += `15. REACT DIAGNOSTICS\n`;
-      r += `==================================================\n`;
-      r += `File:                  packages/ui-shared/src/components/DevToolsDashboard.tsx\n`;
-      r += `Component:             DevToolsDashboard\n`;
-      r += `Hook:                  useMemo (filteredTimeline)\n`;
-      r += `Line:                  Hoisted to top-level (unconditional execution)\n`;
-      r += `Resolution:            Hoisted to avoid dynamic Hook order changes on tab switches.\n\n`;
- 
-      r += `==================================================\n`;
-      r += `16. OTA DIAGNOSTICS SUMMARY\n`;
-      r += `==================================================\n`;
-      r += `Exception Message:     ${data.otaDiagnostics.exceptionMessage || 'N/A'}\n`;
-      r += `Failure Reason:        ${data.otaDiagnostics.failureReason || 'N/A'}\n`;
-      r += `Download URL:          ${data.otaDiagnostics.downloadUrl || 'N/A'}\n`;
-      r += `Apk Path:              ${data.otaDiagnostics.apkPath || 'N/A'}\n`;
-      r += `File Size:             ${data.otaDiagnostics.fileSize || 'N/A'}\n`;
-      r += `SHA Expected:          ${data.otaDiagnostics.shaExpected || 'N/A'}\n`;
-      r += `SHA Calculated:        ${data.otaDiagnostics.shaCalculated || 'N/A'}\n`;
-      r += `Installer Result:      ${data.otaDiagnostics.installerResult || 'N/A'}\n`;
-      r += `Permission State:      ${data.otaDiagnostics.permissionState || 'N/A'}\n`;
-      r += `Android Version:       ${data.otaDiagnostics.androidVersion || 'N/A'}\n`;
-      r += `Device Model:          ${data.otaDiagnostics.deviceModel || 'N/A'}\n`;
-      r += `Timestamp:             ${data.otaDiagnostics.timestamp || 'N/A'}\n`;
-      r += `Architecture:          ${data.otaDiagnostics.architecture || 'N/A'}\n`;
-      r += `Device Locale:         ${data.otaDiagnostics.deviceLocale || 'N/A'}\n`;
-      r += `Storage Available:     ${data.otaDiagnostics.storageAvailable || 'N/A'}\n`;
-      r += `Network State:         ${data.otaDiagnostics.networkState || 'N/A'}\n`;
-      r += `Status Code:           ${data.otaDiagnostics.statusCode ?? 'N/A'}\n`;
-      r += `Status Text:           ${data.otaDiagnostics.statusText || 'N/A'}\n\n`;
- 
-      r += `==================================================\n`;
-      r += `17. NEXT RECOMMENDED ACTION & RECOMMENDATIONS\n`;
-      r += `==================================================\n`;
-      if (diag) {
-        r += `Suggested Fix: ${diag.suggestedFix}\n`;
-      } else if (globalOtaState.updateState === 'waiting_for_confirmation') {
-        r += `The PackageInstaller has launched the system prompt. The user needs to confirm the installation.\n`;
-      } else if (globalOtaState.updateState === 'ready_to_install') {
-        r += `The update package is ready. Execute 'Trigger Install' to prompt the user.\n`;
-      } else if (globalOtaState.updateAvailable) {
-        r += `An update is available remote. Execute 'Trigger Download' to retrieve the package.\n`;
-      } else {
-        r += `All systems nominal. No actions required.\n`;
-      }
-      r += `\n`;
-      
-      r += `==================================================\n`;
-      r += `END OF REPORT\n`;
-      r += `==================================================`;
-      return r;
-    };;
-
-    const exportEngineeringReport = async () => {
-      const report = generateFullEngineeringReport();
-      await handleCopyText(report, 'Complete Engineering Report');
-      return report;
-    };
-
-    const exportEverything = async () => {
-      const report = generateFullEngineeringReport();
-      await handleCopyText(report, 'All Diagnostics Combined');
-      return report;
-    };
-
     const diag = getAutoDiagnostics();
-
-    function getAutoDiagnostics() {
-      const err = globalOtaState.error || otaDebugLogs.installError;
-      const status = nativeInstallerDetails?.lastStatusCode ?? -999;
-      
-      if (!err && status === -999) return null;
-
-      let failedStage = 'Unknown';
-      let reason = err || 'An error occurred during update processing.';
-      let suggestedCause = 'Underlying native session failed to commit or start confirmation activity.';
-      let suggestedFix = 'Please reset the state completely, check internet connectivity, and ensure unknown sources permission is granted.';
-
-      const errStr = String(err).toLowerCase();
-      
-      if (errStr.includes('download') || (globalOtaState.updateState as string) === 'download_failed') {
-        failedStage = 'Downloading';
-        reason = err || 'Download failed or timed out.';
-        suggestedCause = 'Network connectivity issues, unresolvable download server URL, or file system storage access denied.';
-        suggestedFix = 'Ensure your internet connection is active, try clean cache, or select custom backup APK mirror.';
-      } else if (errStr.includes('sha') || (globalOtaState.updateState as string) === 'sha_failed') {
-        failedStage = 'Verification (SHA-256)';
-        reason = err || 'SHA-256 checksum validation failed.';
-        suggestedCause = 'The downloaded APK does not match the expected SHA-256 hash. The download might be corrupted or incomplete.';
-        suggestedFix = 'Retry the download, or toggle Force SHA Failure off. Check if CDN caches old versions.';
-      } else if (errStr.includes('eligibility') || (globalOtaState.updateState as string) === 'eligibility_failed') {
-        failedStage = 'Pre-install Eligibility Verification';
-        reason = err || 'The system declared the package ineligible.';
-        suggestedCause = otaDebugLogs.eligibilityReason === 'signature_mismatch'
-          ? 'Signature mismatch: The downloaded APK is signed with a different key than the installed app.'
-          : otaDebugLogs.eligibilityReason === 'versionCode_low'
-          ? 'Version downgrade: The remote versionCode is lower than the local one.'
-          : 'Incompatible platform, architecture ABI mismatch, or corrupted APK package parsing error.';
-        suggestedFix = otaDebugLogs.eligibilityReason === 'signature_mismatch'
-          ? 'A full clean reinstall is required (uninstall current app manually first to avoid signature conflict).'
-          : 'Enable downgrade options inside simulator, or perform a clean manual install.';
-      } else if (status !== -999) {
-        failedStage = 'Native PackageInstaller Handoff';
-        if (status === 3) {
-          reason = 'User Cancelled (STATUS_FAILURE_ABORTED)';
-          suggestedCause = 'User clicked "Cancel" on the system install confirmation screen.';
-          suggestedFix = 'Rerun the update trigger and click "Update" instead of "Cancel".';
-        } else if (status === 5) {
-          reason = 'Signature Conflict (STATUS_FAILURE_CONFLICT)';
-          suggestedCause = 'System blocked package installation because the new APK signature does not match the previously installed signature.';
-          suggestedFix = 'Manually uninstall the app, then retry to perform a clean install.';
-        } else if (status === 7) {
-          reason = 'Downgrade Blocked (STATUS_FAILURE_INCOMPATIBLE)';
-          suggestedCause = 'The system blocks installing an APK with a lower versionCode than the current app.';
-          suggestedFix = 'Ensure the new update version has a higher versionCode, or perform a manual clean install.';
-        } else if (status === 6) {
-          reason = 'Storage Full (STATUS_FAILURE_STORAGE)';
-          suggestedCause = 'The device has insufficient available flash storage memory to install the APK package.';
-          suggestedFix = 'Free up space in the device storage and retry.';
-        } else if (status === 2) {
-          reason = 'Blocked by System Policy (STATUS_FAILURE_BLOCKED)';
-          suggestedCause = 'System security settings or administrator policies block unknown sources installations.';
-          suggestedFix = 'Open Android unknown app sources settings and explicitly grant install permissions to Studio.';
-        } else {
-          reason = `PackageInstaller code ${status}: ${nativeInstallerDetails?.lastStatusMessage || 'Unknown error'}`;
-          suggestedCause = 'The PackageInstaller subsystem returned a system exception during commit execution.';
-          suggestedFix = 'Re-try the installation or inspect native device logs via ADB/Diagnostics.';
-        }
-      }
-
-      return {
-        failedStage,
-        reason,
-        exceptionStack: otaDebugLogs.lastExceptionStackTrace || 'None',
-        suggestedCause,
-        suggestedFix
-      };
-    }
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}>
@@ -4975,7 +4976,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {!settings.developerMode ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#ef4444', marginBottom: 16 }}>terminal</span>
@@ -4994,7 +4995,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'apps' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Apps Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderAppsView()}
           </div>
         </div>
@@ -5003,7 +5004,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'stagex' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Stagex Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderStagexView()}
           </div>
         </div>
@@ -5012,7 +5013,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'updater' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Updater Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderUpdaterView()}
           </div>
         </div>
@@ -5034,7 +5035,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>Storage</button>
             <button style={tabBtnStyle('providers')} onClick={() => setActiveTab('providers')}>Module Panels ({activeProviders.length})</button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {activeTab === 'state' && renderStateTab()}
             {activeTab === 'storage' && renderStorageTab()}
             {activeTab === 'providers' && renderProvidersTab()}
@@ -5060,7 +5061,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             <button style={tabBtnStyle('events')} onClick={() => setActiveTab('events')}>Events ({events.length})</button>
             <button style={tabBtnStyle('nav')} onClick={() => setActiveTab('nav')}>Navigation Stack</button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {activeTab === 'logs' && renderLogsTab()}
             {activeTab === 'errors' && renderErrorsTab()}
             {activeTab === 'events' && renderEventsTab()}
@@ -5073,7 +5074,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'performance' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Performance Diagnostics')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderPerfTab()}
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['performance', 'perf']} />
           </div>
@@ -5083,7 +5084,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'network' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
           {renderSubViewHeader('Network Sniffer')}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px var(--content-bottom-pad)' }}>
+          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderNetworkTab()}
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['network', 'sync']} />
           </div>

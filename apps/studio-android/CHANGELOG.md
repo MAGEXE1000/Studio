@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.59
+
+### Fixed
+- Fixed layout shifting and clipping on Android's Developer Options screen when parent is scrolled.
+- Removed duplicate safe area padding from subpage headers for perfect notch alignment.
+- Replaced outdated "OTA" terminology with generic App Update phrasing across all menus.
+- Restored missing native device and build telemetry parameters (OS Version and Version Code).
+- Polished diagnostics copy report formatting with section separators and sentinel mappings.
+
 ## 3.7.58
 
 ### Fixed

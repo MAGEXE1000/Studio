@@ -26,7 +26,7 @@ export async function runSignatureMismatchRecovery(
   if (!filePath) {
     steps.push('Revalidate APK: Failed (No downloaded APK path found)');
     isRecovering = false;
-    updateGlobalState({ updateState: 'signature_mismatch' });
+    updateGlobalState({ updateState: 'RECOVERY' });
     return false;
   }
 
@@ -105,6 +105,6 @@ export async function runSignatureMismatchRecovery(
   }
 
   isRecovering = false;
-  updateGlobalState({ updateState: 'signature_mismatch' });
+  updateGlobalState({ updateState: 'RECOVERY' });
   return false;
 }

@@ -74,12 +74,12 @@ export async function runEligibilityCheck(filePath: string, allowDowngrade?: boo
 
     if (!el.eligible) {
       if (el.reason === 'signature_mismatch') {
-        updateGlobalState({ updateState: 'signature_mismatch' });
+        updateGlobalState({ updateState: 'RECOVERY' });
       } else if (el.reason === 'versionCode_low') {
-        updateGlobalState({ updateState: 'versionCode_low' });
+        updateGlobalState({ updateState: 'INSTALL_FAILED', error: el.errorDetails || 'Version code is too low.' });
       } else {
         updateGlobalState({
-          updateState: 'failed',
+          updateState: 'INSTALL_FAILED',
           error: el.errorDetails || 'APK eligibility validation failed.'
         });
       }
@@ -99,7 +99,7 @@ export async function runEligibilityCheck(filePath: string, allowDowngrade?: boo
     otaDebugLogs.eligibilityReason = 'parse_failed';
     otaDebugLogs.apkEligibilityResult = 'parse_failed';
     updateGlobalState({
-      updateState: 'failed',
+      updateState: 'INSTALL_FAILED',
       error: err instanceof Error ? err.message : String(err)
     });
     return false;

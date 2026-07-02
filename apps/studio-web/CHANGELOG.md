@@ -12,6 +12,111 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.60
+
+### Fixed
+- Rebuilt the App Update subsystem state machine with 16 deterministic uppercase states.
+- Re-engineered version comparison engine to explicitly validate metadata and signatures.
+- Linearized check, download, and install execution pipelines to eliminate race conditions.
+- Adapted UpdateIndicator UI mapping and Simulation Lab assertions to support the new state structure.
+
+## 3.7.59
+
+### Fixed
+- Fixed layout shifting and clipping on Android's Developer Options screen when parent is scrolled.
+- Removed duplicate safe area padding from subpage headers for perfect notch alignment.
+- Replaced outdated "OTA" terminology with generic App Update phrasing across all menus.
+- Restored missing native device and build telemetry parameters (OS Version and Version Code).
+- Polished diagnostics copy report formatting with section separators and sentinel mappings.
+
+## 3.7.58
+
+### Fixed
+- Fixed safe area top padding for all Developer Options screens, preventing status bar and notch overlap.
+- Polished layouts to use AMOLED pure black theme with consistent cards and border outlines.
+- Integrated diagnostics viewport with the standard floating Bottom Navigation Bar.
+- Implemented single-tap Copy Everything report compiling all device, OTA, transition, and log history.
+- Added explicit user-facing labels and descriptions for all copy options.
+
+## 3.7.57
+
+### Fixed
+- Completely rebuilt Developer Options Updater Debugging section.
+- Fixed clipboard size limits, preventing native process binder transaction failures.
+- Unified JS log traces with native and state timeline buffers.
+- Fixed state machine transition validations for pending user actions.
+
+## 3.7.56
+
+### Fixed
+- Fixed devtools copy diagnostics scope and undefined variables.
+- Added direct touch event listeners to accordion header components.
+- Resolved bottom viewport layout scroll padding and navigation overlay coverage.
+
+## 3.7.55
+
+### Fixed
+- Fixed copy buttons failing to populate contents in the diagnostics tool.
+- Unified JS logs timeline to use a single console logs source of truth.
+- Resolved scroll viewport clipping/truncation at the bottom of Android WebViews.
+- Registered a permanent global PackageInstaller listener to eliminate missing listener warnings.
+- Fixed invalid updater state machine transition rejections.
+- Removed fake CDN URLs from simulations, replacing them with real release metadata.
+
+## 3.7.54
+
+### Fixed
+- Fixed touch event interception on Android WebViews for the Updater Debug Tools.
+- Constrained layout sheets to fill bounds correctly with flex direction, preventing coordinate offset mismatches.
+- Added detailed button-press touch logging instrumentation across all debug buttons.
+
+## 3.7.53
+
+### Fixed
+- Repaired the Android UI of the Updater Debug Tools screen.
+- Eliminated automatic scroll-into-view viewport jumping and vertical layout shifts.
+- Removed nested scrollable containers from the log console and chronological event timeline to ensure a single active scroll container, resolving touch event unreliability and gesture conflicts on Android WebViews.
+
+## 3.7.52
+
+### Fixed
+- Repaired all production DevTools Dashboard buttons, ensuring robust handling of missing cached APK paths for Replay Last Install, Open Cached APK, and Open Download Folder.
+- Satisfied TypeScript checks by ensuring all code paths in the dashboard button handlers return a value.
+
+## 3.7.51
+
+### Fixed
+- Fixed a silent TypeError in `generateFullEngineeringReport` by using optional chaining on `import.meta.env`.
+- Fixed Toast notification positioning by changing it from `absolute` to `fixed` so it is always visible on-screen.
+- Ensured all copy buttons handle clipboard operations robustly.
+
+## 3.7.50
+
+### Fixed
+- Completed full functional audit and verification of all 62 Developer Tools dashboard buttons.
+- Ensured 100% end-to-end event chain execution from the UI to the native Android bridge.
+- Validated native clipboard writing and sharing integrations across all diagnostic outputs.
+
+## 3.7.49
+
+### Fixed
+- Implemented a native clipboard copy bridge to bypass WebView security restrictions on Android.
+- Awaited and returned clipboard text across all 15 diagnostic export and report buttons.
+- Removed obsolete OTA simulation buttons and user-facing labels.
+
+## 3.7.48
+
+### Fixed
+- Added a comprehensive Automated Functional Audit runner to verify all 55 dashboard buttons.
+- Fixed clipboard export buttons to correctly await navigator.clipboard.writeText and handle errors.
+- Added simulation controls for all PackageInstaller failure codes (Storage Full, Signature Conflict, Incompatible version, Blocked by policy).
+
+## 3.7.47
+
+### Fixed
+- Rehabilitated DevTools Dashboard with full functional updates, simulation controls, and telemetry history.
+- Implemented robust clipboard validation and loading indicators for all diagnostic exports.
+
 ## 3.7.46
 
 ### Fixed

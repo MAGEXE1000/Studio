@@ -195,7 +195,7 @@ export async function getNativeVersionCode(): Promise<number | null> {
 
 export function resetOtaUpdateState() {
   updateGlobalState({
-    updateState: 'idle',
+    updateState: 'IDLE',
     loading: false,
     progress: 0,
     error: null,
@@ -205,6 +205,7 @@ export function resetOtaUpdateState() {
     mandatory: false,
     changelog: null,
     releaseNotes: null,
+    decisionExplanation: null,
   });
 }
 
@@ -220,13 +221,13 @@ export async function enforceStartupRecovery() {
     const check = await AppInstaller.isInstallActive();
     
     if (check.active) {
-      console.log('[OTA DEBUG] enforceStartupRecovery: Active PackageInstaller session detected. Setting state to installing.');
+      console.log('[OTA DEBUG] enforceStartupRecovery: Active PackageInstaller session detected. Setting state to INSTALLING.');
       const result = await AppInstaller.getLastInstallResult();
       const expectedName = result.expectedVersionName || null;
       const expectedCode = result.expectedVersionCode || null;
       
       updateGlobalState({
-        updateState: 'installing',
+        updateState: 'INSTALLING',
         remoteVersion: expectedName,
         requiredVersionCode: expectedCode ? Number(expectedCode) : 0,
         statusText: 'Installing update...',
@@ -240,8 +241,12 @@ export async function enforceStartupRecovery() {
       console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
       const processed = processLastInstallResult(result);
       if (processed) {
+        let finalState: OtaUpdateState = 'INSTALL_FAILED';
+        if (processed.category === 'signature_mismatch') {
+          finalState = 'RECOVERY';
+        }
         updateGlobalState({
-          updateState: (processed.category === 'cancelled' ? 'failed' : processed.category) as OtaUpdateState,
+          updateState: finalState,
           error: processed.errMsg,
           statusText: processed.errMsg
         });
@@ -287,14 +292,13 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
   
   // Do NOT run a check if we are in the middle of downloading, verifying, or installing.
   const isBusy = [
-    'downloading',
-    'verifying',
-    'verifying_sha',
-    'verifying_eligibility',
-    'ready_to_install',
-    'waiting_for_confirmation',
-    'installing',
-    'installed',
+    'FETCH_APK_INFORMATION',
+    'DOWNLOAD_APK',
+    'VERIFY_SHA256',
+    'PREPARE_INSTALL',
+    'WAIT_PACKAGE_INSTALLER',
+    'INSTALLING',
+    'INSTALL_SUCCESS',
   ].includes(current);
 
   if (isBusy) {
@@ -304,7 +308,7 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
   // If it's a background/automatic check (not manual), and we already have an update available
   // or a failed state, do NOT run the check to avoid wiping out the user-facing state.
-  if (!isManual && current !== 'idle') {
+  if (!isManual && current !== 'IDLE') {
     console.log(`[OTA] Skipping background checkForUpdate: current state is ${current}`);
     return Promise.resolve(globalOtaState);
   }
@@ -356,7 +360,7 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
   activeCheckPromise = (async () => {
     const startTime = Date.now();
-    transitionToState('checking', 'checkForUpdate start');
+    transitionToState('INITIALIZING', 'checkForUpdate start');
     try {
       if (updaterSimulation.forceMetadataFailure) {
         addJsLog('Simulation override: Injecting Metadata Fetch Failure');
@@ -371,6 +375,7 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
       const natVer = await getNativeVersion();
       const natVerCode = await getNativeVersionCode();
 
+      transitionToState('FETCH_REMOTE_METADATA', 'Fetching remote manifest');
       const realRemote = await fetchRemoteVersion();
 
       let remote;
@@ -434,7 +439,6 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
       }
 
       const dismissedList = getStoredList('studio:dismissedVersions');
-      const notifiedList = getStoredList('studio:notifiedVersions');
       const laterVersion = getSessionItem('studio:laterUpdateVersion');
 
       otaDebugLogs.appVersion = APP_VERSION;
@@ -505,8 +509,12 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
             await populateDiagnostics(null, 'PackageInstaller failure detected');
 
+            let finalState: OtaUpdateState = 'INSTALL_FAILED';
+            if (processed.category === 'signature_mismatch') {
+              finalState = 'RECOVERY';
+            }
             updateGlobalState({
-              updateState: (processed.category === 'cancelled' ? 'failed' : processed.category) as OtaUpdateState,
+              updateState: finalState,
               error: processed.errMsg
             });
             const duration = Date.now() - startTime;
@@ -518,23 +526,29 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
         }
       }
 
+      transitionToState('VALIDATE_METADATA', 'Validating fetched manifest integrity');
       if (!remote) {
+        updateGlobalState({ decisionExplanation: 'Remote metadata is missing or unreachable.' });
         if (isManual) {
           updateGlobalState({ error: 'Unable to contact the update server.' });
-          transitionToState('failed', 'Manual check failed: no remote metadata');
+          transitionToState('RECOVERY', 'Manual check failed: no remote metadata', 'Unable to contact update server');
         } else {
-          transitionToState('idle', 'Auto-check completed: no remote metadata');
+          transitionToState('IDLE', 'Auto-check completed: no remote metadata');
         }
         const duration = Date.now() - startTime;
         console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
         return globalOtaState;
       }
 
+      transitionToState('COMPARE_VERSION', 'Comparing version names and codes');
       const comp = compareVersions(remote, APP_VERSION, natVerCode ?? undefined);
-      otaDebugLogs.updateDecision = comp.updateAvailable ? 'update_available' : 'up_to_date';
-      otaDebugLogs.updateDecisionReason = `Remote version ${remote.version} vs local version ${APP_VERSION}`;
+      const updateAvailable = comp.updateAvailable || (isManual && comp.isDowngrade);
+      otaDebugLogs.updateDecision = updateAvailable ? 'UPDATE_AVAILABLE' : 'NO_UPDATE_AVAILABLE';
+      otaDebugLogs.updateDecisionReason = comp.explanation;
+      updateGlobalState({ decisionExplanation: comp.explanation });
 
-      if (comp.updateAvailable) {
+      if (updateAvailable) {
+        const dismissedList = getStoredList('studio:dismissedVersions');
         const isDismissed = dismissedList.includes(remote.version);
         const isLater = laterVersion === remote.version;
 
@@ -552,7 +566,7 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
             fallbackApkUrl: remote.fallbackApkUrl ?? null,
           });
           await checkAndCleanCache();
-          transitionToState('idle', 'User dismissed/later');
+          transitionToState('NO_UPDATE_AVAILABLE', 'User dismissed/later');
           const duration = Date.now() - startTime;
           console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
           return globalOtaState;
@@ -571,23 +585,24 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
         });
 
         await checkAndCleanCache();
-        transitionToState('update_available', 'New update found');
+        transitionToState('UPDATE_AVAILABLE', 'New update found');
         void logProgressStage('Update detected', `Version: ${remote.version}`);
       } else {
-        transitionToState('idle', 'App is up to date');
+        transitionToState('NO_UPDATE_AVAILABLE', 'App is up to date');
       }
 
       const duration = Date.now() - startTime;
-      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 584, `Exiting checkForUpdate Call #${callId} successfully`, { durationMs: duration, prevState: 'checking', nextState: globalOtaState.updateState });
+      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 584, `Exiting checkForUpdate Call #${callId} successfully`, { durationMs: duration, prevState: 'COMPARE_VERSION', nextState: globalOtaState.updateState });
       return globalOtaState;
     } catch (err) {
       const duration = Date.now() - startTime;
-      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 589, `Exiting checkForUpdate Call #${callId} with error`, { durationMs: duration, prevState: 'checking', nextState: globalOtaState.updateState, reason: err instanceof Error ? err.message : String(err) });
+      const errMsg = err instanceof Error ? err.message : String(err);
+      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 589, `Exiting checkForUpdate Call #${callId} with error`, { durationMs: duration, prevState: 'INITIALIZING', nextState: globalOtaState.updateState, reason: errMsg });
       if (isManual) {
         updateGlobalState({ error: 'Unable to contact the update server.' });
-        transitionToState('failed', 'Manual check exception');
+        transitionToState('RECOVERY', 'Manual check exception', errMsg);
       } else {
-        transitionToState('idle', 'Auto-check exception');
+        transitionToState('IDLE', 'Auto-check exception');
       }
       return globalOtaState;
     } finally {
@@ -689,13 +704,13 @@ export function downloadUpdate(trigger?: string): Promise<void> {
 
   if (!apkUrl) {
     otaDebugLogs.downloadStatus = 'Error: Missing APK URL';
-    updateGlobalState({ updateState: 'failed', error: 'No APK download URL available' });
+    updateGlobalState({ updateState: 'INSTALL_FAILED', error: 'No APK download URL available' });
     console.log(`[INSTRUMENTATION] downloadUpdate EXIT Call #${callId} (Rejected: missing apkUrl)`);
     void logProgressStage('[INSTRUMENTATION] downloadUpdate EXIT', `Call #${callId} rejected (missing apkUrl)`);
     return Promise.reject(new Error('No APK download URL available'));
   }
 
-  transitionToState('downloading', 'downloadUpdate start');
+  transitionToState('FETCH_APK_INFORMATION', 'downloadUpdate start');
   updateGlobalState({ progress: 0, statusText: 'Preparing update...', error: null });
 
   activeDownloadPromise = (async () => {
@@ -707,25 +722,26 @@ export function downloadUpdate(trigger?: string): Promise<void> {
     const hasValid = await checkAndCleanCache();
     if (hasValid) {
       console.log('[Smart Recovery] Valid APK already exists. Skipping download.');
-      transitionToState('verifying_sha', 'Valid cached APK exists');
+      transitionToState('VERIFY_SHA256', 'Valid cached APK exists');
       updateGlobalState({ progress: 1.0, statusText: 'Verifying update...' });
       const filePath = await getLocalApkPath(ver);
       
-      transitionToState('verifying_eligibility', 'Checking cached APK eligibility');
+      transitionToState('PREPARE_INSTALL', 'Checking cached APK eligibility');
       const isEligible = await runEligibilityCheck(filePath, isDowngrade);
       if (!isEligible) {
         if (otaDebugLogs.eligibilityReason === 'signature_mismatch' && !isRecovering) {
           const recovered = await runSignatureMismatchRecovery(applyUpdate, downloadUpdate);
           if (recovered) return;
         }
-        transitionToState('eligibility_failed', `Eligibility check failed: ${otaDebugLogs.eligibilityReason}`);
+        transitionToState('INSTALL_FAILED', `Eligibility check failed: ${otaDebugLogs.eligibilityReason}`);
         throw new Error(`[Eligibility Check] Validation failed: ${otaDebugLogs.eligibilityReason || 'unknown'}`);
       }
       
-      transitionToState('ready_to_install', 'Valid cached APK verified');
+      transitionToState('WAIT_PACKAGE_INSTALLER', 'Valid cached APK verified');
       return;
     }
 
+    transitionToState('DOWNLOAD_APK', 'Starting APK package download');
     otaDebugLogs.downloadStatus = `Update started: apk\nAPK URL: ${apkUrl}`;
     updateGlobalState({ progress: 0.0, statusText: 'Entering progress screen...' });
     
@@ -737,12 +753,12 @@ export function downloadUpdate(trigger?: string): Promise<void> {
         for (let i = 1; i <= 10; i++) {
           if (updaterSimulation.injectNetworkTimeout) {
             addJsLog('[Simulate Download] Injecting network timeout!');
-            transitionToState('download_failed', 'Simulated network timeout');
+            transitionToState('INSTALL_FAILED', 'Simulated network timeout');
             throw new Error('Simulated network timeout');
           }
           if (updaterSimulation.injectDownloadFailure) {
             addJsLog('[Simulate Download] Injecting download failure!');
-            transitionToState('download_failed', 'Simulated download failure');
+            transitionToState('INSTALL_FAILED', 'Simulated download failure');
             throw new Error('Simulated download failure');
           }
           updateGlobalState({ progress: i / 10, statusText: `Simulating download... (${i * 10}%)` });
@@ -772,7 +788,7 @@ export function downloadUpdate(trigger?: string): Promise<void> {
           });
           logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 755, 'APK download completed successfully. File path: ' + filePath);
         } catch (dlErr) {
-          transitionToState('download_failed', 'APK download execution failed');
+          transitionToState('INSTALL_FAILED', 'APK download execution failed');
           throw dlErr;
         }
       }
@@ -780,18 +796,18 @@ export function downloadUpdate(trigger?: string): Promise<void> {
       otaDebugLogs.downloadStatus += `\nAPK download completed. Path: ${filePath}`;
       void logProgressStage('Download completed', 'Path: ' + filePath);
 
-      transitionToState('verifying_sha', 'Verifying checksum');
+      transitionToState('VERIFY_SHA256', 'Verifying checksum');
       logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 764, 'Starting SHA-256 integrity verification. Expected: ' + (globalOtaState as any).apkSha256);
       if (updaterSimulation.forceShaFailure) {
         addJsLog('Simulation override: Injecting SHA checksum failure!');
-        transitionToState('sha_failed', 'Simulated checksum failure');
+        transitionToState('INSTALL_FAILED', 'Simulated checksum failure');
         throw new Error('Simulated SHA-256 checksum mismatch');
       }
 
       if (shouldSimulate) {
         if (updaterSimulation.injectChecksumFailure) {
           addJsLog('[Simulate Download] Injecting checksum failure!');
-          transitionToState('sha_failed', 'Simulated checksum failure');
+          transitionToState('INSTALL_FAILED', 'Simulated checksum failure');
           throw new Error('Simulated checksum failure');
         }
         otaDebugLogs.shaVerification = 'PASSED (Simulated)';
@@ -802,7 +818,7 @@ export function downloadUpdate(trigger?: string): Promise<void> {
             await verifyFileIntegrity(filePath, expectedHash);
             logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 783, 'SHA-256 integrity verification passed');
           } catch (shaErr) {
-            transitionToState('sha_failed', 'SHA integrity check failed');
+            transitionToState('INSTALL_FAILED', 'SHA integrity check failed');
             throw shaErr;
           }
         } else {
@@ -822,7 +838,7 @@ export function downloadUpdate(trigger?: string): Promise<void> {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       otaDebugLogs.downloadStatus += `\nRunning pre-install eligibility check...`;
-      transitionToState('verifying_eligibility', 'Checking eligibility');
+      transitionToState('PREPARE_INSTALL', 'Checking eligibility');
       updateGlobalState({ statusText: 'Checking eligibility...' });
       logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 806, 'Starting pre-install eligibility check');
 
@@ -846,20 +862,20 @@ export function downloadUpdate(trigger?: string): Promise<void> {
           const recovered = await runSignatureMismatchRecovery(applyUpdate, downloadUpdate);
           if (recovered) return;
         }
-        transitionToState('eligibility_failed', `Eligibility check failed: ${otaDebugLogs.eligibilityReason}`);
+        transitionToState('INSTALL_FAILED', `Eligibility check failed: ${otaDebugLogs.eligibilityReason}`);
         throw new Error('[Eligibility Check] Validation failed: ' + (otaDebugLogs.eligibilityReason || 'unknown'));
       }
 
       void logProgressStage('Eligibility check passed', 'APK is eligible for installation');
       void logProgressStage('Installer prepared', 'Installer prepared and files verified');
 
-      transitionToState('ready_to_install', 'APK download & verify complete');
+      transitionToState('WAIT_PACKAGE_INSTALLER', 'APK download & verify complete');
       updateGlobalState({ statusText: 'Ready to install' });
       localStorage.setItem('studio:downloadedApkPath', filePath);
       localStorage.removeItem('studio:downloadedBundleId');
       addToStoredList('studio:downloadedVersions', ver);
 
-      logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 797, `Exiting downloadUpdate Call #${callId} successfully (ready_to_install)`, { prevState: 'verifying_eligibility', nextState: globalOtaState.updateState });
+      logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 797, `Exiting downloadUpdate Call #${callId} successfully (ready_to_install)`, { prevState: 'PREPARE_INSTALL', nextState: globalOtaState.updateState });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const errStack = (err instanceof Error && err.stack ? err.stack : null);
@@ -869,12 +885,8 @@ export function downloadUpdate(trigger?: string): Promise<void> {
       otaDebugLogs.installerLaunchStatus = 'FAILED';
       await populateDiagnostics(err, 'APK download or verification failed');
 
-      if (globalOtaState.updateState !== 'signature_mismatch' && globalOtaState.updateState !== 'versionCode_low') {
-        if (!['download_failed', 'sha_failed', 'eligibility_failed'].includes(globalOtaState.updateState)) {
-          transitionToState('failed', 'Download/Verify exception');
-        } else {
-          transitionToState('failed', 'Granular error transition to failed');
-        }
+      if (globalOtaState.updateState !== 'RECOVERY') {
+        transitionToState('INSTALL_FAILED', 'Download/Verify exception', errMsg);
         updateGlobalState({ error: errMsg });
       }
       throw err;
@@ -923,14 +935,14 @@ export function applyUpdate(trigger?: string): Promise<void> {
     return Promise.resolve();
   }
 
-  if (globalOtaState.updateState !== 'ready_to_install') {
-    console.warn(`[OTA] Rejecting applyUpdate. State is ${globalOtaState.updateState}, expected 'ready_to_install'.`);
-    const err = new Error(`Cannot apply update. State is ${globalOtaState.updateState}, expected 'ready_to_install'.`);
+  if (globalOtaState.updateState !== 'WAIT_PACKAGE_INSTALLER') {
+    console.warn(`[OTA] Rejecting applyUpdate. State is ${globalOtaState.updateState}, expected 'WAIT_PACKAGE_INSTALLER'.`);
+    const err = new Error(`Cannot apply update. State is ${globalOtaState.updateState}, expected 'WAIT_PACKAGE_INSTALLER'.`);
     void logProgressStage('[INSTRUMENTATION] applyUpdate EXIT', `Call #${callId} rejected (invalid state)`);
     return Promise.reject(err);
   }
 
-  transitionToState('waiting_for_confirmation', 'applyUpdate start');
+  transitionToState('INSTALLING', 'applyUpdate start');
   logActivity('apk_install', `Installing APK system update (v${remoteVersion})`, 'Studio');
 
   activeApplyPromise = (async () => {
@@ -964,11 +976,11 @@ export function applyUpdate(trigger?: string): Promise<void> {
 
             if (status === -1) { // STATUS_PENDING_USER_ACTION
               console.log('[INSTRUMENTATION] [JS] STATUS_PENDING_USER_ACTION received. Showing confirmation dialog.');
-              transitionToState('waiting_for_confirmation', 'Native prompt displayed');
+              transitionToState('WAIT_PACKAGE_INSTALLER', 'Native prompt displayed');
               updateGlobalState({ statusText: 'System confirmation dialog is showing...' });
             } else if (status === -2) { // installing_start
               console.log('[INSTRUMENTATION] [JS] Session active. Installation started.');
-              transitionToState('installing', 'PackageInstaller session active');
+              transitionToState('INSTALLING', 'PackageInstaller session active');
               updateGlobalState({ statusText: 'Installing update...' });
             } else if (status === -3) { // installing_progress
               const progressPct = Math.round((eventData.progress || 0) * 100);
@@ -976,15 +988,15 @@ export function applyUpdate(trigger?: string): Promise<void> {
               updateGlobalState({ statusText: `Installing... (${progressPct}%)` });
             } else if (status === 0) { // STATUS_SUCCESS
               console.log('[INSTRUMENTATION] [JS] STATUS_SUCCESS received. Installation completed successfully.');
-              transitionToState('installed', 'PackageInstaller success');
+              transitionToState('INSTALL_SUCCESS', 'PackageInstaller success');
               resolvePromise();
             } else if (status === 3) { // STATUS_FAILURE_ABORTED (User cancelled)
               console.log('[INSTRUMENTATION] [JS] STATUS_FAILURE_ABORTED received. User cancelled.');
-              transitionToState('failed', 'User cancelled installation');
+              transitionToState('INSTALL_FAILED', 'User cancelled installation');
               rejectPromise(new Error('Installation cancelled by user.'));
             } else {
               console.log(`[INSTRUMENTATION] [JS] Installation failed with status ${status}: ${message}`);
-              transitionToState('failed', `Install failed: ${message || `code ${status}`}`);
+              transitionToState('INSTALL_FAILED', `Install failed: ${message || `code ${status}`}`);
               rejectPromise(new Error(message || `PackageInstaller error code ${status}`));
             }
           };
@@ -1058,9 +1070,8 @@ export function applyUpdate(trigger?: string): Promise<void> {
       otaDebugLogs.installerLaunchStatus = 'FAILED';
       await populateDiagnostics(err, 'APK installation failed');
 
-      if (globalOtaState.updateState !== 'signature_mismatch' && globalOtaState.updateState !== 'versionCode_low') {
-        transitionToState('install_failed', 'PackageInstaller exception');
-        transitionToState('failed', 'Installer error transition to failed');
+      if (globalOtaState.updateState !== 'RECOVERY') {
+        transitionToState('INSTALL_FAILED', 'PackageInstaller exception', errMsg);
         updateGlobalState({ error: errMsg });
       }
       throw err;
@@ -1121,7 +1132,7 @@ function initializeGlobalOtaListeners() {
   const initUpdater = () => {
     console.log('[OTA] Running delayed updater startup (Phase 3)...');
     void checkAndCleanCache();
-    if (globalOtaState.updateState === 'idle') {
+    if (globalOtaState.updateState === 'IDLE') {
       void checkForUpdate(false, 'startup', 'App init check');
     }
   };
@@ -1171,17 +1182,18 @@ function initializeGlobalOtaListeners() {
     }
 
     if (status === -2) {
+      transitionToState('INSTALLING', 'PackageInstaller session active');
       updateGlobalState({ statusText: `Installing...` });
     } else if (status === -1) {
-      transitionToState('pending_user_action', 'PackageInstaller requires user interaction');
+      transitionToState('WAIT_PACKAGE_INSTALLER', 'PackageInstaller requires user interaction');
       updateGlobalState({ statusText: 'Tap Install to confirm...' });
     } else if (status === 0) {
-      transitionToState('installed', 'PackageInstaller status SUCCESS');
+      transitionToState('INSTALL_SUCCESS', 'PackageInstaller status SUCCESS');
       updateGlobalState({ statusText: 'Install succeeded!' });
     } else if (status === 3) {
-      transitionToState('failed', 'User cancelled installation');
+      transitionToState('INSTALL_FAILED', 'User cancelled installation');
     } else {
-      transitionToState('failed', `Install failed: ${message || `code ${status}`}`);
+      transitionToState('INSTALL_FAILED', `Install failed: ${message || `code ${status}`}`);
     }
   };
 
@@ -1357,7 +1369,7 @@ export async function triggerDowngrade(targetVersion: string, apkUrl: string, sh
     apkSha256: sha256,
     updateType: 'apk',
     updateAvailable: false,
-    updateState: 'downloading',
+    updateState: 'DOWNLOAD_APK',
     progress: 0,
     error: null,
     statusText: 'Preparing downgrade...'

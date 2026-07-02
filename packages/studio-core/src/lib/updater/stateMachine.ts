@@ -1,26 +1,20 @@
 export type OtaUpdateState =
-  | 'idle'
-  | 'checking'
-  | 'update_available'
-  | 'manual_apk_required'
-  | 'downloading'
-  | 'verifying'
-  | 'verifying_sha'
-  | 'verifying_eligibility'
-  | 'ready_to_install'
-  | 'installing'
-  | 'installed'
-  | 'download_failed'
-  | 'sha_failed'
-  | 'eligibility_failed'
-  | 'install_failed'
-  | 'failed'
-  | 'signature_mismatch'
-  | 'versionCode_low'
-  | 'waiting_for_confirmation'
-  | 'pending_user_action'
-  | 'completed';
-
+  | 'INITIALIZING'
+  | 'FETCH_REMOTE_METADATA'
+  | 'VALIDATE_METADATA'
+  | 'COMPARE_VERSION'
+  | 'NO_UPDATE_AVAILABLE'
+  | 'UPDATE_AVAILABLE'
+  | 'FETCH_APK_INFORMATION'
+  | 'DOWNLOAD_APK'
+  | 'VERIFY_SHA256'
+  | 'PREPARE_INSTALL'
+  | 'WAIT_PACKAGE_INSTALLER'
+  | 'INSTALLING'
+  | 'INSTALL_SUCCESS'
+  | 'INSTALL_FAILED'
+  | 'RECOVERY'
+  | 'IDLE';
 
 export interface StructuredReleaseNotes {
   added?: string[];
@@ -46,6 +40,7 @@ export interface CentralizedOtaState {
   manualApkUrl: string | null;
   fallbackApkUrl: string | null;
   downloadUrl: string | null;
+  decisionExplanation: string | null;
   // Recovery Mode fields
   consecutiveFailures: number;
   activeFallback: string | null;
@@ -60,7 +55,7 @@ export interface CentralizedOtaState {
 }
 
 export let globalOtaState: CentralizedOtaState = {
-  updateState: 'idle',
+  updateState: 'IDLE',
   loading: false,
   progress: 0,
   error: null,
@@ -76,6 +71,7 @@ export let globalOtaState: CentralizedOtaState = {
   manualApkUrl: null,
   fallbackApkUrl: null,
   downloadUrl: null,
+  decisionExplanation: null,
   consecutiveFailures: 0,
   activeFallback: null,
   recoveryMode: false,
@@ -105,58 +101,84 @@ export function stopWatchdog() {
 
 import { recordStateTransition, addJsLog, transitionHistory, rejectedTransitions } from './updaterSimulation';
 
-export function transitionToState(state: OtaUpdateState, reason: string) {
-  addJsLog(`State Transition: ${globalOtaState.updateState} -> ${state}. Reason: ${reason}`);
+export function transitionToState(state: OtaUpdateState, reason: string, failureReason?: string) {
+  const current = globalOtaState.updateState;
+  addJsLog(`Transition Trigger: ${current} -> ${state}. Reason: ${reason}`);
   recordStateTransition(state, reason);
   stopWatchdog();
 
-  const current = globalOtaState.updateState;
   const now = Date.now();
-  let isValid = true;
+  let isValid = false;
 
+  // Strict transition validation matrix
   if (current === state) {
-    // Self-transition is fine
-  } else if (current === 'idle') {
-    isValid = state === 'checking';
-  } else if (current === 'checking') {
-    isValid = ['update_available', 'manual_apk_required', 'idle', 'failed'].includes(state);
-  } else if (current === 'update_available') {
-    isValid = ['downloading', 'idle', 'failed'].includes(state);
-  } else if (current === 'manual_apk_required') {
-    isValid = ['idle', 'checking'].includes(state);
-  } else if (current === 'downloading') {
-    isValid = ['verifying', 'verifying_sha', 'download_failed', 'failed', 'idle'].includes(state);
-  } else if (current === 'verifying') {
-    isValid = ['ready_to_install', 'verifying_eligibility', 'failed', 'idle'].includes(state);
-  } else if (current === 'verifying_sha') {
-    isValid = ['verifying_eligibility', 'sha_failed', 'failed', 'idle'].includes(state);
-  } else if (current === 'verifying_eligibility') {
-    isValid = ['ready_to_install', 'eligibility_failed', 'signature_mismatch', 'versionCode_low', 'failed', 'idle'].includes(state);
-  } else if (current === 'ready_to_install') {
-    isValid = ['waiting_for_confirmation', 'installing', 'failed', 'idle'].includes(state);
-  } else if (current === 'waiting_for_confirmation') {
-    isValid = ['installing', 'failed', 'idle', 'installed', 'pending_user_action'].includes(state);
-  } else if (current === 'installing') {
-    isValid = ['installed', 'install_failed', 'failed', 'idle', 'waiting_for_confirmation', 'pending_user_action'].includes(state);
-  } else if (current === 'pending_user_action') {
-    isValid = ['installed', 'failed', 'idle'].includes(state);
-  } else if (current === 'installed') {
-    isValid = ['idle', 'checking'].includes(state);
-  } else if (['download_failed', 'sha_failed', 'eligibility_failed', 'install_failed'].includes(current)) {
-    isValid = state === 'failed';
-  } else if (['failed', 'signature_mismatch', 'versionCode_low'].includes(current)) {
-    isValid = ['checking', 'downloading', 'idle'].includes(state);
+    isValid = true; // self-transitions allowed for progress/status updates
+  } else if (state === 'IDLE' || state === 'RECOVERY') {
+    isValid = true; // safe resets always allowed from any state
+  } else {
+    switch (current) {
+      case 'IDLE':
+        isValid = state === 'INITIALIZING';
+        break;
+      case 'INITIALIZING':
+        isValid = ['FETCH_REMOTE_METADATA', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'FETCH_REMOTE_METADATA':
+        isValid = ['VALIDATE_METADATA', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'VALIDATE_METADATA':
+        isValid = ['COMPARE_VERSION', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'COMPARE_VERSION':
+        isValid = ['NO_UPDATE_AVAILABLE', 'UPDATE_AVAILABLE', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'NO_UPDATE_AVAILABLE':
+        isValid = ['IDLE', 'INITIALIZING'].includes(state);
+        break;
+      case 'UPDATE_AVAILABLE':
+        isValid = ['FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'FETCH_APK_INFORMATION':
+        isValid = ['DOWNLOAD_APK', 'PREPARE_INSTALL', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'DOWNLOAD_APK':
+        isValid = ['VERIFY_SHA256', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'VERIFY_SHA256':
+        isValid = ['PREPARE_INSTALL', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'PREPARE_INSTALL':
+        isValid = ['WAIT_PACKAGE_INSTALLER', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'WAIT_PACKAGE_INSTALLER':
+        isValid = ['INSTALLING', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'INSTALLING':
+        isValid = ['INSTALL_SUCCESS', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'INSTALL_SUCCESS':
+        isValid = ['IDLE', 'INITIALIZING'].includes(state);
+        break;
+      case 'INSTALL_FAILED':
+        isValid = ['RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'RECOVERY':
+        isValid = ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'DOWNLOAD_APK', 'WAIT_PACKAGE_INSTALLER', 'IDLE'].includes(state);
+        break;
+      default:
+        isValid = false;
+    }
   }
 
   if (!isValid) {
-    console.warn(`[OTA STATE WARNING] Invalid transition: ${current} -> ${state} (Reason: ${reason}). Resetting to idle.`);
+    console.warn(`[UPDATE STATE WARNING] Invalid transition: ${current} -> ${state} (Reason: ${reason}). Resetting to IDLE.`);
     rejectedTransitions.push({
       from: current,
       attempted: state,
       reason: reason,
       timestamp: now
     });
-    state = 'idle';
+    state = 'IDLE';
   }
 
   let caller = 'Unknown';
@@ -177,10 +199,7 @@ export function transitionToState(state: OtaUpdateState, reason: string) {
   if (typeof window !== 'undefined') {
     (window as any).__lastOtaTransition = `${current} -> ${state} (${reason})`;
   }
-  console.log(`[INSTRUMENTATION] [JS_STATE] Transition: ${current} -> ${state} | Reason: ${reason} | Caller: ${caller} | Thread: Main JS Thread | Stack: ${stackTrace}`);
-  if (state === 'idle') {
-    console.log(`[INSTRUMENTATION] [JS_STATE_IDLE_EXPLANATION] State transitioned to IDLE. Previous State: ${current} | Reason: ${reason} | Caller: ${caller}`);
-  }
+  console.log(`[INSTRUMENTATION] [JS_STATE] Transition: ${current} -> ${state} | Reason: ${reason} | Caller: ${caller} | Thread: Main JS Thread`);
 
   // Calculate duration of previous state
   const prevEntry = transitionHistory[transitionHistory.length - 1];
@@ -201,40 +220,40 @@ export function transitionToState(state: OtaUpdateState, reason: string) {
   });
 
   // Setup watchdog timers for transient states
-  if (state === 'checking') {
+  if (state === 'INITIALIZING' || state === 'FETCH_REMOTE_METADATA' || state === 'VALIDATE_METADATA') {
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === 'checking') {
-        handleWatchdogTimeout('Checking for updates timed out (10s). Server was unreachable.');
+      if (globalOtaState.updateState === state) {
+        handleWatchdogTimeout(`App Update initialization/fetch timed out (15s) at state ${state}.`);
       }
-    }, 10000);
-  } else if (state === 'downloading') {
+    }, 15000);
+  } else if (state === 'DOWNLOAD_APK') {
     resetDownloadWatchdog();
-  } else if (['verifying', 'verifying_sha', 'verifying_eligibility'].includes(state)) {
+  } else if (['VERIFY_SHA256', 'PREPARE_INSTALL'].includes(state)) {
     watchdogTimer = setTimeout(() => {
-      if (['verifying', 'verifying_sha', 'verifying_eligibility'].includes(globalOtaState.updateState)) {
-        handleWatchdogTimeout('Verification timed out (20s). Package may be corrupted.');
+      if (globalOtaState.updateState === state) {
+        handleWatchdogTimeout(`Update package verification timed out (20s) at state ${state}.`);
       }
     }, 20000);
-  } else if (state === 'installing') {
+  } else if (state === 'INSTALLING') {
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === 'installing') {
-        handleWatchdogTimeout('Installation confirmation timed out (120s).');
+      if (globalOtaState.updateState === 'INSTALLING') {
+        handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
       }
     }, 120000);
   }
 
   updateGlobalState({
     updateState: state,
-    loading: ['checking', 'downloading', 'verifying', 'verifying_sha', 'verifying_eligibility', 'installing'].includes(state),
-    error: ['failed', 'download_failed', 'sha_failed', 'eligibility_failed', 'install_failed'].includes(state) ? globalOtaState.error : null,
+    loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARE_INSTALL', 'INSTALLING'].includes(state),
+    error: ['INSTALL_FAILED', 'RECOVERY'].includes(state) ? (failureReason || globalOtaState.error) : (state === 'IDLE' ? null : globalOtaState.error),
   });
 }
 
 export function resetDownloadWatchdog() {
   stopWatchdog();
-  if (globalOtaState.updateState === 'downloading') {
+  if (globalOtaState.updateState === 'DOWNLOAD_APK') {
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === 'downloading') {
+      if (globalOtaState.updateState === 'DOWNLOAD_APK') {
         handleWatchdogTimeout('Download stalled. No progress received for 30 seconds.');
       }
     }, 30000);
@@ -242,11 +261,12 @@ export function resetDownloadWatchdog() {
 }
 
 export function handleWatchdogTimeout(errorMsg: string) {
-  console.warn(`[Watchdog Timeout] ${errorMsg}. Resetting to failed.`);
+  console.warn(`[Watchdog Timeout] ${errorMsg}. Resetting to RECOVERY.`);
   stopWatchdog();
   updateGlobalState({
-    updateState: 'failed',
-    loading: false,
     error: errorMsg,
+    consecutiveFailures: globalOtaState.consecutiveFailures + 1,
+    recoveryMode: true
   });
+  transitionToState('RECOVERY', 'Watchdog timeout', errorMsg);
 }

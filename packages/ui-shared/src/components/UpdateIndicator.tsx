@@ -275,7 +275,8 @@ export default function UpdateIndicator({
   }, []);
 
   useEffect(() => {
-    if (ota.updateState === 'failed' && ota.error) {
+    const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
+    if (isFailed && ota.error) {
       setInstallFailedReason(ota.error);
     }
   }, [ota.updateState, ota.error]);
@@ -361,7 +362,8 @@ export default function UpdateIndicator({
         onLater={() => setOpen(false)}
         onClose={() => {
           setOpen(false);
-          if (ota.updateState === 'failed') {
+          const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
+          if (isFailed) {
             ota.dismissUpdate();
           }
         }}
@@ -661,7 +663,8 @@ export default function UpdateIndicator({
           onLater={handleLater}
           onClose={() => {
             setOpen(false);
-            if (ota.updateState === 'failed') {
+            const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
+            if (isFailed) {
               ota.dismissUpdate();
             }
             if (phase === 'banner') {
@@ -903,11 +906,31 @@ function UpdateModal({
   let showButtons = true;
   let showSpinner = false;
 
+  const displayState = (() => {
+    let s = ota.updateState;
+    if (s === 'INITIALIZING' || s === 'FETCH_REMOTE_METADATA' || s === 'VALIDATE_METADATA' || s === 'COMPARE_VERSION') return 'checking';
+    if (s === 'NO_UPDATE_AVAILABLE' || s === 'IDLE') return 'idle';
+    if (s === 'UPDATE_AVAILABLE') return 'update_available';
+    if (s === 'FETCH_APK_INFORMATION' || s === 'DOWNLOAD_APK') return 'downloading';
+    if (s === 'VERIFY_SHA256') return 'verifying_sha';
+    if (s === 'PREPARE_INSTALL') return 'verifying_eligibility';
+    if (s === 'WAIT_PACKAGE_INSTALLER') return 'ready_to_install';
+    if (s === 'INSTALLING') return 'installing';
+    if (s === 'INSTALL_SUCCESS') return 'completed';
+    if (s === 'INSTALL_FAILED') return 'failed';
+    if (s === 'RECOVERY') {
+      if (ota.error?.includes('Signature mismatch') || ota.error?.includes('Conflicting Package')) return 'signature_mismatch';
+      if (ota.error?.includes('versionCode_low')) return 'versionCode_low';
+      return 'failed';
+    }
+    return s;
+  })();
+
   let state = successVersion
     ? 'update_success'
     : (installFailedReason
         ? 'install_failed'
-        : (permissionBlocked ? 'permission_blocked' : ota.updateState)
+        : (permissionBlocked ? 'permission_blocked' : displayState)
       );
   if (state === 'update_available') {
     if (ota.reinstallRequired) {
@@ -919,13 +942,13 @@ function UpdateModal({
     }
   } else if (state === 'waiting_for_confirmation') {
     state = 'waitingForUserInstallConfirmation';
-  } else if (ota.updateState === 'ready_to_install') {
+  } else if (displayState === 'ready_to_install') {
     state = 'readyForInstallPrompt';
-  } else if (ota.updateState === 'completed') {
+  } else if (displayState === 'completed') {
     state = 'installedOrReady';
-  } else if (ota.updateState === 'idle') {
+  } else if (displayState === 'idle') {
     if (ota.error) {
-      if (ota.error.includes('Signature mismatch')) {
+      if (ota.error.includes('Signature mismatch') || ota.error.includes('Conflicting Package')) {
         state = 'signature_mismatch';
       } else if (ota.error.includes('versionCode_low')) {
         state = 'versionCode_low';

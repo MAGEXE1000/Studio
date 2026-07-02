@@ -203,7 +203,7 @@ async function runRegressionTests() {
     };
     const state = await checkForUpdate(false);
     assert.strictEqual(state.updateAvailable, false);
-    assert.strictEqual(state.updateState, 'idle');
+    assert.strictEqual(state.updateState, 'NO_UPDATE_AVAILABLE');
   });
 
   // Scenario 2: Update available
@@ -220,7 +220,7 @@ async function runRegressionTests() {
     };
     const state = await checkForUpdate(false);
     assert.strictEqual(state.updateAvailable, true);
-    assert.strictEqual(state.updateState, 'update_available');
+    assert.strictEqual(state.updateState, 'UPDATE_AVAILABLE');
   });
 
   // Scenario 3: Manual check priority (non-interference)

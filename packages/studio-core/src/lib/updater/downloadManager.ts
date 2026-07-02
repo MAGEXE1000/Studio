@@ -114,7 +114,7 @@ export async function downloadAndInstallGitHubApk(): Promise<void> {
     updateGlobalState({ statusText: 'Launching package installer...' });
     await AppInstaller.installApk({ filePath });
     
-    updateGlobalState({ updateState: 'idle', loading: false });
+    updateGlobalState({ updateState: 'IDLE', loading: false });
     console.log(`[INSTRUMENTATION] downloadAndInstallGitHubApk EXIT Call #${callId} Success`);
   } catch (err: any) {
     console.error(`[INSTRUMENTATION] downloadAndInstallGitHubApk EXIT Call #${callId} error:`, err);

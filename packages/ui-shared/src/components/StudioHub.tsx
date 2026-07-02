@@ -3801,7 +3801,7 @@ User Agent: [Automatically Generated]
               textAlign: 'center',
             }}
           >
-            {ota.updateState === 'checking' ? 'Checking...' : 'Check For Updates Now'}
+            {['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION'].includes(ota.updateState) ? 'Checking...' : 'Check For Updates Now'}
           </button>
         </div>
 

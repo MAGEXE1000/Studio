@@ -130,8 +130,8 @@ export default function SimulationLab({
       // 1. Force Available Check
       updaterSimulation.forceUpdateAvailable = true;
       await checkForUpdate(true, 'dev_tools', 'Audit Check');
-      if (await waitForCondition(() => globalOtaState.updateState === 'update_available')) {
-        addResult('Force Update Available', 'success', 'State transitioned to update_available.');
+      if (await waitForCondition(() => globalOtaState.updateState === 'UPDATE_AVAILABLE')) {
+        addResult('Force Update Available', 'success', 'State transitioned to UPDATE_AVAILABLE.');
       } else {
         addResult('Force Update Available', 'failed', `State remained: ${globalOtaState.updateState}`);
       }
@@ -140,8 +140,8 @@ export default function SimulationLab({
       // 2. Force No Update Check
       updaterSimulation.forceNoUpdate = true;
       await checkForUpdate(true, 'dev_tools', 'Audit Check');
-      if (await waitForCondition(() => globalOtaState.updateState === 'idle')) {
-        addResult('Force No Update', 'success', 'State transitioned to idle.');
+      if (await waitForCondition(() => globalOtaState.updateState === 'NO_UPDATE_AVAILABLE' || globalOtaState.updateState === 'IDLE')) {
+        addResult('Force No Update', 'success', 'State transitioned to NO_UPDATE_AVAILABLE.');
       } else {
         addResult('Force No Update', 'failed', `State: ${globalOtaState.updateState}`);
       }
@@ -149,7 +149,7 @@ export default function SimulationLab({
 
       // 3. Simulated status change trigger
       triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
-      if (await waitForCondition(() => globalOtaState.updateState === 'pending_user_action' || globalOtaState.updateState === 'waiting_for_confirmation')) {
+      if (await waitForCondition(() => globalOtaState.updateState === 'WAIT_PACKAGE_INSTALLER')) {
         addResult('Status Pending User Action', 'success', 'Simulated callback triggered successfully.');
       } else {
         addResult('Status Pending User Action', 'failed', `State: ${globalOtaState.updateState}`);

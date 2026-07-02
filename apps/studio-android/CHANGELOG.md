@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.60
+
+### Fixed
+- Rebuilt the App Update subsystem state machine with 16 deterministic uppercase states.
+- Re-engineered version comparison engine to explicitly validate metadata and signatures.
+- Linearized check, download, and install execution pipelines to eliminate race conditions.
+- Adapted UpdateIndicator UI mapping and Simulation Lab assertions to support the new state structure.
+
 ## 3.7.59
 
 ### Fixed

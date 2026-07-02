@@ -61,20 +61,26 @@ async function fetchOne(
       signal,
     });
     if (!res.ok) {
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = `HTTP Error ${res.status}`;
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = `HTTP Error ${res.status}`;
+      const errStr = `HTTP Error ${res.status}`;
+      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      console.warn(`[AppUpdater] Metadata fetch failed for URL: ${url}. ${errStr}`);
       return null;
     }
     const json = (await res.json()) as unknown;
     if (!json || typeof json !== 'object') {
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = 'Malformed JSON';
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = 'Malformed JSON';
+      const errStr = 'Malformed JSON response';
+      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
     const obj = json as Record<string, unknown>;
     if (typeof obj.version !== 'string' || !obj.version.trim()) {
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = 'Missing version field';
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = 'Missing version field';
+      const errStr = 'Missing version field in JSON';
+      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
     
@@ -164,6 +170,7 @@ async function fetchOne(
     const errMsg = err instanceof Error ? err.message : String(err);
     if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = `Error: ${errMsg}`;
     if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = `Error: ${errMsg}`;
+    console.warn(`[AppUpdater] Metadata parsing exception for URL: ${url}. ${errMsg}`);
     return null;
   }
 }
@@ -183,7 +190,7 @@ export async function fetchRemoteVersion(
     const timer = setTimeout(() => {
       if (!completed) {
         completed = true;
-        console.warn('[OTA] fetchRemoteVersion timed out (6s). Aborting fetches.');
+        console.warn('[AppUpdater] fetchRemoteVersion timed out (6s). Aborting fetches.');
         if (ctrl) {
           try {
             ctrl.abort();

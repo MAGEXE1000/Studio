@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.59';
+export const NATIVE_VERSION = '3.7.60';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,9 +60,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed devtools copy diagnostics scope and undefined variables.",
-      "Added direct touch event listeners to accordion header components.",
-      "Resolved bottom viewport layout scroll padding and navigation overlay coverage.",
+      "Rebuilt the App Update subsystem state machine with 16 deterministic uppercase states.",
+      "Re-engineered version comparison engine to explicitly validate metadata and signatures.",
+      "Linearized check, download, and install execution pipelines to eliminate race conditions.",
+      "Adapted UpdateIndicator UI mapping and Simulation Lab assertions to support the new state structure.",
     ],
   },
 ];

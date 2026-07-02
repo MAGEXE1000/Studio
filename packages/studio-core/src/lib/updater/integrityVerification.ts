@@ -4,7 +4,7 @@ import { otaDebugLogs, logProgressStage } from './diagnostics';
 
 export async function verifyFileIntegrity(filePath: string, expectedHash: string): Promise<void> {
   otaDebugLogs.downloadStatus += `\nStarting SHA verification (Expected: ${expectedHash})...`;
-  transitionToState('verifying', 'Starting SHA verification');
+  transitionToState('VERIFY_SHA256', 'Starting SHA verification');
   updateGlobalState({ statusText: 'Verifying package' });
 
   const isValid = await verifyApkSha256(filePath, expectedHash);

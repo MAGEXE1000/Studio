@@ -221,9 +221,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   };
 
   return (
-    <div className="bg-[#000000] text-[#e7e5e4] min-h-screen overflow-x-hidden relative flex flex-col font-body">
+    <div className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
       {/* Top sticky app bar */}
-      <header className="w-full sticky top-0 z-50 bg-[#000000] flex items-center justify-between px-6 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-4 border-b border-[#484848]/10 backdrop-blur-md">
+      <header className="w-full sticky top-0 z-50 bg-[#000000] flex items-center justify-between px-6 pt-4 pb-4 border-b border-[#484848]/10 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <button 
             onClick={onBack}
@@ -232,8 +232,8 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
             <span className="material-symbols-outlined text-on-surface">arrow_back</span>
           </button>
           <div>
-            <h1 className="text-lg font-bold text-[#e7e5e4] tracking-tight">Technical Rider</h1>
-            <p className="text-xs text-on-surface-variant font-medium">OTA Diagnostics &amp; Debug Tools</p>
+            <h1 className="text-lg font-bold text-[#e7e5e4] tracking-tight">Update Diagnostics</h1>
+            <p className="text-xs text-on-surface-variant font-medium">Release Diagnostics &amp; Debug Tools</p>
           </div>
         </div>
         <button 

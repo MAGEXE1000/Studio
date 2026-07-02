@@ -8,13 +8,21 @@ interface TelemetryGridProps {
 
 export default function TelemetryGrid({ nativeDeviceInfo, nativeInstallerDetails }: TelemetryGridProps) {
   const currentVersion = APP_VERSION;
-  const remoteVersion = globalOtaState.remoteVersion || 'Waiting for OTA check';
+  const remoteVersion = globalOtaState.remoteVersion || 'Waiting for update check';
   const updateState = globalOtaState.updateState || 'Not initialized';
   const updateAvailable = globalOtaState.updateAvailable;
   const isWeb = !isNative();
 
   const getDisplayValue = (val: any, fallbackLabelAndroid: string) => {
-    if (val === null || val === undefined || val === 'N/A' || val === '') {
+    if (
+      val === null ||
+      val === undefined ||
+      val === 'N/A' ||
+      val === '' ||
+      val === -999 ||
+      val === '-999' ||
+      String(val).toLowerCase() === 'none'
+    ) {
       return isWeb ? 'Unavailable on this device' : fallbackLabelAndroid;
     }
     return String(val);
@@ -58,9 +66,9 @@ export default function TelemetryGrid({ nativeDeviceInfo, nativeInstallerDetails
         <span className="text-lg font-bold text-on-surface">{updateState}</span>
       </div>
 
-      {/* OTA Status Card */}
+      {/* Update Status Card */}
       <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
-        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">OTA Status</span>
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Update Status</span>
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${updateAvailable ? 'bg-red-500' : 'bg-green-500'} status-dot-pulse`} />
           <span className="text-lg font-bold text-on-surface">{updateAvailable ? 'Available' : 'Idle'}</span>

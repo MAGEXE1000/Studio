@@ -1167,7 +1167,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
 
     return (
       <div style={{
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+        paddingTop: '12px',
         paddingBottom: '12px',
         paddingLeft: '20px',
         paddingRight: '20px',
@@ -1978,8 +1978,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       },
       {
         id: 'updater',
-        title: 'Updater',
-        description: 'Inspect update and native APK diagnostics.',
+        title: 'App Update Diagnostics',
+        description: 'Inspect application updates and native installation diagnostics.',
         action: () => setSubView('updater')
       },
       {
@@ -2231,7 +2231,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
         <>
           {/* HEADER */}
           <div style={{
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+            paddingTop: '16px',
             paddingBottom: '16px',
             paddingLeft: '20px',
             paddingRight: '20px',

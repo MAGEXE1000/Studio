@@ -344,7 +344,23 @@ public class AppInstallerPlugin extends Plugin {
             result.put("manufacturer", Build.MANUFACTURER);
             result.put("model", Build.MODEL);
             result.put("androidVersion", Build.VERSION.RELEASE);
+            result.put("osVersion", Build.VERSION.RELEASE);
             result.put("sdkInt", Build.VERSION.SDK_INT);
+            
+            try {
+                android.content.pm.PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+                result.put("packageName", context.getPackageName());
+                result.put("versionName", pInfo.versionName);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    result.put("versionCode", pInfo.getLongVersionCode());
+                } else {
+                    result.put("versionCode", pInfo.versionCode);
+                }
+            } catch (Exception e) {
+                result.put("packageName", context.getPackageName());
+                result.put("versionName", "Unknown");
+                result.put("versionCode", -999);
+            }
             
             // Architecture
             String abis = "";

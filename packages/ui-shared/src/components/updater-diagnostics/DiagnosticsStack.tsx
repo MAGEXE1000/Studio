@@ -70,7 +70,7 @@ export default function DiagnosticsStack({
   };
 
   const copyTimeline = async () => {
-    let txt = '=== OTA TRANSITION TIMELINE ===\n';
+    let txt = '=== UPDATE TRANSITION TIMELINE ===\n';
     const transitions = stateTimeline || [];
     if (transitions.length > 0) {
       transitions.forEach((t, i) => {
@@ -80,7 +80,7 @@ export default function DiagnosticsStack({
       txt += 'No transition state history logged.\n';
     }
     try {
-      const msg = await copyToClipboard(txt, 'OTA Transition Timeline');
+      const msg = await copyToClipboard(txt, 'Update Transition Timeline');
       showToast(msg);
     } catch (err: any) {
       showToast(`Copy failed: ${err.message || String(err)}`);
@@ -126,7 +126,7 @@ export default function DiagnosticsStack({
         <div className="flex flex-col gap-1 pr-4">
           <span className="font-bold text-sm text-tertiary">Copy Everything</span>
           <span className="text-[11px] text-on-surface-variant leading-relaxed">
-            Copies complete diagnostics report including logs, OTA state and device information.
+            Copies complete diagnostics report including logs, update system state and device information.
           </span>
         </div>
         <span className="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">content_copy</span>
@@ -168,7 +168,7 @@ export default function DiagnosticsStack({
         <div className="flex flex-col gap-1 pr-4">
           <span className="font-bold text-sm text-on-surface">Copy Timeline</span>
           <span className="text-[11px] text-on-surface-variant leading-relaxed">
-            Copies OTA transition timeline.
+            Copies update transition timeline.
           </span>
         </div>
         <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">content_copy</span>

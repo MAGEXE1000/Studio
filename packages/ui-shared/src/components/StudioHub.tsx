@@ -2541,11 +2541,27 @@ function HubSettings({
     if (el) pageScrollPositions.current[forPage] = el.scrollTop;
   }
   useLayoutEffect(() => {
-    const target = pendingRestoreRef.current;
-    if (target === null) return;
     const el = scrollRef?.current;
-    if (el) el.scrollTop = pageScrollPositions.current[target] ?? 0;
-    pendingRestoreRef.current = null;
+    if (el) {
+      if (page === 'main') {
+        el.style.position = 'static';
+        el.style.overflowY = 'auto';
+      } else {
+        el.style.position = 'relative';
+        el.style.overflowY = 'hidden';
+      }
+    }
+    const target = pendingRestoreRef.current;
+    if (target !== null) {
+      if (el) el.scrollTop = pageScrollPositions.current[target] ?? 0;
+      pendingRestoreRef.current = null;
+    }
+    return () => {
+      if (el) {
+        el.style.position = 'static';
+        el.style.overflowY = 'auto';
+      }
+    };
   }, [page, pageKey, scrollRef]);
 
   function navigate(to: SettingsPageId) {
@@ -4744,7 +4760,7 @@ User Agent: [Automatically Generated]
 
     if (page === 'developer') {
       return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
+        <div key={pageKey} className="settings-panel-sheet" style={{ ...subStyle, padding: 0, paddingBottom: 0 }}>
           <DevToolsDashboard accent={accent} onBack={goBack} />
         </div>
       );

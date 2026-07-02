@@ -84,6 +84,18 @@ export function buildDiagnosticDataObject(
   };
 }
 
+function translateSentinel(val: any, label = 'Not initialized'): string {
+  if (val === null || val === undefined || val === '' || val === -999 || val === '-999') {
+    return label;
+  }
+  const str = String(val).trim();
+  const lower = str.toLowerCase();
+  if (lower === 'none' || lower === 'n/a' || lower === 'null' || lower === 'undefined') {
+    return label;
+  }
+  return str;
+}
+
 export function generateFullEngineeringReport(
   nativeDeviceInfo: any,
   nativeInstallerDetails: any,
@@ -93,119 +105,146 @@ export function generateFullEngineeringReport(
   const data = buildDiagnosticDataObject(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
   const sections: string[] = [];
 
-  sections.push('# UPDATER_DIAGNOSTICS_REPORT_V1');
-  sections.push(`REPORT_TIME: ${data.timestamp}`);
-  sections.push(`APP_VERSION: ${data.appVersion}`);
-  sections.push(`PLATFORM: ${data.device.isNative ? 'Android Native (Capacitor)' : 'Web Browser'}`);
-  sections.push(`DEVICE_MODEL: ${data.device.model} (${data.device.manufacturer})`);
-  sections.push(`OS_VERSION: ${data.device.osVersion}`);
-  sections.push(`STORAGE_FREE: ${data.device.storageAvailable}`);
-  sections.push(`NETWORK_STATE: ${data.device.networkState}`);
-  sections.push(`BATTERY_LEVEL: ${data.device.batteryLevel}`);
-  sections.push('---');
+  sections.push('==================================================');
+  sections.push('[ENVIRONMENT]');
+  sections.push('==================================================');
+  sections.push(`User Agent: ${translateSentinel(data.device.userAgent, 'Browser Environment')}`);
+  sections.push(`Host Platform: ${translateSentinel(data.device.platform, 'Unknown Platform')}`);
+  sections.push(`Capacitor Native Shell: ${data.device.isNative ? 'Enabled (Android Native)' : 'Disabled (Web/Desktop Browser)'}`);
+  sections.push('');
 
-  sections.push('## ENVIRONMENT_AND_BUILD');
-  sections.push(`• user_agent: ${data.device.userAgent}`);
-  sections.push(`• host_platform: ${data.device.platform}`);
-  sections.push(`• package_name: ${data.device.packageName}`);
-  sections.push(`• version_name: ${data.device.versionName}`);
-  sections.push(`• version_code: ${data.device.versionCode}`);
-  sections.push(`• supported_abis: ${JSON.stringify(data.device.supportedABIs)}`);
-  sections.push('---');
+  sections.push('==================================================');
+  sections.push('[APPLICATION]');
+  sections.push('==================================================');
+  sections.push(`Package Name: ${translateSentinel(data.device.packageName, 'com.chordex.app')}`);
+  sections.push(`Version Name (Display): ${translateSentinel(data.device.versionName, APP_VERSION)}`);
+  sections.push(`Version Code (Build): ${translateSentinel(data.device.versionCode, 'Not configured')}`);
+  sections.push(`Active App Version: ${data.appVersion}`);
+  sections.push('');
 
-  sections.push('## STATE_SNAPSHOT');
-  sections.push(`• current_state: ${data.otaDebugLogs.updateDecisionReason || 'idle'}`);
-  sections.push(`• update_available: ${data.otaDebugLogs.updateDecision || 'N/A'}`);
-  sections.push(`• download_status: ${data.otaDebugLogs.downloadStatus || 'N/A'}`);
-  sections.push(`• sha_verification: ${data.otaDebugLogs.shaVerification || 'N/A'}`);
-  sections.push(`• eligibility_reason: ${data.otaDebugLogs.eligibilityReason || 'None'}`);
-  sections.push(`• last_install_error: ${data.otaDebugLogs.installError || 'None'}`);
-  sections.push('---');
+  sections.push('==================================================');
+  sections.push('[DEVICE]');
+  sections.push('==================================================');
+  sections.push(`Manufacturer: ${translateSentinel(data.device.manufacturer, 'Generic/Web')}`);
+  sections.push(`Model Name: ${translateSentinel(data.device.model, 'Browser Sandbox')}`);
+  sections.push(`OS Version: ${translateSentinel(data.device.osVersion, 'Browser Runtime')}`);
+  sections.push(`Supported ABIs: ${data.device.supportedABIs.length > 0 ? data.device.supportedABIs.join(', ') : 'Not applicable'}`);
+  sections.push(`Storage Available: ${translateSentinel(data.device.storageAvailable, 'Measurement unavailable')}`);
+  sections.push(`Network State: ${translateSentinel(data.device.networkState, 'Connection state unknown')}`);
+  sections.push(`Battery Level: ${translateSentinel(data.device.batteryLevel, 'Power source undetermined')}`);
+  sections.push('');
 
-  sections.push('## NATIVE_INSTALLER_SESSION');
+  sections.push('==================================================');
+  sections.push('[UPDATE SYSTEM]');
+  sections.push('==================================================');
+  sections.push(`Update Decision: ${translateSentinel(data.otaDebugLogs.updateDecision, 'No check performed yet')}`);
+  sections.push(`Decision Reason: ${translateSentinel(data.otaDebugLogs.updateDecisionReason, 'No diagnostic data available')}`);
+  sections.push(`Download Status: ${translateSentinel(data.otaDebugLogs.downloadStatus, 'No download in progress')}`);
+  sections.push(`SHA-256 Verification: ${translateSentinel(data.otaDebugLogs.shaVerification, 'No verification completed')}`);
+  sections.push(`Eligibility Reason: ${translateSentinel(data.otaDebugLogs.eligibilityReason, 'No conditions analyzed')}`);
+  sections.push(`Last Installation Error: ${translateSentinel(data.otaDebugLogs.installError, 'No installation errors recorded')}`);
+  sections.push('');
+
+  sections.push('==================================================');
+  sections.push('[NATIVE INSTALLER]');
+  sections.push('==================================================');
   if (nativeInstallerDetails) {
-    sections.push(`• session_state: ${nativeInstallerDetails.sessionState || 'N/A'}`);
-    sections.push(`• session_id: ${nativeInstallerDetails.sessionId || 'N/A'}`);
-    sections.push(`• last_status_code: ${nativeInstallerDetails.lastStatusCode ?? 'N/A'}`);
-    sections.push(`• last_status_message: ${nativeInstallerDetails.lastStatusMessage || 'N/A'}`);
+    sections.push(`Session ID: ${translateSentinel(nativeInstallerDetails.sessionId, 'No session active')}`);
+    sections.push(`Session State: ${translateSentinel(nativeInstallerDetails.sessionState, 'No active installation')}`);
+    sections.push(`Last Status Code: ${translateSentinel(nativeInstallerDetails.lastStatusCode, 'None')}`);
+    sections.push(`Last Status Message: ${translateSentinel(nativeInstallerDetails.lastStatusMessage, 'No messages recorded')}`);
   } else {
-    sections.push('No native installer session info available.');
+    sections.push('Native package installer details are unavailable on this platform.');
   }
-  sections.push('---');
-
-  sections.push('## NATIVE_APK_DETAILS');
   if (data.localApkDetails) {
-    sections.push(`• package_name: ${data.localApkDetails.packageName || 'N/A'}`);
-    sections.push(`• version_name: ${data.localApkDetails.versionName || 'N/A'}`);
-    sections.push(`• version_code: ${data.localApkDetails.versionCode || 'N/A'}`);
-    sections.push(`• is_valid_apk: ${data.localApkDetails.isValidApk ? 'YES' : 'NO'}`);
-  } else {
-    sections.push('No downloaded APK details available.');
+    sections.push('Downloaded Package Details:');
+    sections.push(`  • APK Package Name: ${translateSentinel(data.localApkDetails.packageName, 'Unknown')}`);
+    sections.push(`  • APK Version Name: ${translateSentinel(data.localApkDetails.versionName, 'Unknown')}`);
+    sections.push(`  • APK Version Code: ${translateSentinel(data.localApkDetails.versionCode, 'Unknown')}`);
+    sections.push(`  • APK Signature Valid: ${data.localApkDetails.isValidApk ? 'Verified (Valid APK)' : 'Invalid / Verification Failed'}`);
   }
-  sections.push('---');
+  sections.push('');
 
-  sections.push('## STAGEX_DIAGNOSTICS');
-  sections.push(JSON.stringify(data.stagexDiagnostics, null, 2));
-  sections.push('---');
-
-  sections.push('## PERFORMANCE_METRICS');
+  sections.push('==================================================');
+  sections.push('[PERFORMANCE]');
+  sections.push('==================================================');
   if (data.perfStats.length > 0) {
     data.perfStats.forEach(stat => {
-      sections.push(`• [${stat.component}] renderCount: ${stat.renderCount} | totalDuration: ${stat.totalDurationMs}ms`);
+      sections.push(`Component: ${stat.component}`);
+      sections.push(`  • Render Count: ${stat.renderCount}`);
+      sections.push(`  • Total Duration: ${stat.totalDurationMs} ms`);
     });
   } else {
-    sections.push('No performance stats recorded.');
+    sections.push('No runtime performance metrics collected.');
   }
-  sections.push('---');
+  sections.push('');
 
-  sections.push('## RUNTIME_ERRORS');
+  sections.push('==================================================');
+  sections.push('[STATE MACHINE]');
+  sections.push('==================================================');
+  if (data.stateTransitions.length > 0) {
+    data.stateTransitions.forEach((t, idx) => {
+      sections.push(`[${idx + 1}] [${new Date(t.timestamp).toLocaleTimeString()}] State Transition: ${t.from} -> ${t.to}`);
+      sections.push(`    Reason: ${translateSentinel(t.reason, 'Normal flow')}`);
+    });
+  } else {
+    sections.push('No state machine transitions logged during this session.');
+  }
+  if (data.rejectedTransitions.length > 0) {
+    sections.push('Rejected State Transitions:');
+    data.rejectedTransitions.forEach((t, idx) => {
+      sections.push(`  • [${idx + 1}] [${new Date(t.timestamp).toLocaleTimeString()}] ${t.from} -> ${t.attempted}`);
+      sections.push(`      Rejection Reason: ${translateSentinel(t.reason, 'Invalid state transition')}`);
+    });
+  }
+  sections.push('');
+
+  sections.push('==================================================');
+  sections.push('[RECENT EVENTS]');
+  sections.push('==================================================');
+  if (data.activityLifecycle.length > 0) {
+    data.activityLifecycle.forEach((t, idx) => {
+      sections.push(`[${idx + 1}] [${new Date(t.timestamp).toLocaleTimeString()}] Event: ${t.event} (Type: ${t.type || 'Generic'})`);
+    });
+  } else {
+    sections.push('No recent events recorded.');
+  }
+  sections.push('');
+
+  sections.push('==================================================');
+  sections.push('[RUNTIME]');
+  sections.push('==================================================');
   if (data.errors.length > 0) {
+    sections.push('Logged Runtime Errors:');
     data.errors.forEach((err, idx) => {
-      sections.push(`[${idx + 1}] [${new Date(err.timestamp || Date.now()).toLocaleTimeString()}] ${err.message}`);
+      sections.push(`  • [${idx + 1}] [${new Date(err.timestamp || Date.now()).toLocaleTimeString()}] Error: ${err.message}`);
     });
   } else {
     sections.push('No runtime errors recorded.');
   }
-  sections.push('---');
+  sections.push('');
 
-  sections.push('## STATE_TRANSITIONS');
-  if (data.stateTransitions.length > 0) {
-    data.stateTransitions.forEach(t => {
-      sections.push(`[${new Date(t.timestamp).toLocaleTimeString()}] ${t.from} → ${t.to} (${t.reason})`);
-    });
-  } else {
-    sections.push('No state transitions logged.');
-  }
-  sections.push('---');
-
-  sections.push('## REJECTED_TRANSITIONS');
-  if (data.rejectedTransitions.length > 0) {
-    data.rejectedTransitions.forEach(t => {
-      sections.push(`[${new Date(t.timestamp).toLocaleTimeString()}] ${t.from} ↛ ${t.attempted} (${t.reason})`);
-    });
-  } else {
-    sections.push('No rejected transitions.');
-  }
-  sections.push('---');
-
-  sections.push('## JS_EXECUTION_CONSOLE_LOGS');
+  sections.push('==================================================');
+  sections.push('[LOGS]');
+  sections.push('==================================================');
+  sections.push('--- JavaScript Console Log Dump ---');
   if (data.logs.length > 0) {
     data.logs.forEach(log => {
       sections.push(`[${new Date(log.timestamp).toLocaleTimeString()}] [${log.level.toUpperCase()}] [${log.module}] ${log.message}`);
     });
   } else {
-    sections.push('No JS console logs recorded.');
+    sections.push('No JavaScript logs in buffer.');
   }
-  sections.push('---');
-
-  sections.push('## NATIVE_INSTALLER_LOGS');
+  sections.push('');
+  sections.push('--- Android Native Installer Log Dump ---');
   if (data.nativeLogs.length > 0) {
     data.nativeLogs.forEach(log => {
-      sections.push(`[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${log.stage || 'N/A'}] Status: ${log.status} - Message: ${log.message || 'N/A'}`);
+      sections.push(`[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${translateSentinel(log.stage, 'Installer')}] Status: ${log.status} - Message: ${translateSentinel(log.message, 'No message')}`);
     });
   } else {
-    sections.push('No native installer logs available.');
+    sections.push('No native logs in buffer.');
   }
+  sections.push('==================================================');
 
   return sections.join('\n');
 }

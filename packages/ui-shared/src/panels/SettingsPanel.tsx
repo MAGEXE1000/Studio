@@ -1,5 +1,5 @@
-import { useChordStore, ACCENT_COLORS, type ActivePanel, useScrollHide, useT, useIsWebDesktop, isNative, useOtaUpdate, APP_VERSION_LABEL } from '@workspace/studio-core';
-import React, { useRef, useState } from 'react';
+import { useChordStore, ACCENT_COLORS, type ActivePanel, useScrollHide, useT, useIsWebDesktop, isNative, useOtaUpdate, APP_VERSION_LABEL, resetNav } from '@workspace/studio-core';
+import React, { useRef, useState, useEffect } from 'react';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import { Toggle, SectionHeader, SettingRow } from '../components/SettingControls';
 import { IconSongs, IconLibrary, IconChords, IconSettings } from '../components/NavIcons';
@@ -12,6 +12,10 @@ export default function SettingsPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
   const t = useT();
+
+  useEffect(() => {
+    resetNav();
+  }, []);
 
   const ota = useOtaUpdate();
   const [showGitHubConfirm, setShowGitHubConfirm] = useState(false);
@@ -160,7 +164,7 @@ export default function SettingsPanel() {
   return (
     <div className="flex flex-col h-full overflow-hidden app-bg">
       {!isWebDesktop && (
-        <header className="flex-none px-6 pt-6 pb-1 app-bg spring-in">
+        <header className="flex-none px-6 pb-1 app-bg spring-in" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
           <h1 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '7px' }}>
             <AppModeMenuLogo />
           </h1>

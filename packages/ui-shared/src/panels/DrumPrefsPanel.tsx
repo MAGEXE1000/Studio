@@ -1,5 +1,5 @@
-import { useDrumStore, useChordStore, ACCENT_COLORS, useT, useScrollHide, useIsWebDesktop } from '@workspace/studio-core';
-import { useRef, useState } from 'react';
+import { useDrumStore, useChordStore, ACCENT_COLORS, useT, useScrollHide, useIsWebDesktop, resetNav } from '@workspace/studio-core';
+import { useRef, useState, useEffect } from 'react';
 import { Toggle, SectionHeader, SettingRow } from '../components/SettingControls';
 
 function IconDrumSongs({ active }: { active: boolean }) {
@@ -50,6 +50,10 @@ export default function DrumPrefsPanel() {
   const dp = t.drumPrefs;
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
+
+  useEffect(() => {
+    resetNav();
+  }, []);
 
   const acc = ACCENT_COLORS[(settings.perApp?.drums?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
   const cardStyle: React.CSSProperties = {

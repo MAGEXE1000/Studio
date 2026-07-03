@@ -1,10 +1,10 @@
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries } from '@workspace/studio-core';
+import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav } from '@workspace/studio-core';
 import { getUpdateHistory, triggerDowngrade } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from './ChordexLogo';
-import { Toggle, SectionHeader, SettingRow, SegmentedControl, COLOR_OPTIONS } from './SettingControls';
+import { Toggle, SectionHeader, SettingRow, SegmentedControl, COLOR_OPTIONS, BentoSettingCard, BentoSettingRow } from './SettingControls';
 import StudioThemeToggler from './StudioThemeToggler';
 import ApplyToSheet from './ApplyToSheet';
 import ChangelogSheet from './ChangelogSheet';
@@ -1412,15 +1412,29 @@ function SettingsNavRow({
 
 function SettingsSectionLabel({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
-    <p className="spring-in" style={{
-      fontSize: 11, fontWeight: 700,
-      color: 'var(--c-text-secondary)',
-      letterSpacing: '0.18em',
-      textTransform: 'uppercase',
-      margin: '22px 0 8px 4px',
-      fontFamily: 'Manrope',
+    <div className="spring-in" style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'between',
+      margin: '28px 0 12px 4px',
+      animation: `settings-content-fade-in 300ms ease both`,
       animationDelay: `${delay}ms`,
-    }}>{children}</p>
+    }}>
+      <span style={{
+        fontSize: 11,
+        fontWeight: 800,
+        color: 'var(--c-text-secondary)',
+        letterSpacing: '0.15em',
+        textTransform: 'uppercase',
+        fontFamily: 'Manrope',
+      }}>{children}</span>
+      <div style={{
+        height: '1px',
+        flex: 1,
+        backgroundColor: 'rgba(128, 128, 128, 0.08)',
+        marginLeft: '16px'
+      }} />
+    </div>
   );
 }
 
@@ -1428,7 +1442,7 @@ function SettingsSubHeader({ title, onBack }: { title: string; onBack: () => voi
   const [pressed, setPressed] = useState(false);
   const isWebDesktop = useIsWebDesktop();
   return (
-    <div className="spring-in" style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 32, paddingBottom: 16 }}>
+    <div className="spring-in" style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: isWebDesktop ? 32 : 'calc(env(safe-area-inset-top, 0px) + 20px)', paddingBottom: 16 }}>
       {!isWebDesktop && (
         <button
           onClick={onBack}
@@ -1461,7 +1475,7 @@ function ProfileHeaderBack({ onBack }: { onBack: () => void }) {
   const isWebDesktop = useIsWebDesktop();
   if (isWebDesktop) return null;
   return (
-    <div className="spring-in" style={{ display: 'flex', alignItems: 'center', padding: '0 20px', paddingTop: 32, paddingBottom: 16 }}>
+    <div className="spring-in" style={{ display: 'flex', alignItems: 'center', padding: '0 20px', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)', paddingBottom: 16 }}>
       <button
         onClick={onBack}
         onPointerDown={() => setPressed(true)}
@@ -2529,40 +2543,27 @@ function HubSettings({
 
   // Scroll-position memory per sub-page. Without this, navigating
   // Settings → About → back resets the outer scroll container to the
-  // top because the rendered content shrunk while in About and then
-  // grew again on return — the browser clamps scrollTop and we lose
-  // the user's place. We snapshot the current scrollTop right before
-  // any page change and restore it on the next paint after the new
-  // page is in the DOM.
+  // top. We snapshot the current scrollTop right before any page change
+  // and restore it on the next paint after the new page is in the DOM.
+  const localScrollRef = useRef<HTMLDivElement | null>(null);
   const pageScrollPositions = useRef<Record<string, number>>({});
   const pendingRestoreRef = useRef<string | null>(null);
   function snapshotScroll(forPage: SettingsPageId) {
-    const el = scrollRef?.current;
+    const el = localScrollRef.current;
     if (el) pageScrollPositions.current[forPage] = el.scrollTop;
   }
   useLayoutEffect(() => {
-    const el = scrollRef?.current;
-    if (el) {
-      if (page === 'main') {
-        el.style.position = 'static';
-        el.style.overflowY = 'auto';
-      } else {
-        el.style.position = 'relative';
-        el.style.overflowY = 'hidden';
-      }
-    }
+    const el = localScrollRef.current;
     const target = pendingRestoreRef.current;
     if (target !== null) {
       if (el) el.scrollTop = pageScrollPositions.current[target] ?? 0;
       pendingRestoreRef.current = null;
     }
-    return () => {
-      if (el) {
-        el.style.position = 'static';
-        el.style.overflowY = 'auto';
-      }
-    };
-  }, [page, pageKey, scrollRef]);
+  }, [page, pageKey]);
+
+  useEffect(() => {
+    resetNav();
+  }, [page]);
 
   function navigate(to: SettingsPageId) {
     snapshotScroll(page);
@@ -4521,8 +4522,8 @@ User Agent: [Automatically Generated]
   }
 
   function renderMobileProfileCard() {
-    const name    = authUser?.displayName || authUser?.email || '';
-    const email   = authUser?.email || '';
+    const name    = authUser?.displayName || 'Guest User';
+    const email   = authUser?.email || 'Sign in to back up settings';
     const photo   = customPhoto || authUser?.photoURL;
     const initial = (name[0] ?? 'S').toUpperCase();
     const hasUser = !!authUser;
@@ -4532,63 +4533,114 @@ User Agent: [Automatically Generated]
         onClick={() => onProfile?.()}
         className="btn-smooth"
         style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          width: '100%', padding: '28px 20px 24px',
-          marginBottom: 8,
-          background: 'var(--app-surface)',
-          borderRadius: '1.25rem',
-          border: '1px solid rgba(128,128,128,0.07)',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
-          cursor: 'pointer', outline: 'none',
-          WebkitTapHighlightColor: 'transparent',
-          animation: 'hub-row-fade 320ms 30ms ease both',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          padding: '20px',
+          background: 'var(--app-surface-high)',
+          border: '1px solid rgba(128, 128, 128, 0.08)',
+          borderRadius: '16px',
+          cursor: 'pointer',
+          outline: 'none',
           position: 'relative',
-          textAlign: 'center',
-          gap: 0,
+          overflow: 'hidden',
+          textAlign: 'left',
+          boxSizing: 'border-box',
+          animation: 'hub-row-fade 320ms 30ms ease both',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
         }}
       >
-        <span
-          className="material-symbols-outlined"
-          style={{
-            position: 'absolute', top: 14, right: 14,
-            fontSize: 18, color: 'var(--c-text-secondary)', opacity: 0.5,
-          }}
-        >chevron_right</span>
-
+        {/* Subtle Accent Glow */}
         <div style={{
-          width: 72, height: 72, borderRadius: '50%', marginBottom: 14,
-          background: photo
-            ? 'transparent'
-            : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 30, fontWeight: 800, color: '#fff',
-          overflow: 'hidden', flexShrink: 0,
-          boxShadow: `0 0 0 3px ${accent.from}33, 0 4px 18px ${accent.from}28`,
-        }}>
-          {photo ? (
-            <img src={photo} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : hasUser ? (
-            <span>{initial}</span>
-          ) : (
-            <span className="material-symbols-outlined" style={{ fontSize: 34, color: '#fff' }}>account_circle</span>
-          )}
+          position: 'absolute',
+          top: -20,
+          right: -20,
+          width: 100,
+          height: 100,
+          background: `${accent.from}0e`,
+          filter: 'blur(20px)',
+          borderRadius: '50%',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 2, minWidth: 0, flex: 1 }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            overflow: 'hidden',
+            border: '2px solid var(--app-surface-bright, #2c2c2c)',
+            background: 'var(--app-surface-highest)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: `0 0 0 3px ${accent.from}15`,
+          }}>
+            {photo ? (
+              <img src={photo} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : hasUser ? (
+              <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--c-text-primary)' }}>{initial}</span>
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--c-text-secondary)' }}>account_circle</span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <h2 style={{
+                fontSize: 18,
+                fontWeight: 800,
+                color: 'var(--c-text-primary)',
+                margin: 0,
+                letterSpacing: '-0.02em',
+                fontFamily: 'Manrope',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {hasUser ? name : 'Sign In'}
+              </h2>
+              {hasUser && (
+                <span style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  fontFamily: 'Manrope',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  background: `${accent.from}22`,
+                  color: accent.from,
+                  border: `1px solid ${accent.from}33`,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}>Pro</span>
+              )}
+            </div>
+            <p style={{
+              fontFamily: 'Inter',
+              fontSize: 13,
+              color: 'var(--c-text-secondary)',
+              margin: '3px 0 0',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              opacity: 0.8,
+            }}>
+              {hasUser ? email : 'Sync your settings with Studio Cloud'}
+            </p>
+          </div>
         </div>
 
-        <p style={{
-          fontFamily: 'Manrope', fontWeight: 800, fontSize: 18,
-          color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.02em',
-          maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {hasUser ? (authUser.displayName || 'Studio User') : 'Sign In'}
-        </p>
-
-        <p style={{
-          fontFamily: 'Inter', fontSize: 13,
-          color: 'var(--c-text-secondary)', margin: '4px 0 0',
-          maxWidth: '80%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {hasUser ? email : 'Tap to create account or sign in'}
-        </p>
+        <span className="material-symbols-outlined" style={{
+          fontSize: 20,
+          color: 'var(--c-text-secondary)',
+          opacity: 0.5,
+          zIndex: 2,
+          marginLeft: 8,
+          flexShrink: 0
+        }}>chevron_right</span>
       </button>
     );
   }
@@ -4689,52 +4741,10 @@ User Agent: [Automatically Generated]
 
   /* ── MOBILE DRILL DOWN LAYOUTS ──────────────────────────────────── */
   if (!isWebDesktop) {
-    if (page === 'release-notes') {
+    if (page === 'developer') {
       return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.releaseTitle || 'Release Notes'} onBack={goBack} />
-          {renderReleaseNotesContent()}
-        </div>
-      );
-    }
-
-    if (page === 'privacy') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} onBack={goBack} />
-          {renderPrivacyContent()}
-        </div>
-      );
-    }
-
-    if (page === 'general') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.generalTitle || 'General Preferences'} onBack={goBack} />
-          {renderGeneralContent()}
-        </div>
-      );
-    }
-
-    if (page === 'appearance') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.settings.sections.appearance} onBack={goBack} />
-          {renderAppearanceContent()}
-        </div>
-      );
-    }
-
-    if (page === 'language') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.settings.sections.language} onBack={goBack} />
-          {renderLanguageContent()}
+        <div key={pageKey} className="settings-panel-sheet" style={{ ...subStyle, padding: 0, paddingBottom: 0 }}>
+          <DevToolsDashboard accent={accent} onBack={goBack} />
         </div>
       );
     }
@@ -4748,158 +4758,97 @@ User Agent: [Automatically Generated]
       );
     }
 
-    if (page === 'debug') {
+    const standardScrollPages: SettingsPageId[] = [
+      'general', 'appearance', 'language', 'privacy', 'about', 'debug',
+      'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report'
+    ];
+
+    if (standardScrollPages.includes(page)) {
+      const title = getPageTitle(page);
       return (
         <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
           <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={(t.hub as any).studioSettings?.developerTitle || 'Update Debug'} onBack={goBack} />
-          {renderDebugContent()}
-        </div>
-      );
-    }
-
-    if (page === 'developer') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={{ ...subStyle, padding: 0, paddingBottom: 0 }}>
-          <DevToolsDashboard accent={accent} onBack={goBack} />
-        </div>
-      );
-    }
-
-    if (page === 'about') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={{ ...subStyle, paddingBottom: 'calc(var(--content-bottom-pad) + 20px)' }}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.settings.sections.about} onBack={goBack} />
-          {renderAboutContent()}
-        </div>
-      );
-    }
-
-    if (page === 'help-center') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.helpTitle || 'Help Center'} onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderHelpCenterContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'faq') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={(t.hub as any).studioSettings?.helpTitle || 'FAQ & Support'} onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderFaqContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'terms') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.termsTitle || 'Terms of Service'} onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderTermsContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'privacy-policy') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderPrivacyPolicyContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'bug-report') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={t.hub.studioSettings.bugTitle || 'Report a Bug'} onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderBugReportContent()}
+          <SettingsSubHeader title={title} onBack={goBack} />
+          <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }} className="no-scrollbar">
+            {renderActivePageContent(page)}
           </div>
         </div>
       );
     }
 
     return (
-      <div key={pageKey} style={{ padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
+      <div key={pageKey} style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <style>{HUB_SETTINGS_CSS}</style>
-
-        <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
-          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>{t.hub.settingsTitle}</p>
-          <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
-        </div>
+        <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
+          <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
+            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>{t.hub.settingsTitle}</p>
+            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
+          </div>
 
         {renderMobileProfileCard()}
 
         <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
-        <div style={cardStyle}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {!isNative() && (
-            <SettingsNavRow icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
+            <BentoSettingCard icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
           )}
-          <SettingsNavRow icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
-          <SettingsNavRow icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} onPress={() => navigate('language')} last={isNative()} delay={85} />
+          <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
+          <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
           {!isNative() && (
-            <SettingsNavRow icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} last delay={90} />
+            <BentoSettingCard icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} delay={90} />
           )}
         </div>
 
         <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingsNavRow icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} last={isNative()} delay={110} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <BentoSettingCard icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentation, FAQ & diagnostics' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} delay={110} />
           {!isNative() && (
-            <SettingsNavRow icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
+            <BentoSettingCard icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
           )}
           {!isNative() && (
-            <SettingsNavRow icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
+            <BentoSettingCard icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
           )}
           {!isNative() && (
-            <SettingsNavRow icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} last delay={140} />
+            <BentoSettingCard icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} delay={140} />
           )}
         </div>
 
         <SettingsSectionLabel delay={170}>{t.hub.studioSettings.legalLabel || 'Legal'}</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingsNavRow icon="gavel" iconColor={accent.from} title={t.hub.studioSettings.termsTitle || 'Terms of Service'} desc={t.hub.studioSettings.termsDesc || 'Read terms and conditions'} onPress={() => navigate('terms')} delay={180} />
-          <SettingsNavRow icon="policy" iconColor={accent.from} title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} desc={t.hub.studioSettings.privacyDesc || 'Read privacy guidelines'} onPress={() => navigate('privacy-policy')} last delay={190} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <BentoSettingCard icon="gavel" iconColor={accent.from} title={t.hub.studioSettings.termsTitle || 'Terms of Service'} desc={t.hub.studioSettings.termsDesc || 'Read terms and conditions'} onPress={() => navigate('terms')} delay={180} />
+          <BentoSettingCard icon="policy" iconColor={accent.from} title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} desc={t.hub.studioSettings.privacyDesc || 'Read privacy guidelines'} onPress={() => navigate('privacy-policy')} delay={190} />
         </div>
 
         <SettingsSectionLabel delay={210}>{t.hub.studioSettings.feedbackLabel || 'Feedback'}</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingsNavRow icon="bug_report" iconColor={accent.from} title={t.hub.studioSettings.bugTitle || 'Report a Bug'} desc={t.hub.studioSettings.bugDesc || 'Send us feedback or bug reports'} onPress={() => navigate('bug-report')} last delay={220} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <BentoSettingCard icon="bug_report" iconColor={accent.from} title={t.hub.studioSettings.bugTitle || 'Report a Bug'} desc={t.hub.studioSettings.bugDesc || 'Send us feedback or bug reports'} onPress={() => navigate('bug-report')} delay={220} />
         </div>
 
         <SettingsSectionLabel delay={240}>{(t.hub as { studioSettings?: { systemAbout?: string } }).studioSettings?.systemAbout ?? 'System & About'}</SettingsSectionLabel>
-        <div style={cardStyle}>
+        <div style={{
+          borderRadius: '16px',
+          overflow: 'hidden',
+          border: '1px solid rgba(128, 128, 128, 0.08)',
+          background: 'var(--app-surface-high)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1px',
+        }}>
           {isNative() && (
-            <SettingsNavRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
+            <BentoSettingRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
           )}
 
-          <SettingsNavRow icon="info" iconColor={accent.from} title={t.settings.sections.about} desc={APP_VERSION_LABEL} onPress={() => navigate('about')} last={!settings.developerMode} delay={260} />
+          <BentoSettingRow icon="info" iconColor={accent.from} title={t.settings.sections.about} desc={APP_VERSION_LABEL} onPress={() => navigate('about')} delay={260} />
           {settings.developerMode && (
-            <SettingsNavRow icon="terminal" iconColor={accent.from} title={t.hub.studioSettings.developerTitle || 'Developer Options'} desc={t.hub.studioSettings.developerDesc || 'Update simulation, logs, and controls'} onPress={() => navigate('developer')} last delay={270} />
+            <BentoSettingRow icon="terminal" iconColor={accent.from} title={t.hub.studioSettings.developerTitle || 'Developer Options'} desc={t.hub.studioSettings.developerDesc || 'Update simulation, logs, and controls'} onPress={() => navigate('developer')} delay={270} />
           )}
         </div>
 
         <ChangelogSheet open={changelogOpen} onClose={() => setChangelogOpen(false)} />
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const activePageId = page === 'main' ? 'general' : page;
 
@@ -4930,6 +4879,13 @@ User Agent: [Automatically Generated]
   ], [t, settings.developerMode, lang]);
 
   const getPageTitle = (id: SettingsPageId | 'profile') => {
+    if (id === 'help-center') return t.hub.studioSettings.helpTitle || 'Help Center';
+    if (id === 'faq') return (t.hub as any).studioSettings?.helpTitle || 'FAQ & Support';
+    if (id === 'terms') return t.hub.studioSettings.termsTitle || 'Terms of Service';
+    if (id === 'privacy-policy') return t.hub.studioSettings.privacyTitle || 'Privacy Policy';
+    if (id === 'bug-report') return t.hub.studioSettings.bugTitle || 'Report a Bug';
+    if (id === 'profile') return t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account');
+
     for (const section of sections) {
       const item = section.items.find(n => n.id === id);
       if (item) return item.label;
@@ -5421,6 +5377,10 @@ function HubHelp({
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('studio:help-page-active', { detail: page }));
+  }, [page]);
+
+  useEffect(() => {
+    resetNav();
   }, [page]);
 
   useEffect(() => {
@@ -5929,134 +5889,57 @@ User Agent: [Automatically Generated]
 
   /* ── MOBILE DRILL DOWN LAYOUTS ──────────────────────────────────── */
   if (!isWebDesktop) {
-    if (page === 'help-center') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Help Center" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderHelpCenterContent()}
-          </div>
-        </div>
-      );
-    }
+    const standardScrollPages: HelpPageActiveId[] = [
+      'help-center', 'faq', 'release-notes', 'download-apps',
+      'keyboard-shortcuts', 'terms', 'privacy-policy', 'bug-report'
+    ];
 
-    if (page === 'faq') {
+    if (standardScrollPages.includes(page)) {
+      const title = getPageTitle(page as HelpPageId);
       return (
         <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
           <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="FAQ & Support" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderFaqContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'release-notes') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Release Notes" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderReleaseNotesContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'download-apps') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Download Apps" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderDownloadAppsContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'keyboard-shortcuts') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Keyboard Shortcuts" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderKeyboardShortcutsContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'terms') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Terms of Service" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderTermsContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'privacy-policy') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Privacy Policy" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderPrivacyPolicyContent()}
-          </div>
-        </div>
-      );
-    }
-
-    if (page === 'bug-report') {
-      return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title="Report a Bug" onBack={goBack} />
-          <div style={{ padding: '0 20px', overflowY: 'auto', flex: 1 }}>
-            {renderBugReportContent()}
+          <SettingsSubHeader title={title} onBack={goBack} />
+          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }} className="no-scrollbar">
+            {renderActivePageContent(page as HelpPageId)}
           </div>
         </div>
       );
     }
 
     return (
-      <div key={pageKey} style={{ padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
+      <div key={pageKey} style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <style>{HUB_SETTINGS_CSS}</style>
+        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
+          <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
+            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>Help & Support</p>
+            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>Find documentation, FAQ, apps, and legal policies</p>
+          </div>
 
-        <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
-          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>Help & Support</p>
-          <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>Find documentation, FAQ, apps, and legal policies</p>
-        </div>
+          <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
+          <div style={cardStyle}>
+            <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={isNative()} delay={75} />
+            {!isNative() && (
+              <SettingsNavRow icon="article" iconColor={accent.from} title="Release Notes" desc="View version history" onPress={() => navigate('release-notes')} delay={80} />
+            )}
+            {!isNative() && (
+              <SettingsNavRow icon="install_desktop" iconColor={accent.from} title="Download Apps" desc="Get native mobile and desktop clients" onPress={() => navigate('download-apps')} delay={85} />
+            )}
+            {!isNative() && (
+              <SettingsNavRow icon="keyboard" iconColor={accent.from} title="Keyboard Shortcuts" desc="View quick key bindings" onPress={() => navigate('keyboard-shortcuts')} last delay={90} />
+            )}
+          </div>
 
-        <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={isNative()} delay={75} />
-          {!isNative() && (
-            <SettingsNavRow icon="article" iconColor={accent.from} title="Release Notes" desc="View version history" onPress={() => navigate('release-notes')} delay={80} />
-          )}
-          {!isNative() && (
-            <SettingsNavRow icon="install_desktop" iconColor={accent.from} title="Download Apps" desc="Get native mobile and desktop clients" onPress={() => navigate('download-apps')} delay={85} />
-          )}
-          {!isNative() && (
-            <SettingsNavRow icon="keyboard" iconColor={accent.from} title="Keyboard Shortcuts" desc="View quick key bindings" onPress={() => navigate('keyboard-shortcuts')} last delay={90} />
-          )}
-        </div>
+          <SettingsSectionLabel delay={110}>Legal</SettingsSectionLabel>
+          <div style={cardStyle}>
+            <SettingsNavRow icon="gavel" iconColor={accent.from} title="Terms of Service" desc="Read terms and conditions" onPress={() => navigate('terms')} delay={115} />
+            <SettingsNavRow icon="policy" iconColor={accent.from} title="Privacy Policy" desc="Read privacy guidelines" onPress={() => navigate('privacy-policy')} last delay={120} />
+          </div>
 
-        <SettingsSectionLabel delay={110}>Legal</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingsNavRow icon="gavel" iconColor={accent.from} title="Terms of Service" desc="Read terms and conditions" onPress={() => navigate('terms')} delay={115} />
-          <SettingsNavRow icon="policy" iconColor={accent.from} title="Privacy Policy" desc="Read privacy guidelines" onPress={() => navigate('privacy-policy')} last delay={120} />
-        </div>
-
-        <SettingsSectionLabel delay={140}>Feedback</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingsNavRow icon="bug_report" iconColor={accent.from} title="Report a Bug" desc="Send us feedback or bug reports" onPress={() => navigate('bug-report')} last delay={145} />
+          <SettingsSectionLabel delay={140}>Feedback</SettingsSectionLabel>
+          <div style={cardStyle}>
+            <SettingsNavRow icon="bug_report" iconColor={accent.from} title="Report a Bug" desc="Send us feedback or bug reports" onPress={() => navigate('bug-report')} last delay={145} />
+          </div>
         </div>
       </div>
     );

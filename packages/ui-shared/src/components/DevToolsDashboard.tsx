@@ -1167,15 +1167,15 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
 
     return (
       <div style={{
-        paddingTop: '12px',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
         paddingBottom: '12px',
         paddingLeft: '20px',
         paddingRight: '20px',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: '#000000',
+        background: 'var(--app-bg)',
         position: 'sticky',
         top: 0,
         zIndex: 100
@@ -1189,7 +1189,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             }}
             className="btn-smooth"
             style={{
-              background: 'rgba(255,255,255,0.06)',
+              background: 'var(--app-surface-high)',
               border: 'none',
               borderRadius: '999px',
               width: 36,
@@ -1198,22 +1198,22 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: '#fff'
+              color: 'var(--c-text-primary)'
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
           </button>
-          <span style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>{title}</span>
+          <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--c-text-primary)' }}>{title}</span>
         </div>
 
         {moduleName && (
           <button
-            onClick={() => handleCopyModuleDiagnostics(moduleName)}
+            onClick={() => handleGoBack()}
             style={{
               padding: '6px 12px',
               borderRadius: '8px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--app-surface-high)',
+              border: '1px solid rgba(128, 128, 128, 0.08)',
               color: accent.from,
               fontWeight: 700,
               fontSize: '11px',
@@ -1222,7 +1222,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
               transition: 'all 0.15s ease'
             }}
           >
-            Copy Diagnostics
+            Back
           </button>
         )}
       </div>
@@ -1968,81 +1968,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     </div>
   );
 
-  const renderDashboardCards = () => {
-    const cards = [
-      {
-        id: 'apps',
-        title: 'Apps',
-        description: 'View diagnostics and runtime status for Livex applications.',
-        action: () => setSubView('apps')
-      },
-      {
-        id: 'updater',
-        title: 'App Update Diagnostics',
-        description: 'Inspect application updates and native installation diagnostics.',
-        action: () => setSubView('updater')
-      },
-      {
-        id: 'system',
-        title: 'System',
-        description: 'View device, runtime and environment information.',
-        action: () => { setSubView('system'); setActiveTab('state'); }
-      },
-      {
-        id: 'logs',
-        title: 'Logs',
-        description: 'View runtime logs, warnings and errors.',
-        action: () => { setSubView('logs'); setActiveTab('logs'); }
-      },
-      {
-        id: 'performance',
-        title: 'Performance',
-        description: 'Inspect memory, rendering and performance metrics.',
-        action: () => { setSubView('performance'); setActiveTab('perf'); }
-      },
-      {
-        id: 'network',
-        title: 'Network',
-        description: 'Inspect connectivity and request diagnostics.',
-        action: () => { setSubView('network'); setActiveTab('network'); }
-      }
-    ];
 
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {cards.map(card => (
-          <div
-            key={card.id}
-            onClick={card.action}
-            className="btn-smooth"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '16px 18px',
-              background: '#000000',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '14px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              gap: 12
-            }}
-          >
-            <div style={{ flex: 1, textAlign: 'left' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#fff', margin: 0 }}>{card.title}</h3>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0', lineHeight: '1.4' }}>
-                {card.description}
-              </p>
-            </div>
-            
-            <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.25)', fontSize: 20 }}>
-              chevron_right
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   const renderAppsView = () => {
     const getAppWarningsCount = (appKey: string) => {
@@ -2217,36 +2143,106 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     );
   };
 
+  const cardContainerStyle = (id: string) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'start',
+    width: '100%',
+    padding: '20px',
+    background: 'var(--app-surface-high)',
+    border: '1px solid rgba(128,128,128,0.08)',
+    borderRadius: '16px',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    textAlign: 'left',
+    outline: 'none',
+  });
+
+  const badgeStyle = (type: string) => {
+    let bg = 'rgba(128,128,128,0.08)';
+    let color = 'var(--c-text-secondary)';
+    if (type === 'running' || type === 'active' || type === 'stable') {
+      bg = 'rgba(103, 156, 255, 0.1)';
+      color = 'var(--studio-accent-from, #679cff)';
+    } else if (type === 'profiling') {
+      bg = 'rgba(238, 125, 119, 0.1)';
+      color = '#ee7d77';
+    } else if (type === 'warnings') {
+      bg = 'rgba(251, 146, 60, 0.1)';
+      color = '#fb923c';
+    }
+    return {
+      padding: '4px 10px',
+      borderRadius: 99,
+      fontSize: 9,
+      fontWeight: 800,
+      textTransform: 'uppercase',
+      letterSpacing: '0.08em',
+      background: bg,
+      color: color,
+      flexShrink: 0,
+      marginLeft: 8,
+    };
+  };
+
+  const initialBadgeStyle = {
+    width: 24,
+    height: 24,
+    borderRadius: '50%',
+    background: 'var(--app-surface-bright)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 8,
+    fontWeight: 800,
+    color: 'var(--c-text-primary)',
+    border: '1px solid rgba(128, 128, 128, 0.12)',
+  };
+
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      background: '#000000',
-      color: '#f4f4f5',
+      background: 'var(--app-bg)',
+      color: 'var(--c-text-primary)',
       fontFamily: 'Manrope, sans-serif',
       overflowX: 'hidden'
     }}>
+      <style>{`
+        @media (min-width: 768px) {
+          .dev-grid-4col {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          }
+          .dev-tools-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
       {subView === 'dashboard' && (
         <>
           {/* HEADER */}
           <div style={{
-            paddingTop: '16px',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
             paddingBottom: '16px',
             paddingLeft: '20px',
             paddingRight: '20px',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#000000'
+            background: 'var(--app-bg)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
                 onClick={onBack}
                 className="btn-smooth"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
+                  background: 'var(--app-surface-high)',
                   border: 'none',
                   borderRadius: '999px',
                   width: 36,
@@ -2255,156 +2251,337 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  color: '#fff'
+                  color: 'var(--c-text-primary)'
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
               </button>
               <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Developer Panel</h2>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>System Diagnoses & Runtime Viewers</p>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Developer Panel</h2>
+                <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>System Diagnostics & Runtime Tools</p>
               </div>
             </div>
-          </div>
-
-          {/* DEV MODE ENABLE SECTION */}
-          <div style={{
-            margin: '16px 20px 4px',
-            padding: '16px 18px',
-            background: '#000000',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexShrink: 0
-          }}>
-            <div style={{ textAlign: 'left' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#fff', margin: 0 }}>Developer Mode</h3>
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0', lineHeight: '1.4' }}>
-                Diagnostics tracking & developer logs
-              </p>
-            </div>
-            <div
-              onClick={() => {
-                const next = !settings.developerMode;
-                updateSettings({ developerMode: next });
-                showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
-              }}
-              style={{
-                position: 'relative',
-                width: 44,
-                height: 24,
-                backgroundColor: settings.developerMode ? '#10b981' : '#3f3f46',
-                borderRadius: 999,
-                padding: '2px',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                boxSizing: 'border-box'
-              }}
-            >
-              <div style={{
-                width: 20,
-                height: 20,
-                backgroundColor: '#ffffff',
-                borderRadius: '50%',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                transform: settings.developerMode ? 'translateX(20px)' : 'translateX(0px)',
-                transition: 'transform 0.2s ease'
-              }} />
-            </div>
-          </div>
-
-          {/* SYSTEM HEALTH SUMMARY */}
-          <div style={{
-            padding: '12px 16px',
-            margin: '12px 16px 4px',
-            background: '#000000',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '16px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-            gap: '10px 8px',
-            fontSize: '11px',
-            flexShrink: 0
-          }}>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>App Version</span>
-              <span style={{ fontWeight: 800, color: '#fff' }}>v{APP_VERSION}</span>
-            </div>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Android Version</span>
-              <span style={{ fontWeight: 800, color: '#fff' }}>{otaDiagnostics.androidVersion || 'N/A'}</span>
-            </div>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Device</span>
-              <span style={{ fontWeight: 800, color: '#fff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block' }} title={otaDiagnostics.deviceModel || 'Browser'}>
-                {otaDiagnostics.deviceModel || 'Browser'}
-              </span>
-            </div>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Theme</span>
-              <span style={{ fontWeight: 800, color: '#fff' }}>{settings.theme === 'light' ? 'Light' : 'Dark'}</span>
-            </div>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Developer Mode</span>
-              <span style={{ fontWeight: 800, color: settings.developerMode ? '#10b981' : '#ef4444' }}>
-                {settings.developerMode ? 'ON' : 'OFF'}
-              </span>
-            </div>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Errors / Warnings</span>
-              <span style={{ fontWeight: 800, color: errorCount > 0 ? '#ef4444' : warningCount > 0 ? '#f59e0b' : '#10b981' }}>
-                {errorCount} E / {warningCount} W
-              </span>
-            </div>
-            <div style={{ gridColumn: 'span 2' }}>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Stagex Status</span>
-              <span style={{
-                fontWeight: 800,
-                color: stagexStatus === 'Connected' ? '#10b981' : stagexStatus === 'Broken' ? '#ef4444' : '#f59e0b',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4
-              }}>
-                <span style={{
-                  width: 6,
-                  height: 6,
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--app-surface-high)',
+              borderRadius: '999px',
+              padding: '6px 12px',
+              gap: 8,
+              border: '1px solid rgba(128, 128, 128, 0.08)'
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
+              <div
+                onClick={() => {
+                  const next = !settings.developerMode;
+                  updateSettings({ developerMode: next });
+                  showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
+                }}
+                style={{
+                  position: 'relative',
+                  width: 32,
+                  height: 18,
+                  backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
+                  borderRadius: 999,
+                  padding: '2px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div style={{
+                  width: 14,
+                  height: 14,
+                  backgroundColor: '#ffffff',
                   borderRadius: '50%',
-                  backgroundColor: stagexStatus === 'Connected' ? '#10b981' : stagexStatus === 'Broken' ? '#ef4444' : '#f59e0b',
-                  display: 'inline-block'
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                  transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
+                  transition: 'transform 0.2s ease'
                 }} />
-                {stagexStatus}
-              </span>
-            </div>
-            <div>
-              <span style={{ color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 2 }}>Update Status</span>
-              <span style={{ fontWeight: 800, color: '#679cff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', display: 'block' }}>
-                {otaStatus}
-              </span>
+              </div>
             </div>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
-            {!settings.developerMode ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#ef4444', marginBottom: 16 }}>terminal</span>
-                <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 8px' }}>Developer Mode is Disabled</h3>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: 280, lineHeight: 1.4, margin: 0 }}>
-                  Toggle the status above to activate diagnostics tracking, capture logs, and view app-specific states.
-                </p>
+          {/* SYSTEM HEALTH GRID */}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ padding: '0 20px', marginTop: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <h2 style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-secondary)', margin: 0 }}>System Health</h2>
+                <span style={{
+                  padding: '2px 8px',
+                  background: `${accent.from}15`,
+                  color: accent.from,
+                  fontSize: 9,
+                  fontWeight: 800,
+                  borderRadius: 6,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}>Live Stream</span>
               </div>
-            ) : (
-              renderDashboardCards()
-            )}
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: 12,
+              }} className="dev-grid-4col">
+                {/* App Version */}
+                <div style={{
+                  background: 'var(--app-surface-high)',
+                  borderRadius: 16,
+                  padding: 16,
+                  border: '1px solid rgba(128, 128, 128, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>terminal</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>App Version</span>
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)' }}>v{APP_VERSION}</div>
+                </div>
+
+                {/* Android */}
+                <div style={{
+                  background: 'var(--app-surface-high)',
+                  borderRadius: 16,
+                  padding: 16,
+                  border: '1px solid rgba(128, 128, 128, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>android</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Android</span>
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)' }}>{otaDiagnostics.androidVersion || '14.0'}</div>
+                </div>
+
+                {/* Alerts */}
+                <div style={{
+                  background: 'var(--app-surface-high)',
+                  borderRadius: 16,
+                  padding: 16,
+                  border: '1px solid rgba(128, 128, 128, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>report_problem</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Alerts</span>
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 800, display: 'flex', gap: 6 }}>
+                    <span style={{ color: errorCount > 0 ? 'var(--studio-error, #ee7d77)' : 'var(--c-text-primary)' }}>{errorCount} E</span>
+                    <span style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>/</span>
+                    <span style={{ color: warningCount > 0 ? '#fb923c' : 'var(--c-text-primary)' }}>{warningCount} W</span>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div style={{
+                  background: 'var(--app-surface-high)',
+                  borderRadius: 16,
+                  padding: 16,
+                  border: '1px solid rgba(128, 128, 128, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary)' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>published_with_changes</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</span>
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: 'var(--studio-accent-from, #679cff)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>{otaStatus || 'Up to date'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ENGINEERING TOOLS */}
+            <div style={{ padding: '0 20px', marginTop: 8, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <h2 style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-secondary)', margin: 0 }}>Engineering Tools</h2>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--studio-accent-from, #679cff)', display: 'inline-block' }} />
+                  <span>6 Modules Active</span>
+                </div>
+              </div>
+
+              {!settings.developerMode ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--studio-error, #ee7d77)', marginBottom: 16 }}>terminal</span>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 8px' }}>Developer Mode is Disabled</h3>
+                  <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', maxWidth: 280, lineHeight: 1.4, margin: 0 }}>
+                    Toggle the status above to activate diagnostics tracking, capture logs, and view app-specific states.
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(1, minmax(0, 1fr))',
+                  gap: 16,
+                }} className="dev-tools-grid">
+                  {/* Apps */}
+                  <button
+                    onClick={() => setSubView('apps')}
+                    className="btn-smooth"
+                    style={cardContainerStyle('apps')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--studio-accent-from, #679cff)', fontVariationSettings: "'FILL' 1" }}>grid_view</span>
+                        <div>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Apps</h3>
+                          <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>View diagnostics and runtime status for Livex applications.</p>
+                        </div>
+                      </div>
+                      <span style={badgeStyle('running')}>Running</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <div style={initialBadgeStyle}>CH</div>
+                        <div style={initialBadgeStyle}>DR</div>
+                        <div style={initialBadgeStyle}>ST</div>
+                        <div style={{ ...initialBadgeStyle, background: 'var(--studio-accent-from, #679cff)', color: '#fff' }}>+2</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
+                    </div>
+                  </button>
+
+                  {/* Performance */}
+                  <button
+                    onClick={() => { setSubView('performance'); setActiveTab('perf'); }}
+                    className="btn-smooth"
+                    style={cardContainerStyle('performance')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#fb923c', fontVariationSettings: "'FILL' 1" }}>speed</span>
+                        <div>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Performance</h3>
+                          <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>Inspect memory, rendering and performance metrics.</p>
+                        </div>
+                      </div>
+                      <span style={badgeStyle('profiling')}>Profiling...</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-primary)' }}>
+                        60 FPS <span style={{ fontSize: 10, color: 'var(--c-text-secondary)', fontWeight: 500, marginLeft: 4 }}>/ 2.4ms jitter</span>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
+                    </div>
+                  </button>
+
+                  {/* Logs */}
+                  <button
+                    onClick={() => { setSubView('logs'); setActiveTab('logs'); }}
+                    className="btn-smooth"
+                    style={cardContainerStyle('logs')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--c-text-secondary)', fontVariationSettings: "'FILL' 1" }}>list_alt</span>
+                        <div>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Logs</h3>
+                          <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>View runtime logs, warnings and system errors.</p>
+                        </div>
+                      </div>
+                      <span style={badgeStyle('warnings')}>{warningCount} Warnings</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'monospace', fontSize: 10, color: 'var(--c-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, textAlign: 'left', marginRight: 16 }}>
+                        {logs.length > 0 ? `[${logs[logs.length - 1].level.toUpperCase()}] ${logs[logs.length - 1].message}` : 'No runtime logs recorded.'}
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5, flexShrink: 0 }}>arrow_forward</span>
+                    </div>
+                  </button>
+
+                  {/* Network */}
+                  <button
+                    onClick={() => { setSubView('network'); setActiveTab('network'); }}
+                    className="btn-smooth"
+                    style={cardContainerStyle('network')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--studio-accent-from, #679cff)', fontVariationSettings: "'FILL' 1" }}>wifi</span>
+                        <div>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Network</h3>
+                          <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>Inspect network traffic, latency, and endpoint requests.</p>
+                        </div>
+                      </div>
+                      <span style={badgeStyle('active')}>Active</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-primary)' }}>Connected</span>
+                        <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>- WebSockets stable</span>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
+                    </div>
+                  </button>
+
+                  {/* System */}
+                  <button
+                    onClick={() => { setSubView('system'); setActiveTab('state'); }}
+                    className="btn-smooth"
+                    style={cardContainerStyle('system')}
+                  >
+                    <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--c-text-secondary)', fontVariationSettings: "'FILL' 1" }}>developer_board</span>
+                      <div>
+                        <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>System</h3>
+                        <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>View device, runtime and environment architecture information.</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Environment: {isNative() ? 'ANDROID-NATIVE' : 'WEB-PORTAL'}
+                      </span>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
+                    </div>
+                  </button>
+
+                  {/* Updater */}
+                  <button
+                    onClick={() => setSubView('updater')}
+                    className="btn-smooth"
+                    style={cardContainerStyle('updater')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--studio-accent-from, #679cff)', fontVariationSettings: "'FILL' 0" }}>system_update</span>
+                        <div>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Updater</h3>
+                          <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>Inspect update and native APK diagnostics.</p>
+                        </div>
+                      </div>
+                      <span style={badgeStyle('stable')}>Stable</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
+                      <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>Updater system initialized</span>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
 
       {subView === 'apps' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
           {renderSubViewHeader('Apps Diagnostics')}
           <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderAppsView()}
@@ -2413,7 +2590,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       )}
 
       {subView === 'stagex' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
           {renderSubViewHeader('Stagex Diagnostics')}
           <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderStagexView()}
@@ -2426,15 +2603,15 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       )}
 
       {subView === 'system' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
           {renderSubViewHeader('System Diagnostics')}
           <div style={{
             display: 'flex',
             gap: 8,
             overflowX: 'auto',
             padding: '12px 20px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            background: '#000000',
+            borderBottom: '1px solid rgba(128,128,128,0.08)',
+            background: 'var(--app-bg)',
             scrollbarWidth: 'none'
           }}>
             <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>App Store State</button>
@@ -2451,15 +2628,15 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       )}
 
       {subView === 'logs' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
           {renderSubViewHeader('Logs & Warnings')}
           <div style={{
             display: 'flex',
             gap: 8,
             overflowX: 'auto',
             padding: '12px 20px',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            background: '#000000',
+            borderBottom: '1px solid rgba(128,128,128,0.08)',
+            background: 'var(--app-bg)',
             scrollbarWidth: 'none'
           }}>
             <button style={tabBtnStyle('logs')} onClick={() => setActiveTab('logs')}>Logs ({logs.length})</button>
@@ -2478,7 +2655,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       )}
 
       {subView === 'performance' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
           {renderSubViewHeader('Performance Diagnostics')}
           <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderPerfTab()}
@@ -2488,7 +2665,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       )}
 
       {subView === 'network' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#000000' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
           {renderSubViewHeader('Network Sniffer')}
           <div style={{ flex: 1, overflowY: 'auto', paddingTop: 16, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)' }}>
             {renderNetworkTab()}

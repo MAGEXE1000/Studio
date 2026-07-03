@@ -1,13 +1,15 @@
 {
-  "platform": "web",
-  "version": "4.0.0",
-  "commit": "98af551b",
-  "releasedAt": "7/2/2026, 12:00:00 AM CST",
-  "buildTimestamp": "7/2/2026, 12:00:00 AM CST",
+  "platform": "android",
+  "version": "3.7.65",
+  "versionName": "3.7.65",
+  "versionCode": 193,
+  "version_code": 193,
+  "commit": "63655bed",
+  "releasedAt": "7/2/2026, 7:51:29 PM CST",
+  "buildTimestamp": "7/2/2026, 7:51:29 PM CST",
   "updateMode": "refresh",
-  "description": "• Eliminated false \"App is up to date\" when remote metadata fetch failed.\n• Fixed auto-check exceptions silently returning to idle instead of recovery.\n• Added explicit diagnostics on every non-update path.\n• Every failure path now exposes explicit reason codes, stack traces, and timestamps.\n• Version comparison populates full decision rationale in diagnostics.\n• Synchronized all version sources to 3.7.65 / versionCode 193.",
-  "whatsNew": "• Eliminated false \"App is up to date\" when remote metadata fetch failed.\n• Fixed auto-check exceptions silently returning to idle instead of recovery.\n• Added explicit diagnostics on every non-update path.\n• Every failure path now exposes explicit reason codes, stack traces, and timestamps.\n• Version comparison populates full decision rationale in diagnostics.\n• Synchronized all version sources to 3.7.65 / versionCode 193.",
   "changelog": "• Eliminated false \"App is up to date\" when remote metadata fetch failed.\n• Fixed auto-check exceptions silently returning to idle instead of recovery.\n• Added explicit diagnostics on every non-update path.\n• Every failure path now exposes explicit reason codes, stack traces, and timestamps.\n• Version comparison populates full decision rationale in diagnostics.\n• Synchronized all version sources to 3.7.65 / versionCode 193.",
+  "whatsNew": "• Eliminated false \"App is up to date\" when remote metadata fetch failed.\n• Fixed auto-check exceptions silently returning to idle instead of recovery.\n• Added explicit diagnostics on every non-update path.\n• Every failure path now exposes explicit reason codes, stack traces, and timestamps.\n• Version comparison populates full decision rationale in diagnostics.\n• Synchronized all version sources to 3.7.65 / versionCode 193.",
   "releaseNotes": {
     "improved": [
       "Every failure path now exposes explicit reason codes, stack traces, and timestamps.",

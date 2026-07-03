@@ -11,7 +11,44 @@ import {
 } from "@workspace/studio-core";
 import { Capacitor } from "@capacitor/core";
 import "./index.css";
-import EmergencyDebugOverlay from "./EmergencyDebugOverlay";
+const LazyEmergencyOverlay = lazy(() => import("./EmergencyDebugOverlay"));
+
+function EmergencyDebugOverlayWrapper() {
+  const [shouldRender, setShouldRender] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const isDebugModeEnabled = localStorage.getItem('studio_debug_mode') === 'true' ||
+      (window as any).__studio_debug_mode === true;
+    const hasUnviewedFailed = localStorage.getItem('studio_failed_navigation_unviewed') === 'true';
+    return isDebugModeEnabled || hasUnviewedFailed;
+  });
+
+  useEffect(() => {
+    (window as any).__openEmergencyOverlay = (targetTab?: string) => {
+      setShouldRender(true);
+      setTimeout(() => {
+        if (typeof (window as any).__openEmergencyOverlay === 'function' && (window as any).__openEmergencyOverlay !== openEmergencyStub) {
+          (window as any).__openEmergencyOverlay(targetTab);
+        }
+      }, 50);
+    };
+
+    const openEmergencyStub = (window as any).__openEmergencyOverlay;
+
+    return () => {
+      if ((window as any).__openEmergencyOverlay === openEmergencyStub) {
+        delete (window as any).__openEmergencyOverlay;
+      }
+    };
+  }, []);
+
+  if (!shouldRender) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <LazyEmergencyOverlay />
+    </Suspense>
+  );
+}
 
 // Initialize DevTools
 initDevToolsFramework();
@@ -85,7 +122,7 @@ createRoot(document.getElementById("root")!).render(
   <>
     <RootAppContainer />
     <GlobalOverlays />
-    <EmergencyDebugOverlay />
+    <EmergencyDebugOverlayWrapper />
   </>,
 );
 

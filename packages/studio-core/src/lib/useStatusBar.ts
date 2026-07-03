@@ -17,19 +17,25 @@ function getThemeColors(theme: string, amoledMode: boolean) {
   return            { bg: '#0e0e0e',    style: 'DARK' as const };
 }
 
+export async function syncStatusBar(theme: string, amoledMode: boolean) {
+  if (!isNative) return;
+
+  const { bg, style } = getThemeColors(theme, amoledMode);
+
+  try {
+    const { StatusBar, Style } = await import('@capacitor/status-bar');
+    await StatusBar.show();
+    await StatusBar.setOverlaysWebView({ overlay: false });
+    await StatusBar.setBackgroundColor({ color: bg });
+    await StatusBar.setStyle({ style: style === 'DARK' ? Style.Dark : Style.Light });
+  } catch (err) {
+    console.warn('[StatusBar] Failed to sync status bar:', err);
+  }
+}
+
 export function useStatusBar(theme: string, amoledMode: boolean) {
   useEffect(() => {
-    if (!isNative) return;
-
-    const { bg, style } = getThemeColors(theme, amoledMode);
-
-    import('@capacitor/status-bar')
-      .then(({ StatusBar, Style }) => {
-        StatusBar.show();
-        StatusBar.setOverlaysWebView({ overlay: false });
-        StatusBar.setBackgroundColor({ color: bg });
-        StatusBar.setStyle({ style: style === 'DARK' ? Style.Dark : Style.Light });
-      })
-      .catch(() => {});
+    void syncStatusBar(theme, amoledMode);
   }, [theme, amoledMode]);
 }
+

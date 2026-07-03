@@ -18,7 +18,8 @@ import {
   NATIVE_VERSION,
   tolgee,
   addLog,
-  useBackHandler
+  useBackHandler,
+  StartupCoordinator
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -1657,149 +1658,20 @@ export default function App() {
     }
   }, []);
 
-  // Staged Startup Scheduler (Phases 1-4 implementation)
-  useEffect(() => {
-    let active = true;
-    let fallbackTimer: any = null;
-
-    const runPhase3 = async () => {
-      if (!active) return;
-      console.log('[Startup Pipeline] Entering Phase 3: Post-paint heavy checks...');
-
-      // 1. Log Hub visible timing
-      if (typeof window !== 'undefined' && (window as any).__bootTimings) {
-        (window as any).__bootTimings.hubVisible = performance.now();
-        console.log("[LivexBoot] Hub fully visible: " + (window as any).__bootTimings.hubVisible.toFixed(2) + "ms");
-
-        // Performance budget checks (Issue 5)
-        const timings = (window as any).__bootTimings;
-        const bootstrapTime = timings.reactMounted - timings.reactBootstrapStart;
-        const paintTime = timings.firstPaint;
-        const visibleTime = timings.hubVisible;
-
-        // Log if they exceed budgets
-        if (bootstrapTime > 300) {
-          console.warn(`[Perf Budget] React bootstrap exceeded budget: ${bootstrapTime.toFixed(1)}ms (Target: < 300 ms)`);
-        }
-        if (paintTime > 700) {
-          console.warn(`[Perf Budget] First Paint exceeded budget: ${paintTime.toFixed(1)}ms (Target: < 700 ms)`);
-        }
-        if (visibleTime > 1200) {
-          console.warn(`[Perf Budget] Hub Visible exceeded budget: ${visibleTime.toFixed(1)}ms (Target: < 1200 ms)`);
-        }
-      }
-
-      // 2. Startup crash / force-close detector
-      try {
-        const inProgress = localStorage.getItem('studio_navigation_in_progress') === 'true';
-        if (inProgress) {
-          const currentTimelineStr = localStorage.getItem('studio_current_navigation_timeline');
-          if (currentTimelineStr) {
-            const timeline = JSON.parse(currentTimelineStr);
-            timeline.result = 'failed';
-            timeline.reason = 'APP_FORCE_CLOSED';
-            localStorage.setItem('studio_current_navigation_timeline', JSON.stringify(timeline));
-            localStorage.setItem('studio_last_failed_navigation_timeline', JSON.stringify(timeline));
-            localStorage.setItem('studio_failed_navigation_unviewed', 'true');
-          }
-          localStorage.setItem('studio_navigation_in_progress', 'false');
-          console.warn('[Failsafe] Detected force-close/crash during return-to-hub navigation.');
-        }
-      } catch (e) {
-        console.error('Failed to run boot crash/force-close check:', e);
-      }
-
-      // 3. Startup recovery invariant (Issue 4)
-      try {
-        const { enforceStartupRecovery } = await import('@workspace/studio-core');
-        await enforceStartupRecovery();
-      } catch (err) {
-        console.error('[Startup Invariant] Failed to check updater state:', err);
-      }
-
-      // Defer Phase 4 (Idle work) to requestIdleCallback or 1.5s timeout
-      const runPhase4 = () => {
-        if (!active) return;
-        console.log('[Startup Pipeline] Entering Phase 4: Background validation & cleanup...');
-        
-        // Background validation and statistics
-        try {
-          const diagnosticsLog = localStorage.getItem('studio_visual_repaints_log') || '[]';
-          const list = JSON.parse(diagnosticsLog);
-          if (list.length > 10) {
-            localStorage.setItem('studio_visual_repaints_log', JSON.stringify(list.slice(-10)));
-          }
-        } catch (_) {}
-      };
-
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(runPhase4);
-      } else {
-        setTimeout(runPhase4, 1500);
-      }
-    };
-
-    const handleIntroDone = () => {
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      window.removeEventListener('studio-intro-done', handleIntroDone);
-      setTimeout(runPhase3, 1000);
-    };
-
-    if (typeof window !== 'undefined') {
-      if ((window as any).__introDone || sessionStorage.getItem('studio-intro-shown') === 'true') {
-        runPhase3();
-      } else {
-        window.addEventListener('studio-intro-done', handleIntroDone);
-        fallbackTimer = setTimeout(handleIntroDone, 2500);
-      }
-    }
-
-    return () => {
-      active = false;
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      window.removeEventListener('studio-intro-done', handleIntroDone);
-    };
-  }, []);
-
-  const [accountState, setAccountState] = useState<AccountState>({ phase: 'unknown' });
-  const [session, setSession] = useState<any>(null);
+  const [startupComplete, setStartupComplete] = useState(false);
 
   useEffect(() => {
-    let active = true;
-    const initAuth = async () => {
-      try {
-        const { supabase } = await import('@workspace/studio-core');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (!active) return;
-        setSession(currentSession);
-        
-        if (currentSession?.user) {
-          const { getAccountDoc } = await import('@workspace/studio-core');
-          const doc = await getAccountDoc(currentSession.user.id);
-          if (!active) return;
-          const status = doc || { status: 'active', scheduledAtMs: null };
-          if (status.status === 'pending_deletion') {
-            setAccountState({
-              phase: 'pending',
-              user: currentSession.user as any,
-              scheduledAtMs: status.scheduledAtMs || Date.now()
-            });
-          } else if (status.status === 'disabled') {
-            setAccountState({ phase: 'disabled', user: currentSession.user as any });
-          } else {
-            setAccountState({ phase: 'active', user: currentSession.user as any });
-          }
-        } else {
-          setAccountState({ phase: 'signedOut' });
-        }
-      } catch (err) {
-        console.error('Failed to init auth:', err);
-        if (active) setAccountState({ phase: 'signedOut' });
+    const unsub = StartupCoordinator.subscribe((phases) => {
+      if (phases['5'].status === 'completed') {
+        setStartupComplete(true);
       }
-    };
+    });
 
-    initAuth();
-    return () => { active = false; };
+    void StartupCoordinator.run(() => {
+      setStartupComplete(true);
+    });
+
+    return unsub;
   }, []);
 
   const isSubAppActive = appMode !== 'hub';
@@ -2473,6 +2345,10 @@ export default function App() {
     (window as any).__lastCachedAppRef = lastActiveAppRef.current;
     (window as any).__lastHubRenderKey = hubRenderKey;
     (window as any).__lastPreviousAppMode = previousAppModeRef.current;
+  }
+
+  if (!startupComplete) {
+    return <div style={{ width: '100vw', height: '100dvh', background: 'var(--app-bg)' }} />;
   }
 
   return (

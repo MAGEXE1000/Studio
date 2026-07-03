@@ -58,23 +58,22 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Bento Panels Redesign",
+    heading: "Added",
     items: [
-      "Rebuilt Settings profile card with a tactile Pro account badge, user photo, and dynamic accent glow.",
-      "Created BentoSettingCard and BentoSettingRow settings items supporting interactive press-scaling animations.",
-      "Redesigned SettingsSectionLabel with a separator bar and aligned the System & About menu options in a nested block.",
-      "Hoisted Developer Mode switch to the sticky header of the Developer Panel.",
-      "Built a 4-column System Health Summary showing live App, Android, Alert counts, and Update statuses.",
-      "Built a 6-module interactive Bento tools grid (Apps, Performance, Logs, Network, System, Updater) linking to diagnostics.",
+      "Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.",
+      "Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.",
+      "Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.",
+      "Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states.",
     ],
   },
   {
-    heading: "Updates & Navigation Fixes",
+    heading: "Fixed",
     items: [
-      "Overhauled App Update engine with a 16-state deterministic machine to resolve false 'App is up to date' states.",
-      "Integrated explicit exception handlers and diagnostics in update checker pipelines.",
-      "Stabilized Bottom Navigation Bar rendering to remain visible on all setting and subview pages without clipping.",
-      "Resolved layout spacing, notch alignment, pure black theme, and scroll padding throughout Settings.",
+      "Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.",
+      "Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.",
+      "Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.",
+      "Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.",
+      "Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths.",
     ],
   },
 ];

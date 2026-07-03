@@ -1124,7 +1124,7 @@ export function markUpdateSeen(): void {
 
 let isOtaInitialized = false;
 
-function initializeGlobalOtaListeners() {
+export function initializeGlobalOtaListeners() {
   if (isOtaInitialized) return;
   isOtaInitialized = true;
   console.log('[OTA] Initializing global listeners and background polling...');
@@ -1139,6 +1139,10 @@ function initializeGlobalOtaListeners() {
 
   const runCheck = (trigger: string, reason: string) => {
     if (!getAutoCheck()) return;
+    if (typeof window !== 'undefined' && !(window as any).__studioStartupComplete) {
+      console.log(`[OTA] Bypassing lifecycle check (${trigger}) because startup is not complete.`);
+      return;
+    }
     void checkForUpdate(false, trigger, reason);
   };
 

@@ -1,25 +1,28 @@
 {
   "platform": "android",
-  "version": "3.7.65",
-  "versionName": "3.7.65",
-  "versionCode": 193,
-  "version_code": 193,
-  "commit": "63655bed",
-  "releasedAt": "7/2/2026, 7:51:29 PM CST",
-  "buildTimestamp": "7/2/2026, 7:51:29 PM CST",
+  "version": "3.7.66",
+  "versionName": "3.7.66",
+  "versionCode": 194,
+  "version_code": 194,
+  "commit": "187ca7a8",
+  "releasedAt": "7/3/2026, 9:52:53 AM CST",
+  "buildTimestamp": "7/3/2026, 9:52:53 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Eliminated false \"App is up to date\" when remote metadata fetch failed.\n• Fixed auto-check exceptions silently returning to idle instead of recovery.\n• Added explicit diagnostics on every non-update path.\n• Every failure path now exposes explicit reason codes, stack traces, and timestamps.\n• Version comparison populates full decision rationale in diagnostics.\n• Synchronized all version sources to 3.7.65 / versionCode 193.",
-  "whatsNew": "• Eliminated false \"App is up to date\" when remote metadata fetch failed.\n• Fixed auto-check exceptions silently returning to idle instead of recovery.\n• Added explicit diagnostics on every non-update path.\n• Every failure path now exposes explicit reason codes, stack traces, and timestamps.\n• Version comparison populates full decision rationale in diagnostics.\n• Synchronized all version sources to 3.7.65 / versionCode 193.",
+  "changelog": "• Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.\n• Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.\n• Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.\n• Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states.\n• Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.\n• Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.\n• Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.\n• Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.\n• Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths.",
+  "whatsNew": "• Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.\n• Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.\n• Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.\n• Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states.\n• Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.\n• Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.\n• Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.\n• Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.\n• Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths.",
   "releaseNotes": {
-    "improved": [
-      "Every failure path now exposes explicit reason codes, stack traces, and timestamps.",
-      "Version comparison populates full decision rationale in diagnostics.",
-      "Synchronized all version sources to 3.7.65 / versionCode 193."
+    "added": [
+      "Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.",
+      "Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.",
+      "Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.",
+      "Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states."
     ],
     "fixed": [
-      "Eliminated false \"App is up to date\" when remote metadata fetch failed.",
-      "Fixed auto-check exceptions silently returning to idle instead of recovery.",
-      "Added explicit diagnostics on every non-update path."
+      "Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.",
+      "Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.",
+      "Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.",
+      "Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.",
+      "Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths."
     ]
   },
   "mandatory": false

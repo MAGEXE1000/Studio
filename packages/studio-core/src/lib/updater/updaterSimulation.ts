@@ -1,5 +1,3 @@
-import { updateGlobalState } from './stateMachine';
-
 export interface UpdaterSimulation {
   forceUpdateAvailable: boolean;
   forceNoUpdate: boolean;
@@ -74,6 +72,10 @@ export const transitionHistory: {
   caller: string;
   stackTrace: string;
   thread: string;
+  // Diagnostic enrichment fields
+  checkId: number | null;
+  trigger: string | null;
+  elapsedMs: number | null;
 }[] = [];
 
 export const rejectedTransitions: {

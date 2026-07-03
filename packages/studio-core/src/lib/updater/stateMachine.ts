@@ -85,8 +85,28 @@ export let globalOtaState: CentralizedOtaState = {
 
 export const stateListeners = new Set<(state: CentralizedOtaState) => void>();
 
+/**
+ * Maximum consecutive recovery failures before the updater gives up
+ * and transitions to IDLE instead of RECOVERY.
+ */
+export const MAX_CONSECUTIVE_FAILURES = 5;
+
+/**
+ * Update non-state fields of the global OTA state.
+ *
+ * IMPORTANT: This function intentionally strips `updateState` from the patch.
+ * All state transitions MUST go through `transitionToState()` to ensure
+ * transition validation, watchdog management, and history recording.
+ */
 export function updateGlobalState(patch: Partial<CentralizedOtaState>) {
-  globalOtaState = { ...globalOtaState, ...patch };
+  // Strip updateState — only transitionToState may change it
+  if ('updateState' in patch) {
+    const { updateState: _stripped, ...safePatch } = patch;
+    if (Object.keys(safePatch).length === 0) return;
+    globalOtaState = { ...globalOtaState, ...safePatch };
+  } else {
+    globalOtaState = { ...globalOtaState, ...patch };
+  }
   stateListeners.forEach((l) => l(globalOtaState));
 }
 
@@ -101,7 +121,48 @@ export function stopWatchdog() {
 
 import { recordStateTransition, addJsLog, transitionHistory, rejectedTransitions } from './updaterSimulation';
 
+/**
+ * Transition lock prevents recursive or concurrent transitions.
+ * While a transition is being committed, no other transition can start.
+ */
+let transitionLock = false;
+
+/**
+ * Active pipeline context — set by the orchestration layer to enrich
+ * transition history with diagnostic metadata.
+ */
+export let activePipelineContext: {
+  checkId: number;
+  trigger: string;
+  pipelineStartTime: number;
+} | null = null;
+
+export function setActivePipelineContext(ctx: typeof activePipelineContext) {
+  activePipelineContext = ctx;
+}
+
 export function transitionToState(state: OtaUpdateState, reason: string, failureReason?: string) {
+  // Prevent recursive transitions
+  if (transitionLock) {
+    console.warn(`[UPDATE STATE WARNING] Recursive transition blocked: attempted ${globalOtaState.updateState} -> ${state} (Reason: ${reason}) while another transition is committing.`);
+    rejectedTransitions.push({
+      from: globalOtaState.updateState,
+      attempted: state,
+      reason: `RECURSIVE_BLOCKED: ${reason}`,
+      timestamp: Date.now()
+    });
+    return;
+  }
+
+  transitionLock = true;
+  try {
+    commitTransition(state, reason, failureReason);
+  } finally {
+    transitionLock = false;
+  }
+}
+
+function commitTransition(state: OtaUpdateState, reason: string, failureReason?: string) {
   const current = globalOtaState.updateState;
   addJsLog(`Transition Trigger: ${current} -> ${state}. Reason: ${reason}`);
   recordStateTransition(state, reason);
@@ -216,7 +277,10 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
     invalid: !isValid,
     caller: caller,
     stackTrace: stackTrace,
-    thread: 'Main JS Thread'
+    thread: 'Main JS Thread',
+    checkId: activePipelineContext?.checkId ?? null,
+    trigger: activePipelineContext?.trigger ?? null,
+    elapsedMs: activePipelineContext ? now - activePipelineContext.pipelineStartTime : null,
   });
 
   // Setup watchdog timers for transient states
@@ -242,11 +306,14 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
     }, 120000);
   }
 
-  updateGlobalState({
+  // Apply the state change — this is the ONLY place updateState is written
+  globalOtaState = {
+    ...globalOtaState,
     updateState: state,
     loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARE_INSTALL', 'INSTALLING'].includes(state),
     error: ['INSTALL_FAILED', 'RECOVERY'].includes(state) ? (failureReason || globalOtaState.error) : (state === 'IDLE' ? null : globalOtaState.error),
-  });
+  };
+  stateListeners.forEach((l) => l(globalOtaState));
 }
 
 export function resetDownloadWatchdog() {
@@ -263,9 +330,24 @@ export function resetDownloadWatchdog() {
 export function handleWatchdogTimeout(errorMsg: string) {
   console.warn(`[Watchdog Timeout] ${errorMsg}. Resetting to RECOVERY.`);
   stopWatchdog();
+
+  const newFailureCount = globalOtaState.consecutiveFailures + 1;
+
+  // Bound recovery loops: after MAX_CONSECUTIVE_FAILURES, stop retrying
+  if (newFailureCount >= MAX_CONSECUTIVE_FAILURES) {
+    console.warn(`[Watchdog] Maximum consecutive failures reached (${MAX_CONSECUTIVE_FAILURES}). Giving up.`);
+    updateGlobalState({
+      error: `${errorMsg} Maximum recovery attempts (${MAX_CONSECUTIVE_FAILURES}) reached.`,
+      consecutiveFailures: newFailureCount,
+      recoveryMode: false,
+    });
+    transitionToState('IDLE', 'Maximum recovery attempts reached', errorMsg);
+    return;
+  }
+
   updateGlobalState({
     error: errorMsg,
-    consecutiveFailures: globalOtaState.consecutiveFailures + 1,
+    consecutiveFailures: newFailureCount,
     recoveryMode: true
   });
   transitionToState('RECOVERY', 'Watchdog timeout', errorMsg);

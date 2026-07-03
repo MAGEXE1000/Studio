@@ -1,6 +1,6 @@
 import { checkApkEligibility } from '../apkDownloader';
 import { PRODUCTION_SIGNING_SHA256 } from '../appVersion';
-import { globalOtaState, updateGlobalState } from './stateMachine';
+import { globalOtaState, transitionToState } from './stateMachine';
 import { otaDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
 
 let eligibilityCheckCallCount = 0;
@@ -74,14 +74,11 @@ export async function runEligibilityCheck(filePath: string, allowDowngrade?: boo
 
     if (!el.eligible) {
       if (el.reason === 'signature_mismatch') {
-        updateGlobalState({ updateState: 'RECOVERY' });
+        transitionToState('RECOVERY', `Eligibility failed: ${el.reason}`, el.errorDetails || 'Signing certificate mismatch');
       } else if (el.reason === 'versionCode_low') {
-        updateGlobalState({ updateState: 'INSTALL_FAILED', error: el.errorDetails || 'Version code is too low.' });
+        transitionToState('INSTALL_FAILED', `Eligibility failed: ${el.reason}`, el.errorDetails || 'Version code is too low.');
       } else {
-        updateGlobalState({
-          updateState: 'INSTALL_FAILED',
-          error: el.errorDetails || 'APK eligibility validation failed.'
-        });
+        transitionToState('INSTALL_FAILED', `Eligibility failed: ${el.reason || 'unknown'}`, el.errorDetails || 'APK eligibility validation failed.');
       }
       console.log(`[INSTRUMENTATION] runEligibilityCheck EXIT Call #${callId} returns: false (reason: ${el.reason})`);
       void logProgressStage('[INSTRUMENTATION] runEligibilityCheck EXIT', `Call #${callId} returns=false reason=${el.reason}`);
@@ -98,10 +95,7 @@ export async function runEligibilityCheck(filePath: string, allowDowngrade?: boo
     otaDebugLogs.eligibilityFinalInstall = 'cannot install';
     otaDebugLogs.eligibilityReason = 'parse_failed';
     otaDebugLogs.apkEligibilityResult = 'parse_failed';
-    updateGlobalState({
-      updateState: 'INSTALL_FAILED',
-      error: err instanceof Error ? err.message : String(err)
-    });
+    transitionToState('INSTALL_FAILED', 'Eligibility check exception: parse_failed', err instanceof Error ? err.message : String(err));
     return false;
   }
 }

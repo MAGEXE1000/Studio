@@ -73,30 +73,28 @@ export function compareVersions(
   }
 
   const nameComparison = compareSemver(remote.version, localVersionName);
-  let isDowngrade = nameComparison < 0;
-  let isUpgrade = nameComparison > 0;
-  let isUpToDate = nameComparison === 0;
 
+  let isDowngrade = false;
+  let isUpgrade = false;
+  let isUpToDate = false;
+
+  // versionCode is the primary determinant of update availability.
+  // versionName (semver) is used only as a fallback when versionCode
+  // is not available on both sides, and as a display hint.
   if (localVersionCode !== undefined && localVersionCode !== null && remote.versionCode !== undefined && remote.versionCode !== null) {
-    if (nameComparison > 0) {
-      if (remote.versionCode <= localVersionCode) {
-        isUpgrade = false;
-        isUpToDate = true;
-      }
-    } else if (nameComparison < 0) {
-      isUpgrade = false;
+    // Both versionCodes available: use versionCode as the single source of truth
+    if (remote.versionCode > localVersionCode) {
+      isUpgrade = true;
+    } else if (remote.versionCode < localVersionCode) {
       isDowngrade = true;
     } else {
-      if (remote.versionCode > localVersionCode) {
-        isUpgrade = true;
-        isDowngrade = false;
-        isUpToDate = false;
-      } else if (remote.versionCode < localVersionCode) {
-        isUpgrade = false;
-        isDowngrade = true;
-        isUpToDate = false;
-      }
+      isUpToDate = true;
     }
+  } else {
+    // Fallback: no versionCode available, use semver comparison
+    isDowngrade = nameComparison < 0;
+    isUpgrade = nameComparison > 0;
+    isUpToDate = nameComparison === 0;
   }
 
   let explanation = '';

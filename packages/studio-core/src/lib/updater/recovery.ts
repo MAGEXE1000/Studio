@@ -1,7 +1,8 @@
 import { AppInstaller } from '../apkDownloader';
 import { runEligibilityCheck } from './eligibilityVerification';
-import { updateGlobalState } from './stateMachine';
+import { transitionToState } from './stateMachine';
 import { otaDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
+import { updateGlobalState } from './stateMachine';
 
 export let isRecovering = false;
 
@@ -13,6 +14,12 @@ export async function runSignatureMismatchRecovery(
   applyUpdate: (trigger?: string) => Promise<void>,
   downloadUpdate: (trigger?: string) => Promise<void>
 ): Promise<boolean> {
+  // Hard guard: prevent re-entry while already recovering
+  if (isRecovering) {
+    console.warn('[OTA Recovery] Recovery already in progress. Rejecting re-entry.');
+    return false;
+  }
+
   const callId = nextJsCallId();
   console.log(`[INSTRUMENTATION] runSignatureMismatchRecovery ENTER Call #${callId}`);
   void logProgressStage('[INSTRUMENTATION] runSignatureMismatchRecovery ENTER', `Call #${callId}`);
@@ -26,7 +33,7 @@ export async function runSignatureMismatchRecovery(
   if (!filePath) {
     steps.push('Revalidate APK: Failed (No downloaded APK path found)');
     isRecovering = false;
-    updateGlobalState({ updateState: 'RECOVERY' });
+    transitionToState('RECOVERY', 'No downloaded APK path found for recovery');
     return false;
   }
 
@@ -105,6 +112,6 @@ export async function runSignatureMismatchRecovery(
   }
 
   isRecovering = false;
-  updateGlobalState({ updateState: 'RECOVERY' });
+  transitionToState('RECOVERY', 'All recovery stages exhausted');
   return false;
 }

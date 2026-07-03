@@ -13,6 +13,7 @@ import {
   transitionToState,
   stopWatchdog,
   stateListeners,
+  setActivePipelineContext,
   CentralizedOtaState,
   OtaUpdateState,
   StructuredReleaseNotes
@@ -194,9 +195,8 @@ export async function getNativeVersionCode(): Promise<number | null> {
 
 
 export function resetOtaUpdateState() {
+  transitionToState('IDLE', 'Reset update state');
   updateGlobalState({
-    updateState: 'IDLE',
-    loading: false,
     progress: 0,
     error: null,
     statusText: null,
@@ -227,12 +227,11 @@ export async function enforceStartupRecovery() {
       const expectedCode = result.expectedVersionCode || null;
       
       updateGlobalState({
-        updateState: 'INSTALLING',
         remoteVersion: expectedName,
         requiredVersionCode: expectedCode ? Number(expectedCode) : 0,
         statusText: 'Installing update...',
-        loading: true,
       });
+      transitionToState('INSTALLING', 'Active PackageInstaller session detected on startup');
       return;
     }
 
@@ -241,15 +240,12 @@ export async function enforceStartupRecovery() {
       console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
       const processed = processLastInstallResult(result);
       if (processed) {
-        let finalState: OtaUpdateState = 'INSTALL_FAILED';
-        if (processed.category === 'signature_mismatch') {
-          finalState = 'RECOVERY';
-        }
+        const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
         updateGlobalState({
-          updateState: finalState,
           error: processed.errMsg,
           statusText: processed.errMsg
         });
+        transitionToState(finalState, `Startup recovery: pending install result (code ${result.statusCode})`, processed.errMsg);
       }
       return;
     }
@@ -257,9 +253,10 @@ export async function enforceStartupRecovery() {
     console.log('[OTA DEBUG] No active session and no pending result. Resetting state to IDLE.');
     stopWatchdog();
 
-    activeCheckPromise = null;
-    activeApplyPromise = null;
-    activeDownloadPromise = null;
+    // Only clear promise guards if no operations are actually in flight
+    if (!activeCheckPromise) activeCheckPromise = null;
+    if (!activeApplyPromise) activeApplyPromise = null;
+    if (!activeDownloadPromise) activeDownloadPromise = null;
 
     resetOtaUpdateState();
 
@@ -360,6 +357,7 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
   activeCheckPromise = (async () => {
     const startTime = Date.now();
+    setActivePipelineContext({ checkId, trigger, pipelineStartTime: startTime });
     transitionToState('INITIALIZING', 'checkForUpdate start');
     try {
       if (updaterSimulation.forceMetadataFailure) {
@@ -509,14 +507,11 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
             await populateDiagnostics(null, 'PackageInstaller failure detected');
 
-            let finalState: OtaUpdateState = 'INSTALL_FAILED';
-            if (processed.category === 'signature_mismatch') {
-              finalState = 'RECOVERY';
-            }
+            const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
             updateGlobalState({
-              updateState: finalState,
               error: processed.errMsg
             });
+            transitionToState(finalState, `Install result during check: ${processed.category}`, processed.errMsg);
             const duration = Date.now() - startTime;
             console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
             return globalOtaState;
@@ -560,9 +555,11 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
         if (!isManual && (isDismissed || isLater)) {
           console.log(`[OTA] Skipping auto-prompt for version ${remote.version} (user dismissed/later).`);
+          // Store version info for reference, but updateAvailable must be false
+          // when state is NO_UPDATE_AVAILABLE to prevent split-brain.
           updateGlobalState({
             remoteVersion: remote.version,
-            updateAvailable: true,
+            updateAvailable: false,
             mandatory: remote.mandatory ?? false,
             changelog: remote.changelog ?? null,
             releaseNotes: remote.releaseNotes ?? null,
@@ -625,6 +622,7 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
         activeCheckPromise = null;
         activeCheckIsManual = false;
         lastCheckedTime = Date.now();
+        setActivePipelineContext(null);
       }
     }
   })();
@@ -719,7 +717,7 @@ export function downloadUpdate(trigger?: string): Promise<void> {
 
   if (!apkUrl) {
     otaDebugLogs.downloadStatus = 'Error: Missing APK URL';
-    updateGlobalState({ updateState: 'INSTALL_FAILED', error: 'No APK download URL available' });
+    transitionToState('INSTALL_FAILED', 'Missing APK download URL', 'No APK download URL available');
     console.log(`[INSTRUMENTATION] downloadUpdate EXIT Call #${callId} (Rejected: missing apkUrl)`);
     void logProgressStage('[INSTRUMENTATION] downloadUpdate EXIT', `Call #${callId} rejected (missing apkUrl)`);
     return Promise.reject(new Error('No APK download URL available'));
@@ -1384,11 +1382,11 @@ export async function triggerDowngrade(targetVersion: string, apkUrl: string, sh
     apkSha256: sha256,
     updateType: 'apk',
     updateAvailable: false,
-    updateState: 'DOWNLOAD_APK',
     progress: 0,
     error: null,
     statusText: 'Preparing downgrade...'
   });
+  transitionToState('DOWNLOAD_APK', 'User-initiated downgrade');
   
   if (isNative()) {
     window.dispatchEvent(new CustomEvent('studio:open-update-dialog'));

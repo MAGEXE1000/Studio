@@ -1,5 +1,5 @@
 import { downloadApk, resolveApkUrl, AppInstaller } from '../apkDownloader';
-import { updateGlobalState, resetDownloadWatchdog, globalOtaState } from './stateMachine';
+import { updateGlobalState, resetDownloadWatchdog, globalOtaState, transitionToState } from './stateMachine';
 import { otaDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
 
 export interface DownloadOptions {
@@ -114,7 +114,7 @@ export async function downloadAndInstallGitHubApk(): Promise<void> {
     updateGlobalState({ statusText: 'Launching package installer...' });
     await AppInstaller.installApk({ filePath });
     
-    updateGlobalState({ updateState: 'IDLE', loading: false });
+    transitionToState('IDLE', 'GitHub download complete');
     console.log(`[INSTRUMENTATION] downloadAndInstallGitHubApk EXIT Call #${callId} Success`);
   } catch (err: any) {
     console.error(`[INSTRUMENTATION] downloadAndInstallGitHubApk EXIT Call #${callId} error:`, err);

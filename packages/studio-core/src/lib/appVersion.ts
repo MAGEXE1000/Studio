@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.65';
+export const NATIVE_VERSION = '3.7.66';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -37,7 +37,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-02'; // 3.7.65
+export const APP_VERSION_DATE = '2026-07-02'; // 3.7.66
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = import.meta.env.VITE_GIT_COMMIT_SHA || 'efd2b1a3';
@@ -58,19 +58,23 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Improved",
+    heading: "Bento Panels Redesign",
     items: [
-      "Every failure path now exposes explicit reason codes, stack traces, and timestamps.",
-      "Version comparison populates full decision rationale in diagnostics.",
-      "Synchronized all version sources to 3.7.65 / versionCode 193.",
+      "Rebuilt Settings profile card with a tactile Pro account badge, user photo, and dynamic accent glow.",
+      "Created BentoSettingCard and BentoSettingRow settings items supporting interactive press-scaling animations.",
+      "Redesigned SettingsSectionLabel with a separator bar and aligned the System & About menu options in a nested block.",
+      "Hoisted Developer Mode switch to the sticky header of the Developer Panel.",
+      "Built a 4-column System Health Summary showing live App, Android, Alert counts, and Update statuses.",
+      "Built a 6-module interactive Bento tools grid (Apps, Performance, Logs, Network, System, Updater) linking to diagnostics.",
     ],
   },
   {
-    heading: "Fixed",
+    heading: "Updates & Navigation Fixes",
     items: [
-      "Eliminated false \"App is up to date\" when remote metadata fetch failed.",
-      "Fixed auto-check exceptions silently returning to idle instead of recovery.",
-      "Added explicit diagnostics on every non-update path.",
+      "Overhauled App Update engine with a 16-state deterministic machine to resolve false 'App is up to date' states.",
+      "Integrated explicit exception handlers and diagnostics in update checker pipelines.",
+      "Stabilized Bottom Navigation Bar rendering to remain visible on all setting and subview pages without clipping.",
+      "Resolved layout spacing, notch alignment, pure black theme, and scroll padding throughout Settings.",
     ],
   },
 ];
@@ -80,8 +84,9 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Rehabilitated DevTools Dashboard with full functional updates, simulation controls, and telemetry history.",
-      "Implemented robust clipboard validation and loading indicators for all diagnostic exports.",
+      "Premium redesigned Bento Main Settings and Developer Options dashboards.",
+      "Tactile button press animations and responsive 4-column health indicators.",
+      "Robust state machine based App Update subsystem and stable bottom navigation.",
     ],
   },
 ];

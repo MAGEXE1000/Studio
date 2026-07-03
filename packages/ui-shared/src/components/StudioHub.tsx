@@ -2457,6 +2457,49 @@ function HubSettings({
   const [pageKey, setPageKey] = useState(0);
   const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
 
+  const activePageId = page === 'main' ? 'general' : page;
+
+  const sections = useMemo(() => [
+    {
+      label: t.hub.studioSettings.userLabel || (lang === 'es' ? 'Usuario' : 'User'),
+      items: [
+        { id: 'profile' as const, icon: 'account_circle', label: t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account') },
+      ]
+    },
+    {
+      label: t.hub.studioSettings.preferencesLabel || (lang === 'es' ? 'Preferencias' : 'Preferences'),
+      items: [
+        { id: 'general' as const, icon: 'settings', label: t.hub.studioSettings.generalTitle || (lang === 'es' ? 'Ajustes' : 'Settings') },
+        { id: 'appearance' as const, icon: 'palette', label: t.settings.sections.appearance || (lang === 'es' ? 'Apariencia' : 'Appearance') },
+        { id: 'language' as const, icon: 'language', label: t.settings.sections.language || (lang === 'es' ? 'Idioma' : 'Language') },
+        { id: 'privacy' as const, icon: 'security', label: t.hub.studioSettings.privacyTitle || (lang === 'es' ? 'Privacidad y Seguridad' : 'Privacy & Security') },
+      ]
+    },
+    {
+      label: t.hub.studioSettings.applicationLabel || (lang === 'es' ? 'Aplicación' : 'Application'),
+      items: [
+        { id: 'release-notes' as const, icon: 'article', label: t.hub.studioSettings.releaseTitle || (lang === 'es' ? 'Notas de Lanzamiento' : 'Release Notes') },
+        { id: 'about' as const, icon: 'info', label: t.settings.sections.about || (lang === 'es' ? 'Acerca de Studio' : 'About & Version') },
+        ...(settings.developerMode ? [{ id: 'developer' as const, icon: 'terminal', label: t.hub.studioSettings.developerTitle || (lang === 'es' ? 'Opciones de Desarrollador' : 'Developer Options') }] : []),
+      ]
+    }
+  ], [t, settings.developerMode, lang]);
+
+  const getPageTitle = (id: SettingsPageId | 'profile') => {
+    if (id === 'help-center') return t.hub.studioSettings.helpTitle || 'Help Center';
+    if (id === 'faq') return (t.hub as any).studioSettings?.helpTitle || 'FAQ & Support';
+    if (id === 'terms') return t.hub.studioSettings.termsTitle || 'Terms of Service';
+    if (id === 'privacy-policy') return t.hub.studioSettings.privacyTitle || 'Privacy Policy';
+    if (id === 'bug-report') return t.hub.studioSettings.bugTitle || 'Report a Bug';
+    if (id === 'profile') return t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account');
+
+    for (const section of sections) {
+      const item = section.items.find(n => n.id === id);
+      if (item) return item.label;
+    }
+    return 'Settings';
+  };
+
   const [customPhoto, setCustomPhoto] = useState<string | null>(null);
   useEffect(() => {
     if (!authUser?.uid) { setCustomPhoto(null); return; }
@@ -4850,48 +4893,7 @@ User Agent: [Automatically Generated]
   );
 }
 
-  const activePageId = page === 'main' ? 'general' : page;
 
-  const sections = useMemo(() => [
-    {
-      label: t.hub.studioSettings.userLabel || (lang === 'es' ? 'Usuario' : 'User'),
-      items: [
-        { id: 'profile' as const, icon: 'account_circle', label: t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account') },
-      ]
-    },
-    {
-      label: t.hub.studioSettings.preferencesLabel || (lang === 'es' ? 'Preferencias' : 'Preferences'),
-      items: [
-        { id: 'general' as const, icon: 'settings', label: t.hub.studioSettings.generalTitle || (lang === 'es' ? 'Ajustes' : 'Settings') },
-        { id: 'appearance' as const, icon: 'palette', label: t.settings.sections.appearance || (lang === 'es' ? 'Apariencia' : 'Appearance') },
-        { id: 'language' as const, icon: 'language', label: t.settings.sections.language || (lang === 'es' ? 'Idioma' : 'Language') },
-        { id: 'privacy' as const, icon: 'security', label: t.hub.studioSettings.privacyTitle || (lang === 'es' ? 'Privacidad y Seguridad' : 'Privacy & Security') },
-      ]
-    },
-    {
-      label: t.hub.studioSettings.applicationLabel || (lang === 'es' ? 'Aplicación' : 'Application'),
-      items: [
-        { id: 'release-notes' as const, icon: 'article', label: t.hub.studioSettings.releaseTitle || (lang === 'es' ? 'Notas de Lanzamiento' : 'Release Notes') },
-        { id: 'about' as const, icon: 'info', label: t.settings.sections.about || (lang === 'es' ? 'Acerca de Studio' : 'About & Version') },
-        ...(settings.developerMode ? [{ id: 'developer' as const, icon: 'terminal', label: t.hub.studioSettings.developerTitle || (lang === 'es' ? 'Opciones de Desarrollador' : 'Developer Options') }] : []),
-      ]
-    }
-  ], [t, settings.developerMode, lang]);
-
-  const getPageTitle = (id: SettingsPageId | 'profile') => {
-    if (id === 'help-center') return t.hub.studioSettings.helpTitle || 'Help Center';
-    if (id === 'faq') return (t.hub as any).studioSettings?.helpTitle || 'FAQ & Support';
-    if (id === 'terms') return t.hub.studioSettings.termsTitle || 'Terms of Service';
-    if (id === 'privacy-policy') return t.hub.studioSettings.privacyTitle || 'Privacy Policy';
-    if (id === 'bug-report') return t.hub.studioSettings.bugTitle || 'Report a Bug';
-    if (id === 'profile') return t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account');
-
-    for (const section of sections) {
-      const item = section.items.find(n => n.id === id);
-      if (item) return item.label;
-    }
-    return 'Settings';
-  };
 
   return createPortal(
     <div

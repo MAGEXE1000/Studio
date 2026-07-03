@@ -2143,7 +2143,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     );
   };
 
-  const cardContainerStyle = (id: string) => ({
+  const cardContainerStyle = (id: string): React.CSSProperties => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'start',
@@ -2159,7 +2159,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     outline: 'none',
   });
 
-  const badgeStyle = (type: string) => {
+  const badgeStyle = (type: string): React.CSSProperties => {
     let bg = 'rgba(128,128,128,0.08)';
     let color = 'var(--c-text-secondary)';
     if (type === 'running' || type === 'active' || type === 'stable') {
@@ -2186,7 +2186,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     };
   };
 
-  const initialBadgeStyle = {
+  const initialBadgeStyle: React.CSSProperties = {
     width: 24,
     height: 24,
     borderRadius: '50%',

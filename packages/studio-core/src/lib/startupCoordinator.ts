@@ -608,12 +608,19 @@ class StartupCoordinatorClass {
   private flushQueuedEvents() {
     if (this.queuedEvents.length === 0) return;
     console.log(`[StartupCoordinator] Flushing ${this.queuedEvents.length} queued lifecycle events.`);
-    const events = [...this.queuedEvents];
+    
+    // Deduplicate queued events to trigger at most one update check
+    const hasTriggerEvent = this.queuedEvents.some((evt) => 
+      evt.type === 'visibilitychange' || evt.type === 'focus' || evt.type === 'pageshow' || evt.type === 'online' || evt.type === 'appStateChange'
+    );
+    
     this.queuedEvents = [];
-    events.forEach((evt) => {
-      this.dispatchLifecycleEvent(evt.type, evt.trigger || '', evt.reason || '', evt.payload);
-    });
     this.notify();
+
+    if (hasTriggerEvent) {
+      console.log('[StartupCoordinator] Triggering single update check from queued lifecycle triggers.');
+      void this.triggerOtaUpdateCheck('queued_lifecycle', 'flushed boot events');
+    }
   }
 
   // --- Watchdog Redesign ---

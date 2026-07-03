@@ -1171,21 +1171,7 @@ export function initializeGlobalOtaListeners() {
     initUpdater();
   }
 
-  const onVisibility = () => {
-    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-      runCheck('lifecycle_visibility', 'visibilitychange visible');
-    }
-  };
-  const onFocus = () => { runCheck('lifecycle_focus', 'window focus'); };
 
-  if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', onVisibility);
-  }
-  if (typeof window !== 'undefined') {
-    window.addEventListener('focus', onFocus);
-    window.addEventListener('pageshow', onFocus);
-    window.addEventListener('online', onFocus);
-  }
 
   // Global PackageInstaller event handler
   const handleInstallStatusChange = (eventData: any) => {
@@ -1239,18 +1225,7 @@ export function initializeGlobalOtaListeners() {
     })();
   }
 
-  if (isNative()) {
-    void (async () => {
-      try {
-        const { App } = await import('@capacitor/app');
-        await App.addListener('appStateChange', (s) => {
-          if (s.isActive) runCheck('lifecycle_appstate', 'native app active');
-        });
-      } catch {
-        /* plugin unavailable */
-      }
-    })();
-  }
+
 
   const schedulePoll = () => {
     setTimeout(async () => {

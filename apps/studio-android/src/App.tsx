@@ -58,6 +58,13 @@ import html2canvas from 'html2canvas';
 
 import "./index.css";
 
+if (typeof window !== 'undefined') {
+  (window as any).__preloadUIModules = () => {
+    void import('@workspace/ui-shared');
+    void import('@workspace/ui-android');
+  };
+}
+
 const isDebugModeEnabled = typeof window !== 'undefined' && (
   localStorage.getItem('studio_debug_mode') === 'true' ||
   (window as any).__studio_debug_mode === true
@@ -943,45 +950,7 @@ export default function App() {
     };
   }, [runForceWebViewRepaint, runForceFullHubRebuild, runForceWebViewRefreshLayer]);
 
-  // Cold Start App Restore Bug: Reset appMode to settings.startupApp || 'hub' if restoreLastSession is false
-  useEffect(() => {
-    const s = useChordStore.getState().settings;
-    if (!s.restoreLastSession) {
-      const defaultApp = s.startupApp || 'hub';
-      console.log(`[Startup] restoreLastSession is false. Resetting appMode to ${defaultApp}.`);
-      useChordStore.getState().updateSettings({ appMode: defaultApp });
-    }
-  }, []);
 
-  // Log React App mounted completion time
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).__bootTimings) {
-      (window as any).__bootTimings.reactMounted = performance.now();
-      console.log("[LivexBoot] React App mounted: " + (window as any).__bootTimings.reactMounted.toFixed(2) + "ms");
-    }
-  }, []);
-
-  // Record initial app launch diagnostic event
-  useEffect(() => {
-    const active = useChordStore.getState().settings.appMode || 'hub';
-    (window as any).__navigationTraceHistory = (window as any).__navigationTraceHistory || [];
-    (window as any).__navigationTraceHistory.push({
-      fromApp: 'none',
-      toApp: active,
-      timestamp: Date.now(),
-      transitionDuration: 0,
-      lockState: false,
-      recoveredViaFailsafe: false
-    });
-    recordNavigation({
-      fromApp: 'none',
-      toApp: active,
-      hubMounted: true,
-      activeAppAfterTransition: active,
-      transitionLockState: false,
-      fallbackRendered: false
-    });
-  }, []);
 
 
 
@@ -1225,168 +1194,7 @@ export default function App() {
     return false;
   }, [activeVis.theme, settings.dynamicLightStart, settings.dynamicLightEnd, settings.theme]);
 
-  useEffect(() => {
-    const applyTheme = (skipTransitioningClass = false) => {
-      const root = document.documentElement;
-      if (!skipTransitioningClass) {
-        root.classList.add('theme-transitioning');
-      }
-      activeVis.amoledMode ? root.classList.add('amoled') : root.classList.remove('amoled');
 
-      const h = new Date().getHours();
-      const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd   = settings.dynamicLightEnd   ?? 20;
-      const isDaytime  = h >= lightStart && h < lightEnd;
-
-      root.classList.remove('light', 'theme-system');
-      if (activeVis.theme === 'light') root.classList.add('light');
-      else if (activeVis.theme === 'system') root.classList.add('theme-system');
-      else if (activeVis.theme === 'dynamic' && isDaytime) root.classList.add('light');
-
-      const isLight = activeVis.theme === 'light' ||
-        (activeVis.theme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches) ||
-        (activeVis.theme === 'dynamic' && isDaytime);
-      const color = activeVis.amoledMode ? (isLight ? '#ffffff' : '#000000') : (isLight ? '#f5f5f5' : '#000000');
-      let tag = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.name = 'theme-color';
-        document.head.appendChild(tag);
-      }
-      tag.content = color;
-
-      if (!skipTransitioningClass) {
-        setTimeout(() => {
-          root.classList.remove('theme-transitioning');
-        }, 350);
-      }
-    };
-
-    applyTheme();
-  }, [activeVis.theme, activeVis.amoledMode, settings.dynamicLightStart, settings.dynamicLightEnd]);
-
-  // Re-apply dynamic theme every minute
-  useEffect(() => {
-    if (activeVis.theme !== 'dynamic') return;
-    const id = setInterval(() => {
-      const s = useChordStore.getState().settings;
-      const h = new Date().getHours();
-      const isDaytime = h >= (s.dynamicLightStart ?? 7) && h < (s.dynamicLightEnd ?? 20);
-      const root = document.documentElement;
-      root.classList.remove('light');
-      if (isDaytime) root.classList.add('light');
-    }, 60_000);
-    return () => clearInterval(id);
-  }, [activeVis.theme]);
-
-  // Sync Accent variables
-  const hubAccentKey = activeVis.accentColor ?? 'blue';
-  const accent = useMemo(() =>
-    hubAccentKey === 'custom'
-      ? { from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`, mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`, to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)` }
-      : (ACCENT_COLORS[hubAccentKey as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue),
-  [hubAccentKey, settings.customAccentHue]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.add('theme-transitioning');
-    root.style.setProperty('--accent-from', accent.from);
-    root.style.setProperty('--accent-to',   accent.to);
-    root.style.setProperty('--accent-mid',  accent.mid);
-    
-    const colorToRgbStr = (colorStr: string) => {
-      if (colorStr.startsWith('rgb')) {
-        const m = colorStr.match(/\d+/g);
-        return m ? m.slice(0, 3).join(', ') : '0, 122, 255';
-      }
-      if (colorStr.startsWith('#')) {
-        const hex = colorStr.replace('#', '');
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        return `${r}, ${g}, ${b}`;
-      }
-      return '0, 122, 255';
-    };
-
-    root.style.setProperty('--accent-from-rgb', colorToRgbStr(accent.from));
-    root.style.setProperty('--accent-to-rgb',   colorToRgbStr(accent.to));
-    root.style.setProperty('--accent-mid-rgb',  colorToRgbStr(accent.mid));
-    
-    const tId = setTimeout(() => {
-      root.classList.remove('theme-transitioning');
-    }, 350);
-    return () => clearTimeout(tId);
-  }, [accent]);
-
-  // Sync Native Status Bar
-  useStatusBar(activeVis.theme, activeVis.amoledMode);
-
-  // Sync Animation speed & Performance mode
-  useEffect(() => {
-    const isReduced = preferences.reduceMotion || settings.animationSpeed === 'reduced';
-    document.documentElement.setAttribute('data-anim', isReduced ? 'reduced' : settings.animationSpeed);
-  }, [settings.animationSpeed, preferences.reduceMotion]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (settings.performanceMode) root.setAttribute('data-perf-mode', 'on');
-    else root.removeAttribute('data-perf-mode');
-  }, [settings.performanceMode]);
-
-  // High refresh rate tick
-  useEffect(() => {
-    const root = document.documentElement;
-    if (!settings.highRefreshRate) {
-      root.removeAttribute('data-hifps');
-      return;
-    }
-    root.setAttribute('data-hifps', 'on');
-    let rafId = 0;
-    let stopped = false;
-    const tick = () => {
-      if (stopped) return;
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
-    return () => {
-      stopped = true;
-      cancelAnimationFrame(rafId);
-      root.removeAttribute('data-hifps');
-    };
-  }, [settings.highRefreshRate]);
-
-  // Sync Font Size
-  useEffect(() => {
-    const root = document.documentElement;
-    const sizes = {
-      small:  { base: '13px', sm: '11px', xs: '9px',  lg: '16px', xl: '20px', hero: '2.2rem' },
-      medium: { base: '14px', sm: '12px', xs: '10px', lg: '18px', xl: '24px', hero: '2.8rem' },
-      large:  { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
-    };
-    const s = sizes[settings.fontSize] || sizes.medium;
-    root.style.setProperty('--font-base', s.base);
-    root.style.setProperty('--font-sm',   s.sm);
-    root.style.setProperty('--font-xs',   s.xs);
-    root.style.setProperty('--font-lg',   s.lg);
-    root.style.setProperty('--font-xl',   s.xl);
-    root.style.setProperty('--font-hero', s.hero);
-  }, [settings.fontSize]);
-
-  // Sync Display Density
-  useEffect(() => {
-    const root = document.documentElement;
-    const densities = {
-      compact:     { pad: '10px', rowPad: '10px 20px', gap: '8px',  cardGap: '6px'  },
-      comfortable: { pad: '16px', rowPad: '14px 20px', gap: '12px', cardGap: '10px' },
-      spacious:    { pad: '22px', rowPad: '20px 24px', gap: '18px', cardGap: '16px' },
-    };
-    const d = densities[settings.displayDensity] || densities.comfortable;
-    root.style.setProperty('--density-pad',      d.pad);
-    root.style.setProperty('--density-row-pad',  d.rowPad);
-    root.style.setProperty('--density-gap',      d.gap);
-    root.style.setProperty('--density-card-gap', d.cardGap);
-  }, [settings.displayDensity]);
 
   const returnToStudioHub = useCallback((isSwipeSuccess = false) => {
     const fromApp = useChordStore.getState().settings.appMode || 'hub';
@@ -1671,7 +1479,10 @@ export default function App() {
       setStartupComplete(true);
     });
 
-    return unsub;
+    return () => {
+      unsub();
+      StartupCoordinator.cancel('app_unmounted');
+    };
   }, []);
 
   const isSubAppActive = appMode !== 'hub';
@@ -1717,85 +1528,7 @@ export default function App() {
     }
   }, [appMode]);
 
-  // Register global failsafe recovery trigger
-  useEffect(() => {
-    (window as any).__runFailsafeRecovery = (checkpointName: string) => {
-      const checkRoot = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
-      if (checkRoot) return; // Already mounted, do nothing
 
-      console.warn(`[Failsafe Watchdog] Hub DOM not mounted at ${checkpointName}! Running active recovery...`);
-
-      // Record recovery attempt
-      try {
-        const recoveryLogStr = localStorage.getItem('studio_hub_mount_recovery_log') || '[]';
-        const recoveryLog = JSON.parse(recoveryLogStr);
-        recoveryLog.push({
-          timestamp: Date.now(),
-          checkpoint: checkpointName,
-          action: 'HUB_DOM_RESTORE_ATTEMPTED',
-          hubRenderKey
-        });
-        localStorage.setItem('studio_hub_mount_recovery_log', JSON.stringify(recoveryLog));
-      } catch (_) {}
-
-      // 1. Force mount Hub shell immediately
-      setShowHub(true);
-
-      // 2. Increment hubRenderKey
-      setHubRenderKey(k => k + 1);
-
-      // 3. Clear cached subapp refs
-      lastActiveAppRef.current = 'chords';
-
-      // 4. Clear transition locks
-      setTransitionActive(false);
-      (window as any).studioTransitionActive = false;
-
-      // 5. Clear navigation in progress tracking
-      try {
-        localStorage.setItem('studio_navigation_in_progress', 'false');
-      } catch (_) {}
-
-      // 6. Force root layout re-render
-      if (typeof (window as any).__forceRerenderApp === 'function') {
-        (window as any).__forceRerenderApp();
-      }
-
-      // Verify again after a microtask tick
-      setTimeout(() => {
-        const afterCheck = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
-        const restored = !!afterCheck;
-
-        try {
-          const recoveryLogStr = localStorage.getItem('studio_hub_mount_recovery_log') || '[]';
-          const recoveryLog = JSON.parse(recoveryLogStr);
-          recoveryLog.push({
-            timestamp: Date.now(),
-            checkpoint: checkpointName,
-            action: restored ? 'HUB_DOM_RESTORED' : 'HUB_DOM_RESTORE_FAILED',
-            hubRenderKey: hubRenderKey + 1
-          });
-          if (recoveryLog.length > 30) recoveryLog.shift();
-          localStorage.setItem('studio_hub_mount_recovery_log', JSON.stringify(recoveryLog));
-        } catch (_) {}
-
-        console.log(`[Failsafe Watchdog] Hub DOM recovery status at ${checkpointName}: ${restored ? 'HUB_DOM_RESTORED' : 'HUB_DOM_RESTORE_FAILED'}`);
-      }, 50);
-    };
-
-    return () => {
-      delete (window as any).__runFailsafeRecovery;
-    };
-  }, [hubRenderKey]);
-
-  // Failsafe auto-trigger at T+1000ms (deferred from 50ms to prevent interrupting normal React boot)
-  useEffect(() => {
-    if (appMode !== 'hub') return;
-    const timer = setTimeout(() => {
-      (window as any).__runFailsafeRecovery?.('T+1000ms');
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [appMode]);
 
   // Define window.__captureBlackScreenState
   useEffect(() => {

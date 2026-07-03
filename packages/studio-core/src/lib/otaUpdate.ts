@@ -528,12 +528,18 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
       transitionToState('VALIDATE_METADATA', 'Validating fetched manifest integrity');
       if (!remote) {
-        updateGlobalState({ decisionExplanation: 'Remote metadata is missing or unreachable.' });
+        otaDebugLogs.updateDecision = 'metadata_unavailable';
+        otaDebugLogs.updateDecisionReason = 'Remote metadata is missing or unreachable.';
+        updateGlobalState({
+          decisionExplanation: 'Remote metadata is missing or unreachable.',
+          updateAvailable: false,
+        });
         if (isManual) {
           updateGlobalState({ error: 'Unable to contact the update server.' });
           transitionToState('RECOVERY', 'Manual check failed: no remote metadata', 'Unable to contact update server');
         } else {
-          transitionToState('IDLE', 'Auto-check completed: no remote metadata');
+          updateGlobalState({ error: 'Update check failed: remote metadata unavailable.' });
+          transitionToState('RECOVERY', 'Auto-check failed: no remote metadata', 'Remote metadata unavailable');
         }
         const duration = Date.now() - startTime;
         console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
@@ -588,7 +594,13 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
         transitionToState('UPDATE_AVAILABLE', 'New update found');
         void logProgressStage('Update detected', `Version: ${remote.version}`);
       } else {
-        transitionToState('NO_UPDATE_AVAILABLE', 'App is up to date');
+        updateGlobalState({
+          remoteVersion: remote.version,
+          updateAvailable: false,
+        });
+        otaDebugLogs.updateDecision = 'NO_UPDATE_AVAILABLE';
+        otaDebugLogs.updateDecisionReason = `Local ${APP_VERSION} >= Remote ${remote.version} (isUpToDate=${comp.isUpToDate}, isDowngrade=${comp.isDowngrade})`;
+        transitionToState('NO_UPDATE_AVAILABLE', `App is up to date (local=${APP_VERSION}, remote=${remote.version})`);
       }
 
       const duration = Date.now() - startTime;
@@ -597,13 +609,16 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     } catch (err) {
       const duration = Date.now() - startTime;
       const errMsg = err instanceof Error ? err.message : String(err);
+      const errStack = err instanceof Error ? err.stack : undefined;
       logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 589, `Exiting checkForUpdate Call #${callId} with error`, { durationMs: duration, prevState: 'INITIALIZING', nextState: globalOtaState.updateState, reason: errMsg });
-      if (isManual) {
-        updateGlobalState({ error: 'Unable to contact the update server.' });
-        transitionToState('RECOVERY', 'Manual check exception', errMsg);
-      } else {
-        transitionToState('IDLE', 'Auto-check exception');
-      }
+      otaDebugLogs.updateDecision = 'check_failed';
+      otaDebugLogs.updateDecisionReason = `Exception during update check: ${errMsg}`;
+      otaDebugLogs.lastExceptionStackTrace = errStack ?? null;
+      updateGlobalState({
+        error: isManual ? 'Unable to contact the update server.' : `Update check failed: ${errMsg}`,
+        updateAvailable: false,
+      });
+      transitionToState('RECOVERY', isManual ? 'Manual check exception' : `Auto-check exception: ${errMsg}`, errMsg);
       return globalOtaState;
     } finally {
       if (checkId === latestCheckId) {

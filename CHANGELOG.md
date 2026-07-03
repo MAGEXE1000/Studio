@@ -12,6 +12,18 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.65
+
+### Fixed
+- Eliminated false "App is up to date" when remote metadata fetch failed.
+- Fixed auto-check exceptions silently returning to idle instead of recovery.
+- Added explicit diagnostics on every non-update path.
+
+### Improved
+- Every failure path now exposes explicit reason codes, stack traces, and timestamps.
+- Version comparison populates full decision rationale in diagnostics.
+- Synchronized all version sources to 3.7.65 / versionCode 193.
+
 ## 3.7.60
 
 ### Fixed

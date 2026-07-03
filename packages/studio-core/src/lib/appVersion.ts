@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.60';
+export const NATIVE_VERSION = '3.7.65';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -37,11 +37,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-02'; // 3.7.57
+export const APP_VERSION_DATE = '2026-07-02'; // 3.7.65
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = import.meta.env.VITE_GIT_COMMIT_SHA || 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || '7/14/2026, 12:00:00 AM CST';
+export const APP_BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || '7/2/2026, 12:00:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -60,10 +60,17 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Rebuilt the App Update subsystem state machine with 16 deterministic uppercase states.",
-      "Re-engineered version comparison engine to explicitly validate metadata and signatures.",
-      "Linearized check, download, and install execution pipelines to eliminate race conditions.",
-      "Adapted UpdateIndicator UI mapping and Simulation Lab assertions to support the new state structure.",
+      "Eliminated false 'App is up to date' when remote metadata fetch failed.",
+      "Fixed auto-check exceptions silently returning to idle instead of recovery.",
+      "Added explicit diagnostics on every non-update path.",
+    ],
+  },
+  {
+    heading: "Improved",
+    items: [
+      "Every failure path now exposes explicit reason codes, stack traces, and timestamps.",
+      "Version comparison populates full decision rationale in diagnostics.",
+      "Synchronized all version sources to 3.7.65 / versionCode 193.",
     ],
   },
 ];

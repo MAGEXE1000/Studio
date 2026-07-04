@@ -4,6 +4,7 @@ import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import { Toggle, SectionHeader, SettingRow } from '../components/SettingControls';
 import { IconSongs, IconLibrary, IconChords, IconSettings } from '../components/NavIcons';
 import { WebSettingsSection, WebPreferenceRow } from '../components/WebDesignSystem';
+import { DialogScaffold } from '../components/StudioLayoutSystem';
 
 export default function SettingsPanel() {
   const { settings, updateSettings } = useChordStore();
@@ -415,105 +416,71 @@ export default function SettingsPanel() {
 
       </div>
 
-      {showGitHubConfirm && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setShowGitHubConfirm(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9000,
-            background: 'rgba(0,0,0,0.55)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            animation: 'fade-in 200ms ease-out both',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              maxWidth: 380,
-              width: '100%',
-              background: 'var(--app-surface)',
-              borderRadius: 22,
-              overflow: 'hidden',
-              border: '1px solid rgba(128,128,128,0.15)',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
-              animation: 'rise-in 240ms cubic-bezier(0.34,1.15,0.64,1) both',
-              padding: 24,
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12 }}>
-              <div style={{
-                width: 58, height: 58, borderRadius: '50%',
-                background: 'rgba(128,128,128,0.06)',
-                border: '1.5px solid rgba(128,128,128,0.15)',
+      <DialogScaffold
+        open={showGitHubConfirm}
+        onClose={() => setShowGitHubConfirm(false)}
+        title="Download Official Release"
+        footer={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const { resolveReleasePageUrl } = await import('@workspace/studio-core');
+                  const fallbackUrl = await resolveReleasePageUrl(ota.remoteVersion ?? undefined);
+                  window.open(fallbackUrl, '_system');
+                } catch (err) {
+                  window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
+                }
+                setShowGitHubConfirm(false);
+              }}
+              style={{
+                width: '100%', height: '44px', borderRadius: '12px',
+                background: `linear-gradient(135deg, ${acc.from}, ${acc.to})`,
+                border: 'none', color: 'white',
+                fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px',
+                cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 10,
-              }}>
-                <GithubIcon size={28} color="var(--c-text-primary)" />
-              </div>
-              
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
-                Download Official Release
-              </h3>
-              
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5, textAlign: 'left' }}>
-                The automatic updater could not complete this installation.<br /><br />
-                Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
-                This is the recommended recovery method whenever automatic installation cannot complete.
-              </p>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14, width: '100%' }}>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const { resolveReleasePageUrl } = await import('@workspace/studio-core');
-                      const fallbackUrl = await resolveReleasePageUrl(ota.remoteVersion ?? undefined);
-                      window.open(fallbackUrl, '_system');
-                    } catch (err) {
-                      window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
-                    }
-                    setShowGitHubConfirm(false);
-                  }}
-                  style={{
-                    width: '100%', height: '44px', borderRadius: '12px',
-                    background: `linear-gradient(135deg, ${acc.from}, ${acc.to})`,
-                    border: 'none', color: 'white',
-                    fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px',
-                    cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  Open GitHub
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowGitHubConfirm(false)}
-                  style={{
-                    width: '100%', height: 40, borderRadius: 12,
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--c-text-secondary)',
-                    fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
-                    cursor: 'pointer',
-                    marginTop: 2,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+              }}
+            >
+              Open GitHub
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowGitHubConfirm(false)}
+              style={{
+                width: '100%', height: '40px', borderRadius: '12px',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--c-text-secondary)',
+                fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              Cancel
+            </button>
           </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
+          <div style={{
+            width: '58px', height: '58px', borderRadius: '50%',
+            background: 'rgba(128,128,128,0.06)',
+            border: '1.5px solid rgba(128,128,128,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '10px',
+          }}>
+            <GithubIcon size={28} color="var(--c-text-primary)" />
+          </div>
+          
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5, textAlign: 'left' }}>
+            The automatic updater could not complete this installation.<br /><br />
+            Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
+            This is the recommended recovery method whenever automatic installation cannot complete.
+          </p>
         </div>
-      )}
+      </DialogScaffold>
     </div>
   );
 }

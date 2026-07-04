@@ -2393,7 +2393,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
             style={{
               position: 'relative',
               height: '100%',
-              paddingTop: 'env(safe-area-inset-top)',
+              // Note: safe-area-inset-top is handled by layout scaffolds to avoid duplicate paddingTop overrides.
             } as React.CSSProperties}
           >
             <div 

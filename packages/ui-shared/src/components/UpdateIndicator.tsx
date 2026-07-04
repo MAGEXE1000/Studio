@@ -35,6 +35,7 @@ import StudioSpinner from './animata/progress/spinner';
 import AnimatedActionButton from './animata/container/animated-border-trail';
 import StudioUpdateScreen from './StudioUpdateScreen';
 import UpdateDiagnosticsSheet from './UpdateDiagnosticsSheet';
+import { DialogScaffold } from './StudioLayoutSystem';
 import { DownloadIcon } from './DownloadIcon';
 import {
   enableLiquidGlass,
@@ -2310,200 +2311,128 @@ function UpdateModal({
 
   if (showGitHubConfirm) {
     return (
-      <div
-        role="dialog"
-        aria-modal="true"
-        onClick={() => setShowGitHubConfirm(false)}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9000,
-          background: 'rgba(0,0,0,0.55)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 24,
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          animation: 'fade-in 200ms ease-out both',
-        }}
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            maxWidth: 380,
-            width: '100%',
-            background: 'var(--app-surface)',
-            borderRadius: 22,
-            overflow: 'hidden',
-            border: '1px solid rgba(128,128,128,0.15)',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
-            animation: 'rise-in 240ms cubic-bezier(0.34,1.15,0.64,1) both',
-            padding: 24,
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12 }}>
-            <div style={{
-              width: 58, height: 58, borderRadius: '50%',
-              background: 'rgba(128,128,128,0.06)',
-              border: '1.5px solid rgba(128,128,128,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 10,
-            }}>
-              <GithubIcon size={28} color="var(--c-text-primary)" />
-            </div>
-            
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
-              Download Official Release
-            </h3>
-            
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5, textAlign: 'left' }}>
-              The automatic updater could not complete this installation.<br /><br />
-              Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
-              This is the recommended recovery method whenever automatic installation cannot complete.
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14, width: '100%' }}>
-              <button
-                type="button"
-                onClick={async () => {
-                  await handleOpenGitHub();
-                  setShowGitHubConfirm(false);
-                }}
-                style={primaryButtonStyle}
-              >
-                Open GitHub
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowGitHubConfirm(false)}
-                style={tertiaryButtonStyle}
-              >
-                Cancel
-              </button>
-            </div>
+      <DialogScaffold
+        open={showGitHubConfirm}
+        onClose={() => setShowGitHubConfirm(false)}
+        title="Download Official Release"
+        footer={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                await handleOpenGitHub();
+                setShowGitHubConfirm(false);
+              }}
+              style={primaryButtonStyle}
+            >
+              Open GitHub
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowGitHubConfirm(false)}
+              style={tertiaryButtonStyle}
+            >
+              Cancel
+            </button>
           </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
+          <div style={{
+            width: '58px', height: '58px', borderRadius: '50%',
+            background: 'rgba(128,128,128,0.06)',
+            border: '1.5px solid rgba(128,128,128,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '10px',
+          }}>
+            <GithubIcon size={28} color="var(--c-text-primary)" />
+          </div>
+          
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5, textAlign: 'left' }}>
+            The automatic updater could not complete this installation.<br /><br />
+            Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
+            This is the recommended recovery method whenever automatic installation cannot complete.
+          </p>
         </div>
-      </div>
+      </DialogScaffold>
     );
   }
+
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9000,
-        background: 'rgba(0,0,0,0.55)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        animation: 'fade-in 200ms ease-out both',
-      }}
+    <DialogScaffold
+      open={true}
+      onClose={onClose}
+      title={title}
+      footer={renderButtons()}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: 380,
-          width: '100%',
-          background: 'var(--app-surface)',
-          borderRadius: 22,
-          overflow: 'hidden',
-          border: '1px solid rgba(128,128,128,0.15)',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
-          animation: 'rise-in 240ms cubic-bezier(0.34,1.15,0.64,1) both',
-          padding: 24,
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 10 }}>
-          {renderIcon()}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '10px' }}>
+        {renderIcon()}
 
-          <p style={{
-            margin: 0, fontSize: 20, fontWeight: 800,
-            color: 'var(--c-text-primary)',
-            fontFamily: 'Manrope', letterSpacing: '-0.02em',
-          }}>
-            {title}
-          </p>
-
-          <div style={{
-            margin: '2px 0 0', fontSize: 13.5,
-            color: 'var(--c-text-secondary)',
-            fontFamily: 'Inter', lineHeight: 1.5,
-          }}>
-            {description}
-          </div>
-
-          {(state === 'available' || state === 'ready_to_install' || state === 'verifying_apk') && (
-            <div style={{
-              display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
-              alignItems: 'center', margin: '8px 0 2px',
-              fontSize: 12.5, fontFamily: 'Manrope', fontWeight: 700,
-              color: 'var(--c-text-secondary)'
-            }}>
-              {(state === 'available' || state === 'ready_to_install') && (
-                <div style={{ display: 'flex', gap: 16 }}>
-                  <span>Current: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{fromLabel}</span></span>
-                  <span>New: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{toVersion}</span></span>
-                </div>
-              )}
-              {state === 'ready_to_install' && otaDebugLogs.downloadedApkSize && otaDebugLogs.downloadedApkSize !== 'N/A' && (
-                <span style={{ fontSize: 11.5, color: 'var(--c-text-secondary)', opacity: 0.85 }}>
-                  Size: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{otaDebugLogs.downloadedApkSize}</span>
-                </span>
-              )}
-              {state === 'verifying_apk' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', opacity: 0.85, width: '100%', padding: '4px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 15, color: otaDebugLogs.shaVerification === 'SUCCESS' ? '#22c55e' : '#f59e0b', animation: otaDebugLogs.shaVerification ? 'none' : 'lg-spin-spinner 1.2s linear infinite' }}>
-                      {otaDebugLogs.shaVerification === 'SUCCESS' ? 'verified' : (otaDebugLogs.shaVerification === 'FAILED' ? 'warning' : 'sync')}
-                    </span>
-                    <span style={{ fontSize: 12 }}>SHA-256 Checksum: {otaDebugLogs.shaVerification === 'SUCCESS' ? 'Verified' : (otaDebugLogs.shaVerification === 'FAILED' ? 'Failed' : 'Verifying...')}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#f59e0b', animation: 'lg-spin-spinner 1.2s linear infinite' }}>
-                      sync
-                    </span>
-                    <span style={{ fontSize: 12 }}>Package Compatibility: Checking...</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {renderChangelog()}
-          {renderProgress()}
-          {renderSpinner()}
-
-          {mandatory && state === 'available' && (
-            <p style={{
-              margin: '6px 0 0', fontSize: 11.5,
-              color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600,
-            }}>
-              This update is required.
-            </p>
-          )}
-
-          {renderButtons()}
+        <div style={{
+          margin: '2px 0 0', fontSize: '13.5px',
+          color: 'var(--c-text-secondary)',
+          fontFamily: 'Inter', lineHeight: 1.5,
+        }}>
+          {description}
         </div>
-        <UpdateDiagnosticsSheet open={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />
+
+        {(state === 'available' || state === 'ready_to_install' || state === 'verifying_apk') && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
+            alignItems: 'center', margin: '8px 0 2px',
+            fontSize: '12.5px', fontFamily: 'Manrope', fontWeight: 700,
+            color: 'var(--c-text-secondary)'
+          }}>
+            {(state === 'available' || state === 'ready_to_install') && (
+              <div style={{ display: 'flex', gap: 16 }}>
+                <span>Current: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{fromLabel}</span></span>
+                <span>New: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{toVersion}</span></span>
+              </div>
+            )}
+            {state === 'ready_to_install' && otaDebugLogs.downloadedApkSize && otaDebugLogs.downloadedApkSize !== 'N/A' && (
+              <span style={{ fontSize: '11.5px', color: 'var(--c-text-secondary)', opacity: 0.85 }}>
+                Size: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{otaDebugLogs.downloadedApkSize}</span>
+              </span>
+            )}
+            {state === 'verifying_apk' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', opacity: 0.85, width: '100%', padding: '4px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 15, color: otaDebugLogs.shaVerification === 'SUCCESS' ? '#22c55e' : '#f59e0b', animation: otaDebugLogs.shaVerification ? 'none' : 'lg-spin-spinner 1.2s linear infinite' }}>
+                    {otaDebugLogs.shaVerification === 'SUCCESS' ? 'verified' : (otaDebugLogs.shaVerification === 'FAILED' ? 'warning' : 'sync')}
+                  </span>
+                  <span style={{ fontSize: 12 }}>SHA-256 Checksum: {otaDebugLogs.shaVerification === 'SUCCESS' ? 'Verified' : (otaDebugLogs.shaVerification === 'FAILED' ? 'Failed' : 'Verifying...')}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#f59e0b', animation: 'lg-spin-spinner 1.2s linear infinite' }}>
+                    sync
+                  </span>
+                  <span style={{ fontSize: 12 }}>Package Compatibility: Checking...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {renderChangelog()}
+        {renderProgress()}
+        {renderSpinner()}
+
+        {mandatory && state === 'available' && (
+          <p style={{
+            margin: '6px 0 0', fontSize: '11.5px',
+            color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600,
+          }}>
+            This update is required.
+          </p>
+        )}
       </div>
+      <UpdateDiagnosticsSheet open={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />
       <style>{`
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes rise-in {
-          from { opacity: 0; transform: translateY(14px) scale(0.95); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
         @keyframes lg-spin-spinner {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
       `}</style>
-    </div>
+    </DialogScaffold>
   );
 }

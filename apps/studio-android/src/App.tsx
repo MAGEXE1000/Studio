@@ -22,7 +22,8 @@ import {
   StartupCoordinator,
   useNavigationStore,
   NavigationDispatcher,
-  type ActivePanel
+  type ActivePanel,
+  navDiagnosticsRegistry
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -608,8 +609,11 @@ function captureTimelineCheckpoint(captureId: number, key: string) {
 }
 
 function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
+  const timestampStr = new Date().toISOString();
+  const currentAppMode = useChordStore.getState().settings.appMode || 'hub';
+  const isTransitioning = useNavigationStore.getState().isTransitioning;
+  console.log(`[Lifecycle] [${timestampStr}] ${name} ${event} | appMode: ${currentAppMode}, transitionActive: ${isTransitioning}`);
   if (!isDebugModeEnabled) {
-    console.log(`[Lifecycle] ${name} ${event}`);
     return;
   }
   try {
@@ -1033,6 +1037,38 @@ export default function App() {
   }, []);
 
   const appMode = settings.appMode || 'hub';
+
+  // Register diagnostics getters for printDiagnosticsDump
+  useEffect(() => {
+    navDiagnosticsRegistry.getMountedTree = () => {
+      const tree: string[] = [];
+      if (showHub) tree.push('StudioHub');
+      if (launchingApp) tree.push(`LaunchingSplash(${launchingApp})`);
+      if (appMode !== 'hub') tree.push(`SubAppWrapper(${appMode})`);
+      return tree;
+    };
+    navDiagnosticsRegistry.getVisibleTree = () => {
+      const tree: string[] = [];
+      if (appMode === 'hub' && !launchingApp && !splashVisible) tree.push('StudioHub');
+      if (splashVisible) tree.push(`LaunchingSplash(${launchingApp || appMode})`);
+      if (appMode !== 'hub' && !splashVisible) tree.push(`SubAppWrapper(${appMode})`);
+      return tree;
+    };
+    navDiagnosticsRegistry.getAnimationState = () => {
+      return `transitionActive: ${transitionActive}, splashVisible: ${splashVisible}, appPreloaded: ${appPreloaded}, launchingApp: ${launchingApp}`;
+    };
+    navDiagnosticsRegistry.getAppMode = () => appMode;
+    navDiagnosticsRegistry.getCachedPanel = () => {
+      return (window as any).__studio_cached_panels || null;
+    };
+    return () => {
+      delete navDiagnosticsRegistry.getMountedTree;
+      delete navDiagnosticsRegistry.getVisibleTree;
+      delete navDiagnosticsRegistry.getAnimationState;
+      delete navDiagnosticsRegistry.getAppMode;
+      delete navDiagnosticsRegistry.getCachedPanel;
+    };
+  }, [appMode, launchingApp, splashVisible, appPreloaded, transitionActive, showHub]);
 
   useEffect(() => {
     let cleanup: (() => void) | undefined = undefined;
@@ -2392,7 +2428,16 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
   const isActive = settings.appMode === cachedApp;
 
   useEffect(() => {
+    const timestamp = new Date().toISOString();
+    console.log(`[SubAppWrapper] [${timestamp}] Mount | app: ${cachedApp}, activePanel: ${activePanel}, isActive: ${isActive}`);
+    return () => {
+      console.log(`[SubAppWrapper] [${new Date().toISOString()}] Unmount | app: ${cachedApp}`);
+    };
+  }, [cachedApp]);
+
+  useEffect(() => {
     if (isActive) {
+      console.log(`[SubAppWrapper] [${new Date().toISOString()}] setCachedPanel | prev: ${cachedPanel} -> next: ${activePanel}`);
       setCachedPanel(activePanel);
     }
   }, [activePanel, isActive]);

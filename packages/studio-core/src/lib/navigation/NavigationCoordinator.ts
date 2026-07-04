@@ -5,6 +5,7 @@ export class NavigationCoordinator {
    * Resolves default landing pages/tabs for sub-apps if not explicitly provided.
    */
   public static resolveDefaultRoute(route: Partial<NavigationRoute>): NavigationRoute {
+    const timestamp = new Date().toISOString();
     const nextRoute: NavigationRoute = {
       app: route.app || 'hub',
       tab: route.tab,
@@ -26,6 +27,7 @@ export class NavigationCoordinator {
       nextRoute.page = 'Editor';
     }
 
+    console.log(`[NavigationCoordinator] [${timestamp}] resolveDefaultRoute | Input: ${JSON.stringify(route)} -> Resolved: ${JSON.stringify(nextRoute)}`);
     return nextRoute;
   }
 
@@ -38,9 +40,12 @@ export class NavigationCoordinator {
     savedTab?: string | null,
     savedPage?: string | null
   ): NavigationHistory {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationCoordinator] [${timestamp}] restoreLastSession | rememberSession: ${rememberSession}, savedApp: ${savedApp}, savedTab: ${savedTab}, savedPage: ${savedPage}`);
     const defaultHistory: NavigationHistory = [{ app: 'hub', tab: 'home' }];
 
     if (!rememberSession || !savedApp || savedApp === 'hub') {
+      console.log(`[NavigationCoordinator] [${timestamp}] restoreLastSession -> Using default history`);
       return defaultHistory;
     }
 
@@ -51,6 +56,8 @@ export class NavigationCoordinator {
     };
 
     const resolved = this.resolveDefaultRoute(appRoute);
-    return [...defaultHistory, resolved];
+    const resultHistory = [...defaultHistory, resolved];
+    console.log(`[NavigationCoordinator] [${timestamp}] restoreLastSession -> Restored history: ${JSON.stringify(resultHistory)}`);
+    return resultHistory;
   }
 }

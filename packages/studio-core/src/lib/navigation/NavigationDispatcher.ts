@@ -16,8 +16,10 @@ export class NavigationDispatcher {
    * Pushes a new route onto the stack, applying guards and calculating transition direction.
    */
   public static push(route: Partial<NavigationRoute>): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)}`);
     if (isTransitionLocked()) {
-      console.warn('[NavigationDispatcher] Push ignored: Transition is locked.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
       return;
     }
 
@@ -26,12 +28,12 @@ export class NavigationDispatcher {
     const current = store.history[store.history.length - 1];
 
     if (current && isRouteEqual(current, nextRoute)) {
-      console.warn('[NavigationDispatcher] Push ignored: Duplicate route detected.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Duplicate route detected. Current: ${JSON.stringify(current)} | Next: ${JSON.stringify(nextRoute)}`);
       return;
     }
 
     if (detectRecursion(store.history, nextRoute)) {
-      console.warn('[NavigationDispatcher] Push ignored: Recursive cycle detected.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Recursive cycle detected. Stack: ${JSON.stringify(store.history)} | Next: ${JSON.stringify(nextRoute)}`);
       return;
     }
 
@@ -50,8 +52,10 @@ export class NavigationDispatcher {
    * Replaces the current top route on the stack.
    */
   public static replace(route: Partial<NavigationRoute>): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`);
     if (isTransitionLocked()) {
-      console.warn('[NavigationDispatcher] Replace ignored: Transition is locked.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] Replace ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
       return;
     }
 
@@ -68,14 +72,16 @@ export class NavigationDispatcher {
    * Pops the top route from the stack.
    */
   public static pop(): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] pop`);
     if (isTransitionLocked()) {
-      console.warn('[NavigationDispatcher] Pop ignored: Transition is locked.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] Pop ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
       return;
     }
 
     const store = useNavigationStore.getState();
     if (isRootRouteOnly(store.history)) {
-      console.warn('[NavigationDispatcher] Pop ignored: Cannot pop past root route.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] Pop ignored: Cannot pop past root route. Stack: ${JSON.stringify(store.history)}`);
       return;
     }
 
@@ -95,8 +101,10 @@ export class NavigationDispatcher {
    * Pops the stack back to the first route matching the predicate.
    */
   public static popTo(predicate: (route: NavigationRoute) => boolean): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] popTo`);
     if (isTransitionLocked()) {
-      console.warn('[NavigationDispatcher] popTo ignored: Transition is locked.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] popTo ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
       return;
     }
 
@@ -104,12 +112,12 @@ export class NavigationDispatcher {
     const index = store.history.findIndex(predicate);
 
     if (index === -1) {
-      console.warn('[NavigationDispatcher] popTo ignored: Target route not found in stack.');
+      console.warn(`[NavigationDispatcher] [${timestamp}] popTo ignored: Target route not found in stack. Stack: ${JSON.stringify(store.history)}`);
       return;
     }
 
     if (index === store.history.length - 1) {
-      // Already at the target
+      console.log(`[NavigationDispatcher] [${timestamp}] popTo: Already at the target`);
       return;
     }
 
@@ -123,8 +131,10 @@ export class NavigationDispatcher {
    * Resets the entire stack to a new history.
    */
   public static reset(stack: NavigationHistory): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] reset | stack: ${JSON.stringify(stack)}`);
     if (stack.length === 0) {
-      throw new Error('[NavigationDispatcher] Reset history stack cannot be empty.');
+      throw new Error(`[NavigationDispatcher] [${timestamp}] Reset history stack cannot be empty.`);
     }
 
     const validatedStack = stack.map((r) =>
@@ -172,6 +182,8 @@ export class NavigationDispatcher {
    * Internal helper to lock transitioning state and auto-release it.
    */
   private static lockTransition(type: TransitionType): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] lockTransition | type: ${type}`);
     const store = useNavigationStore.getState();
     store.setTransition(type, true);
 
@@ -180,6 +192,7 @@ export class NavigationDispatcher {
     }
 
     this.transitionTimeout = setTimeout(() => {
+      console.log(`[NavigationDispatcher] [${new Date().toISOString()}] lockTransition timeout auto-release`);
       useNavigationStore.getState().setTransition(null, false);
       this.transitionTimeout = null;
     }, 300); // 300ms matches visual transition timing

@@ -5,45 +5,112 @@ import { useNavigationStore } from '../../store/useNavigationStore';
  * Normalizes an incoming route partial and returns a strict NavigationRoute object.
  * Strips any extra un-mapped parameters to prevent history corruption.
  */
+interface ReactNavDiagnostics {
+  getMountedTree?: () => string[];
+  getVisibleTree?: () => string[];
+  getAnimationState?: () => string;
+  getAppMode?: () => string;
+  getCachedPanel?: () => any;
+}
+
+export const navDiagnosticsRegistry: ReactNavDiagnostics = {};
+
+export function printDiagnosticsDump(reason: string): void {
+  const timestamp = new Date().toISOString();
+  const store = useNavigationStore.getState();
+  const mountedTree = navDiagnosticsRegistry.getMountedTree ? navDiagnosticsRegistry.getMountedTree() : ['unknown'];
+  const visibleTree = navDiagnosticsRegistry.getVisibleTree ? navDiagnosticsRegistry.getVisibleTree() : ['unknown'];
+  const animationState = navDiagnosticsRegistry.getAnimationState ? navDiagnosticsRegistry.getAnimationState() : 'unknown';
+  const appMode = navDiagnosticsRegistry.getAppMode ? navDiagnosticsRegistry.getAppMode() : 'unknown';
+  const cachedPanel = navDiagnosticsRegistry.getCachedPanel ? navDiagnosticsRegistry.getCachedPanel() : null;
+
+  console.error(`
+==================================================
+!!! NAVIGATION FAILURE / BLOCK DETECTED !!!
+Reason: ${reason}
+Timestamp: ${timestamp}
+--------------------------------------------------
+Current Navigation Stack (History):
+${JSON.stringify(store.history, null, 2)}
+
+Current Back Stack (Active Handlers):
+${JSON.stringify(store.activeHandlers.map(h => ({ id: h.id, priority: h.priority })), null, 2)}
+
+Mounted React Tree:
+${JSON.stringify(mountedTree, null, 2)}
+
+Visible React Tree:
+${JSON.stringify(visibleTree, null, 2)}
+
+Animation State:
+${animationState}
+
+Transition State:
+Type: ${store.transitionType}
+Active (Locked): ${store.isTransitioning}
+
+Current AppMode:
+${appMode}
+
+Current CachedPanel:
+${JSON.stringify(cachedPanel)}
+
+Current NavigationStore State:
+Transitioning: ${store.isTransitioning}
+GestureState: ${store.gestureState}
+PredictiveProgress: ${store.predictiveProgress}
+==================================================
+  `);
+}
+
+/**
+ * Normalizes an incoming route partial and returns a strict NavigationRoute object.
+ * Strips any extra un-mapped parameters to prevent history corruption.
+ */
 export function normalizeAndValidateRoute(route: Partial<NavigationRoute>): NavigationRoute {
-  if (!route.app) {
-    throw new Error('[Navigation Validation] Route missing required "app" property.');
-  }
-
-  const validApps = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
-  if (!validApps.includes(route.app)) {
-    throw new Error(`[Navigation Validation] Invalid "app" value: "${route.app}".`);
-  }
-
-  const normalized: NavigationRoute = {
-    app: route.app,
-  };
-
-  if (route.tab) {
-    const validTabs = ['home', 'settings', 'profile', 'help'];
-    if (validTabs.includes(route.tab)) {
-      normalized.tab = route.tab;
+  try {
+    if (!route.app) {
+      throw new Error('[Navigation Validation] Route missing required "app" property.');
     }
-  }
 
-  if (typeof route.page === 'string') {
-    normalized.page = route.page;
-  }
-  if (typeof route.subView === 'string') {
-    normalized.subView = route.subView;
-  }
-  if (typeof route.id === 'string') {
-    normalized.id = route.id;
-  }
-
-  if (route.type) {
-    const validTypes = ['screen', 'modal', 'sheet', 'overlay'];
-    if (validTypes.includes(route.type)) {
-      normalized.type = route.type;
+    const validApps = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
+    if (!validApps.includes(route.app)) {
+      throw new Error(`[Navigation Validation] Invalid "app" value: "${route.app}".`);
     }
-  }
 
-  return normalized;
+    const normalized: NavigationRoute = {
+      app: route.app,
+    };
+
+    if (route.tab) {
+      const validTabs = ['home', 'settings', 'profile', 'help'];
+      if (validTabs.includes(route.tab)) {
+        normalized.tab = route.tab;
+      }
+    }
+
+    if (typeof route.page === 'string') {
+      normalized.page = route.page;
+    }
+    if (typeof route.subView === 'string') {
+      normalized.subView = route.subView;
+    }
+    if (typeof route.id === 'string') {
+      normalized.id = route.id;
+    }
+
+    if (route.type) {
+      const validTypes = ['screen', 'modal', 'sheet', 'overlay'];
+      if (validTypes.includes(route.type)) {
+        normalized.type = route.type;
+      }
+    }
+
+    return normalized;
+  } catch (err: any) {
+    printDiagnosticsDump(err.message || 'Validation error');
+    throw err;
+  }
 }
 
 /**

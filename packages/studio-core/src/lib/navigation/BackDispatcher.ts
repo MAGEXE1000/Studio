@@ -33,9 +33,11 @@ export class BackDispatcher {
   public static register(priority: BackPriority, fn: () => boolean): () => void {
     this.initialize();
     const id = Math.random().toString(36).substring(2, 9);
+    console.log(`[BackDispatcher] [${new Date().toISOString()}] Register handler | id: ${id}, priority: ${priority}`);
     useNavigationStore.getState().registerHandler(id, priority, fn);
 
     return () => {
+      console.log(`[BackDispatcher] [${new Date().toISOString()}] Unregister handler | id: ${id}, priority: ${priority}`);
       useNavigationStore.getState().unregisterHandler(id);
     };
   }
@@ -45,8 +47,10 @@ export class BackDispatcher {
    * Returns true if handled (consumed), false if nothing handled (indicating app should exit).
    */
   public static handleBackEvent(): boolean {
+    const timestamp = new Date().toISOString();
     const store = useNavigationStore.getState();
     const handlers = [...store.activeHandlers];
+    console.log(`[BackDispatcher] [${timestamp}] handleBackEvent | Active handlers count: ${handlers.length}`);
 
     // Sort handlers based on PRIORITY_ORDER index (lower index = higher priority)
     handlers.sort((a, b) => {
@@ -58,24 +62,25 @@ export class BackDispatcher {
     // Execute handlers in priority order
     for (const handler of handlers) {
       try {
+        console.log(`[BackDispatcher] [${timestamp}] Evaluating handler: {id: ${handler.id}, priority: ${handler.priority}}`);
         const consumed = handler.fn();
         if (consumed) {
-          console.log(`[BackDispatcher] Event consumed by handler with priority: ${handler.priority}`);
+          console.log(`[BackDispatcher] [${timestamp}] Event consumed by handler with priority: ${handler.priority} (id: ${handler.id})`);
           return true;
         }
       } catch (err) {
-        console.error('[BackDispatcher] Error executing registered back handler:', err);
+        console.error(`[BackDispatcher] [${timestamp}] Error executing registered back handler:`, err);
       }
     }
 
     // Default fallback: pop navigation history
     if (NavigationDispatcher.canGoBack()) {
-      console.log('[BackDispatcher] Fallback pop executed.');
+      console.log(`[BackDispatcher] [${timestamp}] Fallback pop executed. History stack: ${JSON.stringify(store.history)}`);
       NavigationDispatcher.pop();
       return true;
     }
 
-    console.log('[BackDispatcher] Back event unhandled (root reached).');
+    console.log(`[BackDispatcher] [${timestamp}] Back event unhandled (root reached).`);
     return false;
   }
 }

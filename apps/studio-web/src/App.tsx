@@ -13,7 +13,8 @@ import {
   setNavLocked,
   NavigationDispatcher,
   useNavigationStore,
-  type ActivePanel
+  type ActivePanel,
+  navDiagnosticsRegistry
 } from '@workspace/studio-core';
 
 import {
@@ -298,8 +299,49 @@ export default function App() {
 
   // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
   const [cachedPanel, setCachedPanel] = useState<ActivePanel>(activePanel);
+  // Register diagnostics getters for printDiagnosticsDump
+  useEffect(() => {
+    navDiagnosticsRegistry.getMountedTree = () => {
+      const tree: string[] = [];
+      tree.push('StudioHub');
+      if (appMode !== 'hub') tree.push(`SubAppWrapper(${appMode})`);
+      return tree;
+    };
+    navDiagnosticsRegistry.getVisibleTree = () => {
+      const tree: string[] = [];
+      if (appMode === 'hub') tree.push('StudioHub');
+      else tree.push(`SubAppWrapper(${appMode})`);
+      return tree;
+    };
+    navDiagnosticsRegistry.getAnimationState = () => {
+      return `appMode: ${appMode}`;
+    };
+    navDiagnosticsRegistry.getAppMode = () => appMode;
+    navDiagnosticsRegistry.getCachedPanel = () => cachedPanel;
+    return () => {
+      delete navDiagnosticsRegistry.getMountedTree;
+      delete navDiagnosticsRegistry.getVisibleTree;
+      delete navDiagnosticsRegistry.getAnimationState;
+      delete navDiagnosticsRegistry.getAppMode;
+      delete navDiagnosticsRegistry.getCachedPanel;
+    };
+  }, [appMode, cachedPanel]);
+
+  useEffect(() => {
+    const timestamp = new Date().toISOString();
+    console.log(`[SubApp] [${timestamp}] State Update | appMode: ${appMode}, isSubAppActive: ${isSubAppActive}, stableKey: ${stableKey}`);
+    if (isSubAppActive) {
+      console.log(`[SubApp] [${timestamp}] Mount | app: ${stableKey}, activePanel: ${activePanel}`);
+      return () => {
+        console.log(`[SubApp] [${new Date().toISOString()}] Unmount | app: ${stableKey}`);
+      };
+    }
+    return () => {};
+  }, [appMode, isSubAppActive, stableKey]);
+
   useEffect(() => {
     if (appMode === 'chords') {
+      console.log(`[SubApp] [${new Date().toISOString()}] setCachedPanel | prev: ${cachedPanel} -> next: ${activePanel}`);
       setCachedPanel(activePanel);
     }
   }, [activePanel, appMode]);

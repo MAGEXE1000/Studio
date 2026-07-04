@@ -21,25 +21,32 @@ export class TransitionCoordinator {
    */
   public static getTransitionEasing(type?: TransitionType | null): string {
     const activeType = type || useNavigationStore.getState().transitionType;
-
-    switch (activeType) {
-      case 'modal':
-        return 'cubic-bezier(0.34, 1.56, 0.64, 1)'; // Elastic bounce out
-      case 'sheet':
-        return 'cubic-bezier(0.22, 1, 0.36, 1)'; // Quintic slide out
-      case 'forward':
-      case 'backward':
-      default:
-        return 'cubic-bezier(0.16, 1, 0.3, 1)'; // Premium ultra-smooth decelerate
-    }
+    const curve = (() => {
+      switch (activeType) {
+        case 'modal':
+          return 'cubic-bezier(0.34, 1.56, 0.64, 1)'; // Elastic bounce out
+        case 'sheet':
+          return 'cubic-bezier(0.22, 1, 0.36, 1)'; // Quintic slide out
+        case 'forward':
+        case 'backward':
+        default:
+          return 'cubic-bezier(0.16, 1, 0.3, 1)'; // Premium ultra-smooth decelerate
+      }
+    })();
+    console.log(`[TransitionCoordinator] [${new Date().toISOString()}] getTransitionEasing | type: ${activeType} -> curve: ${curve}`);
+    return curve;
   }
 
   /**
    * Gets the duration of the transition in milliseconds.
    */
   public static getTransitionDuration(speed: 'normal' | 'fast' | 'reduced' = 'normal'): number {
-    if (speed === 'reduced') return 0;
-    if (speed === 'fast') return 200;
-    return 300;
+    const duration = (() => {
+      if (speed === 'reduced') return 0;
+      if (speed === 'fast') return 200;
+      return 300;
+    })();
+    console.log(`[TransitionCoordinator] [${new Date().toISOString()}] getTransitionDuration | speed: ${speed} -> duration: ${duration}`);
+    return duration;
   }
 }

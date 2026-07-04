@@ -2,7 +2,7 @@ import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncSta
 import { getUpdateHistory, triggerDowngrade } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from './ChordexLogo';
 import { Toggle, SectionHeader, SettingRow, SegmentedControl, COLOR_OPTIONS, BentoSettingCard, BentoSettingRow } from './SettingControls';
 import StudioThemeToggler from './StudioThemeToggler';
@@ -16,6 +16,7 @@ import ProfileDropdown from './kokonutui/profile-dropdown';
 import SmartLoading from './SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from './StudioSkeleton';
 import { SettingsScaffold } from './StudioLayoutSystem';
+import { useNavigationCoordinator, PageTransition } from './AppAnimationSystem';
 
 
 // AccountCard pulls Firebase (auth + firestore). Lazy-load it so Firebase
@@ -2437,7 +2438,7 @@ function HubSettings({
       setSyncStatus(s);
     });
   }, []);
-  const [page, setPage] = useState<SettingsPageId>(() => {
+  const getInitialSettingsPage = () => {
     if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToUpdater') === '1') {
       sessionStorage.removeItem('studio:routeToUpdater');
       return 'updater';
@@ -2452,9 +2453,12 @@ function HubSettings({
       return target as SettingsPageId;
     }
     return 'main';
-  });
-  const [pageKey, setPageKey] = useState(0);
-  const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
+  };
+
+  const navCoordinator = useNavigationCoordinator(getInitialSettingsPage());
+  const page = navCoordinator.page as SettingsPageId;
+  const pageKey = navCoordinator.pageKey;
+  const slideDir = navCoordinator.direction;
 
   const activePageId = page === 'main' ? 'general' : page;
 
@@ -2607,20 +2611,17 @@ function HubSettings({
     resetNav();
   }, [page]);
 
-  function navigate(to: SettingsPageId) {
+  const navigate = (to: SettingsPageId) => {
     snapshotScroll(page);
     pendingRestoreRef.current = to;
-    setSlideDir('forward');
-    setPage(to);
-    setPageKey(k => k + 1);
-  }
-  function goBack() {
+    navCoordinator.navigate(to);
+  };
+
+  const goBack = () => {
     snapshotScroll(page);
     pendingRestoreRef.current = 'main';
-    setSlideDir('back');
-    setPage('main');
-    setPageKey(k => k + 1);
-  }
+    navCoordinator.goBack('main');
+  };
 
   const goBackRef = useRef(goBack);
   useEffect(() => { goBackRef.current = goBack; });
@@ -4787,111 +4788,118 @@ User Agent: [Automatically Generated]
 
   /* ── MOBILE DRILL DOWN LAYOUTS ──────────────────────────────────── */
   if (!isWebDesktop) {
-    if (page === 'developer') {
-      return (
-        <SettingsScaffold key={pageKey} title={t.hub.studioSettings.developerTitle || 'Developer Options'} onBack={goBack}>
-          <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
-            <DevToolsDashboard accent={accent} onBack={goBack} />
-          </Suspense>
-        </SettingsScaffold>
-      );
-    }
-
-    if (page === 'updater') {
-      return (
-        <SettingsScaffold key={pageKey} title="App Updater" onBack={goBack}>
-          {renderUpdaterContent()}
-        </SettingsScaffold>
-      );
-    }
-
     const standardScrollPages: SettingsPageId[] = [
       'general', 'appearance', 'language', 'privacy', 'about', 'debug',
       'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report'
     ];
 
-    if (standardScrollPages.includes(page)) {
-      const title = getPageTitle(page);
-      return (
-        <SettingsScaffold key={pageKey} title={title} onBack={goBack}>
-          {renderActivePageContent(page)}
-        </SettingsScaffold>
-      );
-    }
-
     return (
-      <div key={pageKey} style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <style>{HUB_SETTINGS_CSS}</style>
-        <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
-          <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
-            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>{t.hub.settingsTitle}</p>
-            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
-          </div>
-
-        {renderMobileProfileCard()}
-
-        <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {!isNative() && (
-            <BentoSettingCard icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
-          )}
-          <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
-          <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
-          {!isNative() && (
-            <BentoSettingCard icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} delay={90} />
-          )}
-        </div>
-
-        <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <BentoSettingCard icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentation, FAQ & diagnostics' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} delay={110} />
-          {!isNative() && (
-            <BentoSettingCard icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
-          )}
-          {!isNative() && (
-            <BentoSettingCard icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
-          )}
-          {!isNative() && (
-            <BentoSettingCard icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} delay={140} />
-          )}
-        </div>
-
-        <SettingsSectionLabel delay={170}>{t.hub.studioSettings.legalLabel || 'Legal'}</SettingsSectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <BentoSettingCard icon="gavel" iconColor={accent.from} title={t.hub.studioSettings.termsTitle || 'Terms of Service'} desc={t.hub.studioSettings.termsDesc || 'Read terms and conditions'} onPress={() => navigate('terms')} delay={180} />
-          <BentoSettingCard icon="policy" iconColor={accent.from} title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} desc={t.hub.studioSettings.privacyDesc || 'Read privacy guidelines'} onPress={() => navigate('privacy-policy')} delay={190} />
-        </div>
-
-        <SettingsSectionLabel delay={210}>{t.hub.studioSettings.feedbackLabel || 'Feedback'}</SettingsSectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <BentoSettingCard icon="bug_report" iconColor={accent.from} title={t.hub.studioSettings.bugTitle || 'Report a Bug'} desc={t.hub.studioSettings.bugDesc || 'Send us feedback or bug reports'} onPress={() => navigate('bug-report')} delay={220} />
-        </div>
-
-        <SettingsSectionLabel delay={240}>{(t.hub as { studioSettings?: { systemAbout?: string } }).studioSettings?.systemAbout ?? 'System & About'}</SettingsSectionLabel>
-        <div style={{
-          borderRadius: '16px',
-          overflow: 'hidden',
-          border: '1px solid rgba(128, 128, 128, 0.08)',
-          background: 'var(--app-surface-high)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1px',
-        }}>
-          {isNative() && (
-            <BentoSettingRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
+      <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <AnimatePresence initial={false} mode="popLayout">
+          {page === 'developer' && (
+            <PageTransition key="developer" direction={slideDir}>
+              <SettingsScaffold title={t.hub.studioSettings.developerTitle || 'Developer Options'} onBack={goBack}>
+                <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
+                  <DevToolsDashboard accent={accent} onBack={goBack} />
+                </Suspense>
+              </SettingsScaffold>
+            </PageTransition>
           )}
 
-          <BentoSettingRow icon="info" iconColor={accent.from} title={t.settings.sections.about} desc={APP_VERSION_LABEL} onPress={() => navigate('about')} delay={260} />
-          {settings.developerMode && (
-            <BentoSettingRow icon="terminal" iconColor={accent.from} title={t.hub.studioSettings.developerTitle || 'Developer Options'} desc={t.hub.studioSettings.developerDesc || 'Update simulation, logs, and controls'} onPress={() => navigate('developer')} delay={270} />
+          {page === 'updater' && (
+            <PageTransition key="updater" direction={slideDir}>
+              <SettingsScaffold title="App Updater" onBack={goBack}>
+                {renderUpdaterContent()}
+              </SettingsScaffold>
+            </PageTransition>
           )}
-        </div>
 
-        <ChangelogSheet open={changelogOpen} onClose={() => setChangelogOpen(false)} />
+          {standardScrollPages.includes(page) && (
+            <PageTransition key={page} direction={slideDir}>
+              <SettingsScaffold title={getPageTitle(page)} onBack={goBack}>
+                {renderActivePageContent(page)}
+              </SettingsScaffold>
+            </PageTransition>
+          )}
+
+          {page === 'main' && (
+            <PageTransition key="main" direction={slideDir}>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <style>{HUB_SETTINGS_CSS}</style>
+                <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
+                  <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
+                    <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>{t.hub.settingsTitle}</p>
+                    <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
+                  </div>
+
+                  {renderMobileProfileCard()}
+
+                  <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {!isNative() && (
+                      <BentoSettingCard icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
+                    )}
+                    <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
+                    <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
+                    {!isNative() && (
+                      <BentoSettingCard icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} delay={90} />
+                    )}
+                  </div>
+
+                  <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <BentoSettingCard icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentation, FAQ & diagnostics' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} delay={110} />
+                    {!isNative() && (
+                      <BentoSettingCard icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
+                    )}
+                    {!isNative() && (
+                      <BentoSettingCard icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
+                    )}
+                    {!isNative() && (
+                      <BentoSettingCard icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} delay={140} />
+                    )}
+                  </div>
+
+                  <SettingsSectionLabel delay={170}>{t.hub.studioSettings.legalLabel || 'Legal'}</SettingsSectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <BentoSettingCard icon="gavel" iconColor={accent.from} title={t.hub.studioSettings.termsTitle || 'Terms of Service'} desc={t.hub.studioSettings.termsDesc || 'Read terms and conditions'} onPress={() => navigate('terms')} delay={180} />
+                    <BentoSettingCard icon="policy" iconColor={accent.from} title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} desc={t.hub.studioSettings.privacyDesc || 'Read privacy guidelines'} onPress={() => navigate('privacy-policy')} delay={190} />
+                  </div>
+
+                  <SettingsSectionLabel delay={210}>{t.hub.studioSettings.feedbackLabel || 'Feedback'}</SettingsSectionLabel>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <BentoSettingCard icon="bug_report" iconColor={accent.from} title={t.hub.studioSettings.bugTitle || 'Report a Bug'} desc={t.hub.studioSettings.bugDesc || 'Send us feedback or bug reports'} onPress={() => navigate('bug-report')} delay={220} />
+                  </div>
+
+                  <SettingsSectionLabel delay={240}>{(t.hub as { studioSettings?: { systemAbout?: string } }).studioSettings?.systemAbout ?? 'System & About'}</SettingsSectionLabel>
+                  <div style={{
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(128, 128, 128, 0.08)',
+                    background: 'var(--app-surface-high)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1px',
+                  }}>
+                    {isNative() && (
+                      <BentoSettingRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
+                    )}
+
+                    <BentoSettingRow icon="info" iconColor={accent.from} title={t.settings.sections.about} desc={APP_VERSION_LABEL} onPress={() => navigate('about')} delay={260} />
+                    {settings.developerMode && (
+                      <BentoSettingRow icon="terminal" iconColor={accent.from} title={t.hub.studioSettings.developerTitle || 'Developer Options'} desc={t.hub.studioSettings.developerDesc || 'Update simulation, logs, and controls'} onPress={() => navigate('developer')} delay={270} />
+                    )}
+                  </div>
+
+                  <ChangelogSheet open={changelogOpen} onClose={() => setChangelogOpen(false)} />
+                </div>
+              </div>
+            </PageTransition>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
 
 
@@ -5294,16 +5302,19 @@ function HubHelp({
   const lang = settings.language ?? 'en';
   const isWebDesktop = useIsWebDesktop();
 
-  const [page, setPage] = useState<HelpPageActiveId>(() => {
+  const getInitialHelpPage = () => {
     const target = typeof window !== 'undefined' ? sessionStorage.getItem('studio:routeToHelpPage') : null;
     if (target) {
       sessionStorage.removeItem('studio:routeToHelpPage');
       return target as HelpPageActiveId;
     }
     return 'main';
-  });
-  const [pageKey, setPageKey] = useState(0);
-  const [slideDir, setSlideDir] = useState<'forward' | 'back'>('forward');
+  };
+
+  const navCoordinator = useNavigationCoordinator(getInitialHelpPage());
+  const page = navCoordinator.page as HelpPageActiveId;
+  const pageKey = navCoordinator.pageKey;
+  const slideDir = navCoordinator.direction;
   const [copiedBugTemplate, setCopiedBugTemplate] = useState(false);
   const [firebaseAppReleaseJson, setFirebaseAppReleaseJson] = useState<string>('Loading...');
 
@@ -5337,21 +5348,17 @@ function HubHelp({
     pendingRestoreRef.current = null;
   }, [page, pageKey]);
 
-  function navigate(to: HelpPageActiveId) {
+  const navigate = (to: HelpPageActiveId) => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = to;
-    setSlideDir('forward');
-    setPage(to);
-    setPageKey(k => k + 1);
-  }
+    navCoordinator.navigate(to);
+  };
 
-  function goBack() {
+  const goBack = () => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = 'main';
-    setSlideDir('back');
-    setPage('main');
-    setPageKey(k => k + 1);
-  }
+    navCoordinator.goBack('main');
+  };
 
   useEffect(() => {
     const handleRoute = () => {
@@ -5896,49 +5903,56 @@ User Agent: [Automatically Generated]
       'keyboard-shortcuts', 'terms', 'privacy-policy', 'bug-report'
     ];
 
-    if (standardScrollPages.includes(page)) {
-      const title = getPageTitle(page as HelpPageId);
-      return (
-        <SettingsScaffold key={pageKey} title={title} onBack={goBack}>
-          {renderActivePageContent(page as HelpPageId)}
-        </SettingsScaffold>
-      );
-    }
-
     return (
-      <div key={pageKey} style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <style>{HUB_SETTINGS_CSS}</style>
-        <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
-          <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
-            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>Help & Support</p>
-            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>Find documentation, FAQ, apps, and legal policies</p>
-          </div>
+      <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <AnimatePresence initial={false} mode="popLayout">
+          {standardScrollPages.includes(page) && (
+            <PageTransition key={page} direction={slideDir}>
+              <SettingsScaffold title={getPageTitle(page as HelpPageId)} onBack={goBack}>
+                {renderActivePageContent(page as HelpPageId)}
+              </SettingsScaffold>
+            </PageTransition>
+          )}
 
-          <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
-          <div style={cardStyle}>
-            <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={isNative()} delay={75} />
-            {!isNative() && (
-              <SettingsNavRow icon="article" iconColor={accent.from} title="Release Notes" desc="View version history" onPress={() => navigate('release-notes')} delay={80} />
-            )}
-            {!isNative() && (
-              <SettingsNavRow icon="install_desktop" iconColor={accent.from} title="Download Apps" desc="Get native mobile and desktop clients" onPress={() => navigate('download-apps')} delay={85} />
-            )}
-            {!isNative() && (
-              <SettingsNavRow icon="keyboard" iconColor={accent.from} title="Keyboard Shortcuts" desc="View quick key bindings" onPress={() => navigate('keyboard-shortcuts')} last delay={90} />
-            )}
-          </div>
+          {page === 'main' && (
+            <PageTransition key="main" direction={slideDir}>
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <style>{HUB_SETTINGS_CSS}</style>
+                <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
+                  <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
+                    <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>Help & Support</p>
+                    <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>Find documentation, FAQ, apps, and legal policies</p>
+                  </div>
 
-          <SettingsSectionLabel delay={110}>Legal</SettingsSectionLabel>
-          <div style={cardStyle}>
-            <SettingsNavRow icon="gavel" iconColor={accent.from} title="Terms of Service" desc="Read terms and conditions" onPress={() => navigate('terms')} delay={115} />
-            <SettingsNavRow icon="policy" iconColor={accent.from} title="Privacy Policy" desc="Read privacy guidelines" onPress={() => navigate('privacy-policy')} last delay={120} />
-          </div>
+                  <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
+                  <div style={cardStyle}>
+                    <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={isNative()} delay={75} />
+                    {!isNative() && (
+                      <SettingsNavRow icon="article" iconColor={accent.from} title="Release Notes" desc="View version history" onPress={() => navigate('release-notes')} delay={80} />
+                    )}
+                    {!isNative() && (
+                      <SettingsNavRow icon="install_desktop" iconColor={accent.from} title="Download Apps" desc="Get native mobile and desktop clients" onPress={() => navigate('download-apps')} delay={85} />
+                    )}
+                    {!isNative() && (
+                      <SettingsNavRow icon="keyboard" iconColor={accent.from} title="Keyboard Shortcuts" desc="View quick key bindings" onPress={() => navigate('keyboard-shortcuts')} last delay={90} />
+                    )}
+                  </div>
 
-          <SettingsSectionLabel delay={140}>Feedback</SettingsSectionLabel>
-          <div style={cardStyle}>
-            <SettingsNavRow icon="bug_report" iconColor={accent.from} title="Report a Bug" desc="Send us feedback or bug reports" onPress={() => navigate('bug-report')} last delay={145} />
-          </div>
-        </div>
+                  <SettingsSectionLabel delay={110}>Legal</SettingsSectionLabel>
+                  <div style={cardStyle}>
+                    <SettingsNavRow icon="gavel" iconColor={accent.from} title="Terms of Service" desc="Read terms and conditions" onPress={() => navigate('terms')} delay={115} />
+                    <SettingsNavRow icon="policy" iconColor={accent.from} title="Privacy Policy" desc="Read privacy guidelines" onPress={() => navigate('privacy-policy')} last delay={120} />
+                  </div>
+
+                  <SettingsSectionLabel delay={140}>Feedback</SettingsSectionLabel>
+                  <div style={cardStyle}>
+                    <SettingsNavRow icon="bug_report" iconColor={accent.from} title="Report a Bug" desc="Send us feedback or bug reports" onPress={() => navigate('bug-report')} last delay={145} />
+                  </div>
+                </div>
+              </div>
+            </PageTransition>
+          )}
+        </AnimatePresence>
       </div>
     );
   }

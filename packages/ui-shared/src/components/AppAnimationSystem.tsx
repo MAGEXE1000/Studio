@@ -1,34 +1,200 @@
 import { useChordStore } from '@workspace/studio-core';
-import React, { useRef } from 'react';
-import { motion } from 'motion/react';
+import React, { useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+
+// ── 1. Standard Transition Presets ──────────────────────────────────────────
+export const MOTION_DURATIONS = {
+  fast: 0.2,
+  normal: 0.35,
+  slow: 0.5,
+};
+
+export const MOTION_EASINGS = {
+  standard: [0.25, 1, 0.5, 1] as any, // Premium cubic-bezier easing
+  spring: {
+    type: 'spring' as const,
+    stiffness: 140,
+    damping: 18,
+    mass: 0.9,
+  }
+};
 
 // Helper to check if reduced motion is preferred by the system or settings
 export function usePrefersReducedMotion() {
   const { settings } = useChordStore();
-  const speed = settings.animationSpeed;
-  
-  // If the user explicitly configured 'normal' or 'fast' in settings,
-  // we prioritize that and play animations even if their OS/browser reports prefers-reduced-motion.
+  const speed = settings?.animationSpeed;
   if (speed === 'reduced') return true;
   if (speed === 'normal' || speed === 'fast') return false;
-
   return (
-    (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
 
 // Helper to check the animation duration speed coefficient
 export function useAnimationSpeed() {
   const { settings } = useChordStore();
-  const speed = settings.animationSpeed;
+  const speed = settings?.animationSpeed;
   return speed === 'fast' ? 0.6 : 1.0;
 }
 
-/**
- * 1. APP ENTRY TRANSITION
- * Wraps the outer frame of any app/panel. Animates scale, y, and opacity on mount.
- * Uses a premium, smooth slightly bouncy spring transition.
- */
+// ── 2. Animation Coordinator ────────────────────────────────────────────────
+export const AnimationCoordinator = {
+  getDuration(preset: 'fast' | 'normal' | 'slow' = 'normal', speedSetting?: string): number {
+    if (speedSetting === 'reduced') return 0;
+    const base = MOTION_DURATIONS[preset];
+    const multiplier = speedSetting === 'fast' ? 0.6 : 1.0;
+    return base * multiplier;
+  },
+
+  getTransition(preset: 'standard' | 'spring' = 'standard', durationPreset: 'fast' | 'normal' | 'slow' = 'normal', speedSetting?: string) {
+    if (speedSetting === 'reduced') {
+      return { duration: 0 };
+    }
+    const duration = this.getDuration(durationPreset, speedSetting);
+    if (preset === 'spring') {
+      return { ...MOTION_EASINGS.spring, duration };
+    }
+    return { ease: MOTION_EASINGS.standard, duration };
+  },
+
+  startTransition(durationMs: number = 300) {
+    if (typeof window !== 'undefined') {
+      (window as any).studioTransitionActive = true;
+      const startEvent = new CustomEvent('studio:transition-start');
+      window.dispatchEvent(startEvent);
+      
+      setTimeout(() => {
+        (window as any).studioTransitionActive = false;
+        const endEvent = new CustomEvent('studio:transition-end');
+        window.dispatchEvent(endEvent);
+      }, durationMs);
+    }
+  }
+};
+
+// ── 3. Navigation Coordinator ────────────────────────────────────────────────
+export interface NavigationState {
+  page: string;
+  direction: 'forward' | 'backward';
+  pageKey: number;
+}
+
+export function useNavigationCoordinator(initialPage: string) {
+  const [state, setState] = useState<NavigationState>({
+    page: initialPage,
+    direction: 'forward',
+    pageKey: 0,
+  });
+
+  const navigate = useCallback((toPage: string) => {
+    AnimationCoordinator.startTransition(300);
+    setState(prev => ({
+      page: toPage,
+      direction: 'forward',
+      pageKey: prev.pageKey + 1,
+    }));
+  }, []);
+
+  const goBack = useCallback((fallbackPage: string = 'main') => {
+    AnimationCoordinator.startTransition(300);
+    setState(prev => ({
+      page: fallbackPage,
+      direction: 'backward',
+      pageKey: prev.pageKey + 1,
+    }));
+  }, []);
+
+  return {
+    page: state.page,
+    direction: state.direction,
+    pageKey: state.pageKey,
+    navigate,
+    goBack,
+  };
+}
+
+// ── 4. Shared Transition Engine Components ─────────────────────────────────
+export interface PageTransitionProps {
+  children: React.ReactNode;
+  direction: 'forward' | 'backward';
+  type?: 'slide' | 'fade' | 'scale';
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+export function PageTransition({
+  children,
+  direction,
+  type = 'slide',
+  style,
+  className = '',
+}: PageTransitionProps) {
+  const prefersReduced = usePrefersReducedMotion();
+  const settings = useChordStore(s => s.settings);
+
+  if (prefersReduced) {
+    return (
+      <div className={className} style={{ width: '100%', height: '100%', ...style }}>
+        {children}
+      </div>
+    );
+  }
+
+  const variants = {
+    initial: () => {
+      if (type === 'fade') return { opacity: 0 };
+      if (type === 'scale') return { opacity: 0, scale: 0.96 };
+      return {
+        x: direction === 'forward' ? '100%' : '-30%',
+        opacity: 0,
+      };
+    },
+    animate: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: () => {
+      if (type === 'fade') return { opacity: 0 };
+      if (type === 'scale') return { opacity: 0, scale: 1.04 };
+      return {
+        x: direction === 'forward' ? '-30%' : '100%',
+        opacity: 0,
+      };
+    }
+  };
+
+  const transition = AnimationCoordinator.getTransition(
+    type === 'scale' ? 'spring' : 'standard',
+    'normal',
+    settings?.animationSpeed
+  );
+
+  return (
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={variants}
+      transition={transition}
+      style={{
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        inset: 0,
+        overflow: 'hidden',
+        willChange: 'transform, opacity',
+        ...style
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ── 5. App Entry Transition ──────────────────────────────────────────────────
 export function AppEntryTransition({
   children,
   style,
@@ -39,7 +205,7 @@ export function AppEntryTransition({
   className?: string;
 }) {
   const prefersReduced = usePrefersReducedMotion();
-  const speedScale = useAnimationSpeed();
+  const settings = useChordStore(s => s.settings);
 
   if (prefersReduced) {
     return (
@@ -49,19 +215,14 @@ export function AppEntryTransition({
     );
   }
 
+  const transition = AnimationCoordinator.getTransition('spring', 'normal', settings?.animationSpeed);
+
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: 16, scale: 0.972 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{
-        type: 'spring',
-        stiffness: 120,
-        damping: 14,
-        mass: 0.85,
-        velocity: 2,
-        duration: 0.45 * speedScale,
-      }}
+      transition={transition}
       style={{
         width: '100%',
         height: '100%',
@@ -74,11 +235,7 @@ export function AppEntryTransition({
   );
 }
 
-/**
- * 2. STAGGERED CONTENT REVEAL
- * Wraps any layout container (e.g. list, card grid, controls panel) and progressively
- * animates direct children using staggered index-based delays.
- */
+// ── 6. Staggered Content Reveal ──────────────────────────────────────────────
 export function StaggeredReveal({
   children,
   delayOffset = 0.05,
@@ -112,8 +269,6 @@ export function StaggeredReveal({
         const childElement = child as React.ReactElement<any>;
         const delay = delayOffset + index * (staggerInterval / 1000) * speedScale;
 
-        // Extract layout-affecting classes from the child (like col-span-2 or flex-1)
-        // and forward them to the motion.div wrapper so grid and flex parents layout perfectly
         let wrapperClassName = "";
         if (childElement.props && childElement.props.className) {
           const classes = childElement.props.className.split(/\s+/);
@@ -157,11 +312,7 @@ export function StaggeredReveal({
   );
 }
 
-/**
- * 3. TEXT ANIMATIONS (AnimatedAppHeader)
- * Main app headings with a gorgeous character reveal effect.
- * Uses inline-block splits to prevent page/line overflow and preserve text styling.
- */
+// ── 7. Text Animations (AnimatedAppHeader) ───────────────────────────────────
 export function AnimatedAppHeader({
   title,
   subtitle,

@@ -311,7 +311,11 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     ...globalOtaState,
     updateState: state,
     loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARE_INSTALL', 'INSTALLING'].includes(state),
-    error: ['INSTALL_FAILED', 'RECOVERY'].includes(state) ? (failureReason || globalOtaState.error) : (state === 'IDLE' ? null : globalOtaState.error),
+    error: ['INSTALL_FAILED', 'RECOVERY'].includes(state)
+      ? (failureReason || globalOtaState.error)
+      : (state === 'IDLE'
+          ? (failureReason || null)
+          : (failureReason || globalOtaState.error)),
   };
   stateListeners.forEach((l) => l(globalOtaState));
 }

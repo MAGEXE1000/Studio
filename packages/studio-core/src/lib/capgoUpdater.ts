@@ -32,7 +32,8 @@ export type RuntimePlatform = 'web' | 'android-native';
 
 export function getRuntimePlatform(): RuntimePlatform {
   try {
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+    const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
+    if (cap.isNativePlatform() && cap.getPlatform() === 'android') {
       return 'android-native';
     }
   } catch {}

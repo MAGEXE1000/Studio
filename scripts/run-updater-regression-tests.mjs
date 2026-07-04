@@ -30,20 +30,26 @@ const mockSessionStorage = {
   clear() { this.store = {}; }
 };
 
-// Mock Cordova/Capacitor plugins
+// 2. Define mock AppInstaller plugin methods
 const mockAppInstaller = {
   installApk: async () => {},
+  installApkDirect: async () => {},
+  downloadAndInstallApk: async () => {},
   downloadApk: async ({ url }) => {
     if (url.includes('fail')) throw new Error('Network error');
     return { filePath: `/mock/path/to/downloaded.apk` };
   },
   verifyApkSha256: async () => ({ matches: true }),
+  verifySha256: async () => ({ matches: true }),
   getLastInstallResult: async () => ({ statusCode: 0, statusMessage: 'Success' }),
-  getInstalledAppInfo: async () => ({ versionName: '3.7.8', versionCode: 8, signingSha256: 'mock_sha_256', packageName: 'com.chordex.app' }),
+  getInstalledAppInfo: async () => ({ versionName: '3.7.8', versionCode: 8, signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206', packageName: 'com.chordex.app' }),
+  inspectApk: async () => ({ packageName: 'com.chordex.app', versionName: '3.7.8', versionCode: 8, signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206', isValidApk: true }),
   isInstallActive: async () => ({ active: false }),
   clearInstallerLogHistory: async () => {},
   appendLog: async () => {},
   openInstallPermissionSettings: async () => {},
+  openUnknownAppSourcesSettings: async () => {},
+  canRequestPackageInstalls: async () => ({ value: true }),
   getDeviceInfo: async () => ({
     manufacturer: 'Mock',
     model: 'Device',
@@ -53,18 +59,6 @@ const mockAppInstaller = {
   }),
   addListener: (event, cb) => {
     return { remove: async () => {} };
-  },
-  inspectApk: async ({ filePath }) => {
-    return {
-      packageName: 'com.chordex.app',
-      versionName: '3.7.37',
-      versionCode: 164,
-      minSdk: 26,
-      targetSdk: 34,
-      isValidApk: true,
-      isUniversalApk: true,
-      signingSha256: 'mock_sha_256'
-    };
   },
   readFirstBytes: async ({ filePath, byteCount }) => {
     return { bytes: '504B0304' };
@@ -86,14 +80,32 @@ const mockAppInstaller = {
   getInstallerLogHistory: async () => {
     return { logs: '[]' };
   },
-  canRequestPackageInstalls: async () => {
-    return { value: true };
-  },
   resumePendingInstall: async () => {},
   resumePackageInstallerSession: async () => {},
   recreateActivity: async () => {},
   killProcess: async () => {}
 };
+
+// 3. Register standard WebPlugin to mock native bridge behavior in ESM/Node
+import { WebPlugin, registerPlugin } from '@capacitor/core';
+class AppInstallerWeb extends WebPlugin {
+  constructor() {
+    super({ name: 'AppInstaller' });
+    return new Proxy(this, {
+      get(target, prop) {
+        if (prop in mockAppInstaller) {
+          return mockAppInstaller[prop];
+        }
+        return target[prop];
+      }
+    });
+  }
+}
+registerPlugin('AppInstaller', {
+  web: () => new AppInstallerWeb()
+});
+
+
 
 globalThis.Capacitor = {
   isNativePlatform: () => true,
@@ -153,6 +165,23 @@ const {
   isAppInstallerAvailable,
   resetOtaUpdateState
 } = await import(otaModuleUrl);
+
+// Re-apply Capacitor mocks after the module imports have finished loading
+const cap = globalThis.Capacitor || {};
+cap.isNativePlatform = () => true;
+cap.getPlatform = () => 'android';
+cap.isPluginAvailable = (name) => name === 'AppInstaller';
+cap.Plugins = cap.Plugins || {};
+cap.Plugins.AppInstaller = mockAppInstaller;
+globalThis.Capacitor = cap;
+if (globalThis.window) {
+  globalThis.window.Capacitor = cap;
+}
+
+// authoritatively mock the AppInstaller exported object
+const apkDownloaderUrl = `file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/apkDownloader.js').replace(/\\/g, '/')}`;
+const { AppInstaller } = await import(apkDownloaderUrl);
+Object.assign(AppInstaller, mockAppInstaller);
 
 const { APP_VERSION } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/appVersion.js').replace(/\\/g, '/')}`);
 const [major, minor, patch] = APP_VERSION.split('.').map(Number);
@@ -318,7 +347,7 @@ async function runRegressionTests() {
   await runTest('Downgrade verification block', async () => {
     mockFetchHandler = () => ({
       ok: true,
-      json: async () => ({ version: prevVersion, versionCode: 134 }) // Lower than 3.7.8
+      json: async () => ({ version: prevVersion, versionCode: 5 }) // Lower than 3.7.8 (mocked local is 8)
     });
 
     const state = await checkForUpdate(true);

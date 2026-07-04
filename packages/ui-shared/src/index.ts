@@ -56,11 +56,9 @@ export { default as MicWavesLottie } from './components/lottie/MicWavesLottie';
 export { default as MusicNotesLottie } from './components/lottie/MusicNotesLottie';
 export { default as NoResultsLottie } from './components/lottie/NoResultsLottie';
 export { default as SuccessLottie } from './components/lottie/SuccessLottie';
-export { default as UpdateLottie } from './components/lottie/UpdateLottie';
 export { default as VinylLottie } from './components/lottie/VinylLottie';
 
 // UI
-export * from './components/ui/dropdown-menu';
 export * from './components/ui/encrypted-text';
 
 export { useGroovexStore } from './groovex/useGroovexStore';

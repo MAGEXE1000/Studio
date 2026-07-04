@@ -282,11 +282,11 @@
         var titleEl  = center.querySelector('.title');
         var subEl    = center.querySelector('.sub');
 
-        var SETTLE_DURATION = 500;  // ms to scale/translate logo to Hub target
-        var FADE_OVERLAP    = 250;  // intro fade starts this many ms before settle ends
-        var FADE_DURATION   = 500;  // smooth reveal of the hub
-        var MIN_PLAY_TIME   = 800;   // minimum animation duration for logo to bloom
-        var MAX_WAIT_TIME   = 2200;  // hard cap safety limit
+        var SETTLE_DURATION = 350;  // ms to scale/translate logo to Hub target
+        var FADE_OVERLAP    = 200;  // intro fade starts this many ms before settle ends
+        var FADE_DURATION   = 300;  // smooth reveal of the hub
+        var MIN_PLAY_TIME   = 350;   // minimum animation duration for logo to bloom
+        var MAX_WAIT_TIME   = 1500;  // hard cap safety limit
 
         // Default fallback targets if measurement fails
         function fallbackTargets() {
@@ -299,6 +299,7 @@
 
         // Measure actual hub logo target position
         function measureTargets() {
+          if (!reactMounted()) return null;
           var W = cachedWidth;
           var H = cachedHeight;
           if (!W || !H || W < 100 || H < 100) return null;

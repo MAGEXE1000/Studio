@@ -9,15 +9,12 @@ import StudioThemeToggler from './StudioThemeToggler';
 import ApplyToSheet from './ApplyToSheet';
 import ChangelogSheet from './ChangelogSheet';
 import GradientBorderCard from './GradientBorderCard';
-import UpdateDiagnosticsSheet from './UpdateDiagnosticsSheet';
-import StudioUpdateScreen from './StudioUpdateScreen';
 import StudioTitleReveal from './StudioTitleReveal';
 import { EncryptedText } from './ui/encrypted-text';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
 import ProfileDropdown from './kokonutui/profile-dropdown';
 import SmartLoading from './SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from './StudioSkeleton';
-import DevToolsDashboard from './DevToolsDashboard';
 
 
 // AccountCard pulls Firebase (auth + firestore). Lazy-load it so Firebase
@@ -29,6 +26,7 @@ const AccountDangerZone = lazy(() =>
 const AccountSettingsPage = lazy(() =>
   import('./AccountCard').then(m => ({ default: m.AccountSettingsPage }))
 );
+const DevToolsDashboard = lazy(() => import('./DevToolsDashboard'));
 
 type HubTab = 'home' | 'settings' | 'profile' | 'help';
 type HelpPageId = 'help-center' | 'faq' | 'release-notes' | 'download-apps' | 'keyboard-shortcuts' | 'terms' | 'privacy-policy' | 'bug-report';
@@ -4768,7 +4766,11 @@ User Agent: [Automatically Generated]
       case 'updater':
         return renderUpdaterContent();
       case 'developer':
-        return <DevToolsDashboard accent={accent} onBack={goBack} />;
+        return (
+          <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
+            <DevToolsDashboard accent={accent} onBack={goBack} />
+          </Suspense>
+        );
       case 'about':
         return renderAboutContent();
       case 'debug':
@@ -4787,7 +4789,9 @@ User Agent: [Automatically Generated]
     if (page === 'developer') {
       return (
         <div key={pageKey} className="settings-panel-sheet" style={{ ...subStyle, padding: 0, paddingBottom: 0 }}>
-          <DevToolsDashboard accent={accent} onBack={goBack} />
+          <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
+            <DevToolsDashboard accent={accent} onBack={goBack} />
+          </Suspense>
         </div>
       );
     }

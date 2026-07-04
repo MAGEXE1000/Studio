@@ -46,7 +46,6 @@ const GroovexApp = lazy(() => import('@workspace/ui-shared/src/groovex/GroovexAp
 const VocalexApp = lazy(() => import('@workspace/ui-shared/src/vocalex/VocalexApp'));
 const StageCorePanel = lazy(() => import('@workspace/ui-android/src/components/StageCorePanel'));
 import { Capacitor } from '@capacitor/core';
-import html2canvas from 'html2canvas';
 
 import "./index.css";
 
@@ -453,6 +452,7 @@ async function runPaintVerification(scaleFactor = 0.1) {
   }
 
   try {
+    const html2canvas = (await import('html2canvas')).default;
     const canvas = await html2canvas(el as HTMLElement, {
       logging: false,
       useCORS: true,
@@ -712,7 +712,9 @@ function TolgeeSuspenseFallback() {
   );
 }
 export default function App() {
-  const { activePanel, settings, setActivePanel, activePresetId, updateSettings } = useChordStore();
+  const activePanel = useChordStore(state => state.activePanel);
+  const settings = useChordStore(state => state.settings);
+  const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
@@ -1206,7 +1208,7 @@ export default function App() {
 
     // FORENSIC AUTO-CAPTURE FOR CHORDEX -> HUB
     const isFromChords = fromApp === 'chords';
-    if (isFromChords) {
+    if (isFromChords && isDebugModeEnabled) {
       try {
         const lastCaptureId = Date.now();
         (window as any).__lastForensicCaptureId = lastCaptureId;
@@ -1784,7 +1786,7 @@ export default function App() {
 
   // 500ms return-to-hub black screen watchdog detector with grace checking and consecutive validation passes
   useEffect(() => {
-    if (appMode !== 'hub') {
+    if (appMode !== 'hub' || !isDebugModeEnabled) {
       return () => {};
     }
 

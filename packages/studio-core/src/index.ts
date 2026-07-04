@@ -62,4 +62,12 @@ export * from './lib/updater/stateMachine';
 export * from './lib/startupCoordinator';
 export * from './lib/themeEngine';
 
-
+// Navigation Core Foundation (Sprint 9.1)
+export * from './lib/navigation/navigationTypes';
+export * from './store/useNavigationStore';
+export * from './lib/navigation/NavigationDispatcher';
+export * from './lib/navigation/NavigationCoordinator';
+export * from './lib/navigation/BackDispatcher';
+export * from './lib/navigation/GestureDispatcher';
+export * from './lib/navigation/TransitionCoordinator';
+export * from './lib/navigation/validation';

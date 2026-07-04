@@ -1,22 +1,20 @@
 {
   "platform": "android",
-  "version": "3.7.71",
-  "versionName": "3.7.71",
-  "versionCode": 199,
-  "version_code": 199,
-  "commit": "736f174e",
-  "releasedAt": "7/4/2026, 3:36:40 PM CST",
-  "buildTimestamp": "7/4/2026, 3:36:40 PM CST",
+  "version": "3.7.72",
+  "versionName": "3.7.72",
+  "versionCode": 200,
+  "version_code": 200,
+  "commit": "64761c5f",
+  "releasedAt": "7/4/2026, 3:53:59 PM CST",
+  "buildTimestamp": "7/4/2026, 3:53:59 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Resolved critical sub-app closing regression and navigation deadlocks.\n• Implemented premium slide-reveal transitions for all sub-app pages.\n• Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.\n• Added automatic bottom navigation expansion upon tab and view switches.\n• Restructured Android app shells to use unified Zustand navigation states.",
-  "whatsNew": "• Resolved critical sub-app closing regression and navigation deadlocks.\n• Implemented premium slide-reveal transitions for all sub-app pages.\n• Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.\n• Added automatic bottom navigation expansion upon tab and view switches.\n• Restructured Android app shells to use unified Zustand navigation states.",
+  "changelog": "• Integrated comprehensive navigation logging instrumentation across the entire routing stack.\n• Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.\n• Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.",
+  "whatsNew": "• Integrated comprehensive navigation logging instrumentation across the entire routing stack.\n• Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.\n• Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.",
   "releaseNotes": {
     "added": [
-      "Resolved critical sub-app closing regression and navigation deadlocks.",
-      "Implemented premium slide-reveal transitions for all sub-app pages.",
-      "Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.",
-      "Added automatic bottom navigation expansion upon tab and view switches.",
-      "Restructured Android app shells to use unified Zustand navigation states."
+      "Integrated comprehensive navigation logging instrumentation across the entire routing stack.",
+      "Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.",
+      "Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures."
     ]
   },
   "mandatory": false

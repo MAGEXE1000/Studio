@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.72
+
+### Added
+- Integrated comprehensive navigation logging instrumentation across the entire routing stack.
+- Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.
+- Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.
+
 ## 3.7.71
 
 ### Added

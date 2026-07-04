@@ -1,6 +1,4 @@
 ### Added
-- Resolved critical sub-app closing regression and navigation deadlocks.
-- Implemented premium slide-reveal transitions for all sub-app pages.
-- Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.
-- Added automatic bottom navigation expansion upon tab and view switches.
-- Restructured Android app shells to use unified Zustand navigation states.
+- Integrated comprehensive navigation logging instrumentation across the entire routing stack.
+- Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.
+- Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.

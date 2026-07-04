@@ -204,7 +204,7 @@ export async function getNativeVersionCode(): Promise<number | null> {
 
 
 export function resetOtaUpdateState() {
-  if (activeCheckPromise || activeDownloadPromise || activeApplyPromise) {
+  if (activeCheckPromise || activeDownloadPromise || activeApplyPromise || UpdatePipelineCoordinator.activeAsyncStage !== 'IDLE') {
     console.warn('[OTA] Rejecting resetOtaUpdateState: an update operation is currently active.');
     return;
   }
@@ -292,6 +292,173 @@ export function enforceStartupRecovery(): Promise<void> {
   return startupRecoveryPromise;
 }
 
+export class PipelineCancelledError extends Error {
+  constructor(message = 'Update pipeline cancelled') {
+    super(message);
+    this.name = 'PipelineCancelledError';
+  }
+}
+
+interface PipelineRequest {
+  id: number;
+  isManual: boolean;
+  trigger: string;
+  reason: string;
+  resolve: (value: CentralizedOtaState) => void;
+  reject: (reason: any) => void;
+  promise: Promise<CentralizedOtaState>;
+}
+
+export class UpdatePipelineCoordinatorClass {
+  private activePipelineId: number = 0;
+  private currentPromise: Promise<CentralizedOtaState> | null = null;
+  private currentRequest: PipelineRequest | null = null;
+  private requestQueue: PipelineRequest[] = [];
+
+  // Diagnostics & Telemetry
+  public coalescedEventCount: number = 0;
+  public cancelledPipelineCount: number = 0;
+  public ignoredStaleCallbacksCount: number = 0;
+  public activeAsyncStage: string = 'IDLE';
+
+  public getDiagnostics() {
+    return {
+      activePipelineId: this.activePipelineId,
+      queueDepth: this.requestQueue.length,
+      coalescedEventCount: this.coalescedEventCount,
+      cancelledPipelineCount: this.cancelledPipelineCount,
+      ignoredStaleCallbacksCount: this.ignoredStaleCallbacksCount,
+      activeAsyncStage: this.activeAsyncStage,
+      currentOwner: this.currentRequest?.isManual ? 'manual' : 'automatic',
+      currentTrigger: this.currentRequest?.trigger || 'N/A',
+      currentReason: this.currentRequest?.reason || 'N/A',
+    };
+  }
+
+  public dispatch(isManual: boolean, trigger: string, reason: string): Promise<CentralizedOtaState> {
+    const pipelineId = ++this.activePipelineId;
+    console.log(`[UpdatePipelineCoordinator] Dispatched pipeline #${pipelineId} (isManual=${isManual}, trigger=${trigger}, reason=${reason})`);
+
+    // Coalesce / Merge requests
+    if (this.currentPromise && this.currentRequest) {
+      if (!isManual || this.currentRequest.isManual) {
+        console.log(`[UpdatePipelineCoordinator] Coalescing pipeline #${pipelineId} into running pipeline #${this.currentRequest.id}`);
+        this.coalescedEventCount++;
+        return this.currentPromise;
+      } else {
+        console.log(`[UpdatePipelineCoordinator] Superseding active background pipeline #${this.currentRequest.id} with manual pipeline #${pipelineId}`);
+        this.cancelledPipelineCount++;
+        // Pipeline ID changed; active running execution will abort on its next async boundary
+      }
+    }
+
+    let resolveFn!: (value: CentralizedOtaState) => void;
+    let rejectFn!: (reason: any) => void;
+    const promise = new Promise<CentralizedOtaState>((resolve, reject) => {
+      resolveFn = resolve;
+      rejectFn = reject;
+    });
+
+    const request: PipelineRequest = {
+      id: pipelineId,
+      isManual,
+      trigger,
+      reason,
+      resolve: resolveFn,
+      reject: rejectFn,
+      promise,
+    };
+
+    if (this.currentPromise) {
+      if (isManual) {
+        // Discard any queued background checks
+        this.requestQueue = this.requestQueue.filter(r => {
+          if (!r.isManual) {
+            console.log(`[UpdatePipelineCoordinator] Discarding obsolete queued background pipeline #${r.id}`);
+            r.resolve(globalOtaState);
+            return false;
+          }
+          return true;
+        });
+      }
+      this.requestQueue.push(request);
+      return promise;
+    }
+
+    void this.executeRequest(request);
+    return promise;
+  }
+
+  private async executeRequest(request: PipelineRequest) {
+    this.currentRequest = request;
+    this.currentPromise = request.promise;
+    const startTime = Date.now();
+
+    try {
+      this.activeAsyncStage = 'AWAIT_STARTUP_RECOVERY';
+      if (startupRecoveryPromise) {
+        await startupRecoveryPromise;
+      }
+
+      if (request.id !== this.activePipelineId) {
+        throw new PipelineCancelledError(`Pipeline #${request.id} cancelled during startup recovery block`);
+      }
+
+      const result = await executeCheckForUpdateInternal(request.id, request.isManual, request.trigger, request.reason);
+      request.resolve(result);
+    } catch (err) {
+      if (err instanceof PipelineCancelledError) {
+        console.log(`[UpdatePipelineCoordinator] Pipeline #${request.id} aborted: ${err.message}`);
+        request.resolve(globalOtaState);
+      } else {
+        request.reject(err);
+      }
+    } finally {
+      this.activeAsyncStage = 'IDLE';
+      const duration = Date.now() - startTime;
+      console.log(`[UpdatePipelineCoordinator] Pipeline #${request.id} finished in ${duration}ms`);
+
+      this.currentRequest = null;
+      this.currentPromise = null;
+
+      // Populate pipeline metrics to otaDiagnostics directly
+      const diagnostics = this.getDiagnostics();
+      otaDiagnostics.pipelineId = diagnostics.activePipelineId;
+      otaDiagnostics.triggerSource = diagnostics.currentTrigger;
+      otaDiagnostics.pipelineOwner = diagnostics.currentOwner;
+      otaDiagnostics.queueDepth = diagnostics.queueDepth;
+      otaDiagnostics.coalescedEventCount = diagnostics.coalescedEventCount;
+      otaDiagnostics.cancelledPipelineCount = diagnostics.cancelledPipelineCount;
+      otaDiagnostics.ignoredStaleCallbacksCount = diagnostics.ignoredStaleCallbacksCount;
+      otaDiagnostics.activeAsyncStage = diagnostics.activeAsyncStage;
+      otaDiagnostics.pipelineDuration = duration;
+
+      if (this.requestQueue.length > 0) {
+        const nextReq = this.requestQueue.shift()!;
+        void this.executeRequest(nextReq);
+      }
+    }
+  }
+
+  public getActivePipelineId() {
+    return this.activePipelineId;
+  }
+
+  public setStage(stage: string) {
+    this.activeAsyncStage = stage;
+  }
+}
+
+export const UpdatePipelineCoordinator = new UpdatePipelineCoordinatorClass();
+
+function checkCancellation(pipelineId: number, stage: string) {
+  UpdatePipelineCoordinator.setStage(stage);
+  if (pipelineId !== UpdatePipelineCoordinator.getActivePipelineId()) {
+    UpdatePipelineCoordinator.cancelledPipelineCount++;
+    throw new PipelineCancelledError(`Pipeline #${pipelineId} superseded/cancelled at stage: ${stage}`);
+  }
+}
+
 // Queue / Check variables
 let latestCheckId = 0;
 let activeCheckIsManual = false;
@@ -306,11 +473,7 @@ function resetLastCheckedTime() {
 }
 const MIN_AUTO_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
-export async function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
-  if (startupRecoveryPromise) {
-    await startupRecoveryPromise;
-  }
-
+async function executeCheckForUpdateInternal(pipelineId: number, isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
   const current = globalOtaState.updateState;
   
   // Do NOT run a check if we are in the middle of downloading, verifying, or installing.
@@ -325,15 +488,28 @@ export async function checkForUpdate(isManual = false, trigger = 'unknown', reas
   ].includes(current);
 
   if (isBusy) {
-    console.log(`[OTA] Skipping checkForUpdate: installer is currently busy (state: ${current})`);
-    return Promise.resolve(globalOtaState);
+    console.log(`[OTA] Skipping executeCheckForUpdateInternal: installer is currently busy (state: ${current})`);
+    return globalOtaState;
   }
 
   // If it's a background/automatic check (not manual), and we already have an update available
   // or a failed state, do NOT run the check to avoid wiping out the user-facing state.
   if (!isManual && current !== 'IDLE') {
-    console.log(`[OTA] Skipping background checkForUpdate: current state is ${current}`);
-    return Promise.resolve(globalOtaState);
+    console.log(`[OTA] Skipping background executeCheckForUpdateInternal: current state is ${current}`);
+    return globalOtaState;
+  }
+
+  if (!isManual) {
+    const now = Date.now();
+    if (now - lastCheckedTime < MIN_AUTO_CHECK_INTERVAL_MS) {
+      console.log('[OTA] Skipping auto-check, checked recently (rate limited).');
+      return globalOtaState;
+    }
+  }
+
+  if (isManual) {
+    removeSessionItem('studio:laterUpdateVersion');
+    removeSessionItem('studio:autoOpenedUpdateVersion');
   }
 
   const callId = nextJsCallId();
@@ -351,293 +527,232 @@ export async function checkForUpdate(isManual = false, trigger = 'unknown', reas
     /* ignore */
   }
 
-  logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 326, `Entering checkForUpdate Call #${callId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger} | Reason: ${reason}` });
+  logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 326, `Entering executeCheckForUpdateInternal Call #${callId} for pipeline #${pipelineId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger} | Reason: ${reason}` });
 
-  if (activeCheckPromise) {
-    if (!activeCheckIsManual && isManual) {
-      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 330, `Obsoleting background check in favor of manual check Call #${callId}`, { prevState: globalOtaState.updateState });
-      activeCheckPromise = null;
-      activeCheckIsManual = true;
+  const startTime = Date.now();
+  setActivePipelineContext({ checkId: pipelineId, trigger, pipelineStartTime: startTime });
+  if (globalOtaState.updateState !== 'IDLE') {
+    transitionToState('IDLE', 'Resetting to IDLE before starting check');
+  }
+  transitionToState('INITIALIZING', 'checkForUpdate start');
+  try {
+    if (updaterSimulation.forceMetadataFailure) {
+      addJsLog('Simulation override: Injecting Metadata Fetch Failure');
+      throw new Error('[Metadata Failure] Simulated network metadata fetch failure.');
+    }
+    
+    if (updaterSimulation.forceRecoveryMode) {
+      addJsLog('Simulation override: Forcing Recovery Mode');
+      updateGlobalState({ consecutiveFailures: 5, recoveryMode: true });
+    }
+
+    checkCancellation(pipelineId, 'QUERY_NATIVE_VERSION');
+    const natVer = await getNativeVersion();
+    const natVerCode = await getNativeVersionCode();
+
+    checkCancellation(pipelineId, 'AWAIT_FETCH_METADATA');
+    if (!safeTransition('INITIALIZING', 'FETCH_REMOTE_METADATA', 'Fetching remote manifest')) {
+      const duration = Date.now() - startTime;
+      console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
+      return globalOtaState;
+    }
+
+    const realRemote = await fetchRemoteVersion();
+    checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');
+
+    let remote;
+    if (updaterSimulation.forceUpdateAvailable) {
+      remote = {
+        version: '3.7.99',
+        versionCode: 999,
+        mandatory: updaterSimulation.forceMandatoryUpdate,
+        apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
+        apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3',
+        changelog: 'Simulated update release notes.',
+        releaseNotes: { added: ['Feature A'], improved: ['Performance B'], fixed: ['Bug C'] }
+      };
+      addJsLog(`Simulation override: Forcing Update Available (v3.7.99)`);
+    } else if (updaterSimulation.forceNoUpdate) {
+      remote = {
+        version: APP_VERSION,
+        versionCode: natVerCode ?? 1,
+        mandatory: false,
+        apkUrl: '',
+        apkSha256: ''
+      };
+      addJsLog(`Simulation override: Forcing No Update (matching current version ${APP_VERSION})`);
+    } else if (updaterSimulation.forceDowngrade) {
+      remote = {
+        version: '3.7.10',
+        versionCode: 10,
+        mandatory: false,
+        apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
+        apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3'
+      };
+      addJsLog(`Simulation override: Forcing Downgrade (v3.7.10)`);
     } else {
-      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 333, `Exiting checkForUpdate Call #${callId} early (reusing activeCheckPromise)`, { prevState: globalOtaState.updateState });
-      return activeCheckPromise;
+      remote = realRemote;
     }
-  }
 
-  const checkId = ++latestCheckId;
-  logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 338, `Starting new update check (checkId=${checkId})`, { prevState: globalOtaState.updateState });
-
-  if (!isManual) {
-    const now = Date.now();
-    if (now - lastCheckedTime < MIN_AUTO_CHECK_INTERVAL_MS) {
-      console.log('[OTA] Skipping auto-check, checked recently (rate limited).');
-      return Promise.resolve(globalOtaState);
+    if (remote) {
+      if (updaterSimulation.forceMandatoryUpdate) {
+        addJsLog('Simulation override: Forcing Mandatory Update');
+        remote.mandatory = true;
+      } else if (updaterSimulation.forceOptionalUpdate) {
+        addJsLog('Simulation override: Forcing Optional Update');
+        remote.mandatory = false;
+      }
     }
-  }
 
-  if (isManual) {
-    removeSessionItem('studio:laterUpdateVersion');
-    removeSessionItem('studio:autoOpenedUpdateVersion');
-  }
-
-
-  activeCheckPromise = (async () => {
-    const startTime = Date.now();
-    setActivePipelineContext({ checkId, trigger, pipelineStartTime: startTime });
-    if (globalOtaState.updateState !== 'IDLE') {
-      transitionToState('IDLE', 'Resetting to IDLE before starting check');
+    const mockOta = getSessionItem('studio:mockOtaResponse');
+    if (mockOta && !updaterSimulation.forceUpdateAvailable && !updaterSimulation.forceNoUpdate && !updaterSimulation.forceDowngrade) {
+      try {
+        remote = JSON.parse(mockOta);
+        console.log('[OTA DEBUG] Using mock remote response:', remote);
+      } catch (e) {
+        console.warn('[OTA] Failed to parse mock response:', e);
+      }
     }
-    transitionToState('INITIALIZING', 'checkForUpdate start');
-    try {
-      if (updaterSimulation.forceMetadataFailure) {
-        addJsLog('Simulation override: Injecting Metadata Fetch Failure');
-        throw new Error('[Metadata Failure] Simulated network metadata fetch failure.');
-      }
-      
-      if (updaterSimulation.forceRecoveryMode) {
-        addJsLog('Simulation override: Forcing Recovery Mode');
-        updateGlobalState({ consecutiveFailures: 5, recoveryMode: true });
-      }
 
-      const natVer = await getNativeVersion();
-      const natVerCode = await getNativeVersionCode();
+    const dismissedList = getStoredList('studio:dismissedVersions');
+    const laterVersion = getSessionItem('studio:laterUpdateVersion');
 
-      if (checkId === latestCheckId) {
-        if (!safeTransition('INITIALIZING', 'FETCH_REMOTE_METADATA', 'Fetching remote manifest')) {
-          const duration = Date.now() - startTime;
-          console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-          return globalOtaState;
-        }
-      }
+    otaDebugLogs.appVersion = APP_VERSION;
+    otaDebugLogs.nativeApkVersion = natVer || 'N/A';
+    (otaDebugLogs as any).nativeApkVersionCode = natVerCode !== null ? natVerCode.toString() : 'N/A';
+    otaDebugLogs.pendingOtaBundleId = localStorage.getItem('studio:downloadedBundleId') || 'None';
 
-      const realRemote = await fetchRemoteVersion();
+    otaDebugLogs.staleOtaCleared = false;
+    otaDebugLogs.capgoSetBlocked = false;
+    otaDebugLogs.triggerComponent = isManual ? 'Developer Options (Manual Check)' : 'Auto Poll / System';
+    otaDebugLogs.finalPathExecuted = 'N/A';
 
-      if (checkId !== latestCheckId) {
-        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId} after fetchRemoteVersion. Exiting silently.`);
-        return globalOtaState;
-      }
-
-      let remote;
-      if (updaterSimulation.forceUpdateAvailable) {
-        remote = {
-          version: '3.7.99',
-          versionCode: 999,
-          mandatory: updaterSimulation.forceMandatoryUpdate,
-          apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
-          apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3',
-          changelog: 'Simulated update release notes.',
-          releaseNotes: { added: ['Feature A'], improved: ['Performance B'], fixed: ['Bug C'] }
-        };
-        addJsLog(`Simulation override: Forcing Update Available (v3.7.99)`);
-      } else if (updaterSimulation.forceNoUpdate) {
-        remote = {
-          version: APP_VERSION,
-          versionCode: natVerCode ?? 1,
-          mandatory: false,
-          apkUrl: '',
-          apkSha256: ''
-        };
-        addJsLog(`Simulation override: Forcing No Update (matching current version ${APP_VERSION})`);
-      } else if (updaterSimulation.forceDowngrade) {
-        remote = {
-          version: '3.7.10',
-          versionCode: 10,
-          mandatory: false,
-          apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
-          apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3'
-        };
-        addJsLog(`Simulation override: Forcing Downgrade (v3.7.10)`);
-      } else {
-        remote = realRemote;
-      }
-
-      if (remote) {
+    if (isNative()) {
+      otaDebugLogs.currentOtaVersion = 'disabled';
+      try {
+        const cap = (window as any).Capacitor;
+        const isNativePlat = cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
+        const registry = cap?.Plugins ? Object.keys(cap.Plugins) : [];
+        otaDebugLogs.registeredPlugins = JSON.stringify(registry);
         
-        if (updaterSimulation.forceMandatoryUpdate) {
-          addJsLog('Simulation override: Forcing Mandatory Update');
-          remote.mandatory = true;
-        } else if (updaterSimulation.forceOptionalUpdate) {
-          addJsLog('Simulation override: Forcing Optional Update');
-          remote.mandatory = false;
-        }
-      }
-
-      if (checkId !== latestCheckId) {
-        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId}. Exiting silently.`);
-        return globalOtaState;
-      }
-
-      const mockOta = getSessionItem('studio:mockOtaResponse');
-      if (mockOta && !updaterSimulation.forceUpdateAvailable && !updaterSimulation.forceNoUpdate && !updaterSimulation.forceDowngrade) {
-        try {
-          remote = JSON.parse(mockOta);
-          console.log('[OTA DEBUG] Using mock remote response:', remote);
-        } catch (e) {
-          console.warn('[OTA] Failed to parse mock response:', e);
-        }
-      }
-
-      const dismissedList = getStoredList('studio:dismissedVersions');
-      const laterVersion = getSessionItem('studio:laterUpdateVersion');
-
-      otaDebugLogs.appVersion = APP_VERSION;
-      otaDebugLogs.nativeApkVersion = natVer || 'N/A';
-      (otaDebugLogs as any).nativeApkVersionCode = natVerCode !== null ? natVerCode.toString() : 'N/A';
-      otaDebugLogs.pendingOtaBundleId = localStorage.getItem('studio:downloadedBundleId') || 'None';
-
-      otaDebugLogs.staleOtaCleared = false;
-      otaDebugLogs.capgoSetBlocked = false;
-      otaDebugLogs.triggerComponent = isManual ? 'Developer Options (Manual Check)' : 'Auto Poll / System';
-      otaDebugLogs.finalPathExecuted = 'N/A';
-
-      if (isNative()) {
-        otaDebugLogs.currentOtaVersion = 'disabled';
-        try {
-          const cap = (window as any).Capacitor;
-          const isNativePlat = cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
-          const registry = cap?.Plugins ? Object.keys(cap.Plugins) : [];
-          otaDebugLogs.registeredPlugins = JSON.stringify(registry);
+        const appInstallerExists = cap ? cap.isPluginAvailable?.('AppInstaller') ?? false : false;
+        otaDebugLogs.appInstallerAvailable = appInstallerExists;
+        
+        if (appInstallerExists) {
+          const plugin = cap.Plugins.AppInstaller;
+          otaDebugLogs.downloadApkAvailable = typeof plugin?.downloadApk === 'function';
+          otaDebugLogs.verifyApkSha256Available = typeof plugin?.verifyApkSha256 === 'function' || typeof plugin?.verifySha256 === 'function';
+          otaDebugLogs.installApkAvailable = typeof plugin?.installApk === 'function';
+          otaDebugLogs.openInstallPermissionSettingsAvailable = typeof plugin?.openInstallPermissionSettings === 'function' || typeof plugin?.openUnknownAppSourcesSettings === 'function';
           
-          const appInstallerExists = cap ? cap.isPluginAvailable?.('AppInstaller') ?? false : false;
-          otaDebugLogs.appInstallerAvailable = appInstallerExists;
-          
-          if (appInstallerExists) {
-            const plugin = cap.Plugins.AppInstaller;
-            otaDebugLogs.downloadApkAvailable = typeof plugin?.downloadApk === 'function';
-            otaDebugLogs.verifyApkSha256Available = typeof plugin?.verifyApkSha256 === 'function' || typeof plugin?.verifySha256 === 'function';
-            otaDebugLogs.installApkAvailable = typeof plugin?.installApk === 'function';
-            otaDebugLogs.openInstallPermissionSettingsAvailable = typeof plugin?.openInstallPermissionSettings === 'function' || typeof plugin?.openUnknownAppSourcesSettings === 'function';
-            
-            const methods = {
-              downloadApk: otaDebugLogs.downloadApkAvailable,
-              verifyApkSha256: otaDebugLogs.verifyApkSha256Available,
-              installApk: otaDebugLogs.installApkAvailable,
-              openInstallPermissionSettings: otaDebugLogs.openInstallPermissionSettingsAvailable,
-            };
-            otaDebugLogs.pluginMethodCheck = Object.entries(methods)
-              .map(([name, exists]) => `${name}: ${exists ? 'YES' : 'NO'}`)
-              .join(', ');
-            otaDebugLogs.installerLaunchStatus = `REGISTERED: AppInstaller is present in registry. Methods match.`;
-          } else {
-            otaDebugLogs.downloadApkAvailable = false;
-            otaDebugLogs.verifyApkSha256Available = false;
-            otaDebugLogs.installApkAvailable = false;
-            otaDebugLogs.openInstallPermissionSettingsAvailable = false;
-            otaDebugLogs.pluginMethodCheck = isNativePlat ? 'Plugin not found' : 'N/A (Web)';
-            otaDebugLogs.installerLaunchStatus = `MISSING: AppInstaller not registered. Plugins: ${registry.join(', ')}`;
-          }
-        } catch (e) {
-          console.warn('[OTA] AppInstaller diagnostics failed:', e);
-        }
-      }
-
-      if (isNative() && isAppInstallerAvailable()) {
-        try {
-          const { AppInstaller } = await import('./apkDownloader');
-          const result = await AppInstaller.getLastInstallResult();
-          console.log('[OTA DEBUG] Last install result status:', result);
-          
-          const processed = processLastInstallResult(result);
-          if (processed) {
-            otaDiagnostics.statusCode = result.statusCode;
-            otaDiagnostics.statusText = processed.errMsg;
-            otaDiagnostics.exceptionMessage = processed.errMsg;
-            otaDiagnostics.failureReason = `PackageInstaller code ${result.statusCode}\nMessage: ${result.statusMessage}\nPackage: ${result.packageName}`;
-            otaDiagnostics.installerResult = `Code: ${result.statusCode}\nMessage: ${result.statusMessage}\nPackage: ${result.packageName}\nTimestamp: ${new Date(result.timestamp).toISOString()}`;
-            otaDiagnostics.timestamp = new Date(result.timestamp).toISOString();
-
-            await populateDiagnostics(null, 'PackageInstaller failure detected');
-
-            const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
-            updateGlobalState({
-              error: processed.errMsg
-            });
-            if (globalOtaState.updateState !== 'IDLE') {
-              transitionToState(finalState, `Install result during check: ${processed.category}`, processed.errMsg);
-            }
-            const duration = Date.now() - startTime;
-            console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-            return globalOtaState;
-          }
-        } catch (err) {
-          console.warn('[OTA] Failed to fetch last native install result:', err);
-        }
-      }
-
-      if (!safeTransition('FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'Validating fetched manifest integrity')) {
-        const duration = Date.now() - startTime;
-        console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-        return globalOtaState;
-      }
-      if (!remote) {
-        otaDebugLogs.updateDecision = 'metadata_unavailable';
-        otaDebugLogs.updateDecisionReason = 'Remote metadata is missing or unreachable.';
-        updateGlobalState({
-          decisionExplanation: 'Remote metadata is missing or unreachable.',
-          updateAvailable: false,
-        });
-        if (isManual) {
-          updateGlobalState({ error: 'Unable to contact the update server.' });
-          if (!safeTransition('VALIDATE_METADATA', 'RECOVERY', 'Manual check failed: no remote metadata', 'Unable to contact update server')) {
-            return globalOtaState;
-          }
+          const methods = {
+            downloadApk: otaDebugLogs.downloadApkAvailable,
+            verifyApkSha256: otaDebugLogs.verifyApkSha256Available,
+            installApk: otaDebugLogs.installApkAvailable,
+            openInstallPermissionSettings: otaDebugLogs.openInstallPermissionSettingsAvailable,
+          };
+          otaDebugLogs.pluginMethodCheck = Object.entries(methods)
+            .map(([name, exists]) => `${name}: ${exists ? 'YES' : 'NO'}`)
+            .join(', ');
+          otaDebugLogs.installerLaunchStatus = `REGISTERED: AppInstaller is present in registry. Methods match.`;
         } else {
-          updateGlobalState({ error: 'Update check failed: remote metadata unavailable.' });
-          if (!safeTransition('VALIDATE_METADATA', 'RECOVERY', 'Auto-check failed: no remote metadata', 'Remote metadata unavailable')) {
-            return globalOtaState;
-          }
+          otaDebugLogs.downloadApkAvailable = false;
+          otaDebugLogs.verifyApkSha256Available = false;
+          otaDebugLogs.installApkAvailable = false;
+          otaDebugLogs.openInstallPermissionSettingsAvailable = false;
+          otaDebugLogs.pluginMethodCheck = isNativePlat ? 'Plugin not found' : 'N/A (Web)';
+          otaDebugLogs.installerLaunchStatus = `MISSING: AppInstaller not registered. Plugins: ${registry.join(', ')}`;
         }
-        const duration = Date.now() - startTime;
-        console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-        return globalOtaState;
+      } catch (e) {
+        console.warn('[OTA] AppInstaller diagnostics failed:', e);
       }
+    }
 
-      if (!safeTransition('VALIDATE_METADATA', 'COMPARE_VERSION', 'Comparing version names and codes')) {
-        const duration = Date.now() - startTime;
-        console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-        return globalOtaState;
-      }
-      const comp = compareVersions(remote, APP_VERSION, natVerCode ?? undefined);
-      const updateAvailable = comp.updateAvailable || (isManual && comp.isDowngrade);
-      otaDebugLogs.updateDecision = updateAvailable ? 'UPDATE_AVAILABLE' : 'NO_UPDATE_AVAILABLE';
-      otaDebugLogs.updateDecisionReason = comp.explanation;
-      updateGlobalState({ decisionExplanation: comp.explanation });
+    if (isNative() && isAppInstallerAvailable()) {
+      try {
+        checkCancellation(pipelineId, 'QUERY_LAST_INSTALL_RESULT');
+        const { AppInstaller } = await import('./apkDownloader');
+        const result = await AppInstaller.getLastInstallResult();
+        console.log('[OTA DEBUG] Last install result status:', result);
+        
+        const processed = processLastInstallResult(result);
+        if (processed) {
+          otaDiagnostics.statusCode = result.statusCode;
+          otaDiagnostics.statusText = processed.errMsg;
+          otaDiagnostics.exceptionMessage = processed.errMsg;
+          otaDiagnostics.failureReason = `PackageInstaller code ${result.statusCode}\nMessage: ${result.statusMessage}\nPackage: ${result.packageName}`;
+          otaDiagnostics.installerResult = `Code: ${result.statusCode}\nMessage: ${result.statusMessage}\nPackage: ${result.packageName}\nTimestamp: ${new Date(result.timestamp).toISOString()}`;
+          otaDiagnostics.timestamp = new Date(result.timestamp).toISOString();
 
-      if (updateAvailable) {
-        const dismissedList = getStoredList('studio:dismissedVersions');
-        const isDismissed = dismissedList.includes(remote.version);
-        const isLater = laterVersion === remote.version;
+          await populateDiagnostics(null, 'PackageInstaller failure detected');
 
-        if (!isManual && (isDismissed || isLater)) {
-          console.log(`[OTA] Skipping auto-prompt for version ${remote.version} (user dismissed/later).`);
-          // Store version info for reference, but updateAvailable must be false
-          // when state is NO_UPDATE_AVAILABLE to prevent split-brain.
+          const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
           updateGlobalState({
-            remoteVersion: remote.version,
-            updateAvailable: false,
-            mandatory: remote.mandatory ?? false,
-            changelog: remote.changelog ?? null,
-            releaseNotes: remote.releaseNotes ?? null,
-            apkUrl: remote.apkUrl ?? null,
-            apkSha256: remote.apkSha256 ?? null,
-            manualApkUrl: remote.manualApkUrl ?? null,
-            fallbackApkUrl: remote.fallbackApkUrl ?? null,
+            error: processed.errMsg
           });
-          await checkAndCleanCache();
-          if (checkId !== latestCheckId) {
-            return globalOtaState;
-          }
-          if (!safeTransition('COMPARE_VERSION', 'NO_UPDATE_AVAILABLE', 'User dismissed/later')) {
-            return globalOtaState;
+          if (globalOtaState.updateState !== 'IDLE') {
+            transitionToState(finalState, `Install result during check: ${processed.category}`, processed.errMsg);
           }
           const duration = Date.now() - startTime;
           console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
           return globalOtaState;
         }
+      } catch (err) {
+        console.warn('[OTA] Failed to fetch last native install result:', err);
+      }
+    }
 
+    checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');
+    if (!safeTransition('FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'Validating fetched manifest integrity')) {
+      const duration = Date.now() - startTime;
+      console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
+      return globalOtaState;
+    }
+    if (!remote) {
+      otaDebugLogs.updateDecision = 'metadata_unavailable';
+      otaDebugLogs.updateDecisionReason = 'Remote metadata is missing or unreachable.';
+      updateGlobalState({
+        decisionExplanation: 'Remote metadata is missing or unreachable.',
+        updateAvailable: false,
+      });
+      if (isManual) {
+        updateGlobalState({ error: 'Unable to contact the update server.' });
+        if (!safeTransition('VALIDATE_METADATA', 'RECOVERY', 'Manual check failed: no remote metadata', 'Unable to contact update server')) {
+          return globalOtaState;
+        }
+      } else {
+        updateGlobalState({ error: 'Update check failed: remote metadata unavailable.' });
+        if (!safeTransition('VALIDATE_METADATA', 'RECOVERY', 'Auto-check failed: no remote metadata', 'Remote metadata unavailable')) {
+          return globalOtaState;
+        }
+      }
+      const duration = Date.now() - startTime;
+      console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
+      return globalOtaState;
+    }
+
+    checkCancellation(pipelineId, 'COMPARE_VERSION');
+    if (!safeTransition('VALIDATE_METADATA', 'COMPARE_VERSION', 'Comparing version names and codes')) {
+      const duration = Date.now() - startTime;
+      console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
+      return globalOtaState;
+    }
+    const comp = compareVersions(remote, APP_VERSION, natVerCode ?? undefined);
+    const updateAvailable = comp.updateAvailable || (isManual && comp.isDowngrade);
+    otaDebugLogs.updateDecision = updateAvailable ? 'UPDATE_AVAILABLE' : 'NO_UPDATE_AVAILABLE';
+    otaDebugLogs.updateDecisionReason = comp.explanation;
+    updateGlobalState({ decisionExplanation: comp.explanation });
+
+    if (updateAvailable) {
+      const dismissedList = getStoredList('studio:dismissedVersions');
+      const isDismissed = dismissedList.includes(remote.version);
+      const isLater = laterVersion === remote.version;
+
+      if (!isManual && (isDismissed || isLater)) {
+        console.log(`[OTA] Skipping auto-prompt for version ${remote.version} (user dismissed/later).`);
         updateGlobalState({
           remoteVersion: remote.version,
-          updateAvailable: true,
+          updateAvailable: false,
           mandatory: remote.mandatory ?? false,
           changelog: remote.changelog ?? null,
           releaseNotes: remote.releaseNotes ?? null,
@@ -646,57 +761,79 @@ export async function checkForUpdate(isManual = false, trigger = 'unknown', reas
           manualApkUrl: remote.manualApkUrl ?? null,
           fallbackApkUrl: remote.fallbackApkUrl ?? null,
         });
-
+        
+        checkCancellation(pipelineId, 'AWAIT_CACHE_CLEANUP');
         await checkAndCleanCache();
-        if (checkId !== latestCheckId) {
+
+        if (!safeTransition('COMPARE_VERSION', 'NO_UPDATE_AVAILABLE', 'User dismissed/later')) {
           return globalOtaState;
         }
-        if (!safeTransition('COMPARE_VERSION', 'UPDATE_AVAILABLE', 'New update found')) {
-          return globalOtaState;
-        }
-        void logProgressStage('Update detected', `Version: ${remote.version}`);
-      } else {
-        updateGlobalState({
-          remoteVersion: remote.version,
-          updateAvailable: false,
-        });
-        otaDebugLogs.updateDecision = 'NO_UPDATE_AVAILABLE';
-        otaDebugLogs.updateDecisionReason = `Local ${APP_VERSION} >= Remote ${remote.version} (isUpToDate=${comp.isUpToDate}, isDowngrade=${comp.isDowngrade})`;
-        if (!safeTransition('COMPARE_VERSION', 'NO_UPDATE_AVAILABLE', `App is up to date (local=${APP_VERSION}, remote=${remote.version})`)) {
-          return globalOtaState;
-        }
+        const duration = Date.now() - startTime;
+        console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
+        return globalOtaState;
       }
 
-      const duration = Date.now() - startTime;
-      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 584, `Exiting checkForUpdate Call #${callId} successfully`, { durationMs: duration, prevState: 'COMPARE_VERSION', nextState: globalOtaState.updateState });
-      return globalOtaState;
-    } catch (err) {
-      const duration = Date.now() - startTime;
-      const errMsg = err instanceof Error ? err.message : String(err);
-      const errStack = err instanceof Error ? err.stack : undefined;
-      logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 589, `Exiting checkForUpdate Call #${callId} with error`, { durationMs: duration, prevState: 'INITIALIZING', nextState: globalOtaState.updateState, reason: errMsg });
-      otaDebugLogs.updateDecision = 'check_failed';
-      otaDebugLogs.updateDecisionReason = `Exception during update check: ${errMsg}`;
-      otaDebugLogs.lastExceptionStackTrace = errStack ?? null;
       updateGlobalState({
-        error: isManual ? 'Unable to contact the update server.' : `Update check failed: ${errMsg}`,
+        remoteVersion: remote.version,
+        updateAvailable: true,
+        mandatory: remote.mandatory ?? false,
+        changelog: remote.changelog ?? null,
+        releaseNotes: remote.releaseNotes ?? null,
+        apkUrl: remote.apkUrl ?? null,
+        apkSha256: remote.apkSha256 ?? null,
+        manualApkUrl: remote.manualApkUrl ?? null,
+        fallbackApkUrl: remote.fallbackApkUrl ?? null,
+      });
+
+      checkCancellation(pipelineId, 'AWAIT_CACHE_CLEANUP');
+      await checkAndCleanCache();
+
+      if (!safeTransition('COMPARE_VERSION', 'UPDATE_AVAILABLE', 'New update found')) {
+        return globalOtaState;
+      }
+      void logProgressStage('Update detected', `Version: ${remote.version}`);
+    } else {
+      updateGlobalState({
+        remoteVersion: remote.version,
         updateAvailable: false,
       });
-      if (globalOtaState.updateState !== 'IDLE') {
-        transitionToState('RECOVERY', isManual ? 'Manual check exception' : `Auto-check exception: ${errMsg}`, errMsg);
-      }
-      return globalOtaState;
-    } finally {
-      if (checkId === latestCheckId) {
-        activeCheckPromise = null;
-        activeCheckIsManual = false;
-        lastCheckedTime = Date.now();
-        setActivePipelineContext(null);
+      otaDebugLogs.updateDecision = 'NO_UPDATE_AVAILABLE';
+      otaDebugLogs.updateDecisionReason = `Local ${APP_VERSION} >= Remote ${remote.version} (isUpToDate=${comp.isUpToDate}, isDowngrade=${comp.isDowngrade})`;
+      if (!safeTransition('COMPARE_VERSION', 'NO_UPDATE_AVAILABLE', `App is up to date (local=${APP_VERSION}, remote=${remote.version})`)) {
+        return globalOtaState;
       }
     }
-  })();
 
-  return activeCheckPromise;
+    const duration = Date.now() - startTime;
+    logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 584, `Exiting checkForUpdate Call #${callId} successfully`, { durationMs: duration, prevState: 'COMPARE_VERSION', nextState: globalOtaState.updateState });
+    return globalOtaState;
+  } catch (err) {
+    if (err instanceof PipelineCancelledError) {
+      throw err;
+    }
+    const duration = Date.now() - startTime;
+    const errMsg = err instanceof Error ? err.message : String(err);
+    const errStack = err instanceof Error ? err.stack : undefined;
+    logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 589, `Exiting checkForUpdate Call #${callId} with error`, { durationMs: duration, prevState: 'INITIALIZING', nextState: globalOtaState.updateState, reason: errMsg });
+    otaDebugLogs.updateDecision = 'check_failed';
+    otaDebugLogs.updateDecisionReason = `Exception during update check: ${errMsg}`;
+    otaDebugLogs.lastExceptionStackTrace = errStack ?? null;
+    updateGlobalState({
+      error: isManual ? 'Unable to contact the update server.' : `Update check failed: ${errMsg}`,
+      updateAvailable: false,
+    });
+    if (globalOtaState.updateState !== 'IDLE') {
+      transitionToState('RECOVERY', isManual ? 'Manual check exception' : `Auto-check exception: ${errMsg}`, errMsg);
+    }
+    return globalOtaState;
+  } finally {
+    lastCheckedTime = Date.now();
+    setActivePipelineContext(null);
+  }
+}
+
+export function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
+  return UpdatePipelineCoordinator.dispatch(isManual, trigger, reason);
 }
 
 export async function checkAndCleanCache(): Promise<boolean> {
@@ -1009,6 +1146,7 @@ export async function downloadUpdate(trigger?: string): Promise<void> {
       throw err;
     } finally {
       activeDownloadPromise = null;
+      UpdatePipelineCoordinator.setStage('IDLE');
     }
   })();
 
@@ -1077,6 +1215,7 @@ export async function applyUpdate(trigger?: string): Promise<void> {
         throw new Error('No downloaded APK path found.');
       }
 
+      UpdatePipelineCoordinator.setStage('AWAIT_ELIGIBILITY_VERIFICATION');
       updateGlobalState({ statusText: 'Preparing installation...' });
       const isEligible = await runEligibilityCheck(filePath);
       if (!isEligible) {
@@ -1089,6 +1228,7 @@ export async function applyUpdate(trigger?: string): Promise<void> {
 
       // Register listener to monitor native PackageInstaller status events
       const { AppInstaller } = await import('./apkDownloader');
+      const installPipelineId = UpdatePipelineCoordinator.getActivePipelineId();
       const statusPromise = new Promise<void>(async (resolvePromise, rejectPromise) => {
         try {
           console.log('[INSTRUMENTATION] [JS] Registering native status listener for onInstallStatusChanged');
@@ -1097,6 +1237,12 @@ export async function applyUpdate(trigger?: string): Promise<void> {
             const message = eventData.message;
             console.log('[INSTRUMENTATION] [JS] onInstallStatusChanged received:', eventData);
             addJsLog(`Install Status Received: status=${status}, message=${message}, progress=${eventData.progress || 0}`);
+
+            if (installPipelineId !== UpdatePipelineCoordinator.getActivePipelineId()) {
+              console.warn('[OTA] Ignoring stale PackageInstaller callback from obsolete pipeline ID:', installPipelineId);
+              UpdatePipelineCoordinator.ignoredStaleCallbacksCount++;
+              return;
+            }
 
             if (globalOtaState.updateState === 'IDLE' || globalOtaState.updateState === 'RECOVERY') {
               console.log('[OTA] Ignoring native status event since state is:', globalOtaState.updateState);
@@ -1177,6 +1323,7 @@ export async function applyUpdate(trigger?: string): Promise<void> {
         })();
       } else {
         void logProgressStage('Session committed', 'Handing over to PackageInstaller');
+        UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
         await triggerNativeInstall(filePath);
         void logProgressStage('Waiting for Android confirmation', 'Waiting for system confirmation dialog to overlay');
       }
@@ -1187,6 +1334,7 @@ export async function applyUpdate(trigger?: string): Promise<void> {
       otaDebugLogs.finalPathExecuted = 'APK installer launched';
 
       // Await statusPromise to resolve, reject, or be killed on update reload
+      UpdatePipelineCoordinator.setStage('AWAIT_PACKAGE_INSTALLER_CALLBACKS');
       await statusPromise;
 
       logDetailedJsTrace('applyUpdate', 'otaUpdate.ts', 987, `Exiting applyUpdate Call #${callId} successfully (Installer completed)`, { prevState: globalOtaState.updateState });
@@ -1212,6 +1360,7 @@ export async function applyUpdate(trigger?: string): Promise<void> {
       }
       setSimulateStatusCallback(null);
       activeApplyPromise = null;
+      UpdatePipelineCoordinator.setStage('IDLE');
     }
   })();
 

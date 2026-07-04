@@ -21,6 +21,17 @@ export interface OtaDiagnostics {
   networkState?: string | null;
   statusCode?: number | null;
   statusText?: string | null;
+
+  // Pipeline details
+  pipelineId?: number | null;
+  triggerSource?: string | null;
+  pipelineOwner?: string | null;
+  queueDepth?: number | null;
+  coalescedEventCount?: number | null;
+  cancelledPipelineCount?: number | null;
+  ignoredStaleCallbacksCount?: number | null;
+  activeAsyncStage?: string | null;
+  pipelineDuration?: number | null;
 }
 
 export let otaDiagnostics: OtaDiagnostics = {
@@ -42,6 +53,16 @@ export let otaDiagnostics: OtaDiagnostics = {
   networkState: null,
   statusCode: null,
   statusText: null,
+
+  pipelineId: null,
+  triggerSource: null,
+  pipelineOwner: null,
+  queueDepth: null,
+  coalescedEventCount: null,
+  cancelledPipelineCount: null,
+  ignoredStaleCallbacksCount: null,
+  activeAsyncStage: null,
+  pipelineDuration: null,
 };
 
 export const otaDebugLogs: {

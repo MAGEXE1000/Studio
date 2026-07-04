@@ -45,6 +45,18 @@ class StartupCoordinatorClass {
   private storeUnsubscribe: (() => void) | null = null;
   private hifpsRafId = 0;
 
+  private hubMountedResolver: (() => void) | null = null;
+  private hubMountedPromise: Promise<void> = new Promise<void>((resolve) => {
+    this.hubMountedResolver = resolve;
+  });
+
+  notifyHubMounted() {
+    console.log('[StartupCoordinator] Hub DOM mounted notification received.');
+    if (this.hubMountedResolver) {
+      this.hubMountedResolver();
+    }
+  }
+
   // Watchdog
   private watchdogTimer: any = null;
 
@@ -245,6 +257,23 @@ class StartupCoordinatorClass {
 
     // Phase 5: Hub initialization
     const p5Success = await this.executePhase('5', 5000, async () => {
+      // Dispatch UI mounting events (sets startupComplete = true in App.tsx)
+      onHubShow();
+
+      // Await the Hub mounting notification
+      console.log('[StartupCoordinator] Phase 5: Awaiting Hub DOM mount...');
+      await this.hubMountedPromise;
+
+      // Await two requestAnimationFrames to ensure it has painted and the first frame is committed
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            resolve();
+          });
+        });
+      });
+      console.log('[StartupCoordinator] Phase 5: Hub DOM fully mounted and painted.');
+
       if (typeof window !== 'undefined' && (window as any).__bootTimings) {
         (window as any).__bootTimings.hubVisible = performance.now();
         console.log("[LivexBoot] Hub fully visible: " + (window as any).__bootTimings.hubVisible.toFixed(2) + "ms");
@@ -255,8 +284,6 @@ class StartupCoordinatorClass {
         (window as any).__studioStartupComplete = true;
       }
       
-      // Dispatch UI mounting events and flush queued events
-      onHubShow();
       this.isCompleted = true;
       this.flushQueuedEvents();
     });
@@ -365,6 +392,10 @@ class StartupCoordinatorClass {
 
     // Clear active timers and listeners
     this.cleanup();
+
+    this.hubMountedPromise = new Promise<void>((resolve) => {
+      this.hubMountedResolver = resolve;
+    });
 
     // Reset status back to idle
     for (const phase of Object.values(this.phases)) {

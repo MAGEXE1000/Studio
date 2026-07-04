@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 
 // ── 1. Standard Transition Presets ──────────────────────────────────────────
 export const MOTION_DURATIONS = {
-  fast: 0.2,
-  normal: 0.35,
-  slow: 0.5,
+  fast: 0.15,
+  normal: 0.22,
+  slow: 0.4,
 };
 
 export const MOTION_EASINGS = {
@@ -88,7 +88,7 @@ export function useNavigationCoordinator(initialPage: string) {
   });
 
   const navigate = useCallback((toPage: string) => {
-    AnimationCoordinator.startTransition(300);
+    AnimationCoordinator.startTransition(220);
     setState(prev => ({
       page: toPage,
       direction: 'forward',
@@ -97,7 +97,7 @@ export function useNavigationCoordinator(initialPage: string) {
   }, []);
 
   const goBack = useCallback((fallbackPage: string = 'main') => {
-    AnimationCoordinator.startTransition(300);
+    AnimationCoordinator.startTransition(220);
     setState(prev => ({
       page: fallbackPage,
       direction: 'backward',
@@ -147,7 +147,7 @@ export function PageTransition({
       if (type === 'scale') return { opacity: 0, scale: 0.96 };
       return {
         x: direction === 'forward' ? '100%' : '-30%',
-        opacity: 0,
+        opacity: 1,
       };
     },
     animate: {
@@ -160,7 +160,7 @@ export function PageTransition({
       if (type === 'scale') return { opacity: 0, scale: 1.04 };
       return {
         x: direction === 'forward' ? '-30%' : '100%',
-        opacity: 0,
+        opacity: 1,
       };
     }
   };

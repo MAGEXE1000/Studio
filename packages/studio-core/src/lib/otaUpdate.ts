@@ -276,6 +276,11 @@ export function enforceStartupRecovery(): Promise<void> {
       if (!activeApplyPromise) activeApplyPromise = null;
       if (!activeDownloadPromise) activeDownloadPromise = null;
 
+      if (activeCheckPromise || activeApplyPromise || activeDownloadPromise) {
+        console.log('[OTA DEBUG] enforceStartupRecovery: active operation in flight, skipping reset.');
+        return;
+      }
+
       resetOtaUpdateState();
 
       const downloadedPath = localStorage.getItem('studio:downloadedApkPath');

@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.68
+
+### Added
+- Removed the gray Settings header and restored the transparent sub-navigation bar design.
+- Optimised page transitions to slide in faster and more snappily.
+- Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.
+- Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.
+- Fixed background OTA updater lifecycle race conditions.
+
 ## 3.7.67
 
 ### Added

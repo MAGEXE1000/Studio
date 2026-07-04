@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.67';
+export const NATIVE_VERSION = '3.7.68';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -37,11 +37,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-03'; // 3.7.67
+export const APP_VERSION_DATE = '2026-07-04'; // 3.7.68
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = import.meta.env.VITE_GIT_COMMIT_SHA || 'e6f8e9ba';
-export const APP_BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || '7/3/2026, 11:40:00 PM CST';
+export const APP_BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || '7/4/2026, 6:00:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -60,9 +60,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.",
-      "Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.",
-      "Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared.",
+      "Removed the gray Settings header and restored the transparent sub-navigation bar design.",
+      "Optimised page transitions to slide in faster and more snappily.",
+      "Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.",
+      "Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.",
+      "Fixed background OTA updater lifecycle race conditions.",
     ],
   },
 ];
@@ -72,9 +74,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Unified dialog, sheet, and modal animations using DialogScaffold.",
-      "Repository cleanup: pruned obsolete code and duplicate design primitives.",
-      "Optimized startup orchestration and web-to-native integration.",
+      "Removed the gray Settings header and restored the original clean navigation style.",
+      "Optimized page transitions to slide in faster and more snappily.",
+      "Improved startup orchestration by coordinating layout mounting and paint cycles.",
+      "Resolved dynamic import chunk preloading bottlenecks.",
+      "Fixed background updater lifecycle race conditions.",
     ],
   },
 ];

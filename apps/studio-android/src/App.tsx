@@ -19,8 +19,7 @@ import {
   tolgee,
   addLog,
   useBackHandler,
-  StartupCoordinator,
-  applyThemeTokens
+  StartupCoordinator
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -37,16 +36,16 @@ import {
   VocalexLogo
 } from '@workspace/ui-shared/src/components/ChordexLogo';
 
-const BottomNav = lazy(() => import('@workspace/ui-shared/src/components/BottomNav'));
-const StudioHub = lazy(() => import('@workspace/ui-shared/src/components/StudioHub'));
-const LibraryPanel = lazy(() => import('@workspace/ui-shared/src/panels/LibraryPanel'));
-const ChordPanel = lazy(() => import('@workspace/ui-shared/src/panels/ChordPanel'));
-const SettingsPanel = lazy(() => import('@workspace/ui-shared/src/panels/SettingsPanel'));
-const SongsPanel = lazy(() => import('@workspace/ui-shared/src/panels/SongsPanel'));
-const DrumEditor = lazy(() => import('@workspace/ui-shared/src/panels/DrumEditor'));
-const GroovexApp = lazy(() => import('@workspace/ui-shared/src/groovex/GroovexApp'));
-const VocalexApp = lazy(() => import('@workspace/ui-shared/src/vocalex/VocalexApp'));
-const StageCorePanel = lazy(() => import('@workspace/ui-android/src/components/StageCorePanel'));
+const BottomNav = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.BottomNav })));
+const StudioHub = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.StudioHub })));
+const LibraryPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.LibraryPanel })));
+const ChordPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.ChordPanel })));
+const SettingsPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.SettingsPanel })));
+const SongsPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.SongsPanel })));
+const DrumEditor = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.DrumEditor })));
+const GroovexApp = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.GroovexApp })));
+const VocalexApp = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.VocalexApp })));
+const StageCorePanel = lazy(() => import('@workspace/ui-android').then(m => ({ default: m.StageCorePanel })));
 import { Capacitor } from '@capacitor/core';
 
 import "./index.css";
@@ -1160,10 +1159,7 @@ export default function App() {
     };
   }, [transitionActive, updateSettings]);
 
-  // ── Sync Active Theme & AMOLED Mode ──
-  useEffect(() => {
-    applyThemeTokens(settings);
-  }, [settings]);
+  // ── Sync Active Theme & AMOLED Mode (handled globally by StartupCoordinator's subscriber) ──
 
 
 

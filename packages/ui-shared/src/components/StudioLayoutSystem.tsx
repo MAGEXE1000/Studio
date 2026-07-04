@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Button, Toolbar, Surface } from './StudioDesignSystem';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -159,23 +158,64 @@ export function SettingsScaffold({
       }}
       className="studio-settings-scaffold"
     >
-      <Toolbar
-        title={title}
-        actions={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {toolbarActions}
-            <Button variant="ghost" size="sm" icon="arrow_back" onClick={onBack}>
-              Back
-            </Button>
-          </div>
-        }
+      <div
         style={{
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          height: 'calc(56px + env(safe-area-inset-top, 0px))',
-          backgroundColor: 'var(--c-surface-highest)',
-          borderBottom: '1px solid var(--c-border)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '16px 20px',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          background: 'transparent',
+          flexShrink: 0,
         }}
-      />
+      >
+        <button
+          onClick={onBack}
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            background: 'rgba(128, 128, 128, 0.10)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: 'var(--c-text-primary)',
+            flexShrink: 0,
+            transition: 'transform 130ms cubic-bezier(0.34, 1.15, 0.64, 1)',
+          }}
+          onPointerDown={(e) => {
+            e.currentTarget.style.transform = 'scale(0.91)';
+          }}
+          onPointerUp={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+          onPointerLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            arrow_back
+          </span>
+        </button>
+        <span
+          style={{
+            fontSize: '22px',
+            fontWeight: 800,
+            color: 'var(--c-text-primary)',
+            letterSpacing: '-0.03em',
+            fontFamily: 'Manrope',
+          }}
+        >
+          {title}
+        </span>
+        {toolbarActions && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {toolbarActions}
+          </div>
+        )}
+      </div>
       <ScrollScaffold bottomSpacing={false} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }}>
         {children}
       </ScrollScaffold>

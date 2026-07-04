@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.71
+
+### Added
+- Resolved critical sub-app closing regression and navigation deadlocks.
+- Implemented premium slide-reveal transitions for all sub-app pages.
+- Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.
+- Added automatic bottom navigation expansion upon tab and view switches.
+- Restructured Android app shells to use unified Zustand navigation states.
+
 ## 3.7.70
 
 ### Added

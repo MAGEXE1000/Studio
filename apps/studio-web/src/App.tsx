@@ -290,11 +290,23 @@ export default function App() {
   const appMode = settings.appMode || 'hub';
   const isSubAppActive = appMode !== 'hub';
 
+  const lastActiveAppRef = useRef<AppKey>('chords');
+  if (isSubAppActive) {
+    lastActiveAppRef.current = appMode as AppKey;
+  }
+  const stableKey = lastActiveAppRef.current;
+
+  // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
+  const [cachedPanel, setCachedPanel] = useState<ActivePanel>(activePanel);
+  useEffect(() => {
+    if (appMode === 'chords') {
+      setCachedPanel(activePanel);
+    }
+  }, [activePanel, appMode]);
+
   if (route === '/') {
     return <StudioLandingPage navigateTo={navigateTo} />;
   }
-
-  const activeAppToRender = isSubAppActive ? appMode : null;
 
   return (
     <SidebarProvider>
@@ -346,7 +358,7 @@ export default function App() {
           <AnimatePresence mode="popLayout">
             {isSubAppActive && (
               <motion.div
-                key={activeAppToRender || 'none'}
+                key={stableKey}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -355,10 +367,10 @@ export default function App() {
                   inset: 0,
                   zIndex: 2,
                   background: 'var(--app-bg)',
-                  pointerEvents: activeAppToRender === null ? 'none' : 'auto',
+                  pointerEvents: isSubAppActive ? 'auto' : 'none',
                 }}
               >
-                {activeAppToRender === 'groovex' && (
+                {stableKey === 'groovex' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Groovex">
                       <Suspense fallback={<SmartLoading fallbackSkeleton={<GroovexAppSkeleton />} />}><AppEntryTransition><GroovexApp /></AppEntryTransition></Suspense>
@@ -366,7 +378,7 @@ export default function App() {
                   </div>
                 )}
 
-                {activeAppToRender === 'vocalex' && (
+                {stableKey === 'vocalex' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Vocalex">
                       <Suspense fallback={<SmartLoading fallbackSkeleton={<VocalexTakesSkeleton />} />}><AppEntryTransition><VocalexApp /></AppEntryTransition></Suspense>
@@ -374,7 +386,7 @@ export default function App() {
                   </div>
                 )}
 
-                {activeAppToRender === 'stage' && (
+                {stableKey === 'stage' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Stagex">
                       <Suspense fallback={<SmartLoading fallbackSkeleton={<StagexPanelSkeleton />} />}><AppEntryTransition><StageCorePanel /></AppEntryTransition></Suspense>
@@ -382,13 +394,13 @@ export default function App() {
                   </div>
                 )}
 
-                {activeAppToRender === 'drums' && (
+                {stableKey === 'drums' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Drumex"><Suspense fallback={<SmartLoading fallbackSkeleton={<DrumEditorSkeleton />} />}><AppEntryTransition><DrumEditor /></AppEntryTransition></Suspense></ErrorBoundary>
                   </div>
                 )}
 
-                {activeAppToRender === 'chords' && (
+                {stableKey === 'chords' && (
                   <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
                     <AppEntryTransition
                       className="flex flex-col w-full overflow-hidden select-none app-bg"
@@ -410,13 +422,13 @@ export default function App() {
                         {isWebDesktop && (
                           <WebAppSectionDock 
                             app="chords" 
-                            activeSection={activePanel} 
+                            activeSection={cachedPanel} 
                             onChangeSection={setActivePanel} 
                           />
                         )}
                         <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                           {ALL_PANELS.map(panel => {
-                            const isVisible = activePanel === panel;
+                            const isVisible = cachedPanel === panel;
                             if (!isVisible) return null;
 
                             return (

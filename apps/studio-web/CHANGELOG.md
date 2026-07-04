@@ -12,6 +12,33 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.71
+
+### Added
+- Resolved critical sub-app closing regression and navigation deadlocks.
+- Implemented premium slide-reveal transitions for all sub-app pages.
+- Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.
+- Added automatic bottom navigation expansion upon tab and view switches.
+- Restructured Android app shells to use unified Zustand navigation states.
+
+## 3.7.70
+
+### Added
+- Resolved critical sub-app closing regression that immediately exited nested modules after splash screen.
+- Integrated NavigationDispatcher.push routing synchronously with appMode triggers on Hub app launch.
+- Propagated scroll-driven collapse state notifications properly via setNavCollapsed in useScrollHide hook.
+- Implemented robust callback polling listener inside useScrollHide to prevent React late-mounting ref traps.
+- Unified sliding translation animations using premium CSS transforms across all sub-app navigation bars.
+
+## 3.7.69
+
+### Added
+- Standardized settings menu pages and consolidated terms, privacy policies, and credits under a unified About view.
+- Removed permanent Report a Bug feedback option from settings screen, keeping it accessible via dev diagnostics.
+- Hardened in-app updater watchdog transitions to preserve diagnostics failure details on state resets.
+- Fixed Capacitor mock isolation and dynamic ESM module override traps during regression test suites.
+- Completed full production UX audit across Chordex, Stagex, Drumex, Groovex, Vocalex, and settings modules.
+
 ## 3.7.68
 
 ### Added

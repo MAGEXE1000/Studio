@@ -804,7 +804,7 @@ export default function App() {
     } catch (_) {}
 
     flushSync(() => {
-      setTransitionActive(false);
+      useNavigationStore.getState().setTransition(null, false);
       setShowHub(false);
     });
 
@@ -971,7 +971,7 @@ export default function App() {
   const exitToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastBackTime = useRef<number>(0);
 
-  const [transitionActive, setTransitionActive] = useState(false);
+  const transitionActive = useNavigationStore(s => s.isTransitioning);
 
   // App launch transition state machine
   const [launchingApp, setLaunchingApp] = useState<AppKey | null>(null);
@@ -1143,23 +1143,22 @@ export default function App() {
     try {
       Object.defineProperty(window, 'studioTransitionActive', {
         get() {
-          return transitionActive;
+          return useNavigationStore.getState().isTransitioning;
         },
         set(val) {
-          setTransitionActive(!!val);
+          useNavigationStore.getState().setTransition(null, !!val);
         },
         configurable: true
       });
     } catch (e) {
       console.warn('Failed to defineProperty studioTransitionActive', e);
-      (window as any).studioTransitionActive = transitionActive;
     }
     return () => {
       try {
         delete (window as any).studioTransitionActive;
       } catch (e) {}
     };
-  }, [transitionActive]);
+  }, []);
 
   // 1.2-second safety watchdog for transitionActive
   useEffect(() => {
@@ -1167,7 +1166,7 @@ export default function App() {
     if (transitionActive) {
       watchdogTimer = setTimeout(() => {
         console.warn('[Safety] transitionActive watchdog triggered! Forcing reset to Hub.');
-        setTransitionActive(false);
+        useNavigationStore.getState().setTransition(null, false);
         updateSettings({ appMode: 'hub' });
         window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
       }, 1200);
@@ -1283,7 +1282,7 @@ export default function App() {
     document.documentElement.classList.remove('has-modal-open');
 
     // 2. Set transition active lock
-    setTransitionActive(true);
+    useNavigationStore.getState().setTransition('replace', true);
 
     // Reset Hub's zoom/opacity animation state immediately so it starts fading in as the sub-app exits
     window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
@@ -1303,7 +1302,6 @@ export default function App() {
     }
 
     setTimeout(() => {
-      setTransitionActive(false);
       recordNavigation({
         fromApp,
         toApp: 'hub',
@@ -1935,7 +1933,7 @@ export default function App() {
           const actualFrom = previousAppModeRef.current || 'none';
           flushSync(() => {
             setHubRenderKey(k => k + 1);
-            setTransitionActive(false);
+            useNavigationStore.getState().setTransition(null, false);
             lastActiveAppRef.current = 'chords';
             useChordStore.getState().updateSettings({ appMode: 'hub' });
           });
@@ -2389,6 +2387,16 @@ function FallbackTracker({ app, children }: { app: AppKey; children: React.React
 const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, onReady }: SubAppWrapperProps) {
   const [cachedApp] = useState<AppKey>(app);
 
+  // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
+  const [cachedPanel, setCachedPanel] = useState(activePanel);
+  const isActive = settings.appMode === cachedApp;
+
+  useEffect(() => {
+    if (isActive) {
+      setCachedPanel(activePanel);
+    }
+  }, [activePanel, isActive]);
+
   useEffect(() => {
     if (cachedApp !== 'chords') {
       return () => {};
@@ -2504,7 +2512,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
             >
               <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                 {ALL_PANELS.map(panel => {
-                  const isVisible = activePanel === panel;
+                  const isVisible = cachedPanel === panel;
                   if (!isVisible) return null;
 
                   return (

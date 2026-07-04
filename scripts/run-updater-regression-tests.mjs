@@ -311,9 +311,33 @@ async function runRegressionTests() {
       json: async () => ({ version: nextVersion, versionCode: 136, apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk` })
     });
 
-    await checkForUpdate(true);
-    await downloadUpdate();
-    assert.strictEqual(downloadAttempts, 2); // Retried and succeeded
+    const originalInspect = mockAppInstaller.inspectApk;
+    mockAppInstaller.inspectApk = async () => {
+      if (downloadAttempts < 2) {
+        return {
+          packageName: 'com.chordex.app',
+          versionName: '3.7.8',
+          versionCode: 8,
+          signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+          isValidApk: true
+        };
+      }
+      return {
+        packageName: 'com.chordex.app',
+        versionName: '3.7.71',
+        versionCode: 136,
+        signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+        isValidApk: true
+      };
+    };
+
+    try {
+      await checkForUpdate(true);
+      await downloadUpdate();
+      assert.strictEqual(downloadAttempts, 2); // Retried and succeeded
+    } finally {
+      mockAppInstaller.inspectApk = originalInspect;
+    }
   });
 
   // Scenario 6: Recovery Mode (Signature Mismatch)

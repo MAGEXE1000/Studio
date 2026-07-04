@@ -91,7 +91,7 @@ export function useNavCollapsed(): boolean {
 // On scroll-down → collapse the nav to a floating circle (setNavCollapsed).
 // On scroll-up or near top → expand back.
 // Callers that need a full programmatic hide should use setNavHidden() directly.
-export function useScrollHide(ref: React.RefObject<HTMLElement | null>) {
+export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
   const lastY = useRef(0);
   useEffect(() => {
     let el = ref.current;
@@ -100,21 +100,34 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>) {
     const attachScrollListener = (target: HTMLElement) => {
       onScroll = () => {
         const y = target.scrollTop;
-        if (y < 30) {
+        const maxScroll = target.scrollHeight - target.clientHeight;
+
+        // Ignore overscroll / rubber-banding boundaries (iOS/Mac bounce)
+        if (y < 0 || y > maxScroll) {
+          return;
+        }
+
+        // Expand navigation immediately when near the top (within 40px)
+        if (y < 40) {
           if (_collapsed) {
             setNavCollapsed(false);
           }
           lastY.current = y;
           return;
         }
+
         const dy = y - lastY.current;
-        if (Math.abs(dy) < 6) return;
         
+        // Jitter filter: ignore scroll updates smaller than 8px
+        if (Math.abs(dy) < 8) {
+          return;
+        }
+
         const shouldCollapse = dy > 0;
         if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
           setNavCollapsed(shouldCollapse);
         }
-        
+
         lastY.current = y;
       };
       target.addEventListener('scroll', onScroll, { passive: true });
@@ -145,5 +158,5 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>) {
         el.removeEventListener('scroll', onScroll);
       }
     };
-  }, [ref]);
+  }, [ref, dependency]);
 }

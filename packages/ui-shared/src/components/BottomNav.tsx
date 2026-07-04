@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher, setNavCollapsed } from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
 
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
@@ -195,6 +195,7 @@ export default function BottomNav() {
     const oldIdx = prevIdxRef.current;
     if (newIdx === oldIdx) return;
     prevIdxRef.current = newIdx;
+    setNavCollapsed(false);
 
     const newM = measureBtn(newIdx);
     if (!newM) return;

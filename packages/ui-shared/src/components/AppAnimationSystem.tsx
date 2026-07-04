@@ -144,7 +144,7 @@ export function PageTransition({
       if (type === 'fade') return { opacity: 0, zIndex: 1 };
       if (type === 'scale') return { opacity: 0, scale: 0.96, zIndex: 1 };
       return {
-        x: direction === 'forward' ? '100%' : '-30%',
+        x: direction === 'forward' ? '100%' : '0%',
         opacity: 1,
         zIndex: direction === 'forward' ? 2 : 1,
       };
@@ -153,7 +153,7 @@ export function PageTransition({
       if (type === 'fade') return { opacity: 1, zIndex: 1 };
       if (type === 'scale') return { opacity: 1, scale: 1, zIndex: 1 };
       return {
-        x: 0,
+        x: '0%',
         opacity: 1,
         scale: 1,
         zIndex: direction === 'forward' ? 2 : 1,
@@ -163,7 +163,7 @@ export function PageTransition({
       if (type === 'fade') return { opacity: 0, zIndex: 1 };
       if (type === 'scale') return { opacity: 0, scale: 1.04, zIndex: 1 };
       return {
-        x: direction === 'forward' ? '-30%' : '100%',
+        x: direction === 'forward' ? '0%' : '100%',
         opacity: 1,
         zIndex: direction === 'forward' ? 1 : 2,
       };

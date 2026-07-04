@@ -1052,6 +1052,8 @@ function UpdateModal({
       showButtons = false;
       break;
 
+    case 'verifying_sha':
+    case 'verifying_eligibility':
     case 'verifying':
       iconName = 'verified_user';
       iconColor = purpleFrom;
@@ -2144,6 +2146,8 @@ function UpdateModal({
     'preparing',
     'enteringProgressScreen',
     'downloading',
+    'verifying_sha',
+    'verifying_eligibility',
     'verifying',
     'readyForInstallPrompt',
     'waitingForUserInstallConfirmation',

@@ -1,4 +1,4 @@
-export const SHARED_NAV_TRANSITION = 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1), opacity 200ms cubic-bezier(0.25, 1, 0.5, 1), background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease';
+export const SHARED_NAV_TRANSITION = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1), background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease';
 
 export const getSharedNavTransform = (navHidden: boolean, navCollapsed: boolean, entered = true) => {
   if (!entered) {
@@ -11,5 +11,5 @@ export const getSharedNavTransform = (navHidden: boolean, navCollapsed: boolean,
 
 export const getSharedNavOpacity = (navHidden: boolean, navCollapsed: boolean, entered = true) => {
   if (!entered) return 0;
-  return (navHidden || navCollapsed) ? 0 : 1;
+  return 1;
 };

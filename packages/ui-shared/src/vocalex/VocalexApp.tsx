@@ -1,4 +1,4 @@
-import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, useScrollHide } from '@workspace/studio-core';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import { subscribeVocalexBack } from './headerBack';
@@ -195,41 +195,10 @@ export default function VocalexApp() {
   const labScrollRef      = useRef<HTMLDivElement | null>(null);
   const takesScrollRef    = useRef<HTMLDivElement | null>(null);
 
-  // Unified scroll tracker — attaches to the active panel's container after each tab switch.
-  // Replaces 4 separate useScrollHide calls: those ran once on mount with empty deps,
-  // so any panel that wasn't rendered yet (ref = null) never got a scroll listener.
-  useEffect(() => {
-    const refMap = {
-      practice: practiceScrollRef,
-      pitch:    pitchScrollRef,
-      vocalLab: labScrollRef,
-      takes:    takesScrollRef,
-    } as const;
-
-    let el: HTMLElement | null = null;
-    let onScroll: (() => void) | null = null;
-
-    // Defer by one tick so the panel has mounted and the ref has been assigned.
-    const tid = setTimeout(() => {
-      el = refMap[activeTab].current;
-      if (!el) return;
-      let lastY = el.scrollTop;
-      onScroll = () => {
-        const y = el!.scrollTop;
-        if (y < 30) { setNavCollapsed(false); lastY = y; return; }
-        const dy = y - lastY;
-        if (Math.abs(dy) < 6) return;
-        setNavCollapsed(dy > 0);
-        lastY = y;
-      };
-      el.addEventListener('scroll', onScroll, { passive: true });
-    }, 50);
-
-    return () => {
-      clearTimeout(tid);
-      if (el && onScroll) el.removeEventListener('scroll', onScroll);
-    };
-  }, [activeTab]);
+  useScrollHide(practiceScrollRef, activeTab);
+  useScrollHide(pitchScrollRef, activeTab);
+  useScrollHide(labScrollRef, activeTab);
+  useScrollHide(takesScrollRef, activeTab);
 
   const navHidden   = useNavHidden();
   const navCollapsed = useNavCollapsed();
@@ -269,6 +238,7 @@ export default function VocalexApp() {
     const oldIdx = prevIdxRef.current;
     if (newIdx === oldIdx) return;
     prevIdxRef.current = newIdx;
+    setNavCollapsed(false);
     const newM = measureBtn(newIdx);
     if (!newM) return;
 

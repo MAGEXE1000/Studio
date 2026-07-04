@@ -1,6 +1,6 @@
 ### Added
-- Removed the gray Settings header and restored the transparent sub-navigation bar design.
-- Optimised page transitions to slide in faster and more snappily.
-- Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.
-- Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.
-- Fixed background OTA updater lifecycle race conditions.
+- Resolved critical sub-app closing regression and navigation deadlocks.
+- Implemented premium slide-reveal transitions for all sub-app pages.
+- Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.
+- Added automatic bottom navigation expansion upon tab and view switches.
+- Restructured Android app shells to use unified Zustand navigation states.

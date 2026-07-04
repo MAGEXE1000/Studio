@@ -7,7 +7,7 @@ export async function resolve(specifier, context, nextResolve) {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export const Capacitor = globalThis.Capacitor; export const registerPlugin = (name) => globalThis.Capacitor.Plugins[name];'
+      url: 'data:text/javascript,export const Capacitor = new Proxy({}, { get: (t, p) => (globalThis.Capacitor || {})[p] }); export const registerPlugin = (name) => { if (!globalThis.Capacitor) globalThis.Capacitor = { Plugins: {} }; if (!globalThis.Capacitor.Plugins) globalThis.Capacitor.Plugins = {}; return globalThis.Capacitor.Plugins[name] || (globalThis.Capacitor.Plugins[name] = {}); }; export class WebPlugin {}'
     };
   }
   if (specifier === '@capacitor/app') {

@@ -1,22 +1,22 @@
 {
   "platform": "android",
-  "version": "3.7.68",
-  "versionName": "3.7.68",
-  "versionCode": 196,
-  "version_code": 196,
-  "commit": "8f1876d9",
-  "releasedAt": "7/4/2026, 1:56:54 PM CST",
-  "buildTimestamp": "7/4/2026, 1:56:54 PM CST",
+  "version": "3.7.71",
+  "versionName": "3.7.71",
+  "versionCode": 199,
+  "version_code": 199,
+  "commit": "02c3b2b5",
+  "releasedAt": "7/4/2026, 3:17:40 PM CST",
+  "buildTimestamp": "7/4/2026, 3:17:40 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Removed the gray Settings header and restored the transparent sub-navigation bar design.\n• Optimised page transitions to slide in faster and more snappily.\n• Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.\n• Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.\n• Fixed background OTA updater lifecycle race conditions.",
-  "whatsNew": "• Removed the gray Settings header and restored the transparent sub-navigation bar design.\n• Optimised page transitions to slide in faster and more snappily.\n• Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.\n• Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.\n• Fixed background OTA updater lifecycle race conditions.",
+  "changelog": "• Resolved critical sub-app closing regression and navigation deadlocks.\n• Implemented premium slide-reveal transitions for all sub-app pages.\n• Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.\n• Added automatic bottom navigation expansion upon tab and view switches.\n• Restructured Android app shells to use unified Zustand navigation states.",
+  "whatsNew": "• Resolved critical sub-app closing regression and navigation deadlocks.\n• Implemented premium slide-reveal transitions for all sub-app pages.\n• Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.\n• Added automatic bottom navigation expansion upon tab and view switches.\n• Restructured Android app shells to use unified Zustand navigation states.",
   "releaseNotes": {
     "added": [
-      "Removed the gray Settings header and restored the transparent sub-navigation bar design.",
-      "Optimised page transitions to slide in faster and more snappily.",
-      "Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.",
-      "Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.",
-      "Fixed background OTA updater lifecycle race conditions."
+      "Resolved critical sub-app closing regression and navigation deadlocks.",
+      "Implemented premium slide-reveal transitions for all sub-app pages.",
+      "Upgraded bottom navigation auto-hide scrollers to filter jitter and ignore overscroll.",
+      "Added automatic bottom navigation expansion upon tab and view switches.",
+      "Restructured Android app shells to use unified Zustand navigation states."
     ]
   },
   "mandatory": false

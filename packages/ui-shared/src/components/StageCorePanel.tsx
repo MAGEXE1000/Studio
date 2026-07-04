@@ -1,6 +1,7 @@
 import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from './navStyles';
 import AnimatedActionButton from './animata/container/animated-border-trail';
 import { AppModeMenuLogo } from './AppModeMenuLogo';
 import WebAppSectionDock from './WebAppSectionDock';
@@ -981,6 +982,9 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   const showBack = curView === 'Rider' || curView === 'Setlist' || curView === 'Gear' || curView === 'Members' || curView === 'Export';
 
   const lastCallTime = useRef(0);
+  useEffect(() => {
+    setNavCollapsed(false);
+  }, [curView]);
   // Functions that are idempotent navigation actions and should never be
   // throttled — spam-tapping Stage/Setup/Preferences must always feel instant.
   const NO_THROTTLE_FNS = new Set(['switchView', 'stageGoBack']);
@@ -2380,11 +2384,9 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             position: 'absolute',
             bottom: 'max(10px, env(safe-area-inset-bottom))',
             left: '50%',
-            transform: `translateX(-50%) translateY(${
-              liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed ? 'calc(100% + 32px)' : '0px'
-            })`,
+            transform: getSharedNavTransform(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed, false),
             pointerEvents: (liveMode || hideBottomNav || navCollapsed) ? 'none' : 'auto',
-            opacity: (liveMode || navCollapsed) ? 0 : 1,
+            opacity: getSharedNavOpacity(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed, false),
             width: isLandscapeEditor ? '70%' : '90%',
             maxWidth: isLandscapeEditor ? '320px' : '400px',
             height: `${expandedStageH}px`,
@@ -2399,7 +2401,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             zIndex: 50,
             overflow: 'hidden',
             willChange: 'transform, opacity',
-            transition: 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1), opacity 200ms cubic-bezier(0.25, 1, 0.5, 1), background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease',
+            transition: SHARED_NAV_TRANSITION,
           }}
         >
           <div style={{

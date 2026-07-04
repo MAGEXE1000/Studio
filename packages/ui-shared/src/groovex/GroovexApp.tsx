@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, setNavCollapsed } from '@workspace/studio-core';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from './useGroovexStore';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
@@ -206,6 +206,7 @@ function GroovexNav({ view, setView, hasActiveSong }: {
     const oldIdx = prevIdxRef.current;
     if (newIdx === oldIdx) return;
     prevIdxRef.current = newIdx;
+    setNavCollapsed(false);
     const newM = measureBtn(newIdx);
     if (!newM) return;
 

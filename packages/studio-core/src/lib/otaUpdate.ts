@@ -535,6 +535,24 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
   logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 326, `Entering executeCheckForUpdateInternal Call #${callId} for pipeline #${pipelineId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger} | Reason: ${reason}` });
 
   const startTime = Date.now();
+  const currentStatus = globalOtaState.updateState;
+  const isTransient = [
+    'FETCH_APK_INFORMATION',
+    'DOWNLOAD_APK',
+    'VERIFY_SHA256',
+    'PREPARE_INSTALL',
+    'WAIT_PACKAGE_INSTALLER',
+    'INSTALLING',
+    'INSTALL_SUCCESS'
+  ].includes(currentStatus);
+
+  if (isTransient) {
+    console.log(`[OTA] checkForUpdate check ignored because update/install is already in progress (state: ${currentStatus})`);
+    const duration = Date.now() - startTime;
+    logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 584, `Exiting checkForUpdate Call #${callId} early (active operation in progress)`, { durationMs: duration, prevState: currentStatus, nextState: currentStatus });
+    return Promise.resolve(globalOtaState);
+  }
+
   setActivePipelineContext({ checkId: pipelineId, trigger, pipelineStartTime: startTime });
   if (globalOtaState.updateState !== 'IDLE') {
     transitionToState('IDLE', 'Resetting to IDLE before starting check');
@@ -1197,63 +1215,10 @@ export async function applyUpdate(trigger?: string): Promise<void> {
         throw new Error('[Eligibility Check] Validation failed: ' + (otaDebugLogs.eligibilityReason || 'unknown'));
       }
 
-      // Register listener to monitor native PackageInstaller status events
-      const { AppInstaller } = await import('./apkDownloader');
-      const installPipelineId = UpdatePipelineCoordinator.getActivePipelineId();
-      const statusPromise = new Promise<void>(async (resolvePromise, rejectPromise) => {
-        try {
-          console.log('[INSTRUMENTATION] [JS] Registering native status listener for onInstallStatusChanged');
-          const onStatusEvent = (eventData: any) => {
-            const status = eventData.status;
-            const message = eventData.message;
-            console.log('[INSTRUMENTATION] [JS] onInstallStatusChanged received:', eventData);
-            addJsLog(`Install Status Received: status=${status}, message=${message}, progress=${eventData.progress || 0}`);
-
-            if (installPipelineId !== UpdatePipelineCoordinator.getActivePipelineId()) {
-              console.warn('[OTA] Ignoring stale PackageInstaller callback from obsolete pipeline ID:', installPipelineId);
-              UpdatePipelineCoordinator.ignoredStaleCallbacksCount++;
-              return;
-            }
-
-            if (globalOtaState.updateState === 'IDLE' || globalOtaState.updateState === 'RECOVERY') {
-              console.log('[OTA] Ignoring native status event since state is:', globalOtaState.updateState);
-              return;
-            }
-
-            if (status === -1) { // STATUS_PENDING_USER_ACTION
-              console.log('[INSTRUMENTATION] [JS] STATUS_PENDING_USER_ACTION received. Showing confirmation dialog.');
-              transitionToState('WAIT_PACKAGE_INSTALLER', 'Native prompt displayed');
-              updateGlobalState({ statusText: 'System confirmation dialog is showing...' });
-            } else if (status === -2) { // installing_start
-              console.log('[INSTRUMENTATION] [JS] Session active. Installation started.');
-              transitionToState('INSTALLING', 'PackageInstaller session active');
-              updateGlobalState({ statusText: 'Installing update...' });
-            } else if (status === -3) { // installing_progress
-              const progressPct = Math.round((eventData.progress || 0) * 100);
-              console.log(`[INSTRUMENTATION] [JS] Installation progress: ${progressPct}%`);
-              updateGlobalState({ statusText: `Installing... (${progressPct}%)` });
-            } else if (status === 0) { // STATUS_SUCCESS
-              console.log('[INSTRUMENTATION] [JS] STATUS_SUCCESS received. Installation completed successfully.');
-              transitionToState('INSTALL_SUCCESS', 'PackageInstaller success');
-              resolvePromise();
-            } else if (status === 3) { // STATUS_FAILURE_ABORTED (User cancelled)
-              console.log('[INSTRUMENTATION] [JS] STATUS_FAILURE_ABORTED received. User cancelled.');
-              transitionToState('INSTALL_FAILED', 'User cancelled installation');
-              rejectPromise(new Error('Installation cancelled by user.'));
-            } else {
-              console.log(`[INSTRUMENTATION] [JS] Installation failed with status ${status}: ${message}`);
-              transitionToState('INSTALL_FAILED', `Install failed: ${message || `code ${status}`}`);
-              rejectPromise(new Error(message || `PackageInstaller error code ${status}`));
-            }
-          };
-
-          setSimulateStatusCallback(onStatusEvent);
-          if (isNative() && isAppInstallerAvailable()) {
-            nativeListener = await (AppInstaller as any).addListener('onInstallStatusChanged', onStatusEvent);
-          }
-        } catch (e) {
-          console.warn('Failed to register native status listener:', e);
-        }
+      // Register global promise hooks for status tracking
+      const statusPromise = new Promise<void>((resolvePromise, rejectPromise) => {
+        activeInstallPromiseResolver = resolvePromise;
+        activeInstallPromiseRejecter = rejectPromise;
       });
 
       otaDebugLogs.installError += `\nAPK is eligible. Launching APK installer intent for file: ${filePath}`;
@@ -1267,8 +1232,12 @@ export async function applyUpdate(trigger?: string): Promise<void> {
           updaterSimulation.forcePendingUserAction;
 
       if (shouldSimulateInstall) {
-        addJsLog('[Simulate Install] Simulation active. Skipping native install trigger.');
-        void logProgressStage('Simulation committed', 'Simulation mode active');
+        addJsLog('[Simulate Install] Simulation active. Setting simulation handler.');
+        setSimulateStatusCallback((eventData: any) => {
+          if (typeof (window as any).triggerOtaInstallStatus === 'function') {
+            (window as any).triggerOtaInstallStatus(eventData);
+          }
+        });
         
         // Timed sequence simulation
         (async () => {
@@ -1358,6 +1327,72 @@ export function markUpdateSeen(): void {
   }
 }
 
+let activeInstallPromiseResolver: (() => void) | null = null;
+let activeInstallPromiseRejecter: ((err: Error) => void) | null = null;
+
+async function checkAndRecoverInstallState() {
+  const currentState = globalOtaState.updateState;
+  if (currentState !== 'WAIT_PACKAGE_INSTALLER' && currentState !== 'INSTALLING') {
+    return;
+  }
+
+  try {
+    const { AppInstaller } = await import('./apkDownloader');
+    const check = await AppInstaller.isInstallActive();
+    console.log('[OTA Recovery] checkAndRecoverInstallState check.active:', check.active);
+
+    if (check.active) {
+      if (currentState !== 'INSTALLING') {
+        transitionToState('INSTALLING', 'Active installation confirmed on resume');
+      }
+      updateGlobalState({ statusText: 'Installing update...' });
+      return;
+    }
+
+    // Install is not active. Check the last result.
+    const result = await AppInstaller.getLastInstallResult();
+    console.log('[OTA Recovery] checkAndRecoverInstallState getLastInstallResult:', result);
+
+    if (result.statusCode === 0) {
+      console.log('[OTA Recovery] Success result detected on resume.');
+      transitionToState('INSTALL_SUCCESS', 'PackageInstaller success detected on resume');
+      updateGlobalState({ statusText: 'Install succeeded!' });
+      if (activeInstallPromiseResolver) {
+        activeInstallPromiseResolver();
+        activeInstallPromiseResolver = null;
+        activeInstallPromiseRejecter = null;
+      }
+    } else if (result.statusCode === -999) {
+      // No result registered, but install is no longer active.
+      // This means the installer closed (possibly cancelled or dismissed).
+      console.log('[OTA Recovery] Installer closed without registering status. Setting to INSTALL_FAILED.');
+      transitionToState('INSTALL_FAILED', 'Installer closed without status', 'Installation was cancelled or interrupted.');
+      if (activeInstallPromiseRejecter) {
+        activeInstallPromiseRejecter(new Error('Installation cancelled or interrupted.'));
+        activeInstallPromiseResolver = null;
+        activeInstallPromiseRejecter = null;
+      }
+    } else {
+      const processed = processLastInstallResult(result);
+      if (processed) {
+        const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
+        updateGlobalState({
+          error: processed.errMsg,
+          statusText: processed.errMsg
+        });
+        transitionToState(finalState, `Install state recovery: result code ${result.statusCode}`, processed.errMsg);
+        if (activeInstallPromiseRejecter) {
+          activeInstallPromiseRejecter(new Error(processed.errMsg));
+          activeInstallPromiseResolver = null;
+          activeInstallPromiseRejecter = null;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[OTA Recovery] Failed to check/recover install state:', err);
+  }
+}
+
 let isOtaInitialized = false;
 
 export function initializeGlobalOtaListeners() {
@@ -1390,10 +1425,26 @@ export function initializeGlobalOtaListeners() {
     } else if (status === 0) {
       transitionToState('INSTALL_SUCCESS', 'PackageInstaller status SUCCESS');
       updateGlobalState({ statusText: 'Install succeeded!' });
+      if (activeInstallPromiseResolver) {
+        activeInstallPromiseResolver();
+        activeInstallPromiseResolver = null;
+        activeInstallPromiseRejecter = null;
+      }
     } else if (status === 3) {
       transitionToState('INSTALL_FAILED', 'User cancelled installation');
+      if (activeInstallPromiseRejecter) {
+        activeInstallPromiseRejecter(new Error('Installation cancelled by user.'));
+        activeInstallPromiseResolver = null;
+        activeInstallPromiseRejecter = null;
+      }
     } else {
-      transitionToState('INSTALL_FAILED', `Install failed: ${message || `code ${status}`}`);
+      const errMsg = message || `PackageInstaller error code ${status}`;
+      transitionToState('INSTALL_FAILED', `Install failed: ${errMsg}`);
+      if (activeInstallPromiseRejecter) {
+        activeInstallPromiseRejecter(new Error(errMsg));
+        activeInstallPromiseResolver = null;
+        activeInstallPromiseRejecter = null;
+      }
     }
   };
 
@@ -1420,6 +1471,19 @@ export function initializeGlobalOtaListeners() {
         console.warn('[OTA] Failed to register global native status listener:', e);
       }
     })();
+  }
+
+  if (isNative()) {
+    import('@capacitor/app').then(async ({ App }) => {
+      await App.addListener('appStateChange', async (state) => {
+        if (state.isActive) {
+          console.log('[OTA Lifecycle] App returned to foreground. Recovering updater state...');
+          await checkAndRecoverInstallState();
+        }
+      });
+    }).catch((e) => {
+      console.warn('[OTA Lifecycle] Failed to register appStateChange listener:', e);
+    });
   }
 }
 

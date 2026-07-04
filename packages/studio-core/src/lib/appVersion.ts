@@ -25,7 +25,7 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.66';
+export const NATIVE_VERSION = '3.7.67';
 export const WEB_VERSION = '4.0.0';
 export const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -37,11 +37,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-02'; // 3.7.66
+export const APP_VERSION_DATE = '2026-07-03'; // 3.7.67
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
-export const APP_COMMIT_SHA = import.meta.env.VITE_GIT_COMMIT_SHA || 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || '7/2/2026, 12:00:00 AM CST';
+export const APP_COMMIT_SHA = import.meta.env.VITE_GIT_COMMIT_SHA || 'e6f8e9ba';
+export const APP_BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || '7/3/2026, 11:40:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -60,20 +60,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.",
-      "Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.",
-      "Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.",
-      "Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states.",
-    ],
-  },
-  {
-    heading: "Fixed",
-    items: [
-      "Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.",
-      "Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.",
-      "Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.",
-      "Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.",
-      "Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths.",
+      "Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.",
+      "Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.",
+      "Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared.",
     ],
   },
 ];
@@ -83,9 +72,9 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Premium redesigned Bento Main Settings and Developer Options dashboards.",
-      "Tactile button press animations and responsive 4-column health indicators.",
-      "Robust state machine based App Update subsystem and stable bottom navigation.",
+      "Unified dialog, sheet, and modal animations using DialogScaffold.",
+      "Repository cleanup: pruned obsolete code and duplicate design primitives.",
+      "Optimized startup orchestration and web-to-native integration.",
     ],
   },
 ];

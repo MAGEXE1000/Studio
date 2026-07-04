@@ -1,21 +1,20 @@
 {
   "platform": "web",
   "version": "4.0.0",
-  "commit": "efd2b1a3",
-  "releasedAt": "6/27/2026, 6:10:00 PM CST",
-  "buildTimestamp": "6/27/2026, 6:10:00 PM CST",
+  "commit": "e6f8e9ba",
+  "releasedAt": "7/3/2026, 11:40:00 PM CST",
+  "buildTimestamp": "7/3/2026, 11:40:00 PM CST",
   "updateMode": "refresh",
-  "description": "• Added multi-stage signature mismatch recovery featuring automated cache clearing, session recreation, and PendingIntent resets.\n• Added direct GitHub Release package installation with SHA-256 integrity checks and signing certificate verification.\n• Added detailed error dialogs containing technical/human explanations, detected cause, and current/latest version comparison.\n• Fixed updater state machine overwrite issues to ensure signature mismatch and version checks are preserved.",
-  "whatsNew": "• Added multi-stage signature mismatch recovery featuring automated cache clearing, session recreation, and PendingIntent resets.\n• Added direct GitHub Release package installation with SHA-256 integrity checks and signing certificate verification.\n• Added detailed error dialogs containing technical/human explanations, detected cause, and current/latest version comparison.\n• Fixed updater state machine overwrite issues to ensure signature mismatch and version checks are preserved.",
-  "changelog": "• Added multi-stage signature mismatch recovery featuring automated cache clearing, session recreation, and PendingIntent resets.\n• Added direct GitHub Release package installation with SHA-256 integrity checks and signing certificate verification.\n• Added detailed error dialogs containing technical/human explanations, detected cause, and current/latest version comparison.\n• Fixed updater state machine overwrite issues to ensure signature mismatch and version checks are preserved.",
+  "description": "• Implemented deep pre-release APK certificate validation via keytool and apksigner checks.\n• Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.\n• Optimized app startup time by disabling heavy stack trace captures inside production console loggers.\n• Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.\n• Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls.",
+  "whatsNew": "• Implemented deep pre-release APK certificate validation via keytool and apksigner checks.\n• Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.\n• Optimized app startup time by disabling heavy stack trace captures inside production console loggers.\n• Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.\n• Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls.",
+  "changelog": "• Implemented deep pre-release APK certificate validation via keytool and apksigner checks.\n• Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.\n• Optimized app startup time by disabling heavy stack trace captures inside production console loggers.\n• Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.\n• Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls.",
   "releaseNotes": {
     "added": [
-      "Added multi-stage signature mismatch recovery featuring automated cache clearing, session recreation, and PendingIntent resets.",
-      "Added direct GitHub Release package installation with SHA-256 integrity checks and signing certificate verification.",
-      "Added detailed error dialogs containing technical/human explanations, detected cause, and current/latest version comparison."
-    ],
-    "fixed": [
-      "Fixed updater state machine overwrite issues to ensure signature mismatch and version checks are preserved."
+      "Implemented deep pre-release APK certificate validation via keytool and apksigner checks.",
+      "Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.",
+      "Optimized app startup time by disabling heavy stack trace captures inside production console loggers.",
+      "Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.",
+      "Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls."
     ]
   },
   "mandatory": false

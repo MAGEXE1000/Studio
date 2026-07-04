@@ -1,28 +1,20 @@
 {
-  "platform": "android",
-  "version": "3.7.66",
-  "versionName": "3.7.66",
-  "versionCode": 194,
-  "version_code": 194,
-  "commit": "967e5cd6",
-  "releasedAt": "7/3/2026, 6:25:28 PM CST",
-  "buildTimestamp": "7/3/2026, 6:25:28 PM CST",
+  "platform": "web",
+  "version": "4.0.0",
+  "commit": "e6f8e9ba",
+  "releasedAt": "7/3/2026, 11:40:00 PM CST",
+  "buildTimestamp": "7/3/2026, 11:40:00 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.\n• Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.\n• Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.\n• Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states.\n• Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.\n• Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.\n• Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.\n• Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.\n• Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths.",
-  "whatsNew": "• Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.\n• Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.\n• Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.\n• Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states.\n• Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.\n• Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.\n• Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.\n• Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.\n• Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths.",
+  "description": "• Implemented deep pre-release APK certificate validation via keytool and apksigner checks.\n• Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.\n• Optimized app startup time by disabling heavy stack trace captures inside production console loggers.\n• Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.\n• Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls.",
+  "whatsNew": "• Implemented deep pre-release APK certificate validation via keytool and apksigner checks.\n• Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.\n• Optimized app startup time by disabling heavy stack trace captures inside production console loggers.\n• Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.\n• Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls.",
+  "changelog": "• Implemented deep pre-release APK certificate validation via keytool and apksigner checks.\n• Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.\n• Optimized app startup time by disabling heavy stack trace captures inside production console loggers.\n• Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.\n• Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls.",
   "releaseNotes": {
     "added": [
-      "Implemented premium visual redesign of Developer Options dashboard (Design #1) with a 4-column live System Health grid showing App/Android versions, update statuses, and error/warning counts.",
-      "Redesigned Engineering Tools inside Developer Options into an interactive 6-card bento grid (Apps, Performance, Logs, Network, System, Updater) with dynamic telemetry badges.",
-      "Rebuilt Settings profile header in Main Settings (Design #2) with dynamic Pro user badge, user initials/photo, and subtle background glow.",
-      "Created reusable BentoSettingCard and BentoSettingRow components inside SettingControls for tactile pressed animations (scale-down effect) and hover states."
-    ],
-    "fixed": [
-      "Stabilized bottom navigation consistency across all settings and developer pages to prevent clipping, overlaps, and disappearing states.",
-      "Audited and resolved scrolling, clippings, and black bar layouts throughout Settings to ensure safe-area notches and keyboard padding fit perfectly.",
-      "Replaced hardcoded color values with Studio's theme variables to support AMOLED, pure dark, light, and dynamic accent color modes.",
-      "Overhauled App Update engine with a 16-state deterministic machine to resolve false \"App is up to date\" scenarios.",
-      "Integrated explicit exception handlers and diagnostics metadata in update checker pipelines for robust recovery paths."
+      "Implemented deep pre-release APK certificate validation via keytool and apksigner checks.",
+      "Deployed automated self-test utility test-updater-flow.mjs for update system pipeline verification.",
+      "Optimized app startup time by disabling heavy stack trace captures inside production console loggers.",
+      "Deferred active watchdog recovery to T+1000ms to eliminate false positive startup thrashes.",
+      "Expanded Update Diagnostics Sheet with validation status matrices, certificate hashes comparison, and logs controls."
     ]
   },
   "mandatory": false

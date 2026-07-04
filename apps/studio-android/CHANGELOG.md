@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.67
+
+### Added
+- Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.
+- Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.
+- Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared.
+
 ## 3.7.66
 
 ### Added

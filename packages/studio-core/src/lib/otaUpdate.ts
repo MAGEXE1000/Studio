@@ -367,6 +367,9 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
   activeCheckPromise = (async () => {
     const startTime = Date.now();
     setActivePipelineContext({ checkId, trigger, pipelineStartTime: startTime });
+    if (globalOtaState.updateState !== 'IDLE') {
+      transitionToState('IDLE', 'Resetting to IDLE before starting check');
+    }
     transitionToState('INITIALIZING', 'checkForUpdate start');
     try {
       if (updaterSimulation.forceMetadataFailure) {

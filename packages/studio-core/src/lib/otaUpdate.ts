@@ -384,6 +384,10 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
       const natVer = await getNativeVersion();
       const natVerCode = await getNativeVersionCode();
+      if (checkId !== latestCheckId) {
+        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId} before FETCH_REMOTE_METADATA. Exiting.`);
+        return globalOtaState;
+      }
 
       if (!safeTransition('INITIALIZING', 'FETCH_REMOTE_METADATA', 'Fetching remote manifest')) {
         const duration = Date.now() - startTime;
@@ -391,6 +395,10 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
         return globalOtaState;
       }
       const realRemote = await fetchRemoteVersion();
+      if (checkId !== latestCheckId) {
+        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId} after fetchRemoteVersion. Exiting.`);
+        return globalOtaState;
+      }
 
       let remote;
       if (updaterSimulation.forceUpdateAvailable) {
@@ -599,6 +607,9 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
             fallbackApkUrl: remote.fallbackApkUrl ?? null,
           });
           await checkAndCleanCache();
+          if (checkId !== latestCheckId) {
+            return globalOtaState;
+          }
           if (!safeTransition('COMPARE_VERSION', 'NO_UPDATE_AVAILABLE', 'User dismissed/later')) {
             return globalOtaState;
           }
@@ -620,6 +631,9 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
         });
 
         await checkAndCleanCache();
+        if (checkId !== latestCheckId) {
+          return globalOtaState;
+        }
         if (!safeTransition('COMPARE_VERSION', 'UPDATE_AVAILABLE', 'New update found')) {
           return globalOtaState;
         }

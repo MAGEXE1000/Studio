@@ -1153,6 +1153,11 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     };
   }, []);
 
+  const iframeLoadingRef = useRef(iframeLoading);
+  iframeLoadingRef.current = iframeLoading;
+  const diagTapsRef = useRef(diagTaps);
+  diagTapsRef.current = diagTaps;
+
   useEffect(() => {
     registerDebugProvider({
       id: 'stagex',
@@ -1160,15 +1165,15 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       getDebugState: () => ({
         activeImplementation: 'Modern Web Stagex',
         activeStageCorePanel: 'v4.0.0-web',
-        iframeLoaded: !iframeLoading,
+        iframeLoaded: !iframeLoadingRef.current,
         iframeReady: iframeReady.current,
-        bridgeConnected: iframeReady.current && !iframeLoading,
-        bridgeMessagesSent: diagTaps.sentMsgs,
-        bridgeMessagesReceived: diagTaps.recvMsgs,
-        activeTab: curView,
+        bridgeConnected: iframeReady.current && !iframeLoadingRef.current,
+        bridgeMessagesSent: diagTapsRef.current.sentMsgs,
+        bridgeMessagesReceived: diagTapsRef.current.recvMsgs,
+        activeTab: curViewRef.current,
         selectedElement: 'none',
         overlayState: 'N/A',
-        diagTaps,
+        diagTaps: diagTapsRef.current,
         controlState: {
           Add: { rendered: true, lastError: null },
           Setup: { rendered: true, lastError: null },
@@ -1183,7 +1188,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     return () => {
       unregisterDebugProvider('stagex');
     };
-  }, [iframeLoading, curView, diagTaps]);
+  }, []);
 
   useEffect(() => {
     const iframe = iframeRef.current;

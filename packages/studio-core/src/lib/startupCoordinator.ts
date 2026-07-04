@@ -484,7 +484,13 @@ class StartupCoordinatorClass {
   private setupLifecycleListeners() {
     this.addEventListener(document, 'visibilitychange', () => {
       if (document.visibilityState === 'visible') {
+        const settings = useChordStore.getState().settings;
+        if (settings.highRefreshRate) {
+          this.startHiFpsTick();
+        }
         this.handleLifecycleEvent('visibilitychange', 'lifecycle_visibility', 'visibilitychange visible');
+      } else {
+        this.stopHiFpsTick();
       }
     });
 
@@ -502,9 +508,14 @@ class StartupCoordinatorClass {
       import('@capacitor/app').then(({ App }) => {
         App.addListener('appStateChange', (s) => {
           if (s.isActive) {
+            const settings = useChordStore.getState().settings;
+            if (settings.highRefreshRate) {
+              this.startHiFpsTick();
+            }
             this.startPeriodicUpdatePolling();
             this.handleLifecycleEvent('appStateChange', 'lifecycle_appstate', 'native app active', s);
           } else {
+            this.stopHiFpsTick();
             this.stopPeriodicUpdatePolling();
             // Cancel mid-boot if app goes to background
             if (!this.isCompleted) {

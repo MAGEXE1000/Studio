@@ -12,7 +12,9 @@ const VIEW_ORDER: GroovexView[] = ['library', 'player', 'preferences'];
 
 export default function GroovexApp() {
   const isWebDesktop = useIsWebDesktop();
-  const { view, setView, activeSongId } = useGroovexStore();
+  const view = useGroovexStore(s => s.view);
+  const setView = useGroovexStore(s => s.setView);
+  const activeSongId = useGroovexStore(s => s.activeSongId);
   const [viewAnim, setViewAnim] = useState<'panel-enter-right' | 'panel-enter-left'>('panel-enter-right');
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
@@ -27,21 +29,26 @@ export default function GroovexApp() {
     return () => window.removeEventListener('resize', handleResize);
   }, [isWebDesktop]);
 
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const activeSongIdRef = useRef(activeSongId);
+  activeSongIdRef.current = activeSongId;
+
   useEffect(() => {
     registerDebugProvider({
       id: 'groovex',
       name: 'Groovex App',
       getDebugState: () => ({
-        activeSongId: activeSongId || 'none',
-        currentView: view,
-        playbackState: activeSongId ? 'active' : 'stopped',
+        activeSongId: activeSongIdRef.current || 'none',
+        currentView: viewRef.current,
+        playbackState: activeSongIdRef.current ? 'active' : 'stopped',
         grooveState: useGroovexStore.getState()
       })
     });
     return () => {
       unregisterDebugProvider('groovex');
     };
-  }, [view, activeSongId]);
+  }, []);
 
   function navigate(next: GroovexView) {
     const oldIdx = VIEW_ORDER.indexOf(view);
@@ -154,7 +161,7 @@ function GroovexNav({ view, setView, hasActiveSong }: {
   setView: (v: GroovexView) => void;
   hasActiveSong: boolean;
 }) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const groovexVis = settings.perApp?.groovex ?? { theme: 'dark', accentColor: 'blue', amoledMode: false };
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const accent = ACCENT_COLORS[groovexVis.accentColor as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;

@@ -10,7 +10,7 @@ export const MOTION_DURATIONS = {
 };
 
 export const MOTION_EASINGS = {
-  standard: [0.25, 1, 0.5, 1] as any, // Premium cubic-bezier easing
+  standard: [0.2, 0, 0, 1] as any, // Premium cubic-bezier easing
   spring: {
     type: 'spring' as const,
     stiffness: 140,
@@ -143,24 +143,31 @@ export function PageTransition({
 
   const variants = {
     initial: () => {
-      if (type === 'fade') return { opacity: 0 };
-      if (type === 'scale') return { opacity: 0, scale: 0.96 };
+      if (type === 'fade') return { opacity: 0, zIndex: 1 };
+      if (type === 'scale') return { opacity: 0, scale: 0.96, zIndex: 1 };
       return {
         x: direction === 'forward' ? '100%' : '-30%',
         opacity: 1,
+        zIndex: direction === 'forward' ? 2 : 1,
       };
     },
-    animate: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
+    animate: () => {
+      if (type === 'fade') return { opacity: 1, zIndex: 1 };
+      if (type === 'scale') return { opacity: 1, scale: 1, zIndex: 1 };
+      return {
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        zIndex: direction === 'forward' ? 2 : 1,
+      };
     },
     exit: () => {
-      if (type === 'fade') return { opacity: 0 };
-      if (type === 'scale') return { opacity: 0, scale: 1.04 };
+      if (type === 'fade') return { opacity: 0, zIndex: 1 };
+      if (type === 'scale') return { opacity: 0, scale: 1.04, zIndex: 1 };
       return {
         x: direction === 'forward' ? '-30%' : '100%',
         opacity: 1,
+        zIndex: direction === 'forward' ? 1 : 2,
       };
     }
   };

@@ -46,15 +46,18 @@ import {
   APP_VERSION_LABEL,
   NATIVE_VERSION,
   transitionToState,
-  updateGlobalState
+  updateGlobalState,
+  useIsWebDesktop
 } from '@workspace/studio-core';
 
 import { decodeReactError } from './ErrorBoundary';
+import { SettingsScaffold } from './StudioLayoutSystem';
 import UpdaterDiagnosticsPage from './updater-diagnostics/UpdaterDiagnosticsPage';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
   onBack: () => void;
+  hideHeader?: boolean;
 }
 
 type TabId = 'logs' | 'errors' | 'events' | 'perf' | 'state' | 'nav' | 'network' | 'storage' | 'providers';
@@ -405,9 +408,43 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
   );
 };
 
-export default function DevToolsDashboard({ accent, onBack }: Props) {
+export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props) {
   const { settings, updateSettings, activePanel } = useChordStore();
+  const isWebDesktop = useIsWebDesktop();
   const [subView, setSubView] = useState<'dashboard' | 'stagex' | 'updater' | 'system' | 'logs' | 'performance' | 'network' | 'apps'>('dashboard');
+
+  const getSubViewTitle = () => {
+    switch (subView) {
+      case 'dashboard':
+        return 'Developer Options';
+      case 'apps':
+        return 'Apps Diagnostics';
+      case 'stagex':
+        return 'Stagex Diagnostics';
+      case 'updater':
+        return 'Update Diagnostics';
+      case 'system':
+        return 'System Diagnostics';
+      case 'logs':
+        return 'Logs & Warnings';
+      case 'performance':
+        return 'Performance Diagnostics';
+      case 'network':
+        return 'Network Sniffer';
+      default:
+        return 'Developer Options';
+    }
+  };
+
+  const handleSubViewBack = () => {
+    if (subView === 'dashboard') {
+      onBack();
+    } else if (subView === 'stagex') {
+      setSubView('apps');
+    } else {
+      setSubView('dashboard');
+    }
+  };
   const [activeTab, setActiveTab] = useState<TabId>('logs');
   const lastAppRef = useRef<string>('Livex Hub');
   const [versionUpdates, setVersionUpdates] = useState(0);
@@ -1149,6 +1186,7 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
   // WarningsInspector moved to file-level
 
   const renderSubViewHeader = (title: string) => {
+    if (!isWebDesktop) return null;
     const handleGoBack = () => {
       if (title === 'Stagex Diagnostics') {
         setSubView('apps');
@@ -2200,16 +2238,8 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
     border: '1px solid rgba(128, 128, 128, 0.12)',
   };
 
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      background: 'var(--app-bg)',
-      color: 'var(--c-text-primary)',
-      fontFamily: 'Manrope, sans-serif',
-      overflowX: 'hidden'
-    }}>
+  const renderDashboardContent = () => (
+    <>
       <style>{`
         @media (min-width: 768px) {
           .dev-grid-4col {
@@ -2223,86 +2253,88 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
       {subView === 'dashboard' && (
         <>
           {/* HEADER */}
-          <div style={{
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-            paddingBottom: '16px',
-            paddingLeft: '20px',
-            paddingRight: '20px',
-            borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: 'var(--app-bg)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                onClick={onBack}
-                className="btn-smooth"
-                style={{
-                  background: 'var(--app-surface-high)',
-                  border: 'none',
-                  borderRadius: '999px',
-                  width: 36,
-                  height: 36,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: 'var(--c-text-primary)'
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
-              </button>
-              <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Developer Panel</h2>
-                <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>System Diagnostics & Runtime Tools</p>
-              </div>
-            </div>
+          {isWebDesktop && (
             <div style={{
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+              paddingBottom: '16px',
+              paddingLeft: '20px',
+              paddingRight: '20px',
+              borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
               display: 'flex',
               alignItems: 'center',
-              background: 'var(--app-surface-high)',
-              borderRadius: '999px',
-              padding: '6px 12px',
-              gap: 8,
-              border: '1px solid rgba(128, 128, 128, 0.08)'
+              justifyContent: 'space-between',
+              background: 'var(--app-bg)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 100
             }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
-              <div
-                onClick={() => {
-                  const next = !settings.developerMode;
-                  updateSettings({ developerMode: next });
-                  showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
-                }}
-                style={{
-                  position: 'relative',
-                  width: 32,
-                  height: 18,
-                  backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
-                  borderRadius: 999,
-                  padding: '2px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{
-                  width: 14,
-                  height: 14,
-                  backgroundColor: '#ffffff',
-                  borderRadius: '50%',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                  transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
-                  transition: 'transform 0.2s ease'
-                }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button
+                  onClick={onBack}
+                  className="btn-smooth"
+                  style={{
+                    background: 'var(--app-surface-high)',
+                    border: 'none',
+                    borderRadius: '999px',
+                    width: 36,
+                    height: 36,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--c-text-primary)'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+                </button>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Developer Panel</h2>
+                  <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>System Diagnostics & Runtime Tools</p>
+                </div>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'var(--app-surface-high)',
+                borderRadius: '999px',
+                padding: '6px 12px',
+                gap: 8,
+                border: '1px solid rgba(128, 128, 128, 0.08)'
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
+                <div
+                  onClick={() => {
+                    const next = !settings.developerMode;
+                    updateSettings({ developerMode: next });
+                    showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
+                  }}
+                  style={{
+                    position: 'relative',
+                    width: 32,
+                    height: 18,
+                    backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
+                    borderRadius: 999,
+                    padding: '2px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <div style={{
+                    width: 14,
+                    height: 14,
+                    backgroundColor: '#ffffff',
+                    borderRadius: '50%',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                    transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
+                    transition: 'transform 0.2s ease'
+                  }} />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* SYSTEM HEALTH GRID */}
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -2672,6 +2704,26 @@ export default function DevToolsDashboard({ accent, onBack }: Props) {
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['network', 'sync']} />
           </div>
         </div>
+      )}
+    </>
+  );
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      background: 'var(--app-bg)',
+      color: 'var(--c-text-primary)',
+      fontFamily: 'Manrope, sans-serif',
+      overflowX: 'hidden'
+    }}>
+      {!isWebDesktop ? (
+        <SettingsScaffold title={getSubViewTitle()} onBack={handleSubViewBack}>
+          {renderDashboardContent()}
+        </SettingsScaffold>
+      ) : (
+        renderDashboardContent()
       )}
 
       {/* TOAST NOTIFICATION */}

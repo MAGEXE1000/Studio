@@ -50,20 +50,18 @@ function RelatedPlayBtn({ guitar, accent, isLight }: {
 
 export default function ChordPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const {
-    selectedChordId,
-    activePanel,
-    settings,
-    toggleFavorite,
-    isFavorite,
-    addToProgression,
-    currentProgressionChords,
-    recentChords,
-    selectChord,
-    trackChordUsage,
-    setLibraryActiveType,
-    setActivePanel,
-  } = useChordStore();
+  const selectedChordId = useChordStore(s => s.selectedChordId);
+  const activePanel = useChordStore(s => s.activePanel);
+  const settings = useChordStore(s => s.settings);
+  const toggleFavorite = useChordStore(s => s.toggleFavorite);
+  const isFavorite = useChordStore(s => s.isFavorite);
+  const addToProgression = useChordStore(s => s.addToProgression);
+  const currentProgressionChords = useChordStore(s => s.currentProgressionChords);
+  const recentChords = useChordStore(s => s.recentChords);
+  const selectChord = useChordStore(s => s.selectChord);
+  const trackChordUsage = useChordStore(s => s.trackChordUsage);
+  const setLibraryActiveType = useChordStore(s => s.setLibraryActiveType);
+  const setActivePanel = useChordStore(s => s.setActivePanel);
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
   const t = useT();
@@ -75,25 +73,40 @@ export default function ChordPanel() {
   const [showGenerator, setShowGenerator] = useState(false);
   const [chordPlaying, setChordPlaying] = useState(false);
 
+  const selectedChordIdRef = useRef(selectedChordId);
+  selectedChordIdRef.current = selectedChordId;
+  const activePanelRef = useRef(activePanel);
+  activePanelRef.current = activePanel;
+  const currentProgressionChordsRef = useRef(currentProgressionChords);
+  currentProgressionChordsRef.current = currentProgressionChords;
+  const recentChordsRef = useRef(recentChords);
+  recentChordsRef.current = recentChords;
+  const showFinderRef = useRef(showFinder);
+  showFinderRef.current = showFinder;
+  const showGeneratorRef = useRef(showGenerator);
+  showGeneratorRef.current = showGenerator;
+  const chordPlayingRef = useRef(chordPlaying);
+  chordPlayingRef.current = chordPlaying;
+
   useEffect(() => {
     registerDebugProvider({
       id: 'chordex',
       name: 'Chordex Editor',
       getDebugState: () => ({
-        selectedChordId,
-        activePanel,
-        currentProgressionChords,
-        recentChordsCount: recentChords?.length || 0,
+        selectedChordId: selectedChordIdRef.current,
+        activePanel: activePanelRef.current,
+        currentProgressionChords: currentProgressionChordsRef.current,
+        recentChordsCount: recentChordsRef.current?.length || 0,
         transposeState: useChordStore.getState().transpositions,
-        finderOpen: showFinder,
-        generatorOpen: showGenerator,
-        playingState: chordPlaying ? 'playing' : 'stopped'
+        finderOpen: showFinderRef.current,
+        generatorOpen: showGeneratorRef.current,
+        playingState: chordPlayingRef.current ? 'playing' : 'stopped'
       })
     });
     return () => {
       unregisterDebugProvider('chordex');
     };
-  }, [selectedChordId, activePanel, currentProgressionChords, recentChords, showFinder, showGenerator, chordPlaying]);
+  }, []);
 
   // Register back handler when Chord panel is active
   useBackHandler('nested', () => {
@@ -912,7 +925,10 @@ export default function ChordPanel() {
 
 function SavedProgressions({ accent }: { accent: { from: string; to: string; mid: string } }) {
   const isWebDesktop = useIsWebDesktop();
-  const { settings, progressions, loadProgression, deleteProgression } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const progressions = useChordStore(s => s.progressions);
+  const loadProgression = useChordStore(s => s.loadProgression);
+  const deleteProgression = useChordStore(s => s.deleteProgression);
   const t = useT();
   if (progressions.length === 0) return null;
 

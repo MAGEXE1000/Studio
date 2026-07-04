@@ -75,7 +75,7 @@ export default function VocalexApp() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isWebDesktop]);
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const t = useT();
   // Restore last-visited Vocalex tab so a refresh / app-switch lands the
   // user where they left off. Falls back to 'practice' for fresh installs
@@ -116,23 +116,36 @@ export default function VocalexApp() {
     return false;
   })();
 
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const visibleTabRef = useRef(visibleTab);
+  visibleTabRef.current = visibleTab;
+  const exitingTabRef = useRef(exitingTab);
+  exitingTabRef.current = exitingTab;
+  const slideDirRef = useRef(slideDir);
+  slideDirRef.current = slideDir;
+  const activeVisAccentRef = useRef(activeVis.accentColor);
+  activeVisAccentRef.current = activeVis.accentColor;
+  const isLightRef = useRef(isLight);
+  isLightRef.current = isLight;
+
   useEffect(() => {
     registerDebugProvider({
       id: 'vocalex',
       name: 'Vocalex App',
       getDebugState: () => ({
-        activeTab,
-        visibleTab,
-        exitingTab,
-        slideDirection: slideDir,
-        accentColor: activeVis.accentColor,
-        isLight
+        activeTab: activeTabRef.current,
+        visibleTab: visibleTabRef.current,
+        exitingTab: exitingTabRef.current,
+        slideDirection: slideDirRef.current,
+        accentColor: activeVisAccentRef.current,
+        isLight: isLightRef.current
       })
     });
     return () => {
       unregisterDebugProvider('vocalex');
     };
-  }, [activeTab, visibleTab, exitingTab, slideDir, activeVis.accentColor, isLight]);
+  }, []);
 
   const durMs = settings.animationSpeed === 'fast' ? 200 : settings.animationSpeed === 'reduced' ? 0 : 280;
 

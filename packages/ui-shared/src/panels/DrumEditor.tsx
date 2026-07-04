@@ -1679,7 +1679,8 @@ const VISIBLE_BATCH = 20;
 
 // ── DrumEditor ─────────────────────────────────────────────────────────────
 export default function DrumEditor() {
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const updateSettings = useChordStore(s => s.updateSettings);
   const isWebDesktop = useIsWebDesktop();
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
@@ -1781,30 +1782,47 @@ export default function DrumEditor() {
     useChordStore.getState().setLastSession({ drumexTab: activeTab });
   }, [activeTab]);
 
+  const activePatternIdRef = useRef(activePatternId);
+  activePatternIdRef.current = activePatternId;
+  const patternsRef = useRef(patterns);
+  patternsRef.current = patterns;
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const patternRef = useRef(pattern);
+  patternRef.current = pattern;
+  const kitTypeRef = useRef(kitType);
+  kitTypeRef.current = kitType;
+  const houseKitMicRef = useRef(houseKitMic);
+  houseKitMicRef.current = houseKitMic;
+  const houseCrashModelRef = useRef(houseCrashModel);
+  houseCrashModelRef.current = houseCrashModel;
+  const cymbalPackRef = useRef(cymbalPack);
+  cymbalPackRef.current = cymbalPack;
+
   useEffect(() => {
     registerDebugProvider({
       id: 'drumex',
       name: 'Drumex Editor',
       getDebugState: () => ({
-        activePatternId,
-        patternsCount: patterns?.length || 0,
-        activeTab,
+        activePatternId: activePatternIdRef.current,
+        patternsCount: patternsRef.current?.length || 0,
+        activeTab: activeTabRef.current,
         isPlaying: drumScheduler?.isPlaying || false,
-        tempo: pattern?.bpm || 120,
-        swing: pattern?.swing || 0,
-        kitType: kitType || 'house',
-        houseKitMic,
-        loopRange: pattern?.loopRange || null,
+        tempo: patternRef.current?.bpm || 120,
+        swing: patternRef.current?.swing || 0,
+        kitType: kitTypeRef.current || 'house',
+        houseKitMic: houseKitMicRef.current,
+        loopRange: patternRef.current?.loopRange || null,
         soundState: {
-          houseCrashModel,
-          cymbalPack
+          houseCrashModel: houseCrashModelRef.current,
+          cymbalPack: cymbalPackRef.current
         }
       })
     });
     return () => {
       unregisterDebugProvider('drumex');
     };
-  }, [activePatternId, patterns, activeTab, pattern, kitType, houseKitMic, houseCrashModel, cymbalPack]);
+  }, []);
   const [playing, setPlaying]               = useState(false);
   const [looping, setLooping]               = useState(() => drumPrefs.loopPlayback);
   const [countingIn, setCountingIn]         = useState(false);

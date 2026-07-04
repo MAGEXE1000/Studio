@@ -7,8 +7,19 @@ import { useGroovexStore } from './useGroovexStore';
 import { AnimatedAppHeader, StaggeredReveal } from '../components/AppAnimationSystem';
 
 export default function GroovexLibrary() {
-  const { searchQuery, setSearchQuery, filterArtist, setFilterArtist, filterGenre, setFilterGenre, sortBy, setSortBy, setView, setActiveSong, addRecentSong, recentSongs } = useGroovexStore();
-  const { settings } = useChordStore();
+  const searchQuery = useGroovexStore(s => s.searchQuery);
+  const setSearchQuery = useGroovexStore(s => s.setSearchQuery);
+  const filterArtist = useGroovexStore(s => s.filterArtist);
+  const setFilterArtist = useGroovexStore(s => s.setFilterArtist);
+  const filterGenre = useGroovexStore(s => s.filterGenre);
+  const setFilterGenre = useGroovexStore(s => s.setFilterGenre);
+  const sortBy = useGroovexStore(s => s.sortBy);
+  const setSortBy = useGroovexStore(s => s.setSortBy);
+  const setView = useGroovexStore(s => s.setView);
+  const setActiveSong = useGroovexStore(s => s.setActiveSong);
+  const addRecentSong = useGroovexStore(s => s.addRecentSong);
+  const recentSongs = useGroovexStore(s => s.recentSongs);
+  const settings = useChordStore(s => s.settings);
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const t = useT();
   const [showFilters, setShowFilters] = useState(false);

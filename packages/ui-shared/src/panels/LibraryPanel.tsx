@@ -432,18 +432,16 @@ function ChordCard({
 // ── Main panel ────────────────────────────────────────────────
 export default function LibraryPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const {
-    selectedChordId,
-    recentChords,
-    favorites,
-    selectChord,
-    settings,
-    activePanel,
-    toggleFavorite,
-    addToProgression,
-    libraryActiveType: activeType,
-    setLibraryActiveType: setActiveType,
-  } = useChordStore();
+  const selectedChordId = useChordStore(s => s.selectedChordId);
+  const recentChords = useChordStore(s => s.recentChords);
+  const favorites = useChordStore(s => s.favorites);
+  const selectChord = useChordStore(s => s.selectChord);
+  const settings = useChordStore(s => s.settings);
+  const activePanel = useChordStore(s => s.activePanel);
+  const toggleFavorite = useChordStore(s => s.toggleFavorite);
+  const addToProgression = useChordStore(s => s.addToProgression);
+  const activeType = useChordStore(s => s.libraryActiveType);
+  const setActiveType = useChordStore(s => s.setLibraryActiveType);
   const [chordPlaying, setChordPlaying] = useState(false);
 
   const handleChordClick = (chordId: string) => {

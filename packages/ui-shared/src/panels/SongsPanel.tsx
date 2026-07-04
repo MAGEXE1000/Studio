@@ -2428,15 +2428,36 @@ const ITEM_H = 76;
 export default function SongsPanel() {
   const t = useT();
   const isWebDesktop = useIsWebDesktop();
-  const {
-    presets, activePresetId, activePanel, settings, transpositions, customChords,
-    setActivePreset, createPreset, updatePreset, deletePreset,
-    addChordToPreset, removeChordFromPreset, reorderPresetChords, duplicateChordInPreset,
-    setTranspose, resetTranspose, updateSettings,
-    saveCustomChord, updateCustomChord, deleteCustomChord,
-    addSection, updateSection, deleteSection, addChordToSection, removeChordFromSection, reorderSectionChords, duplicateChordInSection, reorderSection, convertToSections,
-    deduplicateAllPresets,
-  } = useChordStore();
+  const presets = useChordStore(s => s.presets);
+  const activePresetId = useChordStore(s => s.activePresetId);
+  const activePanel = useChordStore(s => s.activePanel);
+  const settings = useChordStore(s => s.settings);
+  const transpositions = useChordStore(s => s.transpositions);
+  const customChords = useChordStore(s => s.customChords);
+  const setActivePreset = useChordStore(s => s.setActivePreset);
+  const createPreset = useChordStore(s => s.createPreset);
+  const updatePreset = useChordStore(s => s.updatePreset);
+  const deletePreset = useChordStore(s => s.deletePreset);
+  const addChordToPreset = useChordStore(s => s.addChordToPreset);
+  const removeChordFromPreset = useChordStore(s => s.removeChordFromPreset);
+  const reorderPresetChords = useChordStore(s => s.reorderPresetChords);
+  const duplicateChordInPreset = useChordStore(s => s.duplicateChordInPreset);
+  const setTranspose = useChordStore(s => s.setTranspose);
+  const resetTranspose = useChordStore(s => s.resetTranspose);
+  const updateSettings = useChordStore(s => s.updateSettings);
+  const saveCustomChord = useChordStore(s => s.saveCustomChord);
+  const updateCustomChord = useChordStore(s => s.updateCustomChord);
+  const deleteCustomChord = useChordStore(s => s.deleteCustomChord);
+  const addSection = useChordStore(s => s.addSection);
+  const updateSection = useChordStore(s => s.updateSection);
+  const deleteSection = useChordStore(s => s.deleteSection);
+  const addChordToSection = useChordStore(s => s.addChordToSection);
+  const removeChordFromSection = useChordStore(s => s.removeChordFromSection);
+  const reorderSectionChords = useChordStore(s => s.reorderSectionChords);
+  const duplicateChordInSection = useChordStore(s => s.duplicateChordInSection);
+  const reorderSection = useChordStore(s => s.reorderSection);
+  const convertToSections = useChordStore(s => s.convertToSections);
+  const deduplicateAllPresets = useChordStore(s => s.deduplicateAllPresets);
   const accent      = ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ?? ACCENT_COLORS.blue;
   const preferFlats = settings.preferFlats ?? false;
   const isNative    = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();

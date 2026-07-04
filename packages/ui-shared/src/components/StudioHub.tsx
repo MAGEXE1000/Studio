@@ -251,6 +251,13 @@ export default function StudioHub() {
   const [devToast, setDevToast] = useState<string | null>(null);
   const [devToastTimer, setDevToastTimer] = useState<number | null>(null);
 
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+  const zoomingRef = useRef(zooming);
+  zoomingRef.current = zooming;
+  const authUserRef = useRef(authUser);
+  authUserRef.current = authUser;
+
   useEffect(() => {
     registerDebugProvider({
       id: 'hub',
@@ -259,12 +266,13 @@ export default function StudioHub() {
         const diag = getFirestoreDiagnostics();
         const navEntries = getNavigationEntries();
         const lastNav = navEntries.length > 0 ? navEntries[navEntries.length - 1] : null;
+        const currentStore = useChordStore.getState();
         return {
-          activeTab: tab,
-          zooming,
-          authStatus: authUser ? 'Signed In' : 'Signed Out',
-          theme: settings.theme,
-          language: settings.language,
+          activeTab: tabRef.current,
+          zooming: zoomingRef.current,
+          authStatus: authUserRef.current ? 'Signed In' : 'Signed Out',
+          theme: currentStore.settings.theme,
+          language: currentStore.settings.language,
           'Sync Provider': diag.syncProvider,
           'Firestore Runtime Active': diag.firestoreRuntimeActive,
           'Firestore Disabled (Verified)': !diag.firestoreRuntimeActive,
@@ -283,7 +291,7 @@ export default function StudioHub() {
     return () => {
       unregisterDebugProvider('hub');
     };
-  }, [tab, zooming, authUser, settings.theme, settings.language]);
+  }, []);
 
 
   const showDevToast = (msg: string) => {
@@ -1513,12 +1521,13 @@ function GlobalHint() {
   );
 }
 
-function HubUpdaterPage({ className, style, cardStyle, accent, onBack }: {
+function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeader }: {
   className?: string;
   style: React.CSSProperties;
   cardStyle: React.CSSProperties;
   accent: { from: string; to: string; mid: string };
   onBack: () => void;
+  hideHeader?: boolean;
 }) {
   const ota = useOtaUpdate();
   const isWebDesktop = useIsWebDesktop();
@@ -1781,7 +1790,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack }: {
           border: 1px solid rgba(128,128,128,0.08);
         }
       `}</style>
-      {!isWebDesktop && <SettingsSubHeader title={L.title} onBack={onBack} />}
+      {!isWebDesktop && !hideHeader && <SettingsSubHeader title={L.title} onBack={onBack} />}
 
       {/* ── HERO CARD ── */}
       <div className="updater-hero-card spring-in" style={{ ...cardStyle, margin: 0, marginBottom: 16 }}>
@@ -3791,6 +3800,7 @@ User Agent: [Automatically Generated]
         accent={accent}
         onBack={goBack}
         style={{}}
+        hideHeader={!isWebDesktop}
       />
     );
   }
@@ -4799,11 +4809,9 @@ User Agent: [Automatically Generated]
         <AnimatePresence initial={false} mode="popLayout">
           {page === 'developer' && (
             <PageTransition key="developer" direction={slideDir}>
-              <SettingsScaffold title={t.hub.studioSettings.developerTitle || 'Developer Options'} onBack={goBack}>
-                <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
-                  <DevToolsDashboard accent={accent} onBack={goBack} />
-                </Suspense>
-              </SettingsScaffold>
+              <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
+                <DevToolsDashboard accent={accent} onBack={goBack} />
+              </Suspense>
             </PageTransition>
           )}
 

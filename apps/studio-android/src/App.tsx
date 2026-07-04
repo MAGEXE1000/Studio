@@ -2047,14 +2047,19 @@ export default function App() {
     (window as any).__lastPreviousAppMode = previousAppModeRef.current;
   }
 
-  if (!startupComplete) {
-    return <div style={{ width: '100vw', height: '100dvh', background: 'var(--app-bg)' }} />;
-  }
-
   return (
     <div
       className={`app-container app-mode-${appMode}`}
-      style={{ display: 'flex', width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--app-bg)' }}
+      style={{
+        display: 'flex',
+        width: '100vw',
+        height: '100dvh',
+        overflow: 'hidden',
+        background: 'var(--app-bg)',
+        opacity: startupComplete ? 1 : 0,
+        transition: 'opacity 300ms cubic-bezier(0.2, 0, 0, 1)',
+        pointerEvents: startupComplete ? 'auto' : 'none'
+      }}
     >
       <LifecycleTracker name="App" />
       <LifecycleTracker name="app-container" />

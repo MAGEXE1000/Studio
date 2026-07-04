@@ -673,40 +673,6 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
       }
     }
 
-    if (isNative() && isAppInstallerAvailable()) {
-      try {
-        checkCancellation(pipelineId, 'QUERY_LAST_INSTALL_RESULT');
-        const { AppInstaller } = await import('./apkDownloader');
-        const result = await AppInstaller.getLastInstallResult();
-        console.log('[OTA DEBUG] Last install result status:', result);
-        
-        const processed = processLastInstallResult(result);
-        if (processed) {
-          otaDiagnostics.statusCode = result.statusCode;
-          otaDiagnostics.statusText = processed.errMsg;
-          otaDiagnostics.exceptionMessage = processed.errMsg;
-          otaDiagnostics.failureReason = `PackageInstaller code ${result.statusCode}\nMessage: ${result.statusMessage}\nPackage: ${result.packageName}`;
-          otaDiagnostics.installerResult = `Code: ${result.statusCode}\nMessage: ${result.statusMessage}\nPackage: ${result.packageName}\nTimestamp: ${new Date(result.timestamp).toISOString()}`;
-          otaDiagnostics.timestamp = new Date(result.timestamp).toISOString();
-
-          await populateDiagnostics(null, 'PackageInstaller failure detected');
-
-          const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
-          updateGlobalState({
-            error: processed.errMsg
-          });
-          if (globalOtaState.updateState !== 'IDLE') {
-            transitionToState(finalState, `Install result during check: ${processed.category}`, processed.errMsg);
-          }
-          const duration = Date.now() - startTime;
-          console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-          return globalOtaState;
-        }
-      } catch (err) {
-        console.warn('[OTA] Failed to fetch last native install result:', err);
-      }
-    }
-
     checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');
     if (!safeTransition('FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'Validating fetched manifest integrity')) {
       const duration = Date.now() - startTime;

@@ -62,7 +62,7 @@ setTimeout(() => {
   void seedAudioAssets();
 }, 2000);
 
-const UpdateIndicator = lazy(() => import("@workspace/ui-android").then(m => ({ default: m.UpdateIndicator })));
+const UpdateIndicator = lazy(() => import("@workspace/ui-shared/src/components/UpdateIndicator"));
 
 function GlobalOverlays() {
   const [ready, setReady] = useState(false);

@@ -3,6 +3,7 @@ import {
   memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../components/navStyles';
 
 const MetronomeIcon = ({ size = 16 }: { size?: number }) => (
   <svg 
@@ -590,7 +591,6 @@ function DrumNav({ activeTab, setTab, accent, isLight, isAmoled, hidden }: {
   return (
     <nav ref={navRef} className="glass-nav" style={{
       position: 'fixed', left: '50%',
-      transform: `translateX(-50%) translateY(${hidden ? 'calc(100% + 32px)' : '0px'})`,
       bottom: 'max(10px, env(safe-area-inset-bottom))',
       width: '88%',
       maxWidth: '360px',
@@ -603,19 +603,11 @@ function DrumNav({ activeTab, setTab, accent, isLight, isAmoled, hidden }: {
         : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
       zIndex: 50, overflow: 'hidden',
       backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      clipPath: navCollapsed
-        ? `inset(${Math.max(0, expandedH - 5)}px ${Math.max(0, Math.floor((expandedW - 90) / 2))}px 0 ${Math.max(0, Math.floor((expandedW - 90) / 2))}px round 99px)`
-        : 'inset(0 0 0 0 round 2rem)',
-      willChange: 'clip-path, transform',
-      transition: [
-        navCollapsed
-          ? 'clip-path 500ms cubic-bezier(0.4,0,0.2,1)'
-          : 'clip-path 380ms cubic-bezier(0.16,1,0.3,1)',
-        navCollapsed
-          ? 'transform 500ms cubic-bezier(0.4,0,0.2,1)'
-          : 'transform 380ms cubic-bezier(0.16,1,0.3,1)',
-        'background-color 300ms ease',
-      ].join(', '),
+      pointerEvents: (hidden || navCollapsed) ? 'none' : 'auto',
+      transform: getSharedNavTransform(!!hidden, !!navCollapsed),
+      opacity: getSharedNavOpacity(!!hidden, !!navCollapsed),
+      willChange: 'transform, opacity',
+      transition: SHARED_NAV_TRANSITION,
     }}>
       <div style={{
         position: 'absolute', inset: 0,

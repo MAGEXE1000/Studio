@@ -94,34 +94,56 @@ export function useNavCollapsed(): boolean {
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>) {
   const lastY = useRef(0);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const onScroll = () => {
-      const y = el.scrollTop;
-      if (y < 30) {
-        if (_collapsed) {
-          _collapsed = false;
-          document.documentElement.removeAttribute('data-nav-collapsed');
+    let el = ref.current;
+    let onScroll: (() => void) | null = null;
+    
+    const attachScrollListener = (target: HTMLElement) => {
+      onScroll = () => {
+        const y = target.scrollTop;
+        if (y < 30) {
+          if (_collapsed) {
+            setNavCollapsed(false);
+          }
+          lastY.current = y;
+          return;
         }
+        const dy = y - lastY.current;
+        if (Math.abs(dy) < 6) return;
+        
+        const shouldCollapse = dy > 0;
+        if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
+          setNavCollapsed(shouldCollapse);
+        }
+        
         lastY.current = y;
-        return;
-      }
-      const dy = y - lastY.current;
-      if (Math.abs(dy) < 6) return;
-      
-      const shouldCollapse = dy > 0;
-      if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
-        _collapsed = shouldCollapse;
-        if (shouldCollapse) {
-          document.documentElement.setAttribute('data-nav-collapsed', 'true');
-        } else {
-          document.documentElement.removeAttribute('data-nav-collapsed');
-        }
-      }
-      
-      lastY.current = y;
+      };
+      target.addEventListener('scroll', onScroll, { passive: true });
     };
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [ref.current]);
+
+    if (el) {
+      attachScrollListener(el);
+    } else {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        el = ref.current;
+        attempts++;
+        if (el) {
+          clearInterval(interval);
+          attachScrollListener(el);
+        } else if (attempts > 30) {
+          clearInterval(interval);
+        }
+      }, 50);
+      
+      return () => {
+        clearInterval(interval);
+      };
+    }
+    
+    return () => {
+      if (el && onScroll) {
+        el.removeEventListener('scroll', onScroll);
+      }
+    };
+  }, [ref]);
 }

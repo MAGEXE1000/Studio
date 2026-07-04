@@ -433,6 +433,7 @@ export default function StudioHub() {
 
     (window as any).studioTransitionActive = true;
     setZooming(true);
+    NavigationDispatcher.push({ app: appMode });
     updateSettings({ appMode });
 
     // Clear any pending launch timers

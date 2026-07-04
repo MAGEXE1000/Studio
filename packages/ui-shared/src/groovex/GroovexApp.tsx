@@ -2,6 +2,7 @@ import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, 
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from './useGroovexStore';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
+import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../components/navStyles';
 import WebAppSectionDock from '../components/WebAppSectionDock';
 
 const GroovexLibrary = lazy(() => import('./GroovexLibrary'));
@@ -247,7 +248,6 @@ function GroovexNav({ view, setView, hasActiveSong }: {
         position: 'fixed',
         bottom: 'var(--nav-safe-bottom)',
         left: '50%',
-        transform: `translateX(-50%) translateY(${navHidden ? 'calc(100% + 32px)' : '0px'})`,
         width: '70%',
         maxWidth: '280px',
         height: `${expandedH}px`,
@@ -262,18 +262,10 @@ function GroovexNav({ view, setView, hasActiveSong }: {
         zIndex: 50,
         overflow: 'hidden',
         pointerEvents: (navHidden || navCollapsed) ? 'none' : 'auto',
-        clipPath: navCollapsed
-          ? `inset(${Math.max(0, expandedH - 5)}px ${Math.max(0, Math.floor((expandedW - 90) / 2))}px 0 ${Math.max(0, Math.floor((expandedW - 90) / 2))}px round 99px)`
-          : 'inset(0 0 0 0 round 2rem)',
-        willChange: 'clip-path, transform',
-        transition: [
-          navCollapsed
-            ? 'clip-path 500ms cubic-bezier(0.4,0,0.2,1)'
-            : 'clip-path 380ms cubic-bezier(0.16,1,0.3,1)',
-          navCollapsed
-            ? 'transform 500ms cubic-bezier(0.4,0,0.2,1)'
-            : 'transform 380ms cubic-bezier(0.16,1,0.3,1)',
-        ].join(', '),
+        transform: getSharedNavTransform(navHidden, navCollapsed),
+        opacity: getSharedNavOpacity(navHidden, navCollapsed),
+        willChange: 'transform, opacity',
+        transition: SHARED_NAV_TRANSITION,
       }}
     >
       <div style={{

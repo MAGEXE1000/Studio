@@ -2381,10 +2381,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             bottom: 'max(10px, env(safe-area-inset-bottom))',
             left: '50%',
             transform: `translateX(-50%) translateY(${
-              liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) ? 'calc(100% + 32px)' : '0px'
+              liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed ? 'calc(100% + 32px)' : '0px'
             })`,
             pointerEvents: (liveMode || hideBottomNav || navCollapsed) ? 'none' : 'auto',
-            opacity: liveMode ? 0 : 1,
+            opacity: (liveMode || navCollapsed) ? 0 : 1,
             width: isLandscapeEditor ? '70%' : '90%',
             maxWidth: isLandscapeEditor ? '320px' : '400px',
             height: `${expandedStageH}px`,
@@ -2398,19 +2398,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             WebkitBackdropFilter: 'blur(20px)',
             zIndex: 50,
             overflow: 'hidden',
-            clipPath: navCollapsed
-              ? `inset(${Math.max(0, expandedStageH - 5)}px ${Math.max(0, Math.floor((expandedStageW - 90) / 2))}px 0 ${Math.max(0, Math.floor((expandedStageW - 90) / 2))}px round 99px)`
-              : 'inset(0 0 0 0 round 2rem)',
-            willChange: 'clip-path, transform, opacity',
-            transition: [
-              navCollapsed
-                ? 'clip-path 500ms cubic-bezier(0.4,0,0.2,1)'
-                : 'clip-path 380ms cubic-bezier(0.16,1,0.3,1)',
-              navCollapsed
-                ? 'transform 500ms cubic-bezier(0.4,0,0.2,1)'
-                : 'transform 380ms cubic-bezier(0.16,1,0.3,1)',
-              'background-color 300ms ease',
-            ].join(', '),
+            willChange: 'transform, opacity',
+            transition: 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1), opacity 200ms cubic-bezier(0.25, 1, 0.5, 1), background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease',
           }}
         >
           <div style={{

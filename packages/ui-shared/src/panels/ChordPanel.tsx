@@ -1,4 +1,4 @@
-import { useScrollHide, getChordById, getAllChords, getRelatedChords, suggestNextChord, useChordStore, ACCENT_COLORS, useT, useBackHandler, setBackHandler, playChord, stopChordPlayback, type GuitarChordData, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { useScrollHide, getChordById, getAllChords, getRelatedChords, suggestNextChord, useChordStore, ACCENT_COLORS, useT, useBackHandler, setBackHandler, playChord, stopChordPlayback, type GuitarChordData, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import AnimatedActionButton from '../components/animata/container/animated-border-trail';
 import GuitarDiagram from '../components/GuitarDiagram';
@@ -50,18 +50,28 @@ function RelatedPlayBtn({ guitar, accent, isLight }: {
 
 export default function ChordPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const selectedChordId = useChordStore(s => s.selectedChordId);
-  const activePanel = useChordStore(s => s.activePanel);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const selectedChordId = (currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '') ? currentRoute.id || null : null);
+  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
   const settings = useChordStore(s => s.settings);
   const toggleFavorite = useChordStore(s => s.toggleFavorite);
   const isFavorite = useChordStore(s => s.isFavorite);
   const addToProgression = useChordStore(s => s.addToProgression);
   const currentProgressionChords = useChordStore(s => s.currentProgressionChords);
   const recentChords = useChordStore(s => s.recentChords);
-  const selectChord = useChordStore(s => s.selectChord);
+  
+  const selectChord = useCallback((chordId: string | null) => {
+    if (chordId === null) {
+      NavigationDispatcher.pop();
+    } else {
+      NavigationDispatcher.push({ app: 'chords', page: 'chord', id: chordId });
+    }
+  }, []);
   const trackChordUsage = useChordStore(s => s.trackChordUsage);
   const setLibraryActiveType = useChordStore(s => s.setLibraryActiveType);
-  const setActivePanel = useChordStore(s => s.setActivePanel);
+  const setActivePanel = useCallback((panel: ActivePanel) => {
+    NavigationDispatcher.push({ app: 'chords', page: panel });
+  }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
   const t = useT();
@@ -69,8 +79,23 @@ export default function ChordPanel() {
 
   const [saving, setSaving] = useState(false);
   const [progName, setProgName] = useState('');
-  const [showFinder, setShowFinder] = useState(false);
-  const [showGenerator, setShowGenerator] = useState(false);
+  
+  const showFinder = currentRoute.app === 'chords' && currentRoute.page === 'chord' && currentRoute.subView === 'finder';
+  const showGenerator = currentRoute.app === 'chords' && currentRoute.page === 'chord' && currentRoute.subView === 'generator';
+  const setShowFinder = useCallback((val: boolean) => {
+    if (val) {
+      NavigationDispatcher.push({ app: 'chords', page: 'chord', subView: 'finder' });
+    } else {
+      NavigationDispatcher.pop();
+    }
+  }, []);
+  const setShowGenerator = useCallback((val: boolean) => {
+    if (val) {
+      NavigationDispatcher.push({ app: 'chords', page: 'chord', subView: 'generator' });
+    } else {
+      NavigationDispatcher.pop();
+    }
+  }, []);
   const [chordPlaying, setChordPlaying] = useState(false);
 
   const selectedChordIdRef = useRef(selectedChordId);
@@ -108,20 +133,7 @@ export default function ChordPanel() {
     };
   }, []);
 
-  // Register back handler when Chord panel is active
-  useBackHandler('nested', () => {
-    if (activePanel !== 'chord') return false;
-    if (showGenerator) return false; // generator handles its own back stack
-    if (showFinder) {
-      setShowFinder(false);
-      return true;
-    }
-    if (!isWebDesktop && selectedChordId) {
-      selectChord(null as any);
-      return true;
-    }
-    return false;
-  }, [activePanel, showFinder, showGenerator, isWebDesktop, selectedChordId]);
+
 
   const chord = selectedChordId ? getChordById(selectedChordId) : null;
 

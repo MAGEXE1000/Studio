@@ -1,4 +1,4 @@
-import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart } from '@workspace/studio-core';
+import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { SongPracticeView } from '../components/SongPracticeView';
 import EmptyStateLottie from '../components/lottie/EmptyStateLottie';
@@ -432,12 +432,29 @@ function ChordCard({
 // ── Main panel ────────────────────────────────────────────────
 export default function LibraryPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const selectedChordId = useChordStore(s => s.selectedChordId);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const selectedChordId = (currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '') ? currentRoute.id || null : null);
+  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
   const recentChords = useChordStore(s => s.recentChords);
   const favorites = useChordStore(s => s.favorites);
-  const selectChord = useChordStore(s => s.selectChord);
+  
+  const selectChord = useCallback((chordId: string | null) => {
+    if (chordId === null) {
+      if (isWebDesktop) {
+        NavigationDispatcher.replace({ app: 'chords', page: 'library' });
+      } else {
+        NavigationDispatcher.pop();
+      }
+    } else {
+      if (isWebDesktop) {
+        NavigationDispatcher.replace({ app: 'chords', page: 'chord', id: chordId });
+      } else {
+        NavigationDispatcher.push({ app: 'chords', page: 'chord', id: chordId });
+      }
+    }
+  }, [isWebDesktop]);
+
   const settings = useChordStore(s => s.settings);
-  const activePanel = useChordStore(s => s.activePanel);
   const toggleFavorite = useChordStore(s => s.toggleFavorite);
   const addToProgression = useChordStore(s => s.addToProgression);
   const activeType = useChordStore(s => s.libraryActiveType);
@@ -445,14 +462,11 @@ export default function LibraryPanel() {
   const [chordPlaying, setChordPlaying] = useState(false);
 
   const handleChordClick = (chordId: string) => {
-    if (isWebDesktop) {
-      useChordStore.setState((state) => {
-        const recent = [chordId, ...state.recentChords.filter(id => id !== chordId)].slice(0, 10);
-        return { selectedChordId: chordId, recentChords: recent };
-      });
-    } else {
-      selectChord(chordId);
-    }
+    useChordStore.setState((state) => {
+      const recent = [chordId, ...state.recentChords.filter(id => id !== chordId)].slice(0, 10);
+      return { recentChords: recent };
+    });
+    selectChord(chordId);
   };
   const { ref: recentScrollRef, fadeClass: recentFadeClass } = useScrollFade();
   const { ref: favoritesScrollRef, fadeClass: favoritesFadeClass } = useScrollFade();
@@ -474,7 +488,21 @@ export default function LibraryPanel() {
   const [discoverQuery, setDiscoverQuery] = useState('');
   const DISCOVER_PAGE_SIZE = 20;
   const [discoverLimit, setDiscoverLimit] = useState(DISCOVER_PAGE_SIZE);
-  const [activePracticeSong, setActivePracticeSong] = useState<SongChart | null>(null);
+
+  const activePracticeSong = useMemo(() => {
+    if (currentRoute.app === 'chords' && currentRoute.subView === 'practice' && currentRoute.id) {
+      return SONGS.find(s => s.id === currentRoute.id) || null;
+    }
+    return null;
+  }, [currentRoute]);
+
+  const setActivePracticeSong = useCallback((song: SongChart | null) => {
+    if (song === null) {
+      NavigationDispatcher.pop();
+    } else {
+      NavigationDispatcher.push({ app: 'chords', page: 'library', subView: 'practice', id: song.id });
+    }
+  }, []);
 
   // Reset pagination whenever the filter or search changes so the user
   // always sees the first page of results for the new query.
@@ -484,11 +512,10 @@ export default function LibraryPanel() {
   useBackHandler('nested', () => {
     if (activePanel !== 'library') return false;
     if (activePracticeSong) {
-      setActivePracticeSong(null);
-      return true;
+      return false;
     }
     if (isWebDesktop && selectedChordId) {
-      selectChord(null as any);
+      selectChord(null);
       return true;
     }
     if (query)       { setQuery('');        return true; }

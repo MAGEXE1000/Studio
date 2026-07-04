@@ -19,7 +19,10 @@ import {
   tolgee,
   addLog,
   useBackHandler,
-  StartupCoordinator
+  StartupCoordinator,
+  useNavigationStore,
+  NavigationDispatcher,
+  type ActivePanel
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -713,10 +716,18 @@ function TolgeeSuspenseFallback() {
   );
 }
 export default function App() {
-  const activePanel = useChordStore(state => state.activePanel);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
+
+  // Synchronize appMode from navigation store route to chord store settings
+  useEffect(() => {
+    if (currentRoute.app && currentRoute.app !== settings.appMode) {
+      updateSettings({ appMode: currentRoute.app });
+    }
+  }, [currentRoute.app, settings.appMode, updateSettings]);
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
 
@@ -1171,7 +1182,8 @@ export default function App() {
 
     // Diagnostics Logging
     try {
-      const activeTab = useChordStore.getState().activePanel;
+      const history = useNavigationStore.getState().history;
+      const activeTab = history[history.length - 1]?.page || 'library';
       const transitionState = (window as any).studioTransitionActive || false;
       const lastBack = (window as any).__lastBackEventDetails;
       addLog('info', 'nav', `returnToStudioHub invoked: fromApp=${fromApp}, isSwipeSuccess=${isSwipeSuccess}, activeTab=${activeTab}, transitionActive=${transitionState}, lastBackEvent=${lastBack ? JSON.stringify(lastBack) : 'none'}`);
@@ -1271,11 +1283,11 @@ export default function App() {
 
     // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
     updateSettings({ appMode: 'hub' });
+    NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
     
     // Reset nested views to defaults if rememberLastAppSection is disabled
     if (!preferences.rememberLastAppSection) {
       const storeState = useChordStore.getState();
-      storeState.setActivePanel(storeState.settings.defaultTab ?? 'library');
       storeState.setLastSession({
         vocalexTab: 'practice',
         drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
@@ -1331,7 +1343,7 @@ export default function App() {
         (window as any).__lastBackEventDetails = {
           timestamp: now,
           activeApp: useChordStore.getState().settings.appMode,
-          activePanel: useChordStore.getState().activePanel,
+          activePanel: useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]?.page || 'library',
           selectedChordId: useChordStore.getState().selectedChordId,
         };
       } catch (_) {}
@@ -2265,17 +2277,6 @@ function FallbackTracker({ app, children }: { app: AppKey; children: React.React
 
 const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, onReady }: SubAppWrapperProps) {
   const [cachedApp] = useState<AppKey>(app);
-
-  useBackHandler('nested', () => {
-    if (cachedApp === 'chords') {
-      const currentPanel = useChordStore.getState().activePanel;
-      if (currentPanel !== 'library') {
-        useChordStore.getState().setActivePanel('library');
-        return true;
-      }
-    }
-    return false;
-  }, [cachedApp]);
 
   useEffect(() => {
     if (cachedApp !== 'chords') {

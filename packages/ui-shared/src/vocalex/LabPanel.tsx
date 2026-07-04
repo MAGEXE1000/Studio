@@ -1,4 +1,4 @@
-import { getAllSessions, saveSession, deleteSession, createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, getAllTakes, type TakeRecord, useT, createAudioContext } from '@workspace/studio-core';
+import { getAllSessions, saveSession, deleteSession, createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, getAllTakes, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ElasticSlider from '../components/ElasticSlider';
 import AnimatedActionButton from '../components/animata/container/animated-border-trail';
@@ -1132,7 +1132,13 @@ export default function LabPanel() {
   const t = useT();
   const [sessions, setSessions] = useState<LabSession[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [activeSession, setActiveSession] = useState<LabSession | null>(null);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const activeSession = useMemo(() => {
+    if (currentRoute.app === 'vocalex' && currentRoute.page === 'lab' && currentRoute.subView === 'session' && currentRoute.id) {
+      return sessions.find(s => s.id === currentRoute.id) || null;
+    }
+    return null;
+  }, [currentRoute, sessions]);
   const [showAll, setShowAll] = useState(false);
 
   const loadSessions = useCallback(async () => {
@@ -1155,17 +1161,15 @@ export default function LabPanel() {
     };
     await saveSession(session);
     await loadSessions();
-    setActiveSession(session);
+    NavigationDispatcher.push({ app: 'vocalex', page: 'lab', subView: 'session', id: session.id });
   };
 
   const handleUpdate = (updated: LabSession) => {
-    setActiveSession(updated);
-    loadSessions();
+    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
   };
 
   const handleBack = () => {
-    setActiveSession(null);
-    loadSessions();
+    NavigationDispatcher.pop();
   };
 
   const handleDeleteSession = async (id: string) => {
@@ -1174,10 +1178,6 @@ export default function LabPanel() {
   };
 
   if (activeSession) {
-    // Determine the session's display number from its position in the list
-    // sorted by creation time. New sessions are pushed at the end so this is
-    // stable and matches the user's mental ordering ("Session #03" = the
-    // third one created). Falls back to 1 if not yet present in the list.
     const ordered = [...sessions].sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
     const idx = ordered.findIndex(s => s.id === activeSession.id);
     const sessionNumber = idx >= 0 ? idx + 1 : 1;
@@ -1197,31 +1197,26 @@ export default function LabPanel() {
 
       <section style={{ marginBottom: 32 }}>
         <button onClick={createSession} style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          background: 'var(--studio-accent-gradient)',
-          border: 'none', cursor: 'pointer', padding: '14px 24px',
-          borderRadius: 9999, fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 14,
-          color: '#fff', letterSpacing: '0.02em',
-          boxShadow: 'var(--studio-accent-glow)',
-          transition: 'transform 100ms ease',
-        }}
-          onPointerDown={e => { e.currentTarget.style.transform = 'scale(0.96)'; }}
-          onPointerUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-          onPointerLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18, fontWeight: 700 }}>add</span>
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'var(--studio-accent)', border: 'none', borderRadius: 9999,
+          padding: '12px 24px', cursor: 'pointer',
+          fontFamily: 'Manrope, sans-serif', fontSize: 14, fontWeight: 700,
+          color: '#fff', boxShadow: 'var(--studio-accent-glow)',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}>add</span>
           {t.vocalex.newSession}
         </button>
       </section>
 
       {loaded && sessions.length > 0 && (
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 }}>
+        <section style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h3 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 18, color: 'var(--vx-text)', margin: 0 }}>{t.vocalex.sessionsLabel}</h3>
             {sessions.length > 6 && (
               <button onClick={() => setShowAll(!showAll)} style={{
-                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700, color: '#679cff',
+                background: 'none', border: 'none', color: '#679cff', cursor: 'pointer',
+                fontFamily: 'Manrope, sans-serif', fontSize: 12, fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.12em',
               }}>
                 {showAll ? t.vocalex.showLess : t.vocalex.viewAll}
@@ -1230,7 +1225,7 @@ export default function LabPanel() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {displaySessions.map(s => (
-              <SessionCard key={s.id} session={s} onOpen={setActiveSession} onDelete={handleDeleteSession} />
+              <SessionCard key={s.id} session={s} onOpen={s => NavigationDispatcher.push({ app: 'vocalex', page: 'lab', subView: 'session', id: s.id })} onDelete={handleDeleteSession} />
             ))}
           </div>
         </section>

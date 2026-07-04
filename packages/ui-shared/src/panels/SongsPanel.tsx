@@ -1,4 +1,4 @@
-import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity } from '@workspace/studio-core';
+import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity, useNavigationStore } from '@workspace/studio-core';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../components/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';
@@ -2430,7 +2430,8 @@ export default function SongsPanel() {
   const isWebDesktop = useIsWebDesktop();
   const presets = useChordStore(s => s.presets);
   const activePresetId = useChordStore(s => s.activePresetId);
-  const activePanel = useChordStore(s => s.activePanel);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const activePanel = currentRoute.app === 'chords' ? currentRoute.page || 'library' : 'library';
   const settings = useChordStore(s => s.settings);
   const transpositions = useChordStore(s => s.transpositions);
   const customChords = useChordStore(s => s.customChords);

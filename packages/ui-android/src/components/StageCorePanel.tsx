@@ -1,4 +1,4 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -451,14 +451,23 @@ export default function StagexPanel() {
     return results;
   }, [searchQuery, customElements]);
 
-  // Restore the last Stagex sub-view (Editor / Setup / Preferences / Export)
-  // from the persisted session. The iframe's internal view is switched to
-  // match below in handleLoad, after the iframe finishes loading.
-  const [curView, setCurView] = useState<string>(() => {
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const curView = useMemo(() => {
+    if (currentRoute.app === 'stage' && currentRoute.page) {
+      return currentRoute.page;
+    }
     const s = useChordStore.getState();
     const saved = s.settings.restoreLastSession ? s.lastSession?.stagexView : undefined;
     return saved || s.settings.defaultStageView || 'Editor';
-  });
+  }, [currentRoute]);
+
+  const setCurView = useCallback((newView: string) => {
+    const current = useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1];
+    if (current && current.app === 'stage' && current.page === newView) {
+      return;
+    }
+    NavigationDispatcher.push({ app: 'stage', page: newView });
+  }, []);
 
   const curViewRef = useRef(curView);
   curViewRef.current = curView;
@@ -466,6 +475,8 @@ export default function StagexPanel() {
   useEffect(() => {
     useChordStore.getState().setLastSession({ stagexView: curView });
   }, [curView]);
+
+
 
   const returnToStudioHub = useCallback(() => {
     if (typeof (window as any).returnToStudioHub === 'function') {
@@ -1062,6 +1073,17 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     } catch {}
   }, [logDiagnostic]);
 
+  useEffect(() => {
+    try {
+      const win = iframeRef.current?.contentWindow as (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
+      if (win && typeof win.switchView === 'function') {
+        win.switchView(curView);
+      } else {
+        callIframe('switchView', curView);
+      }
+    } catch {}
+  }, [curView, callIframe]);
+
   const runScenesInputTest = useCallback(() => {
     setScenesTestResult('Running...');
     const iframe = iframeRef.current;
@@ -1365,16 +1387,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         if (isStageExpanded) {
           toggleStageExpanded();
         } else {
-          const behavior = useChordStore.getState().settings.swipeBackBehavior || 'exit-to-hub';
-          if (behavior === 'exit-to-hub') {
-            returnToStudioHub();
-          }
+          NavigationDispatcher.pop();
         }
       }
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);
-  }, [showDiagnostics, logDiagnostic, setSceneTouchTelemetry, setHistoryOpen, setLayoutsOpen, setCurView]);
+  }, [showDiagnostics, logDiagnostic, setSceneTouchTelemetry, setHistoryOpen, setLayoutsOpen, isStageExpanded]);
 
   useEffect(() => {
     updateStagexDiagnostics({
@@ -1484,7 +1503,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   }, [pdfSheetOpen, showDiagnostics]);
 
   useBackHandler('nested', () => {
-    const iframeHasActiveOverlay = hasOpenOverlay || historyOpen || layoutsOpen || fabOpen || (curViewRef.current !== 'Editor');
+    const iframeHasActiveOverlay = hasOpenOverlay || historyOpen || layoutsOpen || fabOpen;
     
     if (iframeHasActiveOverlay) {
       try {
@@ -1500,14 +1519,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       return true;
     }
     
-    const behavior = useChordStore.getState().settings.swipeBackBehavior || 'exit-to-hub';
-    if (behavior === 'exit-to-hub') {
-      returnToStudioHub();
-      return true;
-    }
-    
-    return false; // Do not return to hub, stay in Stagex (manual-only)
-  }, [hasOpenOverlay, historyOpen, layoutsOpen, fabOpen, isStageExpanded, returnToStudioHub]);
+    return false; // Let BackDispatcher execute pop transitions automatically
+  }, [hasOpenOverlay, historyOpen, layoutsOpen, fabOpen, isStageExpanded]);
 
   const hasWebHeader = !isWebDesktop || (curView === 'Editor' || curView === 'Export' || showBack);
   const collapseHeader = (isLandscape && curView === 'Editor') || liveMode || !hasWebHeader || isStageExpanded;
@@ -2391,21 +2404,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         }}>
           <button
             onClick={() => {
-              // Drive the iframe directly using React's known view, so we don't
-              // depend on the iframe's internal state.currentView staying in sync.
-              // Optimistically update curView so the toolbar swaps instantly.
-              try {
-                const win = iframeRef.current?.contentWindow as (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
-                const sv = win?.switchView;
-                if (typeof sv === 'function') {
-                  if (curView === 'Export') { setCurView('Editor'); sv('Editor'); return; }
-                  if (['Rider', 'Setlist', 'Gear', 'Members'].includes(curView)) { setCurView('SetupHub'); sv('SetupHub'); return; }
-                  setCurView('Editor');
-                  sv('Editor');
-                  return;
-                }
-              } catch {}
-              callIframe('stageGoBack');
+              NavigationDispatcher.pop();
             }}
             className="btn-smooth"
             aria-label="Back"

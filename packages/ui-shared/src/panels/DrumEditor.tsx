@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, setNavCollapsed, useLiquidGlassNav, DRUM_LIBRARY, LIBRARY_CATEGORIES, LIBRARY_GENRES, type LibraryCategory, type LibraryGenre, type LibraryPattern, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, setNavCollapsed, useLiquidGlassNav, DRUM_LIBRARY, LIBRARY_CATEGORIES, LIBRARY_GENRES, type LibraryCategory, type LibraryGenre, type LibraryPattern, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import {
   memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
@@ -1764,11 +1764,13 @@ export default function DrumEditor() {
   }, []);
 
   // ── State ────────────────────────────────────────────────────────────────
-  const [inEditor,       setInEditor]       = useState(false);
-  const [activeTab,      setActiveTab]      = useState<DrumTab>(() => {
-    // Session restore wins over pinned default — but only when the user
-    // has enabled session restore. Otherwise fall back to the pinned
-    // default (or 'songs' if that's unset / out-of-schema).
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+
+  const activeTab = useMemo<DrumTab>(() => {
+    if (currentRoute.app === 'drums' && currentRoute.page) {
+      const page = currentRoute.page;
+      if (page === 'songs' || page === 'patterns' || page === 'prefs') return page as DrumTab;
+    }
     const st = useChordStore.getState();
     if (st.settings.restoreLastSession) {
       const last = st.lastSession?.drumexTab;
@@ -1776,7 +1778,10 @@ export default function DrumEditor() {
     }
     const dt = st.settings.defaultDrumTab;
     return (dt === 'songs' || dt === 'patterns' || dt === 'prefs') ? dt : 'songs';
-  });
+  }, [currentRoute]);
+
+  const inEditor = currentRoute.app === 'drums' && currentRoute.subView === 'editor';
+
   // Persist the active Drumex tab on every change.
   useEffect(() => {
     useChordStore.getState().setLastSession({ drumexTab: activeTab });
@@ -1972,7 +1977,7 @@ export default function DrumEditor() {
   const [editingSong,      setEditingSong]      = useState<DrumSong | null>(null);
   const [editingName,      setEditingName]      = useState('');
   const [editingArtist,    setEditingArtist]    = useState('');
-  const [activeDrumSongId, setActiveDrumSongId] = useState<string | null>(null);
+  const activeDrumSongId = (currentRoute.app === 'drums' && currentRoute.subView === 'editor' ? currentRoute.id || null : null);
   const [tabAnim, setTabAnim] = useState<'panel-enter-right' | 'panel-enter-left'>('panel-enter-right');
 
   const filteredSongs = useMemo(() => {
@@ -2025,7 +2030,7 @@ export default function DrumEditor() {
     const oldIdx = TAB_ORDER.indexOf(activeTab);
     const newIdx = TAB_ORDER.indexOf(newTab);
     setTabAnim(newIdx >= oldIdx ? 'panel-enter-right' : 'panel-enter-left');
-    setActiveTab(newTab);
+    NavigationDispatcher.push({ app: 'drums', page: newTab });
     setNavCollapsed(false);
     drumNavLastY.current = 0;
   };
@@ -2596,9 +2601,8 @@ export default function DrumEditor() {
     updatePattern(pattern.id, {
       measures: [...pattern.measures, ...newMeasures],
     });
-    setActiveTab('songs');
-    setInEditor(true);
-  }, [pattern, updatePattern]);
+    NavigationDispatcher.replace({ app: 'drums', page: 'songs', subView: 'editor', id: activeDrumSongId || undefined });
+  }, [pattern, updatePattern, activeDrumSongId]);
 
   const handleLibReplace = useCallback((lp: LibraryPattern) => {
     if (!pattern) return;
@@ -2612,9 +2616,8 @@ export default function DrumEditor() {
       bpm: lp.bpm,
       subdivision: lp.subdivision,
     });
-    setActiveTab('songs');
-    setInEditor(true);
-  }, [pattern, updatePattern]);
+    NavigationDispatcher.replace({ app: 'drums', page: 'songs', subView: 'editor', id: activeDrumSongId || undefined });
+  }, [pattern, updatePattern, activeDrumSongId]);
 
   const filteredLibrary = useMemo(() => {
     let items = DRUM_LIBRARY;
@@ -2811,10 +2814,10 @@ export default function DrumEditor() {
     if (inEditor) {
       if (drumScheduler.isPlaying) { drumScheduler.stop(); setPlaying(false); }
       setShowHamburger(false); setShowBpmPanel(false);
-      setInEditor(false); setActiveTab('songs');
+      NavigationDispatcher.pop();
     } else {
       drumScheduler.stop();
-      updateSettings({ appMode: 'chords' });
+      NavigationDispatcher.pop();
     }
   };
 
@@ -2842,11 +2845,11 @@ export default function DrumEditor() {
     // 4. Default view exit
     if (inEditor) {
       if (drumScheduler.isPlaying) { drumScheduler.stop(); setPlaying(false); }
-      setInEditor(false); setActiveTab('songs');
+      NavigationDispatcher.pop();
       return true;
     }
     if (activeTab !== 'songs') {
-      setActiveTab('songs');
+      NavigationDispatcher.pop();
       return true;
     }
     return false;
@@ -2864,13 +2867,11 @@ export default function DrumEditor() {
     loadDrumSong(id);
     setKitType(createVariant, KIT_DEFAULTS[createVariant].soundMap);
     if (createVariant === 'house') loadHouseKit(houseKitMic); else loadDrumSamples(createVariant);
-    setActiveDrumSongId(id);
-    setInEditor(true);
-    setActiveTab('songs');
+    NavigationDispatcher.push({ app: 'drums', page: 'songs', subView: 'editor', id: id });
     setShowCreateForm(false);
     setCreateName(''); setCreateArtist(''); setCreateBpm('120'); setCreateNotes('');
     setCreateFamily('acoustic'); setCreateVariant('ludwig');
-  }, [createName, createArtist, createBpm, createNotes, createVariant, createBlankDrumSong, loadDrumSong, setKitType]);
+  }, [createName, createArtist, createBpm, createNotes, createVariant, createBlankDrumSong, loadDrumSong, setKitType, houseKitMic]);
 
   // ── Songs ─────────────────────────────────────────────────────────────────
   const handleOpenSaveForm = useCallback(() => {
@@ -2885,10 +2886,10 @@ export default function DrumEditor() {
 
   const handleSaveAsNew = useCallback(() => {
     if (!saveName.trim()) return;
-    saveDrumSong(saveName, saveArtist, saveNotes);
+    const newId = saveDrumSong(saveName, saveArtist, saveNotes);
     setSaveName(''); setSaveArtist(''); setSaveNotes('');
     setShowSaveForm(false);
-    setActiveDrumSongId(null);
+    NavigationDispatcher.replace({ app: 'drums', page: 'songs', subView: 'editor', id: newId });
   }, [saveName, saveArtist, saveNotes, saveDrumSong]);
 
   const handleUpdateSong = useCallback(() => {
@@ -2911,9 +2912,7 @@ export default function DrumEditor() {
       setKitType(song.kitType, KIT_DEFAULTS[song.kitType].soundMap);
       if (song.kitType === 'house') loadHouseKit(houseKitMic); else loadDrumSamples(song.kitType);
     }
-    setActiveDrumSongId(song.id);
-    setInEditor(true);
-    setActiveTab('songs');
+    NavigationDispatcher.push({ app: 'drums', page: 'songs', subView: 'editor', id: song.id });
   }, [loadDrumSong, setKitType, houseKitMic]);
 
   const handleStartEdit = useCallback((song: DrumSong) => {
@@ -5150,8 +5149,8 @@ export default function DrumEditor() {
                                 <div style={{ padding: '0 10px 10px' }}>
                                   <div style={{ background: isAmoled ? 'rgba(4,4,4,0.98)' : (isLight ? 'rgba(250,250,252,0.98)' : 'rgba(20,20,26,0.98)'), borderRadius: 12, border: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
                                     {[
-                                      { label: 'Use this groove', icon: 'file_download', action: () => { loadGrooveReplace(g.id); setGrooveMenuId(null); setActiveTab('songs'); } },
-                                      { label: 'Append to pattern', icon: 'playlist_add', action: () => { loadGrooveAppend(g.id); setGrooveMenuId(null); setActiveTab('songs'); } },
+                                      { label: 'Use this groove', icon: 'file_download', action: () => { loadGrooveReplace(g.id); setGrooveMenuId(null); NavigationDispatcher.push({ app: 'drums', page: 'songs' }); } },
+                                      { label: 'Append to pattern', icon: 'playlist_add', action: () => { loadGrooveAppend(g.id); setGrooveMenuId(null); NavigationDispatcher.push({ app: 'drums', page: 'songs' }); } },
                                       { label: 'Rename / Retag', icon: 'edit', action: () => { setGrooveRenameName(g.name); setGrooveRenameTag(g.tag); setGrooveRenameId(g.id); setGrooveMenuId(null); } },
                                     ].map((item, idx) => (
                                       <button key={item.label} onClick={item.action} className="btn-smooth"

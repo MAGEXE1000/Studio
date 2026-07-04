@@ -1,5 +1,5 @@
-import { useT, createAudioContext } from '@workspace/studio-core';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useT, createAudioContext, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   saveTake, getAllTakes, deleteTake as dbDeleteTake,
   extractWaveformPeaks, blobToAudioBuffer,
@@ -47,7 +47,18 @@ type ViewState =
 export default function TakesPanel() {
   const t = useT();
   const [takes, setTakes] = useState<TakeRecord[]>([]);
-  const [view, setView] = useState<ViewState>({ mode: 'list' });
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const view = useMemo<ViewState>(() => {
+    if (currentRoute.app === 'vocalex' && currentRoute.page === 'takes') {
+      if (currentRoute.subView === 'recording') {
+        return { mode: 'recording' };
+      }
+      if (currentRoute.subView === 'detail' && currentRoute.id) {
+        return { mode: 'detail', takeId: currentRoute.id };
+      }
+    }
+    return { mode: 'list' };
+  }, [currentRoute]);
   const [loading, setLoading] = useState(true);
 
   const loadTakes = useCallback(async () => {
@@ -63,7 +74,7 @@ export default function TakesPanel() {
   const handleRecordingComplete = useCallback(async (take: TakeRecord) => {
     await saveTake(take);
     await loadTakes();
-    setView({ mode: 'detail', takeId: take.id });
+    NavigationDispatcher.push({ app: 'vocalex', page: 'takes', subView: 'detail', id: take.id });
   }, [loadTakes]);
 
   const handleDelete = useCallback(async (id: string) => {
@@ -71,7 +82,7 @@ export default function TakesPanel() {
     clearTakeCache(id);
     setTakes(prev => prev.filter(t => t.id !== id));
     if (view.mode === 'detail' && view.takeId === id) {
-      setView({ mode: 'list' });
+      NavigationDispatcher.pop();
     }
   }, [view]);
 
@@ -81,13 +92,13 @@ export default function TakesPanel() {
   }, [loadTakes]);
 
   if (view.mode === 'recording') {
-    return <RecordingView onComplete={handleRecordingComplete} onCancel={() => setView({ mode: 'list' })} />;
+    return <RecordingView onComplete={handleRecordingComplete} onCancel={() => NavigationDispatcher.pop()} />;
   }
 
   if (view.mode === 'detail') {
     const take = takes.find(t => t.id === view.takeId);
     if (!take) return <div style={{ padding: 24, color: 'var(--vx-text-2)' }}>{t.vocalex.takeNotFound}</div>;
-    return <TakeDetailView take={take} onBack={() => setView({ mode: 'list' })} onDelete={handleDelete} onSaveBounce={handleSaveBounce} />;
+    return <TakeDetailView take={take} onBack={() => NavigationDispatcher.pop()} onDelete={handleDelete} onSaveBounce={handleSaveBounce} />;
   }
 
   return (
@@ -116,7 +127,7 @@ export default function TakesPanel() {
           {t.vocalex.recent}
         </button>
         <button
-          onClick={() => setView({ mode: 'recording' })}
+          onClick={() => NavigationDispatcher.push({ app: 'vocalex', page: 'takes', subView: 'recording' })}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '10px 20px', borderRadius: 9999,
@@ -151,7 +162,7 @@ export default function TakesPanel() {
             <TakeListItem
               key={take.id}
               take={take}
-              onOpen={() => setView({ mode: 'detail', takeId: take.id })}
+              onOpen={() => NavigationDispatcher.push({ app: 'vocalex', page: 'takes', subView: 'detail', id: take.id })}
               onDelete={() => handleDelete(take.id)}
             />
           ))}

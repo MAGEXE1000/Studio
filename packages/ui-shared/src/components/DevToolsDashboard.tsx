@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   useChordStore,
   subscribeToDevTools,
@@ -47,7 +47,9 @@ import {
   NATIVE_VERSION,
   transitionToState,
   updateGlobalState,
-  useIsWebDesktop
+  useIsWebDesktop,
+  useNavigationStore,
+  NavigationDispatcher
 } from '@workspace/studio-core';
 
 import { decodeReactError } from './ErrorBoundary';
@@ -409,9 +411,32 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
 };
 
 export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props) {
-  const { settings, updateSettings, activePanel } = useChordStore();
-  const isWebDesktop = useIsWebDesktop();
-  const [subView, setSubView] = useState<'dashboard' | 'stagex' | 'updater' | 'system' | 'logs' | 'performance' | 'network' | 'apps'>('dashboard');
+  const { settings, updateSettings } = useChordStore();
+  const chordsRoute = useNavigationStore(s => s.history.find(r => r.app === 'chords'));
+  const activePanel = chordsRoute?.page || 'library';
+  const isWebDesktop = useIsWebDesktop();  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const subView = useMemo(() => {
+    if (currentRoute.app === 'hub' && currentRoute.tab === 'settings' && currentRoute.page === 'developer') {
+      return (currentRoute.subView as any) || 'dashboard';
+    }
+    return 'dashboard';
+  }, [currentRoute]);
+
+  const setSubView = useCallback((newSubView: string) => {
+    if (newSubView === 'dashboard') {
+      const current = useNavigationStore.getState().history;
+      if (current.length > 1) {
+        NavigationDispatcher.pop();
+        return;
+      }
+    }
+    NavigationDispatcher.push({
+      app: 'hub',
+      tab: 'settings',
+      page: 'developer',
+      subView: newSubView,
+    });
+  }, []);
 
   const getSubViewTitle = () => {
     switch (subView) {
@@ -439,10 +464,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const handleSubViewBack = () => {
     if (subView === 'dashboard') {
       onBack();
-    } else if (subView === 'stagex') {
-      setSubView('apps');
     } else {
-      setSubView('dashboard');
+      NavigationDispatcher.pop();
     }
   };
   const [activeTab, setActiveTab] = useState<TabId>('logs');
@@ -1188,11 +1211,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const renderSubViewHeader = (title: string) => {
     if (!isWebDesktop) return null;
     const handleGoBack = () => {
-      if (title === 'Stagex Diagnostics') {
-        setSubView('apps');
-      } else {
-        setSubView('dashboard');
-      }
+      NavigationDispatcher.pop();
     };
 
     const moduleName = title === 'Apps Diagnostics' ? 'Apps' :

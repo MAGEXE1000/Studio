@@ -142,7 +142,6 @@ export interface AppSettings {
 
 interface ChordStore {
   selectedChordId: string | null;
-  activePanel: ActivePanel;
   settings: AppSettings;
   favorites: string[];
   recentChords: string[];
@@ -176,7 +175,6 @@ interface ChordStore {
   selectChord: (chordId: string) => void;
   trackChordUsage: (chordId: string) => void;
   setLibraryActiveType: (type: ChordType | 'all' | null) => void;
-  setActivePanel: (panel: ActivePanel) => void;
   toggleFavorite: (chordId: string) => void;
   isFavorite: (chordId: string) => boolean;
   updateSettings: (settings: Partial<AppSettings>) => void;
@@ -262,7 +260,6 @@ export const useChordStore = create<ChordStore>()(
     (set, get) => ({
       selectedChordId: 'C-major',
       libraryActiveType: null,
-      activePanel: 'library',
       settings: {
         instrument: 'guitar',
         theme: 'dark',
@@ -362,13 +359,11 @@ export const useChordStore = create<ChordStore>()(
             return { selectedChordId: null };
           }
           const recent = [chordId, ...state.recentChords.filter(id => id !== chordId)].slice(0, 10);
-          return { selectedChordId: chordId, recentChords: recent, activePanel: 'chord' };
+          return { selectedChordId: chordId, recentChords: recent };
         });
       },
 
       setLibraryActiveType: (type) => set({ libraryActiveType: type }),
-
-      setActivePanel: (panel) => set({ activePanel: panel }),
 
       toggleFavorite: (chordId) => {
         set((state) => {

@@ -11,7 +11,9 @@ import {
   resetNav,
   setNavHidden,
   setNavLocked,
-  NavigationDispatcher
+  NavigationDispatcher,
+  useNavigationStore,
+  type ActivePanel
 } from '@workspace/studio-core';
 
 import {
@@ -71,8 +73,20 @@ const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
 const ALL_PANELS = ['library', 'chord', 'songs', 'settings'] as const;
 
 export default function App() {
-  const { activePanel, settings, setActivePanel, activePresetId, updateSettings } = useChordStore();
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
+  const setActivePanel = (panel: ActivePanel) => {
+    NavigationDispatcher.push({ app: 'chords', page: panel });
+  };
+  const { settings, activePresetId, updateSettings } = useChordStore();
   const { preferences } = useStudioPreferences();
+
+  // Synchronize appMode from navigation store route to chord store settings
+  useEffect(() => {
+    if (currentRoute.app && currentRoute.app !== settings.appMode) {
+      updateSettings({ appMode: currentRoute.app });
+    }
+  }, [currentRoute.app, settings.appMode, updateSettings]);
 
   const returnToStudioHub = useCallback((isSwipeSuccess = false) => {
     // 1. Close active modals/sheets/overlays
@@ -93,11 +107,11 @@ export default function App() {
 
     // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
     updateSettings({ appMode: 'hub' });
+    NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
     
     // Reset nested views to defaults if rememberLastAppSection is disabled
     if (!preferences.rememberLastAppSection) {
       const storeState = useChordStore.getState();
-      storeState.setActivePanel(storeState.settings.defaultTab ?? 'library');
       storeState.setLastSession({
         vocalexTab: 'practice',
         drumexTab: storeState.settings.defaultDrumTab ?? 'songs',

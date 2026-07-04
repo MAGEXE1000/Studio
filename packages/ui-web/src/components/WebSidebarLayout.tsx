@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useOtaUpdate, APP_VERSION_LABEL, useStudioPreferences } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useOtaUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from '@workspace/ui-shared';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -26,7 +26,7 @@ function SidebarLabel({ children, open }: { children: React.ReactNode; open: boo
 }
 
 export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSidebar: boolean }) {
-  const { settings, updateSettings, activePanel, setActivePanel } = useChordStore();
+  const { settings, updateSettings } = useChordStore();
   const { open, toggleSidebar } = useSidebar();
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;
@@ -176,10 +176,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
   };
 
   const handleSetChordexPanel = (panel: 'songs' | 'library' | 'chord') => {
-    if (settings.appMode !== 'chords') {
-      updateSettings({ appMode: 'chords' });
-    }
-    setActivePanel(panel);
+    NavigationDispatcher.push({ app: 'chords', page: panel });
   };
 
 

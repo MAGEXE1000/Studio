@@ -134,6 +134,49 @@ async function runNavigationTests() {
     assert.strictEqual(state.history[1].page, 'practice');
   });
 
+  // Test 6: Nested path and sequential back traversal
+  assertTest('Nested path and sequential back traversal work correctly', () => {
+    resetStore();
+
+    unlock();
+    NavigationDispatcher.push({ app: 'chords' });
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'library', subView: 'practice', id: 'song-1' });
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'library', subView: 'practice', id: 'song-1' }); // duplicate
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'chord', id: 'chord-1' });
+
+    let state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 4);
+    assert.strictEqual(state.history[3].app, 'chords');
+    assert.strictEqual(state.history[3].page, 'chord');
+    assert.strictEqual(state.history[3].id, 'chord-1');
+
+    unlock();
+    NavigationDispatcher.pop();
+    state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 3);
+    assert.strictEqual(state.history[2].app, 'chords');
+    assert.strictEqual(state.history[2].page, 'library');
+    assert.strictEqual(state.history[2].subView, 'practice');
+    assert.strictEqual(state.history[2].id, 'song-1');
+
+    unlock();
+    NavigationDispatcher.pop();
+    state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].page, 'library');
+
+    unlock();
+    NavigationDispatcher.pop();
+    state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 1);
+    assert.deepStrictEqual(state.history[0], { app: 'hub', tab: 'home' });
+  });
+
+
   console.log('\n=== REGRESSION TEST RESULTS ===');
   console.log('| Test Name | Status | Details |');
   console.log('|---|---|---|');

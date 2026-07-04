@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.70
+
+### Added
+- Resolved critical sub-app closing regression that immediately exited nested modules after splash screen.
+- Integrated NavigationDispatcher.push routing synchronously with appMode triggers on Hub app launch.
+- Propagated scroll-driven collapse state notifications properly via setNavCollapsed in useScrollHide hook.
+- Implemented robust callback polling listener inside useScrollHide to prevent React late-mounting ref traps.
+- Unified sliding translation animations using premium CSS transforms across all sub-app navigation bars.
+
 ## 3.7.69
 
 ### Added

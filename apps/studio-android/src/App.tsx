@@ -29,7 +29,7 @@ import { TolgeeProvider } from '@tolgee/react';
 
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
-import { AppEntryTransition } from '@workspace/ui-shared/src/components/AppAnimationSystem';
+import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
 import { SubAppScaffold } from '@workspace/ui-shared';
 import {
   ChordexLogo,
@@ -731,6 +731,13 @@ export default function App() {
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
 
+  const speedScale = useAnimationSpeed();
+
+  // Sync animation speed scale variable with CSS
+  useEffect(() => {
+    document.documentElement.style.setProperty('--motion-speed-scale', String(speedScale));
+  }, [speedScale]);
+
   const runForceWebViewRepaint = useCallback(() => {
     console.warn('[Diagnostics] Force WebView Repaint triggered.');
     try {
@@ -1305,13 +1312,118 @@ export default function App() {
         activeAppAfterTransition: 'hub',
         fallbackRendered: false
       });
-    }, 280);
+    }, 300 * speedScale);
   }, [updateSettings, preferences.rememberLastAppSection]);
 
   const returnToStudioHubRef = useRef(returnToStudioHub);
   useEffect(() => {
     returnToStudioHubRef.current = returnToStudioHub;
   }, [returnToStudioHub]);
+
+  // Edge-swipe interactive back gesture tracking
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    let isTracking = false;
+    let edge = 0; // 1 for left edge swipe, -1 for right edge
+    let hasOverlay = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const x = touch.clientX;
+      const y = touch.clientY;
+
+      const isLeftEdge = x <= 24;
+      const isRightEdge = x >= window.innerWidth - 24;
+
+      if (!isLeftEdge && !isRightEdge) return;
+
+      const overlayEl = document.querySelector('.sheet-overlay, .modal-overlay, [role="dialog"], .settings-panel-sheet, .profile-panel-sheet, #exit-toast');
+      const overlayOpen = !!overlayEl;
+      const isSubApp = useChordStore.getState().settings.appMode !== 'hub';
+
+      if (!overlayOpen && !isSubApp) return;
+
+      startX = x;
+      startY = y;
+      isTracking = true;
+      edge = isLeftEdge ? 1 : -1;
+      hasOverlay = overlayOpen;
+
+      document.documentElement.style.setProperty('--back-progress', '0');
+      document.documentElement.style.setProperty('--back-edge', String(edge));
+      document.documentElement.classList.add('predictive-back-active');
+      if (hasOverlay) {
+        document.documentElement.classList.add('predictive-back-has-overlay');
+      } else {
+        document.documentElement.classList.remove('predictive-back-has-overlay');
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isTracking) return;
+      const touch = e.touches[0];
+      const deltaX = (touch.clientX - startX) * edge;
+      const deltaY = Math.abs(touch.clientY - startY);
+
+      if (deltaY > Math.abs(touch.clientX - startX) * 0.8 && deltaX < 30) {
+        isTracking = false;
+        document.documentElement.classList.remove('predictive-back-active');
+        document.documentElement.classList.remove('predictive-back-has-overlay');
+        return;
+      }
+
+      if (deltaX < 0) {
+        document.documentElement.style.setProperty('--back-progress', '0');
+        return;
+      }
+
+      const threshold = 180;
+      const progress = Math.min(1, Math.max(0, deltaX / threshold));
+      document.documentElement.style.setProperty('--back-progress', String(progress));
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isTracking) return;
+      isTracking = false;
+
+      const progressStr = document.documentElement.style.getPropertyValue('--back-progress');
+      const progress = parseFloat(progressStr || '0');
+
+      document.documentElement.classList.remove('predictive-back-active');
+      document.documentElement.classList.remove('predictive-back-has-overlay');
+
+      if (progress >= 0.45) {
+        const handled = BackDispatcher.handleBackEvent();
+        if (!handled) {
+          const isSubApp = useChordStore.getState().settings.appMode !== 'hub';
+          if (isSubApp) {
+            returnToStudioHubRef.current(true);
+          }
+        }
+      }
+
+      setTimeout(() => {
+        if (!document.documentElement.classList.contains('predictive-back-active')) {
+          document.documentElement.style.removeProperty('--back-progress');
+          document.documentElement.style.removeProperty('--back-edge');
+        }
+      }, 310);
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, []);
 
   // Export to window object so external sub-apps can call it directly
   useEffect(() => {
@@ -2100,7 +2212,10 @@ export default function App() {
                     scale: splashVisible ? 0.98 : 1 
                   }}
                   exit={{ opacity: 0, scale: 0.98, pointerEvents: 'none' as any }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{
+                    duration: 0.3 * speedScale,
+                    ease: MOTION_EASINGS.standard
+                  }}
                   style={{
                     position: 'absolute',
                     inset: 0,

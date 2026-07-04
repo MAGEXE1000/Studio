@@ -340,8 +340,7 @@
         var lastMeasureTime = 0;
 
         function reactMounted() {
-          var r = document.getElementById('root');
-          return !!(r && r.children && r.children.length > 0);
+          return !!(window.__studioHubReady);
         }
 
         function frame(now) {

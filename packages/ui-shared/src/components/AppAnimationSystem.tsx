@@ -13,9 +13,9 @@ export const MOTION_EASINGS = {
   standard: [0.2, 0, 0, 1] as any, // Premium cubic-bezier easing
   spring: {
     type: 'spring' as const,
-    stiffness: 140,
-    damping: 18,
-    mass: 0.9,
+    stiffness: 180,
+    damping: 20,
+    mass: 0.85,
   }
 };
 
@@ -298,10 +298,7 @@ export function StaggeredReveal({
             initial={{ opacity: 0, y: 12, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
-              type: 'spring',
-              stiffness: 130,
-              damping: 15,
-              mass: 0.8,
+              ...MOTION_EASINGS.spring,
               delay,
             }}
             style={{

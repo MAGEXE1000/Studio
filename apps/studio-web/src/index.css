@@ -138,6 +138,24 @@
 
   --add-bar-border: 1px dashed rgba(255,255,255,0.14);
 
+  /* ============================================================
+     Studio Standardized Motion Tokens (Sprint 10)
+     ============================================================ */
+  --motion-speed-scale: 1.0;
+  --motion-duration-short: calc(180ms * var(--motion-speed-scale));
+  --motion-duration-medium: calc(300ms * var(--motion-speed-scale));
+  --motion-duration-long: calc(450ms * var(--motion-speed-scale));
+
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --motion-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+
+  --motion-panel-dur: var(--motion-duration-medium);
+  --motion-panel-exit-dur: var(--motion-duration-short);
+  --panel-dur: var(--motion-duration-medium);
+  --panel-exit-dur: var(--motion-duration-short);
+
   --sidebar-hover-bg: rgba(255, 255, 255, 0.04);
   --sidebar-active-bg: rgba(255, 255, 255, 0.07);
   --sidebar-bg: rgba(15, 15, 15, 0.70);
@@ -911,10 +929,17 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
     from { transform: translate3d(0, 0, 0)   scale(1);     opacity: 1; }
     to   { transform: translate3d(0, 24px, 0) scale(0.985); opacity: 0; }
   }
-  .sheet-enter { animation: sheet-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .sheet-exit  { animation: sheet-exit  220ms cubic-bezier(0.4, 0, 1, 1) both; }
-  .overlay-fade-in  { animation: fade-in  220ms ease-out both; }
-  .overlay-fade-out { animation: fade-out 200ms ease-in  both; }
+  .sheet-enter { animation: sheet-enter var(--motion-duration-medium) var(--motion-ease-decelerate) both; }
+  .sheet-exit  { animation: sheet-exit  var(--motion-duration-short) var(--motion-ease-accelerate) both; }
+  .overlay-fade-in  { animation: fade-in  var(--motion-duration-medium) var(--motion-ease-decelerate) both; }
+  .overlay-fade-out { animation: fade-out var(--motion-duration-short) var(--motion-ease-accelerate) both; }
+
+/* Direct-DOM scroll collapse for the bottom nav bar (zero-React) */
+html[data-nav-collapsed="true"] .glass-nav {
+  transform: translateX(-50%) translateY(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
   /* ===== Panel section transitions — unified across all apps =================
      Directional horizontal slide + crossfade.

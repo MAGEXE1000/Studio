@@ -229,6 +229,7 @@ export default function StudioHub() {
 
   useEffect(() => {
     StartupCoordinator.notifyHubMounted();
+    (window as any).__studioHubReady = true;
     const handleSetTab = (e: Event) => {
       const customEvent = e as CustomEvent<HubTab>;
       if (customEvent.detail) {

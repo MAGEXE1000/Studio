@@ -68,6 +68,13 @@ export function setNavCollapsed(collapsed: boolean) {
   if (_locked && !collapsed) return;
   if (_collapsed === collapsed) return;
   _collapsed = collapsed;
+  if (typeof document !== 'undefined') {
+    if (collapsed) {
+      document.documentElement.setAttribute('data-nav-collapsed', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-nav-collapsed');
+    }
+  }
   emitCollapsed(collapsed);
 }
 
@@ -91,10 +98,27 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>) {
     if (!el) return;
     const onScroll = () => {
       const y = el.scrollTop;
-      if (y < 30) { setNavCollapsed(false); lastY.current = y; return; }
+      if (y < 30) {
+        if (_collapsed) {
+          _collapsed = false;
+          document.documentElement.removeAttribute('data-nav-collapsed');
+        }
+        lastY.current = y;
+        return;
+      }
       const dy = y - lastY.current;
       if (Math.abs(dy) < 6) return;
-      setNavCollapsed(dy > 0);
+      
+      const shouldCollapse = dy > 0;
+      if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
+        _collapsed = shouldCollapse;
+        if (shouldCollapse) {
+          document.documentElement.setAttribute('data-nav-collapsed', 'true');
+        } else {
+          document.documentElement.removeAttribute('data-nav-collapsed');
+        }
+      }
+      
       lastY.current = y;
     };
     el.addEventListener('scroll', onScroll, { passive: true });

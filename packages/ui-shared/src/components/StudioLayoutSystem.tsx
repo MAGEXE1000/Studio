@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { MOTION_EASINGS } from './AppAnimationSystem';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -116,6 +117,8 @@ export function ScrollScaffold({
         paddingBottom: bottomSpacing
           ? 'var(--content-bottom-pad)'
           : 'max(var(--spacing-md), env(safe-area-inset-bottom, 16px))',
+        willChange: 'transform',
+        transform: 'translate3d(0, 0, 0)',
         ...style,
       }}
       className={`studio-scroll-scaffold no-scrollbar ${className}`}
@@ -144,7 +147,7 @@ export function SettingsScaffold({
   return (
     <div
       style={{
-        animation: 'slide-forward 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
+        animation: 'slide-forward var(--motion-duration-medium) var(--motion-ease-decelerate) both',
         height: '100%',
         width: '100%',
         display: 'flex',
@@ -277,7 +280,7 @@ export function DialogScaffold({
             initial={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
             animate={isLargeScreen ? { scale: 1, opacity: 1 } : { y: 0 }}
             exit={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
-            transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+            transition={MOTION_EASINGS.spring}
             style={{
               position: 'relative',
               width: '100%',

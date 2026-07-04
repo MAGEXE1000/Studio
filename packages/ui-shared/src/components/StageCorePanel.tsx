@@ -1584,63 +1584,64 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             </div>
 
             {curView === 'Editor' && (
-              <button
-                onClick={() => setIsRightPanelCollapsed(v => !v)}
-                title={isRightPanelCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                aria-label={isRightPanelCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  right: isRightPanelCollapsed ? 0 : 260,
-                  transform: 'translateY(-50%)',
-                  zIndex: 99,
-                  width: 18,
-                  height: 64,
-                  background: isLight ? 'rgba(240, 240, 242, 0.95)' : 'rgba(20, 20, 24, 0.95)',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.15)' : '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRight: 'none',
-                  borderRadius: '8px 0 0 8px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: isLight ? '#27272a' : '#a1a1aa',
-                  transition: 'right 250ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 200ms, color 200ms',
-                  backdropFilter: 'blur(8px)',
-                  WebkitBackdropFilter: 'blur(8px)',
-                  boxShadow: isLight ? '-2px 0 8px rgba(0,0,0,0.06)' : '-2px 0 8px rgba(0,0,0,0.3)',
-                }}
-                onPointerOver={e => e.currentTarget.style.color = '#3b82f6'}
-                onPointerOut={e => e.currentTarget.style.color = isLight ? '#27272a' : '#a1a1aa'}
-              >
-                {isRightPanelCollapsed ? (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                ) : (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                )}
-              </button>
-            )}
-
-            {curView === 'Editor' && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 260 }}
                 animate={{
                   opacity: isRightPanelCollapsed ? 0 : 1,
-                  x: isRightPanelCollapsed ? 20 : 0,
-                  width: isRightPanelCollapsed ? 0 : 260
+                  x: isRightPanelCollapsed ? 260 : 0
                 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
                 style={{
-                  borderLeft: isRightPanelCollapsed ? 'none' : (isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.06)'),
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  width: 260,
+                  zIndex: 98,
+                  borderLeft: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.06)',
                   background: isLight ? 'var(--app-surface-low)' : '#080809',
                   display: 'flex',
                   flexDirection: 'column',
-                  height: '100%',
-                  flexShrink: 0,
                   boxSizing: 'border-box',
-                  overflow: 'hidden',
+                  overflow: 'visible',
                 }}
               >
+                {/* Sidebar Collapse Toggle Button inside the translated container */}
+                <button
+                  onClick={() => setIsRightPanelCollapsed(v => !v)}
+                  title={isRightPanelCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  aria-label={isRightPanelCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: -18,
+                    transform: 'translateY(-50%)',
+                    zIndex: 99,
+                    width: 18,
+                    height: 64,
+                    background: isLight ? 'rgba(240, 240, 242, 0.95)' : 'rgba(20, 20, 24, 0.95)',
+                    border: isLight ? '1px solid rgba(0, 0, 0, 0.15)' : '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRight: 'none',
+                    borderRadius: '8px 0 0 8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isLight ? '#27272a' : '#a1a1aa',
+                    transition: 'background-color 200ms, color 200ms',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    boxShadow: isLight ? '-2px 0 8px rgba(0,0,0,0.06)' : '-2px 0 8px rgba(0,0,0,0.3)',
+                  }}
+                  onPointerOver={e => e.currentTarget.style.color = '#3b82f6'}
+                  onPointerOut={e => e.currentTarget.style.color = isLight ? '#27272a' : '#a1a1aa'}
+                >
+                  {isRightPanelCollapsed ? (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                  ) : (
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                  )}
+                </button>
                 {/* Scrollable Elements Area */}
                 <div style={{
                   flex: 1,

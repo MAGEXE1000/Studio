@@ -551,21 +551,22 @@
 
         function startFade() {
           if (dismissed) return;
-          // Signal React the intro is finishing — StudioTitleReveal can now
-          // start its sweep animation so the title appears as the hub reveals.
           window.dispatchEvent(new Event('studio-intro-done'));
-          if (!reactMounted()) {
-            // Wait for React then fade
-            var startedAt = performance.now();
-            var iv = setInterval(function () {
-              if (reactMounted() || performance.now() - startedAt > 3000) {
-                clearInterval(iv);
-                doFade();
-              }
-            }, 80);
-            return;
+          
+          function handleReady() {
+            window.removeEventListener('studio:hub-ready', handleReady);
+            doFade();
           }
-          doFade();
+
+          if (reactMounted()) {
+            doFade();
+          } else {
+            window.addEventListener('studio:hub-ready', handleReady);
+            setTimeout(function () {
+              window.removeEventListener('studio:hub-ready', handleReady);
+              doFade();
+            }, 3000);
+          }
         }
         function doFade() {
           if (dismissed) return;

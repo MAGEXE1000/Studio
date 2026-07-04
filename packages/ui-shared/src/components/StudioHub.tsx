@@ -545,7 +545,7 @@ export default function StudioHub() {
       }}
     >
 
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }}>
 
         {/* ── HOME TAB ── */}
         {tab === 'home' && (
@@ -4827,7 +4827,7 @@ User Agent: [Automatically Generated]
             <PageTransition key="main" direction={slideDir}>
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <style>{HUB_SETTINGS_CSS}</style>
-                <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
+                <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
                   <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
                     <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>{t.hub.settingsTitle}</p>
                     <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
@@ -5923,7 +5923,7 @@ User Agent: [Automatically Generated]
             <PageTransition key="main" direction={slideDir}>
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <style>{HUB_SETTINGS_CSS}</style>
-                <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)' }} className="no-scrollbar">
+                <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
                   <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
                     <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>Help & Support</p>
                     <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>Find documentation, FAQ, apps, and legal policies</p>

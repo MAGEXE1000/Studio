@@ -1,7 +1,7 @@
 import { useChordStore, ACCENT_COLORS, type AppKey } from '@workspace/studio-core';
 import React, { lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AnimatedAppHeader } from './AppAnimationSystem';
+import { AnimatedAppHeader, MOTION_EASINGS } from './AppAnimationSystem';
 import AppSpinner from './AppSpinner';
 
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
@@ -222,7 +222,7 @@ export function Dialog({
             initial={{ scale: 0.94, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.94, opacity: 0 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            transition={MOTION_EASINGS.spring}
             style={{
               position: 'relative',
               width: '100%',
@@ -390,7 +390,7 @@ export function Sheet({
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+            transition={MOTION_EASINGS.spring}
             style={{
               position: 'relative',
               width: '100%',

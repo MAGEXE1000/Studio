@@ -394,10 +394,7 @@ export function AnimatedAppHeader({
               initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{
-                type: 'spring',
-                stiffness: 160,
-                damping: 12,
-                mass: 0.75,
+                ...MOTION_EASINGS.spring,
                 delay,
               }}
               style={{
@@ -417,9 +414,7 @@ export function AnimatedAppHeader({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            type: 'spring',
-            stiffness: 110,
-            damping: 14,
+            ...MOTION_EASINGS.spring,
             delay: delayOffset + Math.min(0.35, chars.length * (staggerInterval / 1000) * speedScale + 0.05),
           }}
         >

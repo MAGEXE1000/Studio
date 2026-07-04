@@ -4518,7 +4518,7 @@ User Agent: [Automatically Generated]
 
         <div style={cardStyle}>
           <button
-            onClick={() => window.open('https://github.com/MAGEXE1000/Studio', '_system')}
+            onClick={() => navigate('terms')}
             className="btn-smooth"
             style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -4527,11 +4527,13 @@ User Agent: [Automatically Generated]
               color: 'var(--c-text-primary)', cursor: 'pointer', textAlign: 'left'
             }}
           >
-            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>GitHub Repository</span>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}>open_in_new</span>
+            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
+              {lang === 'es' ? 'Condiciones de Servicio' : 'Terms of Service'}
+            </span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}>chevron_right</span>
           </button>
           <button
-            onClick={() => navigate('privacy')}
+            onClick={() => navigate('privacy-policy')}
             className="btn-smooth"
             style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -4546,7 +4548,22 @@ User Agent: [Automatically Generated]
             <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}>chevron_right</span>
           </button>
           <button
-            onClick={() => showDevToast(lang === 'es' ? 'Licencias de código abierto' : 'Open Source Licenses')}
+            onClick={() => showDevToast(lang === 'es' ? 'Licencias de código abierto: MIT, Apache 2.0, BSD' : 'Open Source Licenses: MIT, Apache 2.0, BSD')}
+            className="btn-smooth"
+            style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              width: '100%', padding: '12px 0', borderBottom: '1px solid rgba(128,128,128,0.08)',
+              background: 'transparent', borderTop: 'none', borderLeft: 'none', borderRight: 'none',
+              color: 'var(--c-text-primary)', cursor: 'pointer', textAlign: 'left'
+            }}
+          >
+            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
+              {lang === 'es' ? 'Licencias de Software' : 'Software Licenses'}
+            </span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}>chevron_right</span>
+          </button>
+          <button
+            onClick={() => window.open('https://github.com/MAGEXE1000/Studio', '_system')}
             className="btn-smooth"
             style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -4556,9 +4573,9 @@ User Agent: [Automatically Generated]
             }}
           >
             <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
-              {lang === 'es' ? 'Licencias de Software' : 'Software Licenses'}
+              {lang === 'es' ? 'Créditos y Repositorio' : 'Credits & GitHub'}
             </span>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}>chevron_right</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}>open_in_new</span>
           </button>
         </div>
 
@@ -4866,16 +4883,7 @@ User Agent: [Automatically Generated]
                     )}
                   </div>
 
-                  <SettingsSectionLabel delay={170}>{t.hub.studioSettings.legalLabel || 'Legal'}</SettingsSectionLabel>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <BentoSettingCard icon="gavel" iconColor={accent.from} title={t.hub.studioSettings.termsTitle || 'Terms of Service'} desc={t.hub.studioSettings.termsDesc || 'Read terms and conditions'} onPress={() => navigate('terms')} delay={180} />
-                    <BentoSettingCard icon="policy" iconColor={accent.from} title={t.hub.studioSettings.privacyTitle || 'Privacy Policy'} desc={t.hub.studioSettings.privacyDesc || 'Read privacy guidelines'} onPress={() => navigate('privacy-policy')} delay={190} />
-                  </div>
 
-                  <SettingsSectionLabel delay={210}>{t.hub.studioSettings.feedbackLabel || 'Feedback'}</SettingsSectionLabel>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <BentoSettingCard icon="bug_report" iconColor={accent.from} title={t.hub.studioSettings.bugTitle || 'Report a Bug'} desc={t.hub.studioSettings.bugDesc || 'Send us feedback or bug reports'} onPress={() => navigate('bug-report')} delay={220} />
-                  </div>
 
                   <SettingsSectionLabel delay={240}>{(t.hub as { studioSettings?: { systemAbout?: string } }).studioSettings?.systemAbout ?? 'System & About'}</SettingsSectionLabel>
                   <div style={{
@@ -5859,19 +5867,6 @@ User Agent: [Automatically Generated]
         { id: 'download-apps' as const, icon: 'install_desktop', label: t.hub.studioSettings.downloadTitle || (lang === 'es' ? 'Descargar Aplicaciones' : 'Download Apps') },
         { id: 'keyboard-shortcuts' as const, icon: 'keyboard', label: t.hub.studioSettings.keyboardTitle || (lang === 'es' ? 'Atajos de Teclado' : 'Keyboard Shortcuts') },
       ]
-    },
-    {
-      label: t.hub.studioSettings.legalLabel || (lang === 'es' ? 'Legal' : 'Legal'),
-      items: [
-        { id: 'terms' as const, icon: 'gavel', label: t.hub.studioSettings.termsTitle || (lang === 'es' ? 'Condiciones de Servicio' : 'Terms of Service') },
-        { id: 'privacy-policy' as const, icon: 'policy', label: t.hub.studioSettings.privacyTitle || (lang === 'es' ? 'Política de Privacidad' : 'Privacy Policy') },
-      ]
-    },
-    {
-      label: t.hub.studioSettings.feedbackLabel || (lang === 'es' ? 'Comentarios' : 'Feedback'),
-      items: [
-        { id: 'bug-report' as const, icon: 'bug_report', label: t.hub.studioSettings.bugTitle || (lang === 'es' ? 'Informar de un Error' : 'Report a Bug') },
-      ]
     }
   ], [t, lang]);
 
@@ -5948,16 +5943,7 @@ User Agent: [Automatically Generated]
                     )}
                   </div>
 
-                  <SettingsSectionLabel delay={110}>Legal</SettingsSectionLabel>
-                  <div style={cardStyle}>
-                    <SettingsNavRow icon="gavel" iconColor={accent.from} title="Terms of Service" desc="Read terms and conditions" onPress={() => navigate('terms')} delay={115} />
-                    <SettingsNavRow icon="policy" iconColor={accent.from} title="Privacy Policy" desc="Read privacy guidelines" onPress={() => navigate('privacy-policy')} last delay={120} />
-                  </div>
 
-                  <SettingsSectionLabel delay={140}>Feedback</SettingsSectionLabel>
-                  <div style={cardStyle}>
-                    <SettingsNavRow icon="bug_report" iconColor={accent.from} title="Report a Bug" desc="Send us feedback or bug reports" onPress={() => navigate('bug-report')} last delay={145} />
-                  </div>
                 </div>
               </div>
             </PageTransition>

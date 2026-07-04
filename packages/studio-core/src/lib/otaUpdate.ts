@@ -204,6 +204,10 @@ export async function getNativeVersionCode(): Promise<number | null> {
 
 
 export function resetOtaUpdateState() {
+  if (activeCheckPromise || activeDownloadPromise || activeApplyPromise) {
+    console.warn('[OTA] Rejecting resetOtaUpdateState: an update operation is currently active.');
+    return;
+  }
   transitionToState('IDLE', 'Reset update state');
   updateGlobalState({
     progress: 0,
@@ -218,66 +222,74 @@ export function resetOtaUpdateState() {
   });
 }
 
-export async function enforceStartupRecovery() {
-  console.log('[OTA DEBUG] enforceStartupRecovery starting...');
-  
-  if (!isNative() || !isAppInstallerAvailable()) {
-    return;
+export function enforceStartupRecovery(): Promise<void> {
+  if (startupRecoveryPromise) {
+    return startupRecoveryPromise;
   }
 
-  try {
-    const { AppInstaller } = await import('./apkDownloader');
-    const check = await AppInstaller.isInstallActive();
+  startupRecoveryPromise = (async () => {
+    console.log('[OTA DEBUG] enforceStartupRecovery starting...');
     
-    if (check.active) {
-      console.log('[OTA DEBUG] enforceStartupRecovery: Active PackageInstaller session detected. Setting state to INSTALLING.');
-      const result = await AppInstaller.getLastInstallResult();
-      const expectedName = result.expectedVersionName || null;
-      const expectedCode = result.expectedVersionCode || null;
+    if (!isNative() || !isAppInstallerAvailable()) {
+      return;
+    }
+
+    try {
+      const { AppInstaller } = await import('./apkDownloader');
+      const check = await AppInstaller.isInstallActive();
       
-      updateGlobalState({
-        remoteVersion: expectedName,
-        requiredVersionCode: expectedCode ? Number(expectedCode) : 0,
-        statusText: 'Installing update...',
-      });
-      transitionToState('INSTALLING', 'Active PackageInstaller session detected on startup');
-      return;
-    }
-
-    const result = await AppInstaller.getLastInstallResult();
-    if (result.statusCode !== -999) {
-      console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
-      const processed = processLastInstallResult(result);
-      if (processed) {
-        const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
+      if (check.active) {
+        console.log('[OTA DEBUG] enforceStartupRecovery: Active PackageInstaller session detected. Setting state to INSTALLING.');
+        const result = await AppInstaller.getLastInstallResult();
+        const expectedName = result.expectedVersionName || null;
+        const expectedCode = result.expectedVersionCode || null;
+        
         updateGlobalState({
-          error: processed.errMsg,
-          statusText: processed.errMsg
+          remoteVersion: expectedName,
+          requiredVersionCode: expectedCode ? Number(expectedCode) : 0,
+          statusText: 'Installing update...',
         });
-        transitionToState(finalState, `Startup recovery: pending install result (code ${result.statusCode})`, processed.errMsg);
+        transitionToState('INSTALLING', 'Active PackageInstaller session detected on startup');
+        return;
       }
-      return;
+
+      const result = await AppInstaller.getLastInstallResult();
+      if (result.statusCode !== -999) {
+        console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
+        const processed = processLastInstallResult(result);
+        if (processed) {
+          const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
+          updateGlobalState({
+            error: processed.errMsg,
+            statusText: processed.errMsg
+          });
+          transitionToState(finalState, `Startup recovery: pending install result (code ${result.statusCode})`, processed.errMsg);
+        }
+        return;
+      }
+
+      console.log('[OTA DEBUG] No active session and no pending result. Resetting state to IDLE.');
+      stopWatchdog();
+
+      // Only clear promise guards if no operations are actually in flight
+      if (!activeCheckPromise) activeCheckPromise = null;
+      if (!activeApplyPromise) activeApplyPromise = null;
+      if (!activeDownloadPromise) activeDownloadPromise = null;
+
+      resetOtaUpdateState();
+
+      const downloadedPath = localStorage.getItem('studio:downloadedApkPath');
+      if (downloadedPath) {
+        const { Filesystem } = await import('@capacitor/filesystem');
+        await Filesystem.deleteFile({ path: downloadedPath }).catch(() => {});
+        localStorage.removeItem('studio:downloadedApkPath');
+      }
+    } catch (err) {
+      console.warn('[OTA] enforceStartupRecovery error:', err);
     }
+  })();
 
-    console.log('[OTA DEBUG] No active session and no pending result. Resetting state to IDLE.');
-    stopWatchdog();
-
-    // Only clear promise guards if no operations are actually in flight
-    if (!activeCheckPromise) activeCheckPromise = null;
-    if (!activeApplyPromise) activeApplyPromise = null;
-    if (!activeDownloadPromise) activeDownloadPromise = null;
-
-    resetOtaUpdateState();
-
-    const downloadedPath = localStorage.getItem('studio:downloadedApkPath');
-    if (downloadedPath) {
-      const { Filesystem } = await import('@capacitor/filesystem');
-      await Filesystem.deleteFile({ path: downloadedPath }).catch(() => {});
-      localStorage.removeItem('studio:downloadedApkPath');
-    }
-  } catch (err) {
-    console.warn('[OTA] enforceStartupRecovery error:', err);
-  }
+  return startupRecoveryPromise;
 }
 
 // Queue / Check variables
@@ -286,6 +298,7 @@ let activeCheckIsManual = false;
 let activeCheckPromise: Promise<CentralizedOtaState> | null = null;
 let activeDownloadPromise: Promise<void> | null = null;
 let activeApplyPromise: Promise<void> | null = null;
+let startupRecoveryPromise: Promise<void> | null = null;
 
 let lastCheckedTime = 0;
 function resetLastCheckedTime() {
@@ -293,7 +306,11 @@ function resetLastCheckedTime() {
 }
 const MIN_AUTO_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
-export function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
+export async function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
+  if (startupRecoveryPromise) {
+    await startupRecoveryPromise;
+  }
+
   const current = globalOtaState.updateState;
   
   // Do NOT run a check if we are in the middle of downloading, verifying, or installing.
@@ -726,7 +743,10 @@ function isSimulationActive(): boolean {
   );
 }
 
-export function downloadUpdate(trigger?: string): Promise<void> {
+export async function downloadUpdate(trigger?: string): Promise<void> {
+  if (startupRecoveryPromise) {
+    await startupRecoveryPromise;
+  }
   const callId = nextJsCallId();
   logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 634, `Entering downloadUpdate Call #${callId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger}` });
 
@@ -995,7 +1015,10 @@ export function downloadUpdate(trigger?: string): Promise<void> {
   return activeDownloadPromise;
 }
 
-export function applyUpdate(trigger?: string): Promise<void> {
+export async function applyUpdate(trigger?: string): Promise<void> {
+  if (startupRecoveryPromise) {
+    await startupRecoveryPromise;
+  }
   const callId = nextJsCallId();
   logDetailedJsTrace('applyUpdate', 'otaUpdate.ts', 867, `Entering applyUpdate Call #${callId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger}` });
 
@@ -1220,51 +1243,7 @@ let isOtaInitialized = false;
 export function initializeGlobalOtaListeners() {
   if (isOtaInitialized) return;
   isOtaInitialized = true;
-  console.log('[OTA] Initializing global listeners and background polling...');
-
-  const getAutoCheck = () => {
-    try {
-      return useChordStore.getState().settings.otaAutoCheck ?? true;
-    } catch {
-      return true;
-    }
-  };
-
-  const runCheck = (trigger: string, reason: string) => {
-    if (!getAutoCheck()) return;
-    if (typeof window !== 'undefined' && !(window as any).__studioStartupComplete) {
-      console.log(`[OTA] Bypassing lifecycle check (${trigger}) because startup is not complete.`);
-      return;
-    }
-    void checkForUpdate(false, trigger, reason);
-  };
-
-  const initUpdater = () => {
-    console.log('[OTA] Running delayed updater startup (Phase 3)...');
-    void checkAndCleanCache();
-    if (globalOtaState.updateState === 'IDLE') {
-      void checkForUpdate(false, 'startup', 'App init check');
-    }
-  };
-
-  let introTimer: any = null;
-  if (typeof window !== 'undefined') {
-    if ((window as any).__introDone || sessionStorage.getItem('studio-intro-shown') === 'true') {
-      initUpdater();
-    } else {
-      const handleIntroDone = () => {
-        if (introTimer) clearTimeout(introTimer);
-        window.removeEventListener('studio-intro-done', handleIntroDone);
-        setTimeout(initUpdater, 1000);
-      };
-      window.addEventListener('studio-intro-done', handleIntroDone);
-      introTimer = setTimeout(handleIntroDone, 3000);
-    }
-  } else {
-    initUpdater();
-  }
-
-
+  console.log('[OTA] Initializing global PackageInstaller listeners...');
 
   // Global PackageInstaller event handler
   const handleInstallStatusChange = (eventData: any) => {
@@ -1275,6 +1254,11 @@ export function initializeGlobalOtaListeners() {
     // Log to installer database
     if (isNative() && typeof (AppInstaller as any).logInstallerEvent === 'function') {
       void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
+    }
+
+    if (globalOtaState.updateState === 'IDLE' || globalOtaState.updateState === 'RECOVERY') {
+      console.log('[OTA] Ignoring native status event since state is:', globalOtaState.updateState);
+      return;
     }
 
     if (status === -2) {
@@ -1317,18 +1301,6 @@ export function initializeGlobalOtaListeners() {
       }
     })();
   }
-
-
-
-  const schedulePoll = () => {
-    setTimeout(async () => {
-      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
-        runCheck('polling', 'periodic foreground poll');
-      }
-      schedulePoll();
-    }, FOREGROUND_POLL_MS);
-  };
-  schedulePoll();
 }
 
 export function useOtaUpdate() {

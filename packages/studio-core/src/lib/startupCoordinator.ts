@@ -50,6 +50,13 @@ class StartupCoordinatorClass {
   // Lifecycle Coordination Queuing
   private queuedEvents: Array<{ type: string; trigger?: string; reason?: string; payload?: any }> = [];
 
+  // Polling Scheduler
+  private pollingTimer: any = null;
+
+  // Lifecycle Debouncing
+  private debouncedLifecycleTimer: any = null;
+  private pendingLifecycleEvents: Array<{ type: string; trigger: string; reason: string; payload?: any }> = [];
+
   subscribe(l: Listener) {
     this.listeners.add(l);
     l({ ...this.phases });
@@ -384,6 +391,13 @@ class StartupCoordinatorClass {
   }
 
   private cleanup() {
+    this.stopPeriodicUpdatePolling();
+    if (this.debouncedLifecycleTimer) {
+      clearTimeout(this.debouncedLifecycleTimer);
+      this.debouncedLifecycleTimer = null;
+    }
+    this.pendingLifecycleEvents = [];
+
     this.activeTimers.forEach((t) => clearTimeout(t));
     this.activeTimers = [];
 
@@ -538,7 +552,7 @@ class StartupCoordinatorClass {
     }
   }
 
-  // --- Lifecycle Coordination ---
+  // --- Lifecycle Coordination & Polling ---
   private setupLifecycleListeners() {
     this.addEventListener(document, 'visibilitychange', () => {
       if (document.visibilityState === 'visible') {
@@ -560,8 +574,10 @@ class StartupCoordinatorClass {
       import('@capacitor/app').then(({ App }) => {
         App.addListener('appStateChange', (s) => {
           if (s.isActive) {
+            this.startPeriodicUpdatePolling();
             this.handleLifecycleEvent('appStateChange', 'lifecycle_appstate', 'native app active', s);
           } else {
+            this.stopPeriodicUpdatePolling();
             // Cancel mid-boot if app goes to background
             if (!this.isCompleted) {
               console.warn('[StartupCoordinator] App backgrounded mid-boot! Cancelling startup.');
@@ -579,6 +595,26 @@ class StartupCoordinatorClass {
     }
   }
 
+  private startPeriodicUpdatePolling() {
+    if (this.pollingTimer) return;
+    
+    const POLL_INTERVAL = 15 * 60 * 1000; // 15 minutes
+    this.pollingTimer = setInterval(() => {
+      const autoCheck = useChordStore.getState().settings.otaAutoCheck ?? true;
+      if (autoCheck && (typeof document === 'undefined' || document.visibilityState === 'visible')) {
+        console.log('[StartupCoordinator] Triggering periodic update check...');
+        void this.triggerOtaUpdateCheck('polling', 'periodic foreground poll');
+      }
+    }, POLL_INTERVAL);
+  }
+
+  private stopPeriodicUpdatePolling() {
+    if (this.pollingTimer) {
+      clearInterval(this.pollingTimer);
+      this.pollingTimer = null;
+    }
+  }
+
   private handleLifecycleEvent(type: string, trigger: string, reason: string, payload?: any) {
     if (!this.isCompleted) {
       console.log(`[StartupCoordinator] Queuing lifecycle event during boot: type=${type}`);
@@ -587,12 +623,40 @@ class StartupCoordinatorClass {
       return;
     }
 
-    this.dispatchLifecycleEvent(type, trigger, reason, payload);
+    const autoCheck = useChordStore.getState().settings.otaAutoCheck ?? true;
+    if (!autoCheck) return;
+
+    // Coalesce events to prevent trigger storms (e.g. visibilitychange + focus on resume)
+    this.pendingLifecycleEvents.push({ type, trigger, reason, payload });
+    
+    if (this.debouncedLifecycleTimer) {
+      clearTimeout(this.debouncedLifecycleTimer);
+    }
+    
+    this.debouncedLifecycleTimer = setTimeout(() => {
+      this.debouncedLifecycleTimer = null;
+      this.flushPendingLifecycleEvents();
+    }, 200);
   }
 
-  private dispatchLifecycleEvent(type: string, trigger: string, reason: string, payload?: any) {
-    if (type === 'visibilitychange' || type === 'focus' || type === 'pageshow' || type === 'online' || type === 'appStateChange') {
-      void this.triggerOtaUpdateCheck(trigger, reason);
+  private flushPendingLifecycleEvents() {
+    if (this.pendingLifecycleEvents.length === 0) return;
+    
+    const events = [...this.pendingLifecycleEvents];
+    this.pendingLifecycleEvents = [];
+    
+    const types = events.map(e => e.type);
+    console.log(`[StartupCoordinator] Processing coalesced lifecycle events: ${types.join(', ')}`);
+    
+    const hasTriggerEvent = events.some((evt) => 
+      evt.type === 'visibilitychange' || evt.type === 'focus' || evt.type === 'pageshow' || evt.type === 'online' || evt.type === 'appStateChange'
+    );
+    
+    if (hasTriggerEvent) {
+      const primaryEvent = events.find(e => e.type === 'appStateChange') || 
+                           events.find(e => e.type === 'visibilitychange') || 
+                           events[0];
+      void this.triggerOtaUpdateCheck(primaryEvent.trigger, `Coalesced: ${primaryEvent.reason}`);
     }
   }
 
@@ -606,10 +670,8 @@ class StartupCoordinatorClass {
   }
 
   private flushQueuedEvents() {
-    if (this.queuedEvents.length === 0) return;
-    console.log(`[StartupCoordinator] Flushing ${this.queuedEvents.length} queued lifecycle events.`);
+    console.log(`[StartupCoordinator] Flushing queued lifecycle events (count=${this.queuedEvents.length}).`);
     
-    // Deduplicate queued events to trigger at most one update check
     const hasTriggerEvent = this.queuedEvents.some((evt) => 
       evt.type === 'visibilitychange' || evt.type === 'focus' || evt.type === 'pageshow' || evt.type === 'online' || evt.type === 'appStateChange'
     );
@@ -617,9 +679,15 @@ class StartupCoordinatorClass {
     this.queuedEvents = [];
     this.notify();
 
+    // Trigger update check and start periodic update polling on startup completion
+    this.startPeriodicUpdatePolling();
+
     if (hasTriggerEvent) {
       console.log('[StartupCoordinator] Triggering single update check from queued lifecycle triggers.');
       void this.triggerOtaUpdateCheck('queued_lifecycle', 'flushed boot events');
+    } else {
+      console.log('[StartupCoordinator] Triggering initial update check on startup completion.');
+      void this.triggerOtaUpdateCheck('startup', 'app_boot_complete');
     }
   }
 

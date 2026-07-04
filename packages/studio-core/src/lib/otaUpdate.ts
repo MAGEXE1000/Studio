@@ -384,19 +384,19 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
 
       const natVer = await getNativeVersion();
       const natVerCode = await getNativeVersionCode();
-      if (checkId !== latestCheckId) {
-        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId} before FETCH_REMOTE_METADATA. Exiting.`);
-        return globalOtaState;
+
+      if (checkId === latestCheckId) {
+        if (!safeTransition('INITIALIZING', 'FETCH_REMOTE_METADATA', 'Fetching remote manifest')) {
+          const duration = Date.now() - startTime;
+          console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
+          return globalOtaState;
+        }
       }
 
-      if (!safeTransition('INITIALIZING', 'FETCH_REMOTE_METADATA', 'Fetching remote manifest')) {
-        const duration = Date.now() - startTime;
-        console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
-        return globalOtaState;
-      }
       const realRemote = await fetchRemoteVersion();
+
       if (checkId !== latestCheckId) {
-        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId} after fetchRemoteVersion. Exiting.`);
+        console.log(`[OTA] Check request checkId=${checkId} was superseded by checkId=${latestCheckId} after fetchRemoteVersion. Exiting silently.`);
         return globalOtaState;
       }
 

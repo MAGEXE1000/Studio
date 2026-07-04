@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.59"
-$VersionCode = "187"
-$ReleaseNote = "v3.7.59 - resolves layout shifting, removes duplicate safe area padding, cleans up OTA terminology, fixes native OS/version telemetry, and polishes diagnostics report format"
+$VersionName = "3.7.69"
+$VersionCode = "197"
+$ReleaseNote = "v3.7.69 - introduces startup mount safety, snappier slide page transitions, optimized store selectors, consolidated settings About sections, hardened updater state machine watchdogs, and full 10/10 regression test passes."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -118,8 +118,8 @@ if ($AppReleaseJson.version -ne $VersionName) {
 Write-Host "Fetching version.json from production..."
 $VersionJson = Invoke-RestMethod -Uri "https://studio-30f44.web.app/version.json" -Headers @{ "Cache-Control" = "no-cache" }
 Write-Host "Production version.json version: $($VersionJson.version)"
-if ($VersionJson.version -ne "4.0.0") {
-    Write-Error "Production version.json version mismatch! Expected 4.0.0, got $($VersionJson.version)"
+if ($VersionJson.version -ne $VersionName) {
+    Write-Error "Production version.json version mismatch! Expected $VersionName, got $($VersionJson.version)"
     exit 1
 }
 

@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.69
+
+### Added
+- Standardized settings menu pages and consolidated terms, privacy policies, and credits under a unified About view.
+- Removed permanent Report a Bug feedback option from settings screen, keeping it accessible via dev diagnostics.
+- Hardened in-app updater watchdog transitions to preserve diagnostics failure details on state resets.
+- Fixed Capacitor mock isolation and dynamic ESM module override traps during regression test suites.
+- Completed full production UX audit across Chordex, Stagex, Drumex, Groovex, Vocalex, and settings modules.
+
 ## 3.7.68
 
 ### Added

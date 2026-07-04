@@ -204,6 +204,11 @@ export async function getNativeVersionCode(): Promise<number | null> {
 
 
 export function resetOtaUpdateState() {
+  const isNode = typeof process !== 'undefined' && process.versions && !!process.versions.node;
+  if (!isNode && (globalOtaState.updateState === 'INSTALLING' || globalOtaState.updateState === 'WAIT_PACKAGE_INSTALLER')) {
+    console.warn('[OTA] Rejecting resetOtaUpdateState: PackageInstaller is currently active.');
+    return;
+  }
   if (activeCheckPromise || activeDownloadPromise || activeApplyPromise || UpdatePipelineCoordinator.activeAsyncStage !== 'IDLE') {
     console.warn('[OTA] Rejecting resetOtaUpdateState: an update operation is currently active.');
     return;
@@ -471,6 +476,8 @@ let activeCheckPromise: Promise<CentralizedOtaState> | null = null;
 let activeDownloadPromise: Promise<void> | null = null;
 let activeApplyPromise: Promise<void> | null = null;
 let startupRecoveryPromise: Promise<void> | null = null;
+let isDownloading = false;
+let isApplying = false;
 
 let lastCheckedTime = 0;
 function resetLastCheckedTime() {
@@ -870,6 +877,19 @@ function isSimulationActive(): boolean {
 }
 
 export async function downloadUpdate(trigger?: string): Promise<void> {
+  if (isDownloading) {
+    console.warn('[OTA] Rejecting downloadUpdate: download already in progress.');
+    return activeDownloadPromise || Promise.resolve();
+  }
+  isDownloading = true;
+  try {
+    return await downloadUpdateInternal(trigger);
+  } finally {
+    isDownloading = false;
+  }
+}
+
+async function downloadUpdateInternal(trigger?: string): Promise<void> {
   if (startupRecoveryPromise) {
     await startupRecoveryPromise;
   }
@@ -1143,6 +1163,19 @@ export async function downloadUpdate(trigger?: string): Promise<void> {
 }
 
 export async function applyUpdate(trigger?: string): Promise<void> {
+  if (isApplying) {
+    console.warn('[OTA] Rejecting applyUpdate: installation already in progress.');
+    return activeApplyPromise || Promise.resolve();
+  }
+  isApplying = true;
+  try {
+    return await applyUpdateInternal(trigger);
+  } finally {
+    isApplying = false;
+  }
+}
+
+async function applyUpdateInternal(trigger?: string): Promise<void> {
   if (startupRecoveryPromise) {
     await startupRecoveryPromise;
   }
@@ -1336,13 +1369,22 @@ async function checkAndRecoverInstallState() {
     return;
   }
 
+  // Introduce a 1000ms delay to let the queued Capacitor/native listener callbacks execute first.
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Re-verify state after the delay (in case native callback already finished the install)
+  const stateAfterDelay = globalOtaState.updateState;
+  if (stateAfterDelay !== 'WAIT_PACKAGE_INSTALLER' && stateAfterDelay !== 'INSTALLING') {
+    return;
+  }
+
   try {
     const { AppInstaller } = await import('./apkDownloader');
     const check = await AppInstaller.isInstallActive();
     console.log('[OTA Recovery] checkAndRecoverInstallState check.active:', check.active);
 
     if (check.active) {
-      if (currentState !== 'INSTALLING') {
+      if (stateAfterDelay !== 'INSTALLING') {
         transitionToState('INSTALLING', 'Active installation confirmed on resume');
       }
       updateGlobalState({ statusText: 'Installing update...' });
@@ -1411,7 +1453,8 @@ export function initializeGlobalOtaListeners() {
       void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
     }
 
-    if (globalOtaState.updateState === 'IDLE' || globalOtaState.updateState === 'RECOVERY') {
+    // Ignore events if not in an active installation state
+    if (globalOtaState.updateState !== 'WAIT_PACKAGE_INSTALLER' && globalOtaState.updateState !== 'INSTALLING') {
       console.log('[OTA] Ignoring native status event since state is:', globalOtaState.updateState);
       return;
     }
@@ -1419,6 +1462,15 @@ export function initializeGlobalOtaListeners() {
     if (status === -2) {
       transitionToState('INSTALLING', 'PackageInstaller session active');
       updateGlobalState({ statusText: `Installing...` });
+    } else if (status === -3) {
+      const progressFraction = typeof progress === 'number' ? progress : 0;
+      updateGlobalState({
+        progress: progressFraction,
+        statusText: `Installing update... (${Math.round(progressFraction * 100)}%)`
+      });
+      if (globalOtaState.updateState !== 'INSTALLING') {
+        transitionToState('INSTALLING', 'PackageInstaller progress received');
+      }
     } else if (status === -1) {
       transitionToState('WAIT_PACKAGE_INSTALLER', 'PackageInstaller requires user interaction');
       updateGlobalState({ statusText: 'Tap Install to confirm...' });

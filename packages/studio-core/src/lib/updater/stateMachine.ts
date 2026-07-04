@@ -142,6 +142,15 @@ export function setActivePipelineContext(ctx: typeof activePipelineContext) {
 }
 
 export function transitionToState(state: OtaUpdateState, reason: string, failureReason?: string) {
+  // Never allow transitioning to INSTALL_FAILED from IDLE or INSTALL_SUCCESS
+  if (state === 'INSTALL_FAILED') {
+    const current = globalOtaState.updateState;
+    if (current === 'IDLE' || current === 'INSTALL_SUCCESS') {
+      console.warn(`[UPDATE STATE WARNING] Blocking invalid transition: ${current} -> INSTALL_FAILED (Reason: ${reason})`);
+      return;
+    }
+  }
+
   // Prevent recursive transitions
   if (transitionLock) {
     console.warn(`[UPDATE STATE WARNING] Recursive transition blocked: attempted ${globalOtaState.updateState} -> ${state} (Reason: ${reason}) while another transition is committing.`);
@@ -299,8 +308,23 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
       }
     }, 20000);
   } else if (state === 'INSTALLING') {
-    watchdogTimer = setTimeout(() => {
+    watchdogTimer = setTimeout(async () => {
       if (globalOtaState.updateState === 'INSTALLING') {
+        try {
+          const { AppInstaller } = await import('../apkDownloader');
+          const check = await AppInstaller.isInstallActive();
+          if (check.active) {
+            console.log('[Watchdog] PackageInstaller session is still active. Extending watchdog timer...');
+            watchdogTimer = setTimeout(() => {
+              if (globalOtaState.updateState === 'INSTALLING') {
+                handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
+              }
+            }, 120000);
+            return;
+          }
+        } catch (err) {
+          console.warn('[Watchdog] Failed to check active installer session during timeout check:', err);
+        }
         handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
       }
     }, 120000);

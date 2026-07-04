@@ -1,18 +1,20 @@
 {
   "platform": "web",
   "version": "4.0.0",
-  "commit": "6ab7b300",
-  "releasedAt": "7/3/2026, 11:40:00 PM CST",
-  "buildTimestamp": "7/3/2026, 11:40:00 PM CST",
+  "commit": "23f73203",
+  "releasedAt": "7/4/2026, 6:00:00 AM CST",
+  "buildTimestamp": "7/4/2026, 6:00:00 AM CST",
   "updateMode": "refresh",
-  "description": "• Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.\n• Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.\n• Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared.",
-  "whatsNew": "• Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.\n• Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.\n• Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared.",
-  "changelog": "• Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.\n• Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.\n• Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared.",
+  "description": "• Removed the gray Settings header and restored the transparent sub-navigation bar design.\n• Optimised page transitions to slide in faster and more snappily.\n• Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.\n• Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.\n• Fixed background OTA updater lifecycle race conditions.",
+  "whatsNew": "• Removed the gray Settings header and restored the transparent sub-navigation bar design.\n• Optimised page transitions to slide in faster and more snappily.\n• Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.\n• Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.\n• Fixed background OTA updater lifecycle race conditions.",
+  "changelog": "• Removed the gray Settings header and restored the transparent sub-navigation bar design.\n• Optimised page transitions to slide in faster and more snappily.\n• Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.\n• Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.\n• Fixed background OTA updater lifecycle race conditions.",
   "releaseNotes": {
     "added": [
-      "Unified all custom overlay sheets, modals, and screen scaffolding using DialogScaffold to standardize bottom offsets and transitions.",
-      "Optimized boot lifecycle, startup coordination, and lazy loading to resolve layout shifts and startup lag.",
-      "Consolidated duplicate design system primitives and pruned unreferenced components from ui-web and ui-shared."
+      "Removed the gray Settings header and restored the transparent sub-navigation bar design.",
+      "Optimised page transitions to slide in faster and more snappily.",
+      "Improved startup coordination by verifying the Hub DOM mounts and paints before completing boot.",
+      "Unified dynamic import preloading to reduce dynamic chunk loading bottlenecks.",
+      "Fixed background OTA updater lifecycle race conditions."
     ]
   },
   "mandatory": false

@@ -1004,7 +1004,7 @@ export default function App() {
     setAppPreloaded(true);
 
     const elapsed = Date.now() - launchStartTimeRef.current;
-    const minDuration = 950; // 950ms + 300ms fadeout = 1250ms total visibility (1000ms-1300ms target).
+    const minDuration = 100 * speedScale; // Snappy visual confirmation delay scaled by speed preferences
     const remainingTime = Math.max(0, minDuration - elapsed);
 
     console.log(`[Launch] App ${app} loaded in ${elapsed}ms. Remaining splash time: ${remainingTime}ms.`);
@@ -2225,16 +2225,12 @@ export default function App() {
                   }}
                 >
                   <LifecycleTracker name="SubAppWrapper" />
-                  {splashFullyOpaque ? (
-                    <SubAppWrapper
-                      app={stableKey}
-                      activePanel={activePanel}
-                      settings={settings}
-                      onReady={handleAppPreloaded}
-                    />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} />
-                  )}
+                  <SubAppWrapper
+                    app={stableKey}
+                    activePanel={activePanel}
+                    settings={settings}
+                    onReady={handleAppPreloaded}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

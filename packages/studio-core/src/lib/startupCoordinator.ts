@@ -245,17 +245,7 @@ class StartupCoordinatorClass {
     await this.waitForIntroDone();
     if (this.currentRunId !== runId) return;
 
-    // Phase 4: Updater initialization
-    const p4Success = await this.executePhase('4', 10000, async () => {
-      // 1. Enforce startup recovery (restores installer session state)
-      await enforceStartupRecovery();
-
-      // 2. Initialize OTA update listener registry
-      initializeGlobalOtaListeners();
-    });
-    if (!p4Success || this.currentRunId !== runId) return;
-
-    // Phase 5: Hub initialization
+    // Phase 5: Hub initialization (Run first to show Hub immediately)
     const p5Success = await this.executePhase('5', 5000, async () => {
       // Dispatch UI mounting events (sets startupComplete = true in App.tsx)
       onHubShow();
@@ -288,6 +278,16 @@ class StartupCoordinatorClass {
       this.flushQueuedEvents();
     });
     if (!p5Success || this.currentRunId !== runId) return;
+
+    // Phase 4: Updater initialization (Runs after Hub is visible)
+    const p4Success = await this.executePhase('4', 10000, async () => {
+      // 1. Enforce startup recovery (restores installer session state)
+      await enforceStartupRecovery();
+
+      // 2. Initialize OTA update listener registry
+      initializeGlobalOtaListeners();
+    });
+    if (!p4Success || this.currentRunId !== runId) return;
 
     // Run Phases 6 & 7 asynchronously after the Hub is visible and interactive
     void this.runPhase6(runId);
@@ -324,7 +324,7 @@ class StartupCoordinatorClass {
           clearTimeout(doneTimer);
           window.removeEventListener('studio-intro-done', handleIntro);
           // Small debounce to allow intro DOM fade out transition to execute
-          this.setTimeout(resolve, 500);
+          this.setTimeout(resolve, 100);
         }
       };
 

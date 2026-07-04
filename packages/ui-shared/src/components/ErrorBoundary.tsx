@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { useChordStore, globalOtaState } from '@workspace/studio-core';
+import { Error as ErrorCard, Button } from './StudioDesignSystem';
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const CHAR_MAP: Record<string, number> = {};
@@ -701,36 +702,25 @@ export class ErrorBoundary extends Component<Props, State> {
           height: '100%', width: '100%', background: '#121214', color: '#eaeaea', padding: 24, textAlign: 'center',
           fontFamily: 'Manrope, sans-serif', boxSizing: 'border-box'
         }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 48, color: '#f03e3e', marginBottom: 16 }}>warning</span>
-          <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700 }}>Something went wrong</h3>
-          <p style={{ margin: '0 0 24px', fontSize: 13, color: '#a0a0a5', maxWidth: 360, lineHeight: 1.5 }}>
-            An unexpected error occurred in the {mod} module. Try restarting the module or return to the Studio Hub.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+          <ErrorCard
+            message={`An unexpected error occurred in the ${mod} module. Try restarting the module or return to the Studio Hub.`}
+            onRetry={() => this.setState({ hasError: false, error: null, suppressed: false })}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', marginTop: 16 }}>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button
-                onClick={() => this.setState({ hasError: false, error: null, suppressed: false })}
-                style={{
-                  padding: '10px 20px', background: '#3b5bdb', border: 'none', borderRadius: 8,
-                  color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Manrope, sans-serif'
-                }}
-              >
-                Retry Loading
-              </button>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={this.handleReturnToHub}
-                style={{
-                  padding: '10px 20px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8,
-                  color: '#eaeaea', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Manrope, sans-serif'
-                }}
               >
                 Return to Hub
-              </button>
+              </Button>
             </div>
             
             {isRootApp && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                <button
+                <Button
+                  size="sm"
                   onClick={() => {
                     try {
                       const logs = localStorage.getItem('studio_rootapp_error_boundary_log') || '[]';
@@ -740,14 +730,12 @@ export class ErrorBoundary extends Component<Props, State> {
                       alert('Failed to copy');
                     }
                   }}
-                  style={{
-                    padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8,
-                    color: '#eaeaea', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'Manrope, sans-serif'
-                  }}
                 >
                   Copy RootApp Error Log
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
                   onClick={() => {
                     try {
                       const report = localStorage.getItem('studio_rootapp_last_symbolicated_report') || 'No symbolicated report found';
@@ -757,13 +745,9 @@ export class ErrorBoundary extends Component<Props, State> {
                       alert('Failed to copy');
                     }
                   }}
-                  style={{
-                    padding: '8px 16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8,
-                    color: '#ef4444', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'Manrope, sans-serif'
-                  }}
                 >
                   COPY SYMBOLICATED REACT ERROR REPORT
-                </button>
+                </Button>
               </div>
             )}
           </div>

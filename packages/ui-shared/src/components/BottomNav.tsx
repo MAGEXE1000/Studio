@@ -2,6 +2,7 @@ import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidd
 import { useEffect, useRef, useState } from 'react';
 
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
+import { BottomNavigation } from './StudioDesignSystem';
 
 
 /* ── Crisp inline SVG icons ──────────────────────────────────── */
@@ -225,30 +226,13 @@ export default function BottomNav() {
   if (settings.appMode !== 'chords') return null;
 
   return (
-    <nav
+    <BottomNavigation
       ref={navRef}
       className="glass-nav fixed"
-      // When hidden (e.g. inside the song-preset editor or a full-screen
-      // popup), also strip the bar from the accessibility tree so it doesn't
-      // appear in screen-reader / aria snapshots — purely visual translation
-      // would otherwise leave a "ghost" nav for assistive tech.
       aria-hidden={(navHidden || navCollapsed) || undefined}
       // @ts-expect-error – `inert` is valid HTML but missing from React types in this version
       inert={(navHidden || navCollapsed) ? '' : undefined}
       style={{
-        bottom: 'var(--nav-safe-bottom)',
-        left: '50%',
-        width: '88%',
-        maxWidth: '360px',
-        height: `${NAV_HEIGHT_PX}px`,
-        borderRadius: '2rem',
-        border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.32)'}`,
-        background: amoledBg,
-        boxShadow: isLight
-          ? '0 8px 32px rgba(0,0,0,0.08), 0 1.5px 0 rgba(255,255,255,0.70) inset'
-          : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
-        zIndex: 50,
-        overflow: 'hidden',
         pointerEvents: (navHidden || navCollapsed) ? 'none' : 'auto',
         transform: getSharedNavTransform(navHidden, navCollapsed),
         opacity: getSharedNavOpacity(navHidden, navCollapsed),
@@ -344,6 +328,6 @@ export default function BottomNav() {
         );
       })}
       </div>
-    </nav>
+    </BottomNavigation>
   );
 }

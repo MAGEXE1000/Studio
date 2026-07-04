@@ -1,4 +1,5 @@
 import React from 'react';
+import { Skeleton } from './StudioDesignSystem';
 
 // ── GLOBAL RESUSABLE SKELETON WIDGETS ─────────────────────────────────────────
 
@@ -12,17 +13,10 @@ export function StudioSkeletonCard({
   style?: React.CSSProperties;
 }) {
   return (
-    <div
-      className="studio-shimmer"
-      style={{
-        width: '100%',
-        height,
-        borderRadius,
-        border: '1px solid rgba(128,128,128,0.07)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-        boxSizing: 'border-box',
-        ...style,
-      }}
+    <Skeleton
+      width="100%"
+      height={height}
+      style={{ borderRadius, ...style }}
     />
   );
 }
@@ -48,18 +42,15 @@ export function StudioSkeletonRow({
         ...style,
       }}
     >
-      <div
-        className="studio-shimmer"
-        style={{
-          width: circleSize,
-          height: circleSize,
-          borderRadius: circleRadius,
-          flexShrink: 0,
-        }}
+      <Skeleton
+        variant="circle"
+        width={circleSize}
+        height={circleSize}
+        style={{ borderRadius: circleRadius, flexShrink: 0 }}
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div className="studio-shimmer" style={{ width: '65%', height: 13, borderRadius: 4 }} />
-        <div className="studio-shimmer" style={{ width: '40%', height: 9, borderRadius: 4 }} />
+        <Skeleton variant="text" width="65%" height={13} />
+        <Skeleton variant="text" width="40%" height={9} />
       </div>
     </div>
   );
@@ -115,11 +106,11 @@ export function StudioSkeletonHeader({
         ...style,
       }}
     >
-      <div className="studio-shimmer" style={{ width: titleWidth, height: 26, borderRadius: 6 }} />
+      <Skeleton variant="text" width={titleWidth} height={26} />
       {showButtons && (
         <div style={{ display: 'flex', gap: 8 }}>
-          <div className="studio-shimmer" style={{ width: 34, height: 34, borderRadius: '50%' }} />
-          <div className="studio-shimmer" style={{ width: 34, height: 34, borderRadius: '50%' }} />
+          <Skeleton variant="circle" width={34} height={34} />
+          <Skeleton variant="circle" width={34} height={34} />
         </div>
       )}
     </div>
@@ -129,7 +120,6 @@ export function StudioSkeletonHeader({
 export function StudioSkeletonProfile({ style }: { style?: React.CSSProperties }) {
   return (
     <div
-      className="studio-shimmer"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -145,20 +135,16 @@ export function StudioSkeletonProfile({ style }: { style?: React.CSSProperties }
       }}
     >
       {/* Avatar circle */}
-      <div
-        className="studio-shimmer"
-        style={{
-          width: 72,
-          height: 72,
-          borderRadius: '50%',
-          marginBottom: 14,
-          background: 'var(--app-surface-highest)',
-        }}
+      <Skeleton
+        variant="circle"
+        width={72}
+        height={72}
+        style={{ marginBottom: 14, background: 'var(--app-surface-highest)' }}
       />
       {/* Display name bar */}
-      <div className="studio-shimmer" style={{ width: '45%', height: 16, borderRadius: 4, marginBottom: 8 }} />
+      <Skeleton variant="text" width="45%" height={16} style={{ marginBottom: 8 }} />
       {/* Email bar */}
-      <div className="studio-shimmer" style={{ width: '60%', height: 11, borderRadius: 4 }} />
+      <Skeleton variant="text" width="60%" height={11} />
     </div>
   );
 }

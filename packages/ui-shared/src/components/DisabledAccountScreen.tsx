@@ -1,5 +1,6 @@
 import { signOut, enableAccount, useT, useChordStore } from '@workspace/studio-core';
 import { useState } from 'react';
+import { Button } from './StudioDesignSystem';
 
 type Props = {
   user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null };
@@ -90,44 +91,26 @@ export default function DisabledAccountScreen({ user }: Props) {
 
         {/* Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginTop: 4 }}>
-          <button
+          <Button
+            variant="primary"
             onClick={doEnable}
             disabled={!!busy}
-            style={{
-              width: '100%', padding: '14px 18px', borderRadius: 12,
-              background: busy === 'enable' ? 'rgba(245,158,11,0.4)' : 'linear-gradient(135deg, #f59e0b, #d97706)',
-              color: '#fff', border: 'none',
-              fontFamily: 'Manrope', fontWeight: 800, fontSize: 15,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              cursor: busy ? 'not-allowed' : 'pointer',
-              opacity: busy === 'signout' ? 0.6 : 1,
-              boxShadow: '0 8px 24px rgba(245,158,11,0.28)',
-            }}
+            loading={busy === 'enable'}
+            icon="restart_alt"
+            style={{ width: '100%' }}
           >
-            {busy === 'enable'
-              ? <span className="material-symbols-outlined" style={{ fontSize: 18, animation: 'spin 1.1s linear infinite', display: 'inline-block' }}>progress_activity</span>
-              : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>restart_alt</span>
-            }
             {L.enable}
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={doSignOut}
             disabled={!!busy}
-            style={{
-              width: '100%', padding: '12px 18px', borderRadius: 12,
-              background: 'transparent',
-              color: 'var(--c-text-secondary)',
-              border: '1px solid var(--c-divider, rgba(128,128,128,0.25))',
-              fontFamily: 'Manrope', fontWeight: 700, fontSize: 14,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              cursor: busy ? 'not-allowed' : 'pointer',
-              opacity: busy === 'signout' ? 0.6 : 1,
-            }}
+            loading={busy === 'signout'}
+            icon="logout"
+            style={{ width: '100%' }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
             {L.signOut}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -48,6 +48,8 @@ import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import DrumPrefsPanel from './DrumPrefsPanel';
 import { AnimatedAppHeader, StaggeredReveal } from '../components/AppAnimationSystem';
 import WebAppSectionDock from '../components/WebAppSectionDock';
+import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../components/StudioLayoutSystem';
+import { Button, EmptyState, Input } from '../components/StudioDesignSystem';
 
 // ── Layout ─────────────────────────────────────────────────────────────────
 const LABEL_W  = 72;
@@ -1284,153 +1286,155 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
   const isWebDesktop = useIsWebDesktop();
 
   return (
-    <div style={isWebDesktop ? { position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } : { position: 'fixed', inset: 0, zIndex: 300, background: '#000000', display: 'flex', flexDirection: 'column', animation: closing ? 'sheet-down 320ms cubic-bezier(0.25,0.46,0.45,0.94) both' : 'sheet-up 340ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
-      <div style={isWebDesktop ? { position: 'relative', width: '560px', maxWidth: '90vw', maxHeight: '85vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', overflow: 'hidden' } : { display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: '#000000',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={isWebDesktop ? { position: 'relative', width: '560px', maxWidth: '90vw', maxHeight: '85vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', overflow: 'hidden', margin: 'auto' } : { display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
         {/* ── Header ── */}
         <div style={{ paddingTop: isWebDesktop ? '0' : 'env(safe-area-inset-top)', background: isWebDesktop ? 'transparent' : '#191a1a', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 56 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button onClick={handleClose} className="btn-smooth"
-              style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', flexShrink: 0 }}>
-              <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 22 }}>arrow_back</span>
-            </button>
-            <p style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#e7e5e4', lineHeight: 1 }}>
-              Export Preview
-            </p>
-          </div>
-          <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#484848', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(72,72,72,0.3)' }}>
-            PDF
-          </span>
-        </div>
-      </div>
-
-      {/* ── Scrollable body ── */}
-      <div ref={scrollRef} className="no-scrollbar" style={{ flex: 1, overflowY: 'auto', paddingBottom: 170 }}>
-
-        {/* Paper stage */}
-        <div style={{ padding: '32px 24px 28px', background: '#0a0a0a', position: 'relative' }}>
-          <div style={{ position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none',
-            backgroundImage: 'radial-gradient(#555 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <DrumPaperPreview patterns={patterns} song={song} cfg={cfg} accent={accent} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 14 }}>
-            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
-              {patterns.length} {patterns.length === 1 ? 'pattern' : 'patterns'}
-            </span>
-            <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#3a3a3a', display: 'inline-block' }} />
-            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
-              A3 Landscape
-            </span>
-          </div>
-        </div>
-
-        {/* File name + note */}
-        <div style={{ padding: '28px 20px 8px' }}>
-          <p style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#484848', marginBottom: 10 }}>
-            File Name
-          </p>
-          <input type="text" value={pdfName} onChange={e => setPdfName(e.target.value)}
-            placeholder={song?.name ?? 'Beat'} maxLength={80}
-            style={{ width: '100%', padding: '13px 16px', borderRadius: 12, background: '#191a1a',
-              border: '1px solid rgba(72,72,72,0.25)', color: '#e7e5e4', fontFamily: 'Manrope', fontWeight: 600,
-              fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 24,
-              transition: 'border-color 200ms ease' }} />
-          <div style={{ padding: '14px 16px', borderRadius: 12, background: `${accent.from}0d`, border: `1px solid ${accent.from}18`,
-            display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 15, flexShrink: 0, marginTop: 1, fontVariationSettings: "'FILL' 1" }}>info</span>
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6e6e80', lineHeight: 1.55, margin: 0 }}>
-              The PDF contains the step-sequencer grid for all patterns. Hidden rows (pattern mixer) are excluded from the export.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Floating bottom bar ── */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 400,
-        transform: barVisible ? 'translateY(0)' : 'translateY(110%)',
-        transition: 'transform 300ms cubic-bezier(0.4,0,0.2,1)',
-        background: 'rgba(15,15,15,0.94)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-      }}>
-        {/* Options row */}
-        <div style={{ padding: '14px 16px 10px', display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
-
-          {/* Dark theme chip */}
-          <button onClick={() => update('theme', cfg.theme === 'dark' ? 'light' : 'dark')} className="btn-smooth"
-            style={{ padding: '5px 12px', borderRadius: 8, fontFamily: 'Inter', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5,
-              background: cfg.theme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.04)',
-              color: cfg.theme === 'dark' ? '#e7e5e4' : '#6e6e80',
-              border: cfg.theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.04)',
-              transition: 'all 160ms ease' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: cfg.theme === 'dark' ? "'FILL' 1" : "'FILL' 0" }}>dark_mode</span>
-            Dark
-          </button>
-
-          {/* Layout style */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 2, gap: 1 }}>
-            {([['compact', 'Cmp'] as const, ['normal', 'Nor'] as const, ['elegant', 'Ele'] as const]).map(([v, lbl]) => {
-              const active = cfg.style === v;
-              return (
-                <button key={v} onClick={() => update('style', v as DrumExportConfig['style'])} className="btn-smooth"
-                  style={{ padding: '5px 11px', borderRadius: 6, fontFamily: 'Inter', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em',
-                    background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
-                    color: active ? '#e7e5e4' : '#6e6e80',
-                    transition: 'all 160ms ease' }}>
-                  {lbl}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Export button */}
-        <div style={{ padding: '6px 16px', paddingBottom: 'max(20px,env(safe-area-inset-bottom))', display: 'flex', gap: 10, position: 'relative' }}>
-          {saveRes && (
-            <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, textAlign: 'center', padding: 6,
-              fontFamily: 'Manrope', fontWeight: 700, fontSize: 12, color: saveRes === 'ok' ? '#34d399' : '#f87171' }}>
-              {saveRes === 'ok' ? 'Saved to Downloads!' : 'Could not save — try Share instead'}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 56 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <button onClick={handleClose} className="btn-smooth"
+                style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', flexShrink: 0 }}>
+                <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 22 }}>arrow_back</span>
+              </button>
+              <p style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#e7e5e4', lineHeight: 1 }}>
+                Export Preview
+              </p>
             </div>
-          )}
-          {isNative ? (
-            <>
-              <button onClick={() => handlePDF('save')} disabled={saving || sharing} className="btn-smooth"
-                style={{ flex: 1, padding: 14, borderRadius: 9999, fontFamily: 'Manrope', fontWeight: 800, fontSize: 14, color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  background: (saving || sharing) ? 'rgba(72,72,72,0.3)' : `linear-gradient(135deg,${accent.from},${accent.to})`,
-                  boxShadow: (saving || sharing) ? 'none' : `0 4px 20px ${accent.to}40`, transition: 'all 200ms ease' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 17, fontVariationSettings: "'FILL' 1" }}>
-                  {saving ? 'hourglass_empty' : 'save'}
-                </span>
-                {saving ? 'Generating…' : 'Save'}
-              </button>
-              <button onClick={() => handlePDF('share')} disabled={saving || sharing} className="btn-smooth"
-                style={{ flex: 1, padding: 14, borderRadius: 9999, fontFamily: 'Manrope', fontWeight: 800, fontSize: 14,
-                  color: accent.from, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  background: 'rgba(255,255,255,0.06)', transition: 'all 200ms ease' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 17, fontVariationSettings: "'FILL' 1" }}>
-                  {sharing ? 'hourglass_empty' : 'share'}
-                </span>
-                {sharing ? 'Generating…' : 'Share'}
-              </button>
-            </>
-          ) : (
-            <button onClick={() => handlePDF('share')} disabled={sharing} className="btn-smooth"
-              style={{ flex: 1, padding: 15, borderRadius: 9999, fontFamily: 'Manrope', fontWeight: 800, fontSize: 15, color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                background: sharing ? 'rgba(72,72,72,0.3)' : `linear-gradient(135deg,${accent.from},${accent.to})`,
-                boxShadow: sharing ? 'none' : `0 4px 24px ${accent.to}40`, transition: 'all 200ms ease' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 19, fontVariationSettings: "'FILL' 1" }}>
-                {sharing ? 'hourglass_empty' : 'download'}
-              </span>
-              {sharing ? 'Generating…' : 'Download PDF'}
-            </button>
-          )}
+            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#484848', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(72,72,72,0.3)' }}>
+              PDF
+            </span>
+          </div>
         </div>
-      </div>
+
+        {/* ── Scrollable body ── */}
+        <ScrollScaffold bottomSpacing={false} style={{ flex: 1, padding: 0 }}>
+          {/* Paper stage */}
+          <div style={{ padding: '32px 24px 28px', background: '#0a0a0a', position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none',
+              backgroundImage: 'radial-gradient(#555 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <DrumPaperPreview patterns={patterns} song={song} cfg={cfg} accent={accent} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 14 }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
+                {patterns.length} {patterns.length === 1 ? 'pattern' : 'patterns'}
+              </span>
+              <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#3a3a3a', display: 'inline-block' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
+                A3 Landscape
+              </span>
+            </div>
+          </div>
+
+          {/* File name + note */}
+          <div style={{ padding: '28px 20px 8px' }}>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#484848', marginBottom: 10 }}>
+              File Name
+            </p>
+            <input type="text" value={pdfName} onChange={e => setPdfName(e.target.value)}
+              placeholder={song?.name ?? 'Beat'} maxLength={80}
+              style={{ width: '100%', padding: '13px 16px', borderRadius: 12, background: '#191a1a',
+                border: '1px solid rgba(72,72,72,0.25)', color: '#e7e5e4', fontFamily: 'Manrope', fontWeight: 600,
+                fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 24,
+                transition: 'border-color 200ms ease' }} />
+            <div style={{ padding: '14px 16px', borderRadius: 12, background: `${accent.from}0d`, border: `1px solid ${accent.from}18`,
+              display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 15, flexShrink: 0, marginTop: 1, fontVariationSettings: "'FILL' 1" }}>info</span>
+              <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6e6e80', lineHeight: 1.55, margin: 0 }}>
+                The PDF contains the step-sequencer grid for all patterns. Hidden rows (pattern mixer) are excluded from the export.
+              </p>
+            </div>
+          </div>
+        </ScrollScaffold>
+
+        {/* ── Floating bottom bar ── */}
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 400,
+          transform: barVisible ? 'translateY(0)' : 'translateY(110%)',
+          transition: 'transform 300ms cubic-bezier(0.4,0,0.2,1)',
+          background: 'rgba(15,15,15,0.94)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          {/* Options row */}
+          <div style={{ padding: '14px 16px 10px', display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Dark theme chip */}
+            <button onClick={() => update('theme', cfg.theme === 'dark' ? 'light' : 'dark')} className="btn-smooth"
+              style={{ padding: '5px 12px', borderRadius: 8, fontFamily: 'Inter', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5,
+                background: cfg.theme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.04)',
+                color: cfg.theme === 'dark' ? '#e7e5e4' : '#6e6e80',
+                border: cfg.theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.04)',
+                transition: 'all 160ms ease' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13, fontVariationSettings: cfg.theme === 'dark' ? "'FILL' 1" : "'FILL' 0" }}>dark_mode</span>
+              Dark
+            </button>
+
+            {/* Layout style */}
+            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 2, gap: 1 }}>
+              {([['compact', 'Cmp'] as const, ['normal', 'Nor'] as const, ['elegant', 'Ele'] as const]).map(([v, lbl]) => {
+                const active = cfg.style === v;
+                return (
+                  <button key={v} onClick={() => update('style', v as DrumExportConfig['style'])} className="btn-smooth"
+                    style={{ padding: '5px 11px', borderRadius: 6, fontFamily: 'Inter', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em',
+                      background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
+                      color: active ? '#e7e5e4' : '#6e6e80',
+                      transition: 'all 160ms ease' }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Export button */}
+          <div style={{ padding: '6px 16px', paddingBottom: 'max(20px,env(safe-area-inset-bottom))', display: 'flex', gap: 10, position: 'relative' }}>
+            {saveRes && (
+              <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, textAlign: 'center', padding: 6,
+                fontFamily: 'Manrope', fontWeight: 700, fontSize: 12, color: saveRes === 'ok' ? '#34d399' : '#f87171' }}>
+                {saveRes === 'ok' ? 'Saved to Downloads!' : 'Could not save — try Share instead'}
+              </div>
+            )}
+            {isNative ? (
+              <>
+                <Button
+                  variant="primary"
+                  onClick={() => handlePDF('save')}
+                  disabled={saving || sharing}
+                  loading={saving}
+                  icon="save"
+                  style={{ flex: 1 }}
+                >
+                  Save
+                </Button>
+                <Button
+                  onClick={() => handlePDF('share')}
+                  disabled={saving || sharing}
+                  loading={sharing}
+                  icon="share"
+                  style={{ flex: 1 }}
+                >
+                  Share
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={() => handlePDF('share')}
+                disabled={sharing}
+                loading={sharing}
+                icon="download"
+                style={{ flex: 1 }}
+              >
+                Download PDF
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1492,80 +1496,80 @@ function DrumImportModal({ accent, onImport, onClose }: {
 
   const totalBars = preview ? preview.patterns.reduce((n, p) => n + p.measures.length, 0) : 0;
 
-  const isWebDesktop = useIsWebDesktop();
-
   return (
-    <div style={isWebDesktop ? { position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' } : { position: 'fixed', inset: 0, zIndex: 300 }}>
-      <div onClick={onClose} style={isWebDesktop ? { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } : { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} />
-      <div style={isWebDesktop ? { position: 'relative', width: '520px', maxWidth: '90vw', maxHeight: '85vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '24px 0' } : { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--app-surface)', borderRadius: '1.5rem 1.5rem 0 0', animation: 'sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both', maxHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {!isWebDesktop && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-            <div style={{ width: 36, height: 4, borderRadius: 9999, background: 'rgba(128,128,128,0.25)' }} />
+    <DialogScaffold
+      open={true}
+      onClose={onClose}
+      title="Import Beat"
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {stage === 'idle' && (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) parseFile(f); }}
+            className="btn-smooth"
+            style={{
+              border: `2px dashed ${dragOver ? 'var(--c-accent-from)' : 'rgba(128,128,128,0.25)'}`,
+              borderRadius: 16, padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer',
+              background: dragOver ? 'var(--c-accent-from)0a' : 'var(--c-surface-high)', transition: 'all 200ms'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 40, color: 'var(--c-accent-from)' }}>upload_file</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)' }}>Tap to select a Drumex JSON file</span>
+            <span style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>or drag & drop here</span>
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '4px 20px 16px', flexShrink: 0 }}>
-          <span style={{ flex: 1, fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope,sans-serif' }}>Import Beat</span>
-          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(128,128,128,0.10)', border: 'none', cursor: 'pointer', color: 'var(--c-text-secondary)', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-        </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)' }}>
-          {stage === 'idle' && (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) parseFile(f); }}
-              style={{ border: `2px dashed ${dragOver ? accent.from : 'rgba(128,128,128,0.25)'}`, borderRadius: 16, padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer', background: dragOver ? `${accent.from}08` : 'transparent', transition: 'all 200ms' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 40, color: accent.from }}>upload_file</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)' }}>Tap to select a Drumex JSON file</span>
-              <span style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>or drag & drop here</span>
+        {stage === 'error' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span className="material-symbols-outlined" style={{ color: '#f87171', fontSize: 20, flexShrink: 0, marginTop: 1 }}>error</span>
+              <span style={{ fontSize: 13, color: '#f87171', lineHeight: 1.5 }}>{errorMsg}</span>
             </div>
-          )}
+            <Button
+              onClick={() => { setStage('idle'); setErrorMsg(''); }}
+              style={{ width: '100%' }}
+            >
+              Try another file
+            </Button>
+          </div>
+        )}
 
-          {stage === 'error' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)', borderRadius: 12, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <span className="material-symbols-outlined" style={{ color: '#f87171', fontSize: 20, flexShrink: 0, marginTop: 1 }}>error</span>
-                <span style={{ fontSize: 13, color: '#f87171', lineHeight: 1.5 }}>{errorMsg}</span>
+        {stage === 'preview' && preview && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preview.name}</span>
               </div>
-              <button onClick={() => { setStage('idle'); setErrorMsg(''); }} className="btn-smooth"
-                style={{ padding: '12px', borderRadius: 12, background: 'var(--app-surface-high)', border: 'none', cursor: 'pointer', color: 'var(--c-text-secondary)', fontSize: 14, fontWeight: 600 }}>
-                Try another file
-              </button>
+              {preview.artist && <span style={{ fontSize: 12, color: 'var(--c-text-secondary)' }}>{preview.artist}</span>}
+              <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--c-accent-from)18', color: 'var(--c-accent-from)', borderRadius: 6, padding: '3px 8px' }}>{preview.patterns.length} pattern{preview.patterns.length !== 1 ? 's' : ''}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(128,128,128,0.10)', color: 'var(--c-text-secondary)', borderRadius: 6, padding: '3px 8px' }}>{totalBars} bar{totalBars !== 1 ? 's' : ''}</span>
+              </div>
             </div>
-          )}
-
-          {stage === 'preview' && preview && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ background: 'var(--app-surface-high)', borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope,sans-serif', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preview.name}</span>
-                </div>
-                {preview.artist && <span style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>{preview.artist}</span>}
-                <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, background: `${accent.from}18`, color: accent.from, borderRadius: 6, padding: '3px 8px' }}>{preview.patterns.length} pattern{preview.patterns.length !== 1 ? 's' : ''}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(128,128,128,0.10)', color: 'var(--c-text-secondary)', borderRadius: 6, padding: '3px 8px' }}>{totalBars} bar{totalBars !== 1 ? 's' : ''}</span>
-                </div>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }} className="no-scrollbar">
               {preview.patterns.map(p => (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--app-surface-high)', borderRadius: 10 }}>
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', borderRadius: 10 }}>
                   <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--c-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                  <span style={{ fontSize: 11, color: 'var(--c-text-muted)' }}>{p.bpm} BPM · {p.measures.length} bar{p.measures.length !== 1 ? 's' : ''}</span>
+                  <span style={{ fontSize: 11, color: 'var(--c-text-secondary)' }}>{p.bpm} BPM · {p.measures.length} bar{p.measures.length !== 1 ? 's' : ''}</span>
                 </div>
               ))}
-              <button onClick={() => { onImport(preview.name, preview.artist, preview.notes, preview.patterns, preview.activePatternId, preview.kitType); onClose(); }}
-                className="btn-smooth"
-                style={{ padding: '15px', borderRadius: 9999, background: `linear-gradient(135deg,${accent.from},${accent.to})`, border: 'none', cursor: 'pointer', color: '#fff', fontSize: 15, fontWeight: 800, fontFamily: 'Manrope,sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: `0 6px 24px ${accent.to}50` }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add_circle</span>
-                Import to Library
-              </button>
             </div>
-          )}
-        </div>
-
-        <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFileInput} />
+            <Button
+              variant="primary"
+              onClick={() => { onImport(preview.name, preview.artist, preview.notes, preview.patterns, preview.activePatternId, preview.kitType); onClose(); }}
+              icon="add_circle"
+              style={{ width: '100%' }}
+            >
+              Import to Library
+            </Button>
+          </div>
+        )}
       </div>
-    </div>
+      <input ref={fileInputRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleFileInput} />
+    </DialogScaffold>
   );
 }
 
@@ -5219,99 +5223,83 @@ export default function DrumEditor() {
 
       {/* ── Save Groove sheet ────────────────────────────────────────────── */}
       {showSaveGroove && (
-        <div style={isWebDesktop ? { position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' } : { position: 'fixed', inset: 0, zIndex: 200 }} onClick={() => setShowSaveGroove(false)}>
-          <div style={isWebDesktop ? { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } : { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)' }} />
-          <div onClick={e => e.stopPropagation()} style={isWebDesktop ? { position: 'relative', width: '520px', maxWidth: '90vw', maxHeight: '85vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '24px' } : { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--app-surface)', borderRadius: '1.5rem 1.5rem 0 0', animation: 'sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both', paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
-            {!isWebDesktop && (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-                <div style={{ width: 36, height: 4, borderRadius: 9999, background: 'rgba(128,128,128,0.25)' }} />
-              </div>
-            )}
-            <div style={{ padding: '8px 20px 16px', display: 'flex', alignItems: 'center' }}>
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--c-text-primary)', fontFamily: 'Manrope,sans-serif' }}>Save to Groove Library</span>
-              <button onClick={() => setShowSaveGroove(false)} style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(128,128,128,0.12)', border: 'none', cursor: 'pointer', color: 'var(--c-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
-              </button>
-            </div>
-            <div style={{ padding: '0 20px 16px' }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>NAME</label>
-              <input
+        <DialogScaffold
+          open={true}
+          onClose={() => setShowSaveGroove(false)}
+          title="Save to Groove Library"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-secondary)', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>NAME</label>
+              <Input
                 autoFocus
                 value={savGrName}
                 onChange={e => setSavGrName(e.target.value)}
                 placeholder="Groove name…"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, background: 'var(--app-bg)', border: '1px solid rgba(128,128,128,0.2)', color: 'var(--c-text-primary)', fontSize: 14, fontFamily: 'Manrope,sans-serif', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
-            <div style={{ padding: '0 20px 20px' }}>
-              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>TAG</label>
-              <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-secondary)', letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>TAG</label>
+              <div className="no-scrollbar" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: '4px' }}>
                 {(['', ...GROOVE_TAGS] as (GrooveTag | '')[]).map(tag => {
                   const label = tag === '' ? 'None' : tag;
                   const active = savGrTag === tag;
                   return (
                     <button key={label} onClick={() => setSavGrTag(tag as GrooveTag)} className="btn-smooth"
-                      style={{ flexShrink: 0, padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: 'Manrope,sans-serif', cursor: 'pointer', border: active ? `1.5px solid ${accent.from}` : '1.5px solid rgba(128,128,128,0.18)', background: active ? `${accent.from}18` : 'transparent', color: active ? accent.from : 'var(--c-text-secondary)', transition: 'all 140ms' }}>
+                      style={{ flexShrink: 0, padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-headline)', cursor: 'pointer', border: active ? '1.5px solid var(--c-accent-from)' : '1.5px solid var(--c-border)', background: active ? 'var(--c-accent-from)18' : 'transparent', color: active ? 'var(--c-accent-from)' : 'var(--c-text-secondary)', transition: 'all 140ms' }}>
                       {label}
                     </button>
                   );
                 })}
               </div>
             </div>
-            <div style={{ padding: '0 20px' }}>
-              <button
-                disabled={!savGrName.trim()}
-                onClick={() => {
-                  if (!savGrName.trim()) return;
-                  saveGroove(savGrName.trim(), savGrTag);
-                  setShowSaveGroove(false);
-                }}
-                className="btn-smooth"
-                style={{ width: '100%', padding: '14px', borderRadius: 14, background: savGrName.trim() ? `linear-gradient(135deg,${accent.from},${accent.to})` : 'rgba(128,128,128,0.12)', border: 'none', cursor: savGrName.trim() ? 'pointer' : 'default', color: savGrName.trim() ? '#fff' : 'var(--c-text-muted)', fontSize: 15, fontWeight: 700, fontFamily: 'Manrope,sans-serif', transition: 'all 200ms' }}>
-                Save Groove
-              </button>
-            </div>
+            <Button
+              variant="primary"
+              disabled={!savGrName.trim()}
+              onClick={() => {
+                if (!savGrName.trim()) return;
+                saveGroove(savGrName.trim(), savGrTag);
+                setShowSaveGroove(false);
+              }}
+              style={{ width: '100%' }}
+            >
+              Save Groove
+            </Button>
           </div>
-        </div>
+        </DialogScaffold>
       )}
 
       {/* ── Quick Mixer sheet (EQ button in editor toolbar) ──────────────── */}
       {showMixerSheet && inEditor && (
-        <div style={isWebDesktop ? { position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' } : { position: 'fixed', inset: 0, zIndex: 200 }}>
-          <div onClick={() => setShowMixerSheet(false)} style={isWebDesktop ? { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } : { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)' }} />
-          <div style={isWebDesktop ? { position: 'relative', width: '520px', maxWidth: '90vw', maxHeight: '80vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '24px 0' } : { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--app-surface)', borderRadius: '1.5rem 1.5rem 0 0', animation: 'sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {!isWebDesktop && (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-                <div style={{ width: 36, height: 4, borderRadius: 9999, background: 'rgba(72,72,72,0.3)' }} />
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '4px 20px 10px', flexShrink: 0 }}>
-              <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--c-text-primary)' }}>Pattern Mixer</span>
-              <span style={{ fontSize: 11, color: 'var(--c-text-muted)', background: 'rgba(128,128,128,0.10)', borderRadius: 6, padding: '3px 8px', fontWeight: 600 }}>{pattern.name}</span>
+        <DialogScaffold
+          open={true}
+          onClose={() => setShowMixerSheet(false)}
+          title="Pattern Mixer"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Master Volume row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--c-border)', marginBottom: 2 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: accent.from, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)', flex: 1 }}>Master</span>
+              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontWeight: 700, minWidth: 36, textAlign: 'right' }}>{(masterVolume * 100).toFixed(1)}%</span>
+              <ElasticSlider
+                min={0} max={1} step={0.005} value={masterVolume}
+                onChange={setMasterVolume}
+                accentColor={accent.from}
+                style={{ width: 110, flexShrink: 0 }}
+              />
+              <div style={{ width: 32, flexShrink: 0 }} />
             </div>
-            <div style={{ overflowY: 'auto', flexShrink: 1, paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 16px)' }}>
-              {/* Master Volume row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px 10px', borderBottom: '1px solid rgba(128,128,128,0.12)', marginBottom: 2 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: accent.from, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)', flex: 1 }}>Master</span>
-                <span style={{ fontSize: 11, color: 'var(--c-text-muted)', fontWeight: 700, minWidth: 36, textAlign: 'right' }}>{(masterVolume * 100).toFixed(1)}%</span>
-                <ElasticSlider
-                  min={0} max={1} step={0.005} value={masterVolume}
-                  onChange={setMasterVolume}
-                  accentColor={accent.from}
-                  style={{ width: 110, flexShrink: 0 }}
-                />
-                <div style={{ width: 32, flexShrink: 0 }} />
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '350px', overflowY: 'auto' }} className="no-scrollbar">
               {ALL_INSTS.map((inst, i) => {
                 const vol    = volumeMap[inst] ?? 1;
                 const hidden = patternMuted.has(inst);
                 const color  = INSTRUMENT_COLOR[inst] ?? accent.from;
                 return (
-                  <div key={inst} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px', borderTop: i > 0 ? '1px solid rgba(128,128,128,0.07)' : 'none', opacity: hidden ? 0.5 : 1, transition: 'opacity 150ms' }}>
+                  <div key={inst} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderTop: i > 0 ? '1px solid var(--c-border)' : 'none', opacity: hidden ? 0.5 : 1, transition: 'opacity 150ms' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: hidden ? 'var(--c-text-muted)' : 'var(--c-text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{INST_LABEL[inst]}</span>
-                    <span style={{ fontSize: 11, color: 'var(--c-text-muted)', fontWeight: 700, minWidth: 30, textAlign: 'right' }}>{Math.round(vol * 100)}%</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: hidden ? 'var(--c-text-secondary)' : 'var(--c-text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{INST_LABEL[inst]}</span>
+                    <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontWeight: 700, minWidth: 30, textAlign: 'right' }}>{Math.round(vol * 100)}%</span>
                     <ElasticSlider
                       min={0} max={1} step={0.01} value={vol}
                       onChange={v => setVolumeForInstrument(inst, v)}
@@ -5319,7 +5307,7 @@ export default function DrumEditor() {
                       style={{ width: 90, flexShrink: 0 }}
                     />
                     <button onClick={() => togglePatternMute(pattern.id, inst)} title={hidden ? 'Show row' : 'Hide row'}
-                      style={{ width: 32, height: 32, borderRadius: 8, background: hidden ? 'rgba(128,128,128,0.08)' : `${color}18`, border: hidden ? '1px solid rgba(128,128,128,0.12)' : `1px solid ${color}30`, cursor: 'pointer', color: hidden ? 'var(--c-text-muted)' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 180ms', padding: 0 }}>
+                      style={{ width: 32, height: 32, borderRadius: 8, background: hidden ? 'rgba(128,128,128,0.08)' : `${color}18`, border: hidden ? '1px solid var(--c-border)' : `1px solid ${color}30`, cursor: 'pointer', color: hidden ? 'var(--c-text-secondary)' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 180ms', padding: 0 }}>
                       {hidden
                         ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                         : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -5330,7 +5318,7 @@ export default function DrumEditor() {
               })}
             </div>
           </div>
-        </div>
+        </DialogScaffold>
       )}
 
       {/* ── Per-instrument FX sheet ──────────────────────────────────────── */}
@@ -5354,18 +5342,17 @@ export default function DrumEditor() {
         ];
         const presets = INST_PRESETS[fxInst] ?? [];
         return (
-          <div style={isWebDesktop ? { position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' } : { position: 'fixed', inset: 0, zIndex: 200 }}>
-            <div onClick={() => setShowFXSheet(false)} style={isWebDesktop ? { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } : { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)' }} />
-            <div style={isWebDesktop ? { position: 'relative', width: '540px', maxWidth: '90vw', maxHeight: '85vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '24px 0' } : { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--app-surface)', borderRadius: '1.5rem 1.5rem 0 0', animation: 'sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both', maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {!isWebDesktop && (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 9999, background: 'rgba(72,72,72,0.3)' }} />
-                </div>
-              )}
-              {/* header */}
-              <div style={{ display: 'flex', alignItems: 'center', padding: '4px 20px 10px', flexShrink: 0, gap: 10 }}>
-                <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--c-text-primary)' }}>Instrument FX</span>
-                <button onClick={() => setInstFX(fxInst, { ...DEFAULT_INST_FX })} style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', background: 'rgba(128,128,128,0.10)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'Manrope' }}>Reset</button>
+          <DialogScaffold
+            open={true}
+            onClose={() => setShowFXSheet(false)}
+            title="Instrument FX"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: 'var(--c-text-secondary)', letterSpacing: '0.04em' }}>
+                  Select Instrument
+                </span>
+                <button onClick={() => setInstFX(fxInst, { ...DEFAULT_INST_FX })} style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-secondary)', background: 'rgba(128,128,128,0.10)', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-headline)' }}>Reset</button>
               </div>
               {/* instrument chips */}
               <div style={{ display: 'flex', gap: 6, padding: '0 20px 12px', overflowX: 'auto', flexShrink: 0 }}>
@@ -5445,7 +5432,7 @@ export default function DrumEditor() {
                 </div>
               </div>
             </div>
-          </div>
+          </DialogScaffold>
         );
       })()}
 
@@ -5473,71 +5460,103 @@ export default function DrumEditor() {
 
       {/* ── Create Beat modal ────────────────────────────────────────────── */}
       {showCreateForm && (() => {
-        const activeFamilyEntry = KIT_FAMILY.find(f => f.id === createFamily) ?? KIT_FAMILY[0];
         return (
-          <div style={isWebDesktop ? { position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' } : { position: 'fixed', inset: 0, zIndex: 200 }}>
-            <div onClick={() => setShowCreateForm(false)} style={isWebDesktop ? { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } : { position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
-            <div style={isWebDesktop ? { position: 'relative', width: '520px', maxWidth: '90vw', maxHeight: '85vh', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', boxShadow: '0 20px 40px rgba(0,0,0,0.55)', overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '24px 0' } : { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--app-surface)', borderRadius: '1.5rem 1.5rem 0 0', animation: 'sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both', maxHeight: '92vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="no-scrollbar">
-              {!isWebDesktop && (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 9999, background: 'rgba(72,72,72,0.3)' }} />
+          <DialogScaffold
+            open={true}
+            onClose={() => setShowCreateForm(false)}
+            title="New Beat"
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* ── Beat info ── */}
+              <div>
+                <label style={labelSt}>Beat Title</label>
+                <Input
+                  value={createName}
+                  onChange={e => setCreateName(e.target.value)}
+                  placeholder="e.g. Funky Groove"
+                  onKeyDown={e => { if (e.key === 'Enter' && createName.trim()) handleCreateBeat(); }}
+                />
+              </div>
+              <div>
+                <label style={labelSt}>Artist</label>
+                <Input
+                  value={createArtist}
+                  onChange={e => setCreateArtist(e.target.value)}
+                  placeholder="e.g. The Beatmakers"
+                />
+              </div>
+
+              {/* ── BPM ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelSt}>BPM</label>
+                  <Input
+                    type="number"
+                    min={40}
+                    max={280}
+                    value={createBpm}
+                    onChange={e => setCreateBpm(e.target.value)}
+                  />
                 </div>
-              )}
-              <div style={{ padding: '4px 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <p style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: 20, margin: 0 }}>New Beat</p>
-
-                {/* ── Beat info ── */}
-                <div><label style={labelSt}>Beat Title</label><input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="e.g. Funky Groove" style={inputSt} onKeyDown={e => { if (e.key === 'Enter' && createName.trim()) handleCreateBeat(); }} /></div>
-                <div><label style={labelSt}>Artist</label><input value={createArtist} onChange={e => setCreateArtist(e.target.value)} placeholder="e.g. The Beatmakers" style={inputSt} /></div>
-
-                {/* ── BPM ── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={labelSt}>BPM</label>
-                    <input type="number" min={40} max={280} value={createBpm} onChange={e => setCreateBpm(e.target.value)} style={inputSt} />
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', height: 42 }}>
+                    {([80, 100, 120, 140] as const).map(b => (
+                      <button key={b} onClick={() => setCreateBpm(String(b))} className="btn-smooth"
+                        style={{ flex: 1, height: 34, borderRadius: 8, background: createBpm === String(b) ? 'var(--c-accent-from)22' : 'var(--c-surface-high)', border: `1px solid ${createBpm === String(b) ? 'var(--c-accent-from)44' : 'var(--c-border)'}`, cursor: 'pointer', color: createBpm === String(b) ? 'var(--c-accent-from)' : 'var(--c-text-secondary)', fontSize: 10, fontWeight: 700 }}>
+                        {b}
+                      </button>
+                    ))}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', height: 42 }}>
-                      {([80, 100, 120, 140] as const).map(b => (
-                        <button key={b} onClick={() => setCreateBpm(String(b))} className="btn-smooth"
-                          style={{ flex: 1, height: 34, borderRadius: 8, background: createBpm === String(b) ? `${accent.from}22` : 'var(--app-surface-high)', border: `1px solid ${createBpm === String(b) ? accent.from + '44' : 'rgba(72,72,72,0.12)'}`, cursor: 'pointer', color: createBpm === String(b) ? accent.from : 'var(--c-text-muted)', fontSize: 10, fontWeight: 700 }}>
-                          {b}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── Drum Kit Details (Read-only since only Acoustic House Kit is supported) ── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={labelSt}>Drum Kit</label>
-                    <div style={{ ...inputSt, display: 'flex', alignItems: 'center', background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)', border: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.12)', color: 'var(--c-text-secondary)', cursor: 'default' }}>
-                      Acoustic
-                    </div>
-                  </div>
-                  <div>
-                    <label style={labelSt}>Sound</label>
-                    <div style={{ ...inputSt, display: 'flex', alignItems: 'center', background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)', border: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.12)', color: 'var(--c-text-secondary)', cursor: 'default' }}>
-                      House Kit
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── Notes (collapsed by default feel) ── */}
-                <div><label style={labelSt}>Notes</label><textarea value={createNotes} onChange={e => setCreateNotes(e.target.value)} rows={2} placeholder="Optional notes…" style={{ ...inputSt, resize: 'none', lineHeight: 1.5 } as React.CSSProperties} /></div>
-
-                {/* ── Actions ── */}
-                <div style={{ display: 'flex', gap: 10, paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
-                  <button onClick={() => setShowCreateForm(false)} className="btn-smooth" style={{ flex: 1, padding: 14, borderRadius: 9999, background: 'var(--app-surface-high)', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, border: 'none', cursor: 'pointer' }}>Cancel</button>
-                  <button onClick={handleCreateBeat} className="btn-smooth"
-                    style={{ flex: 2, padding: 14, borderRadius: 9999, background: createName.trim() ? `linear-gradient(135deg,${accent.from},${accent.to})` : 'rgba(72,72,72,0.2)', color: createName.trim() ? '#fff' : '#acabaa', fontFamily: 'Manrope', fontWeight: 800, border: 'none', cursor: createName.trim() ? 'pointer' : 'default', boxShadow: createName.trim() ? `0 4px 20px ${accent.to}40` : 'none', transition: 'all 200ms' }}>
-                    Create Beat
-                  </button>
                 </div>
               </div>
+
+              {/* ── Drum Kit Details ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelSt}>Drum Kit</label>
+                  <div style={{ ...inputSt, display: 'flex', alignItems: 'center', background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', color: 'var(--c-text-secondary)', cursor: 'default' }}>
+                    Acoustic
+                  </div>
+                </div>
+                <div>
+                  <label style={labelSt}>Sound</label>
+                  <div style={{ ...inputSt, display: 'flex', alignItems: 'center', background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', color: 'var(--c-text-secondary)', cursor: 'default' }}>
+                    House Kit
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Notes ── */}
+              <div>
+                <label style={labelSt}>Notes</label>
+                <textarea
+                  value={createNotes}
+                  onChange={e => setCreateNotes(e.target.value)}
+                  rows={2}
+                  placeholder="Optional notes…"
+                  style={{ ...inputSt, resize: 'none', lineHeight: 1.5, background: 'var(--c-surface-lowest)', border: '1px solid var(--c-border)' } as React.CSSProperties}
+                />
+              </div>
+
+              {/* ── Actions ── */}
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <Button
+                  onClick={() => setShowCreateForm(false)}
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  disabled={!createName.trim()}
+                  onClick={handleCreateBeat}
+                  style={{ flex: 2 }}
+                >
+                  Create Beat
+                </Button>
+              </div>
             </div>
-          </div>
+          </DialogScaffold>
         );
       })()}
 

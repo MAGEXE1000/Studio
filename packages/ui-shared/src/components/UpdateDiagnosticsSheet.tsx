@@ -1,6 +1,8 @@
 import { useChordStore, ACCENT_COLORS, otaDiagnostics, otaDebugLogs, useBackHandler, isNative, APP_VERSION } from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Button } from './StudioDesignSystem';
+import { DialogScaffold } from './StudioLayoutSystem';
 
 type Props = {
   open: boolean;
@@ -727,558 +729,403 @@ export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
     </div>
   );
 
-  return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Update Diagnostics"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 9800,
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={onClose}
-        style={{
-          position: 'absolute', inset: 0,
-          background: 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          opacity: overlayOpacity,
-          transition: 'opacity 280ms ease',
-        }}
-      />
-
-      <div
-        ref={sheetRef}
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={(e) => beginDrag(e.touches[0].clientY)}
-        onTouchMove={(e) => moveDrag(e.touches[0].clientY)}
-        onTouchEnd={endDrag}
-        onTouchCancel={endDrag}
-        onMouseDown={(e) => { if (e.button === 0) beginDrag(e.clientY); }}
-        onMouseMove={(e) => { if (dragStartY.current !== null) moveDrag(e.clientY); }}
-        onMouseUp={endDrag}
-        onMouseLeave={endDrag}
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: 520,
-          maxHeight: '86vh',
-          background: 'var(--app-surface)',
-          borderRadius: '22px 22px 0 0',
-          boxShadow: '0 -16px 48px rgba(0,0,0,0.45)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transform: sheetTransform,
-          transition: sheetTransition,
-          animation: closing
-            ? undefined
-            : drag > 0 ? undefined : 'diag-sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both',
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-          touchAction: 'pan-y',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 6px', flexShrink: 0 }}>
-          <div style={{
-            width: 36, height: 3.5, borderRadius: 999,
-            background: 'rgba(160,160,160,0.35)',
-          }} />
-        </div>
-
+  return (
+    <DialogScaffold
+      open={open}
+      onClose={onClose}
+      title="Update Diagnostics"
+      footer={
         <div style={{
-          padding: '10px 22px 14px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: 12, flexShrink: 0,
+          display: 'flex',
+          gap: 10,
+          width: '100%'
         }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{
-              fontFamily: 'Manrope', fontWeight: 800, fontSize: 20,
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
-            }}>
-              Update Diagnostics
-            </span>
-            <span style={{
-              fontFamily: 'Inter', fontSize: 10, fontWeight: 700,
-              padding: '2px 6px', borderRadius: 999,
-              background: 'rgba(248,113,113,0.15)',
-              color: '#f87171',
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-            }}>
-              Failure Log
-            </span>
-          </div>
-          
-          <button
+          <Button
+            variant="primary"
+            onClick={handleRetryUpdate}
+            style={{ flex: 1 }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>refresh</span>
+            Retry Update
+          </Button>
+
+          <Button
+            onClick={handleShareLogs}
+            style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Share Diagnostics"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>share</span>
+          </Button>
+
+          <Button
+            onClick={handleExportLogs}
+            style={{ padding: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Export Diagnostics"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
+          </Button>
+
+          <Button
+            onClick={onClose}
+          >
+            Dismiss
+          </Button>
+        </div>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{
+            fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
+            padding: '2px 6px', borderRadius: 999,
+            background: 'var(--c-error-soft)',
+            color: 'var(--c-error)',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+          }}>
+            Failure Log
+          </span>
+          <Button
             onClick={handleCopyLogs}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 8,
-              background: copied ? '#22c55e' : `${accent.from}22`,
-              color: copied ? 'white' : accent.from,
-              border: 'none',
-              fontFamily: 'Manrope',
-              fontWeight: 700,
-              fontSize: 12,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              transition: 'background 200ms ease, color 200ms ease'
-            }}
+            style={{ padding: '6px 12px' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
               {copied ? 'check' : 'content_copy'}
             </span>
             {copied ? 'Copied!' : 'Copy Logs'}
-          </button>
+          </Button>
         </div>
 
+        {/* Human Readable Explanation Card */}
         <div style={{
-          height: 1,
-          background: 'rgba(128,128,128,0.16)',
-          flexShrink: 0,
-        }} />
-
-        <div
-          ref={scrollRef}
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '20px 22px',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          {/* Human Readable Explanation Card */}
-          <div style={{
-            background: exp.bg,
-            border: `1px solid ${exp.border}`,
-            borderRadius: 14,
-            padding: '14px 18px',
-            marginBottom: 20,
-            display: 'flex',
-            gap: 14,
-            alignItems: 'flex-start'
+          background: exp.bg,
+          border: `1px solid ${exp.border}`,
+          borderRadius: 14,
+          padding: '14px 18px',
+          display: 'flex',
+          gap: 14,
+          alignItems: 'flex-start'
+        }}>
+          <span className="material-symbols-outlined" style={{
+            fontSize: 24,
+            color: exp.color,
+            marginTop: 2
           }}>
-            <span className="material-symbols-outlined" style={{
-              fontSize: 24,
-              color: exp.color,
-              marginTop: 2
-            }}>
-              {exp.icon}
-            </span>
-            <div style={{ flex: 1 }}>
-              <h3 style={{
-                margin: 0,
-                fontFamily: 'Manrope',
-                fontWeight: 800,
-                fontSize: 15,
-                color: exp.color,
-                marginBottom: 6
-              }}>
-                {exp.title}
-              </h3>
-              <p style={{
-                margin: 0,
-                fontFamily: 'Inter',
-                fontSize: 12.5,
-                lineHeight: 1.45,
-                color: 'var(--c-text-secondary)'
-              }}>
-                {exp.desc}
-              </p>
-            </div>
-          </div>
-
-          {otaDebugLogs.nativePlatformDetected && otaDebugLogs.nativeApkVersion && otaDebugLogs.nativeApkVersion !== 'N/A' && otaDebugLogs.appVersion !== otaDebugLogs.nativeApkVersion && (
-            <div style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid #ef4444',
-              borderRadius: 8,
-              padding: '10px 14px',
-              color: '#ef4444',
+            {exp.icon}
+          </span>
+          <div style={{ flex: 1 }}>
+            <h3 style={{
+              margin: 0,
+              fontFamily: 'var(--font-headline)',
               fontWeight: 800,
-              fontSize: 13,
-              fontFamily: 'Manrope',
-              textAlign: 'center',
-              marginBottom: 16,
-              letterSpacing: '0.04em'
+              fontSize: 15,
+              color: exp.color,
+              marginBottom: 6
             }}>
-              VERSION_MISMATCH_DETECTED
-            </div>
-          )}
-
-          {/* Search and Category Filters */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 18 }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: 'rgba(128,128,128,0.06)',
-              border: '1px solid rgba(128,128,128,0.12)',
-              borderRadius: 10,
-              padding: '6px 12px',
-              gap: 8
+              {exp.title}
+            </h3>
+            <p style={{
+              margin: 0,
+              fontFamily: 'var(--font-body)',
+              fontSize: 12.5,
+              lineHeight: 1.45,
+              color: 'var(--c-text-secondary)'
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-muted)' }}>search</span>
-              <input
-                type="text"
-                placeholder="Search diagnostics..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: 'var(--c-text-primary)',
-                  fontSize: 13,
-                  width: '100%',
-                  fontFamily: 'inherit'
-                }}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--c-text-muted)', cursor: 'pointer', display: 'flex' }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
-                </button>
-              )}
-            </div>
-
-            {/* Horizontal scrollable categories */}
-            <div className="no-scrollbar" style={{
-              display: 'flex',
-              gap: 6,
-              overflowX: 'auto',
-              paddingBottom: 2,
-              WebkitOverflowScrolling: 'touch'
-            }}>
-              {categories.map(cat => {
-                const active = selectedCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      setExpandedEntryIdx(null);
-                    }}
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: 20,
-                      background: active ? accent.from : 'rgba(128,128,128,0.06)',
-                      color: active ? 'white' : 'var(--c-text-secondary)',
-                      border: active ? 'none' : '1px solid rgba(128,128,128,0.1)',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      fontFamily: 'Manrope',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 150ms ease'
-                    }}
-                  >
-                    {cat}
-                  </button>
-                );
-              })}
-            </div>
+              {exp.desc}
+            </p>
           </div>
+        </div>
 
-          {/* Diagnostic Cards List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-            {filteredEntries.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--c-text-muted)', fontSize: 13, fontStyle: 'italic' }}>
-                No diagnostic entries match your filters.
-              </div>
-            ) : (
-              filteredEntries.map((entry, idx) => {
-                const expanded = expandedEntryIdx === idx;
-                const severityColors = {
-                  Info: { text: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-                  Warning: { text: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
-                  Error: { text: '#ef4444', bg: 'rgba(239,68,68,0.1)' }
-                }[entry.severity];
+        {otaDebugLogs.nativePlatformDetected && otaDebugLogs.nativeApkVersion && otaDebugLogs.nativeApkVersion !== 'N/A' && otaDebugLogs.appVersion !== otaDebugLogs.nativeApkVersion && (
+          <div style={{
+            background: 'var(--c-error-soft)',
+            border: '1px solid var(--c-error)',
+            borderRadius: 8,
+            padding: '10px 14px',
+            color: 'var(--c-error)',
+            fontWeight: 800,
+            fontSize: 13,
+            fontFamily: 'var(--font-headline)',
+            textAlign: 'center',
+            letterSpacing: '0.04em'
+          }}>
+            VERSION_MISMATCH_DETECTED
+          </div>
+        )}
 
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => setExpandedEntryIdx(expanded ? null : idx)}
-                    style={{
-                      background: 'rgba(128,128,128,0.03)',
-                      border: expanded ? `1px solid ${accent.from}` : '1px solid rgba(128,128,128,0.08)',
-                      borderRadius: 14,
-                      padding: '14px 16px',
-                      cursor: 'pointer',
-                      transition: 'all 200ms ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 8
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: accent.from, letterSpacing: '0.04em' }}>
-                          {entry.category} • {entry.subsystem}
-                        </span>
-                        <strong style={{ fontSize: 13, color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 700 }}>
-                          {entry.summary}
-                        </strong>
-                      </div>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <span style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          color: severityColors.text,
-                          background: severityColors.bg
-                        }}>
-                          {entry.severity}
-                        </span>
-                        <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-muted)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 200ms ease' }}>
-                          expand_more
-                        </span>
-                      </div>
-                    </div>
-
-                    {expanded && (
-                      <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 12,
-                        marginTop: 6,
-                        borderTop: '1px solid rgba(128,128,128,0.08)',
-                        paddingTop: 12,
-                        fontSize: 12,
-                        lineHeight: 1.45
-                      }}>
-                        {/* Human explanation */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Explanation</label>
-                          <p style={{ margin: 0, color: 'var(--c-text-secondary)' }}>{entry.humanExplanation}</p>
-                        </div>
-                        
-                        {/* Technical explanation */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Technical Details</label>
-                          <code style={{ display: 'block', padding: '6px 10px', background: 'rgba(128,128,128,0.06)', borderRadius: 6, fontFamily: 'monospace', color: 'var(--c-text-primary)', overflowX: 'auto', whiteSpace: 'pre' }}>
-                            {entry.technicalExplanation}
-                          </code>
-                        </div>
-
-                        {/* Suggested solution */}
-                        <div>
-                          <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Suggested Solution</label>
-                          <p style={{ margin: 0, color: '#22c55e', fontWeight: 600 }}>{entry.suggestedSolution}</p>
-                        </div>
-
-                        {/* Stack info (Developer mode only) */}
-                        {settings.developerMode && entry.stack && (
-                          <div>
-                            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Stack Information</label>
-                            <pre style={{ margin: 0, padding: 8, background: 'rgba(239,68,68,0.04)', color: '#f87171', fontSize: 9.5, borderRadius: 6, fontFamily: 'monospace', overflowX: 'auto', maxHeight: 120 }}>
-                              {entry.stack}
-                            </pre>
-                          </div>
-                        )}
-
-                        <div style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textAlign: 'right' }}>
-                          Logged: {new Date(entry.timestamp).toLocaleString()}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
+        {/* Search and Category Filters */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: 'var(--c-surface-low)',
+            border: '1px solid var(--c-border)',
+            borderRadius: 10,
+            padding: '6px 12px',
+            gap: 8
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--c-text-muted)' }}>search</span>
+            <input
+              type="text"
+              placeholder="Search diagnostics..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: 'var(--c-text-primary)',
+                fontSize: 13,
+                width: '100%',
+                fontFamily: 'inherit'
+              }}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{ background: 'transparent', border: 'none', color: 'var(--c-text-muted)', cursor: 'pointer', display: 'flex' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+              </button>
             )}
           </div>
 
-          {/* Section: Developer Mode Collapsible */}
-          {settings.developerMode && (
-            <div style={{ marginTop: 24 }}>
-              <div style={{
-                fontFamily: 'Manrope',
-                fontWeight: 800,
-                fontSize: 11,
-                color: 'var(--c-text-primary)',
-                marginBottom: 12,
-                borderBottom: '1px solid rgba(128,128,128,0.16)',
-                paddingBottom: 6,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span>Developer Console</span>
+          {/* Horizontal scrollable categories */}
+          <div className="no-scrollbar" style={{
+            display: 'flex',
+            gap: 6,
+            overflowX: 'auto',
+            paddingBottom: 2,
+            WebkitOverflowScrolling: 'touch'
+          }}>
+            {categories.map(cat => {
+              const active = selectedCategory === cat;
+              return (
                 <button
-                  onClick={handleClearHistoryLogs}
+                  key={cat}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setExpandedEntryIdx(null);
+                  }}
                   style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#f87171',
-                    fontFamily: 'Manrope',
+                    padding: '5px 12px',
+                    borderRadius: 20,
+                    background: active ? 'var(--c-accent-from)' : 'var(--c-surface-low)',
+                    color: active ? 'white' : 'var(--c-text-secondary)',
+                    border: active ? 'none' : '1px solid var(--c-border)',
+                    fontSize: 11,
                     fontWeight: 700,
-                    fontSize: 10,
-                    textTransform: 'uppercase',
-                    cursor: 'pointer'
+                    fontFamily: 'var(--font-headline)',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 150ms ease'
                   }}
                 >
-                  Clear History Logs
+                  {cat}
                 </button>
-              </div>
+              );
+            })}
+          </div>
+        </div>
 
-              <DiagnosticField label="Installed Certificate Signature Hash" value={otaDebugLogs.installedSigningSha256} isCode />
-              <DiagnosticField label="Downloaded Certificate Signature Hash" value={otaDebugLogs.downloadedSigningSha256} isCode />
-              <DiagnosticField label="Expected Certificate Signature Hash" value="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206" isCode />
-              <DiagnosticField label="Release Channel" value={otaDebugLogs.releaseChannel} />
-              <DiagnosticField label="Internal Decision Reason" value={otaDebugLogs.updateDecisionReason} />
-
-              <label style={{
-                display: 'block',
-                fontFamily: 'Manrope',
-                fontWeight: 700,
-                fontSize: 10.5,
-                color: 'var(--c-text-muted)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                marginBottom: 4
-              }}>PackageInstaller Session History (Last 20 Runs)</label>
-              
-              <div style={{
-                background: 'rgba(128,128,128,0.06)',
-                borderRadius: 8,
-                padding: '12px 14px',
-                fontFamily: 'monospace',
-                fontSize: 11,
-                maxHeight: 220,
-                overflowY: 'auto',
-                color: 'var(--c-text-secondary)',
-                lineHeight: 1.55
-              }}>
-                {nativeLogs.length === 0 ? (
-                  <div style={{ color: 'var(--c-text-muted)', fontStyle: 'italic' }}>No native package installer history logged.</div>
-                ) : (
-                  nativeLogs.map((log, index) => (
-                    <div key={index} style={{ marginBottom: 12, borderBottom: '1px solid rgba(128,128,128,0.1)', paddingBottom: 8 }}>
-                      <div style={{ fontWeight: 'bold', color: 'var(--c-text-primary)' }}>
-                        [#{nativeLogs.length - index}] {log.stage || 'Log'} ({typeof log.elapsedTimeMs === 'number' ? `${(log.elapsedTimeMs / 1000).toFixed(2)}s` : '0.00s'} elapsed)
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--c-text-muted)', marginTop: 2 }}>
-                        {new Date(log.timestamp).toLocaleString()}
-                      </div>
-                      <div style={{ marginTop: 4 }}>
-                        Status Code: <span style={{ color: log.status === 0 ? '#22c55e' : (log.status === -1 ? '#fbbf24' : '#f87171'), fontWeight: 'bold' }}>{log.status}</span>
-                      </div>
-                      {log.packageName && <div>Package: {log.packageName}</div>}
-                      {log.explanation && <div style={{ color: 'var(--c-text-primary)', marginTop: 4, fontWeight: 500 }}>{log.explanation}</div>}
-                      {log.message && <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 10, color: 'var(--c-text-muted)', marginTop: 2 }}>Detail: {log.message}</div>}
-                      {log.exceptionStack && <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 9, color: '#f87171', background: 'rgba(239,68,68,0.04)', padding: 6, borderRadius: 4, marginTop: 4, fontFamily: 'monospace', maxHeight: 100, overflowY: 'auto' }}>Stack: {log.exceptionStack}</div>}
-                    </div>
-                  ))
-                )}
-              </div>
+        {/* Diagnostic Cards List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {filteredEntries.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--c-text-muted)', fontSize: 13, fontStyle: 'italic' }}>
+              No diagnostic entries match your filters.
             </div>
+          ) : (
+            filteredEntries.map((entry, idx) => {
+              const expanded = expandedEntryIdx === idx;
+              const severityColors = {
+                Info: { text: 'var(--c-accent-from)', bg: 'var(--c-accent-soft)' },
+                Warning: { text: 'var(--c-warning)', bg: 'var(--c-warning-soft)' },
+                Error: { text: 'var(--c-error)', bg: 'var(--c-error-soft)' }
+              }[entry.severity];
+
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setExpandedEntryIdx(expanded ? null : idx)}
+                  style={{
+                    background: 'var(--c-surface-low)',
+                    border: expanded ? '1px solid var(--c-accent-from)' : '1px solid var(--c-border)',
+                    borderRadius: 14,
+                    padding: '14px 16px',
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', color: 'var(--c-accent-from)', letterSpacing: '0.04em' }}>
+                        {entry.category} • {entry.subsystem}
+                      </span>
+                      <strong style={{ fontSize: 13, color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 700 }}>
+                        {entry.summary}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        color: severityColors.text,
+                        background: severityColors.bg
+                      }}>
+                        {entry.severity}
+                      </span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-muted)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 200ms ease' }}>
+                        expand_more
+                      </span>
+                    </div>
+                  </div>
+
+                  {expanded && (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
+                      marginTop: 6,
+                      borderTop: '1px solid var(--c-border)',
+                      paddingTop: 12,
+                      fontSize: 12,
+                      lineHeight: 1.45
+                    }}>
+                      {/* Human explanation */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Explanation</label>
+                        <p style={{ margin: 0, color: 'var(--c-text-secondary)' }}>{entry.humanExplanation}</p>
+                      </div>
+                      
+                      {/* Technical explanation */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Technical Details</label>
+                        <code style={{ display: 'block', padding: '6px 10px', background: 'var(--c-surface-lowest)', borderRadius: 6, fontFamily: 'monospace', color: 'var(--c-text-primary)', overflowX: 'auto', whiteSpace: 'pre' }}>
+                          {entry.technicalExplanation}
+                        </code>
+                      </div>
+
+                      {/* Suggested solution */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Suggested Solution</label>
+                        <p style={{ margin: 0, color: 'var(--c-success)', fontWeight: 600 }}>{entry.suggestedSolution}</p>
+                      </div>
+
+                      {/* Stack info (Developer mode only) */}
+                      {settings.developerMode && entry.stack && (
+                        <div>
+                          <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-muted)', marginBottom: 2 }}>Stack Information</label>
+                          <pre style={{ margin: 0, padding: 8, background: 'var(--c-error-soft)', color: 'var(--c-error)', fontSize: 9.5, borderRadius: 6, fontFamily: 'monospace', overflowX: 'auto', maxHeight: 120 }}>
+                            {entry.stack}
+                          </pre>
+                        </div>
+                      )}
+
+                      <div style={{ fontSize: 10, color: 'var(--c-text-muted)', textAlign: 'right' }}>
+                        Logged: {new Date(entry.timestamp).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
 
-        {/* Premium Action Row Footer */}
-        <div style={{
-          padding: '16px 22px',
-          borderTop: '1px solid rgba(128,128,128,0.16)',
-          display: 'flex',
-          gap: 10,
-          flexShrink: 0,
-          background: 'var(--app-surface)'
-        }}>
-          <button
-            onClick={handleRetryUpdate}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              borderRadius: 10,
-              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-              color: 'white',
-              border: 'none',
-              fontFamily: 'Manrope',
+        {/* Section: Developer Mode Collapsible */}
+        {settings.developerMode && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{
+              fontFamily: 'var(--font-headline)',
               fontWeight: 800,
-              fontSize: 14,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>refresh</span>
-            Retry Update
-          </button>
-
-          <button
-            onClick={handleShareLogs}
-            style={{
-              padding: '12px',
-              borderRadius: 10,
-              background: 'rgba(128,128,128,0.08)',
+              fontSize: 11,
               color: 'var(--c-text-primary)',
-              border: '1px solid rgba(128,128,128,0.12)',
-              cursor: 'pointer',
+              marginBottom: 12,
+              borderBottom: '1px solid var(--c-border)',
+              paddingBottom: 6,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title="Share Diagnostics"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>share</span>
-          </button>
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span>Developer Console</span>
+              <button
+                onClick={handleClearHistoryLogs}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--c-error)',
+                  fontFamily: 'var(--font-headline)',
+                  fontWeight: 700,
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer'
+                }}
+              >
+                Clear History Logs
+              </button>
+            </div>
 
-          <button
-            onClick={handleExportLogs}
-            style={{
-              padding: '12px',
-              borderRadius: 10,
-              background: 'rgba(128,128,128,0.08)',
-              color: 'var(--c-text-primary)',
-              border: '1px solid rgba(128,128,128,0.12)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-            title="Export Diagnostics"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
-          </button>
+            <DiagnosticField label="Installed Certificate Signature Hash" value={otaDebugLogs.installedSigningSha256} isCode />
+            <DiagnosticField label="Downloaded Certificate Signature Hash" value={otaDebugLogs.downloadedSigningSha256} isCode />
+            <DiagnosticField label="Expected Certificate Signature Hash" value="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206" isCode />
+            <DiagnosticField label="Release Channel" value={otaDebugLogs.releaseChannel} />
+            <DiagnosticField label="Internal Decision Reason" value={otaDebugLogs.updateDecisionReason} />
 
-          <button
-            onClick={onClose}
-            style={{
-              padding: '12px 16px',
-              borderRadius: 10,
-              background: 'rgba(128,128,128,0.08)',
-              color: 'var(--c-text-primary)',
-              border: 'none',
-              fontFamily: 'Manrope',
+            <label style={{
+              display: 'block',
+              fontFamily: 'var(--font-headline)',
               fontWeight: 700,
-              fontSize: 14,
-              cursor: 'pointer'
-            }}
-          >
-            Dismiss
-          </button>
-        </div>
+              fontSize: 10.5,
+              color: 'var(--c-text-muted)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginBottom: 4
+            }}>PackageInstaller Session History (Last 20 Runs)</label>
+            
+            <div style={{
+              background: 'var(--c-surface-low)',
+              border: '1px solid var(--c-border)',
+              borderRadius: 8,
+              padding: '12px 14px',
+              fontFamily: 'monospace',
+              fontSize: 11,
+              maxHeight: 220,
+              overflowY: 'auto',
+              color: 'var(--c-text-secondary)',
+              lineHeight: 1.55
+            }}>
+              {nativeLogs.length === 0 ? (
+                <div style={{ color: 'var(--c-text-muted)', fontStyle: 'italic' }}>No native package installer history logged.</div>
+              ) : (
+                nativeLogs.map((log, index) => (
+                  <div key={index} style={{ marginBottom: 12, borderBottom: '1px solid var(--c-border)', paddingBottom: 8 }}>
+                    <div style={{ fontWeight: 'bold', color: 'var(--c-text-primary)' }}>
+                      [#{nativeLogs.length - index}] {log.stage || 'Log'} ({typeof log.elapsedTimeMs === 'number' ? `${(log.elapsedTimeMs / 1000).toFixed(2)}s` : '0.00s'} elapsed)
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--c-text-muted)', marginTop: 2 }}>
+                      {new Date(log.timestamp).toLocaleString()}
+                    </div>
+                    <div style={{ marginTop: 4 }}>
+                      Status Code: <span style={{ color: log.status === 0 ? 'var(--c-success)' : (log.status === -1 ? 'var(--c-warning)' : 'var(--c-error)'), fontWeight: 'bold' }}>{log.status}</span>
+                    </div>
+                    {log.packageName && <div>Package: {log.packageName}</div>}
+                    {log.explanation && <div style={{ color: 'var(--c-text-primary)', marginTop: 4, fontWeight: 500 }}>{log.explanation}</div>}
+                    {log.message && <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 10, color: 'var(--c-text-muted)', marginTop: 2 }}>Detail: {log.message}</div>}
+                    {log.exceptionStack && <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 9, color: 'var(--c-error)', background: 'var(--c-error-soft)', padding: 6, borderRadius: 4, marginTop: 4, fontFamily: 'monospace', maxHeight: 100, overflowY: 'auto' }}>Stack: {log.exceptionStack}</div>}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
-
-      <style>{`
-        @keyframes diag-sheet-up {
-          from { transform: translateY(100%); }
-          to   { transform: translateY(0); }
-        }
-      `}</style>
-    </div>,
-    document.body
+    </DialogScaffold>
   );
 }

@@ -5,6 +5,8 @@ import AnimatedActionButton from '../components/animata/container/animated-borde
 import MicWavesLottie from '../components/lottie/MicWavesLottie';
 import { setVocalexBack } from './headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
+import { Button, Input } from '../components/StudioDesignSystem';
+import { DialogScaffold } from '../components/StudioLayoutSystem';
 
 const SESSION_ICONS = ['graphic_eq', 'layers', 'multiline_chart', 'equalizer', 'tune', 'mic', 'queue_music', 'stacked_line_chart'];
 function randomIcon() { return SESSION_ICONS[Math.floor(Math.random() * SESSION_ICONS.length)]; }
@@ -582,39 +584,26 @@ function AddTrackSheet({ session, onAdd, onClose }: {
   };
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100,
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      backdropFilter: 'blur(4px)',
-    }} onClick={onClose}>
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 500, maxHeight: '70vh', overflow: 'auto',
-          background: 'var(--vx-card)', borderRadius: '20px 20px 0 0', padding: '20px 20px 32px',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 20, color: 'var(--vx-text)', margin: 0 }}>{t.vocalex.addTrack}</h3>
-          <button onClick={onClose} style={{ background: 'var(--vx-input)', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--vx-text-3)' }}>close</span>
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: 'var(--vx-deep)', borderRadius: 10, padding: 3 }}>
+    <DialogScaffold
+      open={true}
+      onClose={onClose}
+      title={t.vocalex.addTrack}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--vx-deep)', borderRadius: 10, padding: 3 }}>
           {(['takes', 'file', 'record'] as const).map(tabKey => {
             const tabLabels: Record<string, string> = { takes: t.vocalex.tabTakes, file: t.vocalex.tabFile, record: t.vocalex.tabRecord };
             return (
-            <button key={tabKey} onClick={() => setTab(tabKey)} style={{
-              flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700,
-              background: tab === tabKey ? 'var(--vx-input)' : 'transparent',
-              color: tab === tabKey ? 'var(--vx-text)' : 'var(--vx-text-3)',
-              textTransform: 'capitalize',
-              transition: 'background 200ms ease, color 200ms ease',
-            }}>
-              {tabLabels[tabKey]}
-            </button>
+              <button key={tabKey} onClick={() => setTab(tabKey)} style={{
+                flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700,
+                background: tab === tabKey ? 'var(--vx-input)' : 'transparent',
+                color: tab === tabKey ? 'var(--vx-text)' : 'var(--vx-text-3)',
+                textTransform: 'capitalize',
+                transition: 'background 200ms ease, color 200ms ease',
+              }}>
+                {tabLabels[tabKey]}
+              </button>
             );
           })}
         </div>
@@ -685,26 +674,19 @@ function AddTrackSheet({ session, onAdd, onClose }: {
               <>
                 <span className="material-symbols-outlined" style={{ fontSize: 36, color: 'var(--studio-accent)' }}>mic</span>
                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-2)', textAlign: 'center' }}>{t.vocalex.recordPrompt}</p>
-                <AnimatedActionButton
+                <Button
+                  variant="primary"
                   onClick={startRec}
-                  trailColor="var(--studio-accent)"
-                  wrapClassName="mx-auto"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '14px 24px',
-                    background: 'var(--studio-accent-gradient)', border: 'none', cursor: 'pointer',
-                    fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 14, color: '#fff',
-                    boxShadow: 'var(--studio-accent-glow)',
-                  }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>mic</span>
                   {t.vocalex.startRecording}
-                </AnimatedActionButton>
+                </Button>
               </>
             )}
           </div>
         )}
       </div>
-    </div>
+    </DialogScaffold>
   );
 }
 

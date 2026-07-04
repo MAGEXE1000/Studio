@@ -1,5 +1,6 @@
 import { signOut, useT, useChordStore } from '@workspace/studio-core';
 import { useEffect, useState } from 'react';
+import { Button } from './StudioDesignSystem';
 import {
   cancelAccountDeletion,
   finalizeAccountDeletion,
@@ -154,45 +155,26 @@ export default function PendingDeletionScreen({ user, scheduledAtMs }: Props) {
 
         {/* Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginTop: 4 }}>
-          <button
+          <Button
+            variant="primary"
             onClick={doRestore}
             disabled={!!busy || isPastGrace}
-            style={{
-              width: '100%', padding: '14px 18px', borderRadius: 12,
-              background: 'linear-gradient(135deg, var(--accent-from), var(--accent-to))',
-              color: '#fff', border: 'none',
-              fontFamily: 'Manrope', fontWeight: 800, fontSize: 15,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              cursor: busy ? 'not-allowed' : 'pointer',
-              opacity: busy === 'restore' || isPastGrace ? 0.7 : 1,
-              transition: 'opacity 180ms ease, transform 120ms ease',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-            }}
+            loading={busy === 'restore' || busy === 'finalize'}
+            icon="restart_alt"
+            style={{ width: '100%' }}
           >
-            {busy === 'restore' || busy === 'finalize' ? (
-              <span className="material-symbols-outlined sync-spin" style={{ fontSize: 18 }}>progress_activity</span>
-            ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>restart_alt</span>
-            )}
             {t.restoreAccount}
-          </button>
-          <button
+          </Button>
+
+          <Button
             onClick={doSignOut}
             disabled={!!busy}
-            style={{
-              width: '100%', padding: '12px 18px', borderRadius: 12,
-              background: 'transparent',
-              color: 'var(--c-text-secondary)',
-              border: '1px solid var(--c-divider, rgba(128,128,128,0.25))',
-              fontFamily: 'Manrope', fontWeight: 700, fontSize: 14,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              cursor: busy ? 'not-allowed' : 'pointer',
-              opacity: busy === 'signout' ? 0.6 : 1,
-            }}
+            loading={busy === 'signout'}
+            icon="logout"
+            style={{ width: '100%' }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
             {t.signOut}
-          </button>
+          </Button>
         </div>
 
         {/* Footer note */}

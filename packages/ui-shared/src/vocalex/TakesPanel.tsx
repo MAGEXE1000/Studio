@@ -13,6 +13,8 @@ import { analyzeAudio, type VocalAnalysis, type AnalysisLabels } from './vocalAn
 import { setVocalexBack } from './headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from './harmonyEngine';
+import { Button } from '../components/StudioDesignSystem';
+import { DialogScaffold } from '../components/StudioLayoutSystem';
 
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
@@ -132,12 +134,6 @@ export default function TakesPanel() {
       {loading ? (
         <SmartLoading
           fallbackSkeleton={<VocalexTakesSkeleton />}
-          subtleLoading={
-            <div style={{ padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-              <div style={{ width: 24, height: 24, border: '2.5px solid var(--vx-text)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-              <span style={{ color: 'var(--vx-text-2)', fontFamily: 'Inter, sans-serif', fontSize: 13 }}>{t.vocalex.loading}</span>
-            </div>
-          }
         />
       ) : takes.length === 0 ? (
         <div style={{
@@ -802,31 +798,32 @@ function TakeDetailView({ take, onBack, onDelete, onSaveBounce }: {
       )}
 
       {/* Delete confirmation */}
-      {showDeleteConfirm && (
-        <div style={{
-          background: 'var(--vx-edge)', borderRadius: 14, padding: 20,
-          marginBottom: 16, border: '1px solid rgba(239,68,68,0.2)',
-        }}>
-          <p style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 15, color: 'var(--vx-text)', margin: '0 0 8px' }}>
-            {t.vocalex.deleteConfirmTitle}
-          </p>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-2)', margin: '0 0 16px', lineHeight: 1.5 }}>
+      <DialogScaffold
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title={t.vocalex.deleteConfirmTitle}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.5 }}>
             {t.vocalex.deleteConfirmBody}
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => setShowDeleteConfirm(false)} style={{
-              flex: 1, padding: '10px 16px', borderRadius: 10,
-              background: 'var(--vx-input-2)', border: 'none', color: 'var(--vx-text)',
-              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-            }}>{t.vocalex.cancelAction}</button>
-            <button onClick={handleDelete} style={{
-              flex: 1, padding: '10px 16px', borderRadius: 10,
-              background: '#ef4444', border: 'none', color: '#fff',
-              fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-            }}>{t.vocalex.deleteTake}</button>
+            <Button
+              onClick={() => setShowDeleteConfirm(false)}
+              style={{ flex: 1 }}
+            >
+              {t.vocalex.cancelAction}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDelete}
+              style={{ flex: 1, background: 'var(--c-error)', color: '#fff' }}
+            >
+              {t.vocalex.deleteTake}
+            </Button>
           </div>
         </div>
-      )}
+      </DialogScaffold>
 
       {/* Take info */}
       <div style={{ marginBottom: 20 }}>

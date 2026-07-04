@@ -1,5 +1,7 @@
 import { subscribeSyncStatus, getSyncStatus, syncNow, retrySync, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, scheduleAccountDeletion, disableAccount, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, getFirebaseAuth, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP } from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
+import { DialogScaffold } from './StudioLayoutSystem';
+import { Button } from './StudioDesignSystem';
 import { createPortal } from 'react-dom';
 import AppSpinner from './AppSpinner';
 import { Circle, Layers3, BadgeCheck, FlaskConical, ShieldCheck } from 'lucide-react';
@@ -1111,72 +1113,27 @@ type AvatarPickerSheetProps = {
 };
 
 function AvatarPickerSheet({ accent, currentIcon, hasGooglePhoto, closing, t, onPick, onClose }: AvatarPickerSheetProps) {
-  const isWebDesktop = useIsWebDesktop();
-  const sheetAnim = closing
-    ? isWebDesktop
-      ? 'modal-scale-out 250ms ease both'
-      : 'sheet-down 300ms cubic-bezier(0.16, 1, 0.3, 1) both'
-    : isWebDesktop
-      ? 'modal-scale-in 250ms ease both'
-      : 'sheet-up 400ms cubic-bezier(0.16, 1, 0.3, 1) both';
-  const overlayAnim = closing ? 'fade-out 280ms ease both' : 'sync-fade-in 200ms ease both';
-
-  const overlayStyle: React.CSSProperties = {
-    position: 'fixed', inset: 0, zIndex: 100005, animation: overlayAnim,
-    display: isWebDesktop ? 'flex' : 'block',
-    alignItems: isWebDesktop ? 'center' : 'stretch',
-    justifyContent: isWebDesktop ? 'center' : 'stretch',
-  };
-  const backdropStyle: React.CSSProperties = {
-    position: 'absolute', inset: 0,
-    background: 'rgba(0,0,0,0.55)',
-    backdropFilter: 'blur(6px)',
-    WebkitBackdropFilter: 'blur(6px)',
-  };
-  const sheetStyle: React.CSSProperties = isWebDesktop ? {
-    position: 'relative',
-    background: 'var(--app-surface)',
-    borderRadius: '16px',
-    boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65)',
-    border: '1px solid rgba(128, 128, 128, 0.15)',
-    width: '460px',
-    maxWidth: '90vw',
-    maxHeight: '85vh',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    animation: sheetAnim,
-  } : {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    background: 'var(--app-surface)',
-    borderRadius: '1.5rem 1.5rem 0 0',
-    padding: '0 0 max(28px, env(safe-area-inset-bottom)) 0',
-    animation: sheetAnim,
-  };
-
   return (
-    <div style={overlayStyle}>
-      <SheetAnimations />
-      <div style={backdropStyle} onClick={onClose} />
-      <div className="profile-panel-sheet" style={sheetStyle}>
-        {!isWebDesktop && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-            <div style={{ width: 36, height: 4, borderRadius: 9999, background: 'rgba(128,128,128,0.3)' }} />
-          </div>
-        )}
-        <div style={{ padding: '6px 22px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 18, color: 'var(--c-text-primary)', margin: 0 }}>
-            {t.avatarPickerTitle}
-          </p>
-          <button
-            onClick={onClose}
-            style={{ color: 'var(--c-text-secondary)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
-            aria-label="close"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
-          </button>
-        </div>
-        <p style={{ fontFamily: 'Inter', fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5, margin: '4px 22px 14px' }}>
+    <DialogScaffold
+      open={true}
+      onClose={onClose}
+      title={t.avatarPickerTitle}
+      footer={
+        <Button
+          onClick={() => { onPick(null); onClose(); }}
+          style={{
+            width: '100%',
+            background: !currentIcon ? 'var(--c-accent-from)22' : 'rgba(128,128,128,0.1)',
+            color: !currentIcon ? 'var(--c-accent-from)' : 'var(--c-text-primary)',
+            border: !currentIcon ? '1.5px solid var(--c-accent-from)' : '1px solid var(--c-border)',
+          }}
+        >
+          {hasGooglePhoto ? t.avatarUseGooglePhoto : t.avatarUseInitial}
+        </Button>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ fontFamily: 'Inter', fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5, margin: 0 }}>
           {t.avatarPickerSubtitle}
         </p>
 
@@ -1184,7 +1141,6 @@ function AvatarPickerSheet({ accent, currentIcon, hasGooglePhoto, closing, t, on
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 10,
-          padding: '0 16px 12px',
         }}>
           {AVATAR_ICONS.map((icon) => {
             const selected = currentIcon === icon;
@@ -1195,9 +1151,9 @@ function AvatarPickerSheet({ accent, currentIcon, hasGooglePhoto, closing, t, on
                 style={{
                   aspectRatio: '1 / 1',
                   borderRadius: 14,
-                  border: selected ? `2px solid ${accent.from}` : '1px solid rgba(128,128,128,0.18)',
+                  border: selected ? '2px solid var(--c-accent-from)' : '1px solid rgba(128,128,128,0.18)',
                   background: selected
-                    ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
+                    ? 'var(--c-accent-from)'
                     : 'rgba(128,128,128,0.08)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', padding: 0,
@@ -1217,28 +1173,8 @@ function AvatarPickerSheet({ accent, currentIcon, hasGooglePhoto, closing, t, on
             );
           })}
         </div>
-
-        <div style={{ padding: '4px 16px 4px', display: 'flex', gap: 10 }}>
-          <button
-            onClick={() => { onPick(null); onClose(); }}
-            style={{
-              flex: 1, padding: '12px 14px', borderRadius: 12,
-              fontSize: 13, fontWeight: 700,
-              background: !currentIcon
-                ? `${accent.from}1f`
-                : 'rgba(128,128,128,0.10)',
-              border: !currentIcon
-                ? `1px solid ${accent.from}55`
-                : '1px solid rgba(128,128,128,0.18)',
-              color: !currentIcon ? accent.from : 'var(--c-text-primary)',
-              fontFamily: 'Manrope', cursor: 'pointer',
-            }}
-          >
-            {hasGooglePhoto ? t.avatarUseGooglePhoto : t.avatarUseInitial}
-          </button>
-        </div>
       </div>
-    </div>
+    </DialogScaffold>
   );
 }
 
@@ -4457,57 +4393,31 @@ interface MigrationPromptSheetProps {
 export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptSheetProps) {
   const isEs = lang === 'es';
 
-  const overlayStyle: React.CSSProperties = {
-    position: 'fixed',
-    inset: 0,
-    zIndex: 99999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  };
-
-  const backdropStyle: React.CSSProperties = {
-    position: 'absolute',
-    inset: 0,
-    background: 'rgba(9, 9, 11, 0.85)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-  };
-
-  const modalStyle: React.CSSProperties = {
-    position: 'relative',
-    width: '100%',
-    maxWidth: 420,
-    background: 'rgba(20, 20, 25, 0.95)',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    borderRadius: 24,
-    padding: '24px 24px',
-    boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(255, 255, 255, 0.02)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 20,
-    color: '#fff',
-    animation: 'sheet-up 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
-  };
-
   return (
-    <div style={overlayStyle}>
-      <div style={backdropStyle} />
-      <div style={modalStyle}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+    <DialogScaffold
+      open={true}
+      onClose={() => onClose('notNow')}
+      title={isEs ? '¿Sincronizar tus datos de Studio?' : 'Sync your existing Studio data?'}
+      footer={
+        <Button
+          onClick={() => onClose('notNow')}
+          style={{ width: '100%' }}
+        >
+          {isEs ? 'Ahora no' : 'Not now'}
+        </Button>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center', marginBottom: 8 }}>
           <div style={{
             width: 48, height: 48, borderRadius: '50%',
-            background: `linear-gradient(135deg, ${accent.from}22, ${accent.to}22)`,
-            border: `1px solid ${accent.from}44`,
+            background: `var(--c-accent-from)22`,
+            border: `1px solid var(--c-accent-from)44`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: accent.from,
+            color: 'var(--c-accent-from)',
           }}>
             <span className="material-symbols-outlined" style={{ fontSize: 24 }}>cloud_sync</span>
           </div>
-          <h3 style={{ fontFamily: 'Manrope', fontSize: 18, fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-            {isEs ? '¿Sincronizar tus datos de Studio?' : 'Sync your existing Studio data?'}
-          </h3>
           <p style={{ fontFamily: 'Inter', fontSize: 13, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.5 }}>
             {isEs 
               ? 'Studio ha encontrado datos guardados localmente en este dispositivo. Puedes subirlos a tu cuenta y sincronizarlos entre todos tus dispositivos.'
@@ -4521,12 +4431,11 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
             onClick={() => onClose('merge')}
             style={{
               padding: '12px 16px', borderRadius: 14,
-              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+              background: `var(--c-accent-from)`,
               border: 'none', color: '#fff',
               fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
               cursor: 'pointer', textAlign: 'left',
               display: 'flex', flexDirection: 'column', gap: 2,
-              boxShadow: `0 4px 12px ${accent.to}33`,
             }}
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -4575,23 +4484,9 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
               {isEs ? 'Sube datos locales a la nube (sobrescribirá los datos de la nube).' : 'Uploads local data to your cloud account (overwrites cloud).'}
             </span>
           </button>
-
-          {/* Cancel/Not now option */}
-          <button
-            onClick={() => onClose('notNow')}
-            style={{
-              padding: '12px 16px', borderRadius: 14,
-              background: 'transparent',
-              border: '1px solid transparent', color: 'var(--c-text-secondary)',
-              fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
-              cursor: 'pointer', textAlign: 'center',
-            }}
-          >
-            {isEs ? 'Ahora no' : 'Not now'}
-          </button>
         </div>
       </div>
-    </div>
+    </DialogScaffold>
   );
 }
 

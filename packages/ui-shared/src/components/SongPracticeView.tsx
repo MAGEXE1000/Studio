@@ -18,6 +18,8 @@ import {
   type SongChartSection 
 } from '@workspace/studio-core';
 import ChordDiagram from './ChordDiagram';
+import { Button, Input } from './StudioDesignSystem';
+import { DialogScaffold } from './StudioLayoutSystem';
 
 interface SongPracticeViewProps {
   song: SongChart;
@@ -1037,42 +1039,13 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
         </div>
       )}
 
-      {/* Settings Side Sheet */}
-      <AnimatePresence>
-        {showSettings && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowSettings(false)}
-              style={{
-                position: 'fixed', inset: 0, zIndex: 102000,
-                background: '#000000', pointerEvents: 'auto'
-              }}
-            />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              style={{
-                position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 103000,
-                width: '80%', maxWidth: '300px', padding: '24px 20px',
-                display: 'flex', flexDirection: 'column', gap: 16,
-                boxShadow: '-8px 0 32px rgba(0,0,0,0.2)',
-                background: '#0d0d11',
-                borderLeft: '1px solid rgba(255,255,255,0.06)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(128,128,128,0.1)', paddingBottom: '12px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 800, margin: 0, color: 'var(--c-text-primary)' }}>
-                  {t.practice.settingsTitle}
-                </h3>
-                <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: 'var(--c-text-primary)', cursor: 'pointer' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
-                </button>
-              </div>
+      {/* Settings Dialog */}
+      <DialogScaffold
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        title={t.practice.settingsTitle}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
               {/* Font Size Selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1252,379 +1225,306 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
                   {t.practice.importBtn}
                 </button>
               )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+        </div>
+      </DialogScaffold>
 
       {/* Importer Modal */}
-      <AnimatePresence>
-        {showImportModal && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 105000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowImportModal(false)}
-              style={{ position: 'absolute', inset: 0, background: '#000000' }}
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              style={{
-                position: 'relative', width: '100%', maxWidth: '450px',
-                background: '#0d0d11', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 20, padding: 20, display: 'flex', flexDirection: 'column',
-                gap: 16, zIndex: 105100, boxShadow: '0 12px 40px rgba(0,0,0,0.5)'
-              }}
-            >
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px', gap: '16px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImportTab('paste');
-                    setImportError('');
-                  }}
+      {showImportModal && (
+        <DialogScaffold
+          open={true}
+          onClose={() => setShowImportModal(false)}
+          title="Import Chords"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--c-border)', paddingBottom: '8px', gap: '16px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setImportTab('paste');
+                  setImportError('');
+                }}
+                style={{
+                  background: 'none', border: 'none', padding: '4px 8px', fontSize: '12px',
+                  fontWeight: 700, color: importTab === 'paste' ? 'var(--c-accent-from)' : 'var(--c-text-secondary)',
+                  borderBottom: importTab === 'paste' ? '2px solid var(--c-accent-from)' : 'none',
+                  cursor: 'pointer', fontFamily: 'var(--font-headline)'
+                }}
+              >
+                {isSpanish ? 'Pegar Manualmente' : 'Paste Manually'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImportTab('url');
+                  setImportError('');
+                }}
+                style={{
+                  background: 'none', border: 'none', padding: '4px 8px', fontSize: '12px',
+                  fontWeight: 700, color: importTab === 'url' ? 'var(--c-accent-from)' : 'var(--c-text-secondary)',
+                  borderBottom: importTab === 'url' ? '2px solid var(--c-accent-from)' : 'none',
+                  cursor: 'pointer', fontFamily: 'var(--font-headline)'
+                }}
+              >
+                {isSpanish ? 'Importar desde URL' : 'Import from URL'}
+              </button>
+            </div>
+
+            {importTab === 'paste' ? (
+              <>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'var(--font-headline)' }}>
+                  {t.practice.pasteChartTitle}
+                </h3>
+                <textarea
+                  value={importText}
+                  onChange={e => setImportText(e.target.value)}
+                  placeholder="Example:&#10;[Verse]&#10;Am          C&#10;Agradecido de tenerte dulce soledad&#10;G           F&#10;No me cabe duda que me vienes a buscar"
                   style={{
-                    background: 'none', border: 'none', padding: '4px 8px', fontSize: '12px',
-                    fontWeight: 700, color: importTab === 'paste' ? 'var(--c-accent)' : 'var(--c-text-secondary)',
-                    borderBottom: importTab === 'paste' ? '2px solid var(--c-accent)' : 'none',
-                    cursor: 'pointer', fontFamily: 'Inter'
+                    width: '100%', height: '200px', background: 'var(--c-surface-lowest)',
+                    border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)',
+                    padding: 12, color: 'var(--c-text-primary)', fontFamily: 'monospace', fontSize: '11px',
+                    lineHeight: '1.5', resize: 'none', outline: 'none', boxSizing: 'border-box'
                   }}
-                >
-                  {isSpanish ? 'Pegar Manualmente' : 'Paste Manually'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImportTab('url');
-                    setImportError('');
-                  }}
-                  style={{
-                    background: 'none', border: 'none', padding: '4px 8px', fontSize: '12px',
-                    fontWeight: 700, color: importTab === 'url' ? 'var(--c-accent)' : 'var(--c-text-secondary)',
-                    borderBottom: importTab === 'url' ? '2px solid var(--c-accent)' : 'none',
-                    cursor: 'pointer', fontFamily: 'Inter'
-                  }}
-                >
-                  {isSpanish ? 'Importar desde URL' : 'Import from URL'}
-                </button>
-              </div>
+                />
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <Button
+                    onClick={() => setShowImportModal(false)}
+                  >
+                    {t.practice.cancelBtn}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveCustomChart}
+                  >
+                    {t.practice.saveBtn}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'var(--font-headline)' }}>
+                  {isSpanish ? 'Pegar enlace del diagrama de acordes' : 'Paste chord chart web address'}
+                </h3>
+                <Input
+                  value={importUrl}
+                  onChange={e => setImportUrl(e.target.value)}
+                  placeholder="https://www.cifraclub.com.br/the-beatles/let-it-be/"
+                />
+                
+                <div style={{ fontSize: '10px', color: 'var(--c-text-secondary)', lineHeight: '1.4', fontFamily: 'var(--font-body)' }}>
+                  {isSpanish 
+                    ? 'Importa solo diagramas que tengas derecho a usar. Los diagramas importados se almacenan localmente para tu práctica personal.'
+                    : 'Only import charts you have the right to use. Imported charts are stored locally for your personal practice.'}
+                </div>
 
-              {importTab === 'paste' ? (
-                <>
-                  <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Inter' }}>
-                    {t.practice.pasteChartTitle}
-                  </h3>
-                  <textarea
-                    value={importText}
-                    onChange={e => setImportText(e.target.value)}
-                    placeholder="Example:&#10;[Verse]&#10;Am          C&#10;Agradecido de tenerte dulce soledad&#10;G           F&#10;No me cabe duda que me vienes a buscar"
-                    style={{
-                      width: '100%', height: '200px', background: 'rgba(0,0,0,0.3)',
-                      border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10,
-                      padding: 12, color: '#ffffff', fontFamily: 'monospace', fontSize: '11px',
-                      lineHeight: '1.5', resize: 'none', outline: 'none', boxSizing: 'border-box'
-                    }}
-                  />
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                    <button
-                      onClick={() => setShowImportModal(false)}
-                      style={{
-                        padding: '8px 16px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                        background: 'rgba(128,128,128,0.1)', border: 'none', color: 'var(--c-text-secondary)',
-                        cursor: 'pointer', fontFamily: 'Inter'
-                      }}
-                    >
-                      {t.practice.cancelBtn}
-                    </button>
-                    <button
-                      onClick={handleSaveCustomChart}
-                      style={{
-                        padding: '8px 16px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                        background: 'var(--c-accent)', border: 'none', color: '#ffffff',
-                        cursor: 'pointer', fontFamily: 'Inter'
-                      }}
-                    >
-                      {t.practice.saveBtn}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Inter' }}>
-                    {isSpanish ? 'Pegar enlace del diagrama de acordes' : 'Paste chord chart web address'}
-                  </h3>
-                  <input
-                    type="text"
-                    value={importUrl}
-                    onChange={e => setImportUrl(e.target.value)}
-                    placeholder="https://www.cifraclub.com.br/the-beatles/let-it-be/"
-                    style={{
-                      width: '100%', background: 'rgba(0,0,0,0.3)',
-                      border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10,
-                      padding: 12, color: '#ffffff', fontFamily: 'Inter', fontSize: '12px',
-                      outline: 'none', boxSizing: 'border-box'
-                    }}
-                  />
-                  
-                  <div style={{ fontSize: '10px', color: 'var(--c-text-muted)', lineHeight: '1.4', fontFamily: 'Inter' }}>
-                    {isSpanish 
-                      ? 'Importa solo diagramas que tengas derecho a usar. Los diagramas importados se almacenan localmente para tu práctica personal.'
-                      : 'Only import charts you have the right to use. Imported charts are stored locally for your personal practice.'}
-                  </div>
-
-                  <div style={{ marginTop: 4, padding: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 10, fontSize: '10px', fontFamily: 'Inter' }}>
-                    <strong style={{ color: 'var(--c-text-secondary)', display: 'block', marginBottom: 6, fontSize: '11px' }}>
-                      {isSpanish ? 'Sitios Soportados' : 'Supported sites'}
-                    </strong>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, maxHeight: '110px', overflowY: 'auto', paddingRight: 4 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
-                        <span>• Cifra Club</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Soportado' : 'Supported'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
-                        <span>• E-Chords</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Soportado' : 'Supported'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
-                        <span>• {isSpanish ? 'Texto / ChordPro genérico' : 'Generic Text / ChordPro'}</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Soportado' : 'Supported'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
-                        <span>• Songsterr</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Limitado' : 'Limited'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
-                        <span>• Chordify</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Limitado' : 'Limited'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
-                        <span>• ChordU</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Limitado' : 'Limited'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
-                        <span>• Ultimate Guitar</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Bloqueado (Copiar)' : 'Blocked (Paste)'}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
-                        <span>• GuitarTuna</span>
-                        <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'No Soportado' : 'Unsupported'}</span>
-                      </div>
+                <div style={{ marginTop: 4, padding: 10, background: 'var(--c-surface-low)', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', fontSize: '10px', fontFamily: 'var(--font-body)' }}>
+                  <strong style={{ color: 'var(--c-text-primary)', display: 'block', marginBottom: 6, fontSize: '11px' }}>
+                    {isSpanish ? 'Sitios Soportados' : 'Supported sites'}
+                  </strong>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 6, maxHeight: '110px', overflowY: 'auto', paddingRight: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                      <span>• Cifra Club</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Soportado' : 'Supported'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                      <span>• E-Chords</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Soportado' : 'Supported'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                      <span>• {isSpanish ? 'Texto / ChordPro genérico' : 'Generic Text / ChordPro'}</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Soportado' : 'Supported'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
+                      <span>• Songsterr</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Limitado' : 'Limited'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
+                      <span>• Chordify</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Limitado' : 'Limited'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
+                      <span>• ChordU</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Limitado' : 'Limited'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                      <span>• Ultimate Guitar</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'Bloqueado (Copiar)' : 'Blocked (Paste)'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                      <span>• GuitarTuna</span>
+                      <span style={{ fontWeight: 'bold' }}>{isSpanish ? 'No Soportado' : 'Unsupported'}</span>
                     </div>
                   </div>
+                </div>
 
-                  {importLoadingState !== 'idle' && importLoadingState !== 'success' && (
-                    <div style={{ fontSize: '11px', color: 'var(--c-accent)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter' }}>
-                      <span className="material-symbols-outlined spin" style={{ fontSize: 16 }}>sync</span>
-                      <span>
-                        {importLoadingState === 'fetching' 
-                          ? (isSpanish ? 'Descargando página...' : 'Fetching web page...')
-                          : (isSpanish ? 'Analizando acordes...' : 'Parsing chord chart...')}
-                      </span>
-                    </div>
-                  )}
-
-                  {importError && (
-                    <div style={{
-                      padding: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                      borderRadius: 8, color: '#ef4444', fontSize: '11px', lineHeight: '1.4', fontFamily: 'Inter',
-                      whiteSpace: 'pre-wrap'
-                    }}>
-                      {importError}
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
-                    <button
-                      onClick={() => setShowImportModal(false)}
-                      style={{
-                        padding: '8px 16px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                        background: 'rgba(128,128,128,0.1)', border: 'none', color: 'var(--c-text-secondary)',
-                        cursor: 'pointer', fontFamily: 'Inter'
-                      }}
-                    >
-                      {t.practice.cancelBtn}
-                    </button>
-                    <button
-                      onClick={handleUrlImport}
-                      disabled={importLoadingState === 'fetching' || importLoadingState === 'parsing' || !importUrl.trim()}
-                      style={{
-                        padding: '8px 16px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                        background: (importLoadingState === 'fetching' || importLoadingState === 'parsing' || !importUrl.trim()) ? 'rgba(255,255,255,0.05)' : 'var(--c-accent)',
-                        border: 'none', color: (importLoadingState === 'fetching' || importLoadingState === 'parsing' || !importUrl.trim()) ? 'var(--c-text-muted)' : '#ffffff',
-                        cursor: (importLoadingState === 'fetching' || importLoadingState === 'parsing' || !importUrl.trim()) ? 'default' : 'pointer',
-                        fontFamily: 'Inter'
-                      }}
-                    >
-                      {isSpanish ? 'Cargar Acordes' : 'Load Chart'}
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Preview Modal */}
-      <AnimatePresence>
-        {showPreviewModal && previewChart && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 105200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowPreviewModal(false)}
-              style={{ position: 'absolute', inset: 0, background: '#000000' }}
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              style={{
-                position: 'relative', width: '100%', maxWidth: '550px', maxHeight: '85vh',
-                background: '#0d0d11', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column',
-                gap: 16, zIndex: 105300, boxShadow: '0 12px 40px rgba(0,0,0,0.5)'
-              }}
-            >
-              <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Inter' }}>
-                {isSpanish ? 'Vista Previa del Diagrama' : 'Chart Import Preview'}
-              </h3>
-              
-              <div style={{
-                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px',
-                padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 10,
-                fontSize: '11px', color: 'var(--c-text-secondary)', fontFamily: 'Inter'
-              }}>
-                <div><strong>Title:</strong> {previewChart.title}</div>
-                <div><strong>Artist:</strong> {previewChart.artist}</div>
-                <div><strong>Key:</strong> {previewChart.key}</div>
-                <div><strong>Capo:</strong> {previewChart.capo ? `${previewChart.capo} fret` : 'None'}</div>
-                <div><strong>Source:</strong> {previewChart.source}</div>
-                <div><strong>License:</strong> {previewChart.licenseInfo}</div>
-                {previewChart.importDiagnostics && (
-                  <div style={{ gridColumn: 'span 2', marginTop: 4, padding: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 6 }}>
-                    <strong style={{ color: 'var(--c-accent)', fontSize: '11px', display: 'block', marginBottom: 4 }}>Parser Diagnostic Logs:</strong>
-                    <ul style={{ margin: '4px 0 0 0', paddingLeft: 16, fontSize: '10px', color: 'var(--c-text-secondary)', listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      {previewChart.importDiagnostics.map((d, idx) => <li key={idx}>{d}</li>)}
-                      {diagLogs && (
-                        <>
-                          <li>{isSpanish ? 'Marcadores de acorde' : 'Total chord markers'}: {diagLogs.totalChords}</li>
-                          <li>{isSpanish ? 'Acordes únicos' : 'Unique chords'}: {diagLogs.uniqueRawChords.join(', ')}</li>
-                          <li>{isSpanish ? 'Nombres normalizados' : 'Normalized names'}: {diagLogs.normalizedChords.join(', ')}</li>
-                          <li>{isSpanish ? 'Diagramas resueltos' : 'Diagrams resolved'}: {diagLogs.resolvedCount}</li>
-                          <li>{isSpanish ? 'Diagramas faltantes' : 'Diagrams missing'}: {diagLogs.missingCount}</li>
-                          <li>{isSpanish ? 'Reemplazos de bajo (Slash)' : 'Slash chord fallbacks'}: {diagLogs.slashFallbackCount}</li>
-                          {diagLogs.missingChordList.length > 0 && (
-                            <li style={{ color: '#ef4444' }}>
-                              {isSpanish ? 'Diagramas faltantes' : 'Missing diagrams'}: {diagLogs.missingChordList.join(', ')}
-                            </li>
-                          )}
-                          <li style={{ marginTop: '4px', listStyleType: 'none', background: 'rgba(255,255,255,0.02)', padding: '6px', borderRadius: '4px' }}>
-                            <strong style={{ display: 'block', marginBottom: '2px', fontSize: '9px', color: 'var(--c-accent)' }}>
-                              {isSpanish ? 'Mapeo de Acordes (Original → Normalizado):' : 'Chord Mapping (Original → Normalized):'}
-                            </strong>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '9px' }}>
-                              {diagLogs.sourceToNormalizedMapping.map((m, idx) => (
-                                <span key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '3px' }}>
-                                  {m.from} → {m.to}
-                                </span>
-                              ))}
-                            </div>
-                          </li>
-                          {diagLogs.missingCount > 0 && (
-                            <li style={{ color: '#fbbf24', listStyleType: 'none', marginTop: '4px', fontWeight: 'bold' }}>
-                              ⚠️ {isSpanish 
-                                ? 'Algunos diagramas no están disponibles, pero el diagrama se importó correctamente.' 
-                                : 'Some diagrams are unavailable, but the chart was imported successfully.'}
-                            </li>
-                          )}
-                        </>
-                      )}
-                    </ul>
+                {importLoadingState !== 'idle' && importLoadingState !== 'success' && (
+                  <div style={{ fontSize: '11px', color: 'var(--c-accent-from)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'var(--font-headline)' }}>
+                    <span className="material-symbols-outlined spin" style={{ fontSize: 16 }}>sync</span>
+                    <span>
+                      {importLoadingState === 'fetching' 
+                        ? (isSpanish ? 'Descargando página...' : 'Fetching web page...')
+                        : (isSpanish ? 'Analizando acordes...' : 'Parsing chord chart...')}
+                    </span>
                   </div>
                 )}
-              </div>
 
-              <div style={{
-                flex: 1, overflowY: 'auto', background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(255,255,255,0.04)', borderRadius: 12,
-                padding: 16, maxHeight: '350px', boxSizing: 'border-box'
-              }}>
-                {previewChart.sections.map((sec, sIdx) => (
-                  <div key={sIdx} style={{ marginBottom: 16 }}>
-                    <h4 style={{ fontSize: '10px', fontWeight: 950, color: 'var(--c-accent)', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {sec.name}
-                    </h4>
-                    {sec.lines.map((line, lIdx) => (
-                      <div key={lIdx} style={{ marginBottom: 6, fontSize: '11px', fontFamily: 'monospace', whiteSpace: 'pre', lineHeight: '1.4' }}>
-                        {line.chords && line.chords.length > 0 && (
-                          <div style={{ color: 'var(--c-accent)', fontWeight: 700 }}>
-                            {(() => {
-                              let chordLine = '';
-                              let lastOffset = 0;
-                              const sortedChords = [...line.chords].sort((a, b) => a.offset - b.offset);
-                              sortedChords.forEach(c => {
-                                const padding = ' '.repeat(Math.max(0, c.offset - lastOffset));
-                                chordLine += padding + c.chord;
-                                lastOffset = c.offset + c.chord.length;
-                              });
-                              return chordLine;
-                            })()}
-                          </div>
-                        )}
-                        <div style={{ color: '#ffffff' }}>{line.lyrics}</div>
-                      </div>
-                    ))}
+                {importError && (
+                  <div style={{
+                    padding: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+                    borderRadius: 8, color: '#ef4444', fontSize: '11px', lineHeight: '1.4', fontFamily: 'var(--font-body)',
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {importError}
                   </div>
-                ))}
-              </div>
+                )}
 
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
-                <button
-                  onClick={() => setShowPreviewModal(false)}
-                  style={{
-                    padding: '10px 20px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                    background: 'rgba(128,128,128,0.1)', border: 'none', color: 'var(--c-text-secondary)',
-                    cursor: 'pointer', fontFamily: 'Inter'
-                  }}
-                >
-                  {isSpanish ? 'Cancelar' : 'Cancel'}
-                </button>
-                <button
-                  onClick={() => {
-                    const textRep = generateTextRepresentation(previewChart);
-                    setImportText(textRep);
-                    setShowPreviewModal(false);
-                    setShowImportModal(true);
-                    setImportTab('paste');
-                  }}
-                  style={{
-                    padding: '10px 20px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)',
-                    color: 'var(--c-text-primary)', cursor: 'pointer', fontFamily: 'Inter'
-                  }}
-                >
-                  {isSpanish ? 'Editar' : 'Edit Manually'}
-                </button>
-                <button
-                  onClick={handleSavePreviewChart}
-                  style={{
-                    padding: '10px 20px', borderRadius: 8, fontSize: '11px', fontWeight: 700,
-                    background: 'var(--c-accent)', border: 'none', color: '#ffffff',
-                    cursor: 'pointer', fontFamily: 'Inter'
-                  }}
-                >
-                  {isSpanish ? 'Confirmar y Guardar' : 'Confirm & Save'}
-                </button>
-              </div>
-            </motion.div>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+                  <Button
+                    onClick={() => setShowImportModal(false)}
+                  >
+                    {t.practice.cancelBtn}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleUrlImport}
+                    disabled={importLoadingState === 'fetching' || importLoadingState === 'parsing' || !importUrl.trim()}
+                  >
+                    {isSpanish ? 'Cargar Acordes' : 'Load Chart'}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-        )}
-      </AnimatePresence>
+        </DialogScaffold>
+      )}
+
+      {/* Preview Dialog */}
+      {showPreviewModal && previewChart && (
+        <DialogScaffold
+          open={true}
+          onClose={() => setShowPreviewModal(false)}
+          title={isSpanish ? 'Vista Previa del Diagrama' : 'Chart Import Preview'}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px',
+              padding: 12, background: 'var(--c-surface-low)', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)',
+              fontSize: '11px', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)'
+            }}>
+              <div><strong>Title:</strong> {previewChart.title}</div>
+              <div><strong>Artist:</strong> {previewChart.artist}</div>
+              <div><strong>Key:</strong> {previewChart.key}</div>
+              <div><strong>Capo:</strong> {previewChart.capo ? `${previewChart.capo} fret` : 'None'}</div>
+              <div><strong>Source:</strong> {previewChart.source}</div>
+              <div><strong>License:</strong> {previewChart.licenseInfo}</div>
+              {previewChart.importDiagnostics && (
+                <div style={{ gridColumn: 'span 2', marginTop: 4, padding: 8, background: 'var(--c-surface-lowest)', border: '1px solid var(--c-border)', borderRadius: 6 }}>
+                  <strong style={{ color: 'var(--c-accent-from)', fontSize: '11px', display: 'block', marginBottom: 4 }}>Parser Diagnostic Logs:</strong>
+                  <ul style={{ margin: '4px 0 0 0', paddingLeft: 16, fontSize: '10px', color: 'var(--c-text-secondary)', listStyleType: 'disc', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    {previewChart.importDiagnostics.map((d, idx) => <li key={idx}>{d}</li>)}
+                    {diagLogs && (
+                      <>
+                        <li>{isSpanish ? 'Marcadores de acorde' : 'Total chord markers'}: {diagLogs.totalChords}</li>
+                        <li>{isSpanish ? 'Acordes únicos' : 'Unique chords'}: {diagLogs.uniqueRawChords.join(', ')}</li>
+                        <li>{isSpanish ? 'Nombres normalizados' : 'Normalized names'}: {diagLogs.normalizedChords.join(', ')}</li>
+                        <li>{isSpanish ? 'Diagramas resueltos' : 'Diagrams resolved'}: {diagLogs.resolvedCount}</li>
+                        <li>{isSpanish ? 'Diagramas faltantes' : 'Diagrams missing'}: {diagLogs.missingCount}</li>
+                        <li>{isSpanish ? 'Reemplazos de bajo (Slash)' : 'Slash chord fallbacks'}: {diagLogs.slashFallbackCount}</li>
+                        {diagLogs.missingChordList.length > 0 && (
+                          <li style={{ color: 'var(--c-error)' }}>
+                            {isSpanish ? 'Diagramas faltantes' : 'Missing diagrams'}: {diagLogs.missingChordList.join(', ')}
+                          </li>
+                        )}
+                        <li style={{ marginTop: '4px', listStyleType: 'none', background: 'var(--c-surface-low)', padding: '6px', borderRadius: '4px' }}>
+                          <strong style={{ display: 'block', marginBottom: '2px', fontSize: '9px', color: 'var(--c-accent-from)' }}>
+                            {isSpanish ? 'Mapeo de Acordes (Original → Normalizado):' : 'Chord Mapping (Original → Normalized):'}
+                          </strong>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '9px' }}>
+                            {diagLogs.sourceToNormalizedMapping.map((m, idx) => (
+                              <span key={idx} style={{ background: 'var(--c-surface-lowest)', border: '1px solid var(--c-border)', padding: '2px 6px', borderRadius: '3px' }}>
+                                {m.from} → {m.to}
+                              </span>
+                            ))}
+                          </div>
+                        </li>
+                        {diagLogs.missingCount > 0 && (
+                          <li style={{ color: 'var(--c-warning)', listStyleType: 'none', marginTop: '4px', fontWeight: 'bold' }}>
+                            ⚠️ {isSpanish 
+                              ? 'Algunos diagramas no están disponibles, pero el diagrama se importó correctamente.' 
+                              : 'Some diagrams are unavailable, but the chart was imported successfully.'}
+                          </li>
+                        )}
+                      </>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div style={{
+              flex: 1, overflowY: 'auto', background: 'var(--c-surface-lowest)',
+              border: '1px solid var(--c-border)', borderRadius: 12,
+              padding: 16, maxHeight: '350px', boxSizing: 'border-box'
+            }}>
+              {previewChart.sections.map((sec, sIdx) => (
+                <div key={sIdx} style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: '10px', fontWeight: 950, color: 'var(--c-accent-from)', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {sec.name}
+                  </h4>
+                  {sec.lines.map((line, lIdx) => (
+                    <div key={lIdx} style={{ marginBottom: 6, fontSize: '11px', fontFamily: 'monospace', whiteSpace: 'pre', lineHeight: '1.4' }}>
+                      {line.chords && line.chords.length > 0 && (
+                        <div style={{ color: 'var(--c-accent-from)', fontWeight: 700 }}>
+                          {(() => {
+                            let chordLine = '';
+                            let lastOffset = 0;
+                            const sortedChords = [...line.chords].sort((a, b) => a.offset - b.offset);
+                            sortedChords.forEach(c => {
+                              const padding = ' '.repeat(Math.max(0, c.offset - lastOffset));
+                              chordLine += padding + c.chord;
+                              lastOffset = c.offset + c.chord.length;
+                            });
+                            return chordLine;
+                          })()}
+                        </div>
+                      )}
+                      <div style={{ color: 'var(--c-text-primary)' }}>{line.lyrics}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
+              <Button
+                onClick={() => setShowPreviewModal(false)}
+                style={{ flex: 1 }}
+              >
+                {isSpanish ? 'Cancelar' : 'Cancel'}
+              </Button>
+              <Button
+                onClick={() => {
+                  const textRep = generateTextRepresentation(previewChart);
+                  setImportText(textRep);
+                  setShowPreviewModal(false);
+                  setShowImportModal(true);
+                  setImportTab('paste');
+                }}
+                style={{ flex: 1 }}
+              >
+                {isSpanish ? 'Editar' : 'Edit Manually'}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSavePreviewChart}
+                style={{ flex: 1.5 }}
+              >
+                {isSpanish ? 'Confirmar y Guardar' : 'Confirm & Save'}
+              </Button>
+            </div>
+          </div>
+        </DialogScaffold>
+      )}
 
       {/* Bottom Playback Control Bar */}
       {activeSections.length > 0 && (

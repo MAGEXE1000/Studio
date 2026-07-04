@@ -377,7 +377,7 @@ export default function StagexPanel() {
   }, [isWebDesktop]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeReady = useRef(false);
-  const { settings } = useChordStore();
+  const settings = useChordStore(state => state.settings);
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<any[]>([]);

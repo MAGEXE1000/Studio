@@ -21,8 +21,7 @@ export const MOTION_EASINGS = {
 
 // Helper to check if reduced motion is preferred by the system or settings
 export function usePrefersReducedMotion() {
-  const { settings } = useChordStore();
-  const speed = settings?.animationSpeed;
+  const speed = useChordStore(state => state.settings?.animationSpeed);
   if (speed === 'reduced') return true;
   if (speed === 'normal' || speed === 'fast') return false;
   return (
@@ -33,8 +32,7 @@ export function usePrefersReducedMotion() {
 
 // Helper to check the animation duration speed coefficient
 export function useAnimationSpeed() {
-  const { settings } = useChordStore();
-  const speed = settings?.animationSpeed;
+  const speed = useChordStore(state => state.settings?.animationSpeed);
   return speed === 'fast' ? 0.6 : 1.0;
 }
 

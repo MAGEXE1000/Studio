@@ -189,7 +189,8 @@ function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): Gree
 let _sessionIntroFinished = false;
 
 export default function StudioHub() {
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(state => state.settings);
+  const updateSettings = useChordStore(state => state.updateSettings);
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -1530,7 +1531,8 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
 }) {
   const ota = useOtaUpdate();
   const isWebDesktop = useIsWebDesktop();
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(state => state.settings);
+  const updateSettings = useChordStore(state => state.updateSettings);
   const lang = settings.language ?? 'en';
   const changelogSections = getChangelogSections(lang);
   const [changelogExpanded, setChangelogExpanded] = useState(false);
@@ -2423,7 +2425,9 @@ function HubSettings({
   devToast?: string | null;
   renderDevToast?: () => React.ReactNode;
 }) {
-  const { settings, updateSettings, updatePerApp } = useChordStore();
+  const settings = useChordStore(state => state.settings);
+  const updateSettings = useChordStore(state => state.updateSettings);
+  const updatePerApp = useChordStore(state => state.updatePerApp);
   const navigationHistory = useNavigationStore(s => s.history);
   const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'settings' };
   const { preferences, setPreference } = useStudioPreferences();
@@ -5097,7 +5101,7 @@ function HubNav({ tab, setTab, accent, introFinished = true }: {
   accent: { from: string; to: string; mid: string };
   introFinished?: boolean;
 }) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(state => state.settings);
   const HUB_NAV_ITEMS = useHubNavItems();
   const navRef   = useRef<HTMLElement | null>(null);
   useLiquidGlassNav(navRef);
@@ -5299,7 +5303,7 @@ function HubHelp({
   tab: HubTab;
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
 }) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(state => state.settings);
   const navigationHistory = useNavigationStore(s => s.history);
   const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'help' };
   const t = useT();

@@ -50,32 +50,23 @@ export default function GroovexApp() {
     };
   }, []);
 
+  const prevViewRef = useRef<GroovexView>(view);
+  useEffect(() => {
+    if (view !== prevViewRef.current) {
+      const oldIdx = VIEW_ORDER.indexOf(prevViewRef.current);
+      const newIdx = VIEW_ORDER.indexOf(view);
+      setViewAnim(newIdx >= oldIdx ? 'panel-enter-right' : 'panel-enter-left');
+      prevViewRef.current = view;
+    }
+  }, [view]);
+
   function navigate(next: GroovexView) {
-    const oldIdx = VIEW_ORDER.indexOf(view);
-    const newIdx = VIEW_ORDER.indexOf(next);
-    setViewAnim(newIdx >= oldIdx ? 'panel-enter-right' : 'panel-enter-left');
     setView(next);
   }
 
   function handleBack() {
-    if (view === 'player') {
-      navigate('library');
-    } else {
-      window.dispatchEvent(new Event('studio-hub-return'));
-    }
+    useChordStore.getState().popNav();
   }
-
-  useBackHandler('nested', () => {
-    if (view === 'player') {
-      navigate('library');
-      return true;
-    }
-    if (view === 'preferences') {
-      navigate('library');
-      return true;
-    }
-    return false;
-  }, [view]);
 
   return (
     <div className="groovex-root" style={{

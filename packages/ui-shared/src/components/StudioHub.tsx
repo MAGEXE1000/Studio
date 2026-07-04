@@ -214,7 +214,16 @@ export default function StudioHub() {
     return false;
   })();
 
-  const [tab, setTab]       = useState<HubTab>('home');
+  const navigationHistory = useChordStore(s => s.navigationHistory);
+  const pushNav = useChordStore(s => s.pushNav);
+  const popNav = useChordStore(s => s.popNav);
+  const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'home' };
+  const tab = currentRoute.tab ?? 'home';
+
+  const setTab = useCallback((action: React.SetStateAction<HubTab>) => {
+    const nextTab = typeof action === 'function' ? action(tab) : action;
+    pushNav({ app: 'hub', tab: nextTab, page: 'main' });
+  }, [pushNav, tab]) as React.Dispatch<React.SetStateAction<HubTab>>;
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('studio:hub-tab-active', { detail: tab }));
@@ -404,17 +413,7 @@ export default function StudioHub() {
     };
   }, [setTab]);
 
-  useBackHandler('nested', () => {
-    if (tab === 'profile') {
-      setTab('settings');
-      return true;
-    }
-    if (tab === 'settings' || tab === 'help') {
-      setTab('home');
-      return true;
-    }
-    return false;
-  }, [tab]);
+
 
   const launchApp = useCallback((appMode: 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex') => {
     if ((window as any).studioTransitionActive) {
@@ -2424,7 +2423,8 @@ function HubSettings({
   devToast?: string | null;
   renderDevToast?: () => React.ReactNode;
 }) {
-  const { settings, updateSettings, updatePerApp } = useChordStore();
+  const { settings, updateSettings, updatePerApp, navigationHistory, pushNav, popNav } = useChordStore();
+  const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'settings' };
   const { preferences, setPreference } = useStudioPreferences();
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -2465,10 +2465,19 @@ function HubSettings({
     return 'main';
   };
 
-  const navCoordinator = useNavigationCoordinator(getInitialSettingsPage());
-  const page = navCoordinator.page as SettingsPageId;
-  const pageKey = navCoordinator.pageKey;
-  const slideDir = navCoordinator.direction;
+  const page = (currentRoute.tab === 'settings' ? (currentRoute.page ?? 'main') : 'main') as SettingsPageId;
+  const pageKey = navigationHistory.length;
+
+  const prevLenRef = useRef(navigationHistory.length);
+  const [slideDir, setSlideDir] = useState<'forward' | 'backward'>('forward');
+
+  useEffect(() => {
+    const curLen = navigationHistory.length;
+    if (curLen !== prevLenRef.current) {
+      setSlideDir(curLen >= prevLenRef.current ? 'forward' : 'backward');
+      prevLenRef.current = curLen;
+    }
+  }, [navigationHistory.length]);
 
   const activePageId = page === 'main' ? 'general' : page;
 
@@ -2624,13 +2633,13 @@ function HubSettings({
   const navigate = (to: SettingsPageId) => {
     snapshotScroll(page);
     pendingRestoreRef.current = to;
-    navCoordinator.navigate(to);
+    pushNav({ app: 'hub', tab: 'settings', page: to });
   };
 
   const goBack = () => {
     snapshotScroll(page);
     pendingRestoreRef.current = 'main';
-    navCoordinator.goBack('main');
+    popNav();
   };
 
   const goBackRef = useRef(goBack);
@@ -2976,24 +2985,7 @@ function HubSettings({
     }
   };
 
-  useBackHandler('nested', () => {
-    // 1. If inside a nested view (settingsPage), go back to main Hub
-    if (page !== 'main') {
-      goBack();
-      return true;
-    }
-    // 2. If inside profile tab, return to settings tab
-    if (tab === 'profile') {
-      setTab('settings');
-      return true;
-    }
-    // 3. If inside settings tab, return to home tab
-    if (tab === 'settings') {
-      setTab('home');
-      return true;
-    }
-    return false;
-  }, [page, tab]);
+
 
 
 
@@ -5306,7 +5298,8 @@ function HubHelp({
   tab: HubTab;
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
 }) {
-  const { settings } = useChordStore();
+  const { settings, navigationHistory, pushNav, popNav } = useChordStore();
+  const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'help' };
   const t = useT();
   const lang = settings.language ?? 'en';
   const isWebDesktop = useIsWebDesktop();
@@ -5320,24 +5313,26 @@ function HubHelp({
     return 'main';
   };
 
-  const navCoordinator = useNavigationCoordinator(getInitialHelpPage());
-  const page = navCoordinator.page as HelpPageActiveId;
-  const pageKey = navCoordinator.pageKey;
-  const slideDir = navCoordinator.direction;
+  const page = (currentRoute.tab === 'help' ? (currentRoute.page ?? 'main') : 'main') as HelpPageActiveId;
+  const pageKey = navigationHistory.length;
+
+  const prevLenRef = useRef(navigationHistory.length);
+  const [slideDir, setSlideDir] = useState<'forward' | 'backward'>('forward');
+
+  useEffect(() => {
+    const curLen = navigationHistory.length;
+    if (curLen !== prevLenRef.current) {
+      setSlideDir(curLen >= prevLenRef.current ? 'forward' : 'backward');
+      prevLenRef.current = curLen;
+    }
+  }, [navigationHistory.length]);
+
   const [copiedBugTemplate, setCopiedBugTemplate] = useState(false);
   const [firebaseAppReleaseJson, setFirebaseAppReleaseJson] = useState<string>('Loading...');
 
   const pageScrollPositions = useRef<Record<string, number>>({});
   const pendingRestoreRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  useBackHandler('nested', () => {
-    if (page !== 'main') {
-      goBack();
-      return true;
-    }
-    return false;
-  }, [page]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -5360,13 +5355,13 @@ function HubHelp({
   const navigate = (to: HelpPageActiveId) => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = to;
-    navCoordinator.navigate(to);
+    pushNav({ app: 'hub', tab: 'help', page: to });
   };
 
   const goBack = () => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = 'main';
-    navCoordinator.goBack('main');
+    popNav();
   };
 
   useEffect(() => {

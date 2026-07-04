@@ -9,6 +9,16 @@ export type ActivePanel = 'library' | 'chord' | 'settings' | 'songs';
 export type AccentColor = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal' | 'custom';
 export type AppKey = 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
 
+export interface AppRoute {
+  app: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+  tab?: 'home' | 'settings' | 'profile' | 'help';
+  page?: string;      // Settings pages, help pages, sub-app panels (e.g. 'library', 'songs')
+  subView?: string;   // Nested views (e.g. 'dashboard', 'logs', 'practice')
+  id?: string;        // ID of active preset, chord, or take
+  type?: 'screen' | 'modal' | 'sheet' | 'overlay';
+}
+
+
 export interface PerAppVisuals {
   theme: Theme;
   accentColor: AccentColor;
@@ -143,6 +153,13 @@ interface ChordStore {
   recentChords: string[];
   progressions: Progression[];
   currentProgressionChords: string[];
+  navigationHistory: AppRoute[];
+  pushNav: (route: Partial<AppRoute>) => void;
+  popNav: () => void;
+  replaceNav: (route: Partial<AppRoute>) => void;
+  resetNavStack: (stack: AppRoute[]) => void;
+  dismissNavType: (type: 'modal' | 'sheet' | 'overlay') => void;
+
   multiSelectChords: string[];
   isMultiChordMode: boolean;
   presets: SongPreset[];
@@ -343,6 +360,134 @@ export const useChordStore = create<ChordStore>()(
       chordUsage: {},
       activityLog: [],
       lastSession: { app: 'hub' },
+      navigationHistory: [{ app: 'hub', tab: 'home' }],
+
+      pushNav: (route) => {
+        set((state) => {
+          const current = state.navigationHistory[state.navigationHistory.length - 1] || { app: 'hub', tab: 'home' };
+          const nextApp = route.app ?? current.app;
+          const nextRoute: AppRoute = {
+            app: nextApp,
+            tab: nextApp === current.app ? (route.tab !== undefined ? route.tab : current.tab) : route.tab,
+            page: nextApp === current.app ? (route.page !== undefined ? route.page : current.page) : route.page,
+            subView: nextApp === current.app ? (route.subView !== undefined ? route.subView : current.subView) : route.subView,
+            id: nextApp === current.app ? (route.id !== undefined ? route.id : current.id) : route.id,
+            type: route.type !== undefined ? route.type : undefined,
+          };
+          
+          if (nextRoute.app === 'chords' && !nextRoute.page) {
+            nextRoute.page = 'library';
+          } else if (nextRoute.app === 'vocalex' && !nextRoute.page) {
+            nextRoute.page = 'practice';
+          } else if (nextRoute.app === 'groovex' && !nextRoute.page) {
+            nextRoute.page = 'library';
+          }
+
+          // Deduplicate subsequent identical routes to prevent double-push bugs
+          const currentStr = JSON.stringify(current);
+          const nextStr = JSON.stringify(nextRoute);
+          if (currentStr === nextStr) {
+            return {};
+          }
+
+          const nextHistory = [...state.navigationHistory, nextRoute];
+          const updateObj: any = {
+            navigationHistory: nextHistory,
+            settings: { ...state.settings, appMode: nextRoute.app },
+            lastSession: { ...state.lastSession, app: nextRoute.app },
+          };
+          if (nextRoute.app === 'chords') {
+            updateObj.activePanel = nextRoute.page as ActivePanel;
+          }
+          return updateObj;
+        });
+      },
+
+      popNav: () => {
+        set((state) => {
+          if (state.navigationHistory.length <= 1) {
+            return {};
+          }
+          const nextHistory = state.navigationHistory.slice(0, -1);
+          const nextRoute = nextHistory[nextHistory.length - 1];
+          const updateObj: any = {
+            navigationHistory: nextHistory,
+            settings: { ...state.settings, appMode: nextRoute.app },
+            lastSession: { ...state.lastSession, app: nextRoute.app },
+          };
+          if (nextRoute.app === 'chords') {
+            updateObj.activePanel = (nextRoute.page || 'library') as ActivePanel;
+          }
+          return updateObj;
+        });
+      },
+
+      replaceNav: (route) => {
+        set((state) => {
+          const current = state.navigationHistory[state.navigationHistory.length - 1] || { app: 'hub', tab: 'home' };
+          const nextApp = route.app ?? current.app;
+          const nextRoute: AppRoute = {
+            app: nextApp,
+            tab: nextApp === current.app ? (route.tab !== undefined ? route.tab : current.tab) : route.tab,
+            page: nextApp === current.app ? (route.page !== undefined ? route.page : current.page) : route.page,
+            subView: nextApp === current.app ? (route.subView !== undefined ? route.subView : current.subView) : route.subView,
+            id: nextApp === current.app ? (route.id !== undefined ? route.id : current.id) : route.id,
+            type: route.type !== undefined ? route.type : undefined,
+          };
+          
+          if (nextRoute.app === 'chords' && !nextRoute.page) {
+            nextRoute.page = 'library';
+          } else if (nextRoute.app === 'vocalex' && !nextRoute.page) {
+            nextRoute.page = 'practice';
+          } else if (nextRoute.app === 'groovex' && !nextRoute.page) {
+            nextRoute.page = 'library';
+          }
+
+          const nextHistory = [...state.navigationHistory.slice(0, -1), nextRoute];
+          const updateObj: any = {
+            navigationHistory: nextHistory,
+            settings: { ...state.settings, appMode: nextRoute.app },
+            lastSession: { ...state.lastSession, app: nextRoute.app },
+          };
+          if (nextRoute.app === 'chords') {
+            updateObj.activePanel = nextRoute.page as ActivePanel;
+          }
+          return updateObj;
+        });
+      },
+
+      resetNavStack: (stack) => {
+        set((state) => {
+          const nextRoute = stack[stack.length - 1] || { app: 'hub', tab: 'home' };
+          return {
+            navigationHistory: stack.length > 0 ? stack : [{ app: 'hub', tab: 'home' }],
+            settings: { ...state.settings, appMode: nextRoute.app },
+            lastSession: { ...state.lastSession, app: nextRoute.app },
+          };
+        });
+      },
+
+      dismissNavType: (type) => {
+        set((state) => {
+          const stack = [...state.navigationHistory];
+          let foundIdx = -1;
+          for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].type === type) {
+              foundIdx = i;
+              break;
+            }
+          }
+          if (foundIdx === -1) return {};
+          
+          const nextHistory = stack.slice(0, foundIdx);
+          const nextRoute = nextHistory[nextHistory.length - 1] || { app: 'hub', tab: 'home' };
+          return {
+            navigationHistory: nextHistory.length > 0 ? nextHistory : [{ app: 'hub', tab: 'home' }],
+            settings: { ...state.settings, appMode: nextRoute.app },
+            lastSession: { ...state.lastSession, app: nextRoute.app },
+          };
+        });
+      },
 
       trackChordUsage: (chordId) => {
         set(state => ({

@@ -1,4 +1,4 @@
-import { useChordStore, getChordById, setBackHandler, setNavLocked, setNavHidden, useScrollHide, useT, type SongPreset } from '@workspace/studio-core';
+import { useChordStore, getChordById, useBackHandler, setNavLocked, setNavHidden, useScrollHide, useT, type SongPreset } from '@workspace/studio-core';
 /**
  * ProgressionGenerator — bottom-sheet modal for the auto chord-progression
  * generator. Pure UI: all theory lives in src/lib/progressionGen.ts.
@@ -122,14 +122,11 @@ export default function ProgressionGenerator({
   // Hook into the platform back-button: closing the swap picker first, then
   // the save prompt or preset picker, then the modal itself. Prevents the
   // back gesture from popping the user all the way out of Chordex by accident.
-  useEffect(() => {
-    setBackHandler(() => {
-      if (swapOpenIdx !== null)  { setSwapOpenIdx(null); return true; }
-      if (presetPickerOpen)      { requestClosePicker(); return true; }
-      if (savePromptOpen)        { setSavePromptOpen(false); return true; }
-      requestClose(); return true;
-    });
-    return () => setBackHandler(null);
+  useBackHandler('nested', () => {
+    if (swapOpenIdx !== null)  { setSwapOpenIdx(null); return true; }
+    if (presetPickerOpen)      { requestClosePicker(); return true; }
+    if (savePromptOpen)        { setSavePromptOpen(false); return true; }
+    requestClose(); return true;
   }, [swapOpenIdx, savePromptOpen, presetPickerOpen, requestClose, requestClosePicker]);
 
   const activeChordIds = editedChordIds ?? result?.chordIds ?? [];

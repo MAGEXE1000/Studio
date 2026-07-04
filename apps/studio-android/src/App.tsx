@@ -1346,14 +1346,25 @@ export default function App() {
       addLog('info', 'nav', `Android back button / swipe gesture triggered. handleGlobalBack returned: ${handled}`);
 
       if (!handled) {
-        const isSubApp = useChordStore.getState().settings.appMode !== 'hub';
-        if (isSubApp) {
-          const behavior = useChordStore.getState().settings.swipeBackBehavior || 'exit-to-hub';
-          addLog('info', 'nav', `Root screen back gesture inside sub-app: appMode=${useChordStore.getState().settings.appMode}, behavior=${behavior}`);
-          if (behavior === 'exit-to-hub') {
-            returnToStudioHubRef.current(false);
+        const store = useChordStore.getState();
+        const historyLen = store.navigationHistory.length;
+        
+        if (historyLen > 1) {
+          // If inside a sub-app at the sub-app root, respect settings.swipeBackBehavior
+          const currentRoute = store.navigationHistory[historyLen - 1];
+          const previousRoute = store.navigationHistory[historyLen - 2];
+          const isSubAppRoot = currentRoute.app !== 'hub' && previousRoute.app === 'hub';
+          
+          if (isSubAppRoot) {
+            const behavior = store.settings.swipeBackBehavior || 'exit-to-hub';
+            if (behavior === 'exit-to-hub') {
+              store.popNav();
+            } else {
+              addLog('info', 'nav', `Exit to Hub prevented: Manual Back Only is active.`);
+            }
           } else {
-            addLog('info', 'nav', `Exit to Hub prevented: Manual Back Only is active.`);
+            // Standard sequential back pop
+            store.popNav();
           }
         } else {
           // Double press to exit when already on the Studio Hub

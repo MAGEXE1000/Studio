@@ -1,4 +1,4 @@
-import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, setBackHandler, useIsWebDesktop, logActivity } from '@workspace/studio-core';
+import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity } from '@workspace/studio-core';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../components/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';
@@ -2582,34 +2582,26 @@ export default function SongsPanel() {
   }, [updatePreset]);
 
   // ── Android back gesture / predictive back ──────────────────────────────
-  // Returns true if it handled something, false if we're at the root (should minimize).
-  // backHandlerRef always holds the freshest state — no stale closures.
-  const backHandlerRef = useRef<() => boolean>(() => false);
-  useEffect(() => {
-    backHandlerRef.current = () => {
-      if (showSectionPicker)   { setShowSectionPicker(false);   return true; }
-      if (showSectionSelector) { setShowSectionSelector(false); return true; }
-      if (showCustomBuilder)   { setShowCustomBuilder(false);   return true; }
-      if (showPicker)          { setShowPicker(false);          return true; }
-      if (showLive)            { setShowLive(false);            return true; }
-      if (showForm)            { setShowForm(false); setEditingId(null); return true; }
-      if (exportModalPreset)   { setExportModal(null);          return true; }
-      if (jsonExportPreset)    { setJsonExportPreset(null);     return true; }
-      if (showImport)          { setShowImport(false);          return true; }
-      if (showDeleteId)        { setShowDeleteId(null);         return true; }
-      if (activePresetId)      { setActivePreset(null);         return true; }
-      return false;
-    };
-  }, [showSectionPicker, showSectionSelector, showCustomBuilder, showPicker,
-      showLive, showForm, exportModalPreset, showImport, showDeleteId,
-      activePresetId, setActivePreset]);
-
-  // Register/deregister with the global back stack based on which panel is active.
-  useEffect(() => {
-    if (activePanel !== 'songs') return;
-    setBackHandler(() => backHandlerRef.current());
-    return () => setBackHandler(null);
-  }, [activePanel]);
+  // Returns true if it handled something, false if we're at the root.
+  useBackHandler('nested', () => {
+    if (activePanel !== 'songs') return false;
+    if (showSectionPicker)   { setShowSectionPicker(false);   return true; }
+    if (showSectionSelector) { setShowSectionSelector(false); return true; }
+    if (showCustomBuilder)   { setShowCustomBuilder(false);   return true; }
+    if (showPicker)          { setShowPicker(false);          return true; }
+    if (showLive)            { setShowLive(false);            return true; }
+    if (showForm)            { setShowForm(false); setEditingId(null); return true; }
+    if (exportModalPreset)   { setExportModal(null);          return true; }
+    if (jsonExportPreset)    { setJsonExportPreset(null);     return true; }
+    if (showImport)          { setShowImport(false);          return true; }
+    if (showDeleteId)        { setShowDeleteId(null);         return true; }
+    if (activePresetId)      { setActivePreset(null);         return true; }
+    return false;
+  }, [
+    activePanel, showSectionPicker, showSectionSelector, showCustomBuilder,
+    showPicker, showLive, showForm, exportModalPreset, jsonExportPreset,
+    showImport, showDeleteId, activePresetId, setActivePreset
+  ]);
 
   useEffect(() => {
     deduplicateAllPresets();

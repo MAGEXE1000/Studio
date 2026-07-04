@@ -88,11 +88,23 @@ export default function VocalexApp() {
       ? saved
       : 'practice';
   })();
+  const currentRoute = useChordStore(s => s.navigationHistory[s.navigationHistory.length - 1] || { app: 'hub' });
+  const pushNav = useChordStore(s => s.pushNav);
+
   const [activeTab, setActiveTab] = useState<VocalexPanel>(initialVocalexTab);
   const [visibleTab, setVisibleTab] = useState<VocalexPanel>(initialVocalexTab);
   const [exitingTab, setExitingTab] = useState<VocalexPanel | null>(null);
   const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
   const prevTab = useRef<VocalexPanel>(initialVocalexTab);
+
+  useEffect(() => {
+    if (currentRoute.app === 'vocalex' && currentRoute.page) {
+      const p = currentRoute.page as VocalexPanel;
+      if (p !== activeTab) {
+        setActiveTab(p);
+      }
+    }
+  }, [currentRoute, activeTab]);
 
   // Persist the active tab on every change so cold-start can resume here.
   useEffect(() => {
@@ -232,12 +244,8 @@ export default function VocalexApp() {
 
   useBackHandler('nested', () => {
     if (headerBack) { headerBack(); return true; }
-    if (activeTab !== 'practice') {
-      setActiveTab('practice');
-      return true;
-    }
     return false;
-  }, [headerBack, activeTab]);
+  }, [headerBack]);
 
 
 
@@ -382,7 +390,7 @@ export default function VocalexApp() {
           <WebAppSectionDock 
             app="vocalex" 
             activeSection={activeTab} 
-            onChangeSection={setActiveTab} 
+            onChangeSection={(p) => pushNav({ app: 'vocalex', page: p })} 
           />
         )}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative', paddingTop: isWebDesktop ? '20px' : '0px', paddingBottom: '0px', display: 'flex', flexDirection: 'column' }}>
@@ -504,7 +512,7 @@ export default function VocalexApp() {
               onPointerUp={() => setPressedPanel(null)}
               onPointerLeave={() => setPressedPanel(null)}
               onPointerCancel={() => setPressedPanel(null)}
-              onClick={() => setActiveTab(panel)}
+              onClick={() => pushNav({ app: 'vocalex', page: panel })}
               style={{
                 flex: 1,
                 display: 'flex',

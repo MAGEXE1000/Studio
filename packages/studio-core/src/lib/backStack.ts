@@ -55,17 +55,8 @@ export function handleGlobalBack(): boolean {
   return false;
 }
 
-// ── Backward-compatible API ──────────────────────────────────────────────────
-// Existing panels use setBackHandler(fn) / setBackHandler(null).
-// These are mapped to 'panel' priority to preserve existing behavior.
+// Legacy back stack setBackHandler API removed in Sprint 9 navigation unification.
 
-let _legacyCleanup: (() => void) | null = null;
-
-export function setBackHandler(fn: (() => boolean) | null): void {
-  _legacyCleanup?.();
-  _legacyCleanup = null;
-  if (fn) _legacyCleanup = pushBackHandler('panel', fn);
-}
 
 // ── React hook ───────────────────────────────────────────────────────────────
 
@@ -89,4 +80,14 @@ export function useBackHandler(
     return pushBackHandler(priority, fn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+}
+
+/**
+ * Legacy setBackHandler stub for backward compatibility.
+ */
+export function setBackHandler(priority: BackPriority, handler: (() => boolean) | null): () => void {
+  if (handler) {
+    return pushBackHandler(priority, handler);
+  }
+  return () => {};
 }

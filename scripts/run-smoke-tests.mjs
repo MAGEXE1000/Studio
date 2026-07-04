@@ -79,6 +79,11 @@ try {
   execSync('node scripts/run-startup-regression-tests.mjs', { stdio: 'inherit', cwd: repoRoot });
   console.log('✓ Startup & Updater UI Regression Tests passed.');
 
+  // 7d. Run Navigation Regression Tests
+  console.log('Running Navigation Regression Tests...');
+  execSync('node --import ./scripts/esm-resolver.js scripts/run-navigation-regression-tests.mjs', { stdio: 'inherit', cwd: repoRoot });
+  console.log('✓ Navigation Regression Tests passed.');
+
   // 8. Run Chord Normalization & Resolution Tests
   console.log('Running Chord Normalization & Resolution Tests...');
   const chordsModulePath = path.join(repoRoot, 'packages/studio-core/dist/src/data/chords.js');

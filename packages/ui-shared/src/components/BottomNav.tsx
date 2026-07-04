@@ -121,7 +121,7 @@ export default function BottomNav() {
   // slices change, not on every unrelated store mutation (selectedChordId,
   // recentChords, multiSelectChords, etc.).
   const activePanel    = useChordStore(s => s.activePanel);
-  const setActivePanel = useChordStore(s => s.setActivePanel);
+  const pushNav        = useChordStore(s => s.pushNav);
   const t = useT();
 
   const NAV_ITEMS: { panel: ActivePanel; Icon: React.FC<{ active: boolean }>; label: string }[] = [
@@ -287,7 +287,7 @@ export default function BottomNav() {
             onPointerUp={() => setPressedPanel(null)}
             onPointerLeave={() => setPressedPanel(null)}
             onPointerCancel={() => setPressedPanel(null)}
-            onClick={() => setActivePanel(panel)}
+            onClick={() => pushNav({ app: 'chords', page: panel })}
             style={{
               flex: 1,
               display: 'flex',

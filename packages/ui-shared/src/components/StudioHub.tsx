@@ -15,6 +15,7 @@ import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } fro
 import ProfileDropdown from './kokonutui/profile-dropdown';
 import SmartLoading from './SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from './StudioSkeleton';
+import { SettingsScaffold } from './StudioLayoutSystem';
 
 
 // AccountCard pulls Firebase (auth + firestore). Lazy-load it so Firebase
@@ -4788,20 +4789,19 @@ User Agent: [Automatically Generated]
   if (!isWebDesktop) {
     if (page === 'developer') {
       return (
-        <div key={pageKey} className="settings-panel-sheet" style={{ ...subStyle, padding: 0, paddingBottom: 0 }}>
+        <SettingsScaffold key={pageKey} title={t.hub.studioSettings.developerTitle || 'Developer Options'} onBack={goBack}>
           <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
             <DevToolsDashboard accent={accent} onBack={goBack} />
           </Suspense>
-        </div>
+        </SettingsScaffold>
       );
     }
 
     if (page === 'updater') {
       return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
+        <SettingsScaffold key={pageKey} title="App Updater" onBack={goBack}>
           {renderUpdaterContent()}
-        </div>
+        </SettingsScaffold>
       );
     }
 
@@ -4813,13 +4813,9 @@ User Agent: [Automatically Generated]
     if (standardScrollPages.includes(page)) {
       const title = getPageTitle(page);
       return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={title} onBack={goBack} />
-          <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }} className="no-scrollbar">
-            {renderActivePageContent(page)}
-          </div>
-        </div>
+        <SettingsScaffold key={pageKey} title={title} onBack={goBack}>
+          {renderActivePageContent(page)}
+        </SettingsScaffold>
       );
     }
 
@@ -5903,13 +5899,9 @@ User Agent: [Automatically Generated]
     if (standardScrollPages.includes(page)) {
       const title = getPageTitle(page as HelpPageId);
       return (
-        <div key={pageKey} className="settings-panel-sheet" style={subStyle}>
-          <style>{HUB_SETTINGS_CSS}</style>
-          <SettingsSubHeader title={title} onBack={goBack} />
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }} className="no-scrollbar">
-            {renderActivePageContent(page as HelpPageId)}
-          </div>
-        </div>
+        <SettingsScaffold key={pageKey} title={title} onBack={goBack}>
+          {renderActivePageContent(page as HelpPageId)}
+        </SettingsScaffold>
       );
     }
 

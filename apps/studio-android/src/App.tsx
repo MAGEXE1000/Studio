@@ -28,6 +28,7 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition } from '@workspace/ui-shared/src/components/AppAnimationSystem';
+import { SubAppScaffold } from '@workspace/ui-shared';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -2341,51 +2342,51 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
   return (
     <>
       {cachedApp === 'groovex' && (
-        <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <SubAppScaffold appKey="groovex">
           <ErrorBoundary moduleName="Groovex">
             <Suspense fallback={<FallbackTracker app="groovex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
               <AppReadyNotifier app="groovex" onReady={onReady} />
               <AppEntryTransition><GroovexApp /></AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
-        </div>
+        </SubAppScaffold>
       )}
 
       {cachedApp === 'vocalex' && (
-        <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <SubAppScaffold appKey="vocalex">
           <ErrorBoundary moduleName="Vocalex">
             <Suspense fallback={<FallbackTracker app="vocalex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
               <AppReadyNotifier app="vocalex" onReady={onReady} />
               <AppEntryTransition><VocalexApp /></AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
-        </div>
+        </SubAppScaffold>
       )}
 
       {cachedApp === 'stage' && (
-        <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <SubAppScaffold appKey="stage">
           <ErrorBoundary moduleName="Stagex">
             <Suspense fallback={<FallbackTracker app="stage"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
               <AppReadyNotifier app="stage" onReady={onReady} />
               <AppEntryTransition><StageCorePanel /></AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
-        </div>
+        </SubAppScaffold>
       )}
 
       {cachedApp === 'drums' && (
-        <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <SubAppScaffold appKey="drums">
           <ErrorBoundary moduleName="Drumex">
             <Suspense fallback={<FallbackTracker app="drums"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
               <AppReadyNotifier app="drums" onReady={onReady} />
               <AppEntryTransition><DrumEditor /></AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
-        </div>
+        </SubAppScaffold>
       )}
 
       {cachedApp === 'chords' && (
-        <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
+        <SubAppScaffold appKey="chords">
           <LifecycleTracker name="Chordex" />
           <AppEntryTransition
             className="flex flex-col w-full overflow-hidden select-none app-bg"
@@ -2436,7 +2437,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
 
             {cachedApp === 'chords' && <BottomNav />}
           </AppEntryTransition>
-        </div>
+        </SubAppScaffold>
       )}
     </>
   );

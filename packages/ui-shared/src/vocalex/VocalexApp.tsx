@@ -1,4 +1,4 @@
-import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import { subscribeVocalexBack } from './headerBack';
@@ -88,23 +88,16 @@ export default function VocalexApp() {
       ? saved
       : 'practice';
   })();
-  const currentRoute = useChordStore(s => s.navigationHistory[s.navigationHistory.length - 1] || { app: 'hub' });
-  const pushNav = useChordStore(s => s.pushNav);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
 
-  const [activeTab, setActiveTab] = useState<VocalexPanel>(initialVocalexTab);
+  const activeTab = (currentRoute.app === 'vocalex' && currentRoute.page && NAV_ORDER.includes(currentRoute.page as VocalexPanel)
+    ? (currentRoute.page as VocalexPanel)
+    : initialVocalexTab);
+
   const [visibleTab, setVisibleTab] = useState<VocalexPanel>(initialVocalexTab);
   const [exitingTab, setExitingTab] = useState<VocalexPanel | null>(null);
   const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
   const prevTab = useRef<VocalexPanel>(initialVocalexTab);
-
-  useEffect(() => {
-    if (currentRoute.app === 'vocalex' && currentRoute.page) {
-      const p = currentRoute.page as VocalexPanel;
-      if (p !== activeTab) {
-        setActiveTab(p);
-      }
-    }
-  }, [currentRoute, activeTab]);
 
   // Persist the active tab on every change so cold-start can resume here.
   useEffect(() => {
@@ -390,7 +383,7 @@ export default function VocalexApp() {
           <WebAppSectionDock 
             app="vocalex" 
             activeSection={activeTab} 
-            onChangeSection={(p) => pushNav({ app: 'vocalex', page: p })} 
+            onChangeSection={(p) => NavigationDispatcher.push({ app: 'vocalex', page: p })} 
           />
         )}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative', paddingTop: isWebDesktop ? '20px' : '0px', paddingBottom: '0px', display: 'flex', flexDirection: 'column' }}>
@@ -512,7 +505,7 @@ export default function VocalexApp() {
               onPointerUp={() => setPressedPanel(null)}
               onPointerLeave={() => setPressedPanel(null)}
               onPointerCancel={() => setPressedPanel(null)}
-              onClick={() => pushNav({ app: 'vocalex', page: panel })}
+              onClick={() => NavigationDispatcher.push({ app: 'vocalex', page: panel })}
               style={{
                 flex: 1,
                 display: 'flex',

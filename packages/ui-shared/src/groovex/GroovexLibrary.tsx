@@ -1,4 +1,4 @@
-import { useT, useScrollHide, useIsWebDesktop, useChordStore } from '@workspace/studio-core';
+import { useT, useScrollHide, useIsWebDesktop, useChordStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useState, useMemo, useRef } from 'react';
 import NoResultsLottie from '../components/lottie/NoResultsLottie';
 import { SONG_CATALOG, getArtists, getGenres } from './songCatalog';
@@ -15,7 +15,6 @@ export default function GroovexLibrary() {
   const setFilterGenre = useGroovexStore(s => s.setFilterGenre);
   const sortBy = useGroovexStore(s => s.sortBy);
   const setSortBy = useGroovexStore(s => s.setSortBy);
-  const setView = useGroovexStore(s => s.setView);
   const setActiveSong = useGroovexStore(s => s.setActiveSong);
   const addRecentSong = useGroovexStore(s => s.addRecentSong);
   const recentSongs = useGroovexStore(s => s.recentSongs);
@@ -72,7 +71,7 @@ export default function GroovexLibrary() {
   function openSong(song: SongMeta) {
     setActiveSong(song.id);
     addRecentSong(song.id);
-    setView('player');
+    NavigationDispatcher.push({ app: 'groovex', page: 'player' });
   }
 
   const sortLabel = sortBy === 'title' ? t.groovex.sortAZ : sortBy === 'artist' ? t.groovex.sortArtist : t.groovex.sortRecent;

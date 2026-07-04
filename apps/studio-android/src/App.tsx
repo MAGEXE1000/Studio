@@ -11,7 +11,7 @@ import {
   resetNav,
   setNavHidden,
   setNavLocked,
-  handleGlobalBack,
+  BackDispatcher,
   useStatusBar,
   recordNavigation,
   getNavigationEntries,
@@ -1281,12 +1281,6 @@ export default function App() {
         drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
         stagexView: storeState.settings.defaultStageView ?? 'Editor',
       });
-
-      import('@workspace/ui-shared')
-        .then(({ useGroovexStore }) => {
-          useGroovexStore.getState().setView('library');
-        })
-        .catch(() => {});
     }
 
     setTimeout(() => {
@@ -1342,43 +1336,21 @@ export default function App() {
         };
       } catch (_) {}
 
-      const handled = handleGlobalBack();
-      addLog('info', 'nav', `Android back button / swipe gesture triggered. handleGlobalBack returned: ${handled}`);
+      const handled = BackDispatcher.handleBackEvent();
+      addLog('info', 'nav', `Android back button / swipe gesture triggered. BackDispatcher.handleBackEvent returned: ${handled}`);
 
       if (!handled) {
-        const store = useChordStore.getState();
-        const historyLen = store.navigationHistory.length;
-        
-        if (historyLen > 1) {
-          // If inside a sub-app at the sub-app root, respect settings.swipeBackBehavior
-          const currentRoute = store.navigationHistory[historyLen - 1];
-          const previousRoute = store.navigationHistory[historyLen - 2];
-          const isSubAppRoot = currentRoute.app !== 'hub' && previousRoute.app === 'hub';
-          
-          if (isSubAppRoot) {
-            const behavior = store.settings.swipeBackBehavior || 'exit-to-hub';
-            if (behavior === 'exit-to-hub') {
-              store.popNav();
-            } else {
-              addLog('info', 'nav', `Exit to Hub prevented: Manual Back Only is active.`);
-            }
-          } else {
-            // Standard sequential back pop
-            store.popNav();
-          }
+        // Double press to exit when already on the Studio Hub / root reached
+        const now = Date.now();
+        if (now - lastBackTime.current < 2000) {
+          import('@capacitor/app')
+            .then(({ App: CapApp }) => CapApp.exitApp())
+            .catch(() => {});
         } else {
-          // Double press to exit when already on the Studio Hub
-          const now = Date.now();
-          if (now - lastBackTime.current < 2000) {
-            import('@capacitor/app')
-              .then(({ App: CapApp }) => CapApp.exitApp())
-              .catch(() => {});
-          } else {
-            lastBackTime.current = now;
-            setExitToast(true);
-            if (exitToastTimer.current) clearTimeout(exitToastTimer.current);
-            exitToastTimer.current = setTimeout(() => setExitToast(false), 2000);
-          }
+          lastBackTime.current = now;
+          setExitToast(true);
+          if (exitToastTimer.current) clearTimeout(exitToastTimer.current);
+          exitToastTimer.current = setTimeout(() => setExitToast(false), 2000);
         }
       }
 

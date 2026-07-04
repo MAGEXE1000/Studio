@@ -30,102 +30,108 @@ async function runNavigationTests() {
     }
   };
 
-  const storePath = path.join(repoRoot, 'packages/studio-core/dist/src/store/useChordStore.js');
+  const storePath = path.join(repoRoot, 'packages/studio-core/dist/src/store/useNavigationStore.js');
   const storeUrl = `file://${storePath.replace(/\\/g, '/')}`;
-  const { useChordStore } = await import(storeUrl);
+  const { useNavigationStore } = await import(storeUrl);
+
+  const dispatcherPath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/NavigationDispatcher.js');
+  const dispatcherUrl = `file://${dispatcherPath.replace(/\\/g, '/')}`;
+  const { NavigationDispatcher } = await import(dispatcherUrl);
 
   // Helper to reset store state before each test
   const resetStore = () => {
-    useChordStore.setState({
-      navigationHistory: [{ app: 'hub', tab: 'home' }],
-      activePanel: 'library',
-      settings: { appMode: 'hub' },
+    useNavigationStore.setState({
+      history: [{ app: 'hub', tab: 'home' }],
+      transitionType: null,
+      isTransitioning: false,
     });
+  };
+
+  const unlock = () => {
+    useNavigationStore.setState({ isTransitioning: false });
   };
 
   // Test 1: Initial Navigation State
   assertTest('Initial state is correct', () => {
     resetStore();
-    const state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 1);
-    assert.deepStrictEqual(state.navigationHistory[0], { app: 'hub', tab: 'home' });
-    assert.strictEqual(state.settings.appMode, 'hub');
+    const state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 1);
+    assert.deepStrictEqual(state.history[0], { app: 'hub', tab: 'home' });
   });
 
   // Test 2: pushNav works and defaults pages/panels correctly
   assertTest('pushNav sets defaults and activePanel', () => {
     resetStore();
-    const store = useChordStore.getState();
 
     // Push chords app mode
-    store.pushNav({ app: 'chords' });
-    let state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 2);
-    assert.strictEqual(state.navigationHistory[1].app, 'chords');
-    assert.strictEqual(state.navigationHistory[1].page, 'library');
-    assert.strictEqual(state.settings.appMode, 'chords');
-    assert.strictEqual(state.activePanel, 'library');
+    unlock();
+    NavigationDispatcher.push({ app: 'chords' });
+    let state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].page, 'library');
 
     // Push specific chords panel
-    state.pushNav({ app: 'chords', page: 'chord' });
-    state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 3);
-    assert.strictEqual(state.navigationHistory[2].app, 'chords');
-    assert.strictEqual(state.navigationHistory[2].page, 'chord');
-    assert.strictEqual(state.activePanel, 'chord');
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 3);
+    assert.strictEqual(state.history[2].app, 'chords');
+    assert.strictEqual(state.history[2].page, 'chord');
   });
 
   // Test 3: popNav works and restores activePanel
   assertTest('popNav pops stack and restores panel', () => {
     resetStore();
-    const store = useChordStore.getState();
 
-    store.pushNav({ app: 'chords' });
-    store.pushNav({ app: 'chords', page: 'chord' });
+    unlock();
+    NavigationDispatcher.push({ app: 'chords' });
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
     
-    let state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 3);
-    assert.strictEqual(state.activePanel, 'chord');
+    let state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 3);
 
-    store.popNav();
-    state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 2);
-    assert.strictEqual(state.navigationHistory[1].app, 'chords');
-    assert.strictEqual(state.navigationHistory[1].page, 'library');
-    assert.strictEqual(state.activePanel, 'library');
+    unlock();
+    NavigationDispatcher.pop();
+    state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].page, 'library');
 
-    store.popNav();
-    state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 1);
-    assert.deepStrictEqual(state.navigationHistory[0], { app: 'hub', tab: 'home' });
-    assert.strictEqual(state.settings.appMode, 'hub');
+    unlock();
+    NavigationDispatcher.pop();
+    state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 1);
+    assert.deepStrictEqual(state.history[0], { app: 'hub', tab: 'home' });
   });
 
   // Test 4: pushNav deduplication prevents double pushes
   assertTest('pushNav deduplicates identical subsequent routes', () => {
     resetStore();
-    const store = useChordStore.getState();
 
-    store.pushNav({ app: 'chords', page: 'chord' });
-    store.pushNav({ app: 'chords', page: 'chord' }); // identical
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    unlock();
+    NavigationDispatcher.push({ app: 'chords', page: 'chord' }); // identical
     
-    const state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 2); // should be 2, not 3
+    const state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 2); // should be 2, not 3
   });
 
   // Test 5: replaceNav replaces top of stack
   assertTest('replaceNav replaces top stack item', () => {
     resetStore();
-    const store = useChordStore.getState();
 
-    store.pushNav({ app: 'chords' });
-    store.replaceNav({ app: 'vocalex' });
+    unlock();
+    NavigationDispatcher.push({ app: 'chords' });
+    unlock();
+    NavigationDispatcher.replace({ app: 'vocalex' });
 
-    const state = useChordStore.getState();
-    assert.strictEqual(state.navigationHistory.length, 2);
-    assert.strictEqual(state.navigationHistory[1].app, 'vocalex');
-    assert.strictEqual(state.navigationHistory[1].page, 'practice');
-    assert.strictEqual(state.settings.appMode, 'vocalex');
+    const state = useNavigationStore.getState();
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'vocalex');
+    assert.strictEqual(state.history[1].page, 'practice');
   });
 
   console.log('\n=== REGRESSION TEST RESULTS ===');

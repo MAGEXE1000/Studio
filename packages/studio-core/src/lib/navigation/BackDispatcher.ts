@@ -1,6 +1,7 @@
 import { useNavigationStore } from '../../store/useNavigationStore';
 import { NavigationDispatcher } from './NavigationDispatcher';
-import { type BackPriority } from '../backStack';
+
+export type BackPriority = 'modal' | 'sheet' | 'overlay' | 'nested' | 'panel';
 
 const PRIORITY_ORDER: BackPriority[] = ['modal', 'sheet', 'overlay', 'nested', 'panel'];
 

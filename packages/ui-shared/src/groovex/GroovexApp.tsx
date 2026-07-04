@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from './useGroovexStore';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
@@ -12,8 +12,10 @@ const VIEW_ORDER: GroovexView[] = ['library', 'player', 'preferences'];
 
 export default function GroovexApp() {
   const isWebDesktop = useIsWebDesktop();
-  const view = useGroovexStore(s => s.view);
-  const setView = useGroovexStore(s => s.setView);
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const view = (currentRoute.app === 'groovex' && currentRoute.page && VIEW_ORDER.includes(currentRoute.page as GroovexView)
+    ? (currentRoute.page as GroovexView)
+    : 'library');
   const activeSongId = useGroovexStore(s => s.activeSongId);
   const [viewAnim, setViewAnim] = useState<'panel-enter-right' | 'panel-enter-left'>('panel-enter-right');
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
@@ -61,11 +63,11 @@ export default function GroovexApp() {
   }, [view]);
 
   function navigate(next: GroovexView) {
-    setView(next);
+    NavigationDispatcher.push({ app: 'groovex', page: next });
   }
 
   function handleBack() {
-    useChordStore.getState().popNav();
+    NavigationDispatcher.pop();
   }
 
   return (

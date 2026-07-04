@@ -1,4 +1,4 @@
-import { useChordStore, useScrollHide, useIsWebDesktop, useT } from '@workspace/studio-core';
+import { useChordStore, useScrollHide, useIsWebDesktop, useT, NavigationDispatcher } from '@workspace/studio-core';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import VinylLottie from '../components/lottie/VinylLottie';
 import LoadingLottie from '../components/lottie/LoadingLottie';
@@ -38,7 +38,7 @@ export default function GroovexPlayer() {
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
   const t = useT();
-  const { activeSongId, setView, preferences } = useGroovexStore();
+  const { activeSongId, preferences } = useGroovexStore();
   const song = useMemo(() => SONG_CATALOG.find(s => s.id === activeSongId), [activeSongId]);
 
   const engineRef = useRef<AudioEngine | null>(null);
@@ -376,7 +376,7 @@ export default function GroovexPlayer() {
         {isWebDesktop && (
           <div style={{ paddingTop: 16, display: 'flex', justifyContent: 'flex-start' }}>
             <button
-              onClick={() => setView('library')}
+              onClick={() => NavigationDispatcher.push({ app: 'groovex', page: 'library' })}
               className="btn-smooth"
               aria-label="Back to library"
               style={{

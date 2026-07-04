@@ -13,7 +13,6 @@ export interface GroovexPreferences {
 export type GroovexView = 'library' | 'player' | 'preferences';
 
 interface GroovexState {
-  view: GroovexView;
   activeSongId: string | null;
   searchQuery: string;
   filterArtist: string;
@@ -24,7 +23,6 @@ interface GroovexState {
   stemVolumes: Record<string, Record<string, number>>;
   stemMutes: Record<string, Record<string, boolean>>;
 
-  setView: (view: GroovexView) => void;
   setActiveSong: (songId: string | null) => void;
   setSearchQuery: (q: string) => void;
   setFilterArtist: (artist: string) => void;
@@ -39,7 +37,6 @@ interface GroovexState {
 export const useGroovexStore = create<GroovexState>()(
   persist(
     (set) => ({
-      view: 'library',
       activeSongId: null,
       searchQuery: '',
       filterArtist: '',
@@ -56,14 +53,6 @@ export const useGroovexStore = create<GroovexState>()(
       stemVolumes: {},
       stemMutes: {},
 
-      setView: (view) => {
-        const history = useChordStore.getState().navigationHistory;
-        const currentRoute = history[history.length - 1];
-        if (!currentRoute || currentRoute.app !== 'groovex' || currentRoute.page !== view) {
-          useChordStore.getState().pushNav({ app: 'groovex', page: view });
-        }
-        set({ view });
-      },
       setActiveSong: (songId) => set({ activeSongId: songId }),
       setSearchQuery: (q) => set({ searchQuery: q }),
       setFilterArtist: (artist) => set({ filterArtist: artist }),
@@ -98,28 +87,10 @@ export const useGroovexStore = create<GroovexState>()(
         stemVolumes: s.stemVolumes,
         stemMutes: s.stemMutes,
         sortBy: s.sortBy,
-        // Persist the last-visited view + active song so launch resumes
+        // Persist the last-visited active song so launch resumes
         // exactly where the user left off (e.g. mid-song in the player).
-        view: s.view,
         activeSongId: s.activeSongId,
       }),
     }
   )
 );
-
-// Subscribe to useChordStore's navigationHistory to synchronize view
-if (typeof window !== 'undefined') {
-  useChordStore.subscribe((state) => {
-    const history = state.navigationHistory;
-    if (history && history.length > 0) {
-      const currentRoute = history[history.length - 1];
-      if (currentRoute && currentRoute.app === 'groovex' && currentRoute.page) {
-        const p = currentRoute.page as GroovexView;
-        const currentLocalView = useGroovexStore.getState().view;
-        if (currentLocalView !== p) {
-          useGroovexStore.setState({ view: p });
-        }
-      }
-    }
-  });
-}

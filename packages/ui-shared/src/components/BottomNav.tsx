@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
 
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
@@ -117,11 +117,13 @@ export default function BottomNav() {
   const isWebDesktop = useIsWebDesktop();
   const settings       = useChordStore(s => s.settings);
 
-  // Granular selectors — BottomNav only rerenders when these specific
-  // slices change, not on every unrelated store mutation (selectedChordId,
-  // recentChords, multiSelectChords, etc.).
-  const activePanel    = useChordStore(s => s.activePanel);
-  const pushNav        = useChordStore(s => s.pushNav);
+  const activeRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub', tab: 'home' };
+  let activePanel: ActivePanel = 'library';
+  if (activeRoute.app === 'chords') {
+    activePanel = (activeRoute.page as ActivePanel) || 'library';
+  } else if (activeRoute.app === 'hub' && activeRoute.tab === 'settings') {
+    activePanel = 'settings';
+  }
   const t = useT();
 
   const NAV_ITEMS: { panel: ActivePanel; Icon: React.FC<{ active: boolean }>; label: string }[] = [
@@ -287,7 +289,13 @@ export default function BottomNav() {
             onPointerUp={() => setPressedPanel(null)}
             onPointerLeave={() => setPressedPanel(null)}
             onPointerCancel={() => setPressedPanel(null)}
-            onClick={() => pushNav({ app: 'chords', page: panel })}
+            onClick={() => {
+              if (panel === 'settings') {
+                NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
+              } else {
+                NavigationDispatcher.push({ app: 'chords', page: panel });
+              }
+            }}
             style={{
               flex: 1,
               display: 'flex',

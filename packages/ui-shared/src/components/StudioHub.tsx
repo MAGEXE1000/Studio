@@ -1,4 +1,4 @@
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav } from '@workspace/studio-core';
+import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { getUpdateHistory, triggerDowngrade, StartupCoordinator } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -214,16 +214,14 @@ export default function StudioHub() {
     return false;
   })();
 
-  const navigationHistory = useChordStore(s => s.navigationHistory);
-  const pushNav = useChordStore(s => s.pushNav);
-  const popNav = useChordStore(s => s.popNav);
+  const navigationHistory = useNavigationStore(s => s.history);
   const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'home' };
   const tab = currentRoute.tab ?? 'home';
-
+ 
   const setTab = useCallback((action: React.SetStateAction<HubTab>) => {
     const nextTab = typeof action === 'function' ? action(tab) : action;
-    pushNav({ app: 'hub', tab: nextTab, page: 'main' });
-  }, [pushNav, tab]) as React.Dispatch<React.SetStateAction<HubTab>>;
+    NavigationDispatcher.push({ app: 'hub', tab: nextTab, page: 'main' });
+  }, [tab]) as React.Dispatch<React.SetStateAction<HubTab>>;
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('studio:hub-tab-active', { detail: tab }));
@@ -2423,7 +2421,8 @@ function HubSettings({
   devToast?: string | null;
   renderDevToast?: () => React.ReactNode;
 }) {
-  const { settings, updateSettings, updatePerApp, navigationHistory, pushNav, popNav } = useChordStore();
+  const { settings, updateSettings, updatePerApp } = useChordStore();
+  const navigationHistory = useNavigationStore(s => s.history);
   const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'settings' };
   const { preferences, setPreference } = useStudioPreferences();
   const t = useT();
@@ -2633,13 +2632,13 @@ function HubSettings({
   const navigate = (to: SettingsPageId) => {
     snapshotScroll(page);
     pendingRestoreRef.current = to;
-    pushNav({ app: 'hub', tab: 'settings', page: to });
+    NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: to });
   };
 
   const goBack = () => {
     snapshotScroll(page);
     pendingRestoreRef.current = 'main';
-    popNav();
+    NavigationDispatcher.pop();
   };
 
   const goBackRef = useRef(goBack);
@@ -5298,7 +5297,8 @@ function HubHelp({
   tab: HubTab;
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
 }) {
-  const { settings, navigationHistory, pushNav, popNav } = useChordStore();
+  const { settings } = useChordStore();
+  const navigationHistory = useNavigationStore(s => s.history);
   const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'help' };
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -5355,13 +5355,13 @@ function HubHelp({
   const navigate = (to: HelpPageActiveId) => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = to;
-    pushNav({ app: 'hub', tab: 'help', page: to });
+    NavigationDispatcher.push({ app: 'hub', tab: 'help', page: to });
   };
 
   const goBack = () => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = 'main';
-    popNav();
+    NavigationDispatcher.pop();
   };
 
   useEffect(() => {

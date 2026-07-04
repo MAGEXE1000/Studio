@@ -10,7 +10,8 @@ import {
   logActivity,
   resetNav,
   setNavHidden,
-  setNavLocked
+  setNavLocked,
+  NavigationDispatcher
 } from '@workspace/studio-core';
 
 import {
@@ -102,12 +103,6 @@ export default function App() {
         drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
         stagexView: storeState.settings.defaultStageView ?? 'Editor',
       });
-
-      import('@workspace/ui-shared')
-        .then(({ useGroovexStore }) => {
-          useGroovexStore.getState().setView('library');
-        })
-        .catch(() => {});
     }
 
     setTimeout(() => {

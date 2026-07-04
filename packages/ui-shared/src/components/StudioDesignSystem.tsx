@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AnimatedAppHeader } from './AppAnimationSystem';
 import AppSpinner from './AppSpinner';
 
-// ── Theme Hook ────────────────────────────────────────────────────────────
+// ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
 export function useStudioDesignSystem() {
   const settings = useChordStore(s => s.settings);
   const appKey = (settings.appMode ?? 'hub') as AppKey;
@@ -37,38 +37,32 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   disabled,
   ...props
 }, ref) => {
-  const { isLight, accent } = useStudioDesignSystem();
-
   const getColors = () => {
     if (variant === 'primary') {
       return {
-        bg: isLight ? 'rgba(0, 0, 0, 0.9)' : accent.from,
-        text: '#fff',
-        border: 'transparent',
-        hoverBg: isLight ? 'rgba(0,0,0,1)' : accent.to
+        bg: 'var(--c-accent-from)',
+        text: '#ffffff',
+        border: 'transparent'
       };
     }
     if (variant === 'danger') {
       return {
-        bg: isLight ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.2)',
-        text: isLight ? '#ef4444' : '#f87171',
-        border: isLight ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.4)',
-        hoverBg: isLight ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.3)'
+        bg: 'var(--c-error-container)',
+        text: 'var(--c-error)',
+        border: 'var(--c-error-container)'
       };
     }
     if (variant === 'ghost') {
       return {
         bg: 'transparent',
         text: 'var(--c-text-primary)',
-        border: 'transparent',
-        hoverBg: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'
+        border: 'transparent'
       };
     }
     return {
-      bg: isLight ? 'rgba(0,0,0,0.03)' : 'var(--app-surface-high)',
+      bg: 'var(--c-surface-high)',
       text: 'var(--c-text-primary)',
-      border: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)',
-      hoverBg: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.12)'
+      border: 'var(--c-border)'
     };
   };
 
@@ -83,9 +77,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       style={{
         padding: pad,
         fontSize,
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--font-headline)',
         fontWeight: 700,
-        borderRadius: '12px',
+        borderRadius: 'var(--radius-md)',
         backgroundColor: colors.bg,
         color: colors.text,
         border: `1.5px solid ${colors.border}`,
@@ -129,18 +123,16 @@ export function Card({
   className = '',
   ...props
 }: CardProps) {
-  const { isLight, accent } = useStudioDesignSystem();
-
   return (
     <div
       style={{
-        borderRadius: '16px',
-        padding: '16px',
-        backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'var(--app-surface-mid)',
+        borderRadius: 'var(--radius-xl)',
+        padding: 'var(--spacing-md)',
+        backgroundColor: 'var(--c-surface-mid)',
         border: accentBorder
-          ? `1.5px solid ${accent.from}`
-          : `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
-        boxShadow: isLight ? '0 4px 12px rgba(0,0,0,0.02)' : 'none',
+          ? `1.5px solid var(--c-accent-from)`
+          : `1px solid var(--c-border)`,
+        boxShadow: 'var(--elevation-low)',
         transition: 'transform 180ms ease, border-color 180ms ease, background-color 180ms ease',
         cursor: interactive ? 'pointer' : 'default',
         ...style
@@ -167,34 +159,22 @@ export function Surface({
   className = '',
   ...props
 }: SurfaceProps) {
-  const { isLight, activeVis } = useStudioDesignSystem();
-
   const getBg = () => {
-    if (glass) {
-      return isLight
-        ? 'rgba(255,255,255,0.72)'
-        : activeVis.amoledMode
-          ? 'rgba(0,0,0,0.85)'
-          : 'rgba(26,26,30,0.72)';
-    }
-    const amoled = activeVis.amoledMode;
-    if (level === 'low') {
-      return amoled ? '#000000' : 'var(--app-bg)';
-    }
-    if (level === 'high') {
-      return amoled ? 'rgba(20,20,20,1)' : 'var(--app-surface-high)';
-    }
-    return amoled ? 'rgba(10,10,10,1)' : 'var(--app-surface-mid)';
+    if (glass) return 'var(--c-surface-glass-bg)';
+    if (level === 'low') return 'var(--c-background)';
+    if (level === 'high') return 'var(--c-surface-high)';
+    return 'var(--c-surface-mid)';
   };
 
   return (
     <div
       style={{
         backgroundColor: getBg(),
-        border: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
-        backdropFilter: glass ? 'blur(16px)' : 'none',
-        WebkitBackdropFilter: glass ? 'blur(16px)' : 'none',
+        border: `1px solid var(--c-border)`,
+        backdropFilter: glass ? 'var(--c-surface-glass-blur)' : 'none',
+        WebkitBackdropFilter: glass ? 'var(--c-surface-glass-blur)' : 'none',
         color: 'var(--c-text-primary)',
+        transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
         ...style
       }}
       className={`studio-surface ${className}`}
@@ -221,8 +201,6 @@ export function Dialog({
   children,
   footer,
 }: DialogProps) {
-  const { isLight } = useStudioDesignSystem();
-
   return (
     <AnimatePresence>
       {open && (
@@ -249,31 +227,32 @@ export function Dialog({
               position: 'relative',
               width: '100%',
               maxWidth: '480px',
-              backgroundColor: isLight ? '#ffffff' : '#141416',
-              borderRadius: '20px',
-              border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-              boxShadow: '0 24px 48px rgba(0,0,0,0.3)',
+              backgroundColor: 'var(--c-surface-highest)',
+              borderRadius: 'var(--radius-2xl)',
+              border: `1px solid var(--c-border)`,
+              boxShadow: 'var(--elevation-high)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              maxHeight: '85vh'
+              maxHeight: '85vh',
+              transition: 'background-color 200ms ease, border-color 200ms ease'
             }}
           >
             {title && (
-              <div style={{ padding: '16px 20px', borderBottom: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, fontFamily: 'Manrope' }}>{title}</h3>
+              <div style={{ padding: '16px 20px', borderBottom: `1px solid var(--c-border)`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, fontFamily: 'var(--font-headline)' }}>{title}</h3>
                 <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: 'var(--c-text-secondary)' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
                 </button>
               </div>
             )}
             
-            <div style={{ padding: '20px', overflowY: 'auto', flex: 1, fontSize: '13px', lineHeight: 1.5, color: 'var(--c-text-secondary)' }}>
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1, fontSize: '13px', lineHeight: 1.5, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>
               {children}
             </div>
 
             {footer && (
-              <div style={{ padding: '12px 20px', borderTop: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`, backgroundColor: isLight ? '#fafafa' : '#0c0c0e', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <div style={{ padding: '12px 20px', borderTop: `1px solid var(--c-border)`, backgroundColor: 'var(--c-surface-lowest)', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                 {footer}
               </div>
             )}
@@ -298,8 +277,6 @@ export function Toolbar({
   className = '',
   ...props
 }: ToolbarProps) {
-  const { isLight } = useStudioDesignSystem();
-
   return (
     <div
       style={{
@@ -308,7 +285,7 @@ export function Toolbar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)'}`,
+        borderBottom: `1px solid var(--c-border)`,
         backgroundColor: 'transparent',
         flexShrink: 0,
         ...style
@@ -317,7 +294,7 @@ export function Toolbar({
       {...props}
     >
       {title && (
-        <span style={{ fontSize: '15px', fontWeight: 800, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+        <span style={{ fontSize: '15px', fontWeight: 800, fontFamily: 'var(--font-headline)', color: 'var(--c-text-primary)' }}>
           {title}
         </span>
       )}
@@ -342,12 +319,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   className = '',
   ...props
 }, ref) => {
-  const { isLight } = useStudioDesignSystem();
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
       {label && (
-        <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--c-text-secondary)' }}>
+        <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)' }}>
           {label}
         </span>
       )}
@@ -355,24 +330,24 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
         ref={ref}
         style={{
           padding: '10px 14px',
-          borderRadius: '10px',
+          borderRadius: 'var(--radius-md)',
           fontSize: '13px',
-          fontFamily: 'Inter, sans-serif',
-          backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-          border: `1.5px solid ${error ? '#ef4444' : isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+          fontFamily: 'var(--font-body)',
+          backgroundColor: 'var(--c-surface-lowest)',
+          border: `1.5px solid ${error ? 'var(--c-error)' : 'var(--c-border)'}`,
           color: 'var(--c-text-primary)',
           outline: 'none',
-          transition: 'border-color 180ms ease',
+          transition: 'border-color 180ms ease, background-color 180ms ease, color 180ms ease',
           ...style
         }}
         className={`studio-input ${className}`}
         {...props}
       />
       {desc && !error && (
-        <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>{desc}</span>
+        <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{desc}</span>
       )}
       {error && (
-        <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: 600 }}>{error}</span>
+        <span style={{ fontSize: '10px', color: 'var(--c-error)', fontWeight: 600, fontFamily: 'var(--font-body)' }}>{error}</span>
       )}
     </div>
   );
@@ -394,8 +369,6 @@ export function Sheet({
   title,
   children
 }: SheetProps) {
-  const { isLight } = useStudioDesignSystem();
-
   return (
     <AnimatePresence>
       {open && (
@@ -422,26 +395,27 @@ export function Sheet({
               position: 'relative',
               width: '100%',
               maxWidth: '480px',
-              backgroundColor: isLight ? '#ffffff' : '#141416',
-              borderTopLeftRadius: '24px',
-              borderTopRightRadius: '24px',
-              border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+              backgroundColor: 'var(--c-surface-highest)',
+              borderTopLeftRadius: 'var(--radius-3xl)',
+              borderTopRightRadius: 'var(--radius-3xl)',
+              border: `1px solid var(--c-border)`,
               borderBottom: 'none',
-              boxShadow: '0 -8px 32px rgba(0,0,0,0.2)',
+              boxShadow: 'var(--elevation-high)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
               maxHeight: '85vh',
-              paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)'
+              paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)',
+              transition: 'background-color 200ms ease, border-color 200ms ease'
             }}
           >
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-              <div style={{ width: '40px', height: '4px', borderRadius: '2px', backgroundColor: isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)' }} />
+              <div style={{ width: '40px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--c-border)' }} />
             </div>
 
             {title && (
               <div style={{ padding: '8px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, fontFamily: 'Manrope' }}>{title}</h3>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, fontFamily: 'var(--font-headline)' }}>{title}</h3>
                 <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', color: 'var(--c-text-secondary)' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
                 </button>
@@ -565,16 +539,6 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
   className = '',
   ...props
 }, ref) => {
-  const { isLight, activeVis } = useStudioDesignSystem();
-
-  const amoledBg = isLight
-    ? activeVis.amoledMode
-      ? 'rgba(255, 255, 255, 0.92)'
-      : 'rgba(255, 255, 255, 0.40)'
-    : activeVis.amoledMode
-      ? 'rgba(4,4,4,0.88)'
-      : 'rgba(26,26,30,0.72)';
-
   return (
     <nav
       ref={ref}
@@ -586,14 +550,13 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
         width: '88%',
         maxWidth: '360px',
         height: '56px',
-        borderRadius: '2rem',
-        border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.32)'}`,
-        background: amoledBg,
-        boxShadow: isLight
-          ? '0 8px 32px rgba(0,0,0,0.08), 0 1.5px 0 rgba(255,255,255,0.70) inset'
-          : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
+        borderRadius: 'var(--radius-3xl)',
+        border: `1px solid var(--c-border)`,
+        background: 'var(--c-surface-glass-bg)',
+        boxShadow: 'var(--elevation-high)',
         zIndex: 50,
         overflow: 'hidden',
+        transition: 'background-color 200ms ease, border-color 200ms ease',
         ...style
       }}
       className={`studio-bottom-nav ${className}`}
@@ -617,22 +580,20 @@ export function FloatingButton({
   className = '',
   ...props
 }: FloatingButtonProps) {
-  const { accent } = useStudioDesignSystem();
-
   return (
     <motion.button
       whileTap={{ scale: 0.92 }}
       style={{
         width: '56px',
         height: '56px',
-        borderRadius: '28px',
-        backgroundColor: accent.from,
+        borderRadius: 'var(--radius-3xl)',
+        backgroundColor: 'var(--c-accent-from)',
         color: '#ffffff',
         border: 'none',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+        boxShadow: 'var(--elevation-high)',
         cursor: 'pointer',
         outline: 'none',
         ...style
@@ -676,17 +637,16 @@ export function Skeleton({
   style,
   className = ''
 }: SkeletonProps) {
-  const { isLight } = useStudioDesignSystem();
-
   return (
     <div
       style={{
         width,
         height,
-        borderRadius: variant === 'circle' ? '50%' : variant === 'text' ? '4px' : '10px',
-        backgroundColor: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)',
+        borderRadius: variant === 'circle' ? 'var(--radius-full)' : variant === 'text' ? 'var(--radius-xs)' : 'var(--radius-md)',
+        backgroundColor: 'var(--c-surface-lowest)',
         position: 'relative',
         overflow: 'hidden',
+        transition: 'background-color 200ms ease',
         ...style
       }}
       className={`studio-shimmer ${className}`}
@@ -704,13 +664,11 @@ export function Loading({
   statusText = 'Loading...',
   overlay = false
 }: LoadingProps) {
-  const { isLight, accent } = useStudioDesignSystem();
-
   const content = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-      <AppSpinner size={32} color={accent.from} />
+      <AppSpinner size={32} color="var(--c-accent-from)" />
       {statusText && (
-        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>
+        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>
           {statusText}
         </span>
       )}
@@ -719,7 +677,7 @@ export function Loading({
 
   if (overlay) {
     return (
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isLight ? 'rgba(255,255,255,0.85)' : 'rgba(9,9,11,0.85)', zIndex: 1000 }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--c-surface-glass-bg)', backdropFilter: 'var(--c-surface-glass-blur)', zIndex: 1000 }}>
         {content}
       </div>
     );
@@ -738,25 +696,24 @@ export function Error({
   message,
   onRetry
 }: ErrorProps) {
-  const { isLight } = useStudioDesignSystem();
-
   return (
     <div
       style={{
         padding: '16px',
-        borderRadius: '16px',
-        backgroundColor: isLight ? 'rgba(239, 68, 68, 0.05)' : 'rgba(239, 68, 68, 0.1)',
-        border: `1.5px solid ${isLight ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.2)'}`,
+        borderRadius: 'var(--radius-xl)',
+        backgroundColor: 'var(--c-error-container)',
+        border: `1.5px solid var(--c-error-container)`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '12px',
-        textAlign: 'center'
+        textAlign: 'center',
+        transition: 'background-color 200ms ease, border-color 200ms ease'
       }}
       className="studio-error-card"
     >
-      <span className="material-symbols-outlined" style={{ fontSize: '32px', color: '#ef4444' }}>error</span>
-      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: isLight ? '#b91c1c' : '#f87171', fontFamily: 'Inter, sans-serif' }}>
+      <span className="material-symbols-outlined" style={{ fontSize: '32px', color: 'var(--c-error)' }}>error</span>
+      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--c-error)', fontFamily: 'var(--font-body)' }}>
         {message}
       </p>
       {onRetry && (
@@ -781,13 +738,13 @@ export function EmptyState({
   description
 }: EmptyStateProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', textAlign: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyRules: 'center', padding: '32px 16px', textAlign: 'center' }}>
       <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--c-text-secondary)', marginBottom: '8px', opacity: 0.5 }}>
         {icon}
       </span>
-      <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, fontFamily: 'Manrope' }}>{message}</h3>
+      <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, fontFamily: 'var(--font-headline)' }}>{message}</h3>
       {description && (
-        <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif', maxWidth: '280px', lineHeight: 1.4 }}>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', maxWidth: '280px', lineHeight: 1.4 }}>
           {description}
         </p>
       )}

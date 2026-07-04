@@ -19,7 +19,8 @@ import {
   tolgee,
   addLog,
   useBackHandler,
-  StartupCoordinator
+  StartupCoordinator,
+  applyThemeTokens
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -1159,34 +1160,9 @@ export default function App() {
   }, [transitionActive, updateSettings]);
 
   // ── Sync Active Theme & AMOLED Mode ──
-  const activeApp = settings.appMode || 'hub';
-  const activeVis = useMemo(() => {
-    const appKey = activeApp as AppKey;
-    return settings.perApp?.[appKey] ?? {
-      theme: settings.theme ?? 'dark',
-      accentColor: settings.accentColor ?? 'blue',
-      amoledMode: settings.amoledMode ?? false,
-    };
-  }, [activeApp, settings.perApp, settings.theme, settings.accentColor, settings.amoledMode]);
-
-  const isLightMode = useMemo(() => {
-    const theme = activeVis.theme;
-    if (theme === 'light') return true;
-    if (theme === 'dark') return false;
-    if (theme === 'system') {
-      if (typeof window !== 'undefined') {
-        return window.matchMedia('(prefers-color-scheme: light)').matches;
-      }
-      return false;
-    }
-    if (theme === 'dynamic') {
-      const h = new Date().getHours();
-      const start = settings.dynamicLightStart ?? 7;
-      const end = settings.dynamicLightEnd ?? 20;
-      return h >= start && h < end;
-    }
-    return false;
-  }, [activeVis.theme, settings.dynamicLightStart, settings.dynamicLightEnd, settings.theme]);
+  useEffect(() => {
+    applyThemeTokens(settings);
+  }, [settings]);
 
 
 
@@ -2163,13 +2139,13 @@ export default function App() {
                     position: 'fixed',
                     inset: 0,
                     zIndex: 99999,
-                    backgroundColor: isLightMode ? '#ffffff' : (activeVis.amoledMode ? '#000000' : '#09090b'),
+                    backgroundColor: 'var(--c-background)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontFamily: 'Inter, sans-serif',
-                    color: isLightMode ? '#09090b' : '#ffffff',
+                    color: 'var(--c-text-primary)',
                     pointerEvents: 'auto',
                   }}
                 >
@@ -2205,7 +2181,7 @@ export default function App() {
                         fontWeight: 900,
                         letterSpacing: '-0.03em',
                         margin: 0,
-                        background: `linear-gradient(135deg, ${isLightMode ? '#09090b' : '#ffffff'} 0%, ${getAppColor(launchingApp)} 100%)`,
+                        background: `linear-gradient(135deg, var(--c-text-primary) 0%, ${getAppColor(launchingApp)} 100%)`,
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                       }}
@@ -2225,9 +2201,6 @@ export default function App() {
   );
 
   function renderExitToast() {
-    const isLight = settings.theme === 'light' ||
-      (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
-
     return createPortal(
       <div
         id="exit-toast"
@@ -2236,17 +2209,17 @@ export default function App() {
           bottom: 'max(28px, calc(env(safe-area-inset-bottom) + 88px))',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: isLight ? 'rgba(255, 255, 255, 0.90)' : 'rgba(24,24,32,0.93)',
-          color: isLight ? '#1a1a1a' : 'var(--c-text-primary, #ffffff)',
+          background: 'var(--c-surface-glass-bg)',
+          color: 'var(--c-text-primary)',
           padding: '10px 22px',
           borderRadius: '24px',
           fontSize: '13px',
           fontFamily: 'Inter, sans-serif',
           zIndex: 99999,
           pointerEvents: 'none',
-          backdropFilter: 'blur(12px)',
-          border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255,255,255,0.08)',
-          boxShadow: isLight ? '0 8px 24px rgba(0,0,0,0.08)' : '0 8px 24px rgba(0,0,0,0.30)',
+          backdropFilter: 'var(--c-surface-glass-blur)',
+          border: '1px solid var(--c-border)',
+          boxShadow: 'var(--elevation-high)',
           whiteSpace: 'nowrap',
         }}
       >

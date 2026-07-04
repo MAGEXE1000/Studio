@@ -241,70 +241,8 @@
   --hub-card-icon-border: rgba(0, 0, 0, 0.06);
 }
 
-/* Global Tailwind light mode class overrides */
-html.light .bg-zinc-950\/40,
-html.light .bg-zinc-950\/20,
-html.light .bg-zinc-950\/10 {
-  background-color: var(--app-surface-low) !important;
-}
-html.light .bg-zinc-950 {
-  background-color: var(--app-surface-highest) !important;
-}
-html.light .border-zinc-900 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
-html.light .border-zinc-900\/60,
-html.light .border-zinc-900\/80,
-html.light .border-zinc-900\/40,
-html.light .border-zinc-900\/10 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
-html.light .border-zinc-800 {
-  border-color: rgba(0, 0, 0, 0.1) !important;
-}
-html.light .text-zinc-400 {
-  color: var(--c-text-secondary) !important;
-}
-html.light .text-zinc-500 {
-  color: var(--c-text-muted) !important;
-}
-html.light .text-zinc-300 {
-  color: var(--c-text-primary) !important;
-}
-html.light .bg-\[\#050505\] {
-  background-color: var(--app-bg) !important;
-}
-html.light .bg-\[\#080808\]\/40 {
-  background-color: var(--app-surface-low) !important;
-}
-html.light .bg-black {
-  background-color: var(--app-surface-highest) !important;
-}
-html.light .text-\[\#f2f1ef\],
-html.light .text-\[\#f4f4f5\] {
-  color: var(--c-text-primary) !important;
-}
-html.light div.bg-\[\#080808\]\/40 span.text-white {
-  color: var(--c-text-primary) !important;
-}
-html.light .bg-zinc-800 {
-  background-color: var(--app-surface-lowest) !important;
-  color: var(--c-text-primary) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-}
-html.light .hover\:text-zinc-200:hover {
-  color: var(--c-text-primary) !important;
-}
-html.light .hover\:bg-zinc-900\/30:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important;
-}
-html.light .hover\:border-zinc-800:hover {
-  border-color: rgba(0, 0, 0, 0.15) !important;
-}
-
-
 /* Body background always tracks the active theme so the status bar area blends in */
-html, body { background: var(--app-bg); }
+html, body { background: var(--c-background); }
 
 /* ── Navigation safe-area variables — single source of truth ────────────────
    All scrollable content areas and floating nav bars must use these vars so
@@ -335,31 +273,18 @@ html, body { background: var(--app-bg); }
    inline hexes proved unreliable; using CSS vars is bulletproof.
    ============================================================ */
 :root {
-  --vx-bg:      var(--app-bg);
-  --vx-deep:    #000000;  /* deepest surface (modal backdrops, inputs-on-cards) */
-  --vx-card:    #161717;  /* main card background */
-  --vx-card-2:  #191a1a;  /* slightly elevated card variant */
-  --vx-edge:    #1f2020;  /* card border / muted surface */
-  --vx-input:   #252626;  /* button / pill / input chip */
-  --vx-input-2: #454747;  /* light grey button (Reset etc.) */
-  --vx-text:    #e7e5e4;  /* primary text on dark cards */
-  --vx-text-2:  #acabaa;  /* secondary label text */
-  --vx-text-3:  #767575;  /* muted/tertiary */
-  --vx-text-4:  #484848;  /* most-muted / icon-on-dark */
-  --vx-text-5:  #d0d0d0;  /* light-grey button label */
-}
-html.light {
-  --vx-deep:    #f4f4f5;
-  --vx-card:    #fafafa;
-  --vx-card-2:  #ececed;
-  --vx-edge:    rgba(0,0,0,0.08);
-  --vx-input:   #ececed;
-  --vx-input-2: #e4e4e7;
-  --vx-text:    #18181b;
-  --vx-text-2:  #52525b;
-  --vx-text-3:  #71717a;
-  --vx-text-4:  #a1a1aa;
-  --vx-text-5:  #18181b;
+  --vx-bg:      var(--c-background);
+  --vx-deep:    var(--c-surface-lowest);
+  --vx-card:    var(--c-surface-mid);
+  --vx-card-2:  var(--c-surface-high);
+  --vx-edge:    var(--c-border);
+  --vx-input:   var(--c-surface-low);
+  --vx-input-2: var(--c-surface-highest);
+  --vx-text:    var(--c-text-primary);
+  --vx-text-2:  var(--c-text-secondary);
+  --vx-text-3:  var(--c-text-muted);
+  --vx-text-4:  var(--c-text-muted);
+  --vx-text-5:  var(--c-text-primary);
 }
 
 /* ============================================================
@@ -415,197 +340,7 @@ html[data-perf-mode="on"] *::after {
   scroll-behavior: auto !important;
 }
 
-html[data-theme="light"] [style*="color:#e7e5e4"],
-html[data-theme="light"] [style*="color: #e7e5e4"],
-html[data-theme="light"] [style*="color:#E7E5E4"],
-html[data-theme="light"] [style*="color: #E7E5E4"],
-html[data-theme="light"] [style*="color:#eee"],
-html[data-theme="light"] [style*="color: #eee"],
-html[data-theme="light"] [style*="color:#ddd"],
-html[data-theme="light"] [style*="color: #ddd"],
-html[data-theme="light"] [style*="color:#f5f5f5"],
-html[data-theme="light"] [style*="color: #f5f5f5"] {
-  color: var(--c-text-primary) !important;
-}
-html[data-theme="light"] [style*="color:#acabaa"],
-html[data-theme="light"] [style*="color: #acabaa"],
-html[data-theme="light"] [style*="color:#ACABAA"],
-html[data-theme="light"] [style*="color: #ACABAA"],
-html[data-theme="light"] [style*="color:#adaaaa"],
-html[data-theme="light"] [style*="color: #adaaaa"],
-html[data-theme="light"] [style*="color:#ccc"],
-html[data-theme="light"] [style*="color: #ccc"] {
-  color: var(--c-text-secondary) !important;
-}
-html[data-theme="light"] [style*="color:#767575"],
-html[data-theme="light"] [style*="color: #767575"],
-html[data-theme="light"] [style*="color:#484848"],
-html[data-theme="light"] [style*="color: #484848"],
-html[data-theme="light"] [style*="color:#484847"],
-html[data-theme="light"] [style*="color: #484847"],
-html[data-theme="light"] [style*="color:#3a3a3a"],
-html[data-theme="light"] [style*="color: #3a3a3a"] {
-  color: var(--c-text-muted) !important;
-}
-/* ============================================================
-   REACT-TREE light remap (html.light) — the existing block above
-   uses `html[data-theme="light"]` which is set by the Stagex
-   iframe but **not** by the main React app (App.tsx adds the
-   `light` class to <html> instead, see ~line 248). Without these
-   rules, every hardcoded dark color inside Chordex / Drumex /
-   Vocalex / Groovex / Studio Hub stays dark in light mode.
-   We scope by `html.light` so we don't accidentally affect dark
-   mode and we keep accent / danger / status colors untouched.
-   ============================================================ */
-/* — TEXT — primary token (#e7e5e4 / #eee / #ddd / #f5f5f5) → dark text */
-html.light [style*="color:#e7e5e4"],
-html.light [style*="color: #e7e5e4"],
-html.light [style*="color:#E7E5E4"],
-html.light [style*="color: #E7E5E4"],
-html.light [style*="color:#eee"],
-html.light [style*="color: #eee"],
-html.light [style*="color:#ddd"],
-html.light [style*="color: #ddd"],
-html.light [style*="color:#f5f5f5"],
-html.light [style*="color: #f5f5f5"],
-html.light [style*="color:#e8e8ed"],
-html.light [style*="color: #e8e8ed"] {
-  color: var(--c-text-primary) !important;
-}
-/* — TEXT — secondary token (#acabaa / #adaaaa / #a8a6a5 / #ccc) */
-html.light [style*="color:#acabaa"],
-html.light [style*="color: #acabaa"],
-html.light [style*="color:#ACABAA"],
-html.light [style*="color: #ACABAA"],
-html.light [style*="color:#adaaaa"],
-html.light [style*="color: #adaaaa"],
-html.light [style*="color:#a8a6a5"],
-html.light [style*="color: #a8a6a5"],
-html.light [style*="color:#ccc"],
-html.light [style*="color: #ccc"] {
-  color: var(--c-text-secondary) !important;
-}
-/* — TEXT — muted token (#767575 / #484848 / #484847 / #3a3a3a) */
-html.light [style*="color:#767575"],
-html.light [style*="color: #767575"],
-html.light [style*="color:#484848"],
-html.light [style*="color: #484848"],
-html.light [style*="color:#484847"],
-html.light [style*="color: #484847"],
-html.light [style*="color:#3a3a3a"],
-html.light [style*="color: #3a3a3a"] {
-  color: var(--c-text-muted) !important;
-}
-/* — SURFACE BACKGROUNDS — dark "card" colors → light surfaces.
-   Hits Vocalex tip cards (#161717), lab modules (#0e0e0e / #1f2020),
-   Takes panel rows (#191a1a / #252626) etc. We map to layered
-   neutrals so adjacent surfaces still have visual separation. */
-html.light [style*="background:#0e0e0e"],
-html.light [style*="background: #0e0e0e"],
-html.light [style*="background-color:#0e0e0e"],
-html.light [style*="background-color: #0e0e0e"] {
-  background: var(--app-surface-lowest) !important;
-}
-html.light [style*="background:#161717"],
-html.light [style*="background: #161717"],
-html.light [style*="background-color:#161717"],
-html.light [style*="background-color: #161717"],
-html.light [style*="background:#191a1a"],
-html.light [style*="background: #191a1a"],
-html.light [style*="background-color:#191a1a"],
-html.light [style*="background-color: #191a1a"] {
-  background: var(--app-surface-high) !important;
-}
-html.light [style*="background:#1f2020"],
-html.light [style*="background: #1f2020"],
-html.light [style*="background-color:#1f2020"],
-html.light [style*="background-color: #1f2020"],
-html.light [style*="background:#252626"],
-html.light [style*="background: #252626"],
-html.light [style*="background-color:#252626"],
-html.light [style*="background-color: #252626"],
-html.light [style*="background:#2c2c2c"],
-html.light [style*="background: #2c2c2c"] {
-  background: var(--app-surface-highest) !important;
-}
-/* — BORDERS — dark "card" border colors → soft grey borders so
-   the light-remapped surfaces still have a visible edge. */
-html.light [style*="border: 1px solid #1f2020"],
-html.light [style*="border:1px solid #1f2020"],
-html.light [style*="border: 1px solid #252626"],
-html.light [style*="border:1px solid #252626"],
-html.light [style*="border: 1px solid #161717"],
-html.light [style*="border:1px solid #161717"] {
-  border-color: rgba(0,0,0,0.08) !important;
-}
 
-/* Same remap for the system "auto" theme when OS is light. */
-@media (prefers-color-scheme: light) {
-  :root.theme-system [style*="color:#e7e5e4"],
-  :root.theme-system [style*="color: #e7e5e4"],
-  :root.theme-system [style*="color:#eee"],
-  :root.theme-system [style*="color: #eee"],
-  :root.theme-system [style*="color:#ddd"],
-  :root.theme-system [style*="color: #ddd"],
-  :root.theme-system [style*="color:#f5f5f5"],
-  :root.theme-system [style*="color: #f5f5f5"] {
-    color: var(--c-text-primary) !important;
-  }
-  :root.theme-system [style*="color:#acabaa"],
-  :root.theme-system [style*="color: #acabaa"],
-  :root.theme-system [style*="color:#adaaaa"],
-  :root.theme-system [style*="color: #adaaaa"],
-  :root.theme-system [style*="color:#ccc"],
-  :root.theme-system [style*="color: #ccc"] {
-    color: var(--c-text-secondary) !important;
-  }
-  :root.theme-system [style*="color:#767575"],
-  :root.theme-system [style*="color: #767575"],
-  :root.theme-system [style*="color:#484848"],
-  :root.theme-system [style*="color: #484848"],
-  :root.theme-system [style*="color:#484847"],
-  :root.theme-system [style*="color: #484847"],
-  :root.theme-system [style*="color:#3a3a3a"],
-  :root.theme-system [style*="color: #3a3a3a"] {
-    color: var(--c-text-muted) !important;
-  }
-}
-
-/* System preference: auto-apply light when OS is in light mode and user chose system */
-:root.theme-system {
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: light) {
-  :root.theme-system {
-    --app-bg: #f2f1ef;
-    --app-surface-lowest: #e5e4e2;
-    --app-surface-low: #e9e8e6;
-    --app-surface: #eeedeb;
-    --app-surface-high: #f4f3f1;
-    --app-surface-highest: #faf9f7;
-
-    --c-text-primary:   #1a1a1a;
-    --c-text-secondary: #6e6d6b;
-    --c-text-muted:     #b2b1b0;
-
-    --add-bar-border: 1px dashed rgba(0,0,0,0.18);
-
-    --sidebar-hover-bg: rgba(0, 0, 0, 0.03);
-    --sidebar-active-bg: rgba(0, 0, 0, 0.05);
-    --sidebar-bg: rgba(255, 255, 255, 0.75);
-    --sidebar-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    --popover-bg: rgba(255, 255, 255, 0.80);
-    --popover-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    --profile-avatar-bg: rgba(0, 0, 0, 0.06);
-    --profile-avatar-color: var(--c-text-primary);
-    --profile-avatar-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
-    --hub-card-bg: rgba(0, 0, 0, 0.01);
-    --hub-card-pressed-bg: rgba(0, 0, 0, 0.04);
-    --hub-card-border: rgba(0, 0, 0, 0.08);
-    --hub-card-icon-bg: rgba(0, 0, 0, 0.03);
-    --hub-card-icon-border: rgba(0, 0, 0, 0.06);
-  }
-}
 
 /* ===== Material Symbols ===== */
 .material-symbols-outlined {

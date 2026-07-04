@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { useChordStore } from '../store/useChordStore';
 import { syncStatusBar } from './useStatusBar';
+import { applyThemeTokens } from './themeEngine';
 import { enforceStartupRecovery, initializeGlobalOtaListeners } from './otaUpdate';
 import { seedAudioAssets } from './assetCache';
 import { ensureNotificationPermission } from './capgoUpdater';
@@ -440,114 +441,10 @@ class StartupCoordinatorClass {
   }
 
   private syncSettings(settings: any) {
-    if (typeof document === 'undefined') return;
-
-    const appMode = settings.appMode || 'hub';
-    const activeVis = settings.perApp?.[appMode] ?? {
-      theme: settings.theme ?? 'dark',
-      accentColor: settings.accentColor ?? 'blue',
-      amoledMode: settings.amoledMode ?? false,
-    };
-
-    const root = document.documentElement;
-
-    // AMOLED Mode
-    if (activeVis.amoledMode) {
-      root.classList.add('amoled');
-    } else {
-      root.classList.remove('amoled');
-    }
-
-    // Light / dark themes
-    root.classList.remove('light', 'theme-system');
-    if (activeVis.theme === 'light') {
-      root.classList.add('light');
-    } else if (activeVis.theme === 'system') {
-      root.classList.add('theme-system');
-    }
-
-    // Sync CSS Accent Variables
-    const ACCENT_COLORS = {
-      blue:   { from: '#679cff', mid: '#4d8ef7', to: '#007aff' },
-      purple: { from: '#a855f7', mid: '#8b5cf6', to: '#7c3aed' },
-      green:  { from: '#4ade80', mid: '#10b981', to: '#059669' },
-      orange: { from: '#fb923c', mid: '#f97316', to: '#ea580c' },
-      pink:   { from: '#f472b6', mid: '#ec4899', to: '#db2777' },
-      teal:   { from: '#2dd4bf', mid: '#14b8a6', to: '#0d9488' }
-    };
-
-    const hubAccentKey = activeVis.accentColor ?? 'blue';
-    const accent = hubAccentKey === 'custom'
-      ? {
-          from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-          mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-          to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`
-        }
-      : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.blue);
-
-    root.style.setProperty('--accent-from', accent.from);
-    root.style.setProperty('--accent-to',   accent.to);
-    root.style.setProperty('--accent-mid',  accent.mid);
-
-    const colorToRgbStr = (colorStr: string) => {
-      if (colorStr.startsWith('rgb')) {
-        const m = colorStr.match(/\d+/g);
-        return m ? m.slice(0, 3).join(', ') : '0, 122, 255';
-      }
-      if (colorStr.startsWith('#')) {
-        const hex = colorStr.replace('#', '');
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        return `${r}, ${g}, ${b}`;
-      }
-      return '0, 122, 255';
-    };
-
-    root.style.setProperty('--accent-from-rgb', colorToRgbStr(accent.from));
-    root.style.setProperty('--accent-to-rgb',   colorToRgbStr(accent.to));
-    root.style.setProperty('--accent-mid-rgb',  colorToRgbStr(accent.mid));
-
-    // Native Status Bar style sync
-    void syncStatusBar(activeVis.theme, activeVis.amoledMode);
-
-    // Sync Font size
-    const sizes = {
-      small:  { base: '13px', sm: '11px', xs: '9px',  lg: '16px', xl: '20px', hero: '2.2rem' },
-      medium: { base: '14px', sm: '12px', xs: '10px', lg: '18px', xl: '24px', hero: '2.8rem' },
-      large:  { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
-    };
-    const s = (sizes as any)[settings.fontSize] || sizes.medium;
-    root.style.setProperty('--font-base', s.base);
-    root.style.setProperty('--font-sm',   s.sm);
-    root.style.setProperty('--font-xs',   s.xs);
-    root.style.setProperty('--font-lg',   s.lg);
-    root.style.setProperty('--font-xl',   s.xl);
-    root.style.setProperty('--font-hero', s.hero);
-
-    // Sync density
-    const densities = {
-      compact:     { pad: '10px', rowPad: '10px 20px', gap: '8px',  cardGap: '6px'  },
-      comfortable: { pad: '16px', rowPad: '14px 20px', gap: '12px', cardGap: '10px' },
-      spacious:    { pad: '22px', rowPad: '20px 24px', gap: '18px', cardGap: '16px' },
-    };
-    const d = (densities as any)[settings.displayDensity] || densities.comfortable;
-    root.style.setProperty('--density-pad',      d.pad);
-    root.style.setProperty('--density-row-pad',  d.rowPad);
-    root.style.setProperty('--density-gap',      d.gap);
-    root.style.setProperty('--density-card-gap', d.cardGap);
-
-    const isReduced = settings.animationSpeed === 'reduced';
-    root.setAttribute('data-anim', isReduced ? 'reduced' : settings.animationSpeed);
-
-    if (settings.performanceMode) root.setAttribute('data-perf-mode', 'on');
-    else root.removeAttribute('data-perf-mode');
-
+    applyThemeTokens(settings);
     if (settings.highRefreshRate) {
-      root.setAttribute('data-hifps', 'on');
       this.startHiFpsTick();
     } else {
-      root.removeAttribute('data-hifps');
       this.stopHiFpsTick();
     }
   }

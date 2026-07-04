@@ -2573,7 +2573,7 @@ Clashing filenames in different workspace folders:
     - [packages/ui-web/src/components/WebAppSectionDock.tsx](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-web/src/components/WebAppSectionDock.tsx)
 *   **WebDesignSystem.tsx** present in:
     - [packages/ui-shared/src/components/WebDesignSystem.tsx](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/WebDesignSystem.tsx)
-    - [packages/ui-web/src/components/WebDesignSystem.tsx](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-web/src/components/WebDesignSystem.tsx)
+    - `packages/ui-web/src/components/WebDesignSystem.tsx` (deleted)
 
 Source:
 * `scripts/repository-health.mjs`

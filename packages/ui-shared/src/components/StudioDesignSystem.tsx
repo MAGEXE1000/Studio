@@ -95,7 +95,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       }}
       disabled={disabled || loading}
       className={`btn-smooth ${className}`}
-      {...props}
+      {...(props as any)}
     >
       {loading ? (
         <span className="material-symbols-outlined animate-spin" style={{ fontSize: '1.2em' }}>progress_activity</span>
@@ -599,7 +599,7 @@ export function FloatingButton({
         ...style
       }}
       className={`studio-fab ${className}`}
-      {...props}
+      {...(props as any)}
     >
       <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{icon}</span>
     </motion.button>
@@ -738,7 +738,7 @@ export function EmptyState({
   description
 }: EmptyStateProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyRules: 'center', padding: '32px 16px', textAlign: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 16px', textAlign: 'center' }}>
       <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--c-text-secondary)', marginBottom: '8px', opacity: 0.5 }}>
         {icon}
       </span>

@@ -546,17 +546,17 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
       updateGlobalState({ consecutiveFailures: 5, recoveryMode: true });
     }
 
-    checkCancellation(pipelineId, 'QUERY_NATIVE_VERSION');
+    UpdatePipelineCoordinator.setStage('AWAIT_NATIVE_VERSION_QUERY');
     const natVer = await getNativeVersion();
     const natVerCode = await getNativeVersionCode();
 
-    checkCancellation(pipelineId, 'AWAIT_FETCH_METADATA');
     if (!safeTransition('INITIALIZING', 'FETCH_REMOTE_METADATA', 'Fetching remote manifest')) {
       const duration = Date.now() - startTime;
       console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
       return globalOtaState;
     }
 
+    UpdatePipelineCoordinator.setStage('AWAIT_FETCH_METADATA');
     const realRemote = await fetchRemoteVersion();
     checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');
 

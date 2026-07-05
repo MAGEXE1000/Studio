@@ -11,6 +11,14 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.89
+
+### Fixed
+- Native updater dialog redirection issues during active installations.
+- Fake progress indicators and timers by exposing real native PackageInstaller progress stages (Preparing, Launching, Installing, Optimizing, Finalizing).
+- Aurora background animation frame drops by converting linear gradient movement to GPU-accelerated transforms.
+- CPU overhead and React rendering storms by throttling progress callbacks to a 100ms interval.
+
 ## 3.7.88
 
 ### Added

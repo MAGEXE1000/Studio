@@ -302,9 +302,17 @@ export function enforceStartupRecovery(): Promise<void> {
       if (result.statusCode !== -999) {
         console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
         if (result.statusCode === 0) {
-          console.log('[OTA Startup] Success result detected on startup recovery.');
-          transitionToState('INSTALL_SUCCESS', 'PackageInstaller success detected on startup recovery');
-          updateGlobalState({ statusText: 'Install succeeded!' });
+          const expectedName = result.expectedVersionName || null;
+          const lastShownDone = localStorage.getItem('studio:lastShownDoneVersion');
+          if (expectedName && lastShownDone === expectedName) {
+            console.log('[OTA Startup] Install success was already shown and dismissed. Resetting state to IDLE.');
+            resetOtaUpdateState();
+            await AppInstaller.clearInstallerLogHistory().catch(() => {});
+          } else {
+            console.log('[OTA Startup] Success result detected on startup recovery.');
+            transitionToState('INSTALL_SUCCESS', 'PackageInstaller success detected on startup recovery');
+            updateGlobalState({ statusText: 'Install succeeded!' });
+          }
         } else {
           const processed = processLastInstallResult(result);
           if (processed) {
@@ -876,6 +884,22 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 }
 
 export function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
+  if (!isManual) {
+    const current = globalOtaState.updateState;
+    const isBusy = [
+      'FETCH_APK_INFORMATION',
+      'DOWNLOAD_APK',
+      'VERIFY_SHA256',
+      'PREPARE_INSTALL',
+      'WAIT_PACKAGE_INSTALLER',
+      'INSTALLING',
+      'INSTALL_SUCCESS',
+    ].includes(current);
+    if (isBusy) {
+      console.log(`[OTA] Rejecting automatic checkForUpdate: installer is currently busy (state: ${current})`);
+      return Promise.resolve(globalOtaState);
+    }
+  }
   return UpdatePipelineCoordinator.dispatch(isManual, trigger, reason);
 }
 
@@ -1293,7 +1317,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       }
 
       UpdatePipelineCoordinator.setStage('AWAIT_ELIGIBILITY_VERIFICATION');
-      updateGlobalState({ statusText: 'Preparing installation...' });
+      updateGlobalState({ statusText: 'Preparing package...' });
       const isEligible = await runEligibilityCheck(filePath);
       if (!isEligible) {
         if (otaDebugLogs.eligibilityReason === 'signature_mismatch' && !isRecovering) {
@@ -1310,7 +1334,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       });
 
       otaDebugLogs.installError += `\nAPK is eligible. Launching APK installer intent for file: ${filePath}`;
-      updateGlobalState({ statusText: 'Waiting for Android...' });
+      updateGlobalState({ statusText: 'Launching PackageInstaller...' });
 
       const shouldSimulateInstall = !isNative() || !isAppInstallerAvailable() ||
           updaterSimulation.simulateDownload || 
@@ -1361,6 +1385,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           updateGlobalState({ sessionId: res.sessionId });
           logDiagnosticEvent('SESSION_CREATED', { sessionId: res.sessionId });
         }
+        updateGlobalState({ statusText: 'Waiting for installer...' });
         void logProgressStage('Waiting for Android confirmation', 'Waiting for system confirmation dialog to overlay');
       }
 
@@ -1502,6 +1527,7 @@ async function checkAndRecoverInstallState() {
 }
 
 let isOtaInitialized = false;
+let lastInstallProgressTime = 0;
 
 export function initializeGlobalOtaListeners() {
   if (isOtaInitialized) return;
@@ -1540,13 +1566,25 @@ export function initializeGlobalOtaListeners() {
 
     if (status === -2) {
       transitionToState('INSTALLING', 'PackageInstaller session active');
-      updateGlobalState({ statusText: `Installing...` });
+      updateGlobalState({ statusText: 'Installing package...' });
     } else if (status === -3) {
       const progressFraction = typeof progress === 'number' ? progress : 0;
-      updateGlobalState({
-        progress: progressFraction,
-        statusText: `Installing update... (${Math.round(progressFraction * 100)}%)`
-      });
+      const now = Date.now();
+      if (now - lastInstallProgressTime >= 100 || progressFraction === 1 || progressFraction === 0) {
+        lastInstallProgressTime = now;
+        
+        let label = 'Installing package...';
+        if (progressFraction > 0.5 && progressFraction <= 0.9) {
+          label = 'Optimizing application...';
+        } else if (progressFraction > 0.9) {
+          label = 'Finalizing installation...';
+        }
+        
+        updateGlobalState({
+          progress: progressFraction,
+          statusText: `${label} (${Math.round(progressFraction * 100)}%)`
+        });
+      }
       if (globalOtaState.updateState !== 'INSTALLING') {
         transitionToState('INSTALLING', 'PackageInstaller progress received');
       }

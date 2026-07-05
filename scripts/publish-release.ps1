@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.88"
-$VersionCode = "216"
-$ReleaseNote = "v3.7.88 - Release 3.7.88: Bottom Navigation reliability hotfix, simplified scroll tracking, and layout-thrashing resolution."
+$VersionName = "3.7.89"
+$VersionCode = "217"
+$ReleaseNote = "v3.7.89 - Release 3.7.89: Native updater final reliability, real progress stages, and GPU background animation optimizations."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -15,13 +15,12 @@ pnpm version:web -- $VersionName
 
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/appVersion.ts
-git add packages/studio-core/src/lib/navScroll.ts
-git add packages/ui-shared/src/components/BottomNav.tsx
-git add packages/studio-core/src/lib/apkDownloader.ts
+git add packages/studio-core/src/lib/startupCoordinator.ts
 git add packages/studio-core/src/lib/otaUpdate.ts
-git add packages/studio-core/src/lib/updater/updaterSimulation.ts
-git add packages/ui-shared/src/components/DevToolsDashboard.tsx
-git add apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java
+git add packages/studio-core/src/lib/updater/downloadManager.ts
+git add packages/ui-shared/src/components/UpdateIndicator.tsx
+git add packages/ui-shared/src/components/StudioUpdateScreen.tsx
+git add packages/ui-shared/src/components/StudioUpdateAuroraBackground.tsx
 git add apps/studio-android/package.json
 git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/public/version.json

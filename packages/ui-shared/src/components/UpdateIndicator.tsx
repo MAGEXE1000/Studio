@@ -746,6 +746,7 @@ export default function UpdateIndicator({
                 setShowChangelogSheet(true);
                 localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
                 setSuccessNotificationVersion(null);
+                ota.dismissUpdate();
               }}
               style={{
                 marginLeft: 'auto',
@@ -768,6 +769,7 @@ export default function UpdateIndicator({
               onClick={() => {
                 localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
                 setSuccessNotificationVersion(null);
+                ota.dismissUpdate();
               }}
               style={{
                 background: 'transparent',
@@ -1217,6 +1219,7 @@ function UpdateModal({
       iconColor = purpleFrom;
       showSpinner = true;
       title = 'Installing Studio...';
+      const hasRealProgress = ota.progress > 0 && ota.progress < 1;
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
           <div>{ota.statusText || 'Android is installing the update.'}</div>
@@ -1224,6 +1227,7 @@ function UpdateModal({
         </div>
       );
       showButtons = false;
+      showProgress = hasRealProgress;
       break;
 
     case 'installedOrReady':

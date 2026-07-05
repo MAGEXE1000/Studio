@@ -40,15 +40,20 @@ export async function downloadUpdateApk(options: DownloadOptions): Promise<strin
         console.log(`[OTA] Trying download from ${sourceUrl} (Attempt ${retryCount + 1}/${maxRetries})`);
         void logProgressStage('Download started', `Source: ${sourceUrl} (Attempt ${retryCount + 1})`);
         
+        let lastUpdateTime = 0;
         filePath = await downloadApk(sourceUrl, fileName, (percent) => {
           resetDownloadWatchdog();
-          if (onProgress) {
-            onProgress(percent);
-          } else {
-            updateGlobalState({ 
-              progress: Math.max(0, Math.min(1, percent / 100)),
-              statusText: `Downloading update (${Math.round(percent)}%)`
-            });
+          const now = Date.now();
+          if (now - lastUpdateTime >= 100 || percent === 100 || percent === 0) {
+            lastUpdateTime = now;
+            if (onProgress) {
+              onProgress(percent);
+            } else {
+              updateGlobalState({ 
+                progress: Math.max(0, Math.min(1, percent / 100)),
+                statusText: `Downloading update (${Math.round(percent)}%)`
+              });
+            }
           }
         });
         

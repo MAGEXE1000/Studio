@@ -54,11 +54,11 @@ export default function StudioUpdateAuroraBackground({
             position: "absolute",
             inset: "-20%",
             backgroundImage: `repeating-linear-gradient(100deg, ${c1} 0%, ${c2} 10%, ${c3} 20%, ${c1} 30%, ${c2} 40%)`,
-            backgroundSize: "300% 200%",
+            backgroundSize: "200% 200%",
             opacity: 0.42,
             filter: "blur(60px) saturate(1.5)",
             willChange: "transform",
-            animation: reducedMotion ? "none" : "studio-aurora 32s linear infinite",
+            animation: reducedMotion ? "none" : "studio-aurora 36s ease-in-out infinite",
           }}
         />
 
@@ -78,16 +78,16 @@ export default function StudioUpdateAuroraBackground({
       <style>{`
         @keyframes studio-aurora {
           0% {
-            background-position: 0% 50%;
-            transform: scale(1) rotate(0deg);
+            transform: translate(0px, 0px) scale(1) rotate(0deg);
           }
-          50% {
-            background-position: 100% 50%;
-            transform: scale(1.08) rotate(2.5deg);
+          33% {
+            transform: translate(20px, -15px) scale(1.08) rotate(3deg);
+          }
+          66% {
+            transform: translate(-15px, 20px) scale(0.92) rotate(-3deg);
           }
           100% {
-            background-position: 0% 50%;
-            transform: scale(1) rotate(0deg);
+            transform: translate(0px, 0px) scale(1) rotate(0deg);
           }
         }
       `}</style>

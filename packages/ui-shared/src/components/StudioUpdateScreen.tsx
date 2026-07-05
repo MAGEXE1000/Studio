@@ -57,36 +57,7 @@ export default function StudioUpdateScreen({
 
   const isInstalling = ['installing', 'waitingForUserInstallConfirmation'].includes(state);
 
-  // Cyclical installation stage timer
-  const [installStage, setInstallStage] = useState(0);
-
-  useEffect(() => {
-    if (!isInstalling) {
-      setInstallStage(0);
-      return;
-    }
-    const interval = setInterval(() => {
-      setInstallStage((prev) => Math.min(prev + 1, 4));
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [isInstalling]);
-
-  const stages = [
-    'Preparing installation...',
-    'Installing package...',
-    'Optimizing application...',
-    'Applying update...',
-    'Almost finished...',
-  ];
-
-  const activeStageText = stages[installStage];
-
-  const displayDescription = isInstalling ? (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
-      <div style={{ fontWeight: 700, color: 'var(--c-text-primary)' }}>{activeStageText}</div>
-      <div style={{ fontSize: 12, opacity: 0.7 }}>Please wait... Do not close the application.</div>
-    </div>
-  ) : description;
+  const displayDescription = description;
 
   // Emphasized cubic-bezier transitions for container transforms
   const emphasizedTransition = { duration: 0.45, ease: [0.2, 0, 0, 1] as const };

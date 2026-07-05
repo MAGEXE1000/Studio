@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.74';
-export const WEB_VERSION = '3.7.74';
+export const NATIVE_VERSION = '3.7.75';
+export const WEB_VERSION = '3.7.75';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -38,11 +38,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-05'; // 3.7.74
+export const APP_VERSION_DATE = '2026-07-04'; // 3.7.75
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/5/2026, 1:11:00 AM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/4/2026, 8:08:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -61,9 +61,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Stabilized cross-app navigation and transitions between Hub and sub-apps.",
-      "Fixed navigation store state mismatches, logo freezes, and unmount cleanups.",
-      "Added modals/sheets cleanup inside sub-app unmount callbacks.",
+      "Completed System Diagnostics page redesign to match the premium Developer Tools theme.",
+      "Added Copy Everything and Copy Section utilities to all diagnostics screens.",
+      "Fixed PackageInstaller state sync where updater screen reset prematurely on resume.",
     ],
   },
 ];
@@ -73,9 +73,9 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Stabilized cross-app navigation and transitions between Hub and sub-apps.",
-      "Fixed navigation store state mismatches, logo freezes, and unmount cleanups.",
-      "Added modals/sheets cleanup inside sub-app unmount callbacks.",
+      "Completed System Diagnostics page redesign to match the premium Developer Tools theme.",
+      "Added Copy Everything and Copy Section utilities to all diagnostics screens.",
+      "Fixed PackageInstaller state sync where updater screen reset prematurely on resume.",
     ],
   },
 ];

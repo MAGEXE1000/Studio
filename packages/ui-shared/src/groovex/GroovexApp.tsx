@@ -73,6 +73,7 @@ export default function GroovexApp() {
       }, 320);
       return () => clearTimeout(timer);
     }
+    return;
   }, [exitingView]);
 
   function navigate(next: GroovexView) {

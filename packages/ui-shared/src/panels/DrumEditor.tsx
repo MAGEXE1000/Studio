@@ -2000,6 +2000,7 @@ export default function DrumEditor() {
       }, 320);
       return () => clearTimeout(timer);
     }
+    return;
   }, [exitingView]);
 
   const isSongsListVisible = visibleView === 'songs-list';

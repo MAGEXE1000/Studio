@@ -1,22 +1,19 @@
 {
-  "platform": "android",
-  "version": "3.7.81",
-  "versionName": "3.7.81",
-  "versionCode": 209,
-  "version_code": 209,
-  "commit": "36c49dfe",
-  "releasedAt": "7/5/2026, 5:42:14 AM CST",
-  "buildTimestamp": "7/5/2026, 5:42:14 AM CST",
+  "platform": "web",
+  "version": "3.7.82",
+  "commit": "2808b075",
+  "releasedAt": "undefined",
+  "buildTimestamp": "undefined",
   "updateMode": "refresh",
-  "changelog": "• Stabilize cross-app navigation and transition lockups.\n• Remove polling timers, replacing them with deterministic lifecycle mount-ready completions.\n• Redesign Developer Tools diagnostics views with real performance instrumentation and badged metrics.\n• Overhaul diagnostics copy reports into structured interpreted documents with a Technical Appendix.\n• Smooth global bottom navigation bar collapse-to-indicator animations on scroll down.",
-  "whatsNew": "• Stabilize cross-app navigation and transition lockups.\n• Remove polling timers, replacing them with deterministic lifecycle mount-ready completions.\n• Redesign Developer Tools diagnostics views with real performance instrumentation and badged metrics.\n• Overhaul diagnostics copy reports into structured interpreted documents with a Technical Appendix.\n• Smooth global bottom navigation bar collapse-to-indicator animations on scroll down.",
+  "description": "• Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.\n• Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.\n• Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.\n• Correctly categorized extended and new chord shapes under the right sections in Chordex Library.",
+  "whatsNew": "• Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.\n• Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.\n• Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.\n• Correctly categorized extended and new chord shapes under the right sections in Chordex Library.",
+  "changelog": "• Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.\n• Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.\n• Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.\n• Correctly categorized extended and new chord shapes under the right sections in Chordex Library.",
   "releaseNotes": {
-    "fixed": [
-      "Stabilize cross-app navigation and transition lockups.",
-      "Remove polling timers, replacing them with deterministic lifecycle mount-ready completions.",
-      "Redesign Developer Tools diagnostics views with real performance instrumentation and badged metrics.",
-      "Overhaul diagnostics copy reports into structured interpreted documents with a Technical Appendix.",
-      "Smooth global bottom navigation bar collapse-to-indicator animations on scroll down."
+    "added": [
+      "Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.",
+      "Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.",
+      "Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.",
+      "Correctly categorized extended and new chord shapes under the right sections in Chordex Library."
     ]
   },
   "mandatory": false

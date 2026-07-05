@@ -11,6 +11,12 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.82
+
+### Fixed
+- Resolve native package installer UX bug where the updater screen would close or reset to "up to date" immediately after tapping UPDATE.
+- Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.
+
 ## 3.7.81
 
 ### Fixed

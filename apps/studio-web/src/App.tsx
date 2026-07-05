@@ -375,6 +375,7 @@ export default function App() {
       }, 320);
       return () => clearTimeout(timer);
     }
+    return;
   }, [exitingPanel]);
 
   // Register diagnostics getters for printDiagnosticsDump

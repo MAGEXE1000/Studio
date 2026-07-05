@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.81';
-export const WEB_VERSION = '3.7.81';
+export const NATIVE_VERSION = '3.7.82';
+export const WEB_VERSION = '3.7.82';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -61,11 +61,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Stabilize cross-app navigation and transition lockups.",
-      "Remove polling timers, replacing them with deterministic lifecycle mount-ready completions.",
-      "Redesign Developer Tools diagnostics views with real performance instrumentation and badged metrics.",
-      "Overhaul diagnostics copy reports into structured interpreted documents with a Technical Appendix.",
-      "Smooth global bottom navigation bar collapse-to-indicator animations on scroll down.",
+      "Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.",
+      "Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
     ],
   },
 ];

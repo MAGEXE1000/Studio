@@ -2499,6 +2499,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       }, 320);
       return () => clearTimeout(timer);
     }
+    return;
   }, [exitingPanel]);
 
   useEffect(() => {

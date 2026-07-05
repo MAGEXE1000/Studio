@@ -146,7 +146,7 @@ export function PageTransition({
       return {
         x: direction === 'forward' ? '100%' : '-30%',
         scale: direction === 'forward' ? 1.0 : 0.96,
-        opacity: direction === 'forward' ? 1.0 : 0.3,
+        opacity: 1.0,
         zIndex: direction === 'forward' ? 2 : 1,
       };
     },
@@ -166,7 +166,7 @@ export function PageTransition({
       return {
         x: direction === 'forward' ? '-30%' : '100%',
         scale: direction === 'forward' ? 0.96 : 1.0,
-        opacity: direction === 'forward' ? 0.3 : 1.0,
+        opacity: 1.0,
         zIndex: direction === 'forward' ? 1 : 2,
       };
     }

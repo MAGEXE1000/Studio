@@ -2474,16 +2474,16 @@ function HubSettings({
   const page = (currentRoute.tab === 'settings' ? (currentRoute.page ?? 'main') : 'main') as SettingsPageId;
   const pageKey = navigationHistory.length;
 
-  const prevLenRef = useRef(navigationHistory.length);
-  const [slideDir, setSlideDir] = useState<'forward' | 'backward'>('forward');
+  const curLen = navigationHistory.length;
+  const prevLenRef = useRef(curLen);
+  const prevDirRef = useRef<'forward' | 'backward'>('forward');
 
-  useEffect(() => {
-    const curLen = navigationHistory.length;
-    if (curLen !== prevLenRef.current) {
-      setSlideDir(curLen >= prevLenRef.current ? 'forward' : 'backward');
-      prevLenRef.current = curLen;
-    }
-  }, [navigationHistory.length]);
+  let slideDir: 'forward' | 'backward' = prevDirRef.current;
+  if (curLen !== prevLenRef.current) {
+    slideDir = curLen >= prevLenRef.current ? 'forward' : 'backward';
+    prevDirRef.current = slideDir;
+    prevLenRef.current = curLen;
+  }
 
   const activePageId = page === 'main' ? 'general' : page;
 
@@ -5332,16 +5332,16 @@ function HubHelp({
   const page = (currentRoute.tab === 'help' ? (currentRoute.page ?? 'main') : 'main') as HelpPageActiveId;
   const pageKey = navigationHistory.length;
 
-  const prevLenRef = useRef(navigationHistory.length);
-  const [slideDir, setSlideDir] = useState<'forward' | 'backward'>('forward');
+  const curLen = navigationHistory.length;
+  const prevLenRef = useRef(curLen);
+  const prevDirRef = useRef<'forward' | 'backward'>('forward');
 
-  useEffect(() => {
-    const curLen = navigationHistory.length;
-    if (curLen !== prevLenRef.current) {
-      setSlideDir(curLen >= prevLenRef.current ? 'forward' : 'backward');
-      prevLenRef.current = curLen;
-    }
-  }, [navigationHistory.length]);
+  let slideDir: 'forward' | 'backward' = prevDirRef.current;
+  if (curLen !== prevLenRef.current) {
+    slideDir = curLen >= prevLenRef.current ? 'forward' : 'backward';
+    prevDirRef.current = slideDir;
+    prevLenRef.current = curLen;
+  }
 
   const [copiedBugTemplate, setCopiedBugTemplate] = useState(false);
   const [firebaseAppReleaseJson, setFirebaseAppReleaseJson] = useState<string>('Loading...');

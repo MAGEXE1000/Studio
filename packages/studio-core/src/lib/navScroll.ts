@@ -98,21 +98,43 @@ export function useNavCollapsed(): boolean {
 // On scroll-up or near top → expand back.
 // Callers that need a full programmatic hide should use setNavHidden() directly.
 let _activeScrollOwner: HTMLElement | null = null;
+let _previousScrollOwner: HTMLElement | null = null;
+let _currentSessionId = 0;
+let _ignoredStaleCallbacksCount = 0;
 
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
   const lastY = useRef(0);
   const isFirstScroll = useRef(true);
 
+  // Subscribe to active route changes to force hook re-registration
+  const activeRouteStr = useNavigationStore(state => {
+    const activeRoute = state.history[state.history.length - 1];
+    return activeRoute ? JSON.stringify(activeRoute) : 'null';
+  });
+
   useEffect(() => {
     let el = ref.current;
     let onScroll: (() => void) | null = null;
+    const sessionToken = _currentSessionId; // Snapshot current session ID
     
     const attachScrollListener = (target: HTMLElement) => {
+      if (sessionToken !== _currentSessionId) {
+        _ignoredStaleCallbacksCount++;
+        return;
+      }
+
       _activeScrollOwner = target;
       lastY.current = target.scrollTop;
       isFirstScroll.current = true;
 
       onScroll = () => {
+        // Validate session token
+        if (sessionToken !== _currentSessionId) {
+          _ignoredStaleCallbacksCount++;
+          target.removeEventListener('scroll', onScroll!);
+          return;
+        }
+
         if (_activeScrollOwner !== target) {
           // Stale listener — detach
           target.removeEventListener('scroll', onScroll!);
@@ -165,6 +187,13 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
     } else {
       let attempts = 0;
       const interval = setInterval(() => {
+        // Stop if session has already changed
+        if (sessionToken !== _currentSessionId) {
+          clearInterval(interval);
+          _ignoredStaleCallbacksCount++;
+          return;
+        }
+
         el = ref.current;
         attempts++;
         if (el) {
@@ -185,10 +214,11 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         el.removeEventListener('scroll', onScroll);
       }
       if (_activeScrollOwner === el) {
+        _previousScrollOwner = el;
         _activeScrollOwner = null;
       }
     };
-  }, [ref, dependency]);
+  }, [ref, dependency, activeRouteStr]);
 }
 
 // ─── Watchdog Recovery System & Diagnostics ──────────────────────────────────
@@ -201,19 +231,25 @@ function clearWatchdogTimer() {
   }
 }
 
-function logRecovery(reason: string, action: string) {
+function logRecovery(reason: string, action: string, startTime: number, sessionId: number) {
   try {
     const navStore = useNavigationStore.getState();
     const currentRoute = navStore.history[navStore.history.length - 1];
     const previousRoute = navStore.history[navStore.history.length - 2] ?? null;
+    const duration = Date.now() - startTime;
+    
     const diagnosticsInfo = {
+      navigationSessionId: sessionId,
       currentRoute: currentRoute ? JSON.stringify(currentRoute) : 'null',
       previousRoute: previousRoute ? JSON.stringify(previousRoute) : 'null',
-      navigationState: `hidden=${_hidden}, collapsed=${_collapsed}`,
-      scrollOwner: _activeScrollOwner ? `tagName=${_activeScrollOwner.tagName}, scrollTop=${_activeScrollOwner.scrollTop}, isConnected=${_activeScrollOwner.isConnected}` : 'null',
+      currentScrollOwner: _activeScrollOwner ? `tagName=${_activeScrollOwner.tagName}, scrollTop=${_activeScrollOwner.scrollTop}, isConnected=${_activeScrollOwner.isConnected}` : 'null',
+      previousScrollOwner: _previousScrollOwner ? `tagName=${_previousScrollOwner.tagName}, isConnected=${_previousScrollOwner.isConnected}` : 'null',
+      collapsedState: _collapsed,
       transitionState: `isTransitioning=${navStore.isTransitioning}`,
       recoveryReason: reason,
-      recoveryAction: action
+      recoveryAction: action,
+      ignoredStaleCallbackCount: _ignoredStaleCallbacksCount,
+      recoveryDuration: `${duration}ms`
     };
     console.warn('[RecoveryDiagnostics]', diagnosticsInfo);
   } catch (e) {
@@ -225,17 +261,28 @@ export function onStateChanged() {
   try {
     if (typeof window === 'undefined') return;
 
+    const validationSessionId = _currentSessionId;
+
     // 1. Collapsed state self-healing check (synchronous)
     if (_collapsed) {
       // Case A: Collapsed but no active connected scroll owner in DOM
       if (!_activeScrollOwner || !_activeScrollOwner.isConnected) {
-        logRecovery('Collapsed state active but no active connected scroll owner exists', 'setNavCollapsed(false)');
+        const startTime = Date.now();
+        logRecovery('Collapsed state active but no active connected scroll owner exists', 'setNavCollapsed(false)', startTime, validationSessionId);
         setNavCollapsed(false);
         return;
       }
       // Case B: Collapsed but active scroll owner is near the top
       if (_activeScrollOwner.scrollTop < 40) {
-        logRecovery('Collapsed state active but scroll owner is near top (< 40)', 'setNavCollapsed(false)');
+        const startTime = Date.now();
+        logRecovery('Collapsed state active but scroll owner is near top (< 40)', 'setNavCollapsed(false)', startTime, validationSessionId);
+        setNavCollapsed(false);
+        return;
+      }
+      // Case C: Collapsed but active scroll owner has 0 dimensions (hidden layout)
+      if (_activeScrollOwner.offsetHeight === 0 && _activeScrollOwner.offsetWidth === 0) {
+        const startTime = Date.now();
+        logRecovery('Collapsed state active but scroll owner has 0 dimensions (hidden)', 'setNavCollapsed(false)', startTime, validationSessionId);
         setNavCollapsed(false);
         return;
       }
@@ -244,8 +291,15 @@ export function onStateChanged() {
     // 2. Hidden state self-healing check (deferred watch)
     clearWatchdogTimer();
     if (_hidden) {
+      const startTime = Date.now();
       _watchdogTimer = setTimeout(() => {
         _watchdogTimer = null;
+        
+        // Validate session token
+        if (validationSessionId !== _currentSessionId) {
+          _ignoredStaleCallbacksCount++;
+          return;
+        }
         
         const isTransitioning = useNavigationStore.getState().isTransitioning;
         if (isTransitioning) return;
@@ -271,7 +325,7 @@ export function onStateChanged() {
         if (hasFullscreenView) return;
 
         // Stuck hidden state
-        logRecovery('Hidden state active but no fullscreen elements, overlays, or transitions detected', 'resetNav()');
+        logRecovery('Hidden state active but no fullscreen elements, overlays, or transitions detected', 'resetNav()', startTime, validationSessionId);
         resetNav();
       }, 250); // 250ms gives React layouts time to settle after transitions
     }
@@ -293,8 +347,24 @@ if (typeof window !== 'undefined') {
       // Auto-reset collapsed state on route changes
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
+        
+        // Lifecycle synchronization!
+        _currentSessionId++;
+        _ignoredStaleCallbacksCount = 0;
+        
+        if (_activeScrollOwner) {
+          _previousScrollOwner = _activeScrollOwner;
+          _activeScrollOwner = null;
+        }
+        
+        clearWatchdogTimer();
+        
         if (_collapsed) {
           setNavCollapsed(false);
+        }
+        if (_hidden) {
+          _hidden = false;
+          emit(false);
         }
       }
       

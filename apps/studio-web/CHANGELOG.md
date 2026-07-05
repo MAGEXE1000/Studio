@@ -11,6 +11,41 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.79
+
+### Fixed
+- Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.
+- Integrates global Copy Everything and Copy Section utilities.
+- Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.
+
+## 3.7.78
+
+### Fixed
+- Finalized native Android PackageInstaller stabilization and UI synchronization.
+- Resolved duplicate confirmation dialogs prompting users twice.
+- Configured persistent installer screens during package replacement.
+- Removed the legacy startup success screens to boot directly to the main Hub.
+
+## 3.7.77
+
+### Fixed
+- Test release with no changes to verify PackageInstaller flow.
+
+## 3.7.76
+
+### Fixed
+- Resolved duplicate PackageInstaller dialog prompting users twice during installation.
+- Synchronized native installation states to keep the installing screen active with a spinner.
+- Added a final completion screen upon successful background package replacement.
+- Configured the Done action button to cleanly terminate the app process.
+
+## 3.7.75
+
+### Fixed
+- Completed System Diagnostics page redesign to match the premium Developer Tools theme.
+- Added Copy Everything and Copy Section utilities to all diagnostics screens.
+- Fixed PackageInstaller state sync where updater screen reset prematurely on resume.
+
 ## 3.7.74
 
 ### Fixed

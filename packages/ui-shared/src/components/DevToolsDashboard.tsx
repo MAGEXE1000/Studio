@@ -1171,6 +1171,18 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   // Copy Module Diagnostics (Copy Everything)
+  const renderCopyButton = (module: string) => {
+    return (
+      <button
+        onClick={() => handleCopyModuleDiagnostics(module)}
+        className="flex items-center gap-2 bg-tertiary text-on-tertiary px-5 py-2.5 rounded-full text-sm font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all outline-none"
+      >
+        <span className="material-symbols-outlined text-sm">content_copy</span>
+        <span>Copy Everything</span>
+      </button>
+    );
+  };
+
   const handleCopyModuleDiagnostics = (module: string) => {
     let dump: any = {
       appVersion: APP_VERSION,
@@ -3043,106 +3055,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     border: '1px solid rgba(128, 128, 128, 0.12)',
   };
 
-  const renderDashboardContent = () => (
-    <>
-      <style>{`
-        @media (min-width: 768px) {
-          .dev-grid-4col {
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-          }
-          .dev-tools-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-        }
-      `}</style>
-      {subView === 'dashboard' && (
-        <>
-          {/* HEADER */}
-          {isWebDesktop && (
-            <div style={{
-              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-              paddingBottom: '16px',
-              paddingLeft: '20px',
-              paddingRight: '20px',
-              borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: 'var(--app-bg)',
-              position: 'sticky',
-              top: 0,
-              zIndex: 100
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button
-                  onClick={onBack}
-                  className="btn-smooth"
-                  style={{
-                    background: 'var(--app-surface-high)',
-                    border: 'none',
-                    borderRadius: '999px',
-                    width: 36,
-                    height: 36,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: 'var(--c-text-primary)'
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
-                </button>
-                <div>
-                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Developer Panel</h2>
-                  <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>System Diagnostics & Runtime Tools</p>
-                </div>
-              </div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: 'var(--app-surface-high)',
-                borderRadius: '999px',
-                padding: '6px 12px',
-                gap: 8,
-                border: '1px solid rgba(128, 128, 128, 0.08)'
-              }}>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
-                <div
-                  onClick={() => {
-                    const next = !settings.developerMode;
-                    updateSettings({ developerMode: next });
-                    showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
-                  }}
-                  style={{
-                    position: 'relative',
-                    width: 32,
-                    height: 18,
-                    backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
-                    borderRadius: 999,
-                    padding: '2px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  <div style={{
-                    width: 14,
-                    height: 14,
-                    backgroundColor: '#ffffff',
-                    borderRadius: '50%',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                    transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
-                    transition: 'transform 0.2s ease'
-                  }} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* SYSTEM HEALTH GRID */}
-          <div style={{ flex: 1, overflowY: isWebDesktop ? 'auto' : 'visible', display: 'flex', flexDirection: 'column', gap: 20 }}>
+  const renderDashboardBody = () => (
+    <div style={{ flex: 1, overflowY: isWebDesktop ? 'auto' : 'visible', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ padding: '0 20px', marginTop: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h2 style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-secondary)', margin: 0 }}>System Health</h2>
@@ -3414,39 +3328,432 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               )}
             </div>
           </div>
+  );
+
+  const renderLogsBody = (isMobile: boolean) => (
+    <>
+      {/* Unified Filters Bento Bar */}
+      <div style={{
+        padding: isMobile ? '16px 0 8px' : '20px 24px 12px',
+        background: 'var(--app-bg)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        borderBottom: '1px solid rgba(128,128,128,0.08)'
+      }}>
+        {/* Search Input & Copy Section button */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <span className="material-symbols-outlined" style={{
+              position: 'absolute',
+              left: 14,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'rgba(255,255,255,0.4)',
+              pointerEvents: 'none',
+              fontSize: 20
+            }}>search</span>
+            <input
+              type="text"
+              value={logSearchQuery}
+              onChange={(e) => setLogSearchQuery(e.target.value)}
+              placeholder="Search system events, pids, or threads..."
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'var(--app-surface-high, #1c1c1e)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '12px',
+                padding: '12px 16px 12px 42px',
+                color: '#fff',
+                fontSize: '13px',
+                fontFamily: 'Inter',
+                outline: 'none',
+                transition: 'all 0.15s ease'
+              }}
+            />
+          </div>
+          
+          <button
+            onClick={() => {
+              let title = '';
+              let data: any = null;
+              if (activeTab === 'logs') {
+                title = `Logs (${logLevelFilter})`;
+                data = filteredLogs.slice(-100);
+              } else if (activeTab === 'errors') {
+                title = 'Captured Errors';
+                data = errors;
+              } else if (activeTab === 'events') {
+                title = 'System Events';
+                data = events;
+              } else if (activeTab === 'nav') {
+                title = 'Navigation History';
+                data = useNavigationStore.getState().history;
+              }
+              if (data) {
+                const text = `=== ${title} ===\n` + JSON.stringify(data, null, 2);
+                navigator.clipboard.writeText(text)
+                  .then(() => showToast('Section copied!'))
+                  .catch(() => showToast('Copy failed.'));
+              }
+            }}
+            className="flex items-center gap-1.5 bg-[#ffffff]/05 hover:bg-[#ffffff]/10 text-on-surface px-4 py-2 rounded-full text-xs font-bold transition-all outline-none border border-white/10"
+          >
+            <span className="material-symbols-outlined text-xs">content_copy</span>
+            <span>Copy Section</span>
+          </button>
+        </div>
+
+        {/* Severity Toggles / Tab Selectors */}
+        <div className="toggle-scroll" style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          padding: '4px 0',
+          width: '100%'
+        }}>
+          {[
+            { label: 'All', id: 'all_logs', active: activeTab === 'logs' && logLevelFilter === 'all', color: '#acabaa', onClick: () => { setActiveTab('logs'); setLogLevelFilter('all'); } },
+            { label: 'Info', id: 'info_logs', active: activeTab === 'logs' && logLevelFilter === 'info', color: '#60a5fa', onClick: () => { setActiveTab('logs'); setLogLevelFilter('info'); } },
+            { label: 'Warnings', id: 'warn_logs', active: activeTab === 'logs' && logLevelFilter === 'warn', color: '#fbbf24', onClick: () => { setActiveTab('logs'); setLogLevelFilter('warn'); } },
+            { label: `Errors (${errors.length})`, id: 'errors_tab', active: activeTab === 'errors', color: '#ee7d77', onClick: () => { setActiveTab('errors'); } },
+            { label: `Events (${events.length})`, id: 'events_tab', active: activeTab === 'events', color: '#10b981', onClick: () => { setActiveTab('events'); } },
+            { label: 'Navigation Stack', id: 'nav_tab', active: activeTab === 'nav', color: '#a78bfa', onClick: () => { setActiveTab('nav'); } }
+          ].map(toggle => (
+            <button
+              key={toggle.id}
+              onClick={toggle.onClick}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                borderRadius: '10px',
+                background: toggle.active ? 'var(--studio-accent-from, #679cff)' : 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.02)',
+                color: toggle.active ? '#fff' : 'rgba(255,255,255,0.6)',
+                fontWeight: 700,
+                fontSize: '11px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: toggle.active ? '#fff' : toggle.color,
+                display: 'inline-block'
+              }} />
+              {toggle.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{
+        flex: isMobile ? 'none' : 1,
+        overflowY: isMobile ? 'visible' : 'auto',
+        paddingTop: 16,
+        paddingLeft: isMobile ? 0 : 20,
+        paddingRight: isMobile ? 0 : 20,
+        paddingBottom: isMobile ? 20 : 'calc(var(--content-bottom-pad, 96px) + 20px)'
+      }}>
+        {activeTab === 'logs' && renderLogsTab()}
+        {activeTab === 'errors' && renderErrorsTab()}
+        {activeTab === 'events' && renderEventsTab()}
+        {activeTab === 'nav' && renderNavTab()}
+        <WarningsInspector logs={logs} showToast={showToast} />
+      </div>
+    </>
+  );
+
+  const renderDashboardContent = () => (
+    <>
+      <style>{`
+        @media (min-width: 768px) {
+          .dev-grid-4col {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          }
+          .dev-tools-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
+      {subView === 'dashboard' && (
+        <>
+          {/* HEADER */}
+          {isWebDesktop && (
+            <div style={{
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+              paddingBottom: '16px',
+              paddingLeft: '20px',
+              paddingRight: '20px',
+              borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'var(--app-bg)',
+              position: 'sticky',
+              top: 0,
+              zIndex: 100
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button
+                  onClick={onBack}
+                  className="btn-smooth"
+                  style={{
+                    background: 'var(--app-surface-high)',
+                    border: 'none',
+                    borderRadius: '999px',
+                    width: 36,
+                    height: 36,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--c-text-primary)'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+                </button>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Developer Panel</h2>
+                  <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>System Diagnostics & Runtime Tools</p>
+                </div>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: 'var(--app-surface-high)',
+                borderRadius: '999px',
+                padding: '6px 12px',
+                gap: 8,
+                border: '1px solid rgba(128, 128, 128, 0.08)'
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
+                <div
+                  onClick={() => {
+                    const next = !settings.developerMode;
+                    updateSettings({ developerMode: next });
+                    showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
+                  }}
+                  style={{
+                    position: 'relative',
+                    width: 32,
+                    height: 18,
+                    backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
+                    borderRadius: 999,
+                    padding: '2px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <div style={{
+                    width: 14,
+                    height: 14,
+                    backgroundColor: '#ffffff',
+                    borderRadius: '50%',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                    transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
+                    transition: 'transform 0.2s ease'
+                  }} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SYSTEM HEALTH GRID */}
+          {!isWebDesktop ? (
+            <SettingsScaffold
+              title="Developer Options"
+              onBack={onBack}
+              toolbarActions={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
+                  <div
+                    onClick={() => {
+                      const next = !settings.developerMode;
+                      updateSettings({ developerMode: next });
+                      showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
+                    }}
+                    style={{
+                      position: 'relative',
+                      width: 32,
+                      height: 18,
+                      backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
+                      borderRadius: 999,
+                      padding: '2px',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <div style={{
+                      width: 14,
+                      height: 14,
+                      backgroundColor: '#ffffff',
+                      borderRadius: '50%',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                      transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
+                      transition: 'transform 0.2s ease'
+                    }} />
+                  </div>
+                </div>
+              }
+            >
+              {renderDashboardBody()}
+            </SettingsScaffold>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+              {isWebDesktop && (
+                <div style={{
+                  paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+                  paddingBottom: '16px',
+                  paddingLeft: '20px',
+                  paddingRight: '20px',
+                  borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'var(--app-bg)',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 100
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <button
+                      onClick={onBack}
+                      className="btn-smooth"
+                      style={{
+                        background: 'var(--app-surface-high)',
+                        border: 'none',
+                        borderRadius: '999px',
+                        width: 36,
+                        height: 36,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: 'var(--c-text-primary)'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+                    </button>
+                    <div>
+                      <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Developer Panel</h2>
+                      <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>System Diagnostics & Runtime Tools</p>
+                    </div>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: 'var(--app-surface-high)',
+                    borderRadius: '999px',
+                    padding: '6px 12px',
+                    gap: 8,
+                    border: '1px solid rgba(128, 128, 128, 0.08)'
+                  }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--studio-accent-from, #679cff)' }}>Dev Mode</span>
+                    <div
+                      onClick={() => {
+                        const next = !settings.developerMode;
+                        updateSettings({ developerMode: next });
+                        showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
+                      }}
+                      style={{
+                        position: 'relative',
+                        width: 32,
+                        height: 18,
+                        backgroundColor: settings.developerMode ? 'var(--studio-accent-from, #679cff)' : 'var(--app-surface-highest)',
+                        borderRadius: 999,
+                        padding: '2px',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <div style={{
+                        width: 14,
+                        height: 14,
+                        backgroundColor: '#ffffff',
+                        borderRadius: '50%',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                        transform: settings.developerMode ? 'translateX(14px)' : 'translateX(0px)',
+                        transition: 'transform 0.2s ease'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div style={{ flex: 1, overflowY: 'auto' }}>
+                {renderDashboardBody()}
+              </div>
+            </div>
+          )}
         </>
       )}
-
+      
       {subView === 'apps' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: isWebDesktop ? '100%' : 'auto', background: 'var(--app-bg)' }}>
-          {renderSubViewHeader('Apps Diagnostics')}
-          <div style={{
-            flex: isWebDesktop ? 1 : 'none',
-            overflowY: isWebDesktop ? 'auto' : 'visible',
-            paddingTop: 16,
-            paddingLeft: isWebDesktop ? 20 : 0,
-            paddingRight: isWebDesktop ? 20 : 0,
-            paddingBottom: isWebDesktop ? 'calc(var(--content-bottom-pad, 96px) + 20px)' : 20
-          }}>
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="Apps Diagnostics"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('Apps')}
+          >
             {renderAppsView()}
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('Apps Diagnostics')}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              {renderAppsView()}
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {subView === 'stagex' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: isWebDesktop ? '100%' : 'auto', background: 'var(--app-bg)' }}>
-          {renderSubViewHeader('Stagex Diagnostics')}
-          <div style={{
-            flex: isWebDesktop ? 1 : 'none',
-            overflowY: isWebDesktop ? 'auto' : 'visible',
-            paddingTop: 16,
-            paddingLeft: isWebDesktop ? 20 : 0,
-            paddingRight: isWebDesktop ? 20 : 0,
-            paddingBottom: isWebDesktop ? 'calc(var(--content-bottom-pad, 96px) + 20px)' : 20
-          }}>
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="Stagex Diagnostics"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('Stagex')}
+          >
             {renderStagexView()}
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('Stagex Diagnostics')}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              {renderStagexView()}
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {subView === 'updater' && (
@@ -3454,220 +3761,136 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       )}
 
       {subView === 'system' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: isWebDesktop ? '100%' : 'auto', background: 'var(--app-bg)' }}>
-          {renderSubViewHeader('System Diagnostics')}
-          <div style={{
-            display: 'flex',
-            gap: 8,
-            overflowX: 'auto',
-            padding: '12px 20px',
-            borderBottom: '1px solid rgba(128,128,128,0.08)',
-            background: 'var(--app-bg)',
-            scrollbarWidth: 'none'
-          }}>
-            <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>App Store State</button>
-            <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>Storage</button>
-            <button style={tabBtnStyle('providers')} onClick={() => setActiveTab('providers')}>Module Panels ({activeProviders.length})</button>
-          </div>
-          <div style={{
-            flex: isWebDesktop ? 1 : 'none',
-            overflowY: isWebDesktop ? 'auto' : 'visible',
-            paddingTop: 16,
-            paddingLeft: isWebDesktop ? 20 : 0,
-            paddingRight: isWebDesktop ? 20 : 0,
-            paddingBottom: isWebDesktop ? 'calc(var(--content-bottom-pad, 96px) + 20px)' : 20
-          }}>
-            {activeTab === 'state' && renderStateTab()}
-            {activeTab === 'storage' && renderStorageTab()}
-            {activeTab === 'providers' && renderProvidersTab()}
-            <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['system', 'general']} />
-          </div>
-        </div>
-      )}
-
-      {subView === 'logs' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: isWebDesktop ? '100%' : 'auto', background: 'var(--app-bg)' }}>
-          {renderSubViewHeader('Logs & Warnings')}
-          
-          {/* Unified Filters Bento Bar */}
-          <div style={{
-            padding: isWebDesktop ? '20px 24px 12px' : '16px 16px 8px',
-            background: 'var(--app-bg)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            borderBottom: '1px solid rgba(128,128,128,0.08)'
-          }}>
-            {/* Search Input & Copy Section button */}
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%' }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <span className="material-symbols-outlined" style={{
-                  position: 'absolute',
-                  left: 14,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'rgba(255,255,255,0.4)',
-                  pointerEvents: 'none',
-                  fontSize: 20
-                }}>search</span>
-                <input
-                  type="text"
-                  value={logSearchQuery}
-                  onChange={(e) => setLogSearchQuery(e.target.value)}
-                  placeholder="Search system events, pids, or threads..."
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    background: 'var(--app-surface-high, #1c1c1e)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: '12px',
-                    padding: '12px 16px 12px 42px',
-                    color: '#fff',
-                    fontSize: '13px',
-                    fontFamily: 'Inter',
-                    outline: 'none',
-                    transition: 'all 0.15s ease'
-                  }}
-                />
-              </div>
-              
-              <button
-                onClick={() => {
-                  let title = '';
-                  let data: any = null;
-                  if (activeTab === 'logs') {
-                    title = `Logs (${logLevelFilter})`;
-                    data = filteredLogs.slice(-100);
-                  } else if (activeTab === 'errors') {
-                    title = 'Captured Errors';
-                    data = errors;
-                  } else if (activeTab === 'events') {
-                    title = 'Gesture Events';
-                    data = filteredEvents;
-                  } else if (activeTab === 'nav') {
-                    title = 'Navigation Stack Trace';
-                    data = getNavigationEntries().slice(-50);
-                  }
-                  copyToClipboard(title, data);
-                }}
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: '10px',
-                  color: '#fff',
-                  padding: '12px 16px',
-                  fontWeight: 700,
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>content_copy</span>
-                Copy Section
-              </button>
-            </div>
-
-            {/* Severity Toggles / Tab Selectors */}
-            <div className="toggle-scroll" style={{
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="System Diagnostics"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('System')}
+          >
+            <div style={{
               display: 'flex',
               gap: 8,
               overflowX: 'auto',
-              scrollbarWidth: 'none',
-              padding: '4px 0',
-              width: '100%'
+              padding: '12px 0',
+              borderBottom: '1px solid rgba(128,128,128,0.08)',
+              background: 'var(--app-bg)',
+              scrollbarWidth: 'none'
             }}>
-              {[
-                { label: 'All', id: 'all_logs', active: activeTab === 'logs' && logLevelFilter === 'all', color: '#acabaa', onClick: () => { setActiveTab('logs'); setLogLevelFilter('all'); } },
-                { label: 'Info', id: 'info_logs', active: activeTab === 'logs' && logLevelFilter === 'info', color: '#60a5fa', onClick: () => { setActiveTab('logs'); setLogLevelFilter('info'); } },
-                { label: 'Warnings', id: 'warn_logs', active: activeTab === 'logs' && logLevelFilter === 'warn', color: '#fbbf24', onClick: () => { setActiveTab('logs'); setLogLevelFilter('warn'); } },
-                { label: `Errors (${errors.length})`, id: 'errors_tab', active: activeTab === 'errors', color: '#ee7d77', onClick: () => { setActiveTab('errors'); } },
-                { label: `Events (${events.length})`, id: 'events_tab', active: activeTab === 'events', color: '#10b981', onClick: () => { setActiveTab('events'); } },
-                { label: 'Navigation Stack', id: 'nav_tab', active: activeTab === 'nav', color: '#a78bfa', onClick: () => { setActiveTab('nav'); } }
-              ].map(toggle => (
-                <button
-                  key={toggle.id}
-                  onClick={toggle.onClick}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '8px 14px',
-                    borderRadius: '10px',
-                    background: toggle.active ? 'var(--studio-accent-from, #679cff)' : 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.02)',
-                    color: toggle.active ? '#fff' : 'rgba(255,255,255,0.6)',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <span style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: toggle.active ? '#fff' : toggle.color,
-                    display: 'inline-block'
-                  }} />
-                  {toggle.label}
-                </button>
-              ))}
+              <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>App Store State</button>
+              <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>Storage</button>
+              <button style={tabBtnStyle('providers')} onClick={() => setActiveTab('providers')}>Module Panels ({activeProviders.length})</button>
+            </div>
+            <div style={{ paddingTop: 16 }}>
+              {activeTab === 'state' && renderStateTab()}
+              {activeTab === 'storage' && renderStorageTab()}
+              {activeTab === 'providers' && renderProvidersTab()}
+              <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['system', 'general']} />
+            </div>
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('System Diagnostics')}
+            <div style={{
+              display: 'flex',
+              gap: 8,
+              overflowX: 'auto',
+              padding: '12px 20px',
+              borderBottom: '1px solid rgba(128,128,128,0.08)',
+              background: 'var(--app-bg)',
+              scrollbarWidth: 'none'
+            }}>
+              <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>App Store State</button>
+              <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>Storage</button>
+              <button style={tabBtnStyle('providers')} onClick={() => setActiveTab('providers')}>Module Panels ({activeProviders.length})</button>
+            </div>
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              {activeTab === 'state' && renderStateTab()}
+              {activeTab === 'storage' && renderStorageTab()}
+              {activeTab === 'providers' && renderProvidersTab()}
+              <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['system', 'general']} />
             </div>
           </div>
+        )
+      )}
 
-          <div style={{
-            flex: isWebDesktop ? 1 : 'none',
-            overflowY: isWebDesktop ? 'auto' : 'visible',
-            paddingTop: 16,
-            paddingLeft: isWebDesktop ? 20 : 0,
-            paddingRight: isWebDesktop ? 20 : 0,
-            paddingBottom: isWebDesktop ? 'calc(var(--content-bottom-pad, 96px) + 20px)' : 20
-          }}>
-            {activeTab === 'logs' && renderLogsTab()}
-            {activeTab === 'errors' && renderErrorsTab()}
-            {activeTab === 'events' && renderEventsTab()}
-            {activeTab === 'nav' && renderNavTab()}
-            <WarningsInspector logs={logs} showToast={showToast} />
+      {subView === 'logs' && (
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="Logs & Warnings"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('Logs')}
+          >
+            {renderLogsBody(true)}
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('Logs & Warnings')}
+            {renderLogsBody(false)}
           </div>
-        </div>
+        )
       )}
 
       {subView === 'performance' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: isWebDesktop ? '100%' : 'auto', background: 'var(--app-bg)' }}>
-          {renderSubViewHeader('Performance Diagnostics')}
-          <div style={{
-            flex: isWebDesktop ? 1 : 'none',
-            overflowY: isWebDesktop ? 'auto' : 'visible',
-            paddingTop: 16,
-            paddingLeft: isWebDesktop ? 20 : 0,
-            paddingRight: isWebDesktop ? 20 : 0,
-            paddingBottom: isWebDesktop ? 'calc(var(--content-bottom-pad, 96px) + 20px)' : 20
-          }}>
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="Performance Diagnostics"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('Performance')}
+          >
             {renderPerfTab()}
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['performance', 'perf']} />
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('Performance Diagnostics')}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              {renderPerfTab()}
+              <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['performance', 'perf']} />
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {subView === 'network' && (
-        <div style={{ display: 'flex', flexDirection: 'column', height: isWebDesktop ? '100%' : 'auto', background: 'var(--app-bg)' }}>
-          {renderSubViewHeader('Network Sniffer')}
-          <div style={{
-            flex: isWebDesktop ? 1 : 'none',
-            overflowY: isWebDesktop ? 'auto' : 'visible',
-            paddingTop: 16,
-            paddingLeft: isWebDesktop ? 20 : 0,
-            paddingRight: isWebDesktop ? 20 : 0,
-            paddingBottom: isWebDesktop ? 'calc(var(--content-bottom-pad, 96px) + 20px)' : 20
-          }}>
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="Network Sniffer"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('Network')}
+          >
             {renderNetworkTab()}
             <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['network', 'sync']} />
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('Network Sniffer')}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              {renderNetworkTab()}
+              <WarningsInspector logs={logs} showToast={showToast} moduleFilter={['network', 'sync']} />
+            </div>
           </div>
-        </div>
+        )
       )}
     </>
   );
@@ -3682,13 +3905,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       fontFamily: 'Manrope, sans-serif',
       overflowX: 'hidden'
     }}>
-      {!isWebDesktop ? (
-        <SettingsScaffold title={getSubViewTitle()} onBack={handleSubViewBack}>
-          {renderDashboardContent()}
-        </SettingsScaffold>
-      ) : (
-        renderDashboardContent()
-      )}
+      {renderDashboardContent()}
 
       {/* TOAST NOTIFICATION */}
       {toastMsg && (

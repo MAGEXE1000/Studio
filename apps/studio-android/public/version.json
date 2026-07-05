@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "3.7.74",
-  "versionName": "3.7.74",
-  "versionCode": 202,
-  "version_code": 202,
-  "commit": "a3b9d0ef",
-  "releasedAt": "7/5/2026, 1:11:00 AM CST",
-  "buildTimestamp": "7/5/2026, 1:11:00 AM CST",
+  "version": "3.7.79",
+  "versionName": "3.7.79",
+  "versionCode": 207,
+  "version_code": 207,
+  "commit": "bc618461",
+  "releasedAt": "7/4/2026, 11:11:00 PM CST",
+  "buildTimestamp": "7/4/2026, 11:11:00 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Stabilized cross-app navigation and transitions between Hub and sub-apps.\n• Fixed navigation store state mismatches, logo freezes, and unmount cleanups.\n• Added modals/sheets cleanup inside sub-app unmount callbacks.",
-  "whatsNew": "• Stabilized cross-app navigation and transitions between Hub and sub-apps.\n• Fixed navigation store state mismatches, logo freezes, and unmount cleanups.\n• Added modals/sheets cleanup inside sub-app unmount callbacks.",
+  "changelog": "• Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.\n• Integrates global Copy Everything and Copy Section utilities.\n• Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.",
+  "whatsNew": "• Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.\n• Integrates global Copy Everything and Copy Section utilities.\n• Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.",
   "releaseNotes": {
     "fixed": [
-      "Stabilized cross-app navigation and transitions between Hub and sub-apps.",
-      "Fixed navigation store state mismatches, logo freezes, and unmount cleanups.",
-      "Added modals/sheets cleanup inside sub-app unmount callbacks."
+      "Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.",
+      "Integrates global Copy Everything and Copy Section utilities.",
+      "Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors."
     ]
   },
   "mandatory": false

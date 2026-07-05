@@ -1,4 +1,4 @@
 ### Fixed
-- Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.
-- Fixed duplicate confirmation intents and session creations natively in PackageInstaller.
-- Added comprehensive diagnostic trace logging for installation lifecycle events.
+- Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.
+- Integrates global Copy Everything and Copy Section utilities.
+- Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.

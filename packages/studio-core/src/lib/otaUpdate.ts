@@ -1468,15 +1468,15 @@ async function checkAndRecoverInstallState() {
         activeInstallPromiseRejecter = null;
       }
     } else if (result.statusCode === -999) {
-      // No result registered, but install is no longer active.
-      // This means the installer closed (possibly cancelled or dismissed).
-      console.log('[OTA Recovery] Installer closed without registering status. Setting to INSTALL_FAILED.');
-      transitionToState('INSTALL_FAILED', 'Installer closed without status', 'Installation was cancelled or interrupted.');
-      if (activeInstallPromiseRejecter) {
-        activeInstallPromiseRejecter(new Error('Installation cancelled or interrupted.'));
-        activeInstallPromiseResolver = null;
-        activeInstallPromiseRejecter = null;
+      // No result registered, but session is no longer active in getMySessions().
+      // This happens when the user presses "Update" in the PackageInstaller confirmation dialog:
+      // the session is committed/closed natively, and the OS starts installing.
+      // Transition to INSTALLING state to show the installation progress screen.
+      if (currentState === 'WAIT_PACKAGE_INSTALLER') {
+        transitionToState('INSTALLING', 'Installation started by user confirmation');
       }
+      updateGlobalState({ statusText: 'Installing update...' });
+      return;
     } else {
       const processed = processLastInstallResult(result);
       if (processed) {

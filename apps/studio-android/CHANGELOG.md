@@ -11,6 +11,15 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.81
+
+### Fixed
+- Stabilize cross-app navigation and transition lockups.
+- Remove polling timers, replacing them with deterministic lifecycle mount-ready completions.
+- Redesign Developer Tools diagnostics views with real performance instrumentation and badged metrics.
+- Overhaul diagnostics copy reports into structured interpreted documents with a Technical Appendix.
+- Smooth global bottom navigation bar collapse-to-indicator animations on scroll down.
+
 ## 3.7.80
 
 ### Fixed

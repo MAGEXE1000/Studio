@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.80"
-$VersionCode = "208"
-$ReleaseNote = "v3.7.80 - Sprint 20.2 Release: Resolve navigation and native PackageInstaller regressions."
+$VersionName = "3.7.81"
+$VersionCode = "209"
+$ReleaseNote = "v3.7.81 - Release 3.7.81: Navigation Architecture Hardening, Real-time Performance instrumentation, diagnostics report redesign, and bottom navigation scrolling optimization."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -21,6 +21,8 @@ git add packages/ui-shared/src/components/DevToolsDashboard.tsx
 git add apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java
 git add apps/studio-android/package.json
 git add apps/studio-android/android/app/build.gradle
+git add apps/studio-android/public/version.json
+git add apps/studio-web/package.json
 git add CHANGELOG.md
 git add apps/studio-android/CHANGELOG.md
 git add scripts/publish-release.ps1

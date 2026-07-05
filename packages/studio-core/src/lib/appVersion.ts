@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.80';
-export const WEB_VERSION = '3.7.80';
+export const NATIVE_VERSION = '3.7.81';
+export const WEB_VERSION = '3.7.81';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -61,9 +61,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Restore top-right Copy Everything button on mobile sub-pages.",
-      "Fix global bottom navigation overlays in hub mode.",
-      "Stabilize native update PackageInstaller session completion flow.",
+      "Stabilize cross-app navigation and transition lockups.",
+      "Remove polling timers, replacing them with deterministic lifecycle mount-ready completions.",
+      "Redesign Developer Tools diagnostics views with real performance instrumentation and badged metrics.",
+      "Overhaul diagnostics copy reports into structured interpreted documents with a Technical Appendix.",
+      "Smooth global bottom navigation bar collapse-to-indicator animations on scroll down.",
     ],
   },
 ];

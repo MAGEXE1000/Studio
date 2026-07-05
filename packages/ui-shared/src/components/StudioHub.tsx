@@ -1,5 +1,5 @@
 import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
-import { getUpdateHistory, triggerDowngrade, StartupCoordinator } from '@workspace/studio-core';
+import { getUpdateHistory, triggerDowngrade, StartupCoordinator, startDiagnosticsSession, resetOtaTimeline, getTimelineReport } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -6140,7 +6140,7 @@ const FAQ_ITEMS: Record<string, FAQItem[]> = {
   en: [
     {
       question: "What is Studio?",
-      answer: "Studio is an all-in-one music production suite designed to compose, synthesize, mix, and record tracks directly in your browser or via our native applications."
+      answer: "Studio is an all-in-one music production suite designed to compose, synthesize, mix, and record tracks directly in our high-performance application."
     },
     {
       question: "What is Chordex?",
@@ -6151,34 +6151,34 @@ const FAQ_ITEMS: Record<string, FAQItem[]> = {
       answer: "Stagex is the live performance and virtual stage component of Studio. It lets you organize virtual stage layouts, manage audio routing, and trigger backing tracks dynamically during gigs."
     },
     {
-      question: "Does Studio work on mobile?",
-      answer: "Yes! Studio is fully responsive and runs on mobile browsers. We also provide a high-performance native Android application for production on the go."
+      question: "How do Android updates in the background work?",
+      answer: "Studio queries Firebase metadata in the background. When a new update is downloaded, a lightweight status bar indicator notifies you. Tap it to trigger the native PackageInstaller overlay."
     },
     {
-      question: "How do I use the Web version?",
-      answer: "Simply open Studio Web in your browser, select any tool from the Hub (like Chordex or Drumex), and start creating. Your projects are auto-saved to your browser's local database."
+      question: "How do I troubleshoot audio sound and MIDI?",
+      answer: "Authorize MIDI and audio recording permissions in Studio Settings, ensure your device volume is up, or trigger a sound engine reset using the tester below."
     },
     {
       question: "How do Android APK updates work?",
       answer: "The native Android app automatically queries our servers for updates. When a new APK is available, the app downloads it directly, enabling instant installation without the Google Play Store."
     },
     {
-      question: "Why is Windows marked Coming Soon?",
-      answer: "We are actively developing a desktop-optimized native Windows client to support low-latency ASIO audio drivers and VST plugins. Meanwhile, you can use the Web version on Windows."
+      question: "Does Studio work offline?",
+      answer: "Yes! Studio is fully optimized for offline operation. All synthesis engines, editors, and local database systems work without a network connection. Cloud backups sync automatically once you reconnect."
     },
     {
       question: "Where are my preferences stored?",
-      answer: "Your preferences, presets, and compositions are securely stored in your local browser database (localStorage and IndexedDB). Synchronizing with your account backs them up safely to our secure cloud."
+      answer: "Your preferences, presets, and recordings are securely stored in your local application database (localStorage and SQLite/IndexedDB). Synchronizing with your account backs them up safely to our secure cloud."
     },
     {
       question: "Does Studio include cloud sync?",
-      answer: "Firestore backup functionality is operational but in active development and is not currently advertised as a public-facing feature. We recommend relying on local storage and local exports for reliable project management."
+      answer: "Firestore backup functionality is operational but in active development. We recommend relying on local storage and local exports for reliable project management."
     }
   ],
   es: [
     {
       question: "¿Qué es Studio?",
-      answer: "Studio es una suite de producción musical todo en uno diseñada para componer, sintetizar, mezclar y grabar pistas directamente en tu navegador o mediante nuestras aplicaciones nativas."
+      answer: "Studio es una suite de producción musical todo en uno diseñada para componer, sintetizar, mezclar y grabar pistas directamente en nuestra aplicación de alto rendimiento."
     },
     {
       question: "¿Qué es Chordex?",
@@ -6189,34 +6189,34 @@ const FAQ_ITEMS: Record<string, FAQItem[]> = {
       answer: "Stagex es el componente de directo y escenario virtual de Studio. Te permite organizar el diseño de tu escenario, gestionar el enrutamiento de audio y lanzar pistas de acompañamiento dinámicamente."
     },
     {
-      question: "¿Funciona Studio en dispositivos móviles?",
-      answer: "¡Sí! Studio es totalmente responsivo y funciona en navegadores móviles. También ofrecemos una aplicación nativa de Android de alto rendimiento para producir música en cualquier lugar."
+      question: "¿Cómo funcionan las actualizaciones de Android en segundo plano?",
+      answer: "Studio consulta los metadatos de Firebase en segundo plano. Cuando se descarga una nueva actualización, un indicador en la barra de estado te notifica. Púlsalo para activar la ventana nativa de PackageInstaller."
     },
     {
-      question: "¿Cómo uso la versión Web?",
-      answer: "Simplemente abre Studio Web en tu navegador, elige cualquier herramienta desde el Hub (como Chordex o Drumex) y comienza a crear. Tus proyectos se guardan automáticamente localmente."
+      question: "¿Cómo soluciono problemas de sonido y MIDI?",
+      answer: "Autoriza los permisos de MIDI y grabación en la configuración de la app, asegúrate de subir el volumen de tu dispositivo o reinicia el motor de sonido con el probador a continuación."
     },
     {
       question: "¿Cómo funcionan las actualizaciones de APK en Android?",
       answer: "La aplicación nativa de Android consulta automáticamente si hay actualizaciones. Cuando hay un nuevo APK disponible, la aplicación lo descarga directamente para su instalación sin depender de Google Play."
     },
     {
-      question: "¿Por qué Windows está marcado como \"Próximamente\"?",
-      answer: "Estamos desarrollando un cliente nativo optimizado para Windows para soportar controladores de audio ASIO de baja latencia y plugins VST. Mientras tanto, puedes usar la versión Web en Windows."
+      question: "¿Funciona Studio sin conexión (offline)?",
+      answer: "¡Sí! Studio está completamente optimizado para funcionar sin conexión. Los motores de síntesis, editores y bases de datos locales funcionan sin red. Los respaldos en la nube se sincronizan al reconectarte."
     },
     {
       question: "¿Dónde se almacenan mis preferencias?",
-      answer: "Tus preferencias, preajustes y composiciones se guardan de forma segura en la base de datos local de tu navegador (localStorage e IndexedDB). Sincronizar tu cuenta los respalda en la nube de Firestore."
+      answer: "Tus preferencias, preajustes y grabaciones se guardan de forma segura en la base de datos local de la aplicación (localStorage e IndexedDB). Sincronizar tu cuenta los respalda en la nube de Firestore."
     },
     {
       question: "¿Incluye Studio sincronización en la nube?",
-      answer: "La funcionalidad de respaldo de Firestore está operativa pero en desarrollo activo y actualmente no se promociona como una función pública. Recomendamos usar el almacenamiento local y las exportaciones manuales."
+      answer: "La funcionalidad de respaldo de Firestore está operativa pero en desarrollo activo. Recomendamos usar el almacenamiento local y las exportaciones manuales."
     }
   ],
   de: [
     {
       question: "Was ist Studio?",
-      answer: "Studio ist eine All-in-One-Musikproduktionssuite, mit der Sie Tracks direkt in Ihrem Browser oder über unsere nativen Anwendungen komponieren, synthetisieren, mischen und aufnehmen können."
+      answer: "Studio ist eine All-in-One-Musikproduktionssuite, mit der Sie Tracks direkt in unserer leistungsstarken App komponieren, synthetisieren, mischen und aufnehmen können."
     },
     {
       question: "Was ist Chordex?",
@@ -6227,12 +6227,12 @@ const FAQ_ITEMS: Record<string, FAQItem[]> = {
       answer: "Stagex ist die Live-Performance- und virtuelle Bühnenkomponente von Studio. Sie können virtuelle Bühnenlayouts organisieren, Audio-Routing verwalten und Backing-Tracks dynamisch abspielen."
     },
     {
-      question: "Funktioniert Studio auf Mobilgeräten?",
-      answer: "Ja! Studio ist vollständig responsive und läuft in mobilen Browsern. Wir bieten auch eine leistungsstarke native Android-App für die Musikproduktion unterwegs."
+      question: "Wie funktionieren Android-Updates im Hintergrund?",
+      answer: "Studio fragt Firebase-Metadaten im Hintergrund ab. Sobald ein Update heruntergeladen wurde, meldet sich ein Indikator in der Statusleiste. Tippen Sie darauf, um PackageInstaller zu starten."
     },
     {
-      question: "Wie benutze ich die Web-Version?",
-      answer: "Öffnen Sie einfach Studio Web in Ihrem Browser, wählen Sie ein Tool aus dem Hub (wie Chordex oder Drumex) und beginnen Sie mit der Erstellung. Ihre Projekte werden lokal gespeichert."
+      question: "Wie behebe ich Audio- und MIDI-Probleme?",
+      answer: "Erteilen Sie MIDI- und Audioberechtigungen in den App-Einstellungen, stellen Sie sicher, dass die Lautstärke aktiv ist, oder testen Sie die Sound-Engine unten."
     },
     {
       question: "Wie funktionieren Android APK-Updates?",
@@ -6267,6 +6267,63 @@ function HelpAccordion({ accent, lang }: { accent: { from: string; to: string };
   const [securityState, setSecurityState] = useState<'idle' | 'auditing' | 'success'>('idle');
   const [auditReport, setAuditReport] = useState<string | null>(null);
   const [resetState, setResetState] = useState<'idle' | 'repairing' | 'success'>('idle');
+
+  const [timelineText, setTimelineText] = useState('');
+  const [diagActive, setDiagActive] = useState(() => {
+    try {
+      return localStorage.getItem('studio:diagnostics_session_active') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (!diagActive) return;
+    setTimelineText(getTimelineReport());
+    const interval = setInterval(() => {
+      setTimelineText(getTimelineReport());
+    }, 500);
+    return () => clearInterval(interval);
+  }, [diagActive]);
+
+  const handleToggleDiagnostics = () => {
+    if (diagActive) {
+      resetOtaTimeline();
+      setDiagActive(false);
+      try {
+        localStorage.setItem('studio:diagnostics_session_active', 'false');
+      } catch (_) {}
+      setTimelineText('');
+    } else {
+      startDiagnosticsSession();
+      setDiagActive(true);
+      try {
+        localStorage.setItem('studio:diagnostics_session_active', 'true');
+      } catch (_) {}
+      setTimelineText(getTimelineReport());
+    }
+  };
+
+  const handleCopyTimeline = () => {
+    try {
+      navigator.clipboard.writeText(getTimelineReport() || 'No events');
+      alert(lang === 'es' ? 'Copiado al portapapeles' : 'Copied to clipboard!');
+    } catch (_) {}
+  };
+
+  const handleShareTimeline = async () => {
+    const report = getTimelineReport();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Studio Update Diagnostics',
+          text: report || 'No events'
+        });
+      } catch (_) {}
+    } else {
+      handleCopyTimeline();
+    }
+  };
 
   const [diagEnabled, setDiagEnabled] = useState(() => {
     try {
@@ -6709,6 +6766,121 @@ function HelpAccordion({ accent, lang }: { accent: { from: string; to: string };
               whiteSpace: 'pre-wrap',
             }}>
               {auditReport}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Update Session Diagnostics Card */}
+      {(!activeCategory || activeCategory === 'troubleshooting') && (
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(128, 128, 128, 0.08)',
+          borderRadius: 16,
+          padding: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="material-symbols-outlined" style={{ color: accent.to, fontSize: 22 }}>
+              system_update
+            </span>
+            <h4 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}>
+              {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
+            </h4>
+          </div>
+          
+          <p style={{ margin: 0, fontSize: 11, color: 'var(--c-text-secondary)', lineHeight: 1.4 }}>
+            {lang === 'es' 
+              ? 'Activa el modo de diagnóstico para registrar y rastrear el historial de eventos del actualizador nativo en tiempo real.' 
+              : 'Enable diagnostics mode to capture, trace, and inspect native updater event history in real-time.'}
+          </p>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <button
+              onClick={handleToggleDiagnostics}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                background: diagActive ? 'rgba(64,192,87,0.15)' : 'rgba(255,255,255,0.04)',
+                border: diagActive ? '1px solid rgba(64,192,87,0.3)' : '1px solid rgba(128,128,128,0.1)',
+                color: diagActive ? '#40c057' : 'var(--c-text-primary)',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                {diagActive ? 'pause_circle' : 'play_circle'}
+              </span>
+              {diagActive ? (lang === 'es' ? 'Modo Diagnóstico: ACTIVO' : 'Diagnostic Mode: ACTIVE') : (lang === 'es' ? 'Iniciar Diagnóstico' : 'Start Diagnostic Mode')}
+            </button>
+
+            {diagActive && (
+              <>
+                <button
+                  onClick={handleCopyTimeline}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(128,128,128,0.1)',
+                    color: 'var(--c-text-primary)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>content_copy</span>
+                  {lang === 'es' ? 'Copiar Registro' : 'Copy Trace'}
+                </button>
+
+                <button
+                  onClick={handleShareTimeline}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(128,128,128,0.1)',
+                    color: 'var(--c-text-primary)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>share</span>
+                  {lang === 'es' ? 'Compartir' : 'Share Trace'}
+                </button>
+              </>
+            )}
+          </div>
+
+          {diagActive && (
+            <div style={{
+              background: '#0c0f12',
+              border: '1px solid rgba(128,128,128,0.15)',
+              borderRadius: 10,
+              padding: 12,
+              fontFamily: '"Roboto Mono", "Courier New", monospace',
+              fontSize: '11px',
+              lineHeight: '1.4',
+              color: '#4dabf7',
+              maxHeight: '220px',
+              overflowY: 'auto',
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left'
+            }}>
+              {timelineText || (lang === 'es' ? 'Esperando eventos del actualizador...' : 'Waiting for update events...')}
             </div>
           )}
         </div>

@@ -491,4 +491,117 @@ export function resetOtaDiagnostics() {
       (otaDebugLogs as any)[key] = null;
     }
   });
+
+  resetOtaTimeline();
 }
+
+export interface TimelineEvent {
+  timestamp: string;
+  offset: string;
+  offsetMs: number;
+  module: string;
+  event: string;
+  state: string;
+  reason: string;
+  durationMs?: number;
+}
+
+export let otaTimeline: TimelineEvent[] = [];
+let diagnosticsSessionStartTime = 0;
+
+// Initialize from storage on reload
+try {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('studio:ota_timeline');
+    if (stored) {
+      otaTimeline = JSON.parse(stored);
+    }
+    const storedStart = localStorage.getItem('studio:ota_timeline_start');
+    if (storedStart) {
+      diagnosticsSessionStartTime = Number(storedStart);
+    }
+  }
+} catch (_) {}
+
+export function startDiagnosticsSession() {
+  diagnosticsSessionStartTime = Date.now();
+  otaTimeline = [];
+  try {
+    localStorage.setItem('studio:ota_timeline', JSON.stringify([]));
+    localStorage.setItem('studio:ota_timeline_start', String(diagnosticsSessionStartTime));
+  } catch (_) {}
+  logTimelineEvent('Diagnostics', 'DIAGNOSTICS_STARTED', 'User started diagnostics monitoring session');
+}
+
+export function resetOtaTimeline() {
+  otaTimeline = [];
+  diagnosticsSessionStartTime = 0;
+  try {
+    localStorage.removeItem('studio:ota_timeline');
+    localStorage.removeItem('studio:ota_timeline_start');
+  } catch (_) {}
+}
+
+export function logTimelineEvent(module: string, event: string, reason = '', durationMs?: number) {
+  if (diagnosticsSessionStartTime === 0) {
+    diagnosticsSessionStartTime = Date.now();
+    try {
+      localStorage.setItem('studio:ota_timeline_start', String(diagnosticsSessionStartTime));
+    } catch (_) {}
+  }
+
+  const now = Date.now();
+  const offsetMs = now - diagnosticsSessionStartTime;
+  const min = Math.floor(offsetMs / 60000);
+  const sec = Math.floor((offsetMs % 60000) / 1000);
+  const ms = offsetMs % 1000;
+  const formatOffset = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
+
+  const ev: TimelineEvent = {
+    timestamp: new Date(now).toISOString(),
+    offset: formatOffset,
+    offsetMs,
+    module,
+    event,
+    state: globalOtaState.updateState,
+    reason,
+    durationMs
+  };
+
+  otaTimeline.push(ev);
+  console.log(`[OTA Timeline] [${formatOffset}] [${module}] ${event} (${globalOtaState.updateState}) - ${reason}`);
+
+  try {
+    localStorage.setItem('studio:ota_timeline', JSON.stringify(otaTimeline));
+  } catch (_) {}
+}
+
+export function getTimelineReport(): string {
+  if (otaTimeline.length === 0) return 'No events recorded.';
+  return otaTimeline
+    .map(e => `[${e.offset}] [${e.module}] ${e.event} (State: ${e.state})${e.reason ? ` - ${e.reason}` : ''}${e.durationMs !== undefined ? ` [${e.durationMs}ms]` : ''}`)
+    .join('\n');
+}
+
+export function interceptIllegalCall(functionName: string, reason: string) {
+  const current = globalOtaState.updateState;
+  const isInstalling = ['WAIT_PACKAGE_INSTALLER', 'INSTALLING'].includes(current);
+  if (!isInstalling) return;
+
+  let stackLine = 'Unknown caller';
+  try {
+    const err = new Error();
+    if (err.stack) {
+      const lines = err.stack.split('\n');
+      if (lines.length > 2) {
+        stackLine = lines[2].trim();
+      }
+    }
+  } catch (_) {}
+
+  const alertMsg = `ILLEGAL CALL DETECTED: ${functionName} called by ${stackLine}. Reason: ${reason}`;
+  console.error(`[OTA SECURITY] ${alertMsg}`);
+  
+  logTimelineEvent('SecurityGuard', 'ILLEGAL_CALL_DETECTED', alertMsg);
+}
+

@@ -11,6 +11,18 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.91
+
+### Added
+- Interactive Update Session Diagnostics UI section in the Help Center.
+- Diagnostics logging tracing updater events, timing offsets, states, and recovery attempts.
+- Security guards checking for and blocking illegal background check calls during active installer sessions.
+
+### Fixed
+- Navigation white flashing issue when expanding the bottom navigation bar after scrolling.
+- Redundant web-centric references in the Help Center settings view, replacing them with native Android & hardware troubleshooting guides.
+- APK installer session callback sequence checks to ensure the Installing screen remains active until completion.
+
 ## 3.7.90
 
 ### Fixed

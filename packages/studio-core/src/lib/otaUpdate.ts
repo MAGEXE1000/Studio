@@ -290,6 +290,51 @@ export function enforceStartupRecovery(): Promise<void> {
   startupRecoveryPromise = (async () => {
     console.log('[OTA DEBUG] enforceStartupRecovery starting...');
     
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true') {
+      console.log('[OTA Startup] Simulated update detected on startup. Destroying simulation completely.');
+      logTimelineEvent('AppLifecycle', 'APP_REOPEN_DESTROY_SIMULATION', 'Destroying simulated installation session');
+      
+      // Reset simulation overrides
+      updaterSimulation.forceUpdateAvailable = false;
+      updaterSimulation.forceNoUpdate = false;
+      updaterSimulation.forceDowngrade = false;
+      updaterSimulation.forceMetadataFailure = false;
+      updaterSimulation.forceShaFailure = false;
+      updaterSimulation.forceSignatureMismatch = false;
+      updaterSimulation.forceInvalidApk = false;
+      updaterSimulation.forceDownloadFailure = false;
+      updaterSimulation.forceDownloadTimeout = false;
+      updaterSimulation.forceRecoveryMode = false;
+      updaterSimulation.forceCachedApk = false;
+      updaterSimulation.forceResumeDownload = false;
+      updaterSimulation.forceInstallSuccess = false;
+      updaterSimulation.forceInstallFailure = false;
+      updaterSimulation.forceUserCancel = false;
+      updaterSimulation.forcePendingUserAction = false;
+      updaterSimulation.simulateDownload = false;
+      updaterSimulation.simulateDownloadThrottling = false;
+
+      try {
+        localStorage.removeItem('studio:is_simulation_active');
+        localStorage.removeItem('studio:install_in_progress');
+      } catch (_) {}
+
+      transitionToState('IDLE', 'Simulation destroyed on app reopen');
+      updateGlobalState({
+        progress: 0,
+        error: null,
+        statusText: null,
+        remoteVersion: null,
+        updateAvailable: false,
+        mandatory: false,
+        changelog: null,
+        releaseNotes: null,
+        decisionExplanation: null,
+      });
+      stopWatchdog();
+      return;
+    }
+
     if (!isNative() || !isAppInstallerAvailable()) {
       logDiagnosticEvent('RECOVERY_ABORTED', 'Not native or AppInstaller unavailable');
       return;
@@ -318,27 +363,23 @@ export function enforceStartupRecovery(): Promise<void> {
       const result = await AppInstaller.getLastInstallResult();
       if (result.statusCode !== -999) {
         console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
+        
+        // Immediately return to IDLE and close the updater UI
+        resetOtaUpdateState();
+        await AppInstaller.clearInstallerLogHistory().catch(() => {});
+
         if (result.statusCode === 0) {
-          const expectedName = result.expectedVersionName || null;
-          const lastShownDone = localStorage.getItem('studio:lastShownDoneVersion');
-          if (expectedName && lastShownDone === expectedName) {
-            console.log('[OTA Startup] Install success was already shown and dismissed. Resetting state to IDLE.');
-            resetOtaUpdateState();
-            await AppInstaller.clearInstallerLogHistory().catch(() => {});
-          } else {
-            console.log('[OTA Startup] Success result detected on startup recovery.');
-            transitionToState('INSTALL_SUCCESS', 'PackageInstaller success detected on startup recovery');
-            updateGlobalState({ statusText: 'Install succeeded!' });
-          }
+          console.log('[OTA Startup] Success result detected on startup recovery. UI closed, returned to IDLE.');
+          logTimelineEvent('RecoveryManager', 'RECOVERY_SUCCESS_DETECTED', `Version: ${result.expectedVersionName} | Code: ${result.expectedVersionCode}`);
         } else {
+          console.log('[OTA Startup] Failure result detected on startup recovery. UI closed, showing error.');
+          logTimelineEvent('RecoveryManager', 'RECOVERY_FAILURE_DETECTED', `StatusCode: ${result.statusCode} | Msg: ${result.statusMessage}`);
           const processed = processLastInstallResult(result);
           if (processed) {
-            const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
             updateGlobalState({
               error: processed.errMsg,
               statusText: processed.errMsg
             });
-            transitionToState(finalState, `Startup recovery: pending install result (code ${result.statusCode})`, processed.errMsg);
           }
         }
         return;
@@ -904,27 +945,27 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 }
 
 export function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
-  startUpdateSession(trigger, `checkForUpdate: isManual=${isManual}, reason=${reason}`);
   interceptIllegalCall('checkForUpdate', `isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
   logTimelineEvent('UpdateCore', 'CHECK_REQUESTED', `isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
 
-  if (!isManual) {
-    const current = globalOtaState.updateState;
-    const isBusy = [
-      'FETCH_APK_INFORMATION',
-      'DOWNLOAD_APK',
-      'VERIFY_SHA256',
-      'PREPARE_INSTALL',
-      'WAIT_PACKAGE_INSTALLER',
-      'INSTALLING',
-      'INSTALL_SUCCESS',
-    ].includes(current);
-    if (isBusy) {
-      console.log(`[OTA] Rejecting automatic checkForUpdate: installer is currently busy (state: ${current})`);
-      logTimelineEvent('UpdateCore', 'CHECK_REJECTED_BUSY', `state: ${current}`);
-      return Promise.resolve(globalOtaState);
-    }
+  const current = globalOtaState.updateState;
+  const isBusy = [
+    'FETCH_APK_INFORMATION',
+    'DOWNLOAD_APK',
+    'VERIFY_SHA256',
+    'PREPARE_INSTALL',
+    'WAIT_PACKAGE_INSTALLER',
+    'INSTALLING',
+    'INSTALL_SUCCESS',
+  ].includes(current);
+
+  if (isBusy) {
+    console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): installer is currently busy (state: ${current})`);
+    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_BUSY', `state: ${current}`);
+    return Promise.resolve(globalOtaState);
   }
+
+  startUpdateSession(trigger, `checkForUpdate: isManual=${isManual}, reason=${reason}`);
   return UpdatePipelineCoordinator.dispatch(isManual, trigger, reason);
 }
 
@@ -1090,6 +1131,11 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       let filePath: string;
       const shouldSimulate = !isNative() || !isAppInstallerAvailable() || isSimulationActive();
       if (shouldSimulate) {
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('studio:is_simulation_active', 'true');
+          }
+        } catch (_) {}
         addJsLog('[Simulate Download] Starting simulated download loop...');
         for (let i = 1; i <= 10; i++) {
           if (updaterSimulation.injectNetworkTimeout) {
@@ -1107,7 +1153,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
             throw new Error('Simulated download failure');
           }
           updateGlobalState({ progress: i / 10, statusText: `Simulating download... (${i * 10}%)` });
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, 10));
         }
         filePath = '/mock/path/to/simulated_download.apk';
         addJsLog(`[Simulate Download] Completed. Mock Path: ${filePath}`);
@@ -1201,7 +1247,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       }
 
       updateGlobalState({ progress: 1.0, statusText: 'Verifying update' });
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, shouldSimulate ? 10 : 300));
 
       otaDebugLogs.downloadStatus += `\nRunning pre-install eligibility check...`;
       if (!safeTransition('VERIFY_SHA256', 'PREPARE_INSTALL', 'Checking eligibility')) {
@@ -1384,6 +1430,11 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       updateGlobalState({ statusText: 'Launching PackageInstaller...' });
 
       if (shouldSimulateInstall) {
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('studio:is_simulation_active', 'true');
+          }
+        } catch (_) {}
         addJsLog('[Simulate Install] Simulation active. Setting simulation handler.');
         setSimulateStatusCallback((eventData: any) => {
           if (typeof (window as any).triggerOtaInstallStatus === 'function') {
@@ -1397,15 +1448,15 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           updateGlobalState({ sessionId: mockSessionId });
           logDiagnosticEvent('SESSION_CREATED', { sessionId: mockSessionId, simulated: true });
 
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 10));
           triggerSimulatedStatus(-2, 'installing_start');
           
           for (let p = 0.1; p <= 0.5; p += 0.1) {
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 10));
             triggerSimulatedStatus(-3, 'Installing package...', p);
           }
 
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 10));
           triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
           
           if (updaterSimulation.forcePendingUserAction) {
@@ -1413,7 +1464,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
             return;
           }
           
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 50));
           if (updaterSimulation.forceUserCancel) {
             triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
             return;
@@ -1424,11 +1475,11 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           }
           
           for (let p = 0.6; p <= 1.0; p += 0.1) {
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 10));
             triggerSimulatedStatus(-3, p > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', p);
           }
 
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 10));
           triggerSimulatedStatus(0, 'STATUS_SUCCESS');
         })();
       } else {
@@ -1550,9 +1601,9 @@ async function checkAndRecoverInstallState() {
 
     if (result.statusCode === 0) {
       logTimelineEvent('RecoveryManager', 'RECOVERY_SUCCESS_DETECTED', `Version: ${result.expectedVersionName} | Code: ${result.expectedVersionCode}`);
-      console.log('[OTA Recovery] Success result detected on resume.');
-      transitionToState('INSTALL_SUCCESS', 'PackageInstaller success detected on resume');
-      updateGlobalState({ statusText: 'Install succeeded!' });
+      console.log('[OTA Recovery] Success result detected on resume. Returning to IDLE.');
+      resetOtaUpdateState();
+      await AppInstaller.clearInstallerLogHistory().catch(() => {});
       if (activeInstallPromiseResolver) {
         activeInstallPromiseResolver();
         activeInstallPromiseResolver = null;
@@ -1571,19 +1622,19 @@ async function checkAndRecoverInstallState() {
       return;
     } else {
       logTimelineEvent('RecoveryManager', 'RECOVERY_FAILURE_DETECTED', `StatusCode: ${result.statusCode} | Msg: ${result.statusMessage}`);
+      resetOtaUpdateState();
+      await AppInstaller.clearInstallerLogHistory().catch(() => {});
       const processed = processLastInstallResult(result);
       if (processed) {
-        const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
         updateGlobalState({
           error: processed.errMsg,
           statusText: processed.errMsg
         });
-        transitionToState(finalState, `Install state recovery: result code ${result.statusCode}`, processed.errMsg);
-        if (activeInstallPromiseRejecter) {
-          activeInstallPromiseRejecter(new Error(processed.errMsg));
-          activeInstallPromiseResolver = null;
-          activeInstallPromiseRejecter = null;
-        }
+      }
+      if (activeInstallPromiseRejecter) {
+        activeInstallPromiseRejecter(new Error(processed?.errMsg || 'Installation failed'));
+        activeInstallPromiseResolver = null;
+        activeInstallPromiseRejecter = null;
       }
     }
   } catch (err) {

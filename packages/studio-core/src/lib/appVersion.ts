@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.92';
-export const WEB_VERSION = '3.7.92';
+export const NATIVE_VERSION = '3.7.93';
+export const WEB_VERSION = '3.7.93';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -38,11 +38,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-05'; // 3.7.87
+export const APP_VERSION_DATE = '2026-07-05'; // 3.7.93
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/5/2026, 12:10:00 PM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/5/2026, 10:35:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -61,15 +61,15 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Global bottom navigation scroll hiding registration system.",
-      "Synchronous render-phase page transition direction tracking.",
+      "Copy Everything button generating unified human-readable report for ChatGPT.",
+      "Update history sub-view controls (Clear history, Delete, Export, Copy entire history).",
     ],
   },
   {
     heading: "Fixed",
     items: [
-      "Solid opaque page slide transitions matching native Android behavior.",
-      "Profile and root Settings page scroll hiding triggers.",
+      "Interrupted/simulated install screens now correctly clear upon app reopen.",
+      "Simulated update loops optimized to complete in under 300ms.",
     ],
   },
 ];
@@ -79,9 +79,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Global registration system for bottom navigation scroll hiding.",
-      "Synchronous transition direction calculations (zero mid-flight flips).",
-      "Native opaque slide transitions (zero background bleed-through).",
+      "Unified Copy Everything diagnostics button restored to header.",
+      "Cleaned destructive delete actions from main diagnostics screen.",
+      "Wipes simulated installation screens on app launch.",
+      "Optimized simulated loops (removed fake sleeps and awaits).",
+      "Capped update history to last 25 persistent sessions.",
     ],
   },
 ];
@@ -92,8 +94,8 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Rehabilitación completa del panel de herramientas de desarrollo (DevTools) con simulaciones y registro de telemetría.",
-      "Validación mejorada del portapapeles con indicadores de carga en las exportaciones de diagnóstico.",
+      "Botón unificado 'Copiar todo' restaurado en el encabezado de diagnóstico.",
+      "Controles de gestión de historial movidos dentro de la sección de historial.",
     ],
   },
 ];

@@ -147,6 +147,9 @@ export const otaDebugLogs: {
   rootCause: string | null;
   suggestedFix: string | null;
   magicHeaderCheckResult?: string | null;
+  renderCount?: number;
+  paintCount?: number;
+  layoutCount?: number;
 } = {
   appVersion: APP_VERSION,
   nativeApkVersion: null,
@@ -228,6 +231,9 @@ export const otaDebugLogs: {
   exactFailingStage: null,
   rootCause: null,
   suggestedFix: null,
+  renderCount: 0,
+  paintCount: 0,
+  layoutCount: 0,
 };
 
 let checkCallIdCounter = 0;
@@ -580,9 +586,11 @@ try {
   }
 } catch (_) {}
 
+export const MAX_HISTORY_SIZE = 25;
+
 export function saveSessions() {
-  if (updateSessions.length > 50) {
-    updateSessions = updateSessions.slice(-50);
+  if (updateSessions.length > MAX_HISTORY_SIZE) {
+    updateSessions = updateSessions.slice(-MAX_HISTORY_SIZE);
   }
   try {
     if (typeof window !== 'undefined') {

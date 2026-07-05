@@ -383,6 +383,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
         localStorage.setItem('studio:install_in_progress', 'true');
       } else if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state)) {
         localStorage.removeItem('studio:install_in_progress');
+        localStorage.removeItem('studio:is_simulation_active');
       }
     }
   } catch (_) {}

@@ -12,7 +12,8 @@ import {
   deleteUpdateSession,
   getActiveSession,
   exportSessionSubset,
-  type UpdateSession
+  type UpdateSession,
+  otaDebugLogs
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -69,6 +70,20 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const { settings } = useChordStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   useScrollHide(scrollRef);
+
+  // Increment render and paint counts
+  if (otaDebugLogs) {
+    otaDebugLogs.renderCount = (otaDebugLogs.renderCount || 0) + 1;
+    if (typeof window !== 'undefined') {
+      otaDebugLogs.paintCount = performance.getEntriesByType('paint').length;
+    }
+  }
+
+  React.useLayoutEffect(() => {
+    if (otaDebugLogs) {
+      otaDebugLogs.layoutCount = (otaDebugLogs.layoutCount || 0) + 1;
+    }
+  });
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   
@@ -230,6 +245,59 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     triggerRefresh();
   };
 
+  const handleCopyEverything = async () => {
+    try {
+      const { generateCopyEverythingReport } = await import('./diagnosticsGenerator');
+      const text = generateCopyEverythingReport(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+      await copyToClipboard(text, 'Full Diagnostics Center Export');
+      showToast('Trace copied to clipboard!');
+    } catch (err: any) {
+      showToast(`Copy failed: ${err.message || String(err)}`);
+    }
+  };
+
+  const handleCopySelectedSession = () => {
+    handleCopySubset('all', 'md');
+  };
+
+  const handleCopyEntireHistory = async () => {
+    const allSess = getUpdateSessions();
+    const text = allSess.map(s => exportSessionSubset(s.id, 'all', 'md')).join('\n\n---\n\n');
+    try {
+      await copyToClipboard(text, 'Full Update History');
+      showToast('Full update history copied to clipboard!');
+    } catch (err: any) {
+      showToast(`Copy failed: ${err.message || String(err)}`);
+    }
+  };
+
+  const handleExportHistory = (format: 'json' | 'md') => {
+    const allSess = getUpdateSessions();
+    let text = '';
+    if (format === 'json') {
+      text = JSON.stringify(allSess, null, 2);
+    } else {
+      text = allSess.map(s => exportSessionSubset(s.id, 'all', 'md')).join('\n\n---\n\n');
+    }
+    const mimeMap = {
+      json: 'application/json',
+      md: 'text/markdown'
+    };
+    const extMap = {
+      json: 'json',
+      md: 'md'
+    };
+    const blob = new Blob([text], { type: mimeMap[format] });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `studio-updater-full-history-${Date.now()}.${extMap[format]}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast(`Full history exported as ${format.toUpperCase()}`);
+  };
+
   const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[sessions.length - 1];
 
   return (
@@ -250,21 +318,12 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
         </div>
         
         <div className="flex gap-2">
-          {selectedSession && (
-            <button
-              onClick={() => handleCopySubset('all', 'md')}
-              className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-xs">content_copy</span>
-              <span>Copy Session</span>
-            </button>
-          )}
           <button
-            onClick={handleDeleteAll}
-            className="flex items-center justify-center bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 w-10 h-10 rounded-full transition-all cursor-pointer"
-            title="Delete All Sessions"
+            onClick={handleCopyEverything}
+            className="flex items-center gap-1.5 bg-tertiary hover:brightness-110 text-on-tertiary px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-sm"
           >
-            <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+            <span className="material-symbols-outlined text-xs">content_copy</span>
+            <span>Copy Everything</span>
           </button>
         </div>
       </header>
@@ -280,48 +339,66 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
           onToggle={() => toggleAccordion('sessionSelector')}
         >
           <div className="space-y-4 bg-black">
-            <div className="flex flex-col sm:flex-row gap-3 bg-black">
-              <div className="flex-1">
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Select Diagnostic Session</label>
-                <select
-                  value={selectedSessionId}
-                  onChange={(e) => setSelectedSessionId(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-tertiary transition-colors"
+            <div className="bg-black">
+              <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Select Diagnostic Session</label>
+              <select
+                value={selectedSessionId}
+                onChange={(e) => setSelectedSessionId(e.target.value)}
+                className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-tertiary transition-colors"
+              >
+                <option value="current">-- Active/Latest Session --</option>
+                {sessions.slice().reverse().map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.id} ({s.result} - {s.version || 'unknown'} - {new Date(s.startTime).toLocaleDateString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* History Management Operations Panel */}
+            <div className="flex flex-wrap gap-2 pt-2 pb-2 border-t border-[#484848]/10 bg-black">
+              <button
+                onClick={handleCopySelectedSession}
+                className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                <span>Copy Selected Session</span>
+              </button>
+              <button
+                onClick={handleCopyEntireHistory}
+                className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">library_books</span>
+                <span>Copy Entire History</span>
+              </button>
+              <div className="relative group">
+                <button
+                  className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
-                  <option value="current">-- Active/Latest Session --</option>
-                  {sessions.slice().reverse().map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.id} ({s.result} - {s.version || 'unknown'} - {new Date(s.startTime).toLocaleDateString()})
-                    </option>
-                  ))}
-                </select>
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  <span>Export History</span>
+                </button>
+                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-[#1d1d1f] border border-[#484848]/20 rounded-xl p-1 shadow-xl min-w-[140px] z-[50]">
+                  <button onClick={() => handleExportHistory('json')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">JSON Format</button>
+                  <button onClick={() => handleExportHistory('md')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">Markdown Format</button>
+                </div>
               </div>
-              
-              <div className="flex items-end gap-2 bg-black">
-                {selectedSession && (
-                  <>
-                    <button
-                      onClick={handleDeleteSession}
-                      className="py-3 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 text-red-400 text-xs font-bold transition-all cursor-pointer"
-                    >
-                      Delete Session
-                    </button>
-                    <div className="relative group">
-                      <button
-                        className="py-3 px-4 rounded-xl bg-[#1c1c1e] border border-[#484848]/30 text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-xs">file_download</span>
-                        <span>Export</span>
-                      </button>
-                      <div className="absolute right-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-[#1c1c1e] border border-[#484848]/20 rounded-xl p-1 shadow-xl min-w-[120px] z-[50]">
-                        <button onClick={() => handleExportFile('json')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">JSON</button>
-                        <button onClick={() => handleExportFile('txt')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">Plain TXT</button>
-                        <button onClick={() => handleExportFile('md')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">Markdown</button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+              {selectedSession && (
+                <button
+                  onClick={handleDeleteSession}
+                  className="flex items-center gap-1.5 bg-red-950/20 hover:bg-red-950/30 border border-red-500/10 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                  <span>Delete Selected Session</span>
+                </button>
+              )}
+              <button
+                onClick={handleDeleteAll}
+                className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer sm:ml-auto"
+              >
+                <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                <span>Delete All Sessions</span>
+              </button>
             </div>
 
             {selectedSession ? (

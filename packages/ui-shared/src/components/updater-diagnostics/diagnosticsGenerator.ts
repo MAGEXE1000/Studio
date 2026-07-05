@@ -11,7 +11,9 @@ import {
   getPerfStats,
   getStagexDiagnostics,
   useNavigationStore,
-  PerformanceProfiler
+  PerformanceProfiler,
+  getUpdateSessions,
+  getActiveSession
 } from '@workspace/studio-core';
 
 export interface DiagnosticsData {
@@ -405,4 +407,183 @@ export function generateFullEngineeringReport(
   nativeLogsList: any[]
 ): string {
   return generateUnifiedReport(undefined, nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+}
+
+export function generateCopyEverythingReport(
+  nativeDeviceInfo: any,
+  nativeInstallerDetails: any,
+  localApkDetails: any,
+  nativeLogsList: any[]
+): string {
+  const data = buildDiagnosticDataObject(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+  const activeSession = getActiveSession();
+  const allSessions = getUpdateSessions();
+  const profiler = PerformanceProfiler.getInstance();
+  const perfMetrics = profiler.getMetrics();
+  const perfScore = profiler.getScore(perfMetrics);
+
+  // Overall Health Score calculation
+  let healthScore = 100;
+  const criticalDeductions = data.errors.length * 15;
+  const warningLogs = data.logs.filter(l => l.level === 'warn');
+  const warningDeductions = warningLogs.length * 5;
+  const perfDeductions = Math.max(0, 100 - perfScore);
+  healthScore = Math.max(0, Math.min(100, healthScore - criticalDeductions - warningDeductions - perfDeductions));
+  let overallStatus = 'Normal';
+  if (healthScore < 50) overallStatus = 'Critical';
+  else if (healthScore < 75) overallStatus = 'Attention Required';
+  else if (healthScore < 90) overallStatus = 'Minor Warnings';
+
+  let report = '';
+  report += `# STUDIO UPDATER SYSTEM DIAGNOSTICS REPORT\n`;
+  report += `*Generated on: ${data.timestamp}*\n\n`;
+
+  report += `## 1. Overall System Health Summary\n`;
+  report += `*   **System Health Score**: ${healthScore}/100 (${overallStatus})\n`;
+  report += `*   **App version**: ${data.appVersion} (Build Code: ${data.device.versionCode})\n`;
+  report += `*   **Platform**: ${data.device.platform} (Native Cap: ${data.device.isNative ? 'YES' : 'NO'})\n`;
+  report += `*   **Network State**: ${data.device.networkState} | Battery: ${data.device.batteryLevel}%\n`;
+  report += `*   **Storage Available**: ${data.device.storageAvailable}\n\n`;
+
+  report += `## 2. Active Update Session\n`;
+  if (activeSession) {
+    const activeDur = activeSession.durationMs ? `${(activeSession.durationMs / 1000).toFixed(2)}s` : 'In progress';
+    const statusIcon = activeSession.result === 'SUCCESS' ? '✓ SUCCESS' :
+                       activeSession.result === 'FAILED' ? '✖ ERROR' :
+                       activeSession.result === 'CANCELLED' ? '✖ CANCELLED' :
+                       activeSession.result === 'FINISHED' ? '✓ FINISHED' :
+                       activeSession.result === 'ABORTED' ? '✖ ABORTED' :
+                       '↺ IN_PROGRESS';
+
+    report += `*   **Session ID**: \`${activeSession.id}\`\n`;
+    report += `*   **Current Session State**: **${statusIcon}**\n`;
+    report += `*   **Target version**: ${activeSession.version || 'unknown'}\n`;
+    report += `*   **Started**: ${activeSession.startTime}\n`;
+    report += `*   **Finished**: ${activeSession.endTime || 'N/A'}\n`;
+    report += `*   **Duration**: ${activeDur}\n\n`;
+
+    if (activeSession.closeEvent) {
+      report += `### ⚠ Who Closed the Updater & Why\n`;
+      report += `*   **Closed At**: ${activeSession.closeEvent.timestamp}\n`;
+      report += `*   **By Function**: \`${activeSession.closeEvent.functionName}\` in \`${activeSession.closeEvent.file}\`\n`;
+      report += `*   **Reason**: ${activeSession.closeEvent.reason}\n`;
+      report += `*   **State transition**: ${activeSession.closeEvent.previousState} -> ${activeSession.closeEvent.currentState}\n`;
+      report += `*   **Caller Stack Trace**:\n\`\`\`\n${activeSession.closeEvent.stackTrace}\n\`\`\`\n\n`;
+    }
+
+    if (activeSession.upToDateEvent) {
+      report += `### ℹ Who Opened "Studio is up to date" Popup & Why\n`;
+      report += `*   **Trigger Type**: ${activeSession.upToDateEvent.triggerType}\n`;
+      report += `*   **By Function**: \`${activeSession.upToDateEvent.functionName}\` in \`${activeSession.upToDateEvent.file}\`\n`;
+      report += `*   **Reason**: ${activeSession.upToDateEvent.reason}\n`;
+      report += `*   **State transition**: ${activeSession.upToDateEvent.previousState} -> ${activeSession.upToDateEvent.currentState}\n`;
+      report += `*   **Caller Stack Trace**:\n\`\`\`\n${activeSession.upToDateEvent.stackTrace}\n\`\`\`\n\n`;
+    }
+  } else {
+    report += `*No active update session.*\n\n`;
+  }
+
+  report += `## 3. Update Session Timeline\n`;
+  if (activeSession && activeSession.timeline.length > 0) {
+    report += `| Timestamp | Offset | State | Module | Event | Status | Details |\n`;
+    report += `|---|---|---|---|---|---|---|\n`;
+    activeSession.timeline.forEach(e => {
+      let icon = '✓ SUCCESS';
+      const eventName = e.event.toLowerCase();
+      const moduleName = e.module.toLowerCase();
+      const reasonText = e.reason.toLowerCase();
+
+      if (reasonText.includes('fail') || reasonText.includes('error') || eventName.includes('fail') || eventName.includes('error') || e.state.includes('FAILED')) {
+        icon = '✖ ERROR';
+      } else if (reasonText.includes('recover') || eventName.includes('recover')) {
+        icon = '↺ RECOVERED';
+      } else if (reasonText.includes('skip') || reasonText.includes('busy') || reasonText.includes('ignore') || eventName.includes('skip') || eventName.includes('warn') || eventName.includes('pause')) {
+        icon = '⚠ WARNING';
+      } else if (moduleName.includes('applifecycle') || eventName.includes('visibility') || eventName.includes('opened') || eventName.includes('closed')) {
+        icon = '⚠ INFO';
+      }
+
+      report += `| ${e.timestamp} | ${e.offset} | ${e.state} | ${e.module} | ${e.event} | ${icon} | ${e.reason.replace(/\|/g, '\\|')} |\n`;
+    });
+    report += `\n`;
+  } else {
+    report += `*No chronological timeline logged.*\n\n`;
+  }
+
+  report += `## 4. Update Workflow Transitions\n`;
+  if (activeSession && activeSession.transitions.length > 0) {
+    report += `| Timestamp | Elapsed | Prev State | Next State | Function | File | Reason | Status |\n`;
+    report += `|---|---|---|---|---|---|---|---|\n`;
+    activeSession.transitions.forEach(t => {
+      let icon = '✓ SUCCESS';
+      if (t.nextState === 'INSTALL_FAILED') {
+        icon = '✖ ERROR';
+      } else if (t.nextState === 'RECOVERY') {
+        icon = '↺ RECOVERED';
+      } else if (t.nextState === 'WAIT_PACKAGE_INSTALLER') {
+        icon = '⚠ WARNING';
+      }
+      report += `| ${t.timestamp} | ${(t.elapsedTimeMs / 1000).toFixed(3)}s | ${t.previousState} | ${t.nextState} | ${t.functionName} | ${t.file} | ${t.reason.replace(/\|/g, '\\|')} | ${icon} |\n`;
+    });
+    report += `\n`;
+  } else {
+    report += `*No workflow state transitions logged.*\n\n`;
+  }
+
+  report += `## 5. Performance Diagnostics\n`;
+  report += `*   **Avg FPS**: ${perfMetrics.averageFps} FPS (Min: ${perfMetrics.minFps} FPS, Max: ${perfMetrics.maxFps} FPS)\n`;
+  report += `*   **Dropped Frames**: ${perfMetrics.droppedFrames} frames | Skipped: ${perfMetrics.longFrames} frames\n`;
+  report += `*   **Frame Pacing / Duration**: ${perfMetrics.frameTime} ms (Variance: ${perfMetrics.frameVariance} ms)\n`;
+  report += `*   **Main Thread Blockings**: Total block time ${perfMetrics.mainThreadBlockingTotal} ms | Longest task: ${perfMetrics.longestBlockingTask} ms\n`;
+  report += `*   **Event Loop Delay / Lag**: ${perfMetrics.eventLoopDelay} ms\n`;
+  report += `*   **Memory Usage (Heap)**: ${perfMetrics.usedHeap} used / ${perfMetrics.heapSize} size\n`;
+  report += `*   **Renders / Layouts / Paints**: Render count ${data.otaDebugLogs.renderCount || 0} | Paint count ${data.otaDebugLogs.paintCount || 0} | Layout count ${data.otaDebugLogs.layoutCount || 0}\n\n`;
+
+  report += `## 6. Package Eligibility & Signature Verification\n`;
+  report += `*   **Downloaded APK Name**: ${localApkDetails ? localApkDetails.packageName : 'N/A'}\n`;
+  report += `*   **Downloaded APK Version**: ${localApkDetails ? localApkDetails.versionName : 'N/A'}\n`;
+  report += `*   **Downloaded APK Code**: ${localApkDetails ? localApkDetails.versionCode : 'N/A'}\n`;
+  report += `*   **Signature status**: ${localApkDetails ? (localApkDetails.isValidApk ? '✓ SUCCESS (Valid certificate signature matching installed app)' : '✖ ERROR (Signature mismatch)') : 'N/A'}\n`;
+  report += `*   **Package verification details**: ${localApkDetails?.signingSha256 || 'N/A'}\n\n`;
+
+  report += `## 7. Previous Session History\n`;
+  const prevSessions = allSessions.filter(s => s.id !== (activeSession ? activeSession.id : null));
+  if (prevSessions.length > 0) {
+    report += `| Session ID | Started | Target Version | Duration | Result State | Build Platform |\n`;
+    report += `|---|---|---|---|---|---|\n`;
+    prevSessions.forEach(s => {
+      const sDur = s.durationMs ? `${(s.durationMs / 1000).toFixed(2)}s` : 'N/A';
+      let icon = '✓ SUCCESS';
+      if (s.result === 'FAILED' || s.result === 'ABORTED') icon = '✖ ERROR';
+      else if (s.result === 'CANCELLED') icon = '✖ CANCELLED';
+      report += `| ${s.id} | ${new Date(s.startTime).toLocaleString()} | ${s.version || 'N/A'} | ${sDur} | ${icon} (${s.result}) | ${s.buildType} |\n`;
+    });
+    report += `\n`;
+  } else {
+    report += `*No previous sessions recorded in local history.*\n\n`;
+  }
+
+  report += `## 8. Technical Appendix: JS Console Logs (Last 30)\n`;
+  report += `\`\`\`\n`;
+  if (data.logs.length > 0) {
+    data.logs.slice(-30).forEach(log => {
+      report += `[${new Date(log.timestamp).toLocaleTimeString()}] [${log.level.toUpperCase()}] [${log.module}] ${log.message}\n`;
+    });
+  } else {
+    report += `No JS console logs recorded.\n`;
+  }
+  report += `\`\`\`\n\n`;
+
+  report += `## 9. Technical Appendix: Native PackageInstaller Callback Events (Last 30)\n`;
+  report += `\`\`\`\n`;
+  if (data.nativeLogs.length > 0) {
+    data.nativeLogs.slice(-30).forEach(log => {
+      report += `[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${log.stage || 'Installer'}] Status: ${log.status} - Message: ${log.message}\n`;
+    });
+  } else {
+    report += `No native PackageInstaller callback events recorded.\n`;
+  }
+  report += `\`\`\`\n`;
+
+  return report;
 }

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.92"
-$VersionCode = "220"
-$ReleaseNote = "v3.7.92 - Release 3.7.92: Persistent update diagnostics center with session selector, timelines, transition tables, closing/popup tracers, and multi-format exports."
+$VersionName = "3.7.93"
+$VersionCode = "221"
+$ReleaseNote = "v3.7.93 - Release 3.7.93: Restore Copy Everything diagnostics report, history management sub-views, persistent session limits, fast simulation timings, and app start/resume recovery."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -18,6 +18,9 @@ git add packages/studio-core/src/lib/appVersion.ts
 git add packages/studio-core/src/lib/startupCoordinator.ts
 git add packages/studio-core/src/lib/otaUpdate.ts
 git add packages/studio-core/src/lib/updater/diagnostics.ts
+git add packages/studio-core/src/lib/updater/stateMachine.ts
+git add packages/ui-shared/src/components/updater-diagnostics/diagnosticsGenerator.ts
+git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
 git add packages/ui-shared/src/components/StudioHub.tsx
 git add apps/studio-android/src/index.css
 git add apps/studio-web/src/index.css

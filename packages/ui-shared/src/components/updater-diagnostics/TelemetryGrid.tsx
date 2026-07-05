@@ -1,5 +1,5 @@
-import React from 'react';
-import { APP_VERSION, globalOtaState, otaDebugLogs, otaDiagnostics, isNative } from '@workspace/studio-core';
+import React, { useState, useEffect } from 'react';
+import { APP_VERSION, globalOtaState, otaDebugLogs, otaDiagnostics, isNative, PerformanceProfiler } from '@workspace/studio-core';
 
 interface TelemetryGridProps {
   nativeDeviceInfo: any;
@@ -7,6 +7,16 @@ interface TelemetryGridProps {
 }
 
 export default function TelemetryGrid({ nativeDeviceInfo, nativeInstallerDetails }: TelemetryGridProps) {
+  const [metrics, setMetrics] = useState(() => PerformanceProfiler.getInstance().getMetrics());
+
+  useEffect(() => {
+    const profiler = PerformanceProfiler.getInstance();
+    const unsubscribe = profiler.subscribe((m) => {
+      setMetrics(m);
+    });
+    return unsubscribe;
+  }, []);
+
   const currentVersion = APP_VERSION;
   const remoteVersion = globalOtaState.remoteVersion || 'Waiting for update check';
   const updateState = globalOtaState.updateState || 'Not initialized';
@@ -96,6 +106,62 @@ export default function TelemetryGrid({ nativeDeviceInfo, nativeInstallerDetails
         <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Battery / Time</span>
         <span className="text-sm font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap mt-1">
           {batteryLevel} &bull; {new Date().toLocaleTimeString()}
+        </span>
+      </div>
+
+      {/* CPU Average / Peak */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">CPU Avg / Peak</span>
+        <span className="text-lg font-bold text-on-surface">{metrics.cpuAverage}% / {metrics.cpuPeak}%</span>
+      </div>
+
+      {/* Memory Average / Peak */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Memory Avg / Peak</span>
+        <span className="text-sm font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap mt-1">{metrics.memoryAverage} / {metrics.memoryPeak}</span>
+      </div>
+
+      {/* JS Thread Avg / Peak */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">JS Thread Avg/Peak</span>
+        <span className="text-lg font-bold text-on-surface">{metrics.jsThreadAverage}ms / {metrics.jsThreadPeak}ms</span>
+      </div>
+
+      {/* UI Thread Avg / Peak */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">UI Thread Avg/Peak</span>
+        <span className="text-lg font-bold text-on-surface">{metrics.uiThreadAverage}ms / {metrics.uiThreadPeak}ms</span>
+      </div>
+
+      {/* Frame Pacing */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Frame Pacing / Dev</span>
+        <span className="text-sm font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap mt-1">{metrics.framePacing}ms (Var: {metrics.frameVariance}ms)</span>
+      </div>
+
+      {/* GPU Composite Layer Count */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">GPU Layer Count</span>
+        <span className="text-lg font-bold text-on-surface">{metrics.gpuLayerCount} layers</span>
+      </div>
+
+      {/* Callback Latencies */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Callback Latency</span>
+        <span className="text-sm font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap mt-1">JS: {metrics.averageCallbackLatency}ms | Native: {metrics.packageInstallerLatency}ms</span>
+      </div>
+
+      {/* Pipeline Duration */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Pipeline Duration</span>
+        <span className="text-sm font-bold text-on-surface mt-1">{metrics.updatePipelineDuration}</span>
+      </div>
+
+      {/* Renders / Paints / Layouts */}
+      <div className="bg-black p-4 rounded-xl flex flex-col gap-1 border border-outline-variant/10 col-span-2 md:col-span-4">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">React Renders / Paints / Layouts</span>
+        <span className="text-sm font-bold text-on-surface mt-1">
+          Render Count: <span className="text-tertiary">{otaDebugLogs.renderCount || 0}</span> &bull; Paint Count: <span className="text-tertiary">{otaDebugLogs.paintCount || 0}</span> &bull; Layout Count: <span className="text-tertiary">{otaDebugLogs.layoutCount || 0}</span>
         </span>
       </div>
 

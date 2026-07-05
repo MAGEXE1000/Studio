@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.93"
-$VersionCode = "221"
-$ReleaseNote = "v3.7.93 - Release 3.7.93: Restore Copy Everything diagnostics report, history management sub-views, persistent session limits, fast simulation timings, and app start/resume recovery."
+$VersionName = "3.7.94"
+$VersionCode = "222"
+$ReleaseNote = "v3.7.94 - Release 3.7.94: Performance 2.0 diagnostics integration with state durations, sub-view timelines, real callback latencies, stress loop validation, and startup recovery recovery."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -17,10 +17,13 @@ Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/appVersion.ts
 git add packages/studio-core/src/lib/startupCoordinator.ts
 git add packages/studio-core/src/lib/otaUpdate.ts
+git add packages/studio-core/src/lib/performanceProfiler.ts
 git add packages/studio-core/src/lib/updater/diagnostics.ts
 git add packages/studio-core/src/lib/updater/stateMachine.ts
+git add packages/studio-core/src/lib/updater/updaterSimulation.ts
 git add packages/ui-shared/src/components/updater-diagnostics/diagnosticsGenerator.ts
 git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
+git add packages/ui-shared/src/components/updater-diagnostics/TelemetryGrid.tsx
 git add packages/ui-shared/src/components/StudioHub.tsx
 git add apps/studio-android/src/index.css
 git add apps/studio-web/src/index.css
@@ -30,6 +33,9 @@ git add apps/studio-android/public/version.json
 git add apps/studio-web/package.json
 git add CHANGELOG.md
 git add apps/studio-android/CHANGELOG.md
+git add apps/studio-web/CHANGELOG.md
+git add release-notes.md
+git add scripts/run-updater-regression-tests.mjs
 git add scripts/publish-release.ps1
 git add .github/workflows/release.yml
 if (git diff --staged --quiet) {

@@ -402,6 +402,32 @@ async function runRegressionTests() {
     assert.ok(info);
   });
 
+  // Scenario 11: Stress testing loops
+  await runTest('Stress testing loop validation', async () => {
+    // 1. Setup simulated update checking loop (100 iterations)
+    for (let i = 0; i < 100; i++) {
+      await checkForUpdate(false);
+    }
+
+    // 2. Setup 100 simulated PackageInstaller statuses
+    const { triggerSimulatedStatus, updaterSimulation } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/updaterSimulation.js').replace(/\\/g, '/')}`);
+    updaterSimulation.forceUpdateAvailable = true;
+    for (let i = 0; i < 100; i++) {
+      triggerSimulatedStatus(-3, 'Installing...', 0.5);
+    }
+    updaterSimulation.forceUpdateAvailable = false;
+
+    // 3. Setup 50 background / foreground cycles
+    const { enforceStartupRecovery } = await import(otaModuleUrl);
+    for (let i = 0; i < 50; i++) {
+      await enforceStartupRecovery();
+    }
+
+    // 4. Verify no stuck state listeners or memory leaks
+    const { stateListeners } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/stateMachine.js').replace(/\\/g, '/')}`);
+    assert.ok(stateListeners.size < 5, `Expected small number of listeners, found: ${stateListeners.size}`);
+  });
+
   console.log('\n=== REGRESSION TEST RESULTS ===');
   console.log('| Test Name | Status | Details |');
   console.log('|---|---|---|');

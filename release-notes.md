@@ -1,3 +1,8 @@
+### Added
+- Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.
+- Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.
+- Callback roundtrip latency metrics inside Telemetry grid dashboard.
+
 ### Fixed
-- Resolve native package installer UX bug where the updater screen would close or reset to "up to date" immediately after tapping UPDATE.
-- Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.
+- Hardened PackageInstaller background installation recovery checks upon app reopen.
+- Fast simulated update loops running in less than 300ms total.

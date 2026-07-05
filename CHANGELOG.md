@@ -11,6 +11,17 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.94
+
+### Added
+- Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.
+- Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.
+- Callback roundtrip latency metrics inside Telemetry grid dashboard.
+
+### Fixed
+- Hardened PackageInstaller background installation recovery checks upon app reopen.
+- Fast simulated update loops running in less than 300ms total.
+
 ## 3.7.92
 
 ### Added

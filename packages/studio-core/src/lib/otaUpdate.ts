@@ -88,6 +88,7 @@ import {
   recordCloseEvent,
   recordUpToDatePopup
 } from './updater/diagnostics';
+import { PerformanceProfiler } from './performanceProfiler';
 
 import { detectJustUpdated, writeLastSeen } from './updater/versionManager';
 
@@ -383,6 +384,22 @@ export function enforceStartupRecovery(): Promise<void> {
           }
         }
         return;
+      } else {
+        const inProgress = typeof localStorage !== 'undefined' && localStorage.getItem('studio:install_in_progress') === 'true';
+        if (inProgress) {
+          console.log('[OTA Startup] Session committed natively but in progress in background. Transitioning to INSTALLING.');
+          logTimelineEvent('RecoveryManager', 'RECOVERY_IN_PROGRESS_DETECTED', 'Session committed natively but not completed yet on startup');
+          const expectedName = result.expectedVersionName || null;
+          const expectedCode = result.expectedVersionCode || null;
+          updateGlobalState({
+            remoteVersion: expectedName,
+            requiredVersionCode: expectedCode ? Number(expectedCode) : 0,
+            statusText: 'Installing update...',
+            sessionId: typeof check.sessionId === 'number' ? check.sessionId : null,
+          });
+          transitionToState('INSTALLING', 'Active background installation on startup');
+          return;
+        }
       }
 
       console.log('[OTA DEBUG] No active session and no pending result. Resetting state to IDLE.');
@@ -1652,7 +1669,11 @@ export function initializeGlobalOtaListeners() {
 
   // Global PackageInstaller event handler
   const handleInstallStatusChange = (eventData: any) => {
-    const { status, message, progress } = eventData;
+    const { status, message, progress, timestamp } = eventData;
+    if (timestamp) {
+      const latency = Date.now() - timestamp;
+      PerformanceProfiler.getInstance().recordCallbackLatency(latency, true);
+    }
     console.log(`[OTA Global Listener] Received status ${status}: ${message} (progress ${progress}%)`);
     addJsLog(`[Global Listener Event] Received status ${status}: ${message} (progress ${progress}%)`);
     

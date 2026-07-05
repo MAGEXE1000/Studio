@@ -463,7 +463,22 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
             isOpen={accordions.timeline}
             onToggle={() => toggleAccordion('timeline')}
           >
-            <div className="space-y-3 bg-black">
+            <div className="space-y-4 bg-black">
+              {/* State Durations Table */}
+              {selectedSession.stateDurations && Object.keys(selectedSession.stateDurations).length > 0 && (
+                <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/40 p-4">
+                  <h4 className="text-xs font-bold text-white mb-2 uppercase tracking-wide">Time spent in each State</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                    {Object.entries(selectedSession.stateDurations).map(([state, ms]) => (
+                      <div key={state} className="flex justify-between p-2 rounded bg-black/40 border border-outline-variant/5">
+                        <span className="text-[#a8a29e]">{state}:</span>
+                        <span className="text-tertiary font-bold">{(ms / 1000).toFixed(3)}s ({ms} ms)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {selectedSession.timeline.length > 0 ? (
                 <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/30 flex flex-col divide-y divide-[#484848]/10 font-mono text-xs max-h-[480px] overflow-y-auto">
                   {selectedSession.timeline.map((event, idx) => (

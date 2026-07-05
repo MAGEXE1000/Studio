@@ -124,7 +124,7 @@ export function setSimulateStatusCallback(cb: ((eventData: any) => void) | null)
 export function triggerSimulatedStatus(status: number, message = '', progress = 0) {
   addJsLog(`Simulating PackageInstaller status: ${status} (${message}) progress: ${progress}`);
   if (simulateStatusCallback) {
-    simulateStatusCallback({ status, message, progress });
+    simulateStatusCallback({ status, message, progress, timestamp: Date.now() });
   } else {
     addJsLog('Warning: No active PackageInstaller listener to receive simulated status.');
   }

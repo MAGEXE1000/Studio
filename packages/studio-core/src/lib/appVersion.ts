@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.93';
-export const WEB_VERSION = '3.7.93';
+export const NATIVE_VERSION = '3.7.94';
+export const WEB_VERSION = '3.7.94';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -61,15 +61,16 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Copy Everything button generating unified human-readable report for ChatGPT.",
-      "Update history sub-view controls (Clear history, Delete, Export, Copy entire history).",
+      "Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.",
+      "Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.",
+      "Callback roundtrip latency metrics inside Telemetry grid dashboard.",
     ],
   },
   {
     heading: "Fixed",
     items: [
-      "Interrupted/simulated install screens now correctly clear upon app reopen.",
-      "Simulated update loops optimized to complete in under 300ms.",
+      "Hardened PackageInstaller background installation recovery checks upon app reopen.",
+      "Fast simulated update loops running in less than 300ms total.",
     ],
   },
 ];

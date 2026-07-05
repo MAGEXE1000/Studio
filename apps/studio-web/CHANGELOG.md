@@ -11,6 +11,75 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.94
+
+### Added
+- Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.
+- Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.
+- Callback roundtrip latency metrics inside Telemetry grid dashboard.
+
+### Fixed
+- Hardened PackageInstaller background installation recovery checks upon app reopen.
+- Fast simulated update loops running in less than 300ms total.
+
+## 3.7.92
+
+### Added
+- Persistent diagnostics update session selector to inspect past update logs.
+- Transition timeline tables mapping state changes, timings, and exceptions.
+- Tracing for closure events and up-to-date popups with caller stack trace capture.
+- Multi-format copy and download actions for diagnostic session subsets.
+
+### Fixed
+- Simulation mode to mock full installation progress sequences.
+- Bypassed file signature and eligibility checks when simulating updates.
+
+## 3.7.91
+
+### Added
+- Interactive Update Session Diagnostics UI section in the Help Center.
+- Diagnostics logging tracing updater events, timing offsets, states, and recovery attempts.
+- Security guards checking for and blocking illegal background check calls during active installer sessions.
+
+### Fixed
+- Navigation white flashing issue when expanding the bottom navigation bar after scrolling.
+- Redundant web-centric references in the Help Center settings view, replacing them with native Android & hardware troubleshooting guides.
+- APK installer session callback sequence checks to ensure the Installing screen remains active until completion.
+
+## 3.7.90
+
+### Fixed
+- Native updater validation update check.
+
+## 3.7.89
+
+### Fixed
+- Native updater dialog redirection issues during active installations.
+- Fake progress indicators and timers by exposing real native PackageInstaller progress stages (Preparing, Launching, Installing, Optimizing, Finalizing).
+- Aurora background animation frame drops by converting linear gradient movement to GPU-accelerated transforms.
+- CPU overhead and React rendering storms by throttling progress callbacks to a 100ms interval.
+
+## 3.7.88
+
+### Added
+- Collective Set-based scroll hide registration system supporting multiple container scopes.
+
+### Fixed
+- Bottom Navigation sticky collapsed states by auto-expanding when all visible containers are at top or disconnected.
+- Frame rate stuttering and layout thrashing by implementing pure percentage-based sliding pill calculations.
+- CPU overhead by removing computed style checks on global body MutationObserver events.
+
+## 3.7.87
+
+### Added
+- Sleek glassmorphic Native Updater interface with continuous card resizing transforms.
+- Active stage indicators during Android package installation to cycle through status steps.
+- Float and pulse animations to the installing status icon to indicate background activity.
+- Tactile ActionButton touch-down scaling microinteractions across all updater dialog states.
+
+### Fixed
+- Lightweight non-intrusive post-update startup toast notification instead of fullscreen overlay.
+
 ## 3.7.86
 
 ### Added

@@ -253,14 +253,22 @@ export function generateUnifiedReport(
   sections.push('==================================================');
   if (!module || module === 'Performance') {
     sections.push(`Frame Rate:          ${perfMetrics.currentFps} FPS (Avg: ${metricsLabel(perfMetrics.averageFps)} FPS, Min: ${metricsLabel(perfMetrics.minFps)} FPS, Max: ${metricsLabel(perfMetrics.maxFps)} FPS)`);
+    sections.push(`CPU Avg / Peak:      ${perfMetrics.cpuAverage}% / ${perfMetrics.cpuPeak}%`);
+    sections.push(`Memory Avg / Peak:   ${perfMetrics.memoryAverage} / ${perfMetrics.memoryPeak}`);
+    sections.push(`JS Thread Avg/Peak:  ${perfMetrics.jsThreadAverage} ms / ${perfMetrics.jsThreadPeak} ms`);
+    sections.push(`UI Thread Avg/Peak:  ${perfMetrics.uiThreadAverage} ms / ${perfMetrics.uiThreadPeak} ms`);
     sections.push(`1% Low FPS:          ${metricsLabel(perfMetrics.low1PercentFps)} FPS`);
     sections.push(`Frame Time:          ${perfMetrics.frameTime} ms (Variance: ${perfMetrics.frameVariance} ms)`);
     sections.push(`Pacing Metrics:      ${perfMetrics.droppedFrames} dropped frames, ${perfMetrics.longFrames} long frames, ${perfMetrics.veryLongFrames} very long frames`);
     sections.push(`Event Loop Lag:      ${perfMetrics.eventLoopDelay} ms delay`);
     sections.push(`Heap Size / Used:    ${perfMetrics.heapSize} / ${perfMetrics.usedHeap} (Growth Rate: ${perfMetrics.heapGrowth})`);
+    sections.push(`GPU Layer Count:     ${perfMetrics.gpuLayerCount} active composition layers`);
     sections.push(`GPU Renderer:        ${perfMetrics.gpuRenderer}`);
     sections.push(`Refresh Rate:        ${perfMetrics.refreshRate} Hz`);
+    sections.push(`Callback Latency:    Avg JS: ${perfMetrics.averageCallbackLatency} ms | PackageInstaller: ${perfMetrics.packageInstallerLatency} ms`);
+    sections.push(`Pipeline Duration:   ${perfMetrics.updatePipelineDuration}`);
     sections.push(`Main Thread Blocks:  ${perfMetrics.mainThreadBlockingTotal} ms total (Longest task: ${perfMetrics.longestBlockingTask} ms)`);
+    sections.push(`Renders / Layouts:   Renders: ${data.otaDebugLogs.renderCount || 0} | Paints: ${data.otaDebugLogs.paintCount || 0} | Layouts: ${data.otaDebugLogs.layoutCount || 0}`);
     sections.push('');
     sections.push('Performance Plain-Language Summary:');
     if (perfScore >= 90) {
@@ -532,12 +540,30 @@ export function generateCopyEverythingReport(
 
   report += `## 5. Performance Diagnostics\n`;
   report += `*   **Avg FPS**: ${perfMetrics.averageFps} FPS (Min: ${perfMetrics.minFps} FPS, Max: ${perfMetrics.maxFps} FPS)\n`;
+  report += `*   **CPU Average / Peak**: ${perfMetrics.cpuAverage}% / ${perfMetrics.cpuPeak}%\n`;
+  report += `*   **Memory Average / Peak**: ${perfMetrics.memoryAverage} / ${perfMetrics.memoryPeak}\n`;
+  report += `*   **JS Thread Average / Peak**: ${perfMetrics.jsThreadAverage} ms / ${perfMetrics.jsThreadPeak} ms\n`;
+  report += `*   **UI Thread Average / Peak**: ${perfMetrics.uiThreadAverage} ms / ${perfMetrics.uiThreadPeak} ms\n`;
+  report += `*   **Frame Pacing**: ${perfMetrics.framePacing} ms (Variance: ${perfMetrics.frameVariance} ms)\n`;
   report += `*   **Dropped Frames**: ${perfMetrics.droppedFrames} frames | Skipped: ${perfMetrics.longFrames} frames\n`;
-  report += `*   **Frame Pacing / Duration**: ${perfMetrics.frameTime} ms (Variance: ${perfMetrics.frameVariance} ms)\n`;
   report += `*   **Main Thread Blockings**: Total block time ${perfMetrics.mainThreadBlockingTotal} ms | Longest task: ${perfMetrics.longestBlockingTask} ms\n`;
   report += `*   **Event Loop Delay / Lag**: ${perfMetrics.eventLoopDelay} ms\n`;
-  report += `*   **Memory Usage (Heap)**: ${perfMetrics.usedHeap} used / ${perfMetrics.heapSize} size\n`;
+  report += `*   **GPU Layer Count**: ${perfMetrics.gpuLayerCount}\n`;
+  report += `*   **Callback Latencies**: JS Average: ${perfMetrics.averageCallbackLatency} ms | PackageInstaller: ${perfMetrics.packageInstallerLatency} ms\n`;
+  report += `*   **Update Pipeline Duration**: ${perfMetrics.updatePipelineDuration}\n`;
   report += `*   **Renders / Layouts / Paints**: Render count ${data.otaDebugLogs.renderCount || 0} | Paint count ${data.otaDebugLogs.paintCount || 0} | Layout count ${data.otaDebugLogs.layoutCount || 0}\n\n`;
+  
+  report += `### State Durations (Time spent in each state)\n`;
+  if (activeSession && activeSession.stateDurations && Object.keys(activeSession.stateDurations).length > 0) {
+    report += `| State | Total Duration spent |\n`;
+    report += `|---|---|\n`;
+    Object.entries(activeSession.stateDurations).forEach(([st, ms]) => {
+      report += `| ${st} | ${(ms / 1000).toFixed(3)}s (${ms} ms) |\n`;
+    });
+    report += `\n`;
+  } else {
+    report += `*No state durations recorded.*\n\n`;
+  }
 
   report += `## 6. Package Eligibility & Signature Verification\n`;
   report += `*   **Downloaded APK Name**: ${localApkDetails ? localApkDetails.packageName : 'N/A'}\n`;

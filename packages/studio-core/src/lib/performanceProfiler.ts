@@ -21,6 +21,20 @@ export interface ProfilerMetrics {
   longestBlockingTask: number;
   thermalState: string;
   batteryOptimized: string;
+  // Performance 2.0 metrics
+  cpuAverage: number;
+  cpuPeak: number;
+  memoryAverage: string;
+  memoryPeak: string;
+  jsThreadAverage: number;
+  jsThreadPeak: number;
+  uiThreadAverage: number;
+  uiThreadPeak: number;
+  framePacing: number;
+  gpuLayerCount: number;
+  averageCallbackLatency: number;
+  packageInstallerLatency: number;
+  updatePipelineDuration: string;
 }
 
 export interface PerformanceWarning {
@@ -62,6 +76,17 @@ export class PerformanceProfiler {
   private totalBlockingTime = 0;
   private longestBlockingTask = 0;
 
+  // Performance 2.0 sample buffers
+  private cpuSamples: number[] = [];
+  private memorySamples: number[] = [];
+  private jsThreadSamples: number[] = [];
+  private uiThreadSamples: number[] = [];
+  private callbackLatencySamples: number[] = [];
+  private installerLatencySamples: number[] = [];
+  private lastSampleTime = 0;
+  private lastBlockingTime = 0;
+  private sampleTimer: any = null;
+
   private activeListeners = new Set<(metrics: ProfilerMetrics) => void>();
 
   public static getInstance(): PerformanceProfiler {
@@ -72,6 +97,35 @@ export class PerformanceProfiler {
   }
 
   private constructor() {}
+
+  public recordCallbackLatency(latencyMs: number, isInstaller = false) {
+    if (isInstaller) {
+      this.installerLatencySamples.push(latencyMs);
+      if (this.installerLatencySamples.length > 20) this.installerLatencySamples.shift();
+    } else {
+      this.callbackLatencySamples.push(latencyMs);
+      if (this.callbackLatencySamples.length > 20) this.callbackLatencySamples.shift();
+    }
+  }
+
+  public getGPULayerCount(): number {
+    if (typeof document === 'undefined') return 0;
+    try {
+      const elements = document.querySelectorAll('*');
+      let count = 0;
+      for (let i = 0; i < elements.length; i++) {
+        const style = window.getComputedStyle(elements[i]);
+        if (style.willChange && style.willChange !== 'auto') {
+          count++;
+        } else if (style.transform && style.transform !== 'none') {
+          count++;
+        }
+      }
+      return count;
+    } catch (_) {
+      return 0;
+    }
+  }
 
   public start() {
     if (this.rafId !== null) return;
@@ -88,6 +142,36 @@ export class PerformanceProfiler {
     this.totalBlockingTime = 0;
     this.longestBlockingTask = 0;
 
+    this.cpuSamples = [];
+    this.memorySamples = [];
+    this.jsThreadSamples = [];
+    this.uiThreadSamples = [];
+    this.callbackLatencySamples = [];
+    this.installerLatencySamples = [];
+    this.lastSampleTime = performance.now();
+    this.lastBlockingTime = 0;
+
+    // Start periodic sampler
+    this.sampleTimer = setInterval(() => {
+      const now = performance.now();
+      const interval = now - this.lastSampleTime;
+      if (interval <= 0) return;
+
+      const blocking = this.totalBlockingTime - this.lastBlockingTime;
+      const cpu = Math.max(0, Math.min(100, Math.round((blocking / interval) * 100)));
+      this.cpuSamples.push(cpu);
+      if (this.cpuSamples.length > 60) this.cpuSamples.shift();
+
+      const mem = (performance as any).memory;
+      if (mem) {
+        this.memorySamples.push(mem.usedJSHeapSize);
+        if (this.memorySamples.length > 60) this.memorySamples.shift();
+      }
+
+      this.lastSampleTime = now;
+      this.lastBlockingTime = this.totalBlockingTime;
+    }, 1000);
+
     // 1. Frame profiling loop
     const loop = (now: number) => {
       const delta = now - this.lastFrameTime;
@@ -96,6 +180,11 @@ export class PerformanceProfiler {
       if (delta > 0) {
         this.frameTimes.push(delta);
         this.totalFrames++;
+
+        const lastLongTask = this.jsThreadSamples[this.jsThreadSamples.length - 1] || 0;
+        const uiTime = Math.max(1, delta - lastLongTask);
+        this.uiThreadSamples.push(uiTime);
+        if (this.uiThreadSamples.length > 100) this.uiThreadSamples.shift();
 
         if (delta > 20) {
           const estimatedDropped = Math.floor(delta / 16.67) - 1;
@@ -144,6 +233,8 @@ export class PerformanceProfiler {
             if (entry.duration > this.longestBlockingTask) {
               this.longestBlockingTask = entry.duration;
             }
+            this.jsThreadSamples.push(entry.duration);
+            if (this.jsThreadSamples.length > 100) this.jsThreadSamples.shift();
           }
         });
         this.observer.observe({ entryTypes: ['longtask'] });
@@ -161,6 +252,10 @@ export class PerformanceProfiler {
     if (this.eventLoopTimer !== null) {
       clearTimeout(this.eventLoopTimer);
       this.eventLoopTimer = null;
+    }
+    if (this.sampleTimer !== null) {
+      clearInterval(this.sampleTimer);
+      this.sampleTimer = null;
     }
     if (this.observer !== null) {
       this.observer.disconnect();
@@ -219,7 +314,20 @@ export class PerformanceProfiler {
         mainThreadBlockingTotal: 0,
         longestBlockingTask: 0,
         thermalState: 'Unavailable',
-        batteryOptimized: 'Unavailable'
+        batteryOptimized: 'Unavailable',
+        cpuAverage: 0,
+        cpuPeak: 0,
+        memoryAverage: 'Unavailable',
+        memoryPeak: 'Unavailable',
+        jsThreadAverage: 0,
+        jsThreadPeak: 0,
+        uiThreadAverage: 0,
+        uiThreadPeak: 0,
+        framePacing: 0,
+        gpuLayerCount: 0,
+        averageCallbackLatency: 0,
+        packageInstallerLatency: 0,
+        updatePipelineDuration: 'N/A'
       };
     }
 
@@ -281,6 +389,40 @@ export class PerformanceProfiler {
     else if (avgFrameTime < 12.0) refreshRate = 90;
     else refreshRate = 60;
 
+    // Performance 2.0 calculations
+    const cpuAvg = this.cpuSamples.length > 0 ? Math.round(this.cpuSamples.reduce((a, b) => a + b, 0) / this.cpuSamples.length) : 0;
+    const cpuPeak = this.cpuSamples.length > 0 ? Math.max(...this.cpuSamples) : 0;
+
+    let memAvgStr = 'Unavailable';
+    let memPeakStr = 'Unavailable';
+    if (this.memorySamples.length > 0) {
+      const avgMem = this.memorySamples.reduce((a, b) => a + b, 0) / this.memorySamples.length;
+      const peakMem = Math.max(...this.memorySamples);
+      memAvgStr = (avgMem / (1024 * 1024)).toFixed(1) + ' MB';
+      memPeakStr = (peakMem / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    const jsAvg = this.jsThreadSamples.length > 0 ? parseFloat((this.jsThreadSamples.reduce((a, b) => a + b, 0) / this.jsThreadSamples.length).toFixed(1)) : 0;
+    const jsPeak = this.jsThreadSamples.length > 0 ? parseFloat(Math.max(...this.jsThreadSamples).toFixed(1)) : 0;
+
+    const uiAvg = this.uiThreadSamples.length > 0 ? parseFloat((this.uiThreadSamples.reduce((a, b) => a + b, 0) / this.uiThreadSamples.length).toFixed(1)) : 0;
+    const uiPeak = this.uiThreadSamples.length > 0 ? parseFloat(Math.max(...this.uiThreadSamples).toFixed(1)) : 0;
+
+    const avgCallbackLat = this.callbackLatencySamples.length > 0 ? Math.round(this.callbackLatencySamples.reduce((a, b) => a + b, 0) / this.callbackLatencySamples.length) : 0;
+    const instCallbackLat = this.installerLatencySamples.length > 0 ? Math.round(this.installerLatencySamples.reduce((a, b) => a + b, 0) / this.installerLatencySamples.length) : 0;
+
+    let activeDuration = 'N/A';
+    try {
+      const activeSession = (window as any)._getActiveSession?.() || null;
+      if (activeSession) {
+        if (activeSession.durationMs) {
+          activeDuration = (activeSession.durationMs / 1000).toFixed(2) + 's';
+        } else {
+          activeDuration = ((Date.now() - activeSession.startTimestamp) / 1000).toFixed(2) + 's (running)';
+        }
+      }
+    } catch (_) {}
+
     return {
       currentFps: Math.min(refreshRate, currentFps),
       averageFps: Math.min(refreshRate, averageFps),
@@ -301,7 +443,20 @@ export class PerformanceProfiler {
       mainThreadBlockingTotal: parseFloat((this.totalBlockingTime).toFixed(1)),
       longestBlockingTask: parseFloat((this.longestBlockingTask).toFixed(1)),
       thermalState: 'Unavailable',
-      batteryOptimized: 'Unavailable'
+      batteryOptimized: 'Unavailable',
+      cpuAverage: cpuAvg,
+      cpuPeak,
+      memoryAverage: memAvgStr,
+      memoryPeak: memPeakStr,
+      jsThreadAverage: jsAvg,
+      jsThreadPeak: jsPeak,
+      uiThreadAverage: uiAvg,
+      uiThreadPeak: uiPeak,
+      framePacing: parseFloat(frameVariance.toFixed(2)),
+      gpuLayerCount: this.getGPULayerCount(),
+      averageCallbackLatency: avgCallbackLat,
+      packageInstallerLatency: instCallbackLat,
+      updatePipelineDuration: activeDuration
     };
   }
 

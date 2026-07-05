@@ -1,17 +1,24 @@
 {
-  "platform": "web",
-  "version": "3.7.82",
-  "commit": "6b865108",
-  "releasedAt": "undefined",
-  "buildTimestamp": "undefined",
+  "platform": "android",
+  "version": "3.7.93",
+  "versionName": "3.7.93",
+  "versionCode": 221,
+  "version_code": 221,
+  "commit": "aa323bf8",
+  "releasedAt": "7/5/2026, 5:04:33 PM CST",
+  "buildTimestamp": "7/5/2026, 5:04:33 PM CST",
   "updateMode": "refresh",
-  "description": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
-  "whatsNew": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
-  "changelog": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
+  "changelog": "• Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.\n• Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.\n• Callback roundtrip latency metrics inside Telemetry grid dashboard.\n• Hardened PackageInstaller background installation recovery checks upon app reopen.\n• Fast simulated update loops running in less than 300ms total.",
+  "whatsNew": "• Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.\n• Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.\n• Callback roundtrip latency metrics inside Telemetry grid dashboard.\n• Hardened PackageInstaller background installation recovery checks upon app reopen.\n• Fast simulated update loops running in less than 300ms total.",
   "releaseNotes": {
+    "added": [
+      "Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.",
+      "Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.",
+      "Callback roundtrip latency metrics inside Telemetry grid dashboard."
+    ],
     "fixed": [
-      "Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.",
-      "Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume."
+      "Hardened PackageInstaller background installation recovery checks upon app reopen.",
+      "Fast simulated update loops running in less than 300ms total."
     ]
   },
   "mandatory": false

@@ -567,6 +567,7 @@ export interface UpdateSession {
   transitions: WorkflowTransition[];
   closeEvent: CloseEvent | null;
   upToDateEvent: UpToDateEvent | null;
+  stateDurations: Record<string, number>;
 }
 
 export let updateSessions: UpdateSession[] = [];
@@ -711,7 +712,8 @@ export function startUpdateSession(trigger = 'unknown', reason = 'unknown') {
     timeline: [],
     transitions: [],
     closeEvent: null,
-    upToDateEvent: null
+    upToDateEvent: null,
+    stateDurations: {}
   };
 
   updateSessions.push(newSession);
@@ -810,6 +812,16 @@ export function recordStateTransition(fromState: string, toState: string, reason
 
   if (session) {
     session.transitions.push(trans);
+    
+    if (!session.stateDurations) {
+      session.stateDurations = {};
+    }
+    if (fromState) {
+      const lastTransition = session.transitions[session.transitions.length - 2];
+      const enteredTime = lastTransition ? lastTransition.absoluteTimestamp : session.startTimestamp;
+      const duration = now - enteredTime;
+      session.stateDurations[fromState] = (session.stateDurations[fromState] || 0) + duration;
+    }
     
     if (toState === 'INSTALL_SUCCESS') {
       session.result = 'SUCCESS';
@@ -966,6 +978,9 @@ export function getUpdateSessions(): UpdateSession[] {
 
 export function getActiveSession(): UpdateSession | null {
   return updateSessions.find(s => s.id === activeSessionId) || updateSessions[updateSessions.length - 1] || null;
+}
+if (typeof window !== 'undefined') {
+  (window as any)._getActiveSession = getActiveSession;
 }
 
 export function exportSessionSubset(

@@ -11,6 +11,18 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.92
+
+### Added
+- Persistent diagnostics update session selector to inspect past update logs.
+- Transition timeline tables mapping state changes, timings, and exceptions.
+- Tracing for closure events and up-to-date popups with caller stack trace capture.
+- Multi-format copy and download actions for diagnostic session subsets.
+
+### Fixed
+- Simulation mode to mock full installation progress sequences.
+- Bypassed file signature and eligibility checks when simulating updates.
+
 ## 3.7.91
 
 ### Added

@@ -11,6 +11,13 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.79
+
+### Fixed
+- Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.
+- Integrates global Copy Everything and Copy Section utilities.
+- Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.
+
 ## 3.7.78
 
 ### Fixed

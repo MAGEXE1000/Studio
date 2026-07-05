@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.78"
-$VersionCode = "206"
-$ReleaseNote = "v3.7.78 - finalizes native APK installation UX, resolves duplicate dialogs and premature success checks."
+$VersionName = "3.7.79"
+$VersionCode = "207"
+$ReleaseNote = "v3.7.79 - Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers, integrates global Copy utilities, and unifies global bottom-nav auto-hide behaviors."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

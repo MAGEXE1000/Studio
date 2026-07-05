@@ -11,6 +11,16 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.84
+
+### Added
+- Keep collapsed gesture pill permanently visible above the bottom safe area.
+- Propagate scroll-collapse behavior globally to settings and developer options.
+
+### Fixed
+- Optimize morph transition duration to 250ms using a premium easing curve.
+- Resolve Stagex bottom navigation transform alignment and visibility bugs.
+
 ## 3.7.83
 
 ### Added

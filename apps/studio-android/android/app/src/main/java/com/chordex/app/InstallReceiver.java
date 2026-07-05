@@ -102,7 +102,9 @@ public class InstallReceiver extends BroadcastReceiver {
             
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putInt("last_status_code", status);
+            if (status >= 0) {
+                editor.putInt("last_status_code", status);
+            }
             editor.putString("last_status_message", message != null ? message : "");
             editor.putString("last_other_package", otherPackageName != null ? otherPackageName : "");
             editor.putLong("last_status_timestamp", System.currentTimeMillis());

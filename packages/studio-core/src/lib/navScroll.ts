@@ -23,6 +23,7 @@ export function setNavLocked(locked: boolean) {
     // Also un-collapse when unlocking so the bar is always reachable.
     if (_collapsed) { _collapsed = false; emitCollapsed(false); }
   }
+  onStateChanged();
 }
 
 export function setNavHidden(hidden: boolean) {
@@ -34,11 +35,13 @@ export function setNavHidden(hidden: boolean) {
       if (_locked || !_hidden) return;
       _hidden = false;
       emit(false);
+      onStateChanged();
     }, AUTO_SHOW_MS);
   }
   if (_hidden === hidden) return;
   _hidden = hidden;
   emit(hidden);
+  onStateChanged();
 }
 
 export function resetNav() {
@@ -46,6 +49,7 @@ export function resetNav() {
   _locked = false;
   if (_hidden)    { _hidden    = false; emit(false); }
   if (_collapsed) { _collapsed = false; emitCollapsed(false); }
+  onStateChanged();
 }
 
 export function useNavHidden(): boolean {
@@ -77,6 +81,7 @@ export function setNavCollapsed(collapsed: boolean) {
     }
   }
   emitCollapsed(collapsed);
+  onStateChanged();
 }
 
 export function useNavCollapsed(): boolean {
@@ -163,58 +168,115 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 }
 
 // ─── Watchdog Recovery System ────────────────────────────────────────────────
-let _hiddenStartTime: number | null = null;
+let _watchdogTimer: ReturnType<typeof setTimeout> | null = null;
 
-if (typeof window !== 'undefined') {
-  setInterval(() => {
-    try {
-      const isTransitioning = useNavigationStore.getState().isTransitioning;
-      if (isTransitioning) {
-        _hiddenStartTime = null;
-        return;
-      }
+function clearWatchdogTimer() {
+  if (_watchdogTimer) {
+    clearTimeout(_watchdogTimer);
+    _watchdogTimer = null;
+  }
+}
 
-      // Check for active HTML5 fullscreen mode
-      const isHtml5Fullscreen = !!(
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
+export function onStateChanged() {
+  try {
+    if (typeof window === 'undefined') return;
 
-      // Check for custom application fullscreen view overlays
-      const hasFullscreenView = !!(
-        document.querySelector('.live-mode-view') ||
-        document.querySelector('[data-testid="live-close"]') ||
-        document.querySelector('[data-testid="custom-chord-save-btn"]') ||
-        document.querySelector('[data-testid="generate-progression-btn"]') ||
-        Array.from(document.querySelectorAll('div')).some(el => {
-          const z = window.getComputedStyle(el).zIndex;
-          return z && !isNaN(Number(z)) && Number(z) >= 100000;
-        })
-      );
+    // Check if we are currently hidden
+    if (!_hidden) {
+      clearWatchdogTimer();
+      return;
+    }
 
-      const isFullscreen = isHtml5Fullscreen || hasFullscreenView;
-      if (isFullscreen) {
-        _hiddenStartTime = null;
-        return;
-      }
+    // Check if a transition is running
+    const isTransitioning = useNavigationStore.getState().isTransitioning;
+    if (isTransitioning) {
+      clearWatchdogTimer();
+      return;
+    }
 
-      // If navigation is programmatically hidden, verify it isn't stuck
-      if (_hidden) {
-        if (_hiddenStartTime === null) {
-          _hiddenStartTime = Date.now();
-        } else if (Date.now() - _hiddenStartTime > 3000) {
+    // Check for active HTML5 fullscreen mode
+    const isHtml5Fullscreen = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+    if (isHtml5Fullscreen) {
+      clearWatchdogTimer();
+      return;
+    }
+
+    // Check for custom application fullscreen view overlays
+    const hasFullscreenView = !!(
+      document.querySelector('.live-mode-view') ||
+      document.querySelector('[data-testid="live-close"]') ||
+      document.querySelector('[data-testid="custom-chord-save-btn"]') ||
+      document.querySelector('[data-testid="generate-progression-btn"]') ||
+      Array.from(document.querySelectorAll('div')).some(el => {
+        const z = window.getComputedStyle(el).zIndex;
+        return z && !isNaN(Number(z)) && Number(z) >= 100000;
+      })
+    );
+    if (hasFullscreenView) {
+      clearWatchdogTimer();
+      return;
+    }
+
+    // Start recovery timer if not already active
+    if (!_watchdogTimer) {
+      _watchdogTimer = setTimeout(() => {
+        _watchdogTimer = null;
+        
+        // Re-verify all conditions before triggering recovery
+        const stillTransitioning = useNavigationStore.getState().isTransitioning;
+        const stillHtml5Fullscreen = !!(
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement ||
+          (document as any).mozFullScreenElement ||
+          (document as any).msFullscreenElement
+        );
+        const stillHasFullscreenView = !!(
+          document.querySelector('.live-mode-view') ||
+          document.querySelector('[data-testid="live-close"]') ||
+          document.querySelector('[data-testid="custom-chord-save-btn"]') ||
+          document.querySelector('[data-testid="generate-progression-btn"]') ||
+          Array.from(document.querySelectorAll('div')).some(el => {
+            const z = window.getComputedStyle(el).zIndex;
+            return z && !isNaN(Number(z)) && Number(z) >= 100000;
+          })
+        );
+        
+        if (_hidden && !stillTransitioning && !stillHtml5Fullscreen && !stillHasFullscreenView) {
           console.warn('[Recovery] BottomNavigationRecoveryTriggered: stuck hidden state recovered.');
           resetNav();
-          _hiddenStartTime = null;
         }
-      } else {
-        _hiddenStartTime = null;
-      }
-    } catch (e) {
-      // Passive safety guard during early app boot
+      }, 3000);
     }
-  }, 1000);
+  } catch (e) {
+    // Passive safety guard during early app boot
+  }
 }
+
+// Event-driven bindings
+if (typeof window !== 'undefined') {
+  try {
+    // Subscribe to navigation store transition changes
+    useNavigationStore.subscribe(() => onStateChanged());
+
+    // Observe body mutations for fullscreen overlay mounting/unmounting
+    const observer = new MutationObserver(() => {
+      onStateChanged();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Listen to native browser fullscreen state updates
+    document.addEventListener('fullscreenchange', onStateChanged);
+    document.addEventListener('webkitfullscreenchange', onStateChanged);
+    document.addEventListener('mozfullscreenchange', onStateChanged);
+    document.addEventListener('MSFullscreenChange', onStateChanged);
+  } catch (e) {
+    // Passive safety guard
+  }
+}
+
 

@@ -496,11 +496,11 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
     will-change: transform, opacity;
     /* Prevent the blur from leaking into parent stacking contexts */
     isolation: isolate;
-    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
-                border-radius 300ms cubic-bezier(0.16, 1, 0.3, 1),
-                background-color 300ms ease,
-                border-color 300ms ease,
-                box-shadow 300ms ease !important;
+    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-radius 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                background-color 200ms ease,
+                border-color 200ms ease,
+                box-shadow 200ms ease !important;
   }
 
   /* ===== Panel Transitions ===== */
@@ -691,7 +691,7 @@ html[data-nav-collapsed="true"] .glass-nav > div {
 }
 
 .glass-nav > div {
-  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
   /* ===== Panel section transitions — unified across all apps =================

@@ -312,7 +312,7 @@ function GroovexNav({ view, setView, hasActiveSong }: {
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
         padding: '4px 8px',
         opacity: navCollapsed ? 0 : 1,
-        transition: navCollapsed ? 'opacity 100ms ease' : 'opacity 350ms ease 180ms',
+        transition: navCollapsed ? 'opacity 80ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 120ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms',
         willChange: 'opacity',
       }}>
       {pill.ready && (

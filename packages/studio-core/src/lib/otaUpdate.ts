@@ -1622,35 +1622,6 @@ export function initializeGlobalOtaListeners() {
     }).catch((e) => {
       console.warn('[OTA Lifecycle] Failed to register appStateChange listener:', e);
     });
-
-    // Run check once synchronously on startup to detect success from background installer
-    void (async () => {
-      try {
-        const { AppInstaller } = await import('./apkDownloader');
-        const result = await AppInstaller.getLastInstallResult();
-        console.log('[OTA Startup] Checked last native result:', result);
-        
-        if (result.statusCode === 0) {
-          const expectedVerName = result.expectedVersionName;
-          if (expectedVerName && expectedVerName === APP_VERSION) {
-            const lastShownDone = localStorage.getItem('studio:lastShownDoneVersion');
-            if (lastShownDone !== APP_VERSION) {
-              console.log('[OTA Startup] Success result detected for current version. Triggering Done screen on boot.');
-              transitionToState('INSTALL_SUCCESS', 'Startup check: success detected');
-              updateGlobalState({
-                remoteVersion: APP_VERSION,
-                statusText: 'Install succeeded!'
-              });
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('studio:open-update-dialog'));
-              }, 800);
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('[OTA Startup] Failed to run startup install status verification:', err);
-      }
-    })();
   }
 }
 

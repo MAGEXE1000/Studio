@@ -31,10 +31,12 @@ import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport } from '@wo
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import StudioSpinner from './animata/progress/spinner';
 import AnimatedActionButton from './animata/container/animated-border-trail';
 import StudioUpdateScreen from './StudioUpdateScreen';
 import UpdateDiagnosticsSheet from './UpdateDiagnosticsSheet';
+import ChangelogSheet from './ChangelogSheet';
 import { DialogScaffold } from './StudioLayoutSystem';
 import { DownloadIcon } from './DownloadIcon';
 import {
@@ -197,12 +199,44 @@ export default function UpdateIndicator({
     return false;
   })();
 
+  const [successNotificationVersion, setSuccessNotificationVersion] = useState<string | null>(null);
+  const [showChangelogSheet, setShowChangelogSheet] = useState(false);
+
   useEffect(() => {
     console.log('[INSTRUMENTATION] [REACT] UpdateIndicator component mounted!');
     clearLegacyDismissed();
     if (typeof (window as any).logDiagnosticEvent === 'function') {
       (window as any).logDiagnosticEvent('UPDATE_UI_MOUNTED');
     }
+
+    if (typeof window !== 'undefined') {
+      (window as any).__triggerStudioUpdatedToast = (ver: string) => {
+        setSuccessNotificationVersion(ver);
+      };
+    }
+
+    if (isNative() && isAppInstallerAvailable()) {
+      (async () => {
+        try {
+          const { AppInstaller } = await import('@workspace/studio-core');
+          const result = await AppInstaller['getLastInstallResult']();
+          console.log('[UpdateIndicator Startup] Checked last native result:', result);
+          if (result.statusCode === 0) {
+            const expectedVerName = result.expectedVersionName;
+            const currentAppVer = APP_VERSION_LABEL;
+            if (expectedVerName && expectedVerName === currentAppVer) {
+              const lastShownDone = localStorage.getItem('studio:lastShownDoneVersion');
+              if (lastShownDone !== currentAppVer) {
+                setSuccessNotificationVersion(currentAppVer);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[UpdateIndicator Startup] Failed to run startup install status verification:', e);
+        }
+      })();
+    }
+
     return () => {
       console.log('[INSTRUMENTATION] [REACT] UpdateIndicator component unmounted!');
       if (typeof (window as any).logDiagnosticEvent === 'function') {
@@ -656,6 +690,107 @@ export default function UpdateIndicator({
         />
       )}
 
+      {/* Lightweight boot-up update success toast */}
+      <AnimatePresence>
+        {successNotificationVersion && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            style={{
+              position: 'fixed',
+              top: 'calc(env(safe-area-inset-top) + 16px)',
+              left: '50%',
+              x: '-50%',
+              zIndex: 99999,
+              width: 'min(360px, calc(100vw - 32px))',
+              background: 'rgba(20, 20, 25, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 16,
+              padding: '12px 16px',
+              boxSizing: 'border-box',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <div style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              background: 'rgba(34, 197, 94, 0.12)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <CheckIconSvg />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start', textAlign: 'left' }}>
+              <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 13, color: 'var(--c-text-primary)' }}>
+                Studio updated
+              </span>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)' }}>
+                Version v{successNotificationVersion} installed successfully
+              </span>
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => {
+                setShowChangelogSheet(true);
+                localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
+                setSuccessNotificationVersion(null);
+              }}
+              style={{
+                marginLeft: 'auto',
+                background: 'transparent',
+                border: 'none',
+                color: `var(--accent-from, ${accentFrom})`,
+                fontFamily: 'Manrope',
+                fontWeight: 700,
+                fontSize: 11.5,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 6,
+              }}
+            >
+              View changelog
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
+                setSuccessNotificationVersion(null);
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--c-text-secondary)',
+                cursor: 'pointer',
+                padding: 4,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ChangelogSheet
+        open={showChangelogSheet}
+        onClose={() => setShowChangelogSheet(false)}
+        version={successNotificationVersion || undefined}
+      />
+
       <style>{`
         @keyframes pill-pulse {
           0%, 100% { box-shadow: 0 4px 14px ${tint(19)}; }
@@ -677,6 +812,39 @@ export default function UpdateIndicator({
         }
       `}</style>
     </>
+  );
+}
+
+function ActionButton({
+  style,
+  children,
+  onClick,
+  disabled,
+  type = 'button',
+}: {
+  style?: React.CSSProperties;
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+}) {
+  return (
+    <motion.button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      whileTap={disabled ? undefined : { scale: 0.96 }}
+      whileHover={disabled ? undefined : { scale: 1.015 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      style={{
+        ...style,
+        outline: 'none',
+        border: style?.border || 'none',
+        transition: 'opacity 200ms ease, background-color 200ms ease, border-color 200ms ease, transform 200ms ease',
+      }}
+    >
+      {children}
+    </motion.button>
   );
 }
 
@@ -1287,7 +1455,6 @@ function UpdateModal({
     height: '100%',
     width: '100%',
     background: `linear-gradient(135deg, ${purpleFrom}, ${purpleTo})`,
-    border: 'none', color: 'white',
     fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
     cursor: 'pointer',
     boxShadow: `0 4px 14px color-mix(in srgb, ${purpleTo} 25%, transparent)`,
@@ -1300,20 +1467,20 @@ function UpdateModal({
     if (state === 'permission_blocked') {
       return (
         <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
-          <button
+          <ActionButton
             type="button"
             onClick={() => setPermissionBlocked(false)}
             style={secondaryButtonStyle}
           >
             Cancel
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             type="button"
             onClick={handleOpenSettings}
             style={primaryButtonStyle}
           >
             Open Settings
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -1321,13 +1488,13 @@ function UpdateModal({
     if (state === 'idle') {
       return (
         <div style={{ marginTop: 18, width: '100%' }}>
-          <button
+          <ActionButton
             type="button"
             onClick={onClose}
             style={{ ...primaryButtonStyle, width: '100%' }}
           >
             Close
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -1345,39 +1512,39 @@ function UpdateModal({
 
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
-          <button
+          <ActionButton
             type="button"
             onClick={() => setShowGitHubConfirm(true)}
             style={primaryButtonStyle}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
             Download Latest Release
-          </button>
+          </ActionButton>
           
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <button
+            <ActionButton
               type="button"
               onClick={copyDiagnostics}
               style={halfSecondaryButtonStyle}
             >
               Copy diagnostics
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={onClose}
               style={halfSecondaryButtonStyle}
             >
               I understand
-            </button>
+            </ActionButton>
           </div>
 
-          <button
+          <ActionButton
             type="button"
             onClick={onLater}
             style={tertiaryButtonStyle}
           >
             Cancel
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -1387,7 +1554,7 @@ function UpdateModal({
         <div style={{ width: '100%' }}>
           {ota.validApkExists ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
-              <button
+              <ActionButton
                 type="button"
                 onClick={async () => {
                   try {
@@ -1401,24 +1568,24 @@ function UpdateModal({
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>play_circle</span>
                 Continue Installation
-              </button>
-              <button
+              </ActionButton>
+              <ActionButton
                 type="button"
                 onClick={onLater}
                 style={secondaryButtonStyle}
               >
                 Later
-              </button>
+              </ActionButton>
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
-              <button
+              <ActionButton
                 type="button"
                 onClick={onLater}
                 style={secondaryButtonStyle}
               >
                 Later
-              </button>
+              </ActionButton>
               <AnimatedActionButton
                 type="button"
                 onClick={handleStartUpdate}
@@ -1440,15 +1607,15 @@ function UpdateModal({
 
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, width: '100%' }}>
-          <button
+          <ActionButton
             type="button"
             onClick={() => window.open(manualApkUrl, '_system')}
             style={{ ...primaryButtonStyle, width: '100%' }}
           >
             Download APK
-          </button>
+          </ActionButton>
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <button
+            <ActionButton
               type="button"
               onClick={async () => {
                 try {
@@ -1462,22 +1629,22 @@ function UpdateModal({
               style={halfSecondaryButtonStyle}
             >
               {linkCopied ? 'Copied!' : 'Copy Link'}
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={handleOpenGitHub}
               style={halfSecondaryButtonStyle}
             >
               GitHub Fallback
-            </button>
+            </ActionButton>
           </div>
-          <button
+          <ActionButton
             type="button"
             onClick={onLater}
             style={tertiaryButtonStyle}
           >
             Later
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -1485,25 +1652,23 @@ function UpdateModal({
     if (state === 'ready_to_install') {
       return (
         <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
-          <button
+          <ActionButton
             type="button"
             onClick={onLater}
             style={secondaryButtonStyle}
           >
             Later
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             type="button"
             onClick={handleInstallApk}
             style={primaryButtonStyle}
           >
             Install
-          </button>
+          </ActionButton>
         </div>
       );
     }
-
-
 
     if (state === 'signature_mismatch') {
       const copyDiagnostics = async () => {
@@ -1535,53 +1700,53 @@ function UpdateModal({
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <button
+            <ActionButton
               type="button"
               onClick={handleRetryRecovery}
               style={halfSecondaryButtonStyle}
             >
               Retry
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={onLater}
               style={halfSecondaryButtonStyle}
             >
               Cancel
-            </button>
+            </ActionButton>
           </div>
 
-          <button
+          <ActionButton
             type="button"
             onClick={handleGitHubInstall}
             style={primaryButtonStyle}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
             Install Latest APK from GitHub
-          </button>
+          </ActionButton>
           
           <div style={{ display: 'flex', gap: 6, width: '100%', marginTop: 4 }}>
-            <button
+            <ActionButton
               type="button"
               onClick={handleOpenGitHub}
               style={{ ...halfSecondaryButtonStyle, fontSize: 11, height: 36 }}
             >
               GitHub Release Page
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={copyDiagnostics}
               style={{ ...halfSecondaryButtonStyle, fontSize: 11, height: 36 }}
             >
               Copy Diagnostics
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={() => setDiagnosticsOpen(true)}
               style={{ ...halfSecondaryButtonStyle, fontSize: 11, height: 36 }}
             >
               Diagnostics UI
-            </button>
+            </ActionButton>
           </div>
         </div>
       );
@@ -1601,29 +1766,29 @@ function UpdateModal({
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <button
+            <ActionButton
               type="button"
               onClick={copyDiagnostics}
               style={halfSecondaryButtonStyle}
             >
               Copy Diagnostics
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={() => setDiagnosticsOpen(true)}
               style={halfSecondaryButtonStyle}
             >
               Diagnostics UI
-            </button>
+            </ActionButton>
           </div>
 
-          <button
+          <ActionButton
             type="button"
             onClick={onLater}
             style={primaryButtonStyle}
           >
             Later
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -1664,7 +1829,7 @@ function UpdateModal({
               {ota.error || 'Studio could not start the installation automatically. Please choose an option below to recover.'}
             </p>
 
-            <button
+            <ActionButton
               type="button"
               onClick={async () => {
                 try {
@@ -1678,9 +1843,9 @@ function UpdateModal({
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>refresh</span>
               Retry Installation
-            </button>
+            </ActionButton>
 
-            <button
+            <ActionButton
               type="button"
               onClick={async () => {
                 try {
@@ -1694,9 +1859,9 @@ function UpdateModal({
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>play_circle</span>
               Continue Installation
-            </button>
+            </ActionButton>
 
-            <button
+            <ActionButton
               type="button"
               onClick={() => setShowGitHubConfirm(true)}
               style={{
@@ -1712,32 +1877,32 @@ function UpdateModal({
             >
               <GithubIcon size={18} color="var(--c-text-secondary)" />
               Download from GitHub
-            </button>
+            </ActionButton>
 
             <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
-              <button
+              <ActionButton
                 type="button"
                 onClick={copyDiagnostics}
                 style={halfSecondaryButtonStyle}
               >
                 Copy Diagnostics
-              </button>
-              <button
+              </ActionButton>
+              <ActionButton
                 type="button"
                 onClick={exportDiagnostics}
                 style={halfSecondaryButtonStyle}
               >
                 Export Diagnostics
-              </button>
+              </ActionButton>
             </div>
 
-            <button
+            <ActionButton
               type="button"
               onClick={onLater}
               style={tertiaryButtonStyle}
             >
               Cancel
-            </button>
+            </ActionButton>
           </div>
         );
       }
@@ -1751,7 +1916,7 @@ function UpdateModal({
             {ota.error || 'Studio could not complete the update automatically. Please choose a recovery action below.'}
           </p>
 
-          <button
+          <ActionButton
             type="button"
             onClick={async () => {
               if (ota.updateAvailable) {
@@ -1764,9 +1929,9 @@ function UpdateModal({
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>refresh</span>
             Retry Update
-          </button>
+          </ActionButton>
 
-          <button
+          <ActionButton
             type="button"
             onClick={() => setShowGitHubConfirm(true)}
             style={{
@@ -1782,32 +1947,32 @@ function UpdateModal({
           >
             <GithubIcon size={18} color="var(--c-text-secondary)" />
             Download Latest Release
-          </button>
+          </ActionButton>
 
           <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
-            <button
+            <ActionButton
               type="button"
               onClick={copyDiagnostics}
               style={halfSecondaryButtonStyle}
             >
               Copy Diagnostics
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               type="button"
               onClick={exportDiagnostics}
               style={halfSecondaryButtonStyle}
             >
               Export Diagnostics
-            </button>
+            </ActionButton>
           </div>
 
-          <button
+          <ActionButton
             type="button"
             onClick={onLater}
             style={tertiaryButtonStyle}
           >
             Cancel
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -1815,7 +1980,7 @@ function UpdateModal({
     if (state === 'update_success' || state === 'installed' || state === 'installedOrReady') {
       return (
         <div style={{ marginTop: 18, width: '100%' }}>
-          <button
+          <ActionButton
             type="button"
             onClick={async () => {
               console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
@@ -1834,7 +1999,7 @@ function UpdateModal({
             style={{ ...primaryButtonStyle, width: '100%' }}
           >
             Done
-          </button>
+          </ActionButton>
         </div>
       );
     }
@@ -2006,37 +2171,45 @@ function UpdateModal({
           </button>
 
           {/* Categories list */}
-          {changelogExpanded && (
-            <div style={{
-              maxHeight: 150,
-              overflowY: 'auto',
-              padding: '0 14px 12px',
-              borderTop: '1px solid rgba(128, 128, 128, 0.06)',
-            }}>
-              {categories.map((cat, idx) => (
-                <div key={idx} style={{ marginTop: idx === 0 ? 8 : 12 }}>
-                  <div style={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    marginBottom: 4,
-                  }}>
-                    {cat.label}
+          <AnimatePresence initial={false}>
+            {changelogExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+                style={{
+                  maxHeight: 150,
+                  overflowY: 'auto',
+                  padding: '0 14px 12px',
+                  borderTop: '1px solid rgba(128, 128, 128, 0.06)',
+                }}
+              >
+                {categories.map((cat, idx) => (
+                  <div key={idx} style={{ marginTop: idx === 0 ? 8 : 12 }}>
+                    <div style={{
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      color: 'var(--c-text-primary)',
+                      fontFamily: 'Manrope',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      marginBottom: 4,
+                    }}>
+                      {cat.label}
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55 }}>
+                      {cat.items!.map((item: string, itemIdx: number) => (
+                        <li key={itemIdx} style={{ marginBottom: 4 }}>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55 }}>
-                    {cat.items!.map((item: string, itemIdx: number) => (
-                      <li key={itemIdx} style={{ marginBottom: 4 }}>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       );
     }
@@ -2093,22 +2266,30 @@ function UpdateModal({
         </button>
 
         {/* Bullet List Container */}
-        {changelogExpanded && (
-          <div style={{
-            maxHeight: 150,
-            overflowY: 'auto',
-            padding: '0 14px 12px',
-            borderTop: '1px solid rgba(128, 128, 128, 0.06)',
-          }}>
-            <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55 }}>
-              {bullets.map((bullet, idx) => (
-                <li key={idx} style={{ marginBottom: 5 }}>
-                  {bullet.replace(/^-\s*/, '')}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <AnimatePresence initial={false}>
+          {changelogExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+              style={{
+                maxHeight: 150,
+                overflowY: 'auto',
+                padding: '0 14px 12px',
+                borderTop: '1px solid rgba(128, 128, 128, 0.06)',
+              }}
+            >
+              <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55 }}>
+                {bullets.map((bullet, idx) => (
+                  <li key={idx} style={{ marginBottom: 5 }}>
+                    {bullet.replace(/^-\s*/, '')}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   };
@@ -2118,7 +2299,7 @@ function UpdateModal({
   if (showGitHubConfirm) {
     const gitHubButtons = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: 14 }}>
-        <button
+        <ActionButton
           type="button"
           onClick={async () => {
             await handleOpenGitHub();
@@ -2127,14 +2308,14 @@ function UpdateModal({
           style={primaryButtonStyle}
         >
           Open GitHub
-        </button>
-        <button
+        </ActionButton>
+        <ActionButton
           type="button"
           onClick={() => setShowGitHubConfirm(false)}
           style={secondaryButtonStyle}
         >
           Cancel
-        </button>
+        </ActionButton>
       </div>
     );
 

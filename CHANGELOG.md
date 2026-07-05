@@ -11,6 +11,13 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.75
+
+### Fixed
+- Completed System Diagnostics page redesign to match the premium Developer Tools theme.
+- Added Copy Everything and Copy Section utilities to all diagnostics screens.
+- Fixed PackageInstaller state sync where updater screen reset prematurely on resume.
+
 ## 3.7.74
 
 ### Fixed

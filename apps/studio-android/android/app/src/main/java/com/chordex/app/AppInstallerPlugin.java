@@ -707,10 +707,32 @@ public class AppInstallerPlugin extends Plugin {
         }
     }
 
+    private boolean isInstallSessionActive() {
+        SharedPreferences prefs = getContext().getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
+        if (prefs.getBoolean("installation_active", false)) {
+            return true;
+        }
+        try {
+            PackageInstaller packageInstaller = getContext().getPackageManager().getPackageInstaller();
+            java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
+            if (sessions != null && !sessions.isEmpty()) {
+                return true;
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
     @PluginMethod
     public void installApk(PluginCall call) {
         installApkCallCount++;
         int callId = nextCallId();
+        
+        if (isInstallSessionActive()) {
+            logNativeInstrumentation(getContext(), "installApk", callId, "REJECTED", "Installation session already active");
+            call.reject("An installation session is already active.");
+            return;
+        }
+
         String path = call.getString("filePath");
         logNativeInstrumentation(getContext(), "installApk", callId, "ENTER", "filePath=" + path + " (total calls: " + installApkCallCount + ")");
         if (path == null) {
@@ -861,6 +883,13 @@ public class AppInstallerPlugin extends Plugin {
     public void downloadAndInstallApk(PluginCall call) {
         downloadAndInstallApkCallCount++;
         int callId = nextCallId();
+
+        if (isInstallSessionActive()) {
+            logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "REJECTED", "Installation session already active");
+            call.reject("An installation session is already active.");
+            return;
+        }
+
         String urlString = call.getString("url");
         logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "ENTER", "url=" + urlString + " (total calls: " + downloadAndInstallApkCallCount + ")");
         if (urlString == null) {
@@ -922,6 +951,13 @@ public class AppInstallerPlugin extends Plugin {
     @PluginMethod
     public void installApkDirect(PluginCall call) {
         int callId = nextCallId();
+
+        if (isInstallSessionActive()) {
+            logNativeInstrumentation(getContext(), "installApkDirect", callId, "REJECTED", "Installation session already active");
+            call.reject("An installation session is already active.");
+            return;
+        }
+
         String filePath = call.getString("filePath");
         logNativeInstrumentation(getContext(), "installApkDirect", callId, "ENTER", "filePath=" + filePath);
         if (filePath == null) {

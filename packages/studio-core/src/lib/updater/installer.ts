@@ -1,8 +1,9 @@
 import { AppInstaller } from '../apkDownloader';
 
-export async function triggerNativeInstall(filePath: string): Promise<void> {
+export async function triggerNativeInstall(filePath: string): Promise<any> {
   try {
-    await AppInstaller.installApk({ filePath });
+    const res = await AppInstaller.installApk({ filePath });
+    return res;
   } catch (err: any) {
     throw new Error('[PackageInstaller] ' + (err.message || String(err)));
   }

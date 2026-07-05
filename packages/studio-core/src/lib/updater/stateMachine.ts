@@ -54,14 +54,37 @@ export interface CentralizedOtaState {
   sessionId: number | null;
 }
 
+const getInitialState = (): OtaUpdateState => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const inProgress = localStorage.getItem('studio:install_in_progress') === 'true';
+      if (inProgress) {
+        return 'INSTALLING';
+      }
+    }
+  } catch (_) {}
+  return 'IDLE';
+};
+
+const getInitialRemoteVersion = (): string | null => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem('studio:downloadedApkVersion');
+    }
+  } catch (_) {}
+  return null;
+};
+
+const initialUpdateState = getInitialState();
+
 export let globalOtaState: CentralizedOtaState = {
-  updateState: 'IDLE',
+  updateState: initialUpdateState,
   loading: false,
   progress: 0,
   error: null,
-  statusText: null,
-  remoteVersion: null,
-  updateAvailable: false,
+  statusText: initialUpdateState === 'INSTALLING' ? 'Restoring installation session...' : null,
+  remoteVersion: getInitialRemoteVersion(),
+  updateAvailable: initialUpdateState === 'INSTALLING',
   mandatory: false,
   changelog: null,
   releaseNotes: null,
@@ -75,11 +98,11 @@ export let globalOtaState: CentralizedOtaState = {
   consecutiveFailures: 0,
   activeFallback: null,
   recoveryMode: false,
-  updateType: 'none',
+  updateType: initialUpdateState === 'INSTALLING' ? 'apk' : 'none',
   reinstallRequired: false,
   requiredVersionCode: 0,
   apkUpdateRequired: false,
-  validApkExists: false,
+  validApkExists: initialUpdateState === 'INSTALLING',
   sessionId: null,
 };
 
@@ -99,6 +122,16 @@ export const MAX_CONSECUTIVE_FAILURES = 5;
  * transition validation, watchdog management, and history recording.
  */
 export function updateGlobalState(patch: Partial<CentralizedOtaState>) {
+  if (patch.progress !== undefined && globalOtaState.updateState === 'DOWNLOAD_APK') {
+    const prevPct = Math.round(globalOtaState.progress * 10);
+    const currPct = Math.round(patch.progress * 10);
+    if (prevPct !== currPct) {
+      if (typeof (window as any).logDiagnosticEvent === 'function') {
+        (window as any).logDiagnosticEvent('DOWNLOAD_PROGRESS', { progress: patch.progress });
+      }
+    }
+  }
+
   // Strip updateState — only transitionToState may change it
   if ('updateState' in patch) {
     const { updateState: _stripped, ...safePatch } = patch;
@@ -341,6 +374,18 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
           ? (failureReason || null)
           : (failureReason || globalOtaState.error)),
   };
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const isActive = ['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARE_INSTALL', 'WAIT_PACKAGE_INSTALLER', 'INSTALLING'].includes(state);
+      if (isActive) {
+        localStorage.setItem('studio:install_in_progress', 'true');
+      } else if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state)) {
+        localStorage.removeItem('studio:install_in_progress');
+      }
+    }
+  } catch (_) {}
+
   stateListeners.forEach((l) => l(globalOtaState));
 }
 

@@ -4,7 +4,43 @@ import { AppInstaller } from './apkDownloader';
 import { isNative, shouldUseAndroidApkUpdater } from './capgoUpdater';
 import { nativeSet, NATIVE_PREFS } from './nativePrefs';
 import { useChordStore } from '../store/useChordStore';
+import { useNavigationStore } from '../store/useNavigationStore';
 import { logActivity } from './activityLogger';
+
+export function logDiagnosticEvent(event: string, details?: any) {
+  const timestamp = new Date().toISOString();
+  const sessionId = globalOtaState.sessionId || 'N/A';
+  const installState = globalOtaState.updateState;
+  
+  let navState = 'unknown';
+  try {
+    const navStore = useNavigationStore.getState();
+    if (navStore && navStore.history) {
+      navState = JSON.stringify(navStore.history[navStore.history.length - 1] || { app: 'hub' });
+    }
+  } catch (_) {}
+
+  const activityState = (window as any).__studioActivityState || 'active';
+
+  let currentScreen = 'unknown';
+  try {
+    const chordStore = useChordStore.getState();
+    if (chordStore && chordStore.settings) {
+      currentScreen = chordStore.settings.appMode || 'hub';
+    }
+  } catch (_) {}
+
+  const visibleModal = (window as any).__studioVisibleModal || 'none';
+  const installerStatus = (window as any).__studioInstallerStatus || 'idle';
+
+  const logMsg = `[DIAGNOSTIC] [${timestamp}] Event: ${event} | SessionID: ${sessionId} | InstallState: ${installState} | NavState: ${navState} | ActivityState: ${activityState} | MountedScreen: ${currentScreen} | VisibleModal: ${visibleModal} | PackageInstallerStatus: ${installerStatus} | Details: ${details ? JSON.stringify(details) : ''}`;
+  console.log(logMsg);
+  addJsLog(logMsg);
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).logDiagnosticEvent = logDiagnosticEvent;
+}
 
 // Import modular subcomponents
 import {
@@ -232,10 +268,13 @@ export function enforceStartupRecovery(): Promise<void> {
     return startupRecoveryPromise;
   }
 
+  logDiagnosticEvent('RECOVERY_STARTED');
+
   startupRecoveryPromise = (async () => {
     console.log('[OTA DEBUG] enforceStartupRecovery starting...');
     
     if (!isNative() || !isAppInstallerAvailable()) {
+      logDiagnosticEvent('RECOVERY_ABORTED', 'Not native or AppInstaller unavailable');
       return;
     }
 
@@ -253,6 +292,7 @@ export function enforceStartupRecovery(): Promise<void> {
           remoteVersion: expectedName,
           requiredVersionCode: expectedCode ? Number(expectedCode) : 0,
           statusText: 'Installing update...',
+          sessionId: typeof check.sessionId === 'number' ? check.sessionId : null,
         });
         transitionToState('INSTALLING', 'Active PackageInstaller session detected on startup');
         return;
@@ -283,6 +323,7 @@ export function enforceStartupRecovery(): Promise<void> {
 
       if (activeCheckPromise || activeApplyPromise || activeDownloadPromise) {
         console.log('[OTA DEBUG] enforceStartupRecovery: active operation in flight, skipping reset.');
+        logDiagnosticEvent('RECOVERY_ABORTED', 'Active operation in flight');
         return;
       }
 
@@ -908,6 +949,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
   }
 
   const apkUrl = globalOtaState.updateAvailable ? (globalOtaState as any).apkUrl : null;
+  logDiagnosticEvent('DOWNLOAD_STARTED', { version: ver, url: apkUrl });
   const isDowngrade = globalOtaState.updateAvailable && compareSemver(ver, APP_VERSION) < 0;
 
   if ((!isNative() || !isAppInstallerAvailable()) && !isSimulationActive()) {
@@ -1044,6 +1086,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
 
       otaDebugLogs.downloadStatus += `\nAPK download completed. Path: ${filePath}`;
       void logProgressStage('Download completed', 'Path: ' + filePath);
+      logDiagnosticEvent('DOWNLOAD_FINISHED', { filePath });
 
       if (!safeTransition('DOWNLOAD_APK', 'VERIFY_SHA256', 'Verifying checksum')) {
         return;
@@ -1066,12 +1109,14 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
           throw new Error('Simulated checksum failure');
         }
         otaDebugLogs.shaVerification = 'PASSED (Simulated)';
+        logDiagnosticEvent('APK_VERIFIED', { filePath, simulated: true });
       } else {
         const expectedHash = (globalOtaState as any).apkSha256;
         if (expectedHash) {
           try {
             await verifyFileIntegrity(filePath, expectedHash);
             logDetailedJsTrace('downloadUpdate', 'otaUpdate.ts', 783, 'SHA-256 integrity verification passed');
+            logDiagnosticEvent('APK_VERIFIED', { filePath });
           } catch (shaErr) {
             if (globalOtaState.updateState === 'VERIFY_SHA256') {
               transitionToState('INSTALL_FAILED', 'SHA integrity check failed');
@@ -1080,6 +1125,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
           }
         } else {
           otaDebugLogs.shaVerification = 'SKIPPED (No expected hash)';
+          logDiagnosticEvent('APK_VERIFIED', { filePath, warning: 'SHA skipped' });
         }
       }
 
@@ -1135,6 +1181,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       }
       updateGlobalState({ statusText: 'Ready to install' });
       localStorage.setItem('studio:downloadedApkPath', filePath);
+      localStorage.setItem('studio:downloadedApkVersion', ver);
       localStorage.removeItem('studio:downloadedBundleId');
       addToStoredList('studio:downloadedVersions', ver);
 
@@ -1192,6 +1239,8 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
     logDetailedJsTrace('applyUpdate', 'otaUpdate.ts', 879, `Exiting applyUpdate Call #${callId} early (missing remoteVersion)`, { prevState: globalOtaState.updateState });
     return Promise.resolve();
   }
+
+  logDiagnosticEvent('INSTALL_REQUESTED', { version: remoteVersion });
 
   if ((!isNative() || !isAppInstallerAvailable()) && !isSimulationActive()) {
     (async () => {
@@ -1274,6 +1323,10 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
         
         // Timed sequence simulation
         (async () => {
+          const mockSessionId = 9999;
+          updateGlobalState({ sessionId: mockSessionId });
+          logDiagnosticEvent('SESSION_CREATED', { sessionId: mockSessionId, simulated: true });
+
           await new Promise((resolve) => setTimeout(resolve, 1000));
           triggerSimulatedStatus(-2, 'installing_start');
           
@@ -1297,7 +1350,11 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       } else {
         void logProgressStage('Session committed', 'Handing over to PackageInstaller');
         UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
-        await triggerNativeInstall(filePath);
+        const res = await triggerNativeInstall(filePath);
+        if (res && typeof res.sessionId === 'number') {
+          updateGlobalState({ sessionId: res.sessionId });
+          logDiagnosticEvent('SESSION_CREATED', { sessionId: res.sessionId });
+        }
         void logProgressStage('Waiting for Android confirmation', 'Waiting for system confirmation dialog to overlay');
       }
 
@@ -1448,6 +1505,19 @@ export function initializeGlobalOtaListeners() {
     console.log(`[OTA Global Listener] Received status ${status}: ${message} (progress ${progress}%)`);
     addJsLog(`[Global Listener Event] Received status ${status}: ${message} (progress ${progress}%)`);
     
+    (window as any).__studioInstallerStatus = String(status);
+    logDiagnosticEvent('PACKAGEINSTALLER_CALLBACK', { status, message, progress });
+
+    if (status === -1) {
+      logDiagnosticEvent('PACKAGEINSTALLER_OPENED');
+    } else if (status === 0) {
+      logDiagnosticEvent('INSTALL_SUCCESS');
+    } else if (status === 3) {
+      logDiagnosticEvent('INSTALL_CANCELLED');
+    } else if (status > 0) {
+      logDiagnosticEvent('INSTALL_FAILED', { status, message });
+    }
+
     // Log to installer database
     if (isNative() && typeof (AppInstaller as any).logInstallerEvent === 'function') {
       void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
@@ -1527,7 +1597,14 @@ export function initializeGlobalOtaListeners() {
 
   if (isNative()) {
     import('@capacitor/app').then(async ({ App }) => {
+      (window as any).__studioActivityState = 'active';
       await App.addListener('appStateChange', async (state) => {
+        const prev = (window as any).__studioActivityState;
+        const current = state.isActive ? 'active' : 'background';
+        if (prev !== current) {
+          (window as any).__studioActivityState = current;
+          logDiagnosticEvent(current === 'active' ? 'ACTIVITY_RESUMED' : 'ACTIVITY_PAUSED');
+        }
         if (state.isActive) {
           console.log('[OTA Lifecycle] App returned to foreground. Recovering updater state...');
           await checkAndRecoverInstallState();

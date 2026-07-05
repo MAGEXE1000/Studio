@@ -126,6 +126,10 @@ public class InstallReceiver extends BroadcastReceiver {
             
             if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
                 appendLog(context, "Installer dialog displayed", status, "System confirmation screen requested", otherPackageName, null);
+                if (prefs.getBoolean("confirmation_intent_started", false)) {
+                    Log.w(TAG, "[INSTRUMENTATION] [NATIVE] PackageInstaller dialog already launched. Skipping duplicate intent launch.");
+                    return;
+                }
                 Intent confirmIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
                 if (confirmIntent != null) {
                     prefs.edit().putBoolean("confirmation_intent_received", true).apply();

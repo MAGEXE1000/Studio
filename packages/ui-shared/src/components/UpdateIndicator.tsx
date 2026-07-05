@@ -173,7 +173,7 @@ export default function UpdateIndicator({
 }) {
   const ota = useOtaUpdate();
   const [phase, setPhase] = useState<Phase>(readInitialPhase);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => ota.updateState === 'INSTALLING' || ota.updateState === 'WAIT_PACKAGE_INSTALLER');
   const [successVersion, setSuccessVersion] = useState<string | null>(null);
   const [installFailedReason, setInstallFailedReason] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
@@ -201,10 +201,29 @@ export default function UpdateIndicator({
   useEffect(() => {
     console.log('[INSTRUMENTATION] [REACT] UpdateIndicator component mounted!');
     clearLegacyDismissed();
+    if (typeof (window as any).logDiagnosticEvent === 'function') {
+      (window as any).logDiagnosticEvent('UPDATE_UI_MOUNTED');
+    }
     return () => {
       console.log('[INSTRUMENTATION] [REACT] UpdateIndicator component unmounted!');
+      if (typeof (window as any).logDiagnosticEvent === 'function') {
+        (window as any).logDiagnosticEvent('UPDATE_UI_UNMOUNTED');
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__studioVisibleModal = open ? 'UpdateModal' : 'none';
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (ota.updateState === 'INSTALLING' || ota.updateState === 'WAIT_PACKAGE_INSTALLER') {
+      console.log('[OTA UI] Active session. Keeping update modal open.');
+      setOpen(true);
+    }
+  }, [ota.updateState]);
 
   useEffect(() => {
     if (ota.validApkExists && ota.remoteVersion) {

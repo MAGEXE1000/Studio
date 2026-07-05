@@ -108,6 +108,7 @@ public class InstallReceiver extends BroadcastReceiver {
             editor.putLong("last_status_timestamp", System.currentTimeMillis());
             if (status >= 0) {
                 editor.putBoolean("installation_active", false);
+                editor.putInt("active_session_id", -1);
             }
             editor.apply();
             

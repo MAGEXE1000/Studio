@@ -1231,10 +1231,33 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           deviceModel: otaDiagnostics.deviceModel || 'Browser'
         };
         dump.settings = {
-          theme: settings.theme,
-          appMode: settings.appMode,
-          developerMode: settings.developerMode
+          activeModule: settings.appMode,
+          activeTheme: settings.theme,
+          accentColor: settings.accentColor,
+          customAccentHue: settings.customAccentHue,
+          language: settings.language,
+          syncAcrossDevices: settings.syncAcrossDevices,
+          otaNotifications: settings.otaNotifications,
+          otaAutoCheck: settings.otaAutoCheck
         };
+        // LocalStorage (masked)
+        {
+          const storageDump: Record<string, string> = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+              const val = localStorage.getItem(key) || '';
+              storageDump[key] = maskSensitiveValue(key, val);
+            }
+          }
+          dump.localStorage = storageDump;
+        }
+        // Module debug panels state
+        dump.modulePanels = activeProviders.map(prov => ({
+          id: prov.id,
+          name: prov.name,
+          debugState: typeof prov.getDebugState === 'function' ? prov.getDebugState() : null
+        }));
         break;
       case 'Logs':
         dump.errors = errors;
@@ -1263,7 +1286,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   // WarningsInspector moved to file-level
 
   const renderSubViewHeader = (title: string) => {
-    if (!isWebDesktop) return null;
     const handleGoBack = () => {
       NavigationDispatcher.pop();
     };
@@ -1287,7 +1309,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     return (
       <header
         style={{
-          padding: '16px 24px',
+          padding: isWebDesktop ? '16px 24px' : '12px 16px',
           borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
           display: 'flex',
           alignItems: 'center',
@@ -1298,7 +1320,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           zIndex: 100
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
           <button
             onClick={() => {
               console.log("BUTTON PRESSED:\nBack to Developer Panel");
@@ -1310,8 +1332,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               background: 'rgba(255, 255, 255, 0.04)',
               border: 'none',
               borderRadius: '999px',
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1320,15 +1342,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               transition: 'all 0.15s ease'
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>arrow_back</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
           </button>
           <div>
-            <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{title}</h1>
-            {desc && <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter' }}>{desc}</p>}
+            <h1 style={{ margin: 0, fontSize: isWebDesktop ? '20px' : '15px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{title}</h1>
+            {desc && <p style={{ margin: '2px 0 0', fontSize: isWebDesktop ? '12px' : '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter' }}>{desc}</p>}
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {moduleName && (
             <button
               onClick={() => handleCopyModuleDiagnostics(moduleName)}
@@ -1337,9 +1359,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 border: 'none',
                 borderRadius: '999px',
                 color: '#fff',
-                padding: '8px 18px',
+                padding: isWebDesktop ? '8px 18px' : '6px 12px',
                 fontWeight: 700,
-                fontSize: '12px',
+                fontSize: isWebDesktop ? '12px' : '10px',
                 cursor: 'pointer',
                 transition: 'opacity 0.15s ease'
               }}
@@ -1347,22 +1369,24 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               Copy Everything
             </button>
           )}
-          <button
-            onClick={handleGoBack}
-            style={{
-              padding: '7px 16px',
-              borderRadius: '999px',
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              color: 'rgba(255,255,255,0.6)',
-              fontWeight: 700,
-              fontSize: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Back
-          </button>
+          {isWebDesktop && (
+            <button
+              onClick={handleGoBack}
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.6)',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Back
+            </button>
+          )}
         </div>
       </header>
     );
@@ -1991,36 +2015,83 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         </div>
       </div>
     );
-  };
+  }
 
-  const renderStateTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <span style={{ fontSize: 13, fontWeight: 700 }}>Global App State Dump</span>
-      <div style={{
-        padding: 12,
-        background: 'rgba(0,0,0,0.3)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: 10,
-        fontFamily: 'monospace',
-        fontSize: 11,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-        maxHeight: '55vh',
-        overflowY: 'auto'
-      }}>
-        {JSON.stringify({
-          activeModule: settings.appMode,
-          activeTheme: settings.theme,
-          accentColor: settings.accentColor,
-          customAccentHue: settings.customAccentHue,
-          language: settings.language,
-          syncAcrossDevices: settings.syncAcrossDevices,
-          otaNotifications: settings.otaNotifications,
-          otaAutoCheck: settings.otaAutoCheck
-        }, null, 2)}
+  const renderStateTab = () => {
+    const states = [
+      { key: 'Active Module', value: settings.appMode, icon: 'apps' },
+      { key: 'Theme Mode', value: settings.theme, icon: 'palette' },
+      { key: 'Accent Color', value: settings.accentColor, icon: 'colorize' },
+      { key: 'Custom Accent Hue', value: settings.customAccentHue != null ? `${settings.customAccentHue}°` : 'Default', icon: 'settings_brightness' },
+      { key: 'Language', value: settings.language || 'en', icon: 'language' },
+      { key: 'Sync Across Devices', value: settings.syncAcrossDevices ? 'Enabled' : 'Disabled', icon: 'sync', isBoolean: true, boolVal: settings.syncAcrossDevices },
+      { key: 'OTA Notifications', value: settings.otaNotifications ? 'Enabled' : 'Disabled', icon: 'notifications', isBoolean: true, boolVal: settings.otaNotifications },
+      { key: 'OTA Auto Check', value: settings.otaAutoCheck ? 'Enabled' : 'Disabled', icon: 'autorenew', isBoolean: true, boolVal: settings.otaAutoCheck },
+    ];
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>App Store Settings & Configurations</span>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: 16,
+          width: '100%'
+        }}>
+          {states.map((st, idx) => {
+            const valueColor = st.isBoolean
+              ? (st.boolVal ? 'var(--studio-accent-from, #679cff)' : 'rgba(255,255,255,0.4)')
+              : (st.key === 'Active Module' ? 'var(--studio-accent-from, #679cff)' : '#fff');
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  background: 'var(--app-surface-high, #1c1c1e)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: '16px',
+                  padding: '20px 22px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: 110,
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'rgba(255, 255, 255, 0.4)',
+                    fontFamily: 'Inter',
+                    letterSpacing: '0.04em'
+                  }}>
+                    {st.key}
+                  </span>
+                  <span className="material-symbols-outlined" style={{
+                    fontSize: 20,
+                    color: 'rgba(255, 255, 255, 0.25)'
+                  }}>
+                    {st.icon}
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: valueColor,
+                  fontFamily: 'Manrope, sans-serif',
+                  marginTop: 12
+                }}>
+                  {st.value}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderNavTab = () => {
     const navEntries = getNavigationEntries();
@@ -2436,22 +2507,68 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   const renderStorageTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <span style={{ fontSize: 13, fontWeight: 700 }}>LocalStorage Inspector (Masked)</span>
-      <div style={{ display: 'grid', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>LocalStorage Inspector (Masked)</span>
+      <div style={{ display: 'grid', gap: 12 }}>
         {Object.keys(localStorage).map(key => {
           const val = localStorage.getItem(key) || '';
           return (
-            <div key={key} style={{ padding: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8 }}>
-              <div style={{ fontWeight: 800, fontSize: 12, fontFamily: 'monospace', color: '#a78bfa', marginBottom: 4 }}>{key}</div>
+            <div
+              key={key}
+              style={{
+                padding: '16px 20px',
+                background: 'var(--app-surface-high, #1c1c1e)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                <span style={{
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  fontFamily: 'monospace',
+                  color: 'var(--studio-accent-from, #679cff)',
+                  wordBreak: 'break-all'
+                }}>
+                  {key}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(val);
+                    showToast(`Copied value of ${key}`);
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '8px',
+                    color: 'rgba(255,255,255,0.6)',
+                    padding: '6px 12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: '11px',
+                    fontFamily: 'Inter',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>content_copy</span>
+                  Copy Raw
+                </button>
+              </div>
               <div style={{
                 fontFamily: 'monospace',
-                fontSize: 11,
-                color: 'rgba(255,255,255,0.7)',
+                fontSize: '11px',
+                color: '#a7a3c4',
                 wordBreak: 'break-all',
-                background: 'rgba(0,0,0,0.2)',
-                padding: '6px 8px',
-                borderRadius: 4
+                background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgba(255,255,255,0.03)',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                whiteSpace: 'pre-wrap'
               }}>
                 {maskSensitiveValue(key, val)}
               </div>
@@ -2463,59 +2580,97 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   );
 
   const renderProvidersTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <span style={{ fontSize: 13, fontWeight: 700 }}>App-Specific Debug Panels</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>App-Specific Debug Panels</span>
       {activeProviders.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 20, color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+        <div style={{
+          textAlign: 'center',
+          padding: '36px 20px',
+          background: 'var(--app-surface-high, #1c1c1e)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px',
+          color: 'rgba(255,255,255,0.4)',
+          fontSize: '12px'
+        }}>
           No app-specific debug panel is currently active. Open Chordex, Stagex, or Drumex to inspect them.
         </div>
       ) : (
-        activeProviders.map(prov => (
-          <div key={prov.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: 14 }}>
-            <h4 style={{ fontSize: 14, fontWeight: 800, margin: '0 0 10px', color: '#a78bfa' }}>{prov.name} ({prov.id})</h4>
-            
-            {/* Provider Actions */}
-            {prov.getActions && prov.getActions().length > 0 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                {prov.getActions().map((act, idx) => (
-                  <button
-                    key={idx}
-                    onClick={act.action}
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      background: accent.from,
-                      color: '#fff',
-                      border: 'none',
-                      fontWeight: 700,
-                      fontSize: 10,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {act.label}
-                  </button>
-                ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {activeProviders.map(prov => (
+            <div
+              key={prov.id}
+              style={{
+                background: 'var(--app-surface-high, #1c1c1e)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '16px',
+                padding: '18px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: 'var(--studio-accent-from, #679cff)' }}>
+                  {prov.name}
+                </h4>
+                <span style={{
+                  fontSize: '10px',
+                  fontFamily: 'Inter',
+                  color: 'rgba(255,255,255,0.4)',
+                  background: 'rgba(0,0,0,0.2)',
+                  padding: '3px 8px',
+                  borderRadius: '6px'
+                }}>
+                  {prov.id}
+                </span>
               </div>
-            )}
+              
+              {/* Provider Actions */}
+              {prov.getActions && prov.getActions().length > 0 && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {prov.getActions().map((act, idx) => (
+                    <button
+                      key={idx}
+                      onClick={act.action}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '10px',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      {act.label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-            {/* State */}
-            <pre style={{
-              margin: 0,
-              padding: 10,
-              background: 'rgba(0,0,0,0.3)',
-              borderRadius: 6,
-              fontFamily: 'monospace',
-              fontSize: 11,
-              color: '#f4f4f5',
-              wordBreak: 'break-all',
-              whiteSpace: 'pre-wrap',
-              maxHeight: 300,
-              overflowY: 'auto'
-            }}>
-              {JSON.stringify(prov.getDebugState(), null, 2)}
-            </pre>
-          </div>
-        ))
+              {/* State */}
+              <pre style={{
+                margin: 0,
+                padding: '12px 14px',
+                background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgba(255, 255, 255, 0.03)',
+                borderRadius: '10px',
+                fontFamily: 'monospace',
+                fontSize: '11px',
+                color: '#a7a3c4',
+                wordBreak: 'break-all',
+                whiteSpace: 'pre-wrap',
+                maxHeight: 250,
+                overflowY: 'auto'
+              }}>
+                {JSON.stringify(prov.getDebugState(), null, 2)}
+              </pre>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

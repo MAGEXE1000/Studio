@@ -582,6 +582,7 @@ public class AppInstallerPlugin extends Plugin {
                 .putLong("expected_version_code", 0)
                 .putString("expected_version_name", "")
                 .putBoolean("installation_active", false)
+                .putInt("active_session_id", -1)
                 .apply();
             call.resolve();
         } catch (Exception e) {
@@ -709,17 +710,21 @@ public class AppInstallerPlugin extends Plugin {
 
     private boolean isInstallSessionActive() {
         SharedPreferences prefs = getContext().getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
-        if (prefs.getBoolean("installation_active", false)) {
-            return true;
-        }
+        boolean active = prefs.getBoolean("installation_active", false);
+        int activeSessionId = prefs.getInt("active_session_id", -1);
         try {
             PackageInstaller packageInstaller = getContext().getPackageManager().getPackageInstaller();
             java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
             if (sessions != null && !sessions.isEmpty()) {
                 return true;
+            } else if (activeSessionId != -1) {
+                PackageInstaller.SessionInfo info = packageInstaller.getSessionInfo(activeSessionId);
+                if (info != null) {
+                    return true;
+                }
             }
         } catch (Exception ignored) {}
-        return false;
+        return active;
     }
 
     @PluginMethod
@@ -1199,12 +1204,13 @@ public class AppInstallerPlugin extends Plugin {
                 logNativeInstrumentation(context, "triggerInstallation", callId, "STEP", "Session.commit() call #" + sessionCommitCallCount + " start. Calling session.commit()");
                 InstallReceiver.appendLog(context, "Session Commit Started", 0, "Calling session.commit()", null, null);
                 prefs.edit()
-                     .putBoolean("installation_active", true)
-                     .putBoolean("intent_sender_created", true)
-                     .putBoolean("intent_fired", true)
-                     .putLong("session_commit_time", System.currentTimeMillis())
-                     .putString("session_state", "committed")
-                     .apply();
+                      .putBoolean("installation_active", true)
+                      .putInt("active_session_id", sessionId)
+                      .putBoolean("intent_sender_created", true)
+                      .putBoolean("intent_fired", true)
+                      .putLong("session_commit_time", System.currentTimeMillis())
+                      .putString("session_state", "committed")
+                      .apply();
                 session.commit(pendingIntent.getIntentSender());
                 session.close();
                 logNativeInstrumentation(context, "triggerInstallation", callId, "STEP", "Session.commit() finished and session closed");
@@ -1695,13 +1701,22 @@ public class AppInstallerPlugin extends Plugin {
             Context context = getContext();
             SharedPreferences prefs = context.getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
             boolean active = prefs.getBoolean("installation_active", false);
-            int activeSessionId = -1;
+            int activeSessionId = prefs.getInt("active_session_id", -1);
             
             PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
             java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
             if (sessions != null && !sessions.isEmpty()) {
                 active = true;
                 activeSessionId = sessions.get(0).getSessionId();
+            } else if (activeSessionId != -1) {
+                try {
+                    PackageInstaller.SessionInfo info = packageInstaller.getSessionInfo(activeSessionId);
+                    if (info != null) {
+                        active = true;
+                    } else {
+                        active = false;
+                    }
+                } catch (Exception ignored) {}
             }
             
             JSObject result = new JSObject();

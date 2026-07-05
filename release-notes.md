@@ -1,4 +1,4 @@
 ### Fixed
-- Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.
-- Integrates global Copy Everything and Copy Section utilities.
-- Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.
+- Restore top-right Copy Everything button on mobile sub-pages.
+- Fix global bottom navigation overlays in hub mode.
+- Stabilize native update PackageInstaller session completion flow.

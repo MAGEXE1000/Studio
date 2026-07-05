@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "3.7.79",
-  "versionName": "3.7.79",
-  "versionCode": 207,
-  "version_code": 207,
-  "commit": "bc618461",
-  "releasedAt": "7/4/2026, 11:11:00 PM CST",
-  "buildTimestamp": "7/4/2026, 11:11:00 PM CST",
+  "version": "3.7.80",
+  "versionName": "3.7.80",
+  "versionCode": 208,
+  "version_code": 208,
+  "commit": "e1cad489",
+  "releasedAt": "7/4/2026, 11:18:11 PM CST",
+  "buildTimestamp": "7/4/2026, 11:18:11 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.\n• Integrates global Copy Everything and Copy Section utilities.\n• Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.",
-  "whatsNew": "• Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.\n• Integrates global Copy Everything and Copy Section utilities.\n• Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors.",
+  "changelog": "• Restore top-right Copy Everything button on mobile sub-pages.\n• Fix global bottom navigation overlays in hub mode.\n• Stabilize native update PackageInstaller session completion flow.",
+  "whatsNew": "• Restore top-right Copy Everything button on mobile sub-pages.\n• Fix global bottom navigation overlays in hub mode.\n• Stabilize native update PackageInstaller session completion flow.",
   "releaseNotes": {
     "fixed": [
-      "Sprint 20 Release: Consolidates Developer Tools diagnostics screen headers.",
-      "Integrates global Copy Everything and Copy Section utilities.",
-      "Extracts and unifies scroll-driven Bottom Navigation auto-hide/reveal behaviors."
+      "Restore top-right Copy Everything button on mobile sub-pages.",
+      "Fix global bottom navigation overlays in hub mode.",
+      "Stabilize native update PackageInstaller session completion flow."
     ]
   },
   "mandatory": false

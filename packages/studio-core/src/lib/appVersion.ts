@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.73';
-export const WEB_VERSION = '3.7.73';
+export const NATIVE_VERSION = '3.7.74';
+export const WEB_VERSION = '3.7.74';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -38,11 +38,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-04'; // 3.7.68
+export const APP_VERSION_DATE = '2026-07-05'; // 3.7.74
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/4/2026, 6:00:00 AM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/5/2026, 1:11:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -61,9 +61,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.",
-      "Fixed duplicate confirmation intents and session creations natively in PackageInstaller.",
-      "Added comprehensive diagnostic trace logging for installation lifecycle events.",
+      "Stabilized cross-app navigation and transitions between Hub and sub-apps.",
+      "Fixed navigation store state mismatches, logo freezes, and unmount cleanups.",
+      "Added modals/sheets cleanup inside sub-app unmount callbacks.",
     ],
   },
 ];
@@ -73,11 +73,9 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Removed the gray Settings header and restored the original clean navigation style.",
-      "Optimized page transitions to slide in faster and more snappily.",
-      "Improved startup orchestration by coordinating layout mounting and paint cycles.",
-      "Resolved dynamic import chunk preloading bottlenecks.",
-      "Fixed background updater lifecycle race conditions.",
+      "Stabilized cross-app navigation and transitions between Hub and sub-apps.",
+      "Fixed navigation store state mismatches, logo freezes, and unmount cleanups.",
+      "Added modals/sheets cleanup inside sub-app unmount callbacks.",
     ],
   },
 ];

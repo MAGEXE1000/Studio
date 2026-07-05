@@ -185,8 +185,19 @@ export default function BottomNav() {
   };
 
   useEffect(() => {
-    const m = measureBtn(NAV_ORDER.indexOf(activePanel));
-    if (m) setPill({ left: m.left, right: m.right, ready: true });
+    let active = true;
+    const measure = () => {
+      const m = measureBtn(NAV_ORDER.indexOf(activePanel));
+      if (m && active) {
+        setPill({ left: m.left, right: m.right, ready: true });
+      } else if (active) {
+        requestAnimationFrame(measure);
+      }
+    };
+    requestAnimationFrame(measure);
+    return () => {
+      active = false;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

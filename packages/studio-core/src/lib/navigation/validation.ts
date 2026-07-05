@@ -148,10 +148,7 @@ export function detectRecursion(history: NavigationHistory, next: NavigationRout
  * Returns true if a transition lock is active.
  */
 export function isTransitionLocked(): boolean {
-  if (typeof window === 'undefined' || (typeof process !== 'undefined' && process.versions && process.versions.node)) {
-    return useNavigationStore.getState().isTransitioning;
-  }
-  return false;
+  return useNavigationStore.getState().isTransitioning;
 }
 
 /**

@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "3.7.73",
-  "versionName": "3.7.73",
-  "versionCode": 201,
-  "version_code": 201,
-  "commit": "f38e96ec",
-  "releasedAt": "7/4/2026, 6:49:17 PM CST",
-  "buildTimestamp": "7/4/2026, 6:49:17 PM CST",
+  "version": "3.7.74",
+  "versionName": "3.7.74",
+  "versionCode": 202,
+  "version_code": 202,
+  "commit": "a3b9d0ef",
+  "releasedAt": "7/5/2026, 1:11:00 AM CST",
+  "buildTimestamp": "7/5/2026, 1:11:00 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.\n• Fixed duplicate confirmation intents and session creations natively in PackageInstaller.\n• Added comprehensive diagnostic trace logging for installation lifecycle events.",
-  "whatsNew": "• Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.\n• Fixed duplicate confirmation intents and session creations natively in PackageInstaller.\n• Added comprehensive diagnostic trace logging for installation lifecycle events.",
+  "changelog": "• Stabilized cross-app navigation and transitions between Hub and sub-apps.\n• Fixed navigation store state mismatches, logo freezes, and unmount cleanups.\n• Added modals/sheets cleanup inside sub-app unmount callbacks.",
+  "whatsNew": "• Stabilized cross-app navigation and transitions between Hub and sub-apps.\n• Fixed navigation store state mismatches, logo freezes, and unmount cleanups.\n• Added modals/sheets cleanup inside sub-app unmount callbacks.",
   "releaseNotes": {
     "fixed": [
-      "Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.",
-      "Fixed duplicate confirmation intents and session creations natively in PackageInstaller.",
-      "Added comprehensive diagnostic trace logging for installation lifecycle events."
+      "Stabilized cross-app navigation and transitions between Hub and sub-apps.",
+      "Fixed navigation store state mismatches, logo freezes, and unmount cleanups.",
+      "Added modals/sheets cleanup inside sub-app unmount callbacks."
     ]
   },
   "mandatory": false

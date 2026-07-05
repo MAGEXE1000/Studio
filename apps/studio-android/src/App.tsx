@@ -726,10 +726,47 @@ export default function App() {
   const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
 
-  // Synchronize appMode from navigation store route to chord store settings
+  // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
+  const lastSyncedRouteAppRef = useRef<string | null>(null);
+  const lastSyncedSettingsAppRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (currentRoute.app && currentRoute.app !== settings.appMode) {
-      updateSettings({ appMode: currentRoute.app });
+    const routeApp = currentRoute.app || 'hub';
+    const settingsApp = settings.appMode || 'hub';
+
+    if (routeApp !== settingsApp) {
+      const routeChanged = routeApp !== lastSyncedRouteAppRef.current;
+      const settingsChanged = settingsApp !== lastSyncedSettingsAppRef.current;
+
+      if (routeChanged && !settingsChanged) {
+        console.log(`[Sync-Android] Navigation route changed: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
+        updateSettings({ appMode: routeApp as any });
+        lastSyncedRouteAppRef.current = routeApp;
+        lastSyncedSettingsAppRef.current = routeApp;
+      } else if (settingsChanged && !routeChanged) {
+        console.log(`[Sync-Android] Settings appMode changed: ${routeApp} -> ${settingsApp}. Updating navigation dispatcher.`);
+        if (settingsApp === 'hub') {
+          NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
+        } else {
+          const currentHistory = useNavigationStore.getState().history;
+          const isCurrentlySubApp = currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
+          if (isCurrentlySubApp) {
+            NavigationDispatcher.replace({ app: settingsApp as any });
+          } else {
+            NavigationDispatcher.push({ app: settingsApp as any });
+          }
+        }
+        lastSyncedRouteAppRef.current = settingsApp;
+        lastSyncedSettingsAppRef.current = settingsApp;
+      } else {
+        console.log(`[Sync-Android] Initial/Double sync: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
+        updateSettings({ appMode: routeApp as any });
+        lastSyncedRouteAppRef.current = routeApp;
+        lastSyncedSettingsAppRef.current = routeApp;
+      }
+    } else {
+      lastSyncedRouteAppRef.current = routeApp;
+      lastSyncedSettingsAppRef.current = settingsApp;
     }
   }, [currentRoute.app, settings.appMode, updateSettings]);
   const [hubRenderKey, setHubRenderKey] = useState(0);
@@ -1196,7 +1233,7 @@ export default function App() {
     };
   }, []);
 
-  // 1.2-second safety watchdog for transitionActive
+  // 6-second safety watchdog for transitionActive
   useEffect(() => {
     let watchdogTimer: ReturnType<typeof setTimeout> | undefined;
     if (transitionActive) {
@@ -1205,7 +1242,7 @@ export default function App() {
         useNavigationStore.getState().setTransition(null, false);
         updateSettings({ appMode: 'hub' });
         window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
-      }, 1200);
+      }, 6000);
     }
     return () => {
       if (watchdogTimer) clearTimeout(watchdogTimer);
@@ -2235,7 +2272,7 @@ export default function App() {
               )}
             </div>
 
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {isSubAppActive && (
                 <motion.div
                   key={stableKey}
@@ -2477,6 +2514,16 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       fallbackRendered: false
     });
     return () => {
+      // Clean up modals, backdrops, sheets, and overlays when unmounting any sub-app
+      window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
+      window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
+      document.querySelectorAll('.modal-backdrop, .overlay').forEach(el => {
+        if (el.id !== 'update-fade-overlay') {
+          el.remove();
+        }
+      });
+      document.documentElement.classList.remove('has-modal-open');
+
       recordNavigation({
         fromApp: app,
         toApp: 'hub',

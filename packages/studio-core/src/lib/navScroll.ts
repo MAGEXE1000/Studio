@@ -97,19 +97,39 @@ export function useNavCollapsed(): boolean {
 // On scroll-down → collapse the nav to a floating circle (setNavCollapsed).
 // On scroll-up or near top → expand back.
 // Callers that need a full programmatic hide should use setNavHidden() directly.
+let _activeScrollOwner: HTMLElement | null = null;
+
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
   const lastY = useRef(0);
+  const isFirstScroll = useRef(true);
+
   useEffect(() => {
     let el = ref.current;
     let onScroll: (() => void) | null = null;
     
     const attachScrollListener = (target: HTMLElement) => {
+      _activeScrollOwner = target;
+      lastY.current = target.scrollTop;
+      isFirstScroll.current = true;
+
       onScroll = () => {
+        if (_activeScrollOwner !== target) {
+          // Stale listener — detach
+          target.removeEventListener('scroll', onScroll!);
+          return;
+        }
+
         const y = target.scrollTop;
         const maxScroll = target.scrollHeight - target.clientHeight;
 
-        // Ignore overscroll / rubber-banding boundaries (iOS/Mac bounce)
+        // Ignore overscroll bounce
         if (y < 0 || y > maxScroll) {
+          return;
+        }
+
+        if (isFirstScroll.current) {
+          isFirstScroll.current = false;
+          lastY.current = y;
           return;
         }
 
@@ -136,6 +156,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 
         lastY.current = y;
       };
+
       target.addEventListener('scroll', onScroll, { passive: true });
     };
 
@@ -163,11 +184,14 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
       if (el && onScroll) {
         el.removeEventListener('scroll', onScroll);
       }
+      if (_activeScrollOwner === el) {
+        _activeScrollOwner = null;
+      }
     };
   }, [ref, dependency]);
 }
 
-// ─── Watchdog Recovery System ────────────────────────────────────────────────
+// ─── Watchdog Recovery System & Diagnostics ──────────────────────────────────
 let _watchdogTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearWatchdogTimer() {
@@ -177,65 +201,64 @@ function clearWatchdogTimer() {
   }
 }
 
+function logRecovery(reason: string, action: string) {
+  try {
+    const navStore = useNavigationStore.getState();
+    const currentRoute = navStore.history[navStore.history.length - 1];
+    const previousRoute = navStore.history[navStore.history.length - 2] ?? null;
+    const diagnosticsInfo = {
+      currentRoute: currentRoute ? JSON.stringify(currentRoute) : 'null',
+      previousRoute: previousRoute ? JSON.stringify(previousRoute) : 'null',
+      navigationState: `hidden=${_hidden}, collapsed=${_collapsed}`,
+      scrollOwner: _activeScrollOwner ? `tagName=${_activeScrollOwner.tagName}, scrollTop=${_activeScrollOwner.scrollTop}, isConnected=${_activeScrollOwner.isConnected}` : 'null',
+      transitionState: `isTransitioning=${navStore.isTransitioning}`,
+      recoveryReason: reason,
+      recoveryAction: action
+    };
+    console.warn('[RecoveryDiagnostics]', diagnosticsInfo);
+  } catch (e) {
+    console.warn('[RecoveryDiagnostics] Failed to collect full diagnostics:', e);
+  }
+}
+
 export function onStateChanged() {
   try {
     if (typeof window === 'undefined') return;
 
-    // Check if we are currently hidden
-    if (!_hidden) {
-      clearWatchdogTimer();
-      return;
+    // 1. Collapsed state self-healing check (synchronous)
+    if (_collapsed) {
+      // Case A: Collapsed but no active connected scroll owner in DOM
+      if (!_activeScrollOwner || !_activeScrollOwner.isConnected) {
+        logRecovery('Collapsed state active but no active connected scroll owner exists', 'setNavCollapsed(false)');
+        setNavCollapsed(false);
+        return;
+      }
+      // Case B: Collapsed but active scroll owner is near the top
+      if (_activeScrollOwner.scrollTop < 40) {
+        logRecovery('Collapsed state active but scroll owner is near top (< 40)', 'setNavCollapsed(false)');
+        setNavCollapsed(false);
+        return;
+      }
     }
 
-    // Check if a transition is running
-    const isTransitioning = useNavigationStore.getState().isTransitioning;
-    if (isTransitioning) {
-      clearWatchdogTimer();
-      return;
-    }
-
-    // Check for active HTML5 fullscreen mode
-    const isHtml5Fullscreen = !!(
-      document.fullscreenElement ||
-      (document as any).webkitFullscreenElement ||
-      (document as any).mozFullScreenElement ||
-      (document as any).msFullscreenElement
-    );
-    if (isHtml5Fullscreen) {
-      clearWatchdogTimer();
-      return;
-    }
-
-    // Check for custom application fullscreen view overlays
-    const hasFullscreenView = !!(
-      document.querySelector('.live-mode-view') ||
-      document.querySelector('[data-testid="live-close"]') ||
-      document.querySelector('[data-testid="custom-chord-save-btn"]') ||
-      document.querySelector('[data-testid="generate-progression-btn"]') ||
-      Array.from(document.querySelectorAll('div')).some(el => {
-        const z = window.getComputedStyle(el).zIndex;
-        return z && !isNaN(Number(z)) && Number(z) >= 100000;
-      })
-    );
-    if (hasFullscreenView) {
-      clearWatchdogTimer();
-      return;
-    }
-
-    // Start recovery timer if not already active
-    if (!_watchdogTimer) {
+    // 2. Hidden state self-healing check (deferred watch)
+    clearWatchdogTimer();
+    if (_hidden) {
       _watchdogTimer = setTimeout(() => {
         _watchdogTimer = null;
         
-        // Re-verify all conditions before triggering recovery
-        const stillTransitioning = useNavigationStore.getState().isTransitioning;
-        const stillHtml5Fullscreen = !!(
+        const isTransitioning = useNavigationStore.getState().isTransitioning;
+        if (isTransitioning) return;
+
+        const isHtml5Fullscreen = !!(
           document.fullscreenElement ||
           (document as any).webkitFullscreenElement ||
           (document as any).mozFullScreenElement ||
           (document as any).msFullscreenElement
         );
-        const stillHasFullscreenView = !!(
+        if (isHtml5Fullscreen) return;
+
+        const hasFullscreenView = !!(
           document.querySelector('.live-mode-view') ||
           document.querySelector('[data-testid="live-close"]') ||
           document.querySelector('[data-testid="custom-chord-save-btn"]') ||
@@ -245,23 +268,38 @@ export function onStateChanged() {
             return z && !isNaN(Number(z)) && Number(z) >= 100000;
           })
         );
-        
-        if (_hidden && !stillTransitioning && !stillHtml5Fullscreen && !stillHasFullscreenView) {
-          console.warn('[Recovery] BottomNavigationRecoveryTriggered: stuck hidden state recovered.');
-          resetNav();
-        }
-      }, 3000);
+        if (hasFullscreenView) return;
+
+        // Stuck hidden state
+        logRecovery('Hidden state active but no fullscreen elements, overlays, or transitions detected', 'resetNav()');
+        resetNav();
+      }, 250); // 250ms gives React layouts time to settle after transitions
     }
   } catch (e) {
     // Passive safety guard during early app boot
   }
 }
 
-// Event-driven bindings
+// Global Event-driven bindings
 if (typeof window !== 'undefined') {
   try {
-    // Subscribe to navigation store transition changes
-    useNavigationStore.subscribe(() => onStateChanged());
+    let lastActiveRoute: string | null = null;
+    
+    // Subscribe to navigation store state changes
+    useNavigationStore.subscribe((state) => {
+      const activeRoute = state.history[state.history.length - 1];
+      const activeRouteStr = activeRoute ? JSON.stringify(activeRoute) : 'null';
+      
+      // Auto-reset collapsed state on route changes
+      if (activeRouteStr !== lastActiveRoute) {
+        lastActiveRoute = activeRouteStr;
+        if (_collapsed) {
+          setNavCollapsed(false);
+        }
+      }
+      
+      onStateChanged();
+    });
 
     // Observe body mutations for fullscreen overlay mounting/unmounting
     const observer = new MutationObserver(() => {

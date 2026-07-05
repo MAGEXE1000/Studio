@@ -14,15 +14,13 @@
   "sha256": "df10a8a05f861e0c2240cb251310517b5c4338c3fc1377cfc2da646a1f9600f1",
   "apkSha256": "df10a8a05f861e0c2240cb251310517b5c4338c3fc1377cfc2da646a1f9600f1",
   "apkSizeBytes": 56194057,
-  "description": "• Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.\n• Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.\n• Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.\n• Correctly categorized extended and new chord shapes under the right sections in Chordex Library.",
-  "whatsNew": "• Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.\n• Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.\n• Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.\n• Correctly categorized extended and new chord shapes under the right sections in Chordex Library.",
-  "changelog": "• Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.\n• Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.\n• Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.\n• Correctly categorized extended and new chord shapes under the right sections in Chordex Library.",
+  "description": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
+  "whatsNew": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
+  "changelog": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
   "releaseNotes": {
-    "added": [
-      "Expanded guitar chord database by adding the minor 13th (min13) quality and chord shape definitions.",
-      "Enhanced normalization layer to support Latin roots, unicode symbols, and suffix aliases like 7M/M7/menor/maior.",
-      "Upgraded import diagnostics and chord mapping tooltips in the preview modal for better diagram verification.",
-      "Correctly categorized extended and new chord shapes under the right sections in Chordex Library."
+    "fixed": [
+      "Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.",
+      "Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume."
     ]
   },
   "required_version_code": 210,

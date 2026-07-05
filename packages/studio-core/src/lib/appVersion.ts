@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.82';
-export const WEB_VERSION = '3.7.82';
+export const NATIVE_VERSION = '3.7.83';
+export const WEB_VERSION = '3.7.83';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -38,11 +38,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-04'; // 3.7.80
+export const APP_VERSION_DATE = '2026-07-05'; // 3.7.83
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/4/2026, 11:11:00 PM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/5/2026, 10:10:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -59,10 +59,17 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
+    heading: "Added",
+    items: [
+      "Implement responsive bottom navigation gesture pill morphing on scroll.",
+      "Add event-driven passive watchdog recovery system.",
+    ],
+  },
+  {
     heading: "Fixed",
     items: [
-      "Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.",
-      "Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
+      "Optimize bottom navigation motion speed to 200ms with emphasized cubic-bezier curve.",
+      "Remove continuous watchdog polling loops to minimize idle CPU usage.",
     ],
   },
 ];
@@ -72,9 +79,9 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Restore top-right Copy Everything button on mobile sub-pages.",
-      "Fix global bottom navigation overlays in hub mode.",
-      "Stabilize native update PackageInstaller session completion flow.",
+      "Responsive bottom navigation gesture pill morphing.",
+      "Passive event-driven watchdog recovery system (zero polling).",
+      "Refined 200ms bottom navigation emphasized transitions.",
     ],
   },
 ];

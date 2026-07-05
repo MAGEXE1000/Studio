@@ -8,7 +8,7 @@ export const getSharedNavTransform = (navHidden: boolean, navCollapsed: boolean,
     return 'translateX(-50%) translateY(calc(100% + 32px))';
   }
   if (navCollapsed) {
-    return 'translateX(-50%) translateY(calc(100% - 10px + var(--nav-safe-bottom, 0px))) scaleX(0.28) scaleY(0.054)';
+    return 'translateX(-50%) translateY(calc(100% - 12px + var(--nav-safe-bottom, 0px))) scaleX(0.33) scaleY(0.045)';
   }
   return 'translateX(-50%) translateY(0px) scaleX(1) scaleY(1)';
 };

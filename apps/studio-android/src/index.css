@@ -677,8 +677,8 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
 
 /* Direct-DOM scroll collapse for the bottom nav bar (zero-React) */
 html[data-nav-collapsed="true"]:not([data-nav-hidden="true"]) .glass-nav {
-  transform: translateX(-50%) translateY(calc(100% - 10px + var(--nav-safe-bottom, 0px))) scaleX(0.28) scaleY(0.054) !important;
-  background: rgba(255, 255, 255, 0.45) !important;
+  transform: translateX(-50%) translateY(calc(100% - 12px + var(--nav-safe-bottom, 0px))) scaleX(0.33) scaleY(0.045) !important;
+  background: rgba(255, 255, 255, 0.28) !important;
   border-color: transparent !important;
   border-radius: 99px !important;
   pointer-events: none !important;

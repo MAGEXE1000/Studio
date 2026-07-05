@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigationStore } from '../store/useNavigationStore';
 
 // ─── navHidden — programmatic full-hide (preset editor, modals, etc.) ────────
 let _hidden = false;
@@ -160,3 +161,60 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
     };
   }, [ref, dependency]);
 }
+
+// ─── Watchdog Recovery System ────────────────────────────────────────────────
+let _hiddenStartTime: number | null = null;
+
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    try {
+      const isTransitioning = useNavigationStore.getState().isTransitioning;
+      if (isTransitioning) {
+        _hiddenStartTime = null;
+        return;
+      }
+
+      // Check for active HTML5 fullscreen mode
+      const isHtml5Fullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+
+      // Check for custom application fullscreen view overlays
+      const hasFullscreenView = !!(
+        document.querySelector('.live-mode-view') ||
+        document.querySelector('[data-testid="live-close"]') ||
+        document.querySelector('[data-testid="custom-chord-save-btn"]') ||
+        document.querySelector('[data-testid="generate-progression-btn"]') ||
+        Array.from(document.querySelectorAll('div')).some(el => {
+          const z = window.getComputedStyle(el).zIndex;
+          return z && !isNaN(Number(z)) && Number(z) >= 100000;
+        })
+      );
+
+      const isFullscreen = isHtml5Fullscreen || hasFullscreenView;
+      if (isFullscreen) {
+        _hiddenStartTime = null;
+        return;
+      }
+
+      // If navigation is programmatically hidden, verify it isn't stuck
+      if (_hidden) {
+        if (_hiddenStartTime === null) {
+          _hiddenStartTime = Date.now();
+        } else if (Date.now() - _hiddenStartTime > 3000) {
+          console.warn('[Recovery] BottomNavigationRecoveryTriggered: stuck hidden state recovered.');
+          resetNav();
+          _hiddenStartTime = null;
+        }
+      } else {
+        _hiddenStartTime = null;
+      }
+    } catch (e) {
+      // Passive safety guard during early app boot
+    }
+  }, 1000);
+}
+

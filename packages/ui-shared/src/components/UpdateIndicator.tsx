@@ -174,7 +174,6 @@ export default function UpdateIndicator({
   const ota = useOtaUpdate();
   const [phase, setPhase] = useState<Phase>(readInitialPhase);
   const [open, setOpen] = useState(() => ota.updateState === 'INSTALLING' || ota.updateState === 'WAIT_PACKAGE_INSTALLER');
-  const [successVersion, setSuccessVersion] = useState<string | null>(null);
   const [installFailedReason, setInstallFailedReason] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
   const [laterVersion, setLaterVersion] = useState<string | null>(readLaterVersion);
@@ -251,48 +250,7 @@ export default function UpdateIndicator({
     };
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    const checkAuthSuccess = async () => {
-      try {
-        if (isNative()) {
-          // 1. Get the last native installation result
-          const lastResult = (await AppInstaller.getLastInstallResult()) as any;
-          console.log('[OTA Success Check] Last native install result:', lastResult);
-          
-          if (lastResult.statusCode === 0) { // PackageInstaller success
-            // 2. Get the currently running native app info
-            const currentInfo = await AppInstaller.getInstalledAppInfo();
-            console.log('[OTA Success Check] Running native app info:', currentInfo);
-            
-            // 3. Verify it matches the expected version from triggerInstallation
-            const expectedCode = lastResult.expectedVersionCode ?? 0;
-            const expectedName = lastResult.expectedVersionName ?? '';
-            const codeMatches = expectedCode > 0 && currentInfo.versionCode === expectedCode;
-            const nameMatches = expectedName !== '' && currentInfo.versionName === expectedName;
-            
-            if (codeMatches || nameMatches) {
-              console.log('[OTA Success Check] Authoritative match succeeded!');
-              if (active) {
-                setSuccessVersion(currentInfo.versionName);
-                setOpen(true);
-                // Clear the logs and result so we don't show the success modal again on next boot
-                await AppInstaller.clearInstallerLogHistory();
-              }
-            } else {
-              console.log('[OTA Success Check] Expected version code/name does not match current native info.');
-            }
-          }
-        }
-      } catch (err) {
-        console.warn('[OTA Success Check] Auth success check failed:', err);
-      }
-    };
-    checkAuthSuccess();
-    return () => {
-      active = false;
-    };
-  }, []);
+
 
   useEffect(() => {
     const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
@@ -387,8 +345,6 @@ export default function UpdateIndicator({
             ota.dismissUpdate();
           }
         }}
-        successVersion={successVersion}
-        setSuccessVersion={setSuccessVersion}
         installFailedReason={installFailedReason}
         setInstallFailedReason={setInstallFailedReason}
       />
@@ -695,8 +651,6 @@ export default function UpdateIndicator({
               ota.recordDismissal(ota.remoteVersion);
             }
           }}
-          successVersion={successVersion}
-          setSuccessVersion={setSuccessVersion}
           installFailedReason={installFailedReason}
           setInstallFailedReason={setInstallFailedReason}
         />
@@ -735,8 +689,6 @@ function UpdateModal({
   accentTo,
   onClose,
   onLater,
-  successVersion,
-  setSuccessVersion,
   installFailedReason,
   setInstallFailedReason,
 }: {
@@ -748,8 +700,6 @@ function UpdateModal({
   accentTo: string;
   onClose: () => void;
   onLater: () => void;
-  successVersion: string | null;
-  setSuccessVersion: (v: string | null) => void;
   installFailedReason: string | null;
   setInstallFailedReason: (v: string | null) => void;
 }) {
@@ -946,12 +896,9 @@ function UpdateModal({
     return s;
   })();
 
-  let state = successVersion
-    ? 'update_success'
-    : (installFailedReason
-        ? 'install_failed'
-        : (permissionBlocked ? 'permission_blocked' : displayState)
-      );
+  let state = installFailedReason
+    ? 'install_failed'
+    : (permissionBlocked ? 'permission_blocked' : displayState);
   if (state === 'update_available') {
     if (ota.reinstallRequired) {
       state = 'reinstall_warning';
@@ -1116,8 +1063,8 @@ function UpdateModal({
     case 'update_success':
       iconName = 'check_circle';
       iconColor = '#22c55e';
-      title = 'Update Installed';
-      description = `Version ${ota.remoteVersion || successVersion || 'latest'} installed successfully.`;
+      title = 'Update completed successfully';
+      description = `Version ${ota.remoteVersion || 'latest'} installed.`;
       showButtons = true;
       showSpinner = false;
       break;
@@ -1873,7 +1820,6 @@ function UpdateModal({
             onClick={async () => {
               console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
               try {
-                setSuccessVersion(null);
                 onClose();
                 ota.dismissUpdate();
                 if (isNative()) {
@@ -2239,7 +2185,6 @@ function UpdateModal({
             onClick={async () => {
               console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
               try {
-                setSuccessVersion(null);
                 onClose();
                 ota.dismissUpdate();
                 if (isNative()) {

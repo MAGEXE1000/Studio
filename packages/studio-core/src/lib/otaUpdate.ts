@@ -301,14 +301,20 @@ export function enforceStartupRecovery(): Promise<void> {
       const result = await AppInstaller.getLastInstallResult();
       if (result.statusCode !== -999) {
         console.log('[OTA DEBUG] enforceStartupRecovery: Pending install result exists (code ' + result.statusCode + ').');
-        const processed = processLastInstallResult(result);
-        if (processed) {
-          const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
-          updateGlobalState({
-            error: processed.errMsg,
-            statusText: processed.errMsg
-          });
-          transitionToState(finalState, `Startup recovery: pending install result (code ${result.statusCode})`, processed.errMsg);
+        if (result.statusCode === 0) {
+          console.log('[OTA Startup] Success result detected on startup recovery.');
+          transitionToState('INSTALL_SUCCESS', 'PackageInstaller success detected on startup recovery');
+          updateGlobalState({ statusText: 'Install succeeded!' });
+        } else {
+          const processed = processLastInstallResult(result);
+          if (processed) {
+            const finalState: OtaUpdateState = processed.category === 'signature_mismatch' ? 'RECOVERY' : 'INSTALL_FAILED';
+            updateGlobalState({
+              error: processed.errMsg,
+              statusText: processed.errMsg
+            });
+            transitionToState(finalState, `Startup recovery: pending install result (code ${result.statusCode})`, processed.errMsg);
+          }
         }
         return;
       }

@@ -52,13 +52,8 @@ async function runStartupRegressionTests() {
     const updatePath = path.join(repoRoot, 'packages/ui-shared/src/components/UpdateIndicator.tsx');
     const content = fs.readFileSync(updatePath, 'utf8');
 
-    // Assert that getLastInstallResult and getInstalledAppInfo are used
-    assert.ok(content.includes('getLastInstallResult()'), 'getLastInstallResult() not used for version validation');
-    assert.ok(content.includes('getInstalledAppInfo()'), 'getInstalledAppInfo() not used for running version verification');
-
-    // Assert that local storage keys are NOT used for success determination on boot
-    assert.ok(!content.includes("localStorage.getItem('studio:showUpdateSuccess')"), 'showUpdateSuccess read from localStorage on boot');
-    assert.ok(!content.includes("localStorage.getItem('studio:appliedUpdateVersion')"), 'appliedUpdateVersion read from localStorage on boot');
+    // Assert that getLastInstallResult is not used on boot (success screen removed)
+    assert.ok(!content.includes('getLastInstallResult()'), 'getLastInstallResult() is still used in UI causing startup success modal triggers');
 
     // Assert that clearInstallerLogHistory is called on Done click
     assert.ok(content.includes('clearInstallerLogHistory()'), 'clearInstallerLogHistory() not invoked on Done button click');

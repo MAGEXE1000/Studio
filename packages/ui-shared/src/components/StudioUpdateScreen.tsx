@@ -165,7 +165,7 @@ export default function StudioUpdateScreen({
               height: 120,
               marginBottom: 10
             }}>
-              {updateState === 'update_success' ? (
+              {['update_success', 'installedOrReady'].includes(updateState) ? (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -283,7 +283,7 @@ export default function StudioUpdateScreen({
             }}
           >
             {['update_success', 'installedOrReady'].includes(updateState)
-              ? 'Update Installed'
+              ? 'Update completed successfully'
               : updateState === 'install_failed'
                 ? 'Installation failed'
                 : (isInstallingState ? 'Installing Studio...' : displayMsg)}

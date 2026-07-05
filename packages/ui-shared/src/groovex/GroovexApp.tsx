@@ -18,10 +18,13 @@ export default function GroovexApp() {
     ? (currentRoute.page as GroovexView)
     : 'library');
   const activeSongId = useGroovexStore(s => s.activeSongId);
-  const [viewAnim, setViewAnim] = useState<'panel-enter-right' | 'panel-enter-left'>('panel-enter-right');
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
   });
+
+  const [visibleView, setVisibleView] = useState<GroovexView>(view);
+  const [exitingView, setExitingView] = useState<GroovexView | null>(null);
+  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
 
   useEffect(() => {
     if (!isWebDesktop) return;
@@ -53,15 +56,24 @@ export default function GroovexApp() {
     };
   }, []);
 
-  const prevViewRef = useRef<GroovexView>(view);
   useEffect(() => {
-    if (view !== prevViewRef.current) {
-      const oldIdx = VIEW_ORDER.indexOf(prevViewRef.current);
+    if (view !== visibleView) {
+      const oldIdx = VIEW_ORDER.indexOf(visibleView);
       const newIdx = VIEW_ORDER.indexOf(view);
-      setViewAnim(newIdx >= oldIdx ? 'panel-enter-right' : 'panel-enter-left');
-      prevViewRef.current = view;
+      setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
+      setExitingView(visibleView);
+      setVisibleView(view);
     }
-  }, [view]);
+  }, [view, visibleView]);
+
+  useEffect(() => {
+    if (exitingView !== null) {
+      const timer = setTimeout(() => {
+        setExitingView(null);
+      }, 320);
+      return () => clearTimeout(timer);
+    }
+  }, [exitingView]);
 
   function navigate(next: GroovexView) {
     NavigationDispatcher.push({ app: 'groovex', page: next });
@@ -131,13 +143,38 @@ export default function GroovexApp() {
           />
         )}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative', paddingTop: isWebDesktop ? '20px' : '0px', paddingBottom: '0px', display: 'flex', flexDirection: 'column' }}>
-          <Suspense fallback={null}>
-            <div key={view} className={viewAnim} style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              {view === 'library' && <GroovexLibrary />}
-              {view === 'player' && <GroovexPlayer />}
-              {view === 'preferences' && <GroovexPreferences />}
-            </div>
-          </Suspense>
+          {VIEW_ORDER.map(v => {
+            const isVisible = visibleView === v;
+            const isExiting = exitingView === v;
+            if (!isVisible && !isExiting) return null;
+            const isEntering = isVisible && exitingView !== null;
+
+            let animClass = '';
+            if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+            else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
+
+            return (
+              <div
+                key={v}
+                className={animClass}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                  overflow: 'hidden',
+                }}
+              >
+                <Suspense fallback={null}>
+                  {v === 'library' && <GroovexLibrary />}
+                  {v === 'player' && <GroovexPlayer />}
+                  {v === 'preferences' && <GroovexPreferences />}
+                </Suspense>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 
 // ── 1. Standard Transition Presets ──────────────────────────────────────────
 export const MOTION_DURATIONS = {
-  fast: 0.15,
-  normal: 0.22,
-  slow: 0.4,
+  fast: 0.18,
+  normal: 0.32,
+  slow: 0.45,
 };
 
 export const MOTION_EASINGS = {
@@ -144,8 +144,9 @@ export function PageTransition({
       if (type === 'fade') return { opacity: 0, zIndex: 1 };
       if (type === 'scale') return { opacity: 0, scale: 0.96, zIndex: 1 };
       return {
-        x: direction === 'forward' ? '100%' : '0%',
-        opacity: 1,
+        x: direction === 'forward' ? '100%' : '-30%',
+        scale: direction === 'forward' ? 1.0 : 0.96,
+        opacity: direction === 'forward' ? 1.0 : 0.3,
         zIndex: direction === 'forward' ? 2 : 1,
       };
     },
@@ -154,8 +155,8 @@ export function PageTransition({
       if (type === 'scale') return { opacity: 1, scale: 1, zIndex: 1 };
       return {
         x: '0%',
-        opacity: 1,
-        scale: 1,
+        scale: 1.0,
+        opacity: 1.0,
         zIndex: direction === 'forward' ? 2 : 1,
       };
     },
@@ -163,8 +164,9 @@ export function PageTransition({
       if (type === 'fade') return { opacity: 0, zIndex: 1 };
       if (type === 'scale') return { opacity: 0, scale: 1.04, zIndex: 1 };
       return {
-        x: direction === 'forward' ? '0%' : '100%',
-        opacity: 1,
+        x: direction === 'forward' ? '-30%' : '100%',
+        scale: direction === 'forward' ? 0.96 : 1.0,
+        opacity: direction === 'forward' ? 0.3 : 1.0,
         zIndex: direction === 'forward' ? 1 : 2,
       };
     }

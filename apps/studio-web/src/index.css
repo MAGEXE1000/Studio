@@ -152,9 +152,9 @@
   --motion-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
 
   --motion-panel-dur: var(--motion-duration-medium);
-  --motion-panel-exit-dur: var(--motion-duration-short);
+  --motion-panel-exit-dur: var(--motion-duration-medium);
   --panel-dur: var(--motion-duration-medium);
-  --panel-exit-dur: var(--motion-duration-short);
+  --panel-exit-dur: var(--motion-duration-medium);
 
   --sidebar-hover-bg: rgba(255, 255, 255, 0.04);
   --sidebar-active-bg: rgba(255, 255, 255, 0.07);
@@ -967,35 +967,34 @@ html[data-nav-collapsed="true"] .glass-nav > div {
      --panel-exit-dur controls exit  speed (default 180 ms, ~65 % of enter). */
 
   @keyframes panel-enter-right {
-    from { transform: translate3d(16px, 0, 0); opacity: 0; }
+    from { transform: translate3d(100%, 0, 0); opacity: 1; }
     to   { transform: translate3d(0,    0, 0); opacity: 1; }
   }
   @keyframes panel-enter-left {
-    from { transform: translate3d(-16px, 0, 0); opacity: 0; }
-    to   { transform: translate3d(0,     0, 0); opacity: 1; }
+    from { transform: translate3d(-30%, 0, 0) scale(0.96); opacity: 0.3; }
+    to   { transform: translate3d(0,     0, 0) scale(1); opacity: 1; }
   }
   @keyframes panel-exit-left {
-    from { transform: translate3d(0,     0, 0); opacity: 1; }
-    to   { transform: translate3d(-16px, 0, 0); opacity: 0; }
+    from { transform: translate3d(0,     0, 0) scale(1); opacity: 1; }
+    to   { transform: translate3d(-30%, 0, 0) scale(0.96); opacity: 0.3; }
   }
   @keyframes panel-exit-right {
     from { transform: translate3d(0,    0, 0); opacity: 1; }
-    to   { transform: translate3d(16px, 0, 0); opacity: 0; }
+    to   { transform: translate3d(100%, 0, 0); opacity: 1; }
   }
 
-  /* Enter — spring deceleration (cubic-bezier(0.16, 1, 0.3, 1)) */
+  /* Emphasized Easing (cubic-bezier(0.2, 0, 0, 1)) */
   .panel-enter-right {
-    animation: panel-enter-right var(--panel-dur, 280ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: panel-enter-right var(--panel-dur, 320ms) cubic-bezier(0.2, 0, 0, 1) both;
   }
   .panel-enter-left {
-    animation: panel-enter-left  var(--panel-dur, 280ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: panel-enter-left  var(--panel-dur, 320ms) cubic-bezier(0.2, 0, 0, 1) both;
   }
-  /* Exit — ease-in so content leaves quickly and cleanly */
   .panel-exit-left {
-    animation: panel-exit-left  var(--panel-exit-dur, 180ms) cubic-bezier(0.4, 0, 1, 1) both;
+    animation: panel-exit-left  var(--panel-exit-dur, 320ms) cubic-bezier(0.2, 0, 0, 1) both;
   }
   .panel-exit-right {
-    animation: panel-exit-right var(--panel-exit-dur, 180ms) cubic-bezier(0.4, 0, 1, 1) both;
+    animation: panel-exit-right var(--panel-exit-dur, 320ms) cubic-bezier(0.2, 0, 0, 1) both;
   }
 
   /* ===== Live Mode chord transitions ===== */

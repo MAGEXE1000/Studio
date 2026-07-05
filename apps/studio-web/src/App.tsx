@@ -352,6 +352,31 @@ export default function App() {
 
   // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
   const [cachedPanel, setCachedPanel] = useState<ActivePanel>(activePanel);
+
+  const [visiblePanel, setVisiblePanel] = useState(activePanel);
+  const [exitingPanel, setExitingPanel] = useState<string | null>(null);
+  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
+
+  useEffect(() => {
+    if (appMode === 'chords' && activePanel !== visiblePanel) {
+      const oldIdx = ALL_PANELS.indexOf(visiblePanel as any);
+      const newIdx = ALL_PANELS.indexOf(activePanel as any);
+      setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
+      setExitingPanel(visiblePanel);
+      setVisiblePanel(activePanel);
+      setCachedPanel(activePanel);
+    }
+  }, [activePanel, visiblePanel, appMode]);
+
+  useEffect(() => {
+    if (exitingPanel !== null) {
+      const timer = setTimeout(() => {
+        setExitingPanel(null);
+      }, 320);
+      return () => clearTimeout(timer);
+    }
+  }, [exitingPanel]);
+
   // Register diagnostics getters for printDiagnosticsDump
   useEffect(() => {
     navDiagnosticsRegistry.getMountedTree = () => {
@@ -400,13 +425,6 @@ export default function App() {
     }
     return () => {};
   }, [appMode, isSubAppActive, stableKey]);
-
-  useEffect(() => {
-    if (appMode === 'chords') {
-      console.log(`[SubApp] [${new Date().toISOString()}] setCachedPanel | prev: ${cachedPanel} -> next: ${activePanel}`);
-      setCachedPanel(activePanel);
-    }
-  }, [activePanel, appMode]);
 
   if (route === '/') {
     return <StudioLandingPage navigateTo={navigateTo} />;
@@ -532,16 +550,23 @@ export default function App() {
                         )}
                         <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                           {ALL_PANELS.map(panel => {
-                            const isVisible = cachedPanel === panel;
-                            if (!isVisible) return null;
+                            const isVisible = visiblePanel === panel;
+                            const isExiting = exitingPanel === panel;
+                            if (!isVisible && !isExiting) return null;
+                            const isEntering = isVisible && exitingPanel !== null;
+
+                            let animClass = '';
+                            if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+                            else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
 
                             return (
                               <div
                                 key={panel}
+                                className={animClass}
                                 style={{
                                   position: 'absolute',
                                   inset: 0,
-                                  pointerEvents: 'auto',
+                                  pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
                                 }}
                               >
                                 <ErrorBoundary moduleName="Chordex">

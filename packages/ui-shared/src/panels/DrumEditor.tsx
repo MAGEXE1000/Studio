@@ -202,6 +202,9 @@ const KIT_CATEGORIES: { id: string; kits: KitType[] }[] = [
 type DrumTab = 'songs' | 'patterns' | 'prefs';
 const TAB_ORDER: DrumTab[] = ['songs', 'patterns', 'prefs'];
 
+const DRUM_VIEWS = ['songs-list', 'songs-editor', 'patterns', 'prefs'] as const;
+type DrumView = typeof DRUM_VIEWS[number];
+
 // ── SVG note heads (memoized — rendered hundreds of times in the grid) ─────
 const CircleHead = memo(function CircleHead({ r, color, strokeColor }: { r: number; color: string; strokeColor?: string }) {
   return <ellipse cx={0} cy={0} rx={r} ry={r * 0.82} fill={color} stroke={strokeColor} strokeWidth={strokeColor ? 1 : 0} />;
@@ -1970,7 +1973,70 @@ export default function DrumEditor() {
   const [editingName,      setEditingName]      = useState('');
   const [editingArtist,    setEditingArtist]    = useState('');
   const activeDrumSongId = (currentRoute.app === 'drums' && currentRoute.subView === 'editor' ? currentRoute.id || null : null);
-  const [tabAnim, setTabAnim] = useState<'panel-enter-right' | 'panel-enter-left'>('panel-enter-right');
+
+  const currentView: DrumView = 
+    activeTab === 'patterns' ? 'patterns' :
+    activeTab === 'prefs' ? 'prefs' :
+    inEditor ? 'songs-editor' : 'songs-list';
+
+  const [visibleView, setVisibleView] = useState<DrumView>(currentView);
+  const [exitingView, setExitingView] = useState<DrumView | null>(null);
+  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
+
+  useEffect(() => {
+    if (currentView !== visibleView) {
+      const oldIdx = DRUM_VIEWS.indexOf(visibleView);
+      const newIdx = DRUM_VIEWS.indexOf(currentView);
+      setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
+      setExitingView(visibleView);
+      setVisibleView(currentView);
+    }
+  }, [currentView, visibleView]);
+
+  useEffect(() => {
+    if (exitingView !== null) {
+      const timer = setTimeout(() => {
+        setExitingView(null);
+      }, 320);
+      return () => clearTimeout(timer);
+    }
+  }, [exitingView]);
+
+  const isSongsListVisible = visibleView === 'songs-list';
+  const isSongsListExiting = exitingView === 'songs-list';
+  let songsListAnim = '';
+  if (isSongsListVisible && exitingView !== null) {
+    songsListAnim = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+  } else if (isSongsListExiting) {
+    songsListAnim = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
+  }
+
+  const isSongsEditorVisible = visibleView === 'songs-editor';
+  const isSongsEditorExiting = exitingView === 'songs-editor';
+  let songsEditorAnim = '';
+  if (isSongsEditorVisible && exitingView !== null) {
+    songsEditorAnim = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+  } else if (isSongsEditorExiting) {
+    songsEditorAnim = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
+  }
+
+  const isPatternsVisible = visibleView === 'patterns';
+  const isPatternsExiting = exitingView === 'patterns';
+  let patternsAnim = '';
+  if (isPatternsVisible && exitingView !== null) {
+    patternsAnim = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+  } else if (isPatternsExiting) {
+    patternsAnim = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
+  }
+
+  const isPrefsVisible = visibleView === 'prefs';
+  const isPrefsExiting = exitingView === 'prefs';
+  let prefsAnim = '';
+  if (isPrefsVisible && exitingView !== null) {
+    prefsAnim = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+  } else if (isPrefsExiting) {
+    prefsAnim = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
+  }
 
   const filteredSongs = useMemo(() => {
     let list = [...drumSongs];
@@ -2019,9 +2085,6 @@ export default function DrumEditor() {
     'humanize-groove-feel': true,
   });
   const handleSetTab = (newTab: DrumTab) => {
-    const oldIdx = TAB_ORDER.indexOf(activeTab);
-    const newIdx = TAB_ORDER.indexOf(newTab);
-    setTabAnim(newIdx >= oldIdx ? 'panel-enter-right' : 'panel-enter-left');
     NavigationDispatcher.push({ app: 'drums', page: newTab });
     setNavCollapsed(false);
     drumNavLastY.current = 0;
@@ -3699,7 +3762,7 @@ export default function DrumEditor() {
             onChangeSection={handleSetTab} 
           />
         )}
-        <div key={activeTab} className={tabAnim} style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', paddingBottom: '0px' }}>
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', paddingBottom: '0px' }}>
           
           {/* Top bar / header for desktop */}
           {isWebDesktop && !inEditor && (
@@ -3744,9 +3807,11 @@ export default function DrumEditor() {
             </div>
           )}
 
+          <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+
         {/* ═══ SONGS LIST (Songs tab, not in editor) ═══════════════════════ */}
-        {activeTab === 'songs' && !inEditor && (
-          <div onScroll={drumScrollHide} style={{ flex: 1, overflowY: 'auto', paddingBottom: 100 }} className="no-scrollbar panel-enter-left flex flex-col">
+        {(isSongsListVisible || isSongsListExiting) && (
+          <div onScroll={drumScrollHide} style={{ position: 'absolute', inset: 0, pointerEvents: isSongsListVisible && !isSongsListExiting ? 'auto' : 'none', overflowY: 'auto', paddingBottom: 100 }} className={`no-scrollbar flex flex-col ${songsListAnim}`}>
             {!isWebDesktop && (
               <div style={{ padding: '0 20px', marginTop: 12, marginBottom: 24 }}>
                 <AnimatedAppHeader
@@ -4070,8 +4135,8 @@ export default function DrumEditor() {
         )}
 
         {/* ═══ DRUM GRID EDITOR (Songs tab, in editor) ══════════════════════ */}
-        {activeTab === 'songs' && inEditor && (
-          <div className="panel-enter-right" style={{ flex: 1, display: 'flex', flexDirection: isWebDesktop ? 'row' : 'column', overflow: 'hidden', position: 'relative' }}>
+        {(isSongsEditorVisible || isSongsEditorExiting) && (
+          <div className={songsEditorAnim} style={{ position: 'absolute', inset: 0, pointerEvents: isSongsEditorVisible && !isSongsEditorExiting ? 'auto' : 'none', flex: 1, display: 'flex', flexDirection: isWebDesktop ? 'row' : 'column', overflow: 'hidden' }}>
             <div ref={containerCallbackRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
             {/* Row visibility toggle */}
             {extraInsts.length > 0 && (
@@ -4970,8 +5035,12 @@ export default function DrumEditor() {
         )}
 
         {/* ═══ LIBRARY TAB ═════════════════════════════════════════════════ */}
-        {activeTab === 'patterns' && (
-          <div onScroll={drumScrollHide} className="flex-1 overflow-y-auto pt-3 pb-24 no-scrollbar">
+        {(isPatternsVisible || isPatternsExiting) && (
+          <div onScroll={drumScrollHide} className={`pt-3 pb-24 no-scrollbar ${patternsAnim}`} style={{
+            position: 'absolute', inset: 0,
+            pointerEvents: isPatternsVisible && !isPatternsExiting ? 'auto' : 'none',
+            overflowY: 'auto'
+          }}>
 
             {/* ── Search ──────────────────────────────────────────────── */}
             <div className="px-4 pb-3">
@@ -5199,8 +5268,13 @@ export default function DrumEditor() {
         )}
 
         {/* ── Prefs tab ─────────────────────────────────────────────────── */}
-        {activeTab === 'prefs' && <DrumPrefsPanel />}
+        {(isPrefsVisible || isPrefsExiting) && (
+          <div className={prefsAnim} style={{ position: 'absolute', inset: 0, pointerEvents: isPrefsVisible && !isPrefsExiting ? 'auto' : 'none', overflowY: 'auto', paddingBottom: 100 }}>
+            <DrumPrefsPanel />
+          </div>
+        )}
 
+          </div>
         </div>
       </div>
 

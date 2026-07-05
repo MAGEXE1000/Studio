@@ -2477,6 +2477,30 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
   const [cachedPanel, setCachedPanel] = useState(activePanel);
   const isActive = settings.appMode === cachedApp;
 
+  const [visiblePanel, setVisiblePanel] = useState(activePanel);
+  const [exitingPanel, setExitingPanel] = useState<string | null>(null);
+  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
+
+  useEffect(() => {
+    if (isActive && activePanel !== visiblePanel) {
+      const oldIdx = ALL_PANELS.indexOf(visiblePanel as any);
+      const newIdx = ALL_PANELS.indexOf(activePanel as any);
+      setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
+      setExitingPanel(visiblePanel);
+      setVisiblePanel(activePanel);
+      setCachedPanel(activePanel);
+    }
+  }, [activePanel, visiblePanel, isActive]);
+
+  useEffect(() => {
+    if (exitingPanel !== null) {
+      const timer = setTimeout(() => {
+        setExitingPanel(null);
+      }, 320);
+      return () => clearTimeout(timer);
+    }
+  }, [exitingPanel]);
+
   useEffect(() => {
     const timestamp = new Date().toISOString();
     console.log(`[SubAppWrapper] [${timestamp}] Mount | app: ${cachedApp}, activePanel: ${activePanel}, isActive: ${isActive}`);
@@ -2484,13 +2508,6 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       console.log(`[SubAppWrapper] [${new Date().toISOString()}] Unmount | app: ${cachedApp}`);
     };
   }, [cachedApp]);
-
-  useEffect(() => {
-    if (isActive) {
-      console.log(`[SubAppWrapper] [${new Date().toISOString()}] setCachedPanel | prev: ${cachedPanel} -> next: ${activePanel}`);
-      setCachedPanel(activePanel);
-    }
-  }, [activePanel, isActive]);
 
   useEffect(() => {
     if (cachedApp !== 'chords') {
@@ -2617,16 +2634,23 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
             >
               <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                 {ALL_PANELS.map(panel => {
-                  const isVisible = cachedPanel === panel;
-                  if (!isVisible) return null;
+                  const isVisible = visiblePanel === panel;
+                  const isExiting = exitingPanel === panel;
+                  if (!isVisible && !isExiting) return null;
+                  const isEntering = isVisible && exitingPanel !== null;
+
+                  let animClass = '';
+                  if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+                  else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
 
                   return (
                     <div
                       key={panel}
+                      className={animClass}
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        pointerEvents: 'auto',
+                        pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
                       }}
                     >
                       <ErrorBoundary moduleName="Chordex">

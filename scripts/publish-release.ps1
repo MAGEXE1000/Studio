@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.87"
-$VersionCode = "215"
-$ReleaseNote = "v3.7.87 - Release 3.7.87: Sleek glassmorphic Native Updater interface, active installing stages, pulsing loading animation, and startup toast notification."
+$VersionName = "3.7.88"
+$VersionCode = "216"
+$ReleaseNote = "v3.7.88 - Release 3.7.88: Bottom Navigation reliability hotfix, simplified scroll tracking, and layout-thrashing resolution."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -15,6 +15,8 @@ pnpm version:web -- $VersionName
 
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/appVersion.ts
+git add packages/studio-core/src/lib/navScroll.ts
+git add packages/ui-shared/src/components/BottomNav.tsx
 git add packages/studio-core/src/lib/apkDownloader.ts
 git add packages/studio-core/src/lib/otaUpdate.ts
 git add packages/studio-core/src/lib/updater/updaterSimulation.ts

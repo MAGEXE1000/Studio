@@ -97,125 +97,104 @@ export function useNavCollapsed(): boolean {
 // On scroll-down → collapse the nav to a floating circle (setNavCollapsed).
 // On scroll-up or near top → expand back.
 // Callers that need a full programmatic hide should use setNavHidden() directly.
-let _activeScrollOwner: HTMLElement | null = null;
-let _previousScrollOwner: HTMLElement | null = null;
-let _currentSessionId = 0;
-let _ignoredStaleCallbacksCount = 0;
+const _registeredScrollElements = new Set<HTMLElement>();
+const _elementListeners = new WeakMap<HTMLElement, () => void>();
+const _elementLastY = new WeakMap<HTMLElement, number>();
 
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
-  const lastY = useRef(0);
-  const isFirstScroll = useRef(true);
-
   // Subscribe to active route changes to force hook re-registration
   const activeRouteStr = useNavigationStore(state => {
     const activeRoute = state.history[state.history.length - 1];
     return activeRoute ? JSON.stringify(activeRoute) : 'null';
   });
 
+  const lastElementRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
-    let el = ref.current;
-    let onScroll: (() => void) | null = null;
-    const sessionToken = _currentSessionId; // Snapshot current session ID
-    
-    const attachScrollListener = (target: HTMLElement) => {
-      if (sessionToken !== _currentSessionId) {
-        _ignoredStaleCallbacksCount++;
-        return;
+    const checkAndBind = () => {
+      const el = ref.current;
+      if (el === lastElementRef.current) return;
+
+      // Clean up previous element if it changed
+      if (lastElementRef.current) {
+        const prev = lastElementRef.current;
+        _registeredScrollElements.delete(prev);
+        const listener = _elementListeners.get(prev);
+        if (listener) {
+          prev.removeEventListener('scroll', listener);
+          _elementListeners.delete(prev);
+        }
+        _elementLastY.delete(prev);
       }
 
-      _activeScrollOwner = target;
-      lastY.current = target.scrollTop;
-      isFirstScroll.current = true;
+      lastElementRef.current = el;
 
-      onScroll = () => {
-        // Validate session token
-        if (sessionToken !== _currentSessionId) {
-          _ignoredStaleCallbacksCount++;
-          target.removeEventListener('scroll', onScroll!);
-          return;
-        }
-
-        if (_activeScrollOwner !== target) {
-          // Stale listener — detach
-          target.removeEventListener('scroll', onScroll!);
-          return;
-        }
-
-        const y = target.scrollTop;
-        const maxScroll = target.scrollHeight - target.clientHeight;
-
-        // Ignore overscroll bounce
-        if (y < 0 || y > maxScroll) {
-          return;
-        }
-
-        if (isFirstScroll.current) {
-          isFirstScroll.current = false;
-          lastY.current = y;
-          return;
-        }
-
-        // Expand navigation immediately when near the top (within 40px)
-        if (y < 40) {
-          if (_collapsed) {
-            setNavCollapsed(false);
-          }
-          lastY.current = y;
-          return;
-        }
-
-        const dy = y - lastY.current;
+      if (el) {
+        _registeredScrollElements.add(el);
         
-        // Jitter filter: ignore scroll updates smaller than 8px
-        if (Math.abs(dy) < 8) {
-          return;
-        }
+        const onScroll = () => {
+          const y = el.scrollTop;
+          const maxScroll = el.scrollHeight - el.clientHeight;
+          
+          // Ignore overscroll bounce
+          if (y < 0 || y > maxScroll) {
+            return;
+          }
 
-        const shouldCollapse = dy > 0;
-        if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
-          setNavCollapsed(shouldCollapse);
-        }
+          // Expand navigation immediately when near the top (within 40px)
+          if (y < 40) {
+            if (_collapsed) {
+              setNavCollapsed(false);
+            }
+            _elementLastY.set(el, y);
+            return;
+          }
 
-        lastY.current = y;
-      };
+          const prevY = _elementLastY.get(el) ?? y;
+          const dy = y - prevY;
 
-      target.addEventListener('scroll', onScroll, { passive: true });
+          // Jitter filter: ignore scroll updates smaller than 8px
+          if (Math.abs(dy) < 8) {
+            return;
+          }
+
+          const shouldCollapse = dy > 0;
+          if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
+            setNavCollapsed(shouldCollapse);
+          }
+
+          _elementLastY.set(el, y);
+        };
+
+        _elementLastY.set(el, el.scrollTop);
+        _elementListeners.set(el, onScroll);
+        el.addEventListener('scroll', onScroll, { passive: true });
+        
+        onStateChanged();
+      }
     };
 
-    if (el) {
-      attachScrollListener(el);
-    } else {
-      let attempts = 0;
-      const interval = setInterval(() => {
-        // Stop if session has already changed
-        if (sessionToken !== _currentSessionId) {
-          clearInterval(interval);
-          _ignoredStaleCallbacksCount++;
-          return;
-        }
+    checkAndBind();
 
-        el = ref.current;
-        attempts++;
-        if (el) {
-          clearInterval(interval);
-          attachScrollListener(el);
-        } else if (attempts > 30) {
-          clearInterval(interval);
-        }
-      }, 50);
-      
-      return () => {
-        clearInterval(interval);
-      };
+    // Fallback for late mounting elements
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    if (!ref.current) {
+      timer = setTimeout(checkAndBind, 150);
     }
-    
+
     return () => {
-      if (el && onScroll) {
-        el.removeEventListener('scroll', onScroll);
-      }
-      if (_activeScrollOwner === el) {
-        _previousScrollOwner = el;
-        _activeScrollOwner = null;
+      if (timer) clearTimeout(timer);
+      const el = lastElementRef.current;
+      if (el) {
+        _registeredScrollElements.delete(el);
+        const listener = _elementListeners.get(el);
+        if (listener) {
+          el.removeEventListener('scroll', listener);
+          _elementListeners.delete(el);
+        }
+        _elementLastY.delete(el);
+        lastElementRef.current = null;
+        onStateChanged();
       }
     };
   }, [ref, dependency, activeRouteStr]);
@@ -231,7 +210,7 @@ function clearWatchdogTimer() {
   }
 }
 
-function logRecovery(reason: string, action: string, startTime: number, sessionId: number) {
+function logRecovery(reason: string, action: string, startTime: number) {
   try {
     const navStore = useNavigationStore.getState();
     const currentRoute = navStore.history[navStore.history.length - 1];
@@ -239,16 +218,13 @@ function logRecovery(reason: string, action: string, startTime: number, sessionI
     const duration = Date.now() - startTime;
     
     const diagnosticsInfo = {
-      navigationSessionId: sessionId,
       currentRoute: currentRoute ? JSON.stringify(currentRoute) : 'null',
       previousRoute: previousRoute ? JSON.stringify(previousRoute) : 'null',
-      currentScrollOwner: _activeScrollOwner ? `tagName=${_activeScrollOwner.tagName}, scrollTop=${_activeScrollOwner.scrollTop}, isConnected=${_activeScrollOwner.isConnected}` : 'null',
-      previousScrollOwner: _previousScrollOwner ? `tagName=${_previousScrollOwner.tagName}, isConnected=${_previousScrollOwner.isConnected}` : 'null',
+      registeredScrollCount: _registeredScrollElements.size,
       collapsedState: _collapsed,
       transitionState: `isTransitioning=${navStore.isTransitioning}`,
       recoveryReason: reason,
       recoveryAction: action,
-      ignoredStaleCallbackCount: _ignoredStaleCallbacksCount,
       recoveryDuration: `${duration}ms`
     };
     console.warn('[RecoveryDiagnostics]', diagnosticsInfo);
@@ -261,28 +237,31 @@ export function onStateChanged() {
   try {
     if (typeof window === 'undefined') return;
 
-    const validationSessionId = _currentSessionId;
-
-    // 1. Collapsed state self-healing check (synchronous)
+    // 1. Collapsed state self-healing check
     if (_collapsed) {
-      // Case A: Collapsed but no active connected scroll owner in DOM
-      if (!_activeScrollOwner || !_activeScrollOwner.isConnected) {
-        const startTime = Date.now();
-        logRecovery('Collapsed state active but no active connected scroll owner exists', 'setNavCollapsed(false)', startTime, validationSessionId);
-        setNavCollapsed(false);
-        return;
+      let hasActiveScroll = false;
+      let allNearTop = true;
+
+      for (const el of _registeredScrollElements) {
+        if (el.isConnected) {
+          const isVisible = el.offsetHeight > 0 && el.offsetWidth > 0;
+          if (isVisible) {
+            hasActiveScroll = true;
+            if (el.scrollTop >= 40) {
+              allNearTop = false;
+            }
+          }
+        }
       }
-      // Case B: Collapsed but active scroll owner is near the top
-      if (_activeScrollOwner.scrollTop < 40) {
+
+      // If no active visible scroll owner exists, or all of them are near top, auto-expand!
+      if (!hasActiveScroll || allNearTop) {
         const startTime = Date.now();
-        logRecovery('Collapsed state active but scroll owner is near top (< 40)', 'setNavCollapsed(false)', startTime, validationSessionId);
-        setNavCollapsed(false);
-        return;
-      }
-      // Case C: Collapsed but active scroll owner has 0 dimensions (hidden layout)
-      if (_activeScrollOwner.offsetHeight === 0 && _activeScrollOwner.offsetWidth === 0) {
-        const startTime = Date.now();
-        logRecovery('Collapsed state active but scroll owner has 0 dimensions (hidden)', 'setNavCollapsed(false)', startTime, validationSessionId);
+        logRecovery(
+          `Collapsed but hasActiveScroll=${hasActiveScroll}, allNearTop=${allNearTop}`,
+          'setNavCollapsed(false)',
+          startTime
+        );
         setNavCollapsed(false);
         return;
       }
@@ -294,12 +273,6 @@ export function onStateChanged() {
       const startTime = Date.now();
       _watchdogTimer = setTimeout(() => {
         _watchdogTimer = null;
-        
-        // Validate session token
-        if (validationSessionId !== _currentSessionId) {
-          _ignoredStaleCallbacksCount++;
-          return;
-        }
         
         const isTransitioning = useNavigationStore.getState().isTransitioning;
         if (isTransitioning) return;
@@ -316,18 +289,14 @@ export function onStateChanged() {
           document.querySelector('.live-mode-view') ||
           document.querySelector('[data-testid="live-close"]') ||
           document.querySelector('[data-testid="custom-chord-save-btn"]') ||
-          document.querySelector('[data-testid="generate-progression-btn"]') ||
-          Array.from(document.querySelectorAll('div')).some(el => {
-            const z = window.getComputedStyle(el).zIndex;
-            return z && !isNaN(Number(z)) && Number(z) >= 100000;
-          })
+          document.querySelector('[data-testid="generate-progression-btn"]')
         );
         if (hasFullscreenView) return;
 
         // Stuck hidden state
-        logRecovery('Hidden state active but no fullscreen elements, overlays, or transitions detected', 'resetNav()', startTime, validationSessionId);
+        logRecovery('Hidden state active but no fullscreen elements or transitions detected', 'resetNav()', startTime);
         resetNav();
-      }, 250); // 250ms gives React layouts time to settle after transitions
+      }, 200);
     }
   } catch (e) {
     // Passive safety guard during early app boot
@@ -344,18 +313,9 @@ if (typeof window !== 'undefined') {
       const activeRoute = state.history[state.history.length - 1];
       const activeRouteStr = activeRoute ? JSON.stringify(activeRoute) : 'null';
       
-      // Auto-reset collapsed state on route changes
+      // Auto-reset collapsed/hidden states on route changes
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
-        
-        // Lifecycle synchronization!
-        _currentSessionId++;
-        _ignoredStaleCallbacksCount = 0;
-        
-        if (_activeScrollOwner) {
-          _previousScrollOwner = _activeScrollOwner;
-          _activeScrollOwner = null;
-        }
         
         clearWatchdogTimer();
         
@@ -371,9 +331,11 @@ if (typeof window !== 'undefined') {
       onStateChanged();
     });
 
-    // Observe body mutations for fullscreen overlay mounting/unmounting
+    // Observe body mutations for fullscreen overlay changes (lightweight check, no div scanning)
     const observer = new MutationObserver(() => {
-      onStateChanged();
+      if (_hidden || _collapsed) {
+        onStateChanged();
+      }
     });
     observer.observe(document.body, { childList: true, subtree: true });
 

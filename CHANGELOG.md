@@ -11,6 +11,16 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.88
+
+### Added
+- Collective Set-based scroll hide registration system supporting multiple container scopes.
+
+### Fixed
+- Bottom Navigation sticky collapsed states by auto-expanding when all visible containers are at top or disconnected.
+- Frame rate stuttering and layout thrashing by implementing pure percentage-based sliding pill calculations.
+- CPU overhead by removing computed style checks on global body MutationObserver events.
+
 ## 3.7.87
 
 ### Added

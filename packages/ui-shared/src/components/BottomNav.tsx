@@ -158,82 +158,57 @@ export default function BottomNav() {
   // setting is off or the platform isn't supported).
   useLiquidGlassNav(navRef);
 
-  // Fixed nav height — matches the button content (6+22+3+9+6 = 46px) plus
-  // the inner wrapper's 4px top/bottom padding, totalling exactly 54px.
-  // Dynamic measurement introduced a race condition and was always 56 anyway.
-  const NAV_HEIGHT_PX = 56;
-  const [expandedW, setExpandedW] = useState(350);
-  useEffect(() => {
-    if (navRef.current) setExpandedW(navRef.current.offsetWidth);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const btnRefs           = useRef<(HTMLButtonElement | null)[]>([]);
   const prevIdxRef        = useRef(NAV_ORDER.indexOf(activePanel));
   const stretchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [pill, setPill]   = useState<{ left: number; right: number; ready: boolean }>({ left: 0, right: 0, ready: false });
+  const [pillStyle, setPillStyle] = useState<{ left: string; width: string }>({
+    left: `calc(6px + ${NAV_ORDER.indexOf(activePanel)} * (100% - 12px) / 4)`,
+    width: 'calc((100% - 12px) / 4)',
+  });
   /* tracks which button is pressed for micro-interaction */
   const [pressedPanel, setPressedPanel] = useState<ActivePanel | null>(null);
 
-  const measureBtn = (idx: number): { left: number; right: number } | null => {
-    const btn = btnRefs.current[idx];
-    const nav = navRef.current;
-    if (!btn || !nav) return null;
-    const navRect = nav.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    return { left: btnRect.left - navRect.left, right: btnRect.right - navRect.left };
-  };
-
   useEffect(() => {
-    let active = true;
-    const measure = () => {
-      const m = measureBtn(NAV_ORDER.indexOf(activePanel));
-      if (m && active) {
-        setPill({ left: m.left, right: m.right, ready: true });
-      } else if (active) {
-        requestAnimationFrame(measure);
-      }
-    };
-    requestAnimationFrame(measure);
-    return () => {
-      active = false;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const idx = NAV_ORDER.indexOf(activePanel);
+    const itemWidth = 'calc((100% - 12px) / 4)';
+    const targetLeft = `calc(6px + ${idx} * (100% - 12px) / 4)`;
 
-  useEffect(() => {
-    const newIdx = NAV_ORDER.indexOf(activePanel);
     const oldIdx = prevIdxRef.current;
-    if (newIdx === oldIdx) return;
-    prevIdxRef.current = newIdx;
+    prevIdxRef.current = idx;
     setNavCollapsed(false);
 
-    const newM = measureBtn(newIdx);
-    if (!newM) return;
-
-    if (stretchTimeoutRef.current) {
-      /* A stretch was in-progress — cancel it and slide cleanly to new target
-         so the pill never stays bridging two items. */
-      clearTimeout(stretchTimeoutRef.current);
-      stretchTimeoutRef.current = null;
-      setPill(p => ({ ...p, left: newM.left, right: newM.right }));
+    if (oldIdx === -1 || oldIdx === idx) {
+      setPillStyle({ left: targetLeft, width: itemWidth });
       return;
     }
 
-    if (newIdx > oldIdx) {
-      setPill(p => ({ ...p, right: newM.right }));
+    if (stretchTimeoutRef.current) {
+      clearTimeout(stretchTimeoutRef.current);
+      stretchTimeoutRef.current = null;
+    }
+
+    if (idx > oldIdx) {
+      // Stretch right
+      const intermediateWidth = `calc((${idx - oldIdx + 1} * (100% - 12px) / 4))`;
+      const startLeft = `calc(6px + ${oldIdx} * (100% - 12px) / 4)`;
+      setPillStyle({ left: startLeft, width: intermediateWidth });
       stretchTimeoutRef.current = setTimeout(() => {
-        setPill(p => ({ ...p, left: newM.left }));
+        setPillStyle({ left: targetLeft, width: itemWidth });
         stretchTimeoutRef.current = null;
       }, 90);
     } else {
-      setPill(p => ({ ...p, left: newM.left }));
+      // Stretch left
+      const intermediateWidth = `calc((${oldIdx - idx + 1} * (100% - 12px) / 4))`;
+      setPillStyle({ left: targetLeft, width: intermediateWidth });
       stretchTimeoutRef.current = setTimeout(() => {
-        setPill(p => ({ ...p, right: newM.right }));
+        setPillStyle({ left: targetLeft, width: itemWidth });
         stretchTimeoutRef.current = null;
       }, 90);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      if (stretchTimeoutRef.current) clearTimeout(stretchTimeoutRef.current);
+    };
   }, [activePanel]);
 
   if (isWebDesktop) return null;
@@ -262,40 +237,37 @@ export default function BottomNav() {
         willChange: 'opacity',
       }}>
       {/* ── Elastic sliding pill ── */}
-      {pill.ready && (
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: '4px',
-            left:  pill.left,
-            width: pill.right - pill.left,
-            height: 'calc(100% - 8px)',
-            borderRadius: '9999px',
-            // Liquid glass ring — flips for light vs dark
-            background: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.09)',
-            border: isLight ? '1.5px solid rgba(0, 0, 0, 0.06)' : '1.5px solid rgba(255, 255, 255, 0.30)',
-            boxShadow: isLight
-              ? ['inset 0 1px 0 rgba(255,255,255,0.95)', '0 2px 8px rgba(0,0,0,0.08)'].join(', ')
-              : ['inset 0 1px 0 rgba(255,255,255,0.40)', '0 2px 16px rgba(255,255,255,0.06)'].join(', '),
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            pointerEvents: 'none',
-            zIndex: 0,
-            opacity: 1,
-            transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
-          }}
-        />
-      )}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: '4px',
+          left:  pillStyle.left,
+          width: pillStyle.width,
+          height: 'calc(100% - 8px)',
+          borderRadius: '9999px',
+          // Liquid glass ring — flips for light vs dark
+          background: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.09)',
+          border: isLight ? '1.5px solid rgba(0, 0, 0, 0.06)' : '1.5px solid rgba(255, 255, 255, 0.30)',
+          boxShadow: isLight
+            ? ['inset 0 1px 0 rgba(255,255,255,0.95)', '0 2px 8px rgba(0,0,0,0.08)'].join(', ')
+            : ['inset 0 1px 0 rgba(255,255,255,0.40)', '0 2px 16px rgba(255,255,255,0.06)'].join(', '),
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+          opacity: 1,
+          transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
+        }}
+      />
 
       {/* ── Nav buttons ── */}
-      {NAV_ITEMS.map(({ panel, Icon, label }, i) => {
+      {NAV_ITEMS.map(({ panel, Icon, label }) => {
         const isActive  = activePanel === panel;
         const isPressed = pressedPanel === panel;
         return (
           <button
             key={panel}
-            ref={el => { btnRefs.current[i] = el; }}
             data-testid={`nav-${panel}`}
             onPointerDown={() => setPressedPanel(panel)}
             onPointerUp={() => setPressedPanel(null)}

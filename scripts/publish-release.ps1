@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.85"
-$VersionCode = "213"
-$ReleaseNote = "v3.7.85 - Release 3.7.85: Bottom Navigation Final Hardening & State Machine Navigation Sessions Refinement."
+$VersionName = "3.7.86"
+$VersionCode = "214"
+$ReleaseNote = "v3.7.86 - Release 3.7.86: Global Scroll Registration and Native Page Transition Animation Polish."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

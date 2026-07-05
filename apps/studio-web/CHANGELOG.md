@@ -11,6 +11,25 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.86
+
+### Added
+- Global bottom navigation scroll hiding registration system.
+- Synchronous render-phase page transition direction tracking.
+
+### Fixed
+- Solid opaque page slide transitions matching native Android behavior.
+- Profile and root Settings page scroll hiding triggers.
+
+## 3.7.85
+
+### Added
+- Navigation Session Token verification for all state modification callbacks.
+- Route transition lifecycle synchronization for active scroll owners.
+
+### Fixed
+- Eliminate asynchronous callback race conditions in bottom navigation.
+
 ## 3.7.84
 
 ### Added

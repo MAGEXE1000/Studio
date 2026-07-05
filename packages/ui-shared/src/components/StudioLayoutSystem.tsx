@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MOTION_EASINGS } from './AppAnimationSystem';
+import { useScrollHide } from '@workspace/studio-core';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -105,8 +106,12 @@ export function ScrollScaffold({
   className = '',
   ...props
 }: ScrollScaffoldProps) {
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  useScrollHide(ref);
+
   return (
     <div
+      ref={ref}
       style={{
         flex: 1,
         overflowY: 'auto',

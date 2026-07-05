@@ -725,6 +725,7 @@ export default function App() {
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
+  const isWebDesktop = useIsWebDesktop();
 
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);
@@ -2371,6 +2372,12 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {!isWebDesktop && (appMode === 'chords' || appMode === 'hub') && (
+              <Suspense fallback={null}>
+                <BottomNav />
+              </Suspense>
+            )}
           </TolgeeProvider>
         </Suspense>
       </ErrorBoundary>
@@ -2631,7 +2638,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
               </div>
             </div>
 
-            {cachedApp === 'chords' && <BottomNav />}
+            
           </AppEntryTransition>
         </SubAppScaffold>
       )}

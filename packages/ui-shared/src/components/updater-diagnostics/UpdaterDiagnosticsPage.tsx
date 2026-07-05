@@ -5,7 +5,8 @@ import {
   addJsLog, 
   useChordStore,
   ACCENT_COLORS,
-  getLogs
+  getLogs,
+  useScrollHide
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -63,6 +64,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const { settings } = useChordStore();
   const accentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'blue';
   const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useScrollHide(scrollRef);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   
@@ -221,7 +225,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   };
 
   return (
-    <div className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
+    <div ref={scrollRef} className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
       {/* Top sticky app bar */}
       <header className="w-full sticky top-0 z-50 bg-[#000000] flex items-center justify-between px-6 pt-4 pb-4 border-b border-[#484848]/10 backdrop-blur-md">
         <div className="flex items-center gap-4">

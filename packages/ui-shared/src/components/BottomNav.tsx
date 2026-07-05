@@ -237,7 +237,7 @@ export default function BottomNav() {
   }, [activePanel]);
 
   if (isWebDesktop) return null;
-  if (settings.appMode !== 'chords') return null;
+  if (settings.appMode !== 'chords' && settings.appMode !== 'hub') return null;
 
   return (
     <BottomNavigation

@@ -1286,6 +1286,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   // WarningsInspector moved to file-level
 
   const renderSubViewHeader = (title: string) => {
+    if (!isWebDesktop) return null;
     const handleGoBack = () => {
       NavigationDispatcher.pop();
     };
@@ -3141,7 +3142,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           )}
 
           {/* SYSTEM HEALTH GRID */}
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ flex: 1, overflowY: isWebDesktop ? 'auto' : 'visible', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ padding: '0 20px', marginTop: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <h2 style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-secondary)', margin: 0 }}>System Health</h2>

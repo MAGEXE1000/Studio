@@ -103,7 +103,7 @@ export function addNativeLog(msg: string) {
   console.log(`[Updater Sim] Native Log: ${msg}`);
 }
 
-export function recordStateTransition(state: string, reason: string) {
+function recordStateTransition(state: string, reason: string) {
   stateTimeline.push({ state, reason, timestamp: Date.now() });
 }
 

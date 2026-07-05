@@ -83,7 +83,10 @@ import {
   startDiagnosticsSession,
   resetOtaTimeline,
   otaTimeline,
-  getTimelineReport
+  getTimelineReport,
+  startUpdateSession,
+  recordCloseEvent,
+  recordUpToDatePopup
 } from './updater/diagnostics';
 
 import { detectJustUpdated, writeLastSeen } from './updater/versionManager';
@@ -262,6 +265,7 @@ export function resetOtaUpdateState() {
     return;
   }
   transitionToState('IDLE', 'Reset update state');
+  recordCloseEvent('resetOtaUpdateState called');
   updateGlobalState({
     progress: 0,
     error: null,
@@ -900,6 +904,7 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 }
 
 export function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
+  startUpdateSession(trigger, `checkForUpdate: isManual=${isManual}, reason=${reason}`);
   interceptIllegalCall('checkForUpdate', `isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
   logTimelineEvent('UpdateCore', 'CHECK_REQUESTED', `isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
 
@@ -1083,7 +1088,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
     
     try {
       let filePath: string;
-      const shouldSimulate = !isNative() || !isAppInstallerAvailable() || updaterSimulation.simulateDownload;
+      const shouldSimulate = !isNative() || !isAppInstallerAvailable() || isSimulationActive();
       if (shouldSimulate) {
         addJsLog('[Simulate Download] Starting simulated download loop...');
         for (let i = 1; i <= 10; i++) {
@@ -1183,12 +1188,16 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       }
       logTimelineEvent('UpdateCore', 'SHA_VERIFICATION_COMPLETED');
 
-      try {
-        const { Filesystem } = await import('@capacitor/filesystem');
-        const info = await Filesystem.stat({ path: filePath });
-        otaDebugLogs.fileDetails = `Size: ${info.size} bytes\nURI: ${info.uri}`;
-      } catch (statErr) {
-        otaDebugLogs.fileDetails = `Error reading file stats: ${statErr instanceof Error ? statErr.message : String(statErr)}`;
+      if (shouldSimulate) {
+        otaDebugLogs.fileDetails = 'Size: 24586128 bytes\nURI: file:///mock/path/to/simulated_download.apk';
+      } else {
+        try {
+          const { Filesystem } = await import('@capacitor/filesystem');
+          const info = await Filesystem.stat({ path: filePath });
+          otaDebugLogs.fileDetails = `Size: ${info.size} bytes\nURI: ${info.uri}`;
+        } catch (statErr) {
+          otaDebugLogs.fileDetails = `Error reading file stats: ${statErr instanceof Error ? statErr.message : String(statErr)}`;
+        }
       }
 
       updateGlobalState({ progress: 1.0, statusText: 'Verifying update' });
@@ -1212,6 +1221,10 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
           addJsLog('Simulation override: Injecting Invalid APK');
           otaDebugLogs.eligibilityReason = 'invalid_apk';
           return false;
+        }
+        if (shouldSimulate) {
+          addJsLog('[Simulate Install] Bypassing native eligibility check in simulation mode.');
+          return true;
         }
         return await runEligibilityCheck(filePath, isDowngrade);
       })();
@@ -1343,9 +1356,16 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
         throw new Error('No downloaded APK path found.');
       }
 
+      const shouldSimulateInstall = !isNative() || !isAppInstallerAvailable() || isSimulationActive();
+
       UpdatePipelineCoordinator.setStage('AWAIT_ELIGIBILITY_VERIFICATION');
       updateGlobalState({ statusText: 'Preparing package...' });
-      const isEligible = await runEligibilityCheck(filePath);
+      const isEligible = await (async () => {
+        if (shouldSimulateInstall) {
+          return true;
+        }
+        return await runEligibilityCheck(filePath);
+      })();
       if (!isEligible) {
         if (otaDebugLogs.eligibilityReason === 'signature_mismatch' && !isRecovering) {
           const recovered = await runSignatureMismatchRecovery(applyUpdate, downloadUpdate);
@@ -1363,13 +1383,6 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       otaDebugLogs.installError += `\nAPK is eligible. Launching APK installer intent for file: ${filePath}`;
       updateGlobalState({ statusText: 'Launching PackageInstaller...' });
 
-      const shouldSimulateInstall = !isNative() || !isAppInstallerAvailable() ||
-          updaterSimulation.simulateDownload || 
-          updaterSimulation.forceInstallSuccess || 
-          updaterSimulation.forceInstallFailure || 
-          updaterSimulation.forceUserCancel || 
-          updaterSimulation.forcePendingUserAction;
-
       if (shouldSimulateInstall) {
         addJsLog('[Simulate Install] Simulation active. Setting simulation handler.');
         setSimulateStatusCallback((eventData: any) => {
@@ -1384,10 +1397,15 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           updateGlobalState({ sessionId: mockSessionId });
           logDiagnosticEvent('SESSION_CREATED', { sessionId: mockSessionId, simulated: true });
 
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 500));
           triggerSimulatedStatus(-2, 'installing_start');
           
-          await new Promise((resolve) => setTimeout(resolve, 1500));
+          for (let p = 0.1; p <= 0.5; p += 0.1) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            triggerSimulatedStatus(-3, 'Installing package...', p);
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 500));
           triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
           
           if (updaterSimulation.forcePendingUserAction) {
@@ -1398,11 +1416,20 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           await new Promise((resolve) => setTimeout(resolve, 2000));
           if (updaterSimulation.forceUserCancel) {
             triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
-          } else if (updaterSimulation.forceInstallFailure) {
-            triggerSimulatedStatus(1, 'STATUS_FAILURE');
-          } else {
-            triggerSimulatedStatus(0, 'STATUS_SUCCESS');
+            return;
           }
+          if (updaterSimulation.forceInstallFailure) {
+            triggerSimulatedStatus(1, 'STATUS_FAILURE');
+            return;
+          }
+          
+          for (let p = 0.6; p <= 1.0; p += 0.1) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            triggerSimulatedStatus(-3, p > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', p);
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          triggerSimulatedStatus(0, 'STATUS_SUCCESS');
         })();
       } else {
         void logProgressStage('Session committed', 'Handing over to PackageInstaller');
@@ -1459,6 +1486,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
 
 export function dismissUpdate(): void {
   logTimelineEvent('UpdateCore', 'UPDATE_SESSION_CLOSED', 'dismissUpdate called');
+  recordCloseEvent('dismissUpdate called');
   const ver = globalOtaState.remoteVersion;
   if (ver) {
     addToStoredList('studio:dismissedVersions', ver);
@@ -1595,6 +1623,9 @@ export function initializeGlobalOtaListeners() {
       void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
     }
 
+    const statusName = getPackageInstallerStatusName(status);
+    logTimelineEvent('NativeInstaller', 'NATIVE_CALLBACK_RECEIVED', `Status: ${status} (${statusName}) | Msg: ${message || 'none'} | Progress: ${progress || 0}`);
+
     // Ignore events if not in an active installation state
     if (globalOtaState.updateState !== 'WAIT_PACKAGE_INSTALLER' && globalOtaState.updateState !== 'INSTALLING') {
       console.log('[OTA] Ignoring native status event since state is:', globalOtaState.updateState);
@@ -1704,6 +1735,13 @@ export function initializeGlobalOtaListeners() {
       });
     }).catch((e) => {
       console.warn('[OTA Lifecycle] Failed to register appStateChange listener:', e);
+    });
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      const state = document.visibilityState === 'visible' ? 'VISIBLE' : 'HIDDEN';
+      logTimelineEvent('AppLifecycle', `VISIBILITY_CHANGE_${state}`, `Document visibility state changed to ${state}`);
     });
   }
 }
@@ -1923,6 +1961,35 @@ export async function shareDownloadedApk(): Promise<void> {
   } catch (err: any) {
     console.error('Failed to share APK:', err);
     throw err;
+  }
+}
+
+export function getPackageInstallerStatusName(status: number): string {
+  switch (status) {
+    case -2:
+      return 'STATUS_PENDING_INSTALL (Installer Started)';
+    case -1:
+      return 'STATUS_PENDING_USER_ACTION (Requires confirmation)';
+    case -3:
+      return 'STATUS_PROGRESS_UPDATE';
+    case 0:
+      return 'STATUS_SUCCESS';
+    case 1:
+      return 'STATUS_FAILURE';
+    case 2:
+      return 'STATUS_FAILURE_BLOCKED';
+    case 3:
+      return 'STATUS_FAILURE_ABORTED (User cancelled)';
+    case 4:
+      return 'STATUS_FAILURE_INVALID';
+    case 5:
+      return 'STATUS_FAILURE_CONFLICT (Signature mismatch)';
+    case 6:
+      return 'STATUS_FAILURE_STORAGE (Insufficient storage)';
+    case 7:
+      return 'STATUS_FAILURE_INCOMPATIBLE (Version Code low)';
+    default:
+      return `STATUS_UNKNOWN (${status})`;
   }
 }
 

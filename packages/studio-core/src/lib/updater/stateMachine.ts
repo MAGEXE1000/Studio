@@ -152,7 +152,8 @@ export function stopWatchdog() {
   }
 }
 
-import { recordStateTransition, addJsLog, transitionHistory, rejectedTransitions } from './updaterSimulation';
+import { addJsLog, transitionHistory, rejectedTransitions } from './updaterSimulation';
+import { recordStateTransition } from './diagnostics';
 
 /**
  * Transition lock prevents recursive or concurrent transitions.
@@ -207,7 +208,7 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
 function commitTransition(state: OtaUpdateState, reason: string, failureReason?: string) {
   const current = globalOtaState.updateState;
   addJsLog(`Transition Trigger: ${current} -> ${state}. Reason: ${reason}`);
-  recordStateTransition(state, reason);
+  recordStateTransition(current, state, reason);
   stopWatchdog();
 
   const now = Date.now();

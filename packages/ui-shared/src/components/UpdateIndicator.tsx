@@ -1,5 +1,5 @@
 import { useOtaUpdate, type StructuredReleaseNotes, otaDiagnostics, otaDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, isNative, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller } from '@workspace/studio-core';
-import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport } from '@workspace/studio-core';
+import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent } from '@workspace/studio-core';
 /**
  * Floating "update available" indicator — top of the Hub.
  *
@@ -249,6 +249,15 @@ export default function UpdateIndicator({
     if (typeof window !== 'undefined') {
       (window as any).__studioVisibleModal = open ? 'UpdateModal' : 'none';
     }
+    if (open) {
+      try {
+        logTimelineEvent('UI', 'SHOW_INSTALL_SCREEN', 'Update modal opened');
+      } catch (_) {}
+    } else {
+      try {
+        recordCloseEvent('Update modal closed');
+      } catch (_) {}
+    }
   }, [open]);
 
   useEffect(() => {
@@ -329,6 +338,10 @@ export default function UpdateIndicator({
       return;
     }
     setCheckPhase('ok');
+    try {
+      const isAuto = !otaDebugLogs.triggerComponent?.toLowerCase().includes('manual');
+      recordUpToDatePopup('checkPhase transitioned to ok', isAuto);
+    } catch (_) {}
     const tFade = window.setTimeout(() => setCheckPhase('fading'), 1600);
     const tGone = window.setTimeout(() => setCheckPhase('gone'), 1600 + 920);
     return () => {

@@ -2112,332 +2112,74 @@ function UpdateModal({
       </div>
     );
   };
-  const isProgressScreenActive = [
-    'preparing',
-    'enteringProgressScreen',
-    'downloading',
-    'verifying_sha',
-    'verifying_eligibility',
-    'verifying',
-    'readyForInstallPrompt',
-    'waitingForUserInstallConfirmation',
-    'installing',
-    'installedOrReady',
-    'installed',
-    'update_success',
-    'install_failed',
-    'failed'
-  ].includes(state);
+  // Render buttons
+  const actionButtons = renderButtons();
 
-  if (isProgressScreenActive && !showGitHubConfirm) {
-    let actionButtons: React.ReactNode = null;
-    if (state === 'failed') {
-      actionButtons = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginTop: 20 }}>
-          <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-            <button
-              onClick={handleStartUpdate}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 12,
-                background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
-                color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
-                transition: 'opacity 200ms ease',
-              }}
-            >
-              Retry
-            </button>
-            <button
-              onClick={onClose}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 12,
-                background: 'rgba(128,128,128,0.12)',
-                color: 'var(--c-text-primary)', border: 'none', fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
-                transition: 'background-color 200ms ease',
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-          <button
-            onClick={() => setShowGitHubConfirm(true)}
-            style={{
-              width: '100%', padding: '12px', borderRadius: 12,
-              background: 'transparent',
-              border: '1px solid rgba(128, 128, 128, 0.25)',
-              color: 'var(--c-text-secondary)', fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'Manrope, sans-serif',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              transition: 'background-color 200ms ease',
-            }}
-          >
-            <GithubIcon size={18} color="var(--c-text-secondary)" />
-            Download from GitHub
-          </button>
-        </div>
-      );
-    } else if (state === 'installedOrReady' || state === 'update_success' || state === 'installed') {
-      actionButtons = (
-        <div style={{ marginTop: 20, width: '100%' }}>
-          <button
-            type="button"
-            onClick={async () => {
-              console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
-              try {
-                onClose();
-                ota.dismissUpdate();
-                if (isNative()) {
-                  await AppInstaller.clearInstallerLogHistory();
-                  const { App: CapApp } = await import('@capacitor/app');
-                  await CapApp.exitApp();
-                }
-              } catch (err) {
-                console.error('[UpdateIndicator] Done click failed:', err);
-              }
-            }}
-            style={{
-              width: '100%', padding: '12px', borderRadius: 12,
-              background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
-              color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'Manrope, sans-serif',
-              transition: 'opacity 200ms ease',
-            }}
-          >
-            Done
-          </button>
-        </div>
-      );
-    } else if (state === 'install_failed') {
-      actionButtons = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginTop: 20 }}>
-          <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-            <button
-              onClick={async () => {
-                setInstallFailedReason(null);
-                await handleInstallApk();
-              }}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 12,
-                background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
-                color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
-                transition: 'opacity 200ms ease',
-              }}
-            >
-              Retry
-            </button>
-            <button
-              onClick={async () => {
-                setInstallFailedReason(null);
-                await handleInstallApk();
-              }}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 12,
-                background: 'rgba(128,128,128,0.12)',
-                color: 'var(--c-text-primary)', border: 'none', fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
-                transition: 'background-color 200ms ease',
-              }}
-            >
-              Continue
-            </button>
-          </div>
-          <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-            <button
-              onClick={() => setShowGitHubConfirm(true)}
-              style={{
-                flex: 1, padding: '12.5px 12px', borderRadius: 12,
-                background: 'transparent',
-                border: '1px solid rgba(128, 128, 128, 0.25)',
-                color: 'var(--c-text-secondary)', fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
-              <GithubIcon size={16} color="var(--c-text-secondary)" />
-              GitHub
-            </button>
-            <button
-              onClick={async () => {
-                const text = getDiagnosticsText();
-                if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                  try {
-                    await navigator.clipboard.writeText(text);
-                    alert('Diagnostics copied to clipboard!');
-                  } catch {
-                    alert('Diagnostics info: ' + text.slice(0, 100));
-                  }
-                } else {
-                  alert('Diagnostics info: ' + text.slice(0, 100));
-                }
-              }}
-              style={{
-                flex: 1, padding: '12.5px 12px', borderRadius: 12,
-                background: 'transparent',
-                border: '1px solid rgba(128, 128, 128, 0.25)',
-                color: 'var(--c-text-secondary)', fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              Copy Logs
-            </button>
-          </div>
-          <button
-            onClick={() => {
-              setInstallFailedReason(null);
-              onClose();
-            }}
-            style={{
-              width: '100%', padding: '12px', borderRadius: 12,
-              background: 'rgba(128,128,128,0.06)',
-              color: 'var(--c-text-secondary)', border: 'none', fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'Manrope, sans-serif',
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-      );
-    }
+  if (showGitHubConfirm) {
+    const gitHubButtons = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: 14 }}>
+        <button
+          type="button"
+          onClick={async () => {
+            await handleOpenGitHub();
+            setShowGitHubConfirm(false);
+          }}
+          style={primaryButtonStyle}
+        >
+          Open GitHub
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowGitHubConfirm(false)}
+          style={secondaryButtonStyle}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+
+    const gitHubDescription = (
+      <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55, textAlign: 'left' }}>
+        The automatic updater could not complete this installation.<br /><br />
+        Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
+        This is the recommended recovery method whenever automatic installation cannot complete.
+      </p>
+    );
 
     return (
       <StudioUpdateScreen
-        progress={progressVal}
+        state="github_confirm"
+        progress={0}
         accentFrom={purpleFrom}
         accentTo={purpleTo}
-        statusText={description}
-        actionButtons={actionButtons}
-        updateState={state}
+        title="Download Official Release"
+        description={gitHubDescription}
+        iconName="github"
+        iconColor="var(--c-text-primary)"
+        showSpinner={false}
+        showProgress={false}
+        actionButtons={gitHubButtons}
+        onClose={onClose}
       />
     );
   }
 
-  if (showGitHubConfirm) {
-    return (
-      <DialogScaffold
-        open={showGitHubConfirm}
-        onClose={() => setShowGitHubConfirm(false)}
-        title="Download Official Release"
-        footer={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-            <button
-              type="button"
-              onClick={async () => {
-                await handleOpenGitHub();
-                setShowGitHubConfirm(false);
-              }}
-              style={primaryButtonStyle}
-            >
-              Open GitHub
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowGitHubConfirm(false)}
-              style={tertiaryButtonStyle}
-            >
-              Cancel
-            </button>
-          </div>
-        }
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
-          <div style={{
-            width: '58px', height: '58px', borderRadius: '50%',
-            background: 'rgba(128,128,128,0.06)',
-            border: '1.5px solid rgba(128,128,128,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '10px',
-          }}>
-            <GithubIcon size={28} color="var(--c-text-primary)" />
-          </div>
-          
-          <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5, textAlign: 'left' }}>
-            The automatic updater could not complete this installation.<br /><br />
-            Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
-            This is the recommended recovery method whenever automatic installation cannot complete.
-          </p>
-        </div>
-      </DialogScaffold>
-    );
-  }
-
   return (
-    <DialogScaffold
-      open={true}
-      onClose={onClose}
+    <StudioUpdateScreen
+      state={state}
+      progress={progressVal}
+      accentFrom={purpleFrom}
+      accentTo={purpleTo}
       title={title}
-      footer={renderButtons()}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '10px' }}>
-        {renderIcon()}
-
-        <div style={{
-          margin: '2px 0 0', fontSize: '13.5px',
-          color: 'var(--c-text-secondary)',
-          fontFamily: 'Inter', lineHeight: 1.5,
-        }}>
-          {description}
-        </div>
-
-        {(state === 'available' || state === 'ready_to_install' || state === 'verifying_apk') && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', gap: 6, width: '100%',
-            alignItems: 'center', margin: '8px 0 2px',
-            fontSize: '12.5px', fontFamily: 'Manrope', fontWeight: 700,
-            color: 'var(--c-text-secondary)'
-          }}>
-            {(state === 'available' || state === 'ready_to_install') && (
-              <div style={{ display: 'flex', gap: 16 }}>
-                <span>Current: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{fromLabel}</span></span>
-                <span>New: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{toVersion}</span></span>
-              </div>
-            )}
-            {state === 'ready_to_install' && otaDebugLogs.downloadedApkSize && otaDebugLogs.downloadedApkSize !== 'N/A' && (
-              <span style={{ fontSize: '11.5px', color: 'var(--c-text-secondary)', opacity: 0.85 }}>
-                Size: <span style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{otaDebugLogs.downloadedApkSize}</span>
-              </span>
-            )}
-            {state === 'verifying_apk' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', opacity: 0.85, width: '100%', padding: '4px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 15, color: otaDebugLogs.shaVerification === 'SUCCESS' ? '#22c55e' : '#f59e0b', animation: otaDebugLogs.shaVerification ? 'none' : 'lg-spin-spinner 1.2s linear infinite' }}>
-                    {otaDebugLogs.shaVerification === 'SUCCESS' ? 'verified' : (otaDebugLogs.shaVerification === 'FAILED' ? 'warning' : 'sync')}
-                  </span>
-                  <span style={{ fontSize: 12 }}>SHA-256 Checksum: {otaDebugLogs.shaVerification === 'SUCCESS' ? 'Verified' : (otaDebugLogs.shaVerification === 'FAILED' ? 'Failed' : 'Verifying...')}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 15, color: '#f59e0b', animation: 'lg-spin-spinner 1.2s linear infinite' }}>
-                    sync
-                  </span>
-                  <span style={{ fontSize: 12 }}>Package Compatibility: Checking...</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {renderChangelog()}
-        {renderProgress()}
-        {renderSpinner()}
-
-        {mandatory && state === 'available' && (
-          <p style={{
-            margin: '6px 0 0', fontSize: '11.5px',
-            color: '#f59e0b', fontFamily: 'Inter', fontWeight: 600,
-          }}>
-            This update is required.
-          </p>
-        )}
-      </div>
-      <UpdateDiagnosticsSheet open={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />
-      <style>{`
-        @keyframes lg-spin-spinner {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-      `}</style>
-    </DialogScaffold>
+      description={description}
+      iconName={iconName}
+      iconColor={iconColor}
+      showSpinner={showSpinner}
+      showProgress={showProgress}
+      actionButtons={actionButtons}
+      changelog={renderChangelog()}
+      isRequired={mandatory && state === 'available'}
+      onClose={onClose}
+    />
   );
 }

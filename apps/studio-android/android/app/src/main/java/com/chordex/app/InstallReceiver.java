@@ -147,6 +147,7 @@ public class InstallReceiver extends BroadcastReceiver {
                             context.startActivity(confirmIntent);
                         }
                         prefs.edit().putBoolean("confirmation_intent_started", true).apply();
+                        AppInstallerPlugin.pendingConfirmIntent = null;
                     } catch (Exception e) {
                         Log.e(TAG, "[INSTRUMENTATION] [NATIVE] Failed to start confirmation intent", e);
                         appendLog(context, "Install Failure", status, "Failed to start confirmation intent: " + e.getMessage(), otherPackageName, null);

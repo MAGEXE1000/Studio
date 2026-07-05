@@ -1708,15 +1708,6 @@ public class AppInstallerPlugin extends Plugin {
             if (sessions != null && !sessions.isEmpty()) {
                 active = true;
                 activeSessionId = sessions.get(0).getSessionId();
-            } else if (activeSessionId != -1) {
-                try {
-                    PackageInstaller.SessionInfo info = packageInstaller.getSessionInfo(activeSessionId);
-                    if (info != null) {
-                        active = true;
-                    } else {
-                        active = false;
-                    }
-                } catch (Exception ignored) {}
             }
             
             JSObject result = new JSObject();

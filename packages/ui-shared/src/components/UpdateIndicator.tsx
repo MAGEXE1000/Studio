@@ -1098,21 +1098,26 @@ function UpdateModal({
       break;
 
     case 'installing':
-    case 'installedOrReady':
       iconName = 'sync';
       iconColor = purpleFrom;
       showSpinner = true;
-      title = 'Installing update...';
-      description = ota.statusText || 'Waiting for system confirmation...';
+      title = 'Installing Studio...';
+      description = (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+          <div>{ota.statusText || 'Android is installing the update.'}</div>
+          <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>Please wait... Do not close the application.</div>
+        </div>
+      );
       showButtons = false;
       break;
 
+    case 'installedOrReady':
     case 'installed':
     case 'update_success':
       iconName = 'check_circle';
       iconColor = '#22c55e';
-      title = 'App updated successfully';
-      description = `Studio has been updated to version ${successVersion || ota.remoteVersion || 'latest'}.`;
+      title = 'Update Installed';
+      description = `Version ${ota.remoteVersion || successVersion || 'latest'} installed successfully.`;
       showButtons = true;
       showSpinner = false;
       break;
@@ -1860,7 +1865,7 @@ function UpdateModal({
       );
     }
 
-    if (state === 'update_success' || state === 'installed') {
+    if (state === 'update_success' || state === 'installed' || state === 'installedOrReady') {
       return (
         <div style={{ marginTop: 18, width: '100%' }}>
           <button
@@ -2223,6 +2228,38 @@ function UpdateModal({
           >
             <GithubIcon size={18} color="var(--c-text-secondary)" />
             Download from GitHub
+          </button>
+        </div>
+      );
+    } else if (state === 'installedOrReady' || state === 'update_success' || state === 'installed') {
+      actionButtons = (
+        <div style={{ marginTop: 20, width: '100%' }}>
+          <button
+            type="button"
+            onClick={async () => {
+              console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
+              try {
+                setSuccessVersion(null);
+                onClose();
+                ota.dismissUpdate();
+                if (isNative()) {
+                  await AppInstaller.clearInstallerLogHistory();
+                  const { App: CapApp } = await import('@capacitor/app');
+                  await CapApp.exitApp();
+                }
+              } catch (err) {
+                console.error('[UpdateIndicator] Done click failed:', err);
+              }
+            }}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 12,
+              background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
+              color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'Manrope, sans-serif',
+              transition: 'opacity 200ms ease',
+            }}
+          >
+            Done
           </button>
         </div>
       );

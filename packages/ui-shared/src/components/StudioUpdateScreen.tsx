@@ -282,11 +282,11 @@ export default function StudioUpdateScreen({
               opacity: 0.9,
             }}
           >
-            {updateState === 'update_success'
-              ? 'App updated successfully'
+            {['update_success', 'installedOrReady'].includes(updateState)
+              ? 'Update Installed'
               : updateState === 'install_failed'
                 ? 'Installation failed'
-                : (isInstallingState ? (statusText || 'Installing update...') : displayMsg)}
+                : (isInstallingState ? 'Installing Studio...' : displayMsg)}
           </motion.div>
 
           {isInstallingState && (
@@ -302,11 +302,13 @@ export default function StudioUpdateScreen({
                 lineHeight: 1.5,
               }}
             >
-              {updateState === 'update_success'
+              {['update_success', 'installedOrReady'].includes(updateState)
                 ? statusText
                 : updateState === 'install_failed'
                   ? 'The system installer was cancelled or could not start.'
-                  : 'Please follow the Android installation prompts.'}
+                  : (updateState === 'installing'
+                      ? statusText
+                      : 'Please follow the Android installation prompts.')}
             </motion.p>
           )}
 

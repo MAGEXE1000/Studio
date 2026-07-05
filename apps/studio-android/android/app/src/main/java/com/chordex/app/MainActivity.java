@@ -302,7 +302,6 @@ public class MainActivity extends BridgeActivity {
     public void onResume() {
         super.onResume();
         AppInstallerPlugin.logNativeInstrumentation(this, "MainActivity", -1, "onResume", "MainActivity entered onResume");
-        AppInstallerPlugin.resumePendingInstall(this);
     }
 
     @Override

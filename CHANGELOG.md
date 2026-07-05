@@ -11,6 +11,12 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.74
+
+### Fixed
+- Stabilized cross-app navigation and transitions between Hub and sub-apps.
+- Fixed navigation store state mismatches, logo freezes, and unmount cleanups.
+- Added modals/sheets cleanup inside sub-app unmount callbacks.
 
 ## 3.7.73
 

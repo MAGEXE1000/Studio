@@ -9,7 +9,9 @@ import {
   getErrors,
   getLogs,
   getPerfStats,
-  getStagexDiagnostics
+  getStagexDiagnostics,
+  useNavigationStore,
+  PerformanceProfiler
 } from '@workspace/studio-core';
 
 export interface DiagnosticsData {
@@ -96,140 +98,283 @@ function translateSentinel(val: any, label = 'Not initialized'): string {
   return str;
 }
 
-export function generateFullEngineeringReport(
+export function generateUnifiedReport(
+  module: string | undefined,
   nativeDeviceInfo: any,
   nativeInstallerDetails: any,
   localApkDetails: any,
   nativeLogsList: any[]
 ): string {
   const data = buildDiagnosticDataObject(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+  
+  // Calculate dynamic health score
+  let healthScore = 100;
+  const criticalDeductions = data.errors.length * 15;
+  const warningLogs = data.logs.filter(l => l.level === 'warn');
+  const warningDeductions = warningLogs.length * 5;
+  
+  // Get real performance metrics for score calculations
+  const profiler = PerformanceProfiler.getInstance();
+  const perfMetrics = profiler.getMetrics();
+  const perfScore = profiler.getScore(perfMetrics);
+  const perfDeductions = Math.max(0, 100 - perfScore);
+  
+  healthScore = Math.max(0, Math.min(100, healthScore - criticalDeductions - warningDeductions - perfDeductions));
+  
+  let overallStatus = 'Normal';
+  if (healthScore < 50) overallStatus = 'Critical';
+  else if (healthScore < 75) overallStatus = 'Attention Required';
+  else if (healthScore < 90) overallStatus = 'Minor Warnings';
+
   const sections: string[] = [];
 
+  // REPORT HEADER
   sections.push('==================================================');
-  sections.push('[ENVIRONMENT]');
+  sections.push('             Studio Diagnostics Report            ');
   sections.push('==================================================');
-  sections.push(`User Agent: ${translateSentinel(data.device.userAgent, 'Browser Environment')}`);
-  sections.push(`Host Platform: ${translateSentinel(data.device.platform, 'Unknown Platform')}`);
-  sections.push(`Capacitor Native Shell: ${data.device.isNative ? 'Enabled (Android Native)' : 'Disabled (Web/Desktop Browser)'}`);
+  sections.push(`App Version:      ${data.appVersion}`);
+  sections.push(`Build/Code:       ${data.device.versionCode}`);
+  sections.push(`Timestamp:        ${data.timestamp}`);
+  sections.push(`Device Model:     ${data.device.manufacturer} ${data.device.model}`);
+  sections.push(`Android Version:  ${data.device.osVersion}`);
+  sections.push(`Report Type:      ${module ? `${module} Sub-Report` : 'Full System Report'}`);
   sections.push('');
 
+  // OVERALL HEALTH
   sections.push('==================================================');
-  sections.push('[APPLICATION]');
+  sections.push('                  Overall Health                  ');
   sections.push('==================================================');
-  sections.push(`Package Name: ${translateSentinel(data.device.packageName, 'com.chordex.app')}`);
-  sections.push(`Version Name (Display): ${translateSentinel(data.device.versionName, APP_VERSION)}`);
-  sections.push(`Version Code (Build): ${translateSentinel(data.device.versionCode, 'Not configured')}`);
-  sections.push(`Active App Version: ${data.appVersion}`);
+  sections.push(`Health Score:     ${healthScore}/100`);
+  sections.push(`Overall Status:   ${overallStatus}`);
+  sections.push(`Warnings Logged:  ${warningLogs.length}`);
+  sections.push(`Errors Logged:    ${data.errors.length}`);
+  sections.push(`Performance:      ${perfScore}/100`);
+  sections.push(`Navigation State: ${useNavigationStore.getState().isTransitioning ? 'LOCKED' : 'STABLE'}`);
+  sections.push(`Updater State:    ${data.otaDebugLogs.downloadStatus || 'IDLE'}`);
+  sections.push(`Storage Info:     ${data.device.storageAvailable}`);
   sections.push('');
 
+  // SUMMARY
   sections.push('==================================================');
-  sections.push('[DEVICE]');
+  sections.push('                     Summary                      ');
   sections.push('==================================================');
-  sections.push(`Manufacturer: ${translateSentinel(data.device.manufacturer, 'Generic/Web')}`);
-  sections.push(`Model Name: ${translateSentinel(data.device.model, 'Browser Sandbox')}`);
-  sections.push(`OS Version: ${translateSentinel(data.device.osVersion, 'Browser Runtime')}`);
-  sections.push(`Supported ABIs: ${data.device.supportedABIs.length > 0 ? data.device.supportedABIs.join(', ') : 'Not applicable'}`);
-  sections.push(`Storage Available: ${translateSentinel(data.device.storageAvailable, 'Measurement unavailable')}`);
-  sections.push(`Network State: ${translateSentinel(data.device.networkState, 'Connection state unknown')}`);
-  sections.push(`Battery Level: ${translateSentinel(data.device.batteryLevel, 'Power source undetermined')}`);
-  sections.push('');
-
-  sections.push('==================================================');
-  sections.push('[UPDATE SYSTEM]');
-  sections.push('==================================================');
-  sections.push(`Update Decision: ${translateSentinel(data.otaDebugLogs.updateDecision, 'No check performed yet')}`);
-  sections.push(`Decision Reason: ${translateSentinel(data.otaDebugLogs.updateDecisionReason, 'No diagnostic data available')}`);
-  sections.push(`Download Status: ${translateSentinel(data.otaDebugLogs.downloadStatus, 'No download in progress')}`);
-  sections.push(`SHA-256 Verification: ${translateSentinel(data.otaDebugLogs.shaVerification, 'No verification completed')}`);
-  sections.push(`Eligibility Reason: ${translateSentinel(data.otaDebugLogs.eligibilityReason, 'No conditions analyzed')}`);
-  sections.push(`Last Installation Error: ${translateSentinel(data.otaDebugLogs.installError, 'No installation errors recorded')}`);
-  sections.push('');
-
-  sections.push('==================================================');
-  sections.push('[NATIVE INSTALLER]');
-  sections.push('==================================================');
-  if (nativeInstallerDetails) {
-    sections.push(`Session ID: ${translateSentinel(nativeInstallerDetails.sessionId, 'No session active')}`);
-    sections.push(`Session State: ${translateSentinel(nativeInstallerDetails.sessionState, 'No active installation')}`);
-    sections.push(`Last Status Code: ${translateSentinel(nativeInstallerDetails.lastStatusCode, 'None')}`);
-    sections.push(`Last Status Message: ${translateSentinel(nativeInstallerDetails.lastStatusMessage, 'No messages recorded')}`);
+  if (healthScore >= 90) {
+    sections.push(`The application is operating normally. All core systems are stable with no major errors recorded.`);
+  } else if (healthScore >= 70) {
+    sections.push(`The application is operational. Some warning logs and/or minor performance jitter were detected, but no critical crashes occurred.`);
   } else {
-    sections.push('Native package installer details are unavailable on this platform.');
-  }
-  if (data.localApkDetails) {
-    sections.push('Downloaded Package Details:');
-    sections.push(`  • APK Package Name: ${translateSentinel(data.localApkDetails.packageName, 'Unknown')}`);
-    sections.push(`  • APK Version Name: ${translateSentinel(data.localApkDetails.versionName, 'Unknown')}`);
-    sections.push(`  • APK Version Code: ${translateSentinel(data.localApkDetails.versionCode, 'Unknown')}`);
-    sections.push(`  • APK Signature Valid: ${data.localApkDetails.isValidApk ? 'Verified (Valid APK)' : 'Invalid / Verification Failed'}`);
+    sections.push(`CRITICAL ALERT: Multiple system issues or rendering locks have compromised application health. Immediate developer investigation is recommended.`);
   }
   sections.push('');
 
+  // DETECTED PROBLEMS
   sections.push('==================================================');
-  sections.push('[PERFORMANCE]');
+  sections.push('                Detected Problems                 ');
   sections.push('==================================================');
-  if (data.perfStats.length > 0) {
-    data.perfStats.forEach(stat => {
-      sections.push(`Component: ${stat.component}`);
-      sections.push(`  • Render Count: ${stat.renderCount}`);
-      sections.push(`  • Total Duration: ${stat.totalDurationMs} ms`);
+  
+  // Group problems
+  const problems: { severity: string; title: string; desc: string; cause: string; inv: string; mod: string; time: string; freq: number }[] = [];
+  
+  // Parse errors
+  data.errors.forEach(err => {
+    problems.push({
+      severity: 'Critical',
+      title: err.message.split('\n')[0].substring(0, 60),
+      desc: err.message,
+      cause: 'Unhandled runtime JS exception.',
+      inv: 'Examine stack trace in the Technical Appendix.',
+      mod: err.module || 'Runtime',
+      time: new Date(err.timestamp || Date.now()).toLocaleTimeString(),
+      freq: 1
+    });
+  });
+
+  // Parse performance warnings
+  const perfWarnings = profiler.getWarnings(perfMetrics);
+  perfWarnings.forEach(w => {
+    problems.push({
+      severity: w.severity,
+      title: w.title,
+      desc: w.description,
+      cause: w.possibleCause,
+      inv: w.suggestedInvestigation,
+      mod: 'Performance',
+      time: new Date().toLocaleTimeString(),
+      freq: 1
+    });
+  });
+
+  // Parse warning logs (collapse duplicates)
+  const collapsedWarnings: Record<string, typeof warningLogs[0] & { count: number }> = {};
+  warningLogs.forEach(w => {
+    const key = w.module + ':' + w.message;
+    if (collapsedWarnings[key]) {
+      collapsedWarnings[key].count++;
+    } else {
+      collapsedWarnings[key] = { ...w, count: 1 };
+    }
+  });
+
+  Object.values(collapsedWarnings).forEach(w => {
+    problems.push({
+      severity: 'Warning',
+      title: w.message.split('\n')[0].substring(0, 60),
+      desc: w.message,
+      cause: 'Log level warning emitted by module.',
+      inv: `Trace source file: ${w.source}. Check application settings/state.`,
+      mod: w.module,
+      time: new Date(w.timestamp).toLocaleTimeString(),
+      freq: w.count
+    });
+  });
+
+  if (problems.length > 0) {
+    problems.sort((a, b) => (a.severity === 'Critical' ? -1 : 1));
+    problems.forEach(p => {
+      sections.push(`[${p.severity}] ${p.title}`);
+      sections.push(`  • Description:    ${p.desc}`);
+      sections.push(`  • Possible Cause: ${p.cause}`);
+      sections.push(`  • Investigation:  ${p.inv}`);
+      sections.push(`  • Module:         ${p.mod}`);
+      sections.push(`  • Timestamp:      ${p.time}`);
+      sections.push(`  • Frequency:      ${p.freq} times`);
+      sections.push('');
     });
   } else {
-    sections.push('No runtime performance metrics collected.');
+    sections.push('No problems detected.');
+    sections.push('');
+  }
+
+  // PERFORMANCE ANALYSIS
+  sections.push('==================================================');
+  sections.push('               Performance Analysis               ');
+  sections.push('==================================================');
+  if (!module || module === 'Performance') {
+    sections.push(`Frame Rate:          ${perfMetrics.currentFps} FPS (Avg: ${metricsLabel(perfMetrics.averageFps)} FPS, Min: ${metricsLabel(perfMetrics.minFps)} FPS, Max: ${metricsLabel(perfMetrics.maxFps)} FPS)`);
+    sections.push(`1% Low FPS:          ${metricsLabel(perfMetrics.low1PercentFps)} FPS`);
+    sections.push(`Frame Time:          ${perfMetrics.frameTime} ms (Variance: ${perfMetrics.frameVariance} ms)`);
+    sections.push(`Pacing Metrics:      ${perfMetrics.droppedFrames} dropped frames, ${perfMetrics.longFrames} long frames, ${perfMetrics.veryLongFrames} very long frames`);
+    sections.push(`Event Loop Lag:      ${perfMetrics.eventLoopDelay} ms delay`);
+    sections.push(`Heap Size / Used:    ${perfMetrics.heapSize} / ${perfMetrics.usedHeap} (Growth Rate: ${perfMetrics.heapGrowth})`);
+    sections.push(`GPU Renderer:        ${perfMetrics.gpuRenderer}`);
+    sections.push(`Refresh Rate:        ${perfMetrics.refreshRate} Hz`);
+    sections.push(`Main Thread Blocks:  ${perfMetrics.mainThreadBlockingTotal} ms total (Longest task: ${perfMetrics.longestBlockingTask} ms)`);
+    sections.push('');
+    sections.push('Performance Plain-Language Summary:');
+    if (perfScore >= 90) {
+      sections.push('The rendering pipeline is operating smoothly at target display frame rate. Frame intervals are highly stable.');
+    } else if (perfScore >= 70) {
+      sections.push('The rendering pipeline is mostly stable, but some heavy frames or minor main thread blocks were recorded.');
+    } else {
+      sections.push('CRITICAL PERFORMANCE STUTTERS: Repeated layout recalculations or long blocking tasks are causing noticeable interface jank.');
+    }
+  } else {
+    sections.push('Performance metrics skipped in this module report.');
   }
   sections.push('');
 
+  // NAVIGATION ANALYSIS
   sections.push('==================================================');
-  sections.push('[STATE MACHINE]');
+  sections.push('               Navigation Analysis                ');
   sections.push('==================================================');
-  if (data.stateTransitions.length > 0) {
-    data.stateTransitions.forEach((t, idx) => {
-      sections.push(`[${idx + 1}] [${new Date(t.timestamp).toLocaleTimeString()}] State Transition: ${t.from} -> ${t.to}`);
-      sections.push(`    Reason: ${translateSentinel(t.reason, 'Normal flow')}`);
+  if (!module || module === 'Apps' || module === 'System') {
+    const navState = useNavigationStore.getState();
+    sections.push(`Current Route App:  ${navState.history[navState.history.length - 1]?.app || 'hub'}`);
+    sections.push(`Current Route Tab:  ${navState.history[navState.history.length - 1]?.tab || 'home'}`);
+    sections.push(`Current Route Page: ${navState.history[navState.history.length - 1]?.page || 'none'}`);
+    sections.push(`Transition Lock:    ${navState.isTransitioning ? 'LOCKED' : 'UNLOCKED'}`);
+    sections.push(`History Stack Depth:${navState.history.length} screens`);
+    sections.push(`Gesture State:      ${navState.gestureState || 'idle'}`);
+    sections.push('');
+    sections.push('Navigation Trace History:');
+    navState.history.forEach((h, idx) => {
+      sections.push(`  [${idx + 1}] App: ${h.app}, Tab: ${h.tab || 'none'}, Page: ${h.page || 'none'}`);
     });
   } else {
-    sections.push('No state machine transitions logged during this session.');
-  }
-  if (data.rejectedTransitions.length > 0) {
-    sections.push('Rejected State Transitions:');
-    data.rejectedTransitions.forEach((t, idx) => {
-      sections.push(`  • [${idx + 1}] [${new Date(t.timestamp).toLocaleTimeString()}] ${t.from} -> ${t.attempted}`);
-      sections.push(`      Rejection Reason: ${translateSentinel(t.reason, 'Invalid state transition')}`);
-    });
+    sections.push('Navigation analysis skipped in this module report.');
   }
   sections.push('');
 
+  // UPDATER ANALYSIS
   sections.push('==================================================');
-  sections.push('[RECENT EVENTS]');
+  sections.push('                 Updater Analysis                 ');
   sections.push('==================================================');
-  if (data.activityLifecycle.length > 0) {
-    data.activityLifecycle.forEach((t, idx) => {
-      sections.push(`[${idx + 1}] [${new Date(t.timestamp).toLocaleTimeString()}] Event: ${t.event} (Type: ${t.type || 'Generic'})`);
-    });
+  if (!module || module === 'Updater' || module === 'System') {
+    sections.push(`Local APK Package:  ${localApkDetails ? localApkDetails.packageName : 'No package downloaded'}`);
+    sections.push(`Local APK Version:  ${localApkDetails ? localApkDetails.versionName : 'N/A'}`);
+    sections.push(`Signature Status:   ${localApkDetails?.isValidApk ? 'VERIFIED (Valid signature)' : 'UNVERIFIED'}`);
+    sections.push(`Update Decision:    ${data.otaDebugLogs.updateDecision || 'No check performed'}`);
+    sections.push(`Decision Reason:    ${data.otaDebugLogs.updateDecisionReason || 'N/A'}`);
+    sections.push(`Download Status:    ${data.otaDebugLogs.downloadStatus || 'IDLE'}`);
+    sections.push(`Installation State: ${nativeInstallerDetails ? nativeInstallerDetails.sessionState : 'No active session'}`);
   } else {
-    sections.push('No recent events recorded.');
+    sections.push('Updater analysis skipped in this module report.');
   }
   sections.push('');
 
+  // LOGS ANALYSIS
   sections.push('==================================================');
-  sections.push('[RUNTIME]');
+  sections.push('                  Logs Analysis                   ');
   sections.push('==================================================');
+  
+  const logGroups: Record<string, { level: string; msg: string; count: number; source: string }> = {};
+  data.logs.forEach(log => {
+    const key = log.module + ':' + log.message;
+    if (logGroups[key]) {
+      logGroups[key].count++;
+    } else {
+      logGroups[key] = { level: log.level, msg: log.message, count: 1, source: log.source };
+    }
+  });
+
+  const parsedLogs = Object.values(logGroups);
+  const infoLogs = parsedLogs.filter(l => l.level === 'info');
+  const warnLogs = parsedLogs.filter(l => l.level === 'warn');
+  const errLogs = parsedLogs.filter(l => l.level === 'error');
+
+  sections.push(`Log Summary: Info: ${infoLogs.length} events, Warnings: ${warnLogs.length} events, Errors: ${errLogs.length} events`);
+  sections.push('');
+  sections.push('Logs Conclusions:');
+  if (errLogs.length > 0) {
+    sections.push('• Critical runtime errors were recorded. Check the stack traces immediately.');
+  }
+  if (warnLogs.length > 3) {
+    sections.push('• High warning volume detected. This might cause memory overhead or performance jank.');
+  }
+  if (errLogs.length === 0 && warnLogs.length === 0) {
+    sections.push('• Event logging is clean. No warnings or errors detected.');
+  }
+  sections.push('');
+
+  // RECOMMENDATIONS
+  sections.push('==================================================');
+  sections.push('                 Recommendations                  ');
+  sections.push('==================================================');
+  let recsCount = 0;
   if (data.errors.length > 0) {
-    sections.push('Logged Runtime Errors:');
-    data.errors.forEach((err, idx) => {
-      sections.push(`  • [${idx + 1}] [${new Date(err.timestamp || Date.now()).toLocaleTimeString()}] Error: ${err.message}`);
-    });
-  } else {
-    sections.push('No runtime errors recorded.');
+    recsCount++;
+    sections.push(`${recsCount}. Resolve the unhandled runtime exceptions in the Technical Appendix.`);
+  }
+  if (perfScore < 85) {
+    recsCount++;
+    sections.push(`${recsCount}. Audit components in rendering performance view. Implement memoization to stabilize frame rates.`);
+  }
+  if (warningLogs.length > 5) {
+    recsCount++;
+    sections.push(`${recsCount}. Investigate warning loops in module logs to eliminate diagnostic noise.`);
+  }
+  if (recsCount === 0) {
+    sections.push('No actionable recommendations. Keep up the good work!');
   }
   sections.push('');
 
+  // TECHNICAL APPENDIX
   sections.push('==================================================');
-  sections.push('[LOGS]');
+  sections.push('                Technical Appendix                ');
   sections.push('==================================================');
   sections.push('--- JavaScript Console Log Dump ---');
   if (data.logs.length > 0) {
-    data.logs.forEach(log => {
+    data.logs.slice(-50).forEach(log => {
       sections.push(`[${new Date(log.timestamp).toLocaleTimeString()}] [${log.level.toUpperCase()}] [${log.module}] ${log.message}`);
     });
   } else {
@@ -238,7 +383,7 @@ export function generateFullEngineeringReport(
   sections.push('');
   sections.push('--- Android Native Installer Log Dump ---');
   if (data.nativeLogs.length > 0) {
-    data.nativeLogs.forEach(log => {
+    data.nativeLogs.slice(-50).forEach(log => {
       sections.push(`[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${translateSentinel(log.stage, 'Installer')}] Status: ${log.status} - Message: ${translateSentinel(log.message, 'No message')}`);
     });
   } else {
@@ -247,4 +392,17 @@ export function generateFullEngineeringReport(
   sections.push('==================================================');
 
   return sections.join('\n');
+}
+
+function metricsLabel(val: number): string | number {
+  return val > 0 ? val : 'Unavailable';
+}
+
+export function generateFullEngineeringReport(
+  nativeDeviceInfo: any,
+  nativeInstallerDetails: any,
+  localApkDetails: any,
+  nativeLogsList: any[]
+): string {
+  return generateUnifiedReport(undefined, nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
 }

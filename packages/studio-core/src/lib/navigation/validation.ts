@@ -1,5 +1,5 @@
 import { type NavigationRoute, type NavigationHistory } from './navigationTypes';
-import { useNavigationStore } from '../../store/useNavigationStore';
+import { useNavigationStore } from '../../store/useNavigationStore.js';
 
 /**
  * Normalizes an incoming route partial and returns a strict NavigationRoute object.

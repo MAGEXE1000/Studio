@@ -1,4 +1,4 @@
-import { useNavigationStore } from '../../store/useNavigationStore';
+import { useNavigationStore } from '../../store/useNavigationStore.js';
 import { type TransitionType } from './navigationTypes';
 
 export class TransitionCoordinator {

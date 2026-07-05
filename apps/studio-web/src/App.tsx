@@ -91,14 +91,12 @@ export default function App() {
     const settingsApp = settings.appMode || 'hub';
 
     if (routeApp !== settingsApp) {
-      const routeChanged = routeApp !== lastSyncedRouteAppRef.current;
-      const settingsChanged = settingsApp !== lastSyncedSettingsAppRef.current;
+      const routeChanged = lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
+      const settingsChanged = lastSyncedSettingsAppRef.current !== null && settingsApp !== lastSyncedSettingsAppRef.current;
 
       if (routeChanged && !settingsChanged) {
         console.log(`[Sync-Web] Navigation route changed: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
-        lastSyncedRouteAppRef.current = routeApp;
-        lastSyncedSettingsAppRef.current = routeApp;
       } else if (settingsChanged && !routeChanged) {
         console.log(`[Sync-Web] Settings appMode changed: ${routeApp} -> ${settingsApp}. Updating navigation dispatcher.`);
         if (settingsApp === 'hub') {
@@ -112,18 +110,14 @@ export default function App() {
             NavigationDispatcher.push({ app: settingsApp as any });
           }
         }
-        lastSyncedRouteAppRef.current = settingsApp;
-        lastSyncedSettingsAppRef.current = settingsApp;
       } else {
-        console.log(`[Sync-Web] Initial/Double sync: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
+        console.log(`[Sync-Web] Resolving sync drift: ${settingsApp} -> ${routeApp} (authoritative). Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
-        lastSyncedRouteAppRef.current = routeApp;
-        lastSyncedSettingsAppRef.current = routeApp;
       }
-    } else {
-      lastSyncedRouteAppRef.current = routeApp;
-      lastSyncedSettingsAppRef.current = settingsApp;
     }
+
+    lastSyncedRouteAppRef.current = routeApp;
+    lastSyncedSettingsAppRef.current = settingsApp;
   }, [currentRoute.app, settings.appMode, updateSettings]);
 
   const returnToStudioHub = useCallback((isSwipeSuccess = false) => {
@@ -182,6 +176,28 @@ export default function App() {
     };
     window.addEventListener('studio-hub-return', handler);
     return () => window.removeEventListener('studio-hub-return', handler);
+  }, []);
+
+  // Synchronize transitionActive with window.studioTransitionActive
+  useEffect(() => {
+    try {
+      Object.defineProperty(window, 'studioTransitionActive', {
+        get() {
+          return useNavigationStore.getState().isTransitioning;
+        },
+        set(val) {
+          useNavigationStore.getState().setTransition(null, !!val);
+        },
+        configurable: true
+      });
+    } catch (e) {
+      console.warn('Failed to defineProperty studioTransitionActive', e);
+    }
+    return () => {
+      try {
+        delete (window as any).studioTransitionActive;
+      } catch (e) {}
+    };
   }, []);
 
   const [route, setRoute] = useState(() => {

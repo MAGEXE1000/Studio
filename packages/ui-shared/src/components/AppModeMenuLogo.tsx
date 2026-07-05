@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useIsWebDesktop } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 /**
  * AppModeMenuLogo — app switcher pill in every panel header.
  *
@@ -104,7 +104,15 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
 
   const select = (val: AppValue) => {
     setOpen(false);
-    if (val !== currentMode) updateSettings({ appMode: val });
+    if (val !== currentMode) {
+      const currentHistory = useNavigationStore.getState().history;
+      const isCurrentlySubApp = currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
+      if (isCurrentlySubApp) {
+        NavigationDispatcher.replace({ app: val as any });
+      } else {
+        NavigationDispatcher.push({ app: val as any });
+      }
+    }
   };
   const goToHub = () => {
     setOpen(false);

@@ -16,7 +16,7 @@ import SimulationLab from './SimulationLab';
 import StateMachineVisualizer from './StateMachineVisualizer';
 import ReportPreview from './ReportPreview';
 import { copyToClipboard } from './centralizedClipboard';
-import { generateFullEngineeringReport } from './diagnosticsGenerator';
+import { generateUnifiedReport, generateFullEngineeringReport } from './diagnosticsGenerator';
 
 interface Props {
   onBack: () => void;
@@ -59,6 +59,137 @@ function AccordionSection({ title, icon, isOpen, onToggle, children }: Accordion
     </div>
   );
 }
+
+interface CopyDropdownProps {
+  onCopySuccess: (msg: string) => void;
+  nativeDeviceInfo: any;
+  nativeInstallerDetails: any;
+  localApkDetails: any;
+  nativeLogsList: any[];
+}
+
+const CopyDropdown = ({
+  onCopySuccess,
+  nativeDeviceInfo,
+  nativeInstallerDetails,
+  localApkDetails,
+  nativeLogsList
+}: CopyDropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const clickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', clickOutside);
+    return () => document.removeEventListener('mousedown', clickOutside);
+  }, []);
+
+  const triggerCopy = async (type: 'all' | 'section' | 'summary' | 'tech') => {
+    setIsOpen(false);
+    
+    const fullReport = generateUnifiedReport(
+      'Updater',
+      nativeDeviceInfo,
+      nativeInstallerDetails,
+      localApkDetails,
+      nativeLogsList
+    );
+
+    let textToCopy = fullReport;
+    let label = 'Report';
+
+    if (type === 'summary') {
+      const lines = fullReport.split('\n');
+      const healthIndex = lines.findIndex(l => l.includes('Overall Health'));
+      const problemsIndex = lines.findIndex(l => l.includes('Detected Problems'));
+      if (healthIndex !== -1 && problemsIndex !== -1) {
+        textToCopy = lines.slice(healthIndex - 1, problemsIndex - 1).join('\n');
+      }
+      label = 'Summary';
+    } else if (type === 'section') {
+      const lines = fullReport.split('\n');
+      const startPattern = 'Updater Analysis';
+      let sectionContent = '';
+      const startIndex = lines.findIndex(l => l.toLowerCase().includes(startPattern.toLowerCase()));
+      if (startIndex !== -1) {
+        const nextHeaderIndex = lines.findIndex((l, idx) => idx > startIndex && l.startsWith('====') && !l.includes('Report'));
+        if (nextHeaderIndex !== -1) {
+          sectionContent = lines.slice(startIndex - 1, nextHeaderIndex - 1).join('\n');
+        } else {
+          sectionContent = lines.slice(startIndex - 1).join('\n');
+        }
+      }
+      textToCopy = sectionContent || fullReport;
+      label = 'Updater Section';
+    } else if (type === 'tech') {
+      const lines = fullReport.split('\n');
+      const appendixIndex = lines.findIndex(l => l.includes('Technical Appendix'));
+      if (appendixIndex !== -1) {
+        textToCopy = lines.slice(appendixIndex - 1).join('\n');
+      }
+      label = 'Technical Data';
+    }
+
+    try {
+      await copyToClipboard(textToCopy, label);
+      onCopySuccess(`${label} copied to clipboard!`);
+    } catch (err: any) {
+      onCopySuccess(`Copy failed: ${err.message || String(err)}`);
+    }
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative inline-block">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 bg-tertiary text-on-tertiary px-5 py-2.5 rounded-full text-sm font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all outline-none"
+      >
+        <span className="material-symbols-outlined text-sm">content_copy</span>
+        <span>Copy Diagnostics</span>
+        <span className="material-symbols-outlined text-sm">
+          {isOpen ? 'expand_less' : 'expand_more'}
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+6px)] right-0 bg-[#1c1c1e]/95 backdrop-blur-md border border-[#484848]/20 rounded-2xl p-2 min-w-[180px] shadow-2xl z-[1000] flex flex-col gap-1">
+          <button
+            onClick={() => triggerCopy('all')}
+            className="bg-transparent border-none rounded-xl text-white py-2 px-3 text-left text-xs font-semibold cursor-pointer flex items-center gap-2 hover:bg-white/5"
+          >
+            <span className="material-symbols-outlined text-sm text-[#679cff]">database</span>
+            Copy Everything
+          </button>
+          <button
+            onClick={() => triggerCopy('section')}
+            className="bg-transparent border-none rounded-xl text-white py-2 px-3 text-left text-xs font-semibold cursor-pointer flex items-center gap-2 hover:bg-white/5"
+          >
+            <span className="material-symbols-outlined text-sm text-green-400">splitscreen</span>
+            Copy Current Section
+          </button>
+          <button
+            onClick={() => triggerCopy('summary')}
+            className="bg-transparent border-none rounded-xl text-white py-2 px-3 text-left text-xs font-semibold cursor-pointer flex items-center gap-2 hover:bg-white/5"
+          >
+            <span className="material-symbols-outlined text-sm text-amber-500">description</span>
+            Copy Summary
+          </button>
+          <button
+            onClick={() => triggerCopy('tech')}
+            className="bg-transparent border-none rounded-xl text-white py-2 px-3 text-left text-xs font-semibold cursor-pointer flex items-center gap-2 hover:bg-white/5"
+          >
+            <span className="material-symbols-outlined text-sm text-pink-500">terminal</span>
+            Copy Technical Data
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const { settings } = useChordStore();
@@ -240,13 +371,13 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
             <p className="text-xs text-on-surface-variant font-medium">Release Diagnostics &amp; Debug Tools</p>
           </div>
         </div>
-        <button 
-          onClick={handleCopyReport}
-          className="flex items-center gap-2 bg-tertiary text-on-tertiary px-5 py-2.5 rounded-full text-sm font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all outline-none"
-        >
-          <span className="material-symbols-outlined text-sm">content_copy</span>
-          <span>Copy Report</span>
-        </button>
+        <CopyDropdown
+          onCopySuccess={showToast}
+          nativeDeviceInfo={nativeDeviceInfo}
+          nativeInstallerDetails={nativeInstallerDetails}
+          localApkDetails={localApkDetails}
+          nativeLogsList={nativeLogsList}
+        />
       </header>
 
       {/* Main Content viewport */}

@@ -61,6 +61,7 @@ export { deleteLocalApk } from './lib/updater/cacheManager';
 export * from './lib/updater/stateMachine';
 export * from './lib/startupCoordinator';
 export * from './lib/themeEngine';
+export * from './lib/performanceProfiler';
 
 // Navigation Core Foundation (Sprint 9.1)
 export * from './lib/navigation/navigationTypes';

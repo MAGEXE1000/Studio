@@ -736,14 +736,12 @@ export default function App() {
     const settingsApp = settings.appMode || 'hub';
 
     if (routeApp !== settingsApp) {
-      const routeChanged = routeApp !== lastSyncedRouteAppRef.current;
-      const settingsChanged = settingsApp !== lastSyncedSettingsAppRef.current;
+      const routeChanged = lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
+      const settingsChanged = lastSyncedSettingsAppRef.current !== null && settingsApp !== lastSyncedSettingsAppRef.current;
 
       if (routeChanged && !settingsChanged) {
         console.log(`[Sync-Android] Navigation route changed: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
-        lastSyncedRouteAppRef.current = routeApp;
-        lastSyncedSettingsAppRef.current = routeApp;
       } else if (settingsChanged && !routeChanged) {
         console.log(`[Sync-Android] Settings appMode changed: ${routeApp} -> ${settingsApp}. Updating navigation dispatcher.`);
         if (settingsApp === 'hub') {
@@ -757,18 +755,14 @@ export default function App() {
             NavigationDispatcher.push({ app: settingsApp as any });
           }
         }
-        lastSyncedRouteAppRef.current = settingsApp;
-        lastSyncedSettingsAppRef.current = settingsApp;
       } else {
-        console.log(`[Sync-Android] Initial/Double sync: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
+        console.log(`[Sync-Android] Resolving sync drift: ${settingsApp} -> ${routeApp} (authoritative). Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
-        lastSyncedRouteAppRef.current = routeApp;
-        lastSyncedSettingsAppRef.current = routeApp;
       }
-    } else {
-      lastSyncedRouteAppRef.current = routeApp;
-      lastSyncedSettingsAppRef.current = settingsApp;
     }
+
+    lastSyncedRouteAppRef.current = routeApp;
+    lastSyncedSettingsAppRef.current = settingsApp;
   }, [currentRoute.app, settings.appMode, updateSettings]);
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
@@ -1116,13 +1110,29 @@ export default function App() {
 
       if (launchingApp === targetApp) return;
 
-      console.log(`[Launch] Initiating transition from hub to sub-app: ${targetApp}`);
-      addLog('info', 'perf', `App launch transition started: hub -> ${targetApp}`);
+      console.log(`[Launch] Initiating transition from ${previousAppModeRef.current} to sub-app: ${targetApp}`);
+      addLog('info', 'perf', `App launch transition started: ${previousAppModeRef.current} -> ${targetApp}`);
 
       if (launchTimerRef.current) {
         clearTimeout(launchTimerRef.current);
         launchTimerRef.current = null;
       }
+
+      // Lock transition until target app is preloaded
+      (window as any).studioTransitionActive = true;
+
+      const checkTimer = setInterval(() => {
+        const activeApp = (window as any).__lastActiveSubApp || 'none';
+        if (activeApp === targetApp) {
+          clearInterval(checkTimer);
+          (window as any).studioTransitionActive = false;
+        }
+      }, 50);
+
+      const safetyTimeout = setTimeout(() => {
+        clearInterval(checkTimer);
+        (window as any).studioTransitionActive = false;
+      }, 4000);
 
       // Initialize long task detection during this transition
       longTasksRef.current = [];
@@ -1153,8 +1163,16 @@ export default function App() {
         const tid = setTimeout(() => {
           setSplashFullyOpaque(true);
         }, 350);
-        cleanup = () => clearTimeout(tid);
+        cleanup = () => {
+          clearTimeout(tid);
+          clearInterval(checkTimer);
+          clearTimeout(safetyTimeout);
+        };
       } else {
+        cleanup = () => {
+          clearInterval(checkTimer);
+          clearTimeout(safetyTimeout);
+        };
         setSplashFullyOpaque(true);
       }
     } else {
@@ -1376,6 +1394,7 @@ export default function App() {
     }
 
     setTimeout(() => {
+      useNavigationStore.getState().setTransition(null, false);
       recordNavigation({
         fromApp,
         toApp: 'hub',

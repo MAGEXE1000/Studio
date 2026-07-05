@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { secureReadLocal, secureWriteLocal } from '../lib/security';
+import { secureReadLocal, secureWriteLocal } from '../lib/security.js';
 import {
   type NavigationRoute,
   type NavigationHistory,

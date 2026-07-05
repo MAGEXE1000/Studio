@@ -219,6 +219,15 @@ class StartupCoordinatorClass {
         const defaultApp = settings.startupApp || 'hub';
         console.log(`[StartupCoordinator] restoreLastSession is false. Resetting appMode to ${defaultApp}.`);
         storeState.updateSettings({ appMode: defaultApp });
+
+        const { useNavigationStore } = await import('../store/useNavigationStore');
+        const defaultRoute: any = { app: defaultApp, tab: 'home' };
+        if (defaultApp === 'chords') defaultRoute.page = 'library';
+        else if (defaultApp === 'groovex') defaultRoute.page = 'library';
+        else if (defaultApp === 'vocalex') defaultRoute.page = 'practice';
+        else if (defaultApp === 'drums') defaultRoute.page = 'songs';
+        else if (defaultApp === 'stage') defaultRoute.page = 'Editor';
+        useNavigationStore.getState().setHistory([defaultRoute]);
       }
 
       // Seed navigation trace

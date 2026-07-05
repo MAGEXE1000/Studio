@@ -1,13 +1,13 @@
 import { type NavigationRoute, type NavigationHistory, type TransitionType } from './navigationTypes';
-import { useNavigationStore } from '../../store/useNavigationStore';
-import { NavigationCoordinator } from './NavigationCoordinator';
+import { useNavigationStore } from '../../store/useNavigationStore.js';
+import { NavigationCoordinator } from './NavigationCoordinator.js';
 import {
   normalizeAndValidateRoute,
   isRouteEqual,
   detectRecursion,
   isTransitionLocked,
   isRootRouteOnly,
-} from './validation';
+} from './validation.js';
 
 export class NavigationDispatcher {
   private static transitionTimeout: ReturnType<typeof setTimeout> | null = null;

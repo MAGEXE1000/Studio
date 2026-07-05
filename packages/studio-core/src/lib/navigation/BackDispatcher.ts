@@ -1,5 +1,5 @@
-import { useNavigationStore } from '../../store/useNavigationStore';
-import { NavigationDispatcher } from './NavigationDispatcher';
+import { useNavigationStore } from '../../store/useNavigationStore.js';
+import { NavigationDispatcher } from './NavigationDispatcher.js';
 
 export type BackPriority = 'modal' | 'sheet' | 'overlay' | 'nested' | 'panel';
 

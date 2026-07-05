@@ -4,9 +4,13 @@ export const getSharedNavTransform = (navHidden: boolean, navCollapsed: boolean,
   if (!entered) {
     return 'translateX(-50%) translateY(24px)';
   }
-  return (navHidden || navCollapsed)
-    ? 'translateX(-50%) translateY(calc(100% + 32px))'
-    : 'translateX(-50%) translateY(0px)';
+  if (navHidden) {
+    return 'translateX(-50%) translateY(calc(100% + 32px))';
+  }
+  if (navCollapsed) {
+    return 'translateX(-50%) translateY(calc(100% - 4px + var(--nav-safe-bottom, 0px)))';
+  }
+  return 'translateX(-50%) translateY(0px)';
 };
 
 export const getSharedNavOpacity = (navHidden: boolean, navCollapsed: boolean, entered = true) => {

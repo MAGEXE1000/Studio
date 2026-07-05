@@ -757,9 +757,14 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
     backdrop-filter: blur(20px) saturate(180%) brightness(1.04);
     -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.04);
     /* Keep the nav on its own compositor layer — it animates every scroll event */
-    will-change: transform;
+    will-change: transform, opacity;
     /* Prevent the blur from leaking into parent stacking contexts */
     isolation: isolate;
+    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                border-radius 300ms cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 300ms ease,
+                border-color 300ms ease,
+                box-shadow 300ms ease !important;
   }
 
   /* ===== Panel Transitions ===== */
@@ -935,10 +940,13 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
   .overlay-fade-out { animation: fade-out var(--motion-duration-short) var(--motion-ease-accelerate) both; }
 
 /* Direct-DOM scroll collapse for the bottom nav bar (zero-React) */
-html[data-nav-collapsed="true"] .glass-nav {
-  transform: translateX(-50%) translateY(calc(100% - 4px + var(--nav-safe-bottom, 0px))) !important;
-  opacity: 1 !important;
+html[data-nav-collapsed="true"]:not([data-nav-hidden="true"]) .glass-nav {
+  transform: translateX(-50%) translateY(calc(100% - 10px + var(--nav-safe-bottom, 0px))) scaleX(0.28) scaleY(0.054) !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  border-color: transparent !important;
+  border-radius: 99px !important;
   pointer-events: none !important;
+  box-shadow: none !important;
 }
 
 html[data-nav-collapsed="true"] .glass-nav > div {
@@ -947,7 +955,7 @@ html[data-nav-collapsed="true"] .glass-nav > div {
 }
 
 .glass-nav > div {
-  transition: opacity 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
   /* ===== Panel section transitions — unified across all apps =================

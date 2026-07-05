@@ -2791,12 +2791,12 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             willChange: 'clip-path, transform, opacity',
             transition: [
               navCollapsed
-                ? 'clip-path 500ms cubic-bezier(0.4,0,0.2,1)'
-                : 'clip-path 380ms cubic-bezier(0.16,1,0.3,1)',
+                ? 'clip-path 250ms cubic-bezier(0.2, 0.8, 0.2, 1)'
+                : 'clip-path 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
               navCollapsed
-                ? 'transform 500ms cubic-bezier(0.4,0,0.2,1)'
-                : 'transform 380ms cubic-bezier(0.16,1,0.3,1)',
-              'background-color 300ms ease',
+                ? 'transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1)'
+                : 'transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+              'background-color 250ms ease',
             ].join(', '),
           }}
         >
@@ -2805,7 +2805,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             display: 'flex', alignItems: 'center', justifyContent: 'space-around',
             padding: isLandscapeEditor ? '3px 6px' : '6px 8px',
             opacity: navCollapsed ? 0 : 1,
-            transition: navCollapsed ? 'opacity 80ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 120ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms',
+            transition: navCollapsed ? 'opacity 100ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms',
             willChange: 'opacity',
           }}>
 

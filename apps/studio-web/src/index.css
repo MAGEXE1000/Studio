@@ -760,11 +760,11 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
     will-change: transform, opacity;
     /* Prevent the blur from leaking into parent stacking contexts */
     isolation: isolate;
-    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-                border-radius 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-                background-color 200ms ease,
-                border-color 200ms ease,
-                box-shadow 200ms ease !important;
+    transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-radius 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                background-color 250ms ease,
+                border-color 250ms ease,
+                box-shadow 250ms ease !important;
   }
 
   /* ===== Panel Transitions ===== */
@@ -942,11 +942,13 @@ html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::
 /* Direct-DOM scroll collapse for the bottom nav bar (zero-React) */
 html[data-nav-collapsed="true"]:not([data-nav-hidden="true"]) .glass-nav {
   transform: translateX(-50%) translateY(calc(100% - 12px + var(--nav-safe-bottom, 0px))) scaleX(0.33) scaleY(0.045) !important;
-  background: rgba(255, 255, 255, 0.28) !important;
+  background: rgba(255, 255, 255, 0.55) !important;
   border-color: transparent !important;
   border-radius: 99px !important;
   pointer-events: none !important;
   box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html[data-nav-collapsed="true"] .glass-nav > div {
@@ -955,7 +957,7 @@ html[data-nav-collapsed="true"] .glass-nav > div {
 }
 
 .glass-nav > div {
-  transition: opacity 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
   /* ===== Panel section transitions — unified across all apps =================

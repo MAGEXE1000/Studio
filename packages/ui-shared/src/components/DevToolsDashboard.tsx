@@ -48,6 +48,7 @@ import {
   transitionToState,
   useIsWebDesktop,
   useNavigationStore,
+  useScrollHide,
   NavigationDispatcher,
   useBackHandler,
   PerformanceProfiler,
@@ -643,6 +644,8 @@ const CopyDropdown = ({
 
 export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props) {
   const { settings, updateSettings } = useChordStore();
+  const mainScrollRef = useRef<HTMLDivElement | null>(null);
+  useScrollHide(mainScrollRef);
   const chordsRoute = useNavigationStore(s => s.history.find(r => r.app === 'chords'));
   const activePanel = chordsRoute?.page || 'library';
   const isWebDesktop = useIsWebDesktop();  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
@@ -4067,7 +4070,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   </div>
                 </div>
               )}
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div ref={mainScrollRef} style={{ flex: 1, overflowY: 'auto' }} className="no-scrollbar">
                 {renderDashboardBody()}
               </div>
             </div>

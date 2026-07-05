@@ -2384,9 +2384,9 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             position: 'absolute',
             bottom: 'max(10px, env(safe-area-inset-bottom))',
             left: '50%',
-            transform: getSharedNavTransform(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed, false),
+            transform: getSharedNavTransform(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden), navCollapsed),
             pointerEvents: (liveMode || hideBottomNav || navCollapsed) ? 'none' : 'auto',
-            opacity: getSharedNavOpacity(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed, false),
+            opacity: getSharedNavOpacity(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden), navCollapsed),
             width: isLandscapeEditor ? '70%' : '90%',
             maxWidth: isLandscapeEditor ? '320px' : '400px',
             height: `${expandedStageH}px`,
@@ -2409,7 +2409,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             display: 'flex', alignItems: 'center', justifyContent: 'space-around',
             padding: isLandscapeEditor ? '3px 6px' : '6px 8px',
             opacity: navCollapsed ? 0 : 1,
-            transition: navCollapsed ? 'opacity 80ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 120ms cubic-bezier(0.2, 0.8, 0.2, 1) 60ms',
+            transition: navCollapsed ? 'opacity 100ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms',
             willChange: 'opacity',
           }}>
 

@@ -2617,6 +2617,7 @@ function HubSettings({
   // top. We snapshot the current scrollTop right before any page change
   // and restore it on the next paint after the new page is in the DOM.
   const localScrollRef = useRef<HTMLDivElement | null>(null);
+  useScrollHide(localScrollRef);
   const pageScrollPositions = useRef<Record<string, number>>({});
   const pendingRestoreRef = useRef<string | null>(null);
   function snapshotScroll(forPage: SettingsPageId) {

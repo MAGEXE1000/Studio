@@ -11,6 +11,14 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.76
+
+### Fixed
+- Resolved duplicate PackageInstaller dialog prompting users twice during installation.
+- Synchronized native installation states to keep the installing screen active with a spinner.
+- Added a final completion screen upon successful background package replacement.
+- Configured the Done action button to cleanly terminate the app process.
+
 ## 3.7.75
 
 ### Fixed

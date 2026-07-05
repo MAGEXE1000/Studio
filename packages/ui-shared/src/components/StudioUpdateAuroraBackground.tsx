@@ -58,6 +58,8 @@ export default function StudioUpdateAuroraBackground({
             opacity: 0.42,
             filter: "blur(60px) saturate(1.5)",
             willChange: "transform",
+            transform: "translate3d(0,0,0)",
+            backfaceVisibility: "hidden",
             animation: reducedMotion ? "none" : "studio-aurora 36s ease-in-out infinite",
           }}
         />

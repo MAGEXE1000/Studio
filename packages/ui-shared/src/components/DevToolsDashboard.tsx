@@ -643,7 +643,8 @@ const CopyDropdown = ({
 };
 
 export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props) {
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(state => state.settings);
+  const updateSettings = useChordStore(state => state.updateSettings);
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   useScrollHide(mainScrollRef);
   const chordsRoute = useNavigationStore(s => s.history.find(r => r.app === 'chords'));

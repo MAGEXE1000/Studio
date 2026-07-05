@@ -242,6 +242,16 @@ export async function getNativeVersion(): Promise<string | null> {
   }
 }
 
+let currentSessionStartTime = 0;
+
+async function delayForSim(ms: number) {
+  if (updaterSimulation.simulateDownloadThrottling) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  } else {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
 export async function getNativeVersionCode(): Promise<number | null> {
   if (!isNative()) return null;
   try {
@@ -963,7 +973,33 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 
 export function checkForUpdate(isManual = false, trigger = 'unknown', reason = 'unknown'): Promise<CentralizedOtaState> {
   interceptIllegalCall('checkForUpdate', `isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
-  logTimelineEvent('UpdateCore', 'CHECK_REQUESTED', `isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
+
+  let callerInfo = 'Unknown';
+  let stackTrace = 'N/A';
+  try {
+    const stack = new Error().stack;
+    if (stack) {
+      stackTrace = stack;
+      const lines = stack.split('\n');
+      if (lines.length > 2) {
+        callerInfo = lines[2].trim();
+      }
+    }
+  } catch {}
+
+  let screen = 'unknown';
+  try {
+    const navStore = useNavigationStore.getState();
+    if (navStore && navStore.history && navStore.history.length > 0) {
+      const lastRoute = navStore.history[navStore.history.length - 1];
+      screen = lastRoute.page || lastRoute.tab || lastRoute.app || 'unknown';
+    }
+  } catch (_) {}
+
+  const traceMsg = `Check requested: isManual=${isManual} | Trigger: ${trigger} | Reason: ${reason} | Screen: ${screen} | Caller: ${callerInfo}`;
+  console.log(`[OTA CHECK_FOR_UPDATE_CALLER_TRACE] ${traceMsg}\nStack: ${stackTrace}`);
+  
+  logTimelineEvent('UpdateCore', 'CHECK_REQUESTED', `${traceMsg} | Stack: ${stackTrace.slice(0, 300)}`);
 
   const current = globalOtaState.updateState;
   const isBusy = [
@@ -1044,6 +1080,7 @@ export async function downloadUpdate(trigger?: string): Promise<void> {
 }
 
 async function downloadUpdateInternal(trigger?: string): Promise<void> {
+  currentSessionStartTime = Date.now();
   if (startupRecoveryPromise) {
     await startupRecoveryPromise;
   }
@@ -1170,7 +1207,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
             throw new Error('Simulated download failure');
           }
           updateGlobalState({ progress: i / 10, statusText: `Simulating download... (${i * 10}%)` });
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await delayForSim(10);
         }
         filePath = '/mock/path/to/simulated_download.apk';
         addJsLog(`[Simulate Download] Completed. Mock Path: ${filePath}`);
@@ -1264,7 +1301,11 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       }
 
       updateGlobalState({ progress: 1.0, statusText: 'Verifying update' });
-      await new Promise((resolve) => setTimeout(resolve, shouldSimulate ? 10 : 300));
+      if (shouldSimulate) {
+        await delayForSim(10);
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
 
       otaDebugLogs.downloadStatus += `\nRunning pre-install eligibility check...`;
       if (!safeTransition('VERIFY_SHA256', 'PREPARE_INSTALL', 'Checking eligibility')) {
@@ -1355,6 +1396,7 @@ export async function applyUpdate(trigger?: string): Promise<void> {
 }
 
 async function applyUpdateInternal(trigger?: string): Promise<void> {
+  currentSessionStartTime = Date.now();
   if (startupRecoveryPromise) {
     await startupRecoveryPromise;
   }
@@ -1465,15 +1507,15 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           updateGlobalState({ sessionId: mockSessionId });
           logDiagnosticEvent('SESSION_CREATED', { sessionId: mockSessionId, simulated: true });
 
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await delayForSim(10);
           triggerSimulatedStatus(-2, 'installing_start');
           
           for (let p = 0.1; p <= 0.5; p += 0.1) {
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await delayForSim(10);
             triggerSimulatedStatus(-3, 'Installing package...', p);
           }
 
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await delayForSim(10);
           triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
           
           if (updaterSimulation.forcePendingUserAction) {
@@ -1481,7 +1523,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
             return;
           }
           
-          await new Promise((resolve) => setTimeout(resolve, 50));
+          await delayForSim(50);
           if (updaterSimulation.forceUserCancel) {
             triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
             return;
@@ -1492,11 +1534,11 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           }
           
           for (let p = 0.6; p <= 1.0; p += 0.1) {
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await delayForSim(10);
             triggerSimulatedStatus(-3, p > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', p);
           }
 
-          await new Promise((resolve) => setTimeout(resolve, 10));
+          await delayForSim(10);
           triggerSimulatedStatus(0, 'STATUS_SUCCESS');
         })();
       } else {
@@ -1615,6 +1657,15 @@ async function checkAndRecoverInstallState() {
     // Install is not active. Check the last result.
     const result = await AppInstaller.getLastInstallResult();
     console.log('[OTA Recovery] checkAndRecoverInstallState getLastInstallResult:', result);
+
+    if (result.statusCode !== -999) {
+      const isStale = (result.timestamp && result.timestamp < currentSessionStartTime) ||
+                      (globalOtaState.remoteVersion && result.expectedVersionName !== globalOtaState.remoteVersion);
+      if (isStale) {
+        console.log('[OTA Recovery] Ignoring stale or mismatching install result on resume:', result);
+        return;
+      }
+    }
 
     if (result.statusCode === 0) {
       logTimelineEvent('RecoveryManager', 'RECOVERY_SUCCESS_DETECTED', `Version: ${result.expectedVersionName} | Code: ${result.expectedVersionCode}`);

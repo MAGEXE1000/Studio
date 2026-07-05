@@ -1,6 +1,6 @@
 import { isNative } from '../capgoUpdater';
 import { APP_VERSION } from '../appVersion';
-import { globalOtaState } from './stateMachine';
+import { globalOtaState, activePipelineContext } from './stateMachine';
 
 export interface OtaDiagnostics {
   exceptionMessage: string | null;
@@ -524,6 +524,9 @@ export interface WorkflowTransition {
   reason: string;
   thread: string;
   elapsedTimeMs: number;
+  sessionId: string;
+  pipelineId: string | number | null;
+  durationMs: number;
 }
 
 export interface CloseEvent {
@@ -797,6 +800,10 @@ export function recordStateTransition(fromState: string, toState: string, reason
   const elapsedTimeMs = session ? now - session.startTimestamp : 0;
   const formatTime = new Date(now).toTimeString().split(' ')[0];
 
+  const lastTransition = session ? session.transitions[session.transitions.length - 1] : null;
+  const enteredTime = lastTransition ? lastTransition.absoluteTimestamp : (session ? session.startTimestamp : now);
+  const durationMs = now - enteredTime;
+
   const trans: WorkflowTransition = {
     timestamp: formatTime,
     absoluteTimestamp: now,
@@ -807,7 +814,10 @@ export function recordStateTransition(fromState: string, toState: string, reason
     functionName: caller.functionName,
     reason: reason,
     thread: 'JS Main Thread',
-    elapsedTimeMs
+    elapsedTimeMs,
+    sessionId: session ? session.id : 'N/A',
+    pipelineId: activePipelineContext ? activePipelineContext.checkId : null,
+    durationMs
   };
 
   if (session) {
@@ -1143,10 +1153,30 @@ export function interceptIllegalCall(functionName: string, reason: string) {
   if (!isInstalling) return;
 
   const caller = parseStackTrace();
-  const alertMsg = `ILLEGAL CALL DETECTED: ${functionName} called by ${caller.callerLine}. Reason: ${reason}`;
-  console.error(`[OTA SECURITY] ${alertMsg}`);
+  let screen = 'unknown';
+  try {
+    const { useNavigationStore } = require('../../store/useNavigationStore');
+    const navStore = useNavigationStore.getState();
+    if (navStore && navStore.history && navStore.history.length > 0) {
+      const lastRoute = navStore.history[navStore.history.length - 1];
+      screen = lastRoute.page || lastRoute.tab || lastRoute.app || 'unknown';
+    }
+  } catch (_) {}
+
+  const alertMsg = `ILLEGAL CALL DETECTED: ${functionName} called by ${caller.callerLine} in state ${current} on screen ${screen}. Reason: ${reason}`;
+  console.error(`[OTA SECURITY] [HIGH SEVERITY] ${alertMsg}\nStack: ${caller.stackTrace}`);
   
-  logTimelineEvent('SecurityGuard', 'ILLEGAL_CALL_DETECTED', alertMsg);
+  logTimelineEvent('SecurityGuard', 'ILLEGAL_CALL_DETECTED', `${alertMsg} | Stack: ${caller.stackTrace.slice(0, 300)}`);
+
+  if (typeof (window as any).logDiagnosticEvent === 'function') {
+    (window as any).logDiagnosticEvent('HIGH_SEVERITY_DIAGNOSTIC', {
+      event: 'ILLEGAL_CALL_DETECTED',
+      message: alertMsg,
+      stackTrace: caller.stackTrace,
+      screen,
+      state: current
+    });
+  }
 }
 
 // Keep legacy interfaces for compatibility if needed

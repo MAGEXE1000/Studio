@@ -11,6 +11,16 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.83
+
+### Added
+- Implement responsive bottom navigation gesture pill morphing on scroll.
+- Add event-driven passive watchdog recovery system.
+
+### Fixed
+- Optimize bottom navigation motion speed to 200ms with emphasized cubic-bezier curve.
+- Remove continuous watchdog polling loops to minimize idle CPU usage.
+
 ## 3.7.82
 
 ### Fixed

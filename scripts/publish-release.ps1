@@ -9,8 +9,9 @@ $ReleaseNote = "v3.7.87 - Release 3.7.87: Sleek glassmorphic Native Updater inte
 $BranchName = (git symbolic-ref --short HEAD).Trim()
 Write-Host "Current branch: $BranchName"
 
-Write-Host "1. Bumping Android version to $VersionName ($VersionCode)..."
+Write-Host "1. Bumping Android and Web versions to $VersionName ($VersionCode)..."
 pnpm version:android --name $VersionName --code $VersionCode
+pnpm version:web -- $VersionName
 
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/appVersion.ts

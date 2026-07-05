@@ -11,6 +11,17 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 3.7.87
+
+### Added
+- Sleek glassmorphic Native Updater interface with continuous card resizing transforms.
+- Active stage indicators during Android package installation to cycle through status steps.
+- Float and pulse animations to the installing status icon to indicate background activity.
+- Tactile ActionButton touch-down scaling microinteractions across all updater dialog states.
+
+### Fixed
+- Lightweight non-intrusive post-update startup toast notification instead of fullscreen overlay.
+
 ## 3.7.86
 
 ### Added

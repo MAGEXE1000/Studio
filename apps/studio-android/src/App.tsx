@@ -1038,6 +1038,9 @@ export default function App() {
     if (useChordStore.getState().settings.appMode !== app) return;
 
     setAppPreloaded(true);
+    if (typeof window !== 'undefined') {
+      (window as any).studioTransitionActive = false;
+    }
 
     const elapsed = Date.now() - launchStartTimeRef.current;
     const minDuration = 100 * speedScale; // Snappy visual confirmation delay scaled by speed preferences
@@ -1121,17 +1124,9 @@ export default function App() {
       // Lock transition until target app is preloaded
       (window as any).studioTransitionActive = true;
 
-      const checkTimer = setInterval(() => {
-        const activeApp = (window as any).__lastActiveSubApp || 'none';
-        if (activeApp === targetApp) {
-          clearInterval(checkTimer);
-          (window as any).studioTransitionActive = false;
-        }
-      }, 50);
-
       const safetyTimeout = setTimeout(() => {
-        clearInterval(checkTimer);
-        (window as any).studioTransitionActive = false;
+        console.error(`[Launch] Safety timeout fired. ${targetApp} did not report ready within 4000ms.`);
+        addLog('error', 'perf', `App launch transition timed out for: ${targetApp}. App did not report ready in 4000ms.`);
       }, 4000);
 
       // Initialize long task detection during this transition
@@ -1165,12 +1160,10 @@ export default function App() {
         }, 350);
         cleanup = () => {
           clearTimeout(tid);
-          clearInterval(checkTimer);
           clearTimeout(safetyTimeout);
         };
       } else {
         cleanup = () => {
-          clearInterval(checkTimer);
           clearTimeout(safetyTimeout);
         };
         setSplashFullyOpaque(true);

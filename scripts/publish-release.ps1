@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.70"
-$VersionCode = "198"
-$ReleaseNote = "v3.7.70 - resolves critical sub-app closing regression, propagates scroll collapse changes to BottomNav, and unifies sliding transitions across all sub-app navigation bars."
+$VersionName = "3.7.73"
+$VersionCode = "201"
+$ReleaseNote = "v3.7.73 - finalises native Android APK installation pipeline and diagnostics logging."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

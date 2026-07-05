@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "3.7.72",
-  "versionName": "3.7.72",
-  "versionCode": 200,
-  "version_code": 200,
-  "commit": "64761c5f",
-  "releasedAt": "7/4/2026, 3:53:59 PM CST",
-  "buildTimestamp": "7/4/2026, 3:53:59 PM CST",
+  "version": "3.7.73",
+  "versionName": "3.7.73",
+  "versionCode": 201,
+  "version_code": 201,
+  "commit": "40b6d297",
+  "releasedAt": "7/4/2026, 6:11:57 PM CST",
+  "buildTimestamp": "7/4/2026, 6:11:57 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Integrated comprehensive navigation logging instrumentation across the entire routing stack.\n• Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.\n• Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.",
-  "whatsNew": "• Integrated comprehensive navigation logging instrumentation across the entire routing stack.\n• Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.\n• Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.",
+  "changelog": "• Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.\n• Fixed duplicate confirmation intents and session creations natively in PackageInstaller.\n• Added comprehensive diagnostic trace logging for installation lifecycle events.",
+  "whatsNew": "• Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.\n• Fixed duplicate confirmation intents and session creations natively in PackageInstaller.\n• Added comprehensive diagnostic trace logging for installation lifecycle events.",
   "releaseNotes": {
-    "added": [
-      "Integrated comprehensive navigation logging instrumentation across the entire routing stack.",
-      "Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.",
-      "Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures."
+    "fixed": [
+      "Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.",
+      "Fixed duplicate confirmation intents and session creations natively in PackageInstaller.",
+      "Added comprehensive diagnostic trace logging for installation lifecycle events."
     ]
   },
   "mandatory": false

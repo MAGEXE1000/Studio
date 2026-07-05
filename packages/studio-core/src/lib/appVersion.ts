@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.72';
-export const WEB_VERSION = '3.7.72';
+export const NATIVE_VERSION = '3.7.73';
+export const WEB_VERSION = '3.7.73';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -59,11 +59,11 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Integrated comprehensive navigation logging instrumentation across the entire routing stack.",
-      "Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.",
-      "Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.",
+      "Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.",
+      "Fixed duplicate confirmation intents and session creations natively in PackageInstaller.",
+      "Added comprehensive diagnostic trace logging for installation lifecycle events.",
     ],
   },
 ];

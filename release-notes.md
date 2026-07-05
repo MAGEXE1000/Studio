@@ -1,4 +1,4 @@
-### Added
-- Integrated comprehensive navigation logging instrumentation across the entire routing stack.
-- Enabled real-time state and action tracking for store mutations, gestures, and back-handlers.
-- Added diagnostics dump utility to reconstruct timeline events upon navigation validation failures.
+### Fixed
+- Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.
+- Fixed duplicate confirmation intents and session creations natively in PackageInstaller.
+- Added comprehensive diagnostic trace logging for installation lifecycle events.

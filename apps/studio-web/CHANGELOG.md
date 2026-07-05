@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.73
+
+### Fixed
+- Finalized native Android APK installation pipeline to prevent Hub flashes and UI unmounts.
+- Fixed duplicate confirmation intents and session creations natively in PackageInstaller.
+- Added comprehensive diagnostic trace logging for installation lifecycle events.
+
 ## 3.7.72
 
 ### Added

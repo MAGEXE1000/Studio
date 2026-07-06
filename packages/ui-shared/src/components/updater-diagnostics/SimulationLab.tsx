@@ -149,7 +149,7 @@ export default function SimulationLab({
 
       // 3. Simulated status change trigger
       triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
-      if (await waitForCondition(() => globalOtaState.updateState === 'WAIT_PACKAGE_INSTALLER')) {
+      if (await waitForCondition(() => globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE')) {
         addResult('Status Pending User Action', 'success', 'Simulated callback triggered successfully.');
       } else {
         addResult('Status Pending User Action', 'failed', `State: ${globalOtaState.updateState}`);

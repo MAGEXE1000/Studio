@@ -609,20 +609,25 @@ class StartupCoordinatorClass {
   }
 
   private async triggerOtaUpdateCheck(trigger: string, reason: string) {
-    const otaState = globalOtaState.updateState;
-    const isUpdating = ![
-      'IDLE',
-      'NO_UPDATE_AVAILABLE',
-      'UPDATE_AVAILABLE',
-      'INSTALL_FAILED',
-      'RECOVERY',
-    ].includes(otaState);
-    if (isUpdating) {
-      console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck: updater is active (state: ${otaState})`);
-      return;
-    }
     try {
-      const { checkForUpdate } = await import('./otaUpdate');
+      const { checkForUpdate, isUpdateSessionActive } = await import('./otaUpdate');
+      if (isUpdateSessionActive()) {
+        console.log('[StartupCoordinator] Aborting triggerOtaUpdateCheck: update session is active');
+        return;
+      }
+      const otaState = globalOtaState.updateState;
+      const isUpdating = ![
+        'IDLE',
+        'NO_UPDATE_AVAILABLE',
+        'UPDATE_AVAILABLE',
+        'INSTALL_FAILED',
+        'INSTALL_CANCELLED',
+        'RECOVERY',
+      ].includes(otaState);
+      if (isUpdating) {
+        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck: updater is active (state: ${otaState})`);
+        return;
+      }
       void checkForUpdate(false, trigger, reason);
     } catch (err) {
       console.error('[StartupCoordinator] Failed to trigger update check:', err);

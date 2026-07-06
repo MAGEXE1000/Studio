@@ -13,7 +13,11 @@ import {
   getActiveSession,
   exportSessionSubset,
   type UpdateSession,
-  otaDebugLogs
+  otaDebugLogs,
+  isUpdateSessionActive,
+  loadPersistedSession,
+  activeUpdateSession,
+  globalOtaState
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -298,7 +302,30 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     showToast(`Full history exported as ${format.toUpperCase()}`);
   };
 
+  const [activeTab, setActiveTab] = useState<'overview' | 'session' | 'timeline' | 'history' | 'diagnostics' | 'performance' | 'simulation'>('overview');
+  const [fps, setFps] = useState(60);
+
+  useEffect(() => {
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let animId: number;
+
+    const tick = () => {
+      frameCount++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        setFps(Math.round((frameCount * 1000) / (now - lastTime)));
+        frameCount = 0;
+        lastTime = now;
+      }
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
   const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[sessions.length - 1];
+  const curSession = loadPersistedSession();
 
   return (
     <div ref={scrollRef} className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
@@ -328,363 +355,332 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
         </div>
       </header>
 
+      {/* Horizontal scrolling tab list */}
+      <div className="flex border-b border-[#484848]/10 overflow-x-auto no-scrollbar bg-black sticky top-[72px] z-40 px-6">
+        {[
+          { id: 'overview', label: 'Overview', icon: 'info' },
+          { id: 'session', label: 'Current Session', icon: 'settings_backup_restore' },
+          { id: 'timeline', label: 'Workflow Timeline', icon: 'event_note' },
+          { id: 'history', label: 'Update History', icon: 'history' },
+          { id: 'diagnostics', label: 'Diagnostics', icon: 'analytics' },
+          { id: 'performance', label: 'Performance', icon: 'insights' },
+          { id: 'simulation', label: 'Simulation', icon: 'science' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex items-center gap-2 px-5 py-4 border-b-2 text-sm font-semibold whitespace-nowrap cursor-pointer transition-colors outline-none bg-transparent ${
+              activeTab === tab.id
+                ? 'border-tertiary text-tertiary'
+                : 'border-transparent text-on-surface-variant hover:text-white'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Main Content viewport */}
       <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 select-none">
         
-        {/* Session Selector & Details Accordion */}
-        <AccordionSection
-          title="Update Sessions History"
-          icon="history"
-          isOpen={accordions.sessionSelector}
-          onToggle={() => toggleAccordion('sessionSelector')}
-        >
-          <div className="space-y-4 bg-black">
-            <div className="bg-black">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Select Diagnostic Session</label>
-              <select
-                value={selectedSessionId}
-                onChange={(e) => setSelectedSessionId(e.target.value)}
-                className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-tertiary transition-colors"
-              >
-                <option value="current">-- Active/Latest Session --</option>
-                {sessions.slice().reverse().map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.id} ({s.result} - {s.version || 'unknown'} - {new Date(s.startTime).toLocaleDateString()})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* History Management Operations Panel */}
-            <div className="flex flex-wrap gap-2 pt-2 pb-2 border-t border-[#484848]/10 bg-black">
-              <button
-                onClick={handleCopySelectedSession}
-                className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                <span>Copy Selected Session</span>
-              </button>
-              <button
-                onClick={handleCopyEntireHistory}
-                className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">library_books</span>
-                <span>Copy Entire History</span>
-              </button>
-              <div className="relative group">
-                <button
-                  className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">download</span>
-                  <span>Export History</span>
-                </button>
-                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-[#1d1d1f] border border-[#484848]/20 rounded-xl p-1 shadow-xl min-w-[140px] z-[50]">
-                  <button onClick={() => handleExportHistory('json')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">JSON Format</button>
-                  <button onClick={() => handleExportHistory('md')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">Markdown Format</button>
+        {activeTab === 'overview' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary">info</span>
+                System Overview
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Update State</span>
+                  <span className="text-sm font-bold text-white font-mono">{globalOtaState.updateState}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Session Active</span>
+                  <span className="text-sm font-bold text-white">{isUpdateSessionActive() ? 'Yes' : 'No'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Consecutive Failures</span>
+                  <span className="text-sm font-bold text-white">{globalOtaState.consecutiveFailures}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Active Fallback</span>
+                  <span className="text-sm font-bold text-white font-mono">{globalOtaState.activeFallback || 'None'}</span>
                 </div>
               </div>
-              {selectedSession && (
-                <button
-                  onClick={handleDeleteSession}
-                  className="flex items-center gap-1.5 bg-red-950/20 hover:bg-red-950/30 border border-red-500/10 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">delete</span>
-                  <span>Delete Selected Session</span>
-                </button>
-              )}
-              <button
-                onClick={handleDeleteAll}
-                className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer sm:ml-auto"
-              >
-                <span className="material-symbols-outlined text-[16px]">delete_forever</span>
-                <span>Delete All Sessions</span>
-              </button>
             </div>
+            <TelemetryGrid 
+              nativeDeviceInfo={nativeDeviceInfo}
+              nativeInstallerDetails={nativeInstallerDetails}
+            />
+          </div>
+        )}
 
-            {selectedSession ? (
+        {activeTab === 'session' && (
+          <div className="space-y-4 animate-fadeIn">
+            {curSession ? (
               <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                  <span className="material-symbols-outlined text-tertiary">settings_backup_restore</span>
+                  Active Update Session Details
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Session ID</span>
-                    <span className="text-sm font-bold text-white">{selectedSession.id}</span>
+                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Session ID</span>
+                    <span className="text-sm font-bold text-white font-mono">{curSession.sessionId}</span>
                   </div>
                   <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Result State</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold inline-block border ${
-                      selectedSession.result === 'SUCCESS' ? 'bg-green-500/10 text-green-400 border-green-500/25' :
-                      selectedSession.result === 'FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/25' :
-                      selectedSession.result === 'CANCELLED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/25' :
-                      selectedSession.result === 'FINISHED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/25' :
-                      'bg-gray-500/10 text-gray-400 border-gray-500/25'
-                    }`}>{selectedSession.result}</span>
+                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Created At</span>
+                    <span className="text-sm font-bold text-white">{new Date(curSession.creationTimestamp).toLocaleString()}</span>
                   </div>
                   <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Target Version</span>
-                    <span className="text-sm font-bold text-white">{selectedSession.version || 'Checking...'}</span>
+                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Pipeline ID</span>
+                    <span className="text-sm font-bold text-white font-mono">{curSession.pipelineId || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Duration</span>
-                    <span className="text-sm font-bold text-white">
-                      {selectedSession.durationMs ? `${(selectedSession.durationMs / 1000).toFixed(2)}s` : 'In progress'}
-                    </span>
+                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Current State</span>
+                    <span className="text-sm font-bold text-white font-mono">{curSession.currentState}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Previous State</span>
+                    <span className="text-sm font-bold text-white font-mono">{curSession.previousState || 'None'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Started By</span>
+                    <span className="text-sm font-bold text-white">{curSession.startedBy}</span>
                   </div>
                 </div>
-
-                <div className="border-t border-[#484848]/10 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-on-surface-variant">
-                  <div><span className="font-semibold text-[#e7e5e4]">Started:</span> {new Date(selectedSession.startTime).toLocaleString()}</div>
-                  <div><span className="font-semibold text-[#e7e5e4]">Finished:</span> {selectedSession.endTime ? new Date(selectedSession.endTime).toLocaleString() : 'N/A'}</div>
-                  <div><span className="font-semibold text-[#e7e5e4]">Build type:</span> {selectedSession.buildType}</div>
-                  <div><span className="font-semibold text-[#e7e5e4]">Device:</span> {selectedSession.deviceModel} ({selectedSession.androidVersion})</div>
-                </div>
-
-                {/* Subsets Copy Toolbar */}
-                <div className="border-t border-[#484848]/10 pt-4 flex flex-wrap gap-2">
-                  <span className="text-xs font-bold text-[#e7e5e4] flex items-center mr-1">Copy Subset:</span>
-                  <button onClick={() => handleCopySubset('workflow', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Workflow</button>
-                  <button onClick={() => handleCopySubset('timeline', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Timeline</button>
-                  <button onClick={() => handleCopySubset('native', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Native Logs</button>
-                  <button onClick={() => handleCopySubset('js', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">JS Logs</button>
-                  <button onClick={() => handleCopySubset('all', 'json')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Raw JSON</button>
+                <div className="border-t border-[#484848]/10 pt-4">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase mb-1">Session Progress</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-[#2c2c2e] h-2.5 rounded-full overflow-hidden">
+                      <div className="bg-tertiary h-full rounded-full transition-all duration-300" style={{ width: `${curSession.progress * 100}%` }} />
+                    </div>
+                    <span className="text-sm font-bold text-white">{Math.round(curSession.progress * 100)}%</span>
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-6 text-center text-sm text-on-surface-variant font-medium">
-                No active or persistent diagnostic update sessions found.
-              </div>
-            )}
-          </div>
-        </AccordionSection>
-
-        {/* Update Session Timeline Accordion */}
-        {selectedSession && (
-          <AccordionSection
-            title="Update Session Timeline"
-            icon="event_note"
-            isOpen={accordions.timeline}
-            onToggle={() => toggleAccordion('timeline')}
-          >
-            <div className="space-y-4 bg-black">
-              {/* State Durations Table */}
-              {selectedSession.stateDurations && Object.keys(selectedSession.stateDurations).length > 0 && (
-                <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/40 p-4">
-                  <h4 className="text-xs font-bold text-white mb-2 uppercase tracking-wide">Time spent in each State</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                    {Object.entries(selectedSession.stateDurations).map(([state, ms]) => (
-                      <div key={state} className="flex justify-between p-2 rounded bg-black/40 border border-outline-variant/5">
-                        <span className="text-[#a8a29e]">{state}:</span>
-                        <span className="text-tertiary font-bold">{(ms / 1000).toFixed(3)}s ({ms} ms)</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedSession.timeline.length > 0 ? (
-                <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/30 flex flex-col divide-y divide-[#484848]/10 font-mono text-xs max-h-[480px] overflow-y-auto">
-                  {selectedSession.timeline.map((event, idx) => (
-                    <div key={idx} className="p-3 flex items-start gap-4 hover:bg-white/2 transition-colors">
-                      <div className="text-on-surface-variant min-w-[70px] font-bold">{event.timestamp}</div>
-                      <div className="text-[#a8a29e] min-w-[80px] font-bold">{event.offset}</div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-tertiary font-bold uppercase text-[10px] bg-tertiary/10 border border-tertiary/20 px-1.5 rounded">{event.module}</span>
-                          <span className="text-white font-bold">{event.event}</span>
-                          <span className="text-on-surface-variant text-[10px]">State: {event.state}</span>
-                        </div>
-                        {event.reason && <div className="text-on-surface-variant text-[11px] break-words">{event.reason}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                  No timeline logs recorded for this session.
-                </div>
-              )}
-            </div>
-          </AccordionSection>
-        )}
-
-        {/* Update Workflow Transitions Accordion */}
-        {selectedSession && (
-          <AccordionSection
-            title="Update Workflow Transitions"
-            icon="alt_route"
-            isOpen={accordions.workflow}
-            onToggle={() => toggleAccordion('workflow')}
-          >
-            <div className="space-y-4 bg-black">
-              {selectedSession.transitions.length > 0 ? (
-                <div className="space-y-4 max-h-[520px] overflow-y-auto pr-1">
-                  {selectedSession.transitions.map((trans, idx) => (
-                    <div key={idx} className="border border-[#484848]/15 rounded-2xl p-4 bg-[#1c1c1e]/40 space-y-3 font-mono text-xs relative overflow-hidden">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-tertiary" />
-                      
-                      <div className="flex justify-between items-center flex-wrap gap-2">
-                        <div className="flex items-center gap-2 flex-wrap font-bold text-white">
-                          <span className="px-1.5 py-0.5 bg-[#484848]/20 rounded text-on-surface-variant">{trans.previousState}</span>
-                          <span className="material-symbols-outlined text-on-surface-variant text-sm">arrow_forward</span>
-                          <span className="px-1.5 py-0.5 bg-tertiary/20 text-tertiary rounded border border-tertiary/10">{trans.nextState}</span>
-                        </div>
-                        <div className="text-on-surface-variant text-[10px] font-bold">
-                          {trans.timestamp} | Elapsed: {(trans.elapsedTimeMs / 1000).toFixed(3)}s
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-on-surface-variant text-[11px] border-t border-[#484848]/10 pt-2.5">
-                        <div><span className="text-white font-bold">Function:</span> `{trans.functionName}`</div>
-                        <div><span className="text-white font-bold">File:</span> `{trans.file}`</div>
-                        <div className="sm:col-span-2 break-all"><span className="text-white font-bold">Caller:</span> `{trans.caller}`</div>
-                        <div className="sm:col-span-2"><span className="text-white font-bold">Reason:</span> {trans.reason}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                  No workflow state transitions recorded for this session.
-                </div>
-              )}
-            </div>
-          </AccordionSection>
-        )}
-
-        {/* Closing Stack Trace & UpToDate Triggers inside Selected Session */}
-        {selectedSession && (selectedSession.closeEvent || selectedSession.upToDateEvent) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black">
-            {selectedSession.closeEvent && (
-              <div className="border border-red-500/15 rounded-2xl p-5 bg-red-950/10 space-y-3">
-                <div className="flex items-center gap-2 text-red-400 font-headline font-bold text-sm">
-                  <span className="material-symbols-outlined text-[20px]">cancel_presentation</span>
-                  <span>Updater Close Handler</span>
-                </div>
-                <div className="space-y-1.5 font-mono text-[11px] text-[#e7e5e4]">
-                  <div><span className="text-red-400/80 font-bold">Function:</span> `{selectedSession.closeEvent.functionName}`</div>
-                  <div><span className="text-red-400/80 font-bold">File:</span> `{selectedSession.closeEvent.file}`</div>
-                  <div><span className="text-red-400/80 font-bold">Reason:</span> {selectedSession.closeEvent.reason}</div>
-                  <div><span className="text-red-400/80 font-bold">Closed State:</span> `{selectedSession.closeEvent.currentState}`</div>
-                  <div className="pt-2 border-t border-red-500/10">
-                    <span className="block text-[9px] text-red-400/70 font-bold uppercase mb-1">Stack Trace</span>
-                    <pre className="p-2.5 rounded bg-black/60 border border-red-500/5 overflow-auto max-h-32 text-[10px] text-red-300 no-scrollbar whitespace-pre-wrap break-all font-mono">
-                      {selectedSession.closeEvent.stackTrace}
-                    </pre>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {selectedSession.upToDateEvent && (
-              <div className="border border-[#484848]/20 rounded-2xl p-5 bg-[#1c1c1e]/40 space-y-3">
-                <div className="flex items-center gap-2 text-tertiary font-headline font-bold text-sm">
-                  <span className="material-symbols-outlined text-[20px]">info</span>
-                  <span>"Up to date" Popup Trigger</span>
-                </div>
-                <div className="space-y-1.5 font-mono text-[11px] text-[#e7e5e4]">
-                  <div><span className="text-tertiary font-bold">Trigger Type:</span> <span className="px-1.5 py-0.5 rounded bg-tertiary/15 text-tertiary text-[9px] font-bold border border-tertiary/10">{selectedSession.upToDateEvent.triggerType}</span></div>
-                  <div><span className="text-tertiary font-bold">Function:</span> `{selectedSession.upToDateEvent.functionName}`</div>
-                  <div><span className="text-tertiary font-bold">File:</span> `{selectedSession.upToDateEvent.file}`</div>
-                  <div><span className="text-tertiary font-bold">Reason:</span> {selectedSession.upToDateEvent.reason}</div>
-                  <div className="pt-2 border-t border-[#484848]/10">
-                    <span className="block text-[9px] text-[#8c8c8c] font-bold uppercase mb-1">Stack Trace</span>
-                    <pre className="p-2.5 rounded bg-black/60 border border-[#484848]/10 overflow-auto max-h-32 text-[10px] text-on-surface-variant no-scrollbar whitespace-pre-wrap break-all font-mono">
-                      {selectedSession.upToDateEvent.stackTrace}
-                    </pre>
-                  </div>
-                </div>
+                No active updater session currently running.
               </div>
             )}
           </div>
         )}
 
-        {/* Existing System Telemetry Accordion */}
-        <AccordionSection 
-          title="Native Telemetry & Environment" 
-          icon="analytics" 
-          isOpen={accordions.telemetry} 
-          onToggle={() => toggleAccordion('telemetry')}
-        >
-          <TelemetryGrid 
-            nativeDeviceInfo={nativeDeviceInfo}
-            nativeInstallerDetails={nativeInstallerDetails}
-          />
-        </AccordionSection>
+        {activeTab === 'timeline' && (
+          <div className="space-y-4 animate-fadeIn">
+            {selectedSession && selectedSession.timeline.length > 0 ? (
+              <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/30 flex flex-col divide-y divide-[#484848]/10 font-mono text-xs max-h-[640px] overflow-y-auto">
+                {selectedSession.timeline.map((event, idx) => (
+                  <div key={idx} className="p-3 flex items-start gap-4 hover:bg-white/2 transition-colors">
+                    <div className="text-on-surface-variant min-w-[70px] font-bold">{event.timestamp}</div>
+                    <div className="text-[#a8a29e] min-w-[80px] font-bold">{event.offset}</div>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-tertiary font-bold uppercase text-[10px] bg-tertiary/10 border border-tertiary/20 px-1.5 rounded">{event.module}</span>
+                        <span className="text-white font-bold">{event.event}</span>
+                        <span className="text-on-surface-variant text-[10px]">State: {event.state}</span>
+                      </div>
+                      {event.reason && <div className="text-on-surface-variant text-[11px] break-words">{event.reason}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
+                No timeline logs recorded for this session.
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Action Controls Accordion */}
-        <AccordionSection 
-          title="Production Actions" 
-          icon="settings_remote" 
-          isOpen={accordions.actions} 
-          onToggle={() => toggleAccordion('actions')}
-        >
-          <ProductionActions 
-            showToast={showToast} 
-            triggerRefresh={triggerRefresh}
-            addJsLog={addJsLog}
-          />
-        </AccordionSection>
+        {activeTab === 'history' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Select Diagnostic Session</label>
+                <select
+                  value={selectedSessionId}
+                  onChange={(e) => setSelectedSessionId(e.target.value)}
+                  className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-tertiary transition-colors"
+                >
+                  <option value="current">-- Active/Latest Session --</option>
+                  {sessions.slice().reverse().map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.id} ({s.result} - {s.version || 'unknown'} - {new Date(s.startTime).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        {/* Live Console Accordion */}
-        <AccordionSection 
-          title="Live Debug Console" 
-          icon="terminal" 
-          isOpen={accordions.logs} 
-          onToggle={() => toggleAccordion('logs')}
-        >
-          <LiveConsole 
-            nativeLogsList={nativeLogsList}
-            clearNativeLogsList={() => setNativeLogsList([])}
-            showToast={showToast}
-            addJsLog={addJsLog}
-          />
-        </AccordionSection>
+              {/* History Management Operations Panel */}
+              <div className="flex flex-wrap gap-2 pt-2 pb-2 border-t border-[#484848]/10">
+                <button
+                  onClick={handleCopySelectedSession}
+                  className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                  <span>Copy Selected Session</span>
+                </button>
+                <button
+                  onClick={handleCopyEntireHistory}
+                  className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">library_books</span>
+                  <span>Copy Entire History</span>
+                </button>
+                <div className="relative group">
+                  <button
+                    className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    <span>Export History</span>
+                  </button>
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-[#1d1d1f] border border-[#484848]/20 rounded-xl p-1 shadow-xl min-w-[140px] z-[50]">
+                    <button onClick={() => handleExportHistory('json')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">JSON Format</button>
+                    <button onClick={() => handleExportHistory('md')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">Markdown Format</button>
+                  </div>
+                </div>
+                {selectedSession && (
+                  <button
+                    onClick={handleDeleteSession}
+                    className="flex items-center gap-1.5 bg-red-950/20 hover:bg-red-950/30 border border-red-500/10 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <span>Delete Selected Session</span>
+                  </button>
+                )}
+                <button
+                  onClick={handleDeleteAll}
+                  className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer sm:ml-auto"
+                >
+                  <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                  <span>Delete All Sessions</span>
+                </button>
+              </div>
 
-        {/* Simulation Lab Accordion */}
-        <AccordionSection 
-          title="Simulation Laboratory" 
-          icon="science" 
-          isOpen={accordions.simulation} 
-          onToggle={() => toggleAccordion('simulation')}
-        >
-          <SimulationLab 
-            showToast={showToast}
-            triggerRefresh={triggerRefresh}
-            nativeDeviceInfo={nativeDeviceInfo}
-            nativeInstallerDetails={nativeInstallerDetails}
-            localApkDetails={localApkDetails}
-            nativeLogsList={nativeLogsList}
-          />
-        </AccordionSection>
+              {selectedSession ? (
+                <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Session ID</span>
+                      <span className="text-sm font-bold text-white">{selectedSession.id}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Result State</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold inline-block border ${
+                        selectedSession.result === 'SUCCESS' ? 'bg-green-500/10 text-green-400 border-green-500/25' :
+                        selectedSession.result === 'FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/25' :
+                        selectedSession.result === 'CANCELLED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/25' :
+                        selectedSession.result === 'FINISHED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/25' :
+                        'bg-gray-500/10 text-gray-400 border-gray-500/25'
+                      }`}>{selectedSession.result}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Target Version</span>
+                      <span className="text-sm font-bold text-white">{selectedSession.version || 'Checking...'}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Duration</span>
+                      <span className="text-sm font-bold text-white">
+                        {selectedSession.durationMs ? `${(selectedSession.durationMs / 1000).toFixed(2)}s` : 'In progress'}
+                      </span>
+                    </div>
+                  </div>
 
-        {/* State Machine Transition Diagram Accordion */}
-        <AccordionSection 
-          title="Update State Diagram" 
-          icon="insights" 
-          isOpen={accordions.stateMachine} 
-          onToggle={() => toggleAccordion('stateMachine')}
-        >
-          <StateMachineVisualizer />
-        </AccordionSection>
+                  <div className="border-t border-[#484848]/10 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-on-surface-variant">
+                    <div><span className="font-semibold text-[#e7e5e4]">Started:</span> {new Date(selectedSession.startTime).toLocaleString()}</div>
+                    <div><span className="font-semibold text-[#e7e5e4]">Finished:</span> {selectedSession.endTime ? new Date(selectedSession.endTime).toLocaleString() : 'N/A'}</div>
+                    <div><span className="font-semibold text-[#e7e5e4]">Build type:</span> {selectedSession.buildType}</div>
+                    <div><span className="font-semibold text-[#e7e5e4]">Device:</span> {selectedSession.deviceModel} ({selectedSession.androidVersion})</div>
+                  </div>
 
-        {/* Engineering Report Preview Accordion */}
-        <AccordionSection 
-          title="Unified Report Preview" 
-          icon="description" 
-          isOpen={accordions.report} 
-          onToggle={() => toggleAccordion('report')}
-        >
-          <ReportPreview 
-            nativeDeviceInfo={nativeDeviceInfo}
-            nativeInstallerDetails={nativeInstallerDetails}
-            localApkDetails={localApkDetails}
-            nativeLogsList={nativeLogsList}
-          />
-        </AccordionSection>
+                  {/* Subsets Copy Toolbar */}
+                  <div className="border-t border-[#484848]/10 pt-4 flex flex-wrap gap-2">
+                    <span className="text-xs font-bold text-[#e7e5e4] flex items-center mr-1">Copy Subset:</span>
+                    <button onClick={() => handleCopySubset('workflow', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Workflow</button>
+                    <button onClick={() => handleCopySubset('timeline', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Timeline</button>
+                    <button onClick={() => handleCopySubset('native', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Native Logs</button>
+                    <button onClick={() => handleCopySubset('js', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">JS Logs</button>
+                    <button onClick={() => handleCopySubset('all', 'json')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Raw JSON</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-6 text-center text-sm text-on-surface-variant font-medium">
+                  No persistent diagnostic update sessions found.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'diagnostics' && (
+          <div className="space-y-4 animate-fadeIn">
+            <DiagnosticsStack 
+              nativeDeviceInfo={nativeDeviceInfo}
+              nativeInstallerDetails={nativeInstallerDetails}
+              localApkDetails={localApkDetails}
+              nativeLogsList={nativeLogsList}
+              showToast={showToast}
+            />
+            <ProductionActions 
+              showToast={showToast} 
+              triggerRefresh={triggerRefresh}
+              addJsLog={addJsLog}
+            />
+          </div>
+        )}
+
+        {activeTab === 'performance' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary">insights</span>
+                Real-Time Performance
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">UI Thread Performance</span>
+                  <span className="text-xl font-bold text-green-400 font-mono">{fps} FPS</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">React Commit Count</span>
+                  <span className="text-xl font-bold text-white font-mono">{otaDebugLogs?.renderCount ?? 0}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">React Layout Cycles</span>
+                  <span className="text-xl font-bold text-white font-mono">{otaDebugLogs?.layoutCount ?? 0}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Frame Paints</span>
+                  <span className="text-xl font-bold text-white font-mono">{otaDebugLogs?.paintCount ?? 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'simulation' && (
+          <div className="space-y-4 animate-fadeIn">
+            <SimulationLab 
+              showToast={showToast}
+              triggerRefresh={triggerRefresh}
+              nativeDeviceInfo={nativeDeviceInfo}
+              nativeInstallerDetails={nativeInstallerDetails}
+              localApkDetails={localApkDetails}
+              nativeLogsList={nativeLogsList}
+            />
+            <StateMachineVisualizer />
+          </div>
+        )}
 
       </main>
 
       {/* Toast Notification Container */}
       {toastMsg && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-surface-container-high border border-outline-variant/10 px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce">
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-[#1c1c1e] border border-outline-variant/10 px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce">
           <span className="material-symbols-outlined text-[16px] text-green-400">done</span>
           {toastMsg}
         </div>

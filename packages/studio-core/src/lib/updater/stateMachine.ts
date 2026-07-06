@@ -8,10 +8,12 @@ export type OtaUpdateState =
   | 'FETCH_APK_INFORMATION'
   | 'DOWNLOAD_APK'
   | 'VERIFY_SHA256'
-  | 'PREPARE_INSTALL'
-  | 'WAIT_PACKAGE_INSTALLER'
+  | 'PREPARING_INSTALL'
+  | 'WAITING_USER_CONFIRMATION'
+  | 'PACKAGEINSTALLER_VISIBLE'
   | 'INSTALLING'
   | 'INSTALL_SUCCESS'
+  | 'INSTALL_CANCELLED'
   | 'INSTALL_FAILED'
   | 'RECOVERY'
   | 'IDLE';
@@ -54,12 +56,94 @@ export interface CentralizedOtaState {
   sessionId: number | null;
 }
 
+export interface ActiveUpdateSession {
+  sessionId: string;
+  creationTimestamp: number;
+  pipelineId: number | null;
+  currentState: OtaUpdateState;
+  previousState: OtaUpdateState | null;
+  startedBy: string;
+  progress: number;
+  packageInstallerState: string | null;
+  targetVersion: string | null;
+  apkUrl: string | null;
+  apkSha256: string | null;
+  mandatory: boolean;
+  updateType: 'ota' | 'apk' | 'both' | 'none';
+  changelog: string | null;
+  releaseNotes: string[] | StructuredReleaseNotes | null;
+}
+
+export let activeUpdateSession: ActiveUpdateSession | null = null;
+
+export function loadPersistedSession(): ActiveUpdateSession | null {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const sessionStr = localStorage.getItem('studio:active_update_session');
+      if (sessionStr) {
+        const parsed = JSON.parse(sessionStr);
+        activeUpdateSession = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('[Session Recovery] Failed to load persisted session:', e);
+  }
+  return null;
+}
+
+function saveSession() {
+  if (activeUpdateSession) {
+    try {
+      localStorage.setItem('studio:active_update_session', JSON.stringify(activeUpdateSession));
+    } catch (_) {}
+  }
+}
+
+export function isUpdateSessionActive(): boolean {
+  return activeUpdateSession !== null;
+}
+
+export function startUpdateSession(startedBy: string, trigger: string) {
+  if (activeUpdateSession) {
+    if (startedBy === 'manual' && activeUpdateSession.startedBy.startsWith('automatic')) {
+      activeUpdateSession.startedBy = `manual (${trigger})`;
+      saveSession();
+    }
+    console.log(`[UpdateSession] Reusing active session: ${activeUpdateSession.sessionId}`);
+    return activeUpdateSession;
+  }
+  
+  const sId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  activeUpdateSession = {
+    sessionId: sId,
+    creationTimestamp: Date.now(),
+    pipelineId: activePipelineContext?.checkId ?? null,
+    currentState: 'INITIALIZING',
+    previousState: null,
+    startedBy: `${startedBy} (${trigger})`,
+    progress: 0,
+    packageInstallerState: null,
+    targetVersion: globalOtaState.remoteVersion,
+    apkUrl: globalOtaState.apkUrl,
+    apkSha256: globalOtaState.apkSha256,
+    mandatory: globalOtaState.mandatory,
+    updateType: globalOtaState.updateType,
+    changelog: globalOtaState.changelog,
+    releaseNotes: globalOtaState.releaseNotes,
+  };
+  
+  saveSession();
+  console.log(`[UpdateSession] Created new session: ${sId}`);
+  return activeUpdateSession;
+}
+
 const getInitialState = (): OtaUpdateState => {
   try {
     if (typeof localStorage !== 'undefined') {
-      const inProgress = localStorage.getItem('studio:install_in_progress') === 'true';
-      if (inProgress) {
-        return 'INSTALLING';
+      const session = loadPersistedSession();
+      if (session) {
+        return session.currentState;
       }
     }
   } catch (_) {}
@@ -69,6 +153,10 @@ const getInitialState = (): OtaUpdateState => {
 const getInitialRemoteVersion = (): string | null => {
   try {
     if (typeof localStorage !== 'undefined') {
+      const session = loadPersistedSession();
+      if (session) {
+        return session.targetVersion;
+      }
       return localStorage.getItem('studio:downloadedApkVersion');
     }
   } catch (_) {}
@@ -77,20 +165,22 @@ const getInitialRemoteVersion = (): string | null => {
 
 const initialUpdateState = getInitialState();
 
+const savedSession = loadPersistedSession();
+
 export let globalOtaState: CentralizedOtaState = {
   updateState: initialUpdateState,
   loading: false,
-  progress: 0,
+  progress: savedSession ? savedSession.progress : 0,
   error: null,
-  statusText: initialUpdateState === 'INSTALLING' ? 'Restoring installation session...' : null,
+  statusText: initialUpdateState === 'INSTALLING' ? 'Installing update...' : null,
   remoteVersion: getInitialRemoteVersion(),
-  updateAvailable: initialUpdateState === 'INSTALLING',
-  mandatory: false,
-  changelog: null,
-  releaseNotes: null,
+  updateAvailable: savedSession !== null,
+  mandatory: savedSession ? savedSession.mandatory : false,
+  changelog: savedSession ? savedSession.changelog : null,
+  releaseNotes: savedSession ? savedSession.releaseNotes : null,
   packageName: null,
-  apkUrl: null,
-  apkSha256: null,
+  apkUrl: savedSession ? savedSession.apkUrl : null,
+  apkSha256: savedSession ? savedSession.apkSha256 : null,
   manualApkUrl: null,
   fallbackApkUrl: null,
   downloadUrl: null,
@@ -98,11 +188,11 @@ export let globalOtaState: CentralizedOtaState = {
   consecutiveFailures: 0,
   activeFallback: null,
   recoveryMode: false,
-  updateType: initialUpdateState === 'INSTALLING' ? 'apk' : 'none',
+  updateType: savedSession ? savedSession.updateType : 'none',
   reinstallRequired: false,
   requiredVersionCode: 0,
   apkUpdateRequired: false,
-  validApkExists: initialUpdateState === 'INSTALLING',
+  validApkExists: savedSession !== null,
   sessionId: null,
 };
 
@@ -243,22 +333,28 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
         isValid = ['FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'FETCH_APK_INFORMATION':
-        isValid = ['DOWNLOAD_APK', 'PREPARE_INSTALL', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = ['DOWNLOAD_APK', 'PREPARING_INSTALL', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'DOWNLOAD_APK':
         isValid = ['VERIFY_SHA256', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'VERIFY_SHA256':
-        isValid = ['PREPARE_INSTALL', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = ['PREPARING_INSTALL', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
         break;
-      case 'PREPARE_INSTALL':
-        isValid = ['WAIT_PACKAGE_INSTALLER', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+      case 'PREPARING_INSTALL':
+        isValid = ['WAITING_USER_CONFIRMATION', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
         break;
-      case 'WAIT_PACKAGE_INSTALLER':
-        isValid = ['INSTALLING', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+      case 'WAITING_USER_CONFIRMATION':
+        isValid = ['PACKAGEINSTALLER_VISIBLE', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'PACKAGEINSTALLER_VISIBLE':
+        isValid = ['INSTALLING', 'INSTALL_CANCELLED', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'INSTALLING':
         isValid = ['INSTALL_SUCCESS', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        break;
+      case 'INSTALL_CANCELLED':
+        isValid = ['RECOVERY', 'IDLE'].includes(state);
         break;
       case 'INSTALL_SUCCESS':
         isValid = ['IDLE', 'INITIALIZING'].includes(state);
@@ -267,7 +363,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
         isValid = ['RECOVERY', 'IDLE'].includes(state);
         break;
       case 'RECOVERY':
-        isValid = ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'DOWNLOAD_APK', 'WAIT_PACKAGE_INSTALLER', 'IDLE'].includes(state);
+        isValid = ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'DOWNLOAD_APK', 'WAITING_USER_CONFIRMATION', 'IDLE'].includes(state);
         break;
       default:
         isValid = false;
@@ -335,7 +431,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     }, 15000);
   } else if (state === 'DOWNLOAD_APK') {
     resetDownloadWatchdog();
-  } else if (['VERIFY_SHA256', 'PREPARE_INSTALL'].includes(state)) {
+  } else if (['VERIFY_SHA256', 'PREPARING_INSTALL'].includes(state)) {
     watchdogTimer = setTimeout(() => {
       if (globalOtaState.updateState === state) {
         handleWatchdogTimeout(`Update package verification timed out (20s) at state ${state}.`);
@@ -364,11 +460,26 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     }, 120000);
   }
 
+  // Update active session details
+  if (activeUpdateSession) {
+    activeUpdateSession.previousState = current;
+    activeUpdateSession.currentState = state;
+    if (['IDLE', 'INSTALL_SUCCESS', 'INSTALL_CANCELLED'].includes(state)) {
+      console.log(`[UpdateSession] Ending update session: ${activeUpdateSession.sessionId}`);
+      activeUpdateSession = null;
+      try {
+        localStorage.removeItem('studio:active_update_session');
+      } catch (_) {}
+    } else {
+      saveSession();
+    }
+  }
+
   // Apply the state change — this is the ONLY place updateState is written
   globalOtaState = {
     ...globalOtaState,
     updateState: state,
-    loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARE_INSTALL', 'INSTALLING'].includes(state),
+    loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'INSTALLING'].includes(state),
     error: ['INSTALL_FAILED', 'RECOVERY'].includes(state)
       ? (failureReason || globalOtaState.error)
       : (state === 'IDLE'
@@ -378,10 +489,10 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
 
   try {
     if (typeof localStorage !== 'undefined') {
-      const isActive = ['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARE_INSTALL', 'WAIT_PACKAGE_INSTALLER', 'INSTALLING'].includes(state);
+      const isActive = ['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(state);
       if (isActive) {
         localStorage.setItem('studio:install_in_progress', 'true');
-      } else if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state)) {
+      } else if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(state)) {
         localStorage.removeItem('studio:install_in_progress');
         localStorage.removeItem('studio:is_simulation_active');
       }

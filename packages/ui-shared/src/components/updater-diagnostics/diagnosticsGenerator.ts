@@ -528,7 +528,7 @@ export function generateCopyEverythingReport(
         icon = '✖ ERROR';
       } else if (t.nextState === 'RECOVERY') {
         icon = '↺ RECOVERED';
-      } else if (t.nextState === 'WAIT_PACKAGE_INSTALLER') {
+      } else if (['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(t.nextState)) {
         icon = '⚠ WARNING';
       }
       report += `| ${t.timestamp} | ${(t.elapsedTimeMs / 1000).toFixed(3)}s | ${t.previousState} | ${t.nextState} | ${t.functionName} | ${t.file} | ${t.reason.replace(/\|/g, '\\|')} | ${icon} |\n`;

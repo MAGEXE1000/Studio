@@ -1,8 +1,9 @@
 ### Added
-- Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.
-- Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.
-- Callback roundtrip latency metrics inside Telemetry grid dashboard.
+- Multi-tab Developer Diagnostics Page (Overview, Current Session, Workflow Timeline, Update History, Diagnostics, Performance, Simulation).
+- Live Frame Rate (FPS) tracker utilizing requestAnimationFrame.
+- Timeline log enhancement tracking updater lifecycleState, packageInstallerStatus, and progress.
 
 ### Fixed
-- Hardened PackageInstaller background installation recovery checks upon app reopen.
-- Fast simulated update loops running in less than 300ms total.
+- Fixed update session persistence using localStorage to withstand app restarts and rebuilds.
+- Fixed checking updates collision where manual checks can supersede active background check sessions.
+- Resolved type safety and session naming collisions.

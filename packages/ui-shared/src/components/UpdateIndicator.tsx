@@ -50,8 +50,9 @@ const isUpdateInProgress = (state: string) => {
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
     'VERIFY_SHA256',
-    'PREPARE_INSTALL',
-    'WAIT_PACKAGE_INSTALLER',
+    'PREPARING_INSTALL',
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
     'INSTALLING'
   ].includes(state);
 };
@@ -1077,10 +1078,12 @@ function UpdateModal({
     if (s === 'UPDATE_AVAILABLE') return 'update_available';
     if (s === 'FETCH_APK_INFORMATION' || s === 'DOWNLOAD_APK') return 'downloading';
     if (s === 'VERIFY_SHA256') return 'verifying_sha';
-    if (s === 'PREPARE_INSTALL') return 'verifying_eligibility';
-    if (s === 'WAIT_PACKAGE_INSTALLER') return 'ready_to_install';
+    if (s === 'PREPARING_INSTALL') return 'verifying_eligibility';
+    if (s === 'WAITING_USER_CONFIRMATION') return 'ready_to_install';
+    if (s === 'PACKAGEINSTALLER_VISIBLE') return 'packageinstaller_visible';
     if (s === 'INSTALLING') return 'installing';
     if (s === 'INSTALL_SUCCESS') return 'completed';
+    if (s === 'INSTALL_CANCELLED') return 'cancelled';
     if (s === 'INSTALL_FAILED') return 'failed';
     if (s === 'RECOVERY') {
       if (ota.error?.includes('Signature mismatch') || ota.error?.includes('Conflicting Package')) return 'signature_mismatch';

@@ -1,6 +1,6 @@
 import { isNative } from '../capgoUpdater';
 import { APP_VERSION } from '../appVersion';
-import { globalOtaState, activePipelineContext } from './stateMachine';
+import { globalOtaState, activePipelineContext, startUpdateSession } from './stateMachine';
 
 export interface OtaDiagnostics {
   exceptionMessage: string | null;
@@ -527,6 +527,10 @@ export interface WorkflowTransition {
   sessionId: string;
   pipelineId: string | number | null;
   durationMs: number;
+  screen?: string;
+  lifecycleState?: string;
+  packageInstallerStatus?: string | number | null;
+  progress?: number;
 }
 
 export interface CloseEvent {
@@ -667,7 +671,7 @@ export function parseStackTrace(error = new Error()): CallerInfo {
   };
 }
 
-export function startUpdateSession(trigger = 'unknown', reason = 'unknown') {
+export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'unknown') {
   let devMode = false;
   try {
     const storeStr = localStorage.getItem('chord-explorer-storage-v3');
@@ -804,6 +808,20 @@ export function recordStateTransition(fromState: string, toState: string, reason
   const enteredTime = lastTransition ? lastTransition.absoluteTimestamp : (session ? session.startTimestamp : now);
   const durationMs = now - enteredTime;
 
+  let screen = 'unknown';
+  try {
+    const { useNavigationStore } = require('../../store/useNavigationStore');
+    const navStore = useNavigationStore.getState();
+    if (navStore && navStore.history && navStore.history.length > 0) {
+      const lastRoute = navStore.history[navStore.history.length - 1];
+      screen = lastRoute.page || lastRoute.tab || lastRoute.app || 'unknown';
+    }
+  } catch (_) {}
+
+  const lifecycleState = typeof document !== 'undefined' ? (document.hidden ? 'background' : 'foreground') : 'unknown';
+  const packageInstallerStatus = (window as any).__studioInstallerStatus || 'none';
+  const progress = globalOtaState.progress;
+
   const trans: WorkflowTransition = {
     timestamp: formatTime,
     absoluteTimestamp: now,
@@ -817,7 +835,11 @@ export function recordStateTransition(fromState: string, toState: string, reason
     elapsedTimeMs,
     sessionId: session ? session.id : 'N/A',
     pipelineId: activePipelineContext ? activePipelineContext.checkId : null,
-    durationMs
+    durationMs,
+    screen,
+    lifecycleState,
+    packageInstallerStatus,
+    progress
   };
 
   if (session) {
@@ -841,11 +863,15 @@ export function recordStateTransition(fromState: string, toState: string, reason
       session.result = 'FINISHED';
       session.endTime = new Date().toISOString();
       session.durationMs = now - session.startTimestamp;
-    } else if (toState === 'INSTALL_FAILED') {
-      session.result = reason.toLowerCase().includes('cancel') ? 'CANCELLED' : 'FAILED';
+    } else if (toState === 'INSTALL_CANCELLED') {
+      session.result = 'CANCELLED';
       session.endTime = new Date().toISOString();
       session.durationMs = now - session.startTimestamp;
-    } else if (toState === 'IDLE' && ['INSTALLING', 'WAIT_PACKAGE_INSTALLER'].includes(fromState)) {
+    } else if (toState === 'INSTALL_FAILED') {
+      session.result = 'FAILED';
+      session.endTime = new Date().toISOString();
+      session.durationMs = now - session.startTimestamp;
+    } else if (toState === 'IDLE' && ['INSTALLING', 'WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(fromState)) {
       session.result = 'ABORTED';
       session.endTime = new Date().toISOString();
       session.durationMs = now - session.startTimestamp;
@@ -1149,7 +1175,7 @@ export function exportSessionSubset(
 
 export function interceptIllegalCall(functionName: string, reason: string) {
   const current = globalOtaState.updateState;
-  const isInstalling = ['WAIT_PACKAGE_INSTALLER', 'INSTALLING'].includes(current);
+  const isInstalling = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(current);
   if (!isInstalling) return;
 
   const caller = parseStackTrace();

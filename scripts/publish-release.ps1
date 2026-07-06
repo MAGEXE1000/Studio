@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.94"
-$VersionCode = "222"
-$ReleaseNote = "v3.7.94 - Release 3.7.94: Performance 2.0 diagnostics integration with state durations, sub-view timelines, real callback latencies, stress loop validation, and startup recovery recovery."
+$VersionName = "3.7.95"
+$VersionCode = "223"
+$ReleaseNote = "v3.7.95 - Release 3.7.95: Robust state machine transitions, localStorage session persistence, active session check logic, Developer Diagnostics multi-tab page, FPS performance tracker, and typecheck/regression validation."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -24,6 +24,8 @@ git add packages/studio-core/src/lib/updater/updaterSimulation.ts
 git add packages/ui-shared/src/components/updater-diagnostics/diagnosticsGenerator.ts
 git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
 git add packages/ui-shared/src/components/updater-diagnostics/TelemetryGrid.tsx
+git add packages/ui-shared/src/components/updater-diagnostics/SimulationLab.tsx
+git add packages/ui-shared/src/components/UpdateIndicator.tsx
 git add packages/ui-shared/src/components/StudioHub.tsx
 git add apps/studio-android/src/index.css
 git add apps/studio-web/src/index.css

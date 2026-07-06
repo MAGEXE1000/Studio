@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.97
+
+### Fixed
+- Fixed version metadata parsing to support multiple tag formats (v3.7.96, Version 3.7.96, refs/tags/v3.7.96).
+- Centralized version parsing and formatting logic across all updater screens and modules.
+- Robust release detection to prevent fallback errors on non-standard remote versions.
+
 ## 3.7.96
 
 ### Fixed

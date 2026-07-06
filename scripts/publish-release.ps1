@@ -12,6 +12,8 @@ Write-Host "Current branch: $BranchName"
 Write-Host "1. Bumping Android and Web versions to $VersionName ($VersionCode)..."
 pnpm version:android --name $VersionName --code $VersionCode
 pnpm version:web -- $VersionName
+node apps/studio-android/scripts/sync-version.mjs
+node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/appVersion.ts

@@ -1,4 +1,4 @@
-import { APP_VERSION, compareSemver } from '../appVersion';
+import { APP_VERSION, compareSemver, parseSemver } from '../appVersion';
 import { RemoteVersionInfo } from './releaseMetadata';
 
 export interface VersionComparisonResult {
@@ -51,13 +51,23 @@ export function compareVersions(
   details.apkUrlPresent = !!apkUrl;
   details.sha256Present = !!remote.apkSha256;
   
-  if (!remote.version || typeof remote.version !== 'string' || !remote.version.trim()) {
+  const parsedRemoteSemver = remote.version ? parseSemver(remote.version) : null;
+  const isVerNameValid = !!parsedRemoteSemver && remote.version !== 'V' && remote.version !== 'v';
+  
+  let isVerCodeValid = true;
+  if (localVersionCode !== undefined && localVersionCode !== null) {
+    const rawVersionCode = remote.versionCode;
+    const versionCode = typeof rawVersionCode === 'number' ? rawVersionCode : (typeof rawVersionCode === 'string' ? parseInt(rawVersionCode, 10) : undefined);
+    isVerCodeValid = (versionCode !== undefined && typeof versionCode === 'number' && !isNaN(versionCode) && versionCode > 0);
+  }
+
+  if (!isVerNameValid || !isVerCodeValid) {
     return {
       updateAvailable: false,
       isDowngrade: false,
       isUpgrade: false,
       isUpToDate: false,
-      explanation: 'Remote metadata integrity check failed: missing or invalid version name.',
+      explanation: `Remote metadata validation failed: version "${remote.version}" (semver: ${isVerNameValid ? 'VALID' : 'INVALID'}) and/or versionCode "${remote.versionCode}" (code: ${isVerCodeValid ? 'VALID' : 'INVALID'}) are invalid.`,
       details,
     };
   }

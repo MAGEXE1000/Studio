@@ -18,6 +18,9 @@ export type OtaUpdateState =
   | 'RECOVERY'
   | 'IDLE';
 
+import { parseSemver } from '../appVersion';
+import { releaseMetadataInspector } from './versionLogger';
+
 export interface StructuredReleaseNotes {
   added?: string[];
   improved?: string[];
@@ -73,6 +76,86 @@ export interface ActiveUpdateSession {
   changelog: string | null;
   releaseNotes: string[] | StructuredReleaseNotes | null;
 }
+
+export function verifyAndCleanCaches() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    
+    console.log('[Cache Verification] Running verification check on all update caches...');
+
+    // 1. Verify session cache
+    const sessionStr = localStorage.getItem('studio:active_update_session');
+    if (sessionStr) {
+      try {
+        const parsed = JSON.parse(sessionStr);
+        const ver = parsed?.targetVersion;
+        const sem = ver ? parseSemver(ver) : null;
+        if (!sem || ver === 'V' || ver === 'v') {
+          console.warn('[Cache Verification] Invalidation: Corrupted session version detected:', ver);
+          localStorage.removeItem('studio:active_update_session');
+          releaseMetadataInspector.cacheSource = 'invalidated_session';
+        } else {
+          releaseMetadataInspector.cacheSource = 'valid_session';
+        }
+      } catch (_) {
+        localStorage.removeItem('studio:active_update_session');
+      }
+    }
+
+    // 2. Verify downloaded APK version cache
+    const downloadedVer = localStorage.getItem('studio:downloadedApkVersion');
+    if (downloadedVer) {
+      const sem = parseSemver(downloadedVer);
+      if (!sem || downloadedVer === 'V' || downloadedVer === 'v') {
+        console.warn('[Cache Verification] Invalidation: Corrupted downloaded APK version detected:', downloadedVer);
+        localStorage.removeItem('studio:downloadedApkVersion');
+        localStorage.removeItem('studio:downloadedApkPath');
+        releaseMetadataInspector.cacheSource = (releaseMetadataInspector.cacheSource || '') + ' | invalidated_apk';
+      } else {
+        releaseMetadataInspector.cacheSource = (releaseMetadataInspector.cacheSource || '') + ' | valid_apk';
+      }
+    }
+
+    // 3. Verify dismissedVersions cache
+    const dismissed = localStorage.getItem('studio:dismissedVersions');
+    if (dismissed) {
+      try {
+        const list = JSON.parse(dismissed);
+        if (Array.isArray(list)) {
+          const cleanList = list.filter(v => typeof v === 'string' && parseSemver(v) !== null && v !== 'V' && v !== 'v');
+          if (cleanList.length !== list.length) {
+            localStorage.setItem('studio:dismissedVersions', JSON.stringify(cleanList));
+            console.warn('[Cache Verification] Cleaned invalid dismissedVersions list');
+          }
+        } else {
+          localStorage.removeItem('studio:dismissedVersions');
+        }
+      } catch (_) {
+        localStorage.removeItem('studio:dismissedVersions');
+      }
+    }
+
+    // 4. Verify recovery versions
+    const lastDismissedRecoveryVer = localStorage.getItem('studio:lastDismissedRecoveryVersion');
+    if (lastDismissedRecoveryVer && (!parseSemver(lastDismissedRecoveryVer) || lastDismissedRecoveryVer === 'V' || lastDismissedRecoveryVer === 'v')) {
+      console.warn('[Cache Verification] Invalidation: Corrupted recovery version:', lastDismissedRecoveryVer);
+      localStorage.removeItem('studio:lastDismissedRecoveryVersion');
+      localStorage.removeItem('studio:lastDismissedRecoveryTimestamp');
+    }
+
+    // 5. Verify later version
+    const laterUpdateVer = localStorage.getItem('studio:laterUpdateVersion');
+    if (laterUpdateVer && (!parseSemver(laterUpdateVer) || laterUpdateVer === 'V' || laterUpdateVer === 'v')) {
+      console.warn('[Cache Verification] Invalidation: Corrupted laterUpdateVersion:', laterUpdateVer);
+      localStorage.removeItem('studio:laterUpdateVersion');
+    }
+  } catch (e) {
+    console.error('[Cache Verification] Error validating caches:', e);
+  }
+}
+
+// Perform initial validation on stateMachine import
+verifyAndCleanCaches();
 
 export let activeUpdateSession: ActiveUpdateSession | null = null;
 

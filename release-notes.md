@@ -1,4 +1,10 @@
+### Added
+- Added adaptive Web navigation rails for laptop/desktop screen widths.
+- Added Web-specific internal app navigation tabs for tablet/iPad screen widths.
+- Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.
+
+### Improved
+- Improved Web shortcuts and deep shortcuts to target sub-sections.
+- Repositioned back buttons inline to prevent overlap in Web layouts.
+
 ### Fixed
-- Fixed version metadata parsing to support multiple tag formats (v3.7.96, Version 3.7.96, refs/tags/v3.7.96).
-- Centralized version parsing and formatting logic across all updater screens and modules.
-- Robust release detection to prevent fallback errors on non-standard remote versions.

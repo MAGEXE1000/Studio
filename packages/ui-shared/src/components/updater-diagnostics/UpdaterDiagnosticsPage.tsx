@@ -17,7 +17,8 @@ import {
   isUpdateSessionActive,
   loadPersistedSession,
   activeUpdateSession,
-  globalOtaState
+  globalOtaState,
+  releaseMetadataInspector
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -302,7 +303,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     showToast(`Full history exported as ${format.toUpperCase()}`);
   };
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'session' | 'timeline' | 'history' | 'diagnostics' | 'performance' | 'simulation'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'session' | 'timeline' | 'history' | 'diagnostics' | 'performance' | 'simulation' | 'inspector'>('overview');
   const [fps, setFps] = useState(60);
 
   useEffect(() => {
@@ -365,6 +366,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
           { id: 'diagnostics', label: 'Diagnostics', icon: 'analytics' },
           { id: 'performance', label: 'Performance', icon: 'insights' },
           { id: 'simulation', label: 'Simulation', icon: 'science' },
+          { id: 'inspector', label: 'Release Inspector', icon: 'search' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -673,6 +675,89 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
               nativeLogsList={nativeLogsList}
             />
             <StateMachineVisualizer />
+          </div>
+        )}
+
+        {activeTab === 'inspector' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary">search</span>
+                Release Metadata Inspector
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw Version Name</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.rawVersionName || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Normalized Version</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.normalizedVersion || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Final UI Version</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.finalVersionShownByUi || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Metadata Source Used</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.sourceUsed || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Cache Source Status</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.cacheSource || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Last Checked Timestamp</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.timestamp || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw Tag</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.rawTag || 'N/A'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw Release Title</span>
+                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.rawReleaseName || 'N/A'}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Parser Transformation Chain &amp; Stack Traces</span>
+                <div className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 max-h-72 overflow-y-auto space-y-3 whitespace-pre-wrap divide-y divide-zinc-800">
+                  {releaseMetadataInspector.parserChain.length === 0 ? (
+                    <div className="text-zinc-500 py-2">No transformation steps recorded yet. Run an update check to populate.</div>
+                  ) : (
+                    releaseMetadataInspector.parserChain.map((step, idx) => (
+                      <div key={idx} className={idx > 0 ? "pt-3" : ""}>
+                        <div className="text-tertiary font-bold mb-1">Step #{idx + 1}</div>
+                        {step}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw app-release.json</span>
+                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-48">
+                  {releaseMetadataInspector.rawAppReleaseJson || 'No data fetched yet'}
+                </pre>
+              </div>
+
+              <div className="space-y-2">
+                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw version.json</span>
+                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-48">
+                  {releaseMetadataInspector.rawVersionJson || 'No data fetched yet'}
+                </pre>
+              </div>
+
+              <div className="space-y-2">
+                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw GitHub Releases Response</span>
+                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-48">
+                  {releaseMetadataInspector.rawGithubResponse || 'No data fetched yet'}
+                </pre>
+              </div>
+            </div>
           </div>
         )}
 

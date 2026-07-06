@@ -1,6 +1,7 @@
 import { registerPlugin } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { parseAndNormalizeVersion } from './appVersion';
+import { logRawSource, releaseMetadataInspector } from './updater/versionLogger';
 
 // CRITICAL WARNING:
 // This interface, the registered plugin name 'AppInstaller', and its methods:
@@ -115,9 +116,22 @@ export async function resolveApkUrl(targetVersion?: string): Promise<string> {
   try {
     const res = await fetch('https://api.github.com/repos/MAGEXE1000/Studio/releases');
     if (!res.ok) return fallbackUrl;
+    const text = await res.text();
+    logRawSource('github-releases', text);
     
-    const releases = (await res.json()) as GitHubRelease[];
+    let releases: GitHubRelease[];
+    try {
+      releases = JSON.parse(text) as GitHubRelease[];
+    } catch (e) {
+      return fallbackUrl;
+    }
     if (!Array.isArray(releases) || releases.length === 0) return fallbackUrl;
+
+    // Log the first/latest release fields as raw tag/name
+    if (releases[0]) {
+      releaseMetadataInspector.rawTag = releases[0].tag_name || null;
+      releaseMetadataInspector.rawReleaseName = (releases[0] as any).name || null;
+    }
     
     const cleanVer = parseAndNormalizeVersion(targetVersion);
     
@@ -167,9 +181,21 @@ export async function resolveReleasePageUrl(targetVersion?: string): Promise<str
   try {
     const res = await fetch('https://api.github.com/repos/MAGEXE1000/Studio/releases');
     if (!res.ok) return defaultFallback;
+    const text = await res.text();
+    logRawSource('github-releases', text);
     
-    const releases = (await res.json()) as GitHubRelease[];
+    let releases: GitHubRelease[];
+    try {
+      releases = JSON.parse(text) as GitHubRelease[];
+    } catch (e) {
+      return defaultFallback;
+    }
     if (!Array.isArray(releases) || releases.length === 0) return defaultFallback;
+
+    if (releases[0]) {
+      releaseMetadataInspector.rawTag = releases[0].tag_name || null;
+      releaseMetadataInspector.rawReleaseName = (releases[0] as any).name || null;
+    }
     
     const cleanVer = parseAndNormalizeVersion(targetVersion);
     

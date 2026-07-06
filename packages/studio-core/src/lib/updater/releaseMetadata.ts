@@ -1,7 +1,8 @@
-import { APP_VERSION, compareSemver, parseAndNormalizeVersion } from '../appVersion';
+import { APP_VERSION, compareSemver, parseAndNormalizeVersion, parseSemver } from '../appVersion';
 import { shouldUseAndroidApkUpdater } from '../capgoUpdater';
 import { otaDebugLogs } from './diagnostics';
 import { StructuredReleaseNotes } from './stateMachine';
+import { logRawSource } from './versionLogger';
 
 export interface RemoteVersionInfo {
   version: string;
@@ -67,11 +68,29 @@ async function fetchOne(
       console.warn(`[AppUpdater] Metadata fetch failed for URL: ${url}. ${errStr}`);
       return null;
     }
-    const json = (await res.json()) as unknown;
+    const text = await res.text();
+    const isAppRelease = url.includes('app-release.json');
+    const isVersionJson = url.includes('version.json');
+    if (isAppRelease) {
+      logRawSource('app-release.json', text);
+    } else if (isVersionJson) {
+      logRawSource('version.json', text);
+    }
+
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      const errStr = 'Malformed JSON response';
+      if (isVersionJson) otaDebugLogs.fetchedVersionJson = errStr;
+      if (isAppRelease) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
+      return null;
+    }
     if (!json || typeof json !== 'object') {
       const errStr = 'Malformed JSON response';
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      if (isVersionJson) otaDebugLogs.fetchedVersionJson = errStr;
+      if (isAppRelease) otaDebugLogs.fetchedAppReleaseJson = errStr;
       console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
@@ -144,7 +163,7 @@ async function fetchOne(
       }
     }
 
-    return {
+    const resultObj: RemoteVersionInfo = {
       version: normalizedVersion,
       changelog,
       mandatory: obj.mandatory === true,
@@ -167,6 +186,15 @@ async function fetchOne(
       packageName,
       signatures,
     };
+
+    if (!validateRemoteMetadata(resultObj)) {
+      const errStr = `Rejected remote metadata due to validation failure. version: ${normalizedVersion}`;
+      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      return null;
+    }
+
+    return resultObj;
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
     if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = `Error: ${errMsg}`;
@@ -245,4 +273,60 @@ export async function fetchRemoteVersion(
         });
     });
   });
+}
+
+export function validateRemoteMetadata(remote: RemoteVersionInfo | null): boolean {
+  if (!remote) return false;
+  
+  const versionName = remote.version;
+  const rawVersionCode = remote.versionCode;
+  const versionCode = typeof rawVersionCode === 'number' ? rawVersionCode : (typeof rawVersionCode === 'string' ? parseInt(rawVersionCode, 10) : undefined);
+  
+  const tag = remote.platform === 'github' ? (remote as any).tag_name : (remote.version ? `v${remote.version}` : undefined);
+  const releaseName = remote.platform === 'github' ? (remote as any).name : (remote.version ? `Studio v${remote.version}` : undefined);
+
+  const isNativeCheck = shouldUseAndroidApkUpdater();
+  
+  let isVerNameValid = false;
+  let isVerCodeValid = false;
+  let isTagValid = false;
+  let isReleaseNameValid = false;
+
+  if (versionName && typeof versionName === 'string') {
+    const parsed = parseSemver(versionName);
+    if (parsed && versionName !== 'V' && versionName !== 'v') {
+      isVerNameValid = true;
+    }
+  }
+
+  // tag validation: must parse as valid semver
+  if (tag && typeof tag === 'string') {
+    const parsed = parseSemver(tag);
+    if (parsed && tag !== 'V' && tag !== 'v') {
+      isTagValid = true;
+    }
+  }
+
+  if (releaseName && typeof releaseName === 'string' && releaseName.trim().length > 0) {
+    isReleaseNameValid = true;
+  }
+
+  if (isNativeCheck) {
+    if (versionCode !== undefined && typeof versionCode === 'number' && !isNaN(versionCode) && versionCode > 0) {
+      isVerCodeValid = true;
+    }
+  } else {
+    isVerCodeValid = true; // Not required on web
+  }
+
+  if (!isVerNameValid || !isVerCodeValid || !isTagValid || !isReleaseNameValid) {
+    console.error(`[AppUpdater] [METADATA REJECTED] Validation failure: ` +
+      `versionName: "${versionName}" (${isVerNameValid ? 'VALID' : 'INVALID'}), ` +
+      `versionCode: ${versionCode} (${isVerCodeValid ? 'VALID' : 'INVALID'}), ` +
+      `tag: "${tag}" (${isTagValid ? 'VALID' : 'INVALID'}), ` +
+      `releaseName: "${releaseName}" (${isReleaseNameValid ? 'VALID' : 'INVALID'})`);
+    return false;
+  }
+  
+  return true;
 }

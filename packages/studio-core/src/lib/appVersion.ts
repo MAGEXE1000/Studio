@@ -24,9 +24,10 @@
 
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { logVersionTransformation } from './updater/versionLogger';
 
-export const NATIVE_VERSION = '3.7.97';
-export const WEB_VERSION = '3.7.97';
+export const NATIVE_VERSION = '4.0.0';
+export const WEB_VERSION = '4.0.0';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -59,11 +60,18 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed version metadata parsing to support multiple tag formats (v3.7.96, Version 3.7.96, refs/tags/v3.7.96).",
-      "Centralized version parsing and formatting logic across all updater screens and modules.",
-      "Robust release detection to prevent fallback errors on non-standard remote versions.",
+      "Added adaptive Web navigation rails for laptop/desktop screen widths.",
+      "Added Web-specific internal app navigation tabs for tablet/iPad screen widths.",
+      "Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.",
+    ],
+  },
+  {
+    heading: "Improved",
+    items: [
+      "Improved Web shortcuts and deep shortcuts to target sub-sections.",
+      "Repositioned back buttons inline to prevent overlap in Web layouts.",
     ],
   },
 ];
@@ -155,37 +163,55 @@ interface ParsedSemver {
  *   "garbage"    → null
  */
 export function parseAndNormalizeVersion(raw: string | null | undefined): string | null {
-  if (!raw || typeof raw !== 'string') return null;
+  if (!raw || typeof raw !== 'string') {
+    logVersionTransformation('parseAndNormalizeVersion', raw, null);
+    return null;
+  }
   const match = raw.match(/[vV]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?/);
-  if (!match) return null;
+  if (!match) {
+    logVersionTransformation('parseAndNormalizeVersion', raw, null);
+    return null;
+  }
   let clean = match[0];
   if (clean.startsWith('v') || clean.startsWith('V')) {
     clean = clean.slice(1);
   }
+  logVersionTransformation('parseAndNormalizeVersion', raw, clean);
   return clean;
 }
 
 export function parseSemver(raw: string | null | undefined): ParsedSemver | null {
   const clean = parseAndNormalizeVersion(raw);
-  if (!clean) return null;
+  if (!clean) {
+    logVersionTransformation('parseSemver', raw, null);
+    return null;
+  }
 
   const m = clean.match(
     /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/,
   );
-  if (!m) return null;
+  if (!m) {
+    logVersionTransformation('parseSemver', raw, null);
+    return null;
+  }
   // Per semver §9: a pre-release numeric identifier MUST NOT include
   // leading zeros. Reject e.g. "1.2.3-01" or "1.2.3-alpha.001".
   if (m[4]) {
     for (const id of m[4].split('.')) {
-      if (/^\d+$/.test(id) && id.length > 1 && id.startsWith('0')) return null;
+      if (/^\d+$/.test(id) && id.length > 1 && id.startsWith('0')) {
+        logVersionTransformation('parseSemver', raw, null);
+        return null;
+      }
     }
   }
-  return {
+  const resultObj = {
     major: Number(m[1]),
     minor: Number(m[2]),
     patch: Number(m[3]),
     prerelease: m[4] ?? null,
   };
+  logVersionTransformation('parseSemver', raw, JSON.stringify(resultObj));
+  return resultObj;
 }
 
 /**
@@ -195,7 +221,9 @@ export function parseSemver(raw: string | null | undefined): ParsedSemver | null
  */
 export function normalizeSemver(raw: string | null | undefined): [number, number, number] | null {
   const p = parseSemver(raw);
-  return p ? [p.major, p.minor, p.patch] : null;
+  const resultObj = p ? [p.major, p.minor, p.patch] as [number, number, number] : null;
+  logVersionTransformation('normalizeSemver', raw, resultObj ? JSON.stringify(resultObj) : null);
+  return resultObj;
 }
 
 /**
@@ -215,15 +243,28 @@ export function normalizeSemver(raw: string | null | undefined): [number, number
 export function compareSemver(a: string, b: string): -1 | 0 | 1 {
   const pa = parseSemver(a);
   const pb = parseSemver(b);
-  if (!pa || !pb) return 0;
-  if (pa.major !== pb.major) return pa.major > pb.major ? 1 : -1;
-  if (pa.minor !== pb.minor) return pa.minor > pb.minor ? 1 : -1;
-  if (pa.patch !== pb.patch) return pa.patch > pb.patch ? 1 : -1;
-  // Same M.m.p — pre-release rules apply.
-  if (pa.prerelease === null && pb.prerelease === null) return 0;
-  if (pa.prerelease === null) return 1; // release > prerelease
-  if (pb.prerelease === null) return -1;
-  return comparePrerelease(pa.prerelease, pb.prerelease);
+  if (!pa || !pb) {
+    logVersionTransformation('compareSemver', `${a} vs ${b}`, '0 (unparseable)');
+    return 0;
+  }
+  let res: -1 | 0 | 1 = 0;
+  if (pa.major !== pb.major) {
+    res = pa.major > pb.major ? 1 : -1;
+  } else if (pa.minor !== pb.minor) {
+    res = pa.minor > pb.minor ? 1 : -1;
+  } else if (pa.patch !== pb.patch) {
+    res = pa.patch > pb.patch ? 1 : -1;
+  } else if (pa.prerelease === null && pb.prerelease === null) {
+    res = 0;
+  } else if (pa.prerelease === null) {
+    res = 1; // release > prerelease
+  } else if (pb.prerelease === null) {
+    res = -1;
+  } else {
+    res = comparePrerelease(pa.prerelease, pb.prerelease);
+  }
+  logVersionTransformation('compareSemver', `${a} vs ${b}`, String(res));
+  return res;
 }
 
 function comparePrerelease(a: string, b: string): -1 | 0 | 1 {

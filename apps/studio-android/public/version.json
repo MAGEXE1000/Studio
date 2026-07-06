@@ -1,20 +1,24 @@
 {
   "platform": "android",
-  "version": "3.7.97",
-  "versionName": "3.7.97",
-  "versionCode": 225,
-  "version_code": 225,
-  "commit": "10ba3933",
-  "releasedAt": "7/5/2026, 10:01:46 PM CST",
-  "buildTimestamp": "7/5/2026, 10:01:46 PM CST",
+  "version": "4.0.0",
+  "versionName": "4.0.0",
+  "versionCode": 226,
+  "version_code": 226,
+  "commit": "b09cf98b",
+  "releasedAt": "7/5/2026, 11:16:56 PM CST",
+  "buildTimestamp": "7/5/2026, 11:16:56 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed version metadata parsing to support multiple tag formats (v3.7.96, Version 3.7.96, refs/tags/v3.7.96).\n• Centralized version parsing and formatting logic across all updater screens and modules.\n• Robust release detection to prevent fallback errors on non-standard remote versions.",
-  "whatsNew": "• Fixed version metadata parsing to support multiple tag formats (v3.7.96, Version 3.7.96, refs/tags/v3.7.96).\n• Centralized version parsing and formatting logic across all updater screens and modules.\n• Robust release detection to prevent fallback errors on non-standard remote versions.",
+  "changelog": "• Added adaptive Web navigation rails for laptop/desktop screen widths.\n• Added Web-specific internal app navigation tabs for tablet/iPad screen widths.\n• Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.\n• Improved Web shortcuts and deep shortcuts to target sub-sections.\n• Repositioned back buttons inline to prevent overlap in Web layouts.",
+  "whatsNew": "• Added adaptive Web navigation rails for laptop/desktop screen widths.\n• Added Web-specific internal app navigation tabs for tablet/iPad screen widths.\n• Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.\n• Improved Web shortcuts and deep shortcuts to target sub-sections.\n• Repositioned back buttons inline to prevent overlap in Web layouts.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed version metadata parsing to support multiple tag formats (v3.7.96, Version 3.7.96, refs/tags/v3.7.96).",
-      "Centralized version parsing and formatting logic across all updater screens and modules.",
-      "Robust release detection to prevent fallback errors on non-standard remote versions."
+    "added": [
+      "Added adaptive Web navigation rails for laptop/desktop screen widths.",
+      "Added Web-specific internal app navigation tabs for tablet/iPad screen widths.",
+      "Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex."
+    ],
+    "improved": [
+      "Improved Web shortcuts and deep shortcuts to target sub-sections.",
+      "Repositioned back buttons inline to prevent overlap in Web layouts."
     ]
   },
   "mandatory": false

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "3.7.97"
-$VersionCode = "225"
-$ReleaseNote = "v3.7.97 - Release 3.7.97: Centralized version parser and normalizer supporting multiple formats (3.7.96, v3.7.96, Version 3.7.96, release-3.7.96, refs/tags/v3.7.96) and robust release detection."
+$VersionName = "4.0.0"
+$VersionCode = "226"
+$ReleaseNote = "v4.0.0 - Release 4.0.0: Eliminate phantom V update, implement strict metadata validation and boot cache recovery."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -26,6 +26,9 @@ git add packages/studio-core/src/lib/updater/updaterSimulation.ts
 git add packages/studio-core/src/lib/apkDownloader.ts
 git add packages/studio-core/src/lib/updater/cacheManager.ts
 git add packages/studio-core/src/lib/updater/releaseMetadata.ts
+git add packages/studio-core/src/lib/updater/versionLogger.ts
+git add packages/studio-core/src/lib/updater/versionComparison.ts
+git add packages/studio-core/src/index.ts
 git add packages/ui-shared/src/components/updater-diagnostics/diagnosticsGenerator.ts
 git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
 git add packages/ui-shared/src/components/updater-diagnostics/TelemetryGrid.tsx

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { APP_VERSION, compareSemver, normalizeSemver } from './appVersion';
+import { APP_VERSION, compareSemver, normalizeSemver, parseAndNormalizeVersion } from './appVersion';
 import { AppInstaller } from './apkDownloader';
+import { releaseMetadataInspector } from './updater/versionLogger';
 import { isNative, shouldUseAndroidApkUpdater } from './capgoUpdater';
 import { nativeSet, NATIVE_PREFS } from './nativePrefs';
 import { useChordStore } from '../store/useChordStore';
@@ -55,13 +56,15 @@ import {
   StructuredReleaseNotes,
   isUpdateSessionActive,
   startUpdateSession,
-  activeUpdateSession
+  activeUpdateSession,
+  verifyAndCleanCaches
 } from './updater/stateMachine';
 
 import {
   RemoteVersionInfo,
   fetchRemoteVersion,
-  versionJsonUrls
+  versionJsonUrls,
+  validateRemoteMetadata
 } from './updater/releaseMetadata';
 import { compareVersions } from './updater/versionComparison';
 import { downloadUpdateApk, downloadAndInstallGitHubApk } from './updater/downloadManager';
@@ -237,6 +240,7 @@ export async function getNativeVersion(): Promise<string | null> {
   try {
     const { AppInstaller } = await import('./apkDownloader');
     const info = await AppInstaller.getInstalledAppInfo();
+    releaseMetadataInspector.rawVersionName = info.versionName;
     return info.versionName;
   } catch (e) {
     console.warn('[OTA] Failed to query native app version:', e);
@@ -618,6 +622,8 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 
   logDetailedJsTrace('checkForUpdate', 'otaUpdate.ts', 326, `Entering executeCheckForUpdateInternal Call #${callId} for pipeline #${pipelineId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger} | Reason: ${reason}` });
 
+  verifyAndCleanCaches();
+
   const startTime = Date.now();
   const currentStatus = globalOtaState.updateState;
   const isTransient = [
@@ -724,6 +730,11 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
       }
     }
 
+    if (remote && !validateRemoteMetadata(remote)) {
+      console.error('[AppUpdater] Rejecting remote metadata (simulation or fetched/mock) due to validation failure.');
+      remote = null;
+    }
+
     const dismissedList = getStoredList('studio:dismissedVersions');
     const laterVersion = getSessionItem('studio:laterUpdateVersion');
 
@@ -819,6 +830,11 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
     otaDebugLogs.updateDecision = updateAvailable ? 'UPDATE_AVAILABLE' : 'NO_UPDATE_AVAILABLE';
     otaDebugLogs.updateDecisionReason = comp.explanation;
     updateGlobalState({ decisionExplanation: comp.explanation });
+
+    const norm = parseAndNormalizeVersion(remote.version);
+    releaseMetadataInspector.finalVersionShownByUi = remote.version;
+    releaseMetadataInspector.normalizedVersion = norm;
+    releaseMetadataInspector.sourceUsed = shouldUseAndroidApkUpdater() ? 'app-release.json' : 'version.json';
 
     if (updateAvailable) {
       const dismissedList = getStoredList('studio:dismissedVersions');

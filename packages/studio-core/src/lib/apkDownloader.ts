@@ -1,5 +1,6 @@
 import { registerPlugin } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { parseAndNormalizeVersion } from './appVersion';
 
 // CRITICAL WARNING:
 // This interface, the registered plugin name 'AppInstaller', and its methods:
@@ -118,12 +119,12 @@ export async function resolveApkUrl(targetVersion?: string): Promise<string> {
     const releases = (await res.json()) as GitHubRelease[];
     if (!Array.isArray(releases) || releases.length === 0) return fallbackUrl;
     
-    const cleanVer = targetVersion?.replace(/^[vV]/, '').trim();
+    const cleanVer = parseAndNormalizeVersion(targetVersion);
     
     // Step 1 & 2: Search for the specific targetVersion release
     if (cleanVer) {
       const specificRelease = releases.find(
-        r => r.tag_name.replace(/^[vV]/, '').trim() === cleanVer
+        r => parseAndNormalizeVersion(r.tag_name) === cleanVer
       );
       if (specificRelease && specificRelease.assets) {
         const apkAsset = specificRelease.assets.find(
@@ -170,12 +171,12 @@ export async function resolveReleasePageUrl(targetVersion?: string): Promise<str
     const releases = (await res.json()) as GitHubRelease[];
     if (!Array.isArray(releases) || releases.length === 0) return defaultFallback;
     
-    const cleanVer = targetVersion?.replace(/^[vV]/, '').trim();
+    const cleanVer = parseAndNormalizeVersion(targetVersion);
     
     // Step 1: Search for specific targetVersion containing APK
     if (cleanVer) {
       const specificRelease = releases.find(
-        r => r.tag_name.replace(/^[vV]/, '').trim() === cleanVer
+        r => parseAndNormalizeVersion(r.tag_name) === cleanVer
       );
       if (specificRelease && specificRelease.assets) {
         const hasApk = specificRelease.assets.some(

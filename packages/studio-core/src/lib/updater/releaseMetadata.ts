@@ -1,4 +1,4 @@
-import { APP_VERSION, compareSemver } from '../appVersion';
+import { APP_VERSION, compareSemver, parseAndNormalizeVersion } from '../appVersion';
 import { shouldUseAndroidApkUpdater } from '../capgoUpdater';
 import { otaDebugLogs } from './diagnostics';
 import { StructuredReleaseNotes } from './stateMachine';
@@ -76,8 +76,9 @@ async function fetchOne(
       return null;
     }
     const obj = json as Record<string, unknown>;
-    if (typeof obj.version !== 'string' || !obj.version.trim()) {
-      const errStr = 'Missing version field in JSON';
+    const normalizedVersion = parseAndNormalizeVersion(obj.version as string | null | undefined);
+    if (!normalizedVersion) {
+      const errStr = 'Missing or invalid version field in JSON';
       if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
       if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
       console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
@@ -85,9 +86,9 @@ async function fetchOne(
     }
     
     if (url.includes('version.json')) {
-      otaDebugLogs.fetchedVersionJson = obj.version;
+      otaDebugLogs.fetchedVersionJson = normalizedVersion;
     } else if (url.includes('app-release.json')) {
-      otaDebugLogs.fetchedAppReleaseJson = obj.version;
+      otaDebugLogs.fetchedAppReleaseJson = normalizedVersion;
     }
 
     const changelog = typeof obj.description === 'string' ? obj.description : (typeof obj.changelog === 'string' ? obj.changelog : undefined);
@@ -144,7 +145,7 @@ async function fetchOne(
     }
 
     return {
-      version: obj.version,
+      version: normalizedVersion,
       changelog,
       mandatory: obj.mandatory === true,
       downloadUrl,

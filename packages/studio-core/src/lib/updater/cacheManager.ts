@@ -1,5 +1,6 @@
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { AppInstaller } from '../apkDownloader';
+import { parseAndNormalizeVersion } from '../appVersion';
 
 export async function getLocalApkPath(version: string): Promise<string> {
   const fileName = `studio-update-${version}.apk`;
@@ -52,8 +53,8 @@ export async function validateLocalApk(version: string, expectedSha256?: string)
     }
     
     // 6. Validate version name
-    const cleanInspectVersion = inspect.versionName.replace(/^[vV]/, '').trim();
-    const cleanTargetVersion = version.replace(/^[vV]/, '').trim();
+    const cleanInspectVersion = parseAndNormalizeVersion(inspect.versionName) || '';
+    const cleanTargetVersion = parseAndNormalizeVersion(version) || '';
     if (cleanInspectVersion !== cleanTargetVersion) {
       console.warn(`[Smart Recovery] Version mismatch: cached v${cleanInspectVersion} vs target v${cleanTargetVersion}`);
       return { valid: false, filePath };

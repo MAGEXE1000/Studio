@@ -25,8 +25,8 @@
 import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 
-export const NATIVE_VERSION = '3.7.96';
-export const WEB_VERSION = '3.7.96';
+export const NATIVE_VERSION = '3.7.97';
+export const WEB_VERSION = '3.7.97';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -154,13 +154,22 @@ interface ParsedSemver {
  *   "3.0"        → null                 (incomplete)
  *   "garbage"    → null
  */
-export function parseSemver(raw: string | null | undefined): ParsedSemver | null {
+export function parseAndNormalizeVersion(raw: string | null | undefined): string | null {
   if (!raw || typeof raw !== 'string') return null;
-  let s = raw.trim();
-  if (s.startsWith('v') || s.startsWith('V')) s = s.slice(1);
-  // Per semver.org: numeric identifiers must NOT have leading zeros.
-  // Pre-release: dot-separated identifiers, each [0-9A-Za-z-]+.
-  const m = s.match(
+  const match = raw.match(/[vV]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?/);
+  if (!match) return null;
+  let clean = match[0];
+  if (clean.startsWith('v') || clean.startsWith('V')) {
+    clean = clean.slice(1);
+  }
+  return clean;
+}
+
+export function parseSemver(raw: string | null | undefined): ParsedSemver | null {
+  const clean = parseAndNormalizeVersion(raw);
+  if (!clean) return null;
+
+  const m = clean.match(
     /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/,
   );
   if (!m) return null;

@@ -11,6 +11,19 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+
+## 3.7.95
+
+### Added
+- Multi-tab Developer Diagnostics Page (Overview, Current Session, Workflow Timeline, Update History, Diagnostics, Performance, Simulation).
+- Live Frame Rate (FPS) tracker utilizing requestAnimationFrame.
+- Timeline log enhancement tracking updater lifecycleState, packageInstallerStatus, and progress.
+
+### Fixed
+- Fixed update session persistence using localStorage to withstand app restarts and rebuilds.
+- Fixed checking updates collision where manual checks can supersede active background check sessions.
+- Resolved type safety and session naming collisions.
+
 ## 3.7.94
 
 ### Added

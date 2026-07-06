@@ -594,7 +594,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   if (activeUpdateSession) {
     activeUpdateSession.previousState = current;
     activeUpdateSession.currentState = state;
-    if (['IDLE', 'INSTALL_SUCCESS', 'INSTALL_CANCELLED'].includes(state)) {
+    if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(state)) {
       console.log(`[UpdateSession] Ending update session: ${activeUpdateSession.sessionId}`);
       activeUpdateSession = null;
       try {

@@ -968,24 +968,9 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     'INSTALL_SUCCESS',
   ].includes(current);
 
-  if (isUpdateSessionActive()) {
-    const downloadInstallStates = [
-      'FETCH_APK_INFORMATION',
-      'DOWNLOAD_APK',
-      'VERIFY_SHA256',
-      'PREPARING_INSTALL',
-      'WAITING_USER_CONFIRMATION',
-      'PACKAGEINSTALLER_VISIBLE',
-      'INSTALLING'
-    ];
-    if (downloadInstallStates.includes(current)) {
-      console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): Installation pipeline is active (state: ${current})`);
-      logTimelineEvent('UpdateCore', 'CHECK_REJECTED_PIPELINE_ACTIVE', `state: ${current}`);
-      return Promise.resolve(globalOtaState);
-    }
-
+  if (isUpdateSessionActive() || current !== 'IDLE') {
     if (!isManual) {
-      console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): An update session is already active (state: ${current})`);
+      console.log(`[OTA] Rejecting automatic/background checkForUpdate (trigger=${trigger}): Update session or state is active (state: ${current})`);
       logTimelineEvent('UpdateCore', 'CHECK_REJECTED_ACTIVE_SESSION', `state: ${current}`);
       return Promise.resolve(globalOtaState);
     }
@@ -1852,7 +1837,27 @@ export function initializeGlobalOtaListeners() {
   }
 }
 
-export function useOtaUpdate() {
+export interface OtaUpdateHookResult extends CentralizedOtaState {
+  checkNow: () => Promise<CentralizedOtaState>;
+  downloadUpdate: (trigger?: string) => Promise<void>;
+  applyUpdate: (trigger?: string) => Promise<void>;
+  dismissUpdate: () => void;
+  markUpdateSeen: () => void;
+  downloadAndInstallGitHubApk: () => Promise<void>;
+  runSignatureMismatchRecovery: () => Promise<boolean>;
+  runUpdaterHealthCheck: () => Promise<HealthStatus>;
+  getDiagnosticsReport: () => Promise<string>;
+  applyUpdateDirect: () => Promise<void>;
+  shareDownloadedApk: () => Promise<void>;
+  getUpdateHistory: () => any[];
+  triggerDowngrade: (targetVersion: string, apkUrl: string, sha256: string) => Promise<void>;
+  checkAndCleanCache: () => Promise<boolean>;
+  deleteLocalApk: (version: string) => Promise<void>;
+  recordDismissal: (version: string) => void;
+  shouldShowRecoveryReminder: (version: string) => boolean;
+}
+
+export function useOtaUpdate(): OtaUpdateHookResult {
   const [state, setState] = useState<CentralizedOtaState>(globalOtaState);
 
   useEffect(() => {

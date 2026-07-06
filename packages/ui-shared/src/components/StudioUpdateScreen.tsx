@@ -21,6 +21,8 @@ interface StudioUpdateScreenProps {
   downloadedMB?: number;
   totalMB?: number;
   isLight?: boolean;
+  fromVersion?: string;
+  toVersion?: string;
 }
 
 export default function StudioUpdateScreen({
@@ -43,6 +45,8 @@ export default function StudioUpdateScreen({
   downloadedMB,
   totalMB,
   isLight = false,
+  fromVersion,
+  toVersion,
 }: StudioUpdateScreenProps) {
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -236,6 +240,40 @@ export default function StudioUpdateScreen({
             </motion.div>
           </AnimatePresence>
         </motion.div>
+
+        {/* Version comparison row */}
+        {fromVersion && toVersion && (
+          <motion.div
+            layout="position"
+            transition={emphasizedTransition}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 16,
+              background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.03)',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: 16,
+              padding: '12px 24px',
+              width: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span style={{ fontSize: 10, textTransform: 'uppercase', color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: '0.05em', fontFamily: 'Manrope, sans-serif' }}>Current</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: isLight ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)', fontFamily: 'Inter, sans-serif' }}>{fromVersion}</span>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', color: accentFrom }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_forward</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <span style={{ fontSize: 10, textTransform: 'uppercase', color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: '0.05em', fontFamily: 'Manrope, sans-serif' }}>New</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: isLight ? 'rgba(0,0,0,0.95)' : '#ffffff', fontFamily: 'Inter, sans-serif' }}>{toVersion}</span>
+            </div>
+          </motion.div>
+        )}
 
         {/* Text Title */}
         <motion.h2

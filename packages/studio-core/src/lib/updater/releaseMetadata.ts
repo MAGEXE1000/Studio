@@ -26,6 +26,7 @@ export interface RemoteVersionInfo {
   installMode?: 'reinstall-required';
   signatures?: string;
   apkSizeBytes?: number;
+  packageName?: string;
 }
 
 const FETCH_TIMEOUT_MS = 6000;

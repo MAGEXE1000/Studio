@@ -982,14 +982,13 @@ function UpdateModal({
 
   useEffect(() => {
     const isCompleted = ota.updateState === 'INSTALL_SUCCESS';
-    if (isCompleted) {
-      console.log('[OTA UI] Installation success detected. Initializing auto-close in 2.5s...');
-      const timer = setTimeout(() => {
-        onClose();
-        ota.dismissUpdate();
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
+    if (!isCompleted) return;
+    console.log('[OTA UI] Installation success detected. Initializing auto-close in 2.5s...');
+    const timer = setTimeout(() => {
+      onClose();
+      ota.dismissUpdate();
+    }, 2500);
+    return () => clearTimeout(timer);
   }, [ota.updateState, onClose, ota]);
 
   const getDiagnosticsText = () => {
@@ -2355,6 +2354,8 @@ function UpdateModal({
         actionButtons={gitHubButtons}
         onClose={onClose}
         isLight={isLight}
+        fromVersion={fromLabel}
+        toVersion={toVersion}
       />
     );
   }
@@ -2380,6 +2381,8 @@ function UpdateModal({
       downloadedMB={downloadMetrics.downloadedMB}
       totalMB={downloadMetrics.totalMB}
       isLight={isLight}
+      fromVersion={fromLabel}
+      toVersion={toVersion}
     />
   );
 }

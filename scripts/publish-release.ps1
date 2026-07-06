@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.3"
-$VersionCode = "229"
-$ReleaseNote = "v4.0.3 - Release 4.0.3: Fix post-update startup loop, restore and reorganize diagnostics center into 11 distinct tabs."
+$VersionName = "4.0.4"
+$VersionCode = "230"
+$ReleaseNote = "v4.0.4 - Release 4.0.4: Fix 'Studio is up to date' regression by blocking background checks when update session is active."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

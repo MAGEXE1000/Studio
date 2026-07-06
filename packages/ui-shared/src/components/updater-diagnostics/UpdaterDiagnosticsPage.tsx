@@ -325,8 +325,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[sessions.length - 1];
   const curSession = loadPersistedSession();
 
-  const cFrom = settings.themeAccentFrom || ACCENT_COLORS.purple.from;
-  const cTo = settings.themeAccentTo || ACCENT_COLORS.purple.to;
+  const accent = settings.accentColor || 'purple';
+  const cFrom = ACCENT_COLORS[accent]?.from || ACCENT_COLORS.purple.from;
+  const cTo = ACCENT_COLORS[accent]?.to || ACCENT_COLORS.purple.to;
 
   return (
     <div ref={scrollRef} className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
@@ -437,7 +438,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
                 <div className="border border-[#484848]/10 rounded-xl overflow-hidden divide-y divide-[#484848]/10 font-mono text-[11px] bg-black/40 p-4 space-y-1">
                   {transitionHistory.map((t, idx) => (
                     <div key={idx} className="py-2 flex items-center justify-between">
-                      <span className="text-[#8b5cf6] font-bold">{t.fromState} → {t.toState}</span>
+                      <span className="text-[#8b5cf6] font-bold">{t.from} → {t.to}</span>
                       <span className="text-on-surface-variant text-[10px] max-w-[50%] truncate">{t.reason}</span>
                       <span className="text-on-surface-variant">{new Date(t.timestamp).toLocaleTimeString()}</span>
                     </div>
@@ -459,7 +460,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
                 <div className="border border-red-500/10 rounded-xl overflow-hidden divide-y divide-red-950/20 font-mono text-[11px] bg-red-950/5 p-4 space-y-1">
                   {rejectedTransitions.map((t, idx) => (
                     <div key={idx} className="py-2 flex items-center justify-between text-red-300">
-                      <span>{t.fromState} ↛ {t.toState}</span>
+                      <span>{t.from} ↛ {t.attempted}</span>
                       <span className="text-red-400/75 text-[10px] max-w-[50%] truncate">{t.reason}</span>
                       <span>{new Date(t.timestamp).toLocaleTimeString()}</span>
                     </div>

@@ -1,24 +1,20 @@
 {
   "platform": "android",
-  "version": "3.7.93",
-  "versionName": "3.7.93",
-  "versionCode": 221,
-  "version_code": 221,
-  "commit": "aa323bf8",
-  "releasedAt": "7/5/2026, 5:04:33 PM CST",
-  "buildTimestamp": "7/5/2026, 5:04:33 PM CST",
+  "version": "3.7.96",
+  "versionName": "3.7.96",
+  "versionCode": 224,
+  "version_code": 224,
+  "commit": "67163934",
+  "releasedAt": "7/5/2026, 8:52:32 PM CST",
+  "buildTimestamp": "7/5/2026, 8:52:32 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.\n• Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.\n• Callback roundtrip latency metrics inside Telemetry grid dashboard.\n• Hardened PackageInstaller background installation recovery checks upon app reopen.\n• Fast simulated update loops running in less than 300ms total.",
-  "whatsNew": "• Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.\n• Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.\n• Callback roundtrip latency metrics inside Telemetry grid dashboard.\n• Hardened PackageInstaller background installation recovery checks upon app reopen.\n• Fast simulated update loops running in less than 300ms total.",
+  "changelog": "• Fixed critical bug where the updater prematurely exited with \"Studio is up to date\" after clicking Update Now.\n• Added strict transition controls and update session locks during PackageInstaller execution.\n• Added enhanced diagnostics logs capture whenever the up-to-date state is reached.",
+  "whatsNew": "• Fixed critical bug where the updater prematurely exited with \"Studio is up to date\" after clicking Update Now.\n• Added strict transition controls and update session locks during PackageInstaller execution.\n• Added enhanced diagnostics logs capture whenever the up-to-date state is reached.",
   "releaseNotes": {
-    "added": [
-      "Performance Diagnostics 2.0 section displaying CPU/Memory average and peaks.",
-      "Renders, paints, and layout passes tracked via useLayoutEffect and Performance APIs.",
-      "Callback roundtrip latency metrics inside Telemetry grid dashboard."
-    ],
     "fixed": [
-      "Hardened PackageInstaller background installation recovery checks upon app reopen.",
-      "Fast simulated update loops running in less than 300ms total."
+      "Fixed critical bug where the updater prematurely exited with \"Studio is up to date\" after clicking Update Now.",
+      "Added strict transition controls and update session locks during PackageInstaller execution.",
+      "Added enhanced diagnostics logs capture whenever the up-to-date state is reached."
     ]
   },
   "mandatory": false

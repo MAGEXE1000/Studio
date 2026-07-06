@@ -1,6 +1,6 @@
 import { isNative } from '../capgoUpdater';
 import { APP_VERSION } from '../appVersion';
-import { globalOtaState, activePipelineContext, startUpdateSession } from './stateMachine';
+import { globalOtaState, activePipelineContext, startUpdateSession, activeUpdateSession } from './stateMachine';
 
 export interface OtaDiagnostics {
   exceptionMessage: string | null;
@@ -575,6 +575,18 @@ export interface UpdateSession {
   closeEvent: CloseEvent | null;
   upToDateEvent: UpToDateEvent | null;
   stateDurations: Record<string, number>;
+  noUpdateDetails?: {
+    callerInfo: string;
+    stackTrace: string;
+    previousState: string;
+    currentState: string;
+    pipelineId: string;
+    sessionId: string;
+    lifecycleState: string;
+    activityState: string;
+    reason: string;
+    timestamp: string;
+  } | null;
 }
 
 export let updateSessions: UpdateSession[] = [];
@@ -863,6 +875,25 @@ export function recordStateTransition(fromState: string, toState: string, reason
       session.result = 'FINISHED';
       session.endTime = new Date().toISOString();
       session.durationMs = now - session.startTimestamp;
+
+      const caller = parseStackTrace();
+      const lifecycleState = typeof document !== 'undefined' ? document.visibilityState : 'unknown';
+      const activityState = (window as any).__studioActivityState || 'active';
+      const pipelineIdStr = String(activePipelineContext?.checkId ?? (activeUpdateSession ? activeUpdateSession.pipelineId : 'N/A'));
+      const sessionIdStr = session.id || 'N/A';
+
+      session.noUpdateDetails = {
+        callerInfo: caller.callerLine,
+        stackTrace: caller.stackTrace,
+        previousState: fromState || 'unknown',
+        currentState: toState,
+        pipelineId: pipelineIdStr,
+        sessionId: sessionIdStr,
+        lifecycleState: lifecycleState || 'unknown',
+        activityState: activityState,
+        reason: reason || 'unknown',
+        timestamp: new Date(now).toISOString()
+      };
     } else if (toState === 'INSTALL_CANCELLED') {
       session.result = 'CANCELLED';
       session.endTime = new Date().toISOString();

@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 3.7.96
+
+### Fixed
+- Fixed critical bug where the updater prematurely exited with "Studio is up to date" after clicking Update Now.
+- Added strict transition controls and update session locks during PackageInstaller execution.
+- Added enhanced diagnostics logs capture whenever the up-to-date state is reached.
+
 ## 3.7.95
 
 ### Added

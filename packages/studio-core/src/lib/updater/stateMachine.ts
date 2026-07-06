@@ -370,15 +370,44 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     }
   }
 
+  const downloadInstallStates = [
+    'FETCH_APK_INFORMATION',
+    'DOWNLOAD_APK',
+    'VERIFY_SHA256',
+    'PREPARING_INSTALL',
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING'
+  ];
+  const checkInitStates = [
+    'INITIALIZING',
+    'CHECKING',
+    'FETCH_REMOTE_METADATA',
+    'VALIDATE_METADATA',
+    'COMPARE_VERSION',
+    'NO_UPDATE_AVAILABLE'
+  ];
+
   if (!isValid) {
-    console.warn(`[UPDATE STATE WARNING] Invalid transition: ${current} -> ${state} (Reason: ${reason}). Resetting to IDLE.`);
-    rejectedTransitions.push({
-      from: current,
-      attempted: state,
-      reason: reason,
-      timestamp: now
-    });
-    state = 'IDLE';
+    if (downloadInstallStates.includes(current) && checkInitStates.includes(state)) {
+      console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] Illegal transition blocked: ${current} -> ${state} (Reason: ${reason}). Keeping current state.`);
+      rejectedTransitions.push({
+        from: current,
+        attempted: state,
+        reason: `ILLEGAL_INSTALL_TO_CHECK: ${reason}`,
+        timestamp: now
+      });
+      state = current;
+    } else {
+      console.warn(`[UPDATE STATE WARNING] Invalid transition: ${current} -> ${state} (Reason: ${reason}). Resetting to IDLE.`);
+      rejectedTransitions.push({
+        from: current,
+        attempted: state,
+        reason: reason,
+        timestamp: now
+      });
+      state = 'IDLE';
+    }
   }
 
   let caller = 'Unknown';

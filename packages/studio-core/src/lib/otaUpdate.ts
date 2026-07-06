@@ -951,10 +951,27 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     'INSTALL_SUCCESS',
   ].includes(current);
 
-  if (isUpdateSessionActive() && !isManual) {
-    console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): An update session is already active (state: ${current})`);
-    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_ACTIVE_SESSION', `state: ${current}`);
-    return Promise.resolve(globalOtaState);
+  if (isUpdateSessionActive()) {
+    const downloadInstallStates = [
+      'FETCH_APK_INFORMATION',
+      'DOWNLOAD_APK',
+      'VERIFY_SHA256',
+      'PREPARING_INSTALL',
+      'WAITING_USER_CONFIRMATION',
+      'PACKAGEINSTALLER_VISIBLE',
+      'INSTALLING'
+    ];
+    if (downloadInstallStates.includes(current)) {
+      console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): Installation pipeline is active (state: ${current})`);
+      logTimelineEvent('UpdateCore', 'CHECK_REJECTED_PIPELINE_ACTIVE', `state: ${current}`);
+      return Promise.resolve(globalOtaState);
+    }
+
+    if (!isManual) {
+      console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): An update session is already active (state: ${current})`);
+      logTimelineEvent('UpdateCore', 'CHECK_REJECTED_ACTIVE_SESSION', `state: ${current}`);
+      return Promise.resolve(globalOtaState);
+    }
   }
 
   if (isBusy) {

@@ -1,9 +1,4 @@
-### Added
-- Multi-tab Developer Diagnostics Page (Overview, Current Session, Workflow Timeline, Update History, Diagnostics, Performance, Simulation).
-- Live Frame Rate (FPS) tracker utilizing requestAnimationFrame.
-- Timeline log enhancement tracking updater lifecycleState, packageInstallerStatus, and progress.
-
 ### Fixed
-- Fixed update session persistence using localStorage to withstand app restarts and rebuilds.
-- Fixed checking updates collision where manual checks can supersede active background check sessions.
-- Resolved type safety and session naming collisions.
+- Fixed critical bug where the updater prematurely exited with "Studio is up to date" after clicking Update Now.
+- Added strict transition controls and update session locks during PackageInstaller execution.
+- Added enhanced diagnostics logs capture whenever the up-to-date state is reached.

@@ -62,16 +62,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Added adaptive Web navigation rails for laptop/desktop screen widths.",
-      "Added Web-specific internal app navigation tabs for tablet/iPad screen widths.",
-      "Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.",
-    ],
-  },
-  {
-    heading: "Improved",
-    items: [
-      "Improved Web shortcuts and deep shortcuts to target sub-sections.",
-      "Repositioned back buttons inline to prevent overlap in Web layouts.",
+      "Push test update to version 4.0.1 for verification.",
+      "Verified in-app updater behavior under clean state.",
     ],
   },
 ];

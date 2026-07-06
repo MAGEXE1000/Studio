@@ -12,6 +12,12 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.1
+
+### Added
+- Push test update to version 4.0.1 for verification.
+- Verified in-app updater behavior under clean state.
+
 ## 3.7.97
 
 ### Fixed

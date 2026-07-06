@@ -1,24 +1,19 @@
 {
   "platform": "android",
-  "version": "4.0.0",
-  "versionName": "4.0.0",
-  "versionCode": 226,
-  "version_code": 226,
-  "commit": "b09cf98b",
-  "releasedAt": "7/5/2026, 11:16:56 PM CST",
-  "buildTimestamp": "7/5/2026, 11:16:56 PM CST",
+  "version": "4.0.1",
+  "versionName": "4.0.1",
+  "versionCode": 227,
+  "version_code": 227,
+  "commit": "02188145",
+  "releasedAt": "7/6/2026, 6:41:18 AM CST",
+  "buildTimestamp": "7/6/2026, 6:41:18 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Added adaptive Web navigation rails for laptop/desktop screen widths.\n• Added Web-specific internal app navigation tabs for tablet/iPad screen widths.\n• Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.\n• Improved Web shortcuts and deep shortcuts to target sub-sections.\n• Repositioned back buttons inline to prevent overlap in Web layouts.",
-  "whatsNew": "• Added adaptive Web navigation rails for laptop/desktop screen widths.\n• Added Web-specific internal app navigation tabs for tablet/iPad screen widths.\n• Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex.\n• Improved Web shortcuts and deep shortcuts to target sub-sections.\n• Repositioned back buttons inline to prevent overlap in Web layouts.",
+  "changelog": "• Push test update to version 4.0.1 for verification.\n• Verified in-app updater behavior under clean state.",
+  "whatsNew": "• Push test update to version 4.0.1 for verification.\n• Verified in-app updater behavior under clean state.",
   "releaseNotes": {
     "added": [
-      "Added adaptive Web navigation rails for laptop/desktop screen widths.",
-      "Added Web-specific internal app navigation tabs for tablet/iPad screen widths.",
-      "Added Web-specific internal app navigation for Chordex, Drumex, Stagex, Groovex, and Vocalex."
-    ],
-    "improved": [
-      "Improved Web shortcuts and deep shortcuts to target sub-sections.",
-      "Repositioned back buttons inline to prevent overlap in Web layouts."
+      "Push test update to version 4.0.1 for verification.",
+      "Verified in-app updater behavior under clean state."
     ]
   },
   "mandatory": false

@@ -18,7 +18,10 @@ import {
   loadPersistedSession,
   activeUpdateSession,
   globalOtaState,
-  releaseMetadataInspector
+  releaseMetadataInspector,
+  activityLifecycleTimeline,
+  transitionHistory,
+  rejectedTransitions
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -31,44 +34,6 @@ import { copyToClipboard } from './centralizedClipboard';
 
 interface Props {
   onBack: () => void;
-}
-
-interface AccordionSectionProps {
-  title: string;
-  icon: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function AccordionSection({ title, icon, isOpen, onToggle, children }: AccordionSectionProps) {
-  return (
-    <div className="bg-black border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm transition-all duration-300">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-5 text-left outline-none border-none bg-transparent cursor-pointer select-none active:bg-white/5 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-on-surface-variant text-[20px]">{icon}</span>
-          <span className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide">{title}</span>
-        </div>
-        <span className={`material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-300 ${
-          isOpen ? 'rotate-180 text-tertiary' : 'rotate-0'
-        }`}>
-          expand_more
-        </span>
-      </button>
-      
-      {/* Animated panel container */}
-      <div className={`transition-all duration-300 ease-in-out ${
-        isOpen ? 'max-h-[1600px] opacity-100 p-5 pt-0 border-t border-outline-variant/5' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
-      }`}>
-        <div className="pt-4">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function UpdaterDiagnosticsPage({ onBack }: Props) {
@@ -104,24 +69,6 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const [nativeInstallerDetails, setNativeInstallerDetails] = useState<any>(null);
   const [localApkDetails, setLocalApkDetails] = useState<any>(null);
   const [nativeLogsList, setNativeLogsList] = useState<any[]>([]);
-
-  // Accordion collapsed state list
-  const [accordions, setAccordions] = useState({
-    sessionSelector: true,
-    timeline: true,
-    workflow: true,
-    telemetry: false,
-    actions: false,
-    logs: false,
-    diagnostics: false,
-    simulation: false,
-    stateMachine: false,
-    report: false
-  });
-
-  const toggleAccordion = (key: keyof typeof accordions) => {
-    setAccordions(prev => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -303,7 +250,57 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     showToast(`Full history exported as ${format.toUpperCase()}`);
   };
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'session' | 'timeline' | 'history' | 'diagnostics' | 'performance' | 'simulation' | 'inspector'>('overview');
+  const handleShareApk = async () => {
+    const cachedPath = localStorage.getItem('studio:downloadedApkPath');
+    if (!cachedPath) {
+      showToast('No cached APK package exists on disk.');
+      return;
+    }
+    try {
+      const { Share } = await import('@capacitor/share');
+      await Share.share({
+        title: 'Studio Cached APK',
+        url: cachedPath.startsWith('file://') ? cachedPath : `file://${cachedPath}`
+      });
+    } catch (err: any) {
+      showToast(`Share failed: ${err.message || String(err)}`);
+    }
+  };
+
+  const handlePrintLogs = async () => {
+    let txt = `=== CHRONOLOGICAL SYSTEM EVENT TIMELINE ===\n`;
+    const logs = getLogs() || [];
+    const timeline = [
+      ...logs.map(l => ({ time: l.timestamp, type: 'JS', text: l.message })),
+      ...nativeLogsList.map(l => ({ time: l.timestamp || Date.now(), type: 'NATIVE', text: `${l.stage}: ${l.message}` }))
+    ].sort((a, b) => a.time - b.time);
+    
+    timeline.forEach(e => {
+      txt += `[${new Date(e.time).toLocaleTimeString()}] [${e.type}] ${e.text}\n`;
+    });
+
+    try {
+      const msg = await copyToClipboard(txt, 'System Timeline');
+      showToast(msg);
+    } catch (err: any) {
+      showToast(`Print failed: ${err.message || String(err)}`);
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState<
+    | 'overview'
+    | 'livestate'
+    | 'workflow'
+    | 'session'
+    | 'performance'
+    | 'installer'
+    | 'logs'
+    | 'simulation'
+    | 'history'
+    | 'export'
+    | 'devtools'
+  >('overview');
+
   const [fps, setFps] = useState(60);
 
   useEffect(() => {
@@ -328,6 +325,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[sessions.length - 1];
   const curSession = loadPersistedSession();
 
+  const cFrom = settings.themeAccentFrom || ACCENT_COLORS.purple.from;
+  const cTo = settings.themeAccentTo || ACCENT_COLORS.purple.to;
+
   return (
     <div ref={scrollRef} className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
       {/* Top sticky app bar */}
@@ -341,14 +341,14 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
           </button>
           <div>
             <h1 className="text-lg font-bold text-[#e7e5e4] tracking-tight font-headline">Updater Diagnostics</h1>
-            <p className="text-xs text-on-surface-variant font-medium">Session History &amp; Debug Tools</p>
+            <p className="text-xs text-on-surface-variant font-medium">OTA Diagnostics &amp; Developer Control Dashboard</p>
           </div>
         </div>
         
         <div className="flex gap-2">
           <button
             onClick={handleCopyEverything}
-            className="flex items-center gap-1.5 bg-tertiary hover:brightness-110 text-on-tertiary px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-sm"
           >
             <span className="material-symbols-outlined text-xs">content_copy</span>
             <span>Copy Everything</span>
@@ -360,20 +360,23 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
       <div className="flex border-b border-[#484848]/10 overflow-x-auto no-scrollbar bg-black sticky top-[72px] z-40 px-6">
         {[
           { id: 'overview', label: 'Overview', icon: 'info' },
-          { id: 'session', label: 'Current Session', icon: 'settings_backup_restore' },
-          { id: 'timeline', label: 'Workflow Timeline', icon: 'event_note' },
-          { id: 'history', label: 'Update History', icon: 'history' },
-          { id: 'diagnostics', label: 'Diagnostics', icon: 'analytics' },
+          { id: 'livestate', label: 'Live State', icon: 'sync' },
+          { id: 'workflow', label: 'Workflow Timeline', icon: 'event_note' },
+          { id: 'session', label: 'Session Timeline', icon: 'timeline' },
           { id: 'performance', label: 'Performance', icon: 'insights' },
+          { id: 'installer', label: 'PackageInstaller', icon: 'install_mobile' },
+          { id: 'logs', label: 'Logs', icon: 'terminal' },
           { id: 'simulation', label: 'Simulation', icon: 'science' },
-          { id: 'inspector', label: 'Release Inspector', icon: 'search' },
+          { id: 'history', label: 'History', icon: 'history' },
+          { id: 'export', label: 'Export', icon: 'download' },
+          { id: 'devtools', label: 'Developer Tools', icon: 'build' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-2 px-5 py-4 border-b-2 text-sm font-semibold whitespace-nowrap cursor-pointer transition-colors outline-none bg-transparent ${
               activeTab === tab.id
-                ? 'border-tertiary text-tertiary'
+                ? 'border-[#8b5cf6] text-[#8b5cf6]'
                 : 'border-transparent text-on-surface-variant hover:text-white'
             }`}
           >
@@ -386,11 +389,12 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
       {/* Main Content viewport */}
       <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 select-none">
         
+        {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
               <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-tertiary">info</span>
+                <span className="material-symbols-outlined text-[#8b5cf6]">info</span>
                 System Overview
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -419,12 +423,86 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
           </div>
         )}
 
+        {/* TAB 2: LIVE STATE */}
+        {activeTab === 'livestate' && (
+          <div className="space-y-4 animate-fadeIn">
+            <StateMachineVisualizer />
+            
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">history</span>
+                Live State Transition History
+              </h3>
+              {transitionHistory && transitionHistory.length > 0 ? (
+                <div className="border border-[#484848]/10 rounded-xl overflow-hidden divide-y divide-[#484848]/10 font-mono text-[11px] bg-black/40 p-4 space-y-1">
+                  {transitionHistory.map((t, idx) => (
+                    <div key={idx} className="py-2 flex items-center justify-between">
+                      <span className="text-[#8b5cf6] font-bold">{t.fromState} → {t.toState}</span>
+                      <span className="text-on-surface-variant text-[10px] max-w-[50%] truncate">{t.reason}</span>
+                      <span className="text-on-surface-variant">{new Date(t.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
+                  No state transitions recorded this session.
+                </div>
+              )}
+            </div>
+
+            {rejectedTransitions && rejectedTransitions.length > 0 && (
+              <div className="bg-[#1c1c1e]/60 border border-red-500/15 rounded-2xl p-5 space-y-4">
+                <h3 className="font-bold text-sm text-[#ef4444] font-headline tracking-wide flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#ef4444]">warning</span>
+                  Rejected Transitions
+                </h3>
+                <div className="border border-red-500/10 rounded-xl overflow-hidden divide-y divide-red-950/20 font-mono text-[11px] bg-red-950/5 p-4 space-y-1">
+                  {rejectedTransitions.map((t, idx) => (
+                    <div key={idx} className="py-2 flex items-center justify-between text-red-300">
+                      <span>{t.fromState} ↛ {t.toState}</span>
+                      <span className="text-red-400/75 text-[10px] max-w-[50%] truncate">{t.reason}</span>
+                      <span>{new Date(t.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: WORKFLOW TIMELINE */}
+        {activeTab === 'workflow' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">event_note</span>
+                Workflow Timeline Events
+              </h3>
+              {activityLifecycleTimeline && activityLifecycleTimeline.length > 0 ? (
+                <div className="border border-[#484848]/10 rounded-xl bg-black/20 p-4 divide-y divide-[#484848]/10 space-y-1">
+                  {activityLifecycleTimeline.map((item, idx) => (
+                    <div key={idx} className="py-2.5 flex items-center justify-between font-mono text-[11px]">
+                      <span className="text-white font-bold">{item.stage}</span>
+                      <span className="text-on-surface-variant">{new Date(item.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
+                  No workflow timeline events logged in this session.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: SESSION TIMELINE */}
         {activeTab === 'session' && (
           <div className="space-y-4 animate-fadeIn">
             {curSession ? (
               <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
                 <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                  <span className="material-symbols-outlined text-tertiary">settings_backup_restore</span>
+                  <span className="material-symbols-outlined text-[#8b5cf6]">settings_backup_restore</span>
                   Active Update Session Details
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -457,7 +535,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
                   <span className="block text-[10px] text-on-surface-variant font-bold uppercase mb-1">Session Progress</span>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 bg-[#2c2c2e] h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-tertiary h-full rounded-full transition-all duration-300" style={{ width: `${curSession.progress * 100}%` }} />
+                      <div className="bg-[#8b5cf6] h-full rounded-full transition-all duration-300" style={{ width: `${curSession.progress * 100}%` }} />
                     </div>
                     <span className="text-sm font-bold text-white">{Math.round(curSession.progress * 100)}%</span>
                   </div>
@@ -468,45 +546,18 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
                 No active updater session currently running.
               </div>
             )}
-          </div>
-        )}
 
-        {activeTab === 'timeline' && (
-          <div className="space-y-4 animate-fadeIn">
-            {selectedSession && selectedSession.timeline.length > 0 ? (
-              <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/30 flex flex-col divide-y divide-[#484848]/10 font-mono text-xs max-h-[640px] overflow-y-auto">
-                {selectedSession.timeline.map((event, idx) => (
-                  <div key={idx} className="p-3 flex items-start gap-4 hover:bg-white/2 transition-colors">
-                    <div className="text-on-surface-variant min-w-[70px] font-bold">{event.timestamp}</div>
-                    <div className="text-[#a8a29e] min-w-[80px] font-bold">{event.offset}</div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-tertiary font-bold uppercase text-[10px] bg-tertiary/10 border border-tertiary/20 px-1.5 rounded">{event.module}</span>
-                        <span className="text-white font-bold">{event.event}</span>
-                        <span className="text-on-surface-variant text-[10px]">State: {event.state}</span>
-                      </div>
-                      {event.reason && <div className="text-on-surface-variant text-[11px] break-words">{event.reason}</div>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                No timeline logs recorded for this session.
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'history' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="space-y-4">
-              <div>
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">timeline</span>
+                Timeline Viewer
+              </h3>
+              <div className="mb-4">
                 <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Select Diagnostic Session</label>
                 <select
                   value={selectedSessionId}
                   onChange={(e) => setSelectedSessionId(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-tertiary transition-colors"
+                  className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-[#8b5cf6] transition-colors"
                 >
                   <option value="current">-- Active/Latest Session --</option>
                   {sessions.slice().reverse().map(s => (
@@ -517,129 +568,38 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
                 </select>
               </div>
 
-              {/* History Management Operations Panel */}
-              <div className="flex flex-wrap gap-2 pt-2 pb-2 border-t border-[#484848]/10">
-                <button
-                  onClick={handleCopySelectedSession}
-                  className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                  <span>Copy Selected Session</span>
-                </button>
-                <button
-                  onClick={handleCopyEntireHistory}
-                  className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">library_books</span>
-                  <span>Copy Entire History</span>
-                </button>
-                <div className="relative group">
-                  <button
-                    className="flex items-center gap-1.5 bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">download</span>
-                    <span>Export History</span>
-                  </button>
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:flex flex-col bg-[#1d1d1f] border border-[#484848]/20 rounded-xl p-1 shadow-xl min-w-[140px] z-[50]">
-                    <button onClick={() => handleExportHistory('json')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">JSON Format</button>
-                    <button onClick={() => handleExportHistory('md')} className="bg-transparent border-none rounded-lg text-white hover:bg-white/5 py-2 px-3 text-left text-xs font-semibold cursor-pointer">Markdown Format</button>
-                  </div>
-                </div>
-                {selectedSession && (
-                  <button
-                    onClick={handleDeleteSession}
-                    className="flex items-center gap-1.5 bg-red-950/20 hover:bg-red-950/30 border border-red-500/10 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                    <span>Delete Selected Session</span>
-                  </button>
-                )}
-                <button
-                  onClick={handleDeleteAll}
-                  className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer sm:ml-auto"
-                >
-                  <span className="material-symbols-outlined text-[16px]">delete_forever</span>
-                  <span>Delete All Sessions</span>
-                </button>
-              </div>
-
-              {selectedSession ? (
-                <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div>
-                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Session ID</span>
-                      <span className="text-sm font-bold text-white">{selectedSession.id}</span>
+              {selectedSession && selectedSession.timeline.length > 0 ? (
+                <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/30 flex flex-col divide-y divide-[#484848]/10 font-mono text-xs max-h-[480px] overflow-y-auto">
+                  {selectedSession.timeline.map((event, idx) => (
+                    <div key={idx} className="p-3 flex items-start gap-4 hover:bg-white/2 transition-colors">
+                      <div className="text-on-surface-variant min-w-[70px] font-bold">{event.timestamp}</div>
+                      <div className="text-[#a8a29e] min-w-[80px] font-bold">{event.offset}</div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[#8b5cf6] font-bold uppercase text-[10px] bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-1.5 rounded">{event.module}</span>
+                          <span className="text-white font-bold">{event.event}</span>
+                          <span className="text-on-surface-variant text-[10px]">State: {event.state}</span>
+                        </div>
+                        {event.reason && <div className="text-on-surface-variant text-[11px] break-words">{event.reason}</div>}
+                      </div>
                     </div>
-                    <div>
-                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Result State</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold inline-block border ${
-                        selectedSession.result === 'SUCCESS' ? 'bg-green-500/10 text-green-400 border-green-500/25' :
-                        selectedSession.result === 'FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/25' :
-                        selectedSession.result === 'CANCELLED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/25' :
-                        selectedSession.result === 'FINISHED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/25' :
-                        'bg-gray-500/10 text-gray-400 border-gray-500/25'
-                      }`}>{selectedSession.result}</span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Target Version</span>
-                      <span className="text-sm font-bold text-white">{selectedSession.version || 'Checking...'}</span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Duration</span>
-                      <span className="text-sm font-bold text-white">
-                        {selectedSession.durationMs ? `${(selectedSession.durationMs / 1000).toFixed(2)}s` : 'In progress'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-[#484848]/10 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-on-surface-variant">
-                    <div><span className="font-semibold text-[#e7e5e4]">Started:</span> {new Date(selectedSession.startTime).toLocaleString()}</div>
-                    <div><span className="font-semibold text-[#e7e5e4]">Finished:</span> {selectedSession.endTime ? new Date(selectedSession.endTime).toLocaleString() : 'N/A'}</div>
-                    <div><span className="font-semibold text-[#e7e5e4]">Build type:</span> {selectedSession.buildType}</div>
-                    <div><span className="font-semibold text-[#e7e5e4]">Device:</span> {selectedSession.deviceModel} ({selectedSession.androidVersion})</div>
-                  </div>
-
-                  {/* Subsets Copy Toolbar */}
-                  <div className="border-t border-[#484848]/10 pt-4 flex flex-wrap gap-2">
-                    <span className="text-xs font-bold text-[#e7e5e4] flex items-center mr-1">Copy Subset:</span>
-                    <button onClick={() => handleCopySubset('workflow', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Workflow</button>
-                    <button onClick={() => handleCopySubset('timeline', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Timeline</button>
-                    <button onClick={() => handleCopySubset('native', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Native Logs</button>
-                    <button onClick={() => handleCopySubset('js', 'txt')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">JS Logs</button>
-                    <button onClick={() => handleCopySubset('all', 'json')} className="px-2.5 py-1.5 rounded-lg bg-black hover:bg-white/5 border border-outline-variant/10 text-[10px] font-bold text-white cursor-pointer">Raw JSON</button>
-                  </div>
+                  ))}
                 </div>
               ) : (
-                <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-6 text-center text-sm text-on-surface-variant font-medium">
-                  No persistent diagnostic update sessions found.
+                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
+                  No timeline logs recorded for this session.
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {activeTab === 'diagnostics' && (
-          <div className="space-y-4 animate-fadeIn">
-            <DiagnosticsStack 
-              nativeDeviceInfo={nativeDeviceInfo}
-              nativeInstallerDetails={nativeInstallerDetails}
-              localApkDetails={localApkDetails}
-              nativeLogsList={nativeLogsList}
-              showToast={showToast}
-            />
-            <ProductionActions 
-              showToast={showToast} 
-              triggerRefresh={triggerRefresh}
-              addJsLog={addJsLog}
-            />
-          </div>
-        )}
-
+        {/* TAB 5: PERFORMANCE */}
         {activeTab === 'performance' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
               <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-tertiary">insights</span>
+                <span className="material-symbols-outlined text-[#8b5cf6]">insights</span>
                 Real-Time Performance
               </h3>
               <div className="grid grid-cols-2 gap-4">
@@ -664,6 +624,65 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
           </div>
         )}
 
+        {/* TAB 6: PACKAGEINSTALLER */}
+        {activeTab === 'installer' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">install_mobile</span>
+                PackageInstaller Native Check Status
+              </h3>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">AppInstaller Available</span>
+                  <span className="font-mono text-white text-sm">{otaDebugLogs.appInstallerAvailable ? 'YES' : 'NO'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Download Apk Hook</span>
+                  <span className="font-mono text-white text-sm">{otaDebugLogs.downloadApkAvailable ? 'YES' : 'NO'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Verify Apk Sha256</span>
+                  <span className="font-mono text-white text-sm">{otaDebugLogs.verifyApkSha256Available ? 'YES' : 'NO'}</span>
+                </div>
+                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
+                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Install Apk Hook</span>
+                  <span className="font-mono text-white text-sm">{otaDebugLogs.installApkAvailable ? 'YES' : 'NO'}</span>
+                </div>
+              </div>
+              <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1 text-xs">
+                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Installer Launch Logs</span>
+                <span className="font-mono text-white text-sm">{otaDebugLogs.installerLaunchStatus || 'N/A'}</span>
+              </div>
+            </div>
+
+            {nativeInstallerDetails && (
+              <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+                <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#8b5cf6]">description</span>
+                  Extended PackageInstaller Telemetry
+                </h3>
+                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[11px] text-zinc-300 overflow-x-auto max-h-72">
+                  {JSON.stringify(nativeInstallerDetails, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 7: LOGS */}
+        {activeTab === 'logs' && (
+          <div className="space-y-4 animate-fadeIn">
+            <LiveConsole 
+              nativeLogsList={nativeLogsList}
+              clearNativeLogsList={() => setNativeLogsList([])}
+              showToast={showToast}
+              addJsLog={addJsLog}
+            />
+          </div>
+        )}
+
+        {/* TAB 8: SIMULATION */}
         {activeTab === 'simulation' && (
           <div className="space-y-4 animate-fadeIn">
             <SimulationLab 
@@ -674,90 +693,195 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
               localApkDetails={localApkDetails}
               nativeLogsList={nativeLogsList}
             />
-            <StateMachineVisualizer />
           </div>
         )}
 
-        {activeTab === 'inspector' && (
+        {/* TAB 9: HISTORY */}
+        {activeTab === 'history' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
               <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-tertiary">search</span>
-                Release Metadata Inspector
+                <span className="material-symbols-outlined text-[#8b5cf6]">history</span>
+                Persistent Session History logs
               </h3>
               
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw Version Name</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.rawVersionName || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Normalized Version</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.normalizedVersion || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Final UI Version</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.finalVersionShownByUi || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Metadata Source Used</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.sourceUsed || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Cache Source Status</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.cacheSource || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Last Checked Timestamp</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.timestamp || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw Tag</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.rawTag || 'N/A'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw Release Title</span>
-                  <span className="font-mono text-white text-sm">{releaseMetadataInspector.rawReleaseName || 'N/A'}</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Parser Transformation Chain &amp; Stack Traces</span>
-                <div className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 max-h-72 overflow-y-auto space-y-3 whitespace-pre-wrap divide-y divide-zinc-800">
-                  {releaseMetadataInspector.parserChain.length === 0 ? (
-                    <div className="text-zinc-500 py-2">No transformation steps recorded yet. Run an update check to populate.</div>
-                  ) : (
-                    releaseMetadataInspector.parserChain.map((step, idx) => (
-                      <div key={idx} className={idx > 0 ? "pt-3" : ""}>
-                        <div className="text-tertiary font-bold mb-1">Step #{idx + 1}</div>
-                        {step}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {sessions.length > 0 ? (
+                  sessions.slice().reverse().map(s => (
+                    <div key={s.id} className="border border-outline-variant/10 rounded-xl p-4 bg-black/40 flex flex-col gap-2 relative">
+                      <div className="flex justify-between items-start">
+                        <span className="font-mono text-xs text-white font-bold">{s.id.substring(0, 18)}...</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                          s.result === 'SUCCESS' ? 'bg-green-500/10 text-green-400 border-green-500/25' :
+                          s.result === 'FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/25' :
+                          s.result === 'CANCELLED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/25' :
+                          s.result === 'FINISHED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/25' :
+                          'bg-gray-500/10 text-gray-400 border-gray-500/25'
+                        }`}>{s.result}</span>
                       </div>
-                    ))
-                  )}
+                      <div className="text-[11px] text-on-surface-variant">
+                        <div><span className="font-semibold text-[#e7e5e4]">Target:</span> {s.version || 'unknown'}</div>
+                        <div><span className="font-semibold text-[#e7e5e4]">Date:</span> {new Date(s.startTime).toLocaleString()}</div>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          deleteUpdateSession(s.id);
+                          showToast('Session deleted');
+                          refreshSessionsList();
+                        }}
+                        className="absolute right-3 bottom-3 text-red-400 hover:text-red-300 bg-transparent border-none cursor-pointer outline-none"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-2 bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
+                    No persistent diagnostic sessions recorded yet.
+                  </div>
+                )}
+              </div>
+
+              {sessions.length > 0 && (
+                <div className="pt-4 border-t border-[#484848]/10 flex justify-end">
+                  <button
+                    onClick={handleDeleteAll}
+                    className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">delete_forever</span>
+                    <span>Wipe All Sessions</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 10: EXPORT */}
+        {activeTab === 'export' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">download</span>
+                Diagnostics &amp; Session Clipboard Exporters
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={handleCopySelectedSession}
+                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
+                >
+                  <div>
+                    <span className="block font-bold text-sm text-tertiary">Copy Selected Session</span>
+                    <span className="text-[10px] text-on-surface-variant">Copy current selected history session as MD</span>
+                  </div>
+                  <span className="material-symbols-outlined text-tertiary">content_copy</span>
+                </button>
+
+                <button
+                  onClick={handleCopyEntireHistory}
+                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
+                >
+                  <div>
+                    <span className="block font-bold text-sm text-tertiary">Copy Entire History</span>
+                    <span className="text-[10px] text-on-surface-variant">Copy all recorded history logs together</span>
+                  </div>
+                  <span className="material-symbols-outlined text-tertiary">library_books</span>
+                </button>
+
+                <button
+                  onClick={() => handleExportHistory('json')}
+                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
+                >
+                  <div>
+                    <span className="block font-bold text-sm text-tertiary">Export History (JSON)</span>
+                    <span className="text-[10px] text-on-surface-variant">Download all session histories in JSON</span>
+                  </div>
+                  <span className="material-symbols-outlined text-tertiary">download</span>
+                </button>
+
+                <button
+                  onClick={() => handleExportHistory('md')}
+                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
+                >
+                  <div>
+                    <span className="block font-bold text-sm text-tertiary">Export History (Markdown)</span>
+                    <span className="text-[10px] text-on-surface-variant">Download all session histories in Markdown</span>
+                  </div>
+                  <span className="material-symbols-outlined text-tertiary">download</span>
+                </button>
+              </div>
+
+              <div className="pt-4 border-t border-[#484848]/10 space-y-3">
+                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Generate report Subsets</span>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => handleCopySubset('workflow', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Workflow</button>
+                  <button onClick={() => handleCopySubset('timeline', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Timeline</button>
+                  <button onClick={() => handleCopySubset('native', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Native Logs</button>
+                  <button onClick={() => handleCopySubset('js', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">JS Logs</button>
+                  <button onClick={() => handleCopySubset('all', 'json')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Raw JSON</button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw app-release.json</span>
-                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-48">
-                  {releaseMetadataInspector.rawAppReleaseJson || 'No data fetched yet'}
-                </pre>
-              </div>
+              <DiagnosticsStack 
+                nativeDeviceInfo={nativeDeviceInfo}
+                nativeInstallerDetails={nativeInstallerDetails}
+                localApkDetails={localApkDetails}
+                nativeLogsList={nativeLogsList}
+                showToast={showToast}
+              />
+            </div>
+          </div>
+        )}
 
-              <div className="space-y-2">
-                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw version.json</span>
-                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-48">
-                  {releaseMetadataInspector.rawVersionJson || 'No data fetched yet'}
-                </pre>
-              </div>
+        {/* TAB 11: DEVELOPER TOOLS */}
+        {activeTab === 'devtools' && (
+          <div className="space-y-4 animate-fadeIn">
+            <ProductionActions 
+              showToast={showToast} 
+              triggerRefresh={triggerRefresh}
+              addJsLog={addJsLog}
+            />
 
-              <div className="space-y-2">
-                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Raw GitHub Releases Response</span>
-                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-48">
-                  {releaseMetadataInspector.rawGithubResponse || 'No data fetched yet'}
-                </pre>
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">build</span>
+                Additional Verification Actions
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Share APK */}
+                <button
+                  onClick={handleShareApk}
+                  className="flex items-center justify-between bg-black hover:bg-white/5 border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none active:scale-[0.98]"
+                >
+                  <div>
+                    <span className="block font-bold text-sm text-tertiary">Share Downloaded APK</span>
+                    <span className="text-[10px] text-on-surface-variant font-medium">Send target binary package via standard share dialog</span>
+                  </div>
+                  <span className="material-symbols-outlined text-tertiary">share</span>
+                </button>
+
+                {/* Print Timeline */}
+                <button
+                  onClick={handlePrintLogs}
+                  className="flex items-center justify-between bg-black hover:bg-white/5 border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none active:scale-[0.98]"
+                >
+                  <div>
+                    <span className="block font-bold text-sm text-tertiary">Print System Timeline</span>
+                    <span className="text-[10px] text-on-surface-variant font-medium">Export full chronological timeline of native/JS events</span>
+                  </div>
+                  <span className="material-symbols-outlined text-tertiary">print</span>
+                </button>
               </div>
             </div>
+            
+            <ReportPreview 
+              nativeDeviceInfo={nativeDeviceInfo}
+              nativeInstallerDetails={nativeInstallerDetails}
+              localApkDetails={localApkDetails}
+              nativeLogsList={nativeLogsList}
+            />
           </div>
         )}
 

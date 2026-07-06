@@ -18,7 +18,7 @@ export type OtaUpdateState =
   | 'RECOVERY'
   | 'IDLE';
 
-import { parseSemver } from '../appVersion';
+import { parseSemver, APP_VERSION, compareSemver } from '../appVersion';
 import { releaseMetadataInspector } from './versionLogger';
 
 export interface StructuredReleaseNotes {
@@ -96,6 +96,12 @@ export function verifyAndCleanCaches() {
           console.warn('[Cache Verification] Invalidation: Corrupted session version detected:', ver);
           localStorage.removeItem('studio:active_update_session');
           releaseMetadataInspector.cacheSource = 'invalidated_session';
+        } else if (compareSemver(APP_VERSION, ver) >= 0) {
+          console.log(`[Cache Verification] Update to v${ver} already completed successfully (Current: v${APP_VERSION}). Clearing session.`);
+          localStorage.removeItem('studio:active_update_session');
+          localStorage.removeItem('studio:install_in_progress');
+          localStorage.removeItem('studio:is_simulation_active');
+          releaseMetadataInspector.cacheSource = 'completed_session';
         } else {
           releaseMetadataInspector.cacheSource = 'valid_session';
         }
@@ -167,6 +173,14 @@ export function loadPersistedSession(): ActiveUpdateSession | null {
       const sessionStr = localStorage.getItem('studio:active_update_session');
       if (sessionStr) {
         const parsed = JSON.parse(sessionStr);
+        const ver = parsed?.targetVersion;
+        if (ver && compareSemver(APP_VERSION, ver) >= 0) {
+          console.log(`[Session Recovery] Session target version v${ver} is already met by current version v${APP_VERSION}. Wiping.`);
+          localStorage.removeItem('studio:active_update_session');
+          localStorage.removeItem('studio:install_in_progress');
+          activeUpdateSession = null;
+          return null;
+        }
         activeUpdateSession = parsed;
         return parsed;
       }

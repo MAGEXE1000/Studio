@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.2",
-  "versionName": "4.0.2",
-  "versionCode": 228,
-  "version_code": 228,
-  "commit": "19bdf475",
-  "releasedAt": "7/6/2026, 8:20:09 AM CST",
-  "buildTimestamp": "7/6/2026, 8:20:09 AM CST",
+  "version": "4.0.3",
+  "versionName": "4.0.3",
+  "versionCode": 229,
+  "version_code": 229,
+  "commit": "0f9a2fa2",
+  "releasedAt": "7/6/2026, 8:39:05 AM CST",
+  "buildTimestamp": "7/6/2026, 8:39:05 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.\n• Added live download speed, remaining time, and package size metrics calculation in Javascript.\n• Integrated automatic close timer and unified installation status tracking behind PackageInstaller.",
-  "whatsNew": "• Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.\n• Added live download speed, remaining time, and package size metrics calculation in Javascript.\n• Integrated automatic close timer and unified installation status tracking behind PackageInstaller.",
+  "changelog": "• Fixed post-update startup check loop by invalidating session caches when local version matches target.\n• Restored and reorganized Developer Options Diagnostics page into 11 distinct sections.\n• Restored simulation overrides, chronological timelines, PackageInstaller telemetry, and clipboard tools.",
+  "whatsNew": "• Fixed post-update startup check loop by invalidating session caches when local version matches target.\n• Restored and reorganized Developer Options Diagnostics page into 11 distinct sections.\n• Restored simulation overrides, chronological timelines, PackageInstaller telemetry, and clipboard tools.",
   "releaseNotes": {
-    "added": [
-      "Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.",
-      "Added live download speed, remaining time, and package size metrics calculation in Javascript.",
-      "Integrated automatic close timer and unified installation status tracking behind PackageInstaller."
+    "fixed": [
+      "Fixed post-update startup check loop by invalidating session caches when local version matches target.",
+      "Restored and reorganized Developer Options Diagnostics page into 11 distinct sections.",
+      "Restored simulation overrides, chronological timelines, PackageInstaller telemetry, and clipboard tools."
     ]
   },
   "mandatory": false

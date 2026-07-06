@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.3
+
+### Fixed
+- Fixed post-update startup check loop by invalidating session caches when local version matches target.
+- Restored and reorganized Developer Options Diagnostics page into 11 distinct sections.
+- Restored simulation overrides, chronological timelines, PackageInstaller telemetry, and clipboard tools.
+
 ## 4.0.2
 
 ### Added

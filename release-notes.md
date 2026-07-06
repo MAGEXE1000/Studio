@@ -1,4 +1,4 @@
-### Added
-- Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.
-- Added live download speed, remaining time, and package size metrics calculation in Javascript.
-- Integrated automatic close timer and unified installation status tracking behind PackageInstaller.
+### Fixed
+- Fixed post-update startup check loop by invalidating session caches when local version matches target.
+- Restored and reorganized Developer Options Diagnostics page into 11 distinct sections.
+- Restored simulation overrides, chronological timelines, PackageInstaller telemetry, and clipboard tools.

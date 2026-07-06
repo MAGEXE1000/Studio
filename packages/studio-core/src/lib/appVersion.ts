@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from './updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.1';
-export const WEB_VERSION = '4.0.1';
+export const NATIVE_VERSION = '4.0.2';
+export const WEB_VERSION = '4.0.2';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,8 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Push test update to version 4.0.1 for verification.",
-      "Verified in-app updater behavior under clean state.",
+      "Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.",
+      "Added live download speed, remaining time, and package size metrics calculation in Javascript.",
+      "Integrated automatic close timer and unified installation status tracking behind PackageInstaller.",
     ],
   },
 ];

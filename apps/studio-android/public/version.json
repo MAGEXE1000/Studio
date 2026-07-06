@@ -1,19 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.1",
-  "versionName": "4.0.1",
-  "versionCode": 227,
-  "version_code": 227,
-  "commit": "02188145",
-  "releasedAt": "7/6/2026, 6:41:18 AM CST",
-  "buildTimestamp": "7/6/2026, 6:41:18 AM CST",
+  "version": "4.0.2",
+  "versionName": "4.0.2",
+  "versionCode": 228,
+  "version_code": 228,
+  "commit": "19bdf475",
+  "releasedAt": "7/6/2026, 8:20:09 AM CST",
+  "buildTimestamp": "7/6/2026, 8:20:09 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Push test update to version 4.0.1 for verification.\n• Verified in-app updater behavior under clean state.",
-  "whatsNew": "• Push test update to version 4.0.1 for verification.\n• Verified in-app updater behavior under clean state.",
+  "changelog": "• Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.\n• Added live download speed, remaining time, and package size metrics calculation in Javascript.\n• Integrated automatic close timer and unified installation status tracking behind PackageInstaller.",
+  "whatsNew": "• Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.\n• Added live download speed, remaining time, and package size metrics calculation in Javascript.\n• Integrated automatic close timer and unified installation status tracking behind PackageInstaller.",
   "releaseNotes": {
     "added": [
-      "Push test update to version 4.0.1 for verification.",
-      "Verified in-app updater behavior under clean state."
+      "Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.",
+      "Added live download speed, remaining time, and package size metrics calculation in Javascript.",
+      "Integrated automatic close timer and unified installation status tracking behind PackageInstaller."
     ]
   },
   "mandatory": false

@@ -45,6 +45,7 @@ export interface CentralizedOtaState {
   manualApkUrl: string | null;
   fallbackApkUrl: string | null;
   downloadUrl: string | null;
+  apkSizeBytes: number | null;
   decisionExplanation: string | null;
   // Recovery Mode fields
   consecutiveFailures: number;
@@ -71,6 +72,7 @@ export interface ActiveUpdateSession {
   targetVersion: string | null;
   apkUrl: string | null;
   apkSha256: string | null;
+  apkSizeBytes?: number | null;
   mandatory: boolean;
   updateType: 'ota' | 'apk' | 'both' | 'none';
   changelog: string | null;
@@ -210,6 +212,7 @@ export function startUpdateSession(startedBy: string, trigger: string) {
     targetVersion: globalOtaState.remoteVersion,
     apkUrl: globalOtaState.apkUrl,
     apkSha256: globalOtaState.apkSha256,
+    apkSizeBytes: globalOtaState.apkSizeBytes,
     mandatory: globalOtaState.mandatory,
     updateType: globalOtaState.updateType,
     changelog: globalOtaState.changelog,
@@ -264,6 +267,7 @@ export let globalOtaState: CentralizedOtaState = {
   packageName: null,
   apkUrl: savedSession ? savedSession.apkUrl : null,
   apkSha256: savedSession ? savedSession.apkSha256 : null,
+  apkSizeBytes: savedSession ? (savedSession.apkSizeBytes ?? null) : null,
   manualApkUrl: null,
   fallbackApkUrl: null,
   downloadUrl: null,

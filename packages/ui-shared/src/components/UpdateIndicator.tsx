@@ -904,6 +904,94 @@ function UpdateModal({
   const [linkCopied, setLinkCopied] = useState(false);
   const [showGitHubConfirm, setShowGitHubConfirm] = useState(false);
 
+  const { settings } = useChordStore();
+  const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
+  const isLight = (() => {
+    if (hubVis.theme === 'light') return true;
+    if (hubVis.theme === 'system') {
+      return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
+    }
+    if (hubVis.theme === 'dynamic') {
+      const h = new Date().getHours();
+      const lightStart = settings.dynamicLightStart ?? 7;
+      const lightEnd   = settings.dynamicLightEnd   ?? 20;
+      return h >= lightStart && h < lightEnd;
+    }
+    return false;
+  })();
+
+  const [downloadMetrics, setDownloadMetrics] = useState({
+    downloadedMB: 0,
+    totalMB: 0,
+    speedMBs: 0,
+    remainingSeconds: 0,
+  });
+
+  const lastProgressRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const smoothedSpeedRef = useRef(0);
+
+  useEffect(() => {
+    const isDownloading = ota.updateState === 'DOWNLOAD_APK' || ota.updateState === 'FETCH_APK_INFORMATION';
+    if (isDownloading) {
+      const totalBytes = ota.apkSizeBytes || 56194057; // Default fallback to 56.2 MB if not present
+      const downloadedBytes = totalBytes * ota.progress;
+      
+      const now = Date.now();
+      const lastTime = lastTimeRef.current;
+      const lastProgress = lastProgressRef.current;
+      
+      let speed = 0;
+      let remaining = 0;
+      
+      if (lastTime > 0 && now > lastTime && ota.progress > lastProgress) {
+        const timeDiffSec = (now - lastTime) / 1000;
+        const bytesDiff = totalBytes * (ota.progress - lastProgress);
+        const currentSpeed = bytesDiff / timeDiffSec; // bytes per second
+        
+        // EMA smoothing (alpha = 0.3)
+        if (smoothedSpeedRef.current === 0) {
+          smoothedSpeedRef.current = currentSpeed;
+        } else {
+          smoothedSpeedRef.current = 0.3 * currentSpeed + 0.7 * smoothedSpeedRef.current;
+        }
+        
+        speed = smoothedSpeedRef.current;
+      }
+      
+      lastTimeRef.current = now;
+      lastProgressRef.current = ota.progress;
+      
+      if (speed > 0) {
+        const remainingBytes = totalBytes - downloadedBytes;
+        remaining = remainingBytes / speed;
+      }
+      
+      setDownloadMetrics({
+        downloadedMB: downloadedBytes / (1024 * 1024),
+        totalMB: totalBytes / (1024 * 1024),
+        speedMBs: speed / (1024 * 1024),
+        remainingSeconds: remaining,
+      });
+    } else {
+      lastProgressRef.current = 0;
+      lastTimeRef.current = 0;
+      smoothedSpeedRef.current = 0;
+    }
+  }, [ota.progress, ota.updateState, ota.apkSizeBytes]);
+
+  useEffect(() => {
+    const isCompleted = ota.updateState === 'INSTALL_SUCCESS';
+    if (isCompleted) {
+      console.log('[OTA UI] Installation success detected. Initializing auto-close in 2.5s...');
+      const timer = setTimeout(() => {
+        onClose();
+        ota.dismissUpdate();
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [ota.updateState, onClose, ota]);
+
   const getDiagnosticsText = () => {
     return [
       '=== STUDIO UPDATE DIAGNOSTICS ===',
@@ -1233,11 +1321,12 @@ function UpdateModal({
       showSpinner = true;
       break;
 
+    case 'packageinstaller_visible':
     case 'installing':
       iconName = 'sync';
       iconColor = purpleFrom;
       showSpinner = true;
-      title = 'Installing Studio...';
+      title = 'Installing...';
       const hasRealProgress = ota.progress > 0 && ota.progress < 1;
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
@@ -1252,11 +1341,12 @@ function UpdateModal({
     case 'installedOrReady':
     case 'installed':
     case 'update_success':
+    case 'completed':
       iconName = 'check_circle';
       iconColor = '#22c55e';
-      title = 'Update completed successfully';
-      description = `Version ${ota.remoteVersion || 'latest'} installed.`;
-      showButtons = true;
+      title = 'Installation complete';
+      description = `Version ${ota.remoteVersion || 'latest'} successfully installed.`;
+      showButtons = false;
       showSpinner = false;
       break;
 
@@ -2264,6 +2354,7 @@ function UpdateModal({
         showProgress={false}
         actionButtons={gitHubButtons}
         onClose={onClose}
+        isLight={isLight}
       />
     );
   }
@@ -2284,6 +2375,11 @@ function UpdateModal({
       changelog={renderChangelog()}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
+      downloadSpeedMBs={downloadMetrics.speedMBs}
+      downloadRemainingSeconds={downloadMetrics.remainingSeconds}
+      downloadedMB={downloadMetrics.downloadedMB}
+      totalMB={downloadMetrics.totalMB}
+      isLight={isLight}
     />
   );
 }

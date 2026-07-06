@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.1"
-$VersionCode = "227"
-$ReleaseNote = "v4.0.1 - Release 4.0.1: Push test update for verification."
+$VersionName = "4.0.2"
+$VersionCode = "228"
+$ReleaseNote = "v4.0.2 - Release 4.0.2: Redesign updater experience to premium Material 3 Dialog card with blurred backdrop, progress metrics, and auto-completion."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -34,6 +34,10 @@ git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnostics
 git add packages/ui-shared/src/components/updater-diagnostics/TelemetryGrid.tsx
 git add packages/ui-shared/src/components/updater-diagnostics/SimulationLab.tsx
 git add packages/ui-shared/src/components/UpdateIndicator.tsx
+git add packages/studio-core/src/lib/otaUpdate.ts
+git add packages/studio-core/src/lib/updater/releaseMetadata.ts
+git add packages/studio-core/src/lib/updater/stateMachine.ts
+git add packages/ui-shared/src/components/StudioUpdateScreen.tsx
 git add packages/ui-shared/src/components/StudioHub.tsx
 git add apps/studio-android/src/index.css
 git add apps/studio-web/src/index.css

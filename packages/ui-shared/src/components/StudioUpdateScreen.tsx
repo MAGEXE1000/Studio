@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import StudioProgressBar from './StudioProgressBar';
-import StudioUpdateAuroraBackground from './StudioUpdateAuroraBackground';
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -18,6 +16,11 @@ interface StudioUpdateScreenProps {
   changelog?: React.ReactNode;
   isRequired?: boolean;
   onClose?: () => void;
+  downloadSpeedMBs?: number;
+  downloadRemainingSeconds?: number;
+  downloadedMB?: number;
+  totalMB?: number;
+  isLight?: boolean;
 }
 
 export default function StudioUpdateScreen({
@@ -35,6 +38,11 @@ export default function StudioUpdateScreen({
   changelog,
   isRequired,
   onClose,
+  downloadSpeedMBs,
+  downloadRemainingSeconds,
+  downloadedMB,
+  totalMB,
+  isLight = false,
 }: StudioUpdateScreenProps) {
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -62,9 +70,10 @@ export default function StudioUpdateScreen({
     'installedOrReady',
     'installed',
     'update_success',
+    'completed',
   ].includes(state);
 
-  const isInstalling = ['installing', 'waitingForUserInstallConfirmation'].includes(state);
+  const isInstalling = ['installing', 'packageinstaller_visible', 'waitingForUserInstallConfirmation'].includes(state);
 
   // Material 3 Emphasized motion curve (deceleration ease)
   const emphasizedTransition = { duration: 0.4, ease: [0.2, 0.8, 0.2, 1] as const };
@@ -81,7 +90,7 @@ export default function StudioUpdateScreen({
     }
     @keyframes ota-pulse-subtle {
       0%, 100% { transform: scale(1) translateY(0); }
-      50% { transform: scale(1.03) translateY(-4px); }
+      50% { transform: scale(1.025) translateY(-3px); }
     }
   `;
 
@@ -96,7 +105,9 @@ export default function StudioUpdateScreen({
         inset: 0,
         zIndex: 99999,
         overflowY: 'auto',
-        background: 'var(--app-bg, #0a0a0c)',
+        background: isLight ? 'rgba(235, 235, 240, 0.4)' : 'rgba(10, 10, 12, 0.4)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -109,12 +120,6 @@ export default function StudioUpdateScreen({
       aria-labelledby="updater-dialog-title"
     >
       <style>{customKeyframes}</style>
-      <StudioUpdateAuroraBackground
-        accentFrom={accentFrom}
-        accentTo={accentTo}
-        className="w-full h-full flex items-center justify-center"
-        style={{ position: 'fixed', inset: 0, zIndex: -1 }}
-      />
 
       {/* Top Header Dismiss Row */}
       {canClose && onClose && (
@@ -130,12 +135,12 @@ export default function StudioUpdateScreen({
             width: 38,
             height: 38,
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+            border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--c-text-primary, #ffffff)',
+            color: isLight ? 'rgba(0, 0, 0, 0.8)' : '#ffffff',
             cursor: 'pointer',
             zIndex: 10,
             transition: 'background-color 200ms ease',
@@ -152,14 +157,14 @@ export default function StudioUpdateScreen({
         style={{
           width: '100%',
           maxWidth: 380,
-          background: 'rgba(20, 20, 24, 0.72)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: isLight ? 'rgba(255, 255, 255, 0.88)' : 'rgba(20, 20, 24, 0.78)',
+          border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: 28,
           padding: '32px 24px',
           boxSizing: 'border-box',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5)',
+          boxShadow: isLight ? '0 16px 36px rgba(0, 0, 0, 0.08)' : '0 24px 48px rgba(0, 0, 0, 0.45)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -175,14 +180,13 @@ export default function StudioUpdateScreen({
             width: 72,
             height: 72,
             borderRadius: '50%',
-            background: showSpinner ? 'rgba(255, 255, 255, 0.03)' : `color-mix(in srgb, ${iconColor} 12%, rgba(20, 20, 24, 0.85))`,
-            border: `1.5px solid ${showSpinner ? 'rgba(255, 255, 255, 0.1)' : `color-mix(in srgb, ${iconColor} 24%, transparent)`}`,
+            background: showSpinner ? (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255, 255, 255, 0.03)') : `color-mix(in srgb, ${iconColor} 12%, ${isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(20, 20, 24, 0.85)'})`,
+            border: `1.5px solid ${showSpinner ? (isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)') : `color-mix(in srgb, ${iconColor} 24%, transparent)`}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: showSpinner ? 'none' : `0 0 24px color-mix(in srgb, ${iconColor} 15%, transparent)`,
             position: 'relative',
-            // Subtle hardware-accelerated float animation
             animation: (isInstalling && !reducedMotion) ? 'ota-pulse-subtle 2.5s ease-in-out infinite' : 'none',
             willChange: 'transform',
           }}
@@ -211,7 +215,7 @@ export default function StudioUpdateScreen({
                     willChange: 'transform',
                   }}
                 >
-                  <circle cx="12" cy="12" r="10" stroke="rgba(255, 255, 255, 0.08)" strokeWidth={3} />
+                  <circle cx="12" cy="12" r="10" stroke={isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)'} strokeWidth={3} />
                   <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#ota-spinner-grad)" strokeWidth={3} />
                   <defs>
                     <linearGradient id="ota-spinner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -221,7 +225,7 @@ export default function StudioUpdateScreen({
                   </defs>
                 </svg>
               ) : iconName === 'github' ? (
-                <svg viewBox="0 0 24 24" width={30} height={30} fill="var(--c-text-primary, #ffffff)" style={{ flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" width={30} height={30} fill={isLight ? 'rgba(0, 0, 0, 0.95)' : '#ffffff'} style={{ flexShrink: 0 }}>
                   <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
               ) : (
@@ -244,7 +248,7 @@ export default function StudioUpdateScreen({
             fontWeight: 600,
             fontSize: 22,
             letterSpacing: '-0.02em',
-            color: 'var(--c-text-primary, #ffffff)',
+            color: isLight ? '#121214' : '#ffffff',
           }}
         >
           {title}
@@ -258,7 +262,7 @@ export default function StudioUpdateScreen({
             fontSize: 14,
             fontFamily: 'Inter, sans-serif',
             lineHeight: 1.5,
-            color: 'rgba(255, 255, 255, 0.7)',
+            color: isLight ? 'rgba(0, 0, 0, 0.65)' : 'rgba(255, 255, 255, 0.7)',
             width: '100%',
           }}
           role="status"
@@ -283,7 +287,7 @@ export default function StudioUpdateScreen({
           )}
         </AnimatePresence>
 
-        {/* Linear Progress Section */}
+        {/* Linear Progress Section with download speed and time metrics */}
         <AnimatePresence>
           {showProgress && (
             <motion.div
@@ -292,18 +296,48 @@ export default function StudioUpdateScreen({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={emphasizedTransition}
-              style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 6 }}
+              style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8 }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, fontFamily: 'Manrope', color: 'var(--c-text-primary, #ffffff)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
                 <span>Downloading update</span>
                 <span>{pct}%</span>
               </div>
-              <StudioProgressBar
-                value={pct}
-                accentFrom={accentFrom}
-                accentTo={accentTo}
-                height={6}
-              />
+              
+              <div style={{ width: '100%', height: 6, borderRadius: 3, background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ type: 'spring', stiffness: 80, damping: 15 }}
+                  style={{
+                    height: '100%',
+                    background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
+                  }} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, fontFamily: 'Inter, monospace', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)' }}>
+                <span>
+                  {downloadedMB && totalMB 
+                    ? `${downloadedMB.toFixed(1)} MB / ${totalMB.toFixed(1)} MB` 
+                    : 'Calculating size...'}
+                </span>
+                <span style={{ display: 'flex', gap: 8 }}>
+                  {downloadSpeedMBs !== undefined && downloadSpeedMBs > 0 && (
+                    <span>
+                      {downloadSpeedMBs >= 1 
+                        ? `${downloadSpeedMBs.toFixed(1)} MB/s` 
+                        : `${(downloadSpeedMBs * 1024).toFixed(0)} KB/s`}
+                    </span>
+                  )}
+                  {downloadRemainingSeconds !== undefined && downloadRemainingSeconds > 0 && (
+                    <span>
+                      • {downloadRemainingSeconds < 60 
+                        ? `${Math.round(downloadRemainingSeconds)}s remaining` 
+                        : `${Math.floor(downloadRemainingSeconds / 60)}m ${Math.round(downloadRemainingSeconds % 60)}s remaining`}
+                    </span>
+                  )}
+                </span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -319,7 +353,7 @@ export default function StudioUpdateScreen({
               transition={emphasizedTransition}
               style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8 }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, fontFamily: 'Manrope', color: 'var(--c-text-primary, #ffffff)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
                 <span>Installing update</span>
                 <span>In progress</span>
               </div>
@@ -327,7 +361,7 @@ export default function StudioUpdateScreen({
                 width: '100%',
                 height: 6,
                 borderRadius: 3,
-                background: 'rgba(255, 255, 255, 0.06)',
+                background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
                 overflow: 'hidden',
                 position: 'relative'
               }}>

@@ -876,6 +876,7 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
         apkSha256: remote.apkSha256 ?? null,
         manualApkUrl: remote.manualApkUrl ?? null,
         fallbackApkUrl: remote.fallbackApkUrl ?? null,
+        apkSizeBytes: remote.apkSizeBytes ?? null,
       });
 
       checkCancellation(pipelineId, 'AWAIT_CACHE_CLEANUP');

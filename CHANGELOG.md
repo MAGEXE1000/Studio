@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.2
+
+### Added
+- Redesigned updater dialog utilizing premium centered layout and blurred backdrop overlay.
+- Added live download speed, remaining time, and package size metrics calculation in Javascript.
+- Integrated automatic close timer and unified installation status tracking behind PackageInstaller.
+
 ## 4.0.1
 
 ### Added

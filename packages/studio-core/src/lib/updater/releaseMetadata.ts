@@ -24,8 +24,8 @@ export interface RemoteVersionInfo {
   previousSignatureSha256?: string;
   newSignatureSha256?: string;
   installMode?: 'reinstall-required';
-  packageName?: string;
   signatures?: string;
+  apkSizeBytes?: number;
 }
 
 const FETCH_TIMEOUT_MS = 6000;
@@ -185,6 +185,9 @@ async function fetchOne(
       installMode,
       packageName,
       signatures,
+      apkSizeBytes: typeof obj.apkSizeBytes === 'number'
+        ? obj.apkSizeBytes
+        : (typeof obj.apkSizeBytes === 'string' ? parseInt(obj.apkSizeBytes, 10) : undefined),
     };
 
     if (!validateRemoteMetadata(resultObj)) {

@@ -333,7 +333,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
         isValid = ['FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'FETCH_APK_INFORMATION':
-        isValid = ['DOWNLOAD_APK', 'PREPARING_INSTALL', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = ['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'DOWNLOAD_APK':
         isValid = ['VERIFY_SHA256', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);

@@ -183,3 +183,14 @@ Rules:
 - Only open implementation files that are **directly required** for the requested task — do not speculatively explore unrelated modules.
 - **Never re-index the repository** (i.e., do not re-survey directory trees or re-read all source files to rebuild structural understanding) unless the user explicitly requests it.
 - If `ARCHITECTURE_INDEX.md` is stale or missing an entry for a module you need, read only that module's files, then update the index entry before proceeding.
+
+---
+
+### Direct-Fix-First Rule
+
+When diagnosing an error, **attempt the simplest direct fix first**.
+
+- Do not investigate build systems, tsconfig internals, package.json exports, caches, or TypeScript resolution mechanics before trying the obvious fix.
+- Use short **verify → fix → verify** loops. One hypothesis, one attempt, one check.
+- Escalate to deeper investigation only when the direct fix has been tried and failed.
+- Avoid multi-step hypothesis chains that delay the actual fix.

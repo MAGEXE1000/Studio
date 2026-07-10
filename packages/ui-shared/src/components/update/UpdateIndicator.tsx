@@ -983,13 +983,28 @@ function UpdateModal({
   useEffect(() => {
     const isCompleted = ota.updateState === 'INSTALL_SUCCESS';
     if (!isCompleted) return;
-    console.log('[OTA UI] Installation success detected. Initializing auto-close in 2.5s...');
-    const timer = setTimeout(() => {
-      onClose();
-      ota.dismissUpdate();
+    console.log('[OTA UI] Installation success detected. Will attempt app exit in 2.5s...');
+    // After a successful APK installation, attempt to exit the app so
+    // Android can relaunch with the new version. Do NOT call dismissUpdate()
+    // here — that clears the installation lock and allows automatic
+    // checkForUpdate to run while the old process is still alive, causing
+    // the premature "Studio is up to date" message.
+    const timer = setTimeout(async () => {
+      if (isNative()) {
+        try {
+          const { App: CapApp } = await import('@capacitor/app');
+          await CapApp.exitApp();
+        } catch (_) {
+          // If exit fails (e.g. emulator), keep the success screen visible.
+          // The user can tap "Done" to dismiss manually.
+          console.warn('[OTA UI] exitApp() failed. Success screen remains visible.');
+        }
+      }
+      // On non-native (web), do nothing — the success screen stays
+      // until the user taps Done. This prevents the premature reset.
     }, 2500);
     return () => clearTimeout(timer);
-  }, [ota.updateState, onClose, ota]);
+  }, [ota.updateState, ota]);
 
   const getDiagnosticsText = () => {
     return [

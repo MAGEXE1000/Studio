@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.12",
-  "versionName": "4.0.12",
-  "versionCode": 238,
-  "version_code": 238,
-  "commit": "6d24f8ed",
-  "releasedAt": "7/10/2026, 9:25:27 AM CST",
-  "buildTimestamp": "7/10/2026, 9:25:27 AM CST",
+  "version": "4.0.13",
+  "versionName": "4.0.13",
+  "versionCode": 239,
+  "version_code": 239,
+  "commit": "fe938c11",
+  "releasedAt": "7/10/2026, 10:26:20 AM CST",
+  "buildTimestamp": "7/10/2026, 10:26:20 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed Stagex splash and logo freeze when navigating away from the Stagex panel.\n• Optimized iframe keep-alive limits inside Stagex by category-mapping views, reducing active background WebGL instances from 8 to at most 4.\n• Added watchdog recovery callbacks to the launch transition system to force-dismiss the splash screen if a sub-app unmount takes longer than 4000ms.\n• Unified native and web English changelogs to read from a single synchronized source of truth.",
-  "whatsNew": "• Fixed Stagex splash and logo freeze when navigating away from the Stagex panel.\n• Optimized iframe keep-alive limits inside Stagex by category-mapping views, reducing active background WebGL instances from 8 to at most 4.\n• Added watchdog recovery callbacks to the launch transition system to force-dismiss the splash screen if a sub-app unmount takes longer than 4000ms.\n• Unified native and web English changelogs to read from a single synchronized source of truth.",
+  "changelog": "• Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.\n• Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.\n• Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running.",
+  "whatsNew": "• Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.\n• Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.\n• Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running.",
   "releaseNotes": {
     "fixed": [
-      "Fixed Stagex splash and logo freeze when navigating away from the Stagex panel.",
-      "Optimized iframe keep-alive limits inside Stagex by category-mapping views, reducing active background WebGL instances from 8 to at most 4.",
-      "Added watchdog recovery callbacks to the launch transition system to force-dismiss the splash screen if a sub-app unmount takes longer than 4000ms.",
-      "Unified native and web English changelogs to read from a single synchronized source of truth."
+      "Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.",
+      "Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.",
+      "Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running."
     ]
   },
   "mandatory": false

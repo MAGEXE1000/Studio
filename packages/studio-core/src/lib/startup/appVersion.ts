@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.12';
-export const WEB_VERSION = '4.0.12';
+export const NATIVE_VERSION = '4.0.13';
+export const WEB_VERSION = '4.0.13';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed Stagex splash and logo freeze when navigating away from the Stagex panel.",
-      "Optimized iframe keep-alive limits inside Stagex by category-mapping views, reducing active background WebGL instances from 8 to at most 4.",
-      "Added watchdog recovery callbacks to the launch transition system to force-dismiss the splash screen if a sub-app unmount takes longer than 4000ms.",
-      "Unified native and web English changelogs to read from a single synchronized source of truth.",
+      "Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.",
+      "Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.",
+      "Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running.",
     ],
   },
 ];

@@ -45,10 +45,13 @@ export async function shareDownloadedApk(): Promise<void> {
 // Forward-declaration: resetOtaUpdateState is in pipeline.ts; imported lazily to avoid circular deps.
 // dismissUpdate calls it after updating state.
 export function dismissUpdate(): void {
-  // Inline the reset to avoid circular dependency with pipeline.ts
+  // Hard guard: never reset state while the PackageInstaller is actively running.
+  // This prevents any UI timer or accidental call from clearing installation locks
+  // during an active install session.
   const isBusy = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(globalOtaState.updateState);
-  if (!isBusy) {
-    // Safe to reset
+  if (isBusy) {
+    console.warn(`[OTA] Rejecting dismissUpdate: installer is active (state: ${globalOtaState.updateState}).`);
+    return;
   }
   recordCloseEvent('dismissUpdate called');
   const ver = globalOtaState.remoteVersion;

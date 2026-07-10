@@ -686,7 +686,15 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
 
   // Clear the post-install lock when transitioning to terminal/reset states
   // that are NOT INSTALL_SUCCESS (failures, cancellations, or IDLE resets).
-  if (['INSTALL_FAILED', 'INSTALL_CANCELLED', 'IDLE'].includes(state)) {
+  // IMPORTANT: When transitioning INSTALL_SUCCESS → IDLE, we intentionally
+  // KEEP the installationJustCompleted flag. On Android, the old app process
+  // may still be alive after APK installation — the flag prevents automatic
+  // checkForUpdate from running in this zombie window and showing
+  // "Studio is up to date" prematurely. The flag auto-clears via its
+  // 60-second safety timer, or on the next cold start.
+  if (['INSTALL_FAILED', 'INSTALL_CANCELLED'].includes(state)) {
+    clearInstallationJustCompleted();
+  } else if (state === 'IDLE' && current !== 'INSTALL_SUCCESS') {
     clearInstallationJustCompleted();
   }
 

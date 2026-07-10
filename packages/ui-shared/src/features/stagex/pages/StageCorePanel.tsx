@@ -1,7 +1,8 @@
-﻿import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from '../../../navigation/navStyles';
+import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
@@ -1025,88 +1026,75 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     } catch {}
   }, [logDiagnostic]);
 
+  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    const iframe = e.currentTarget;
+    setIframeLoading(false);
+    iframeReady.current = true;
+    try { iframe.contentWindow?.postMessage('stage-core-ping', '*'); } catch {}
+    injectAccentVars(iframe, accent.from, accent.to);
+    injectTheme(iframe, stageVis.theme ?? 'dark');
+    injectAmoled(iframe, isAmoled);
+    try {
+      const doc = iframe.contentDocument;
+      if (doc) {
+        let s = doc.getElementById('react-parent-overrides');
+        if (!s) {
+          s = doc.createElement('style');
+          s.id = 'react-parent-overrides';
+          s.textContent = isWebDesktop ? HIDE_IFRAME_UI : HIDE_IFRAME_UI_MOBILE;
+          doc.head.appendChild(s);
+        }
+        if (!doc.getElementById('sc-scroll-spy')) {
+          const scr = doc.createElement('script');
+          scr.id = 'sc-scroll-spy';
+          scr.textContent = `(function(){
+            var ly=0;
+            function h(e){
+              var t=e.target;
+              if(t&&t.closest&&t.closest('#bottom-toolbar,#properties-panel'))return;
+              var y=t.scrollTop;
+              if(typeof y!=='number')return;
+              if(y<30){window.parent.postMessage({type:'sc-scroll-dir',down:false},'*');ly=y;return;}
+              var dy=y-ly;
+              if(Math.abs(dy)<6)return;
+              window.parent.postMessage({type:'sc-scroll-dir',down:dy>0},'*');
+              ly=y;
+            }
+            document.addEventListener('scroll',h,{passive:true,capture:true});
+          })();`;
+          doc.body.appendChild(scr);
+        }
+      }
+    } catch {}
+    try {
+      (iframe.contentWindow as StageWin).__onViewChange = (view: string) => {
+        setCurView(view === 'Assistant' ? 'Preferences' : view);
+      };
+    } catch {}
+
+    try {
+      const win = iframe.contentWindow as StageWin;
+      const targetView = iframe.getAttribute('data-view') || curView;
+      if (targetView === 'Setup' || targetView === 'SetupHub') {
+        win?.switchView?.('SetupHub');
+      } else if (targetView === 'Preferences' || targetView === 'Assistant') {
+        win?.switchView?.('Assistant');
+      } else {
+        win?.switchView?.(targetView);
+      }
+    } catch {}
+
+    injectStartOnPicker(iframe);
+  }, [accent.from, accent.to, stageVis.theme, isAmoled, isWebDesktop, curView]);
+
   useEffect(() => {
     const iframe = iframeRef.current;
-    if (!iframe) return;
-    const handleLoad = () => {
-      setIframeLoading(false);
-      iframeReady.current = true;
-      try { iframe.contentWindow?.postMessage('stage-core-ping', '*'); } catch {}
+    if (iframe) {
       injectAccentVars(iframe, accent.from, accent.to);
       injectTheme(iframe, stageVis.theme ?? 'dark');
       injectAmoled(iframe, isAmoled);
-      try {
-        const doc = iframe.contentDocument;
-        if (doc) {
-          let s = doc.getElementById('react-parent-overrides');
-          if (!s) {
-            s = doc.createElement('style');
-            s.id = 'react-parent-overrides';
-            s.textContent = isWebDesktop ? HIDE_IFRAME_UI : HIDE_IFRAME_UI_MOBILE;
-            doc.head.appendChild(s);
-          }
-          if (!doc.getElementById('sc-scroll-spy')) {
-            const scr = doc.createElement('script');
-            scr.id = 'sc-scroll-spy';
-            scr.textContent = `(function(){
-              var ly=0;
-              function h(e){
-                var t=e.target;
-                if(t&&t.closest&&t.closest('#bottom-toolbar,#properties-panel'))return;
-                var y=t.scrollTop;
-                if(typeof y!=='number')return;
-                if(y<30){window.parent.postMessage({type:'sc-scroll-dir',down:false},'*');ly=y;return;}
-                var dy=y-ly;
-                if(Math.abs(dy)<6)return;
-                window.parent.postMessage({type:'sc-scroll-dir',down:dy>0},'*');
-                ly=y;
-              }
-              document.addEventListener('scroll',h,{passive:true,capture:true});
-            })();`;
-            doc.body.appendChild(scr);
-          }
-        }
-      } catch {}
-      try {
-        (iframe.contentWindow as StageWin).__onViewChange = (view: string) => {
-          setCurView(view === 'Assistant' ? 'Preferences' : view);
-        };
-      } catch {}
-
-      const s2 = useChordStore.getState();
-      const savedStageView = s2.settings.restoreLastSession ? s2.lastSession?.stagexView : undefined;
-      const defView = savedStageView || settings.defaultStageView;
-      if (defView && defView !== 'Editor') {
-        setTimeout(() => {
-          try {
-            const win = iframe.contentWindow as StageWin;
-            if (defView === 'Setup' || defView === 'SetupHub') {
-              win?.switchView?.('SetupHub');
-            } else if (defView === 'Preferences' || defView === 'Assistant') {
-              win?.switchView?.('Assistant');
-            } else if (defView === 'Export') {
-              win?.switchView?.('Export');
-            }
-          } catch {}
-        }, 200);
-      }
-
-      injectStartOnPicker(iframe);
-    };
-    iframe.addEventListener('load', handleLoad);
-    let docComplete = false;
-    try {
-      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-        docComplete = true;
-      }
-    } catch (e) {
-      console.warn('Failed to access contentDocument on mount:', e);
     }
-    if (docComplete) {
-      handleLoad();
-    }
-    return () => iframe.removeEventListener('load', handleLoad);
-  }, [accent.from, accent.to, stageVis.theme, isAmoled, isWebDesktop, settings.defaultStageView]);
+  }, [accent.from, accent.to, stageVis.theme, isAmoled, curView]);
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
@@ -1146,16 +1134,18 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   }, [showDiagnostics, logDiagnostic]);
 
   useEffect(() => {
-    let cancelled = false;
-    void import('@workspace/studio-core').then(({ registerStageIframe }) => {
-      if (cancelled) return;
-      registerStageIframe(iframeRef.current);
-    });
     return () => {
-      cancelled = true;
       void import('@workspace/studio-core').then(({ registerStageIframe }) => registerStageIframe(null));
     };
   }, []);
+
+  useEffect(() => {
+    if (iframeRef.current) {
+      void import('@workspace/studio-core').then(({ registerStageIframe }) => {
+        registerStageIframe(iframeRef.current);
+      });
+    }
+  }, [curView]);
 
   const iframeLoadingRef = useRef(iframeLoading);
   iframeLoadingRef.current = iframeLoading;
@@ -2120,19 +2110,29 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           backgroundColor: stageBg
         }}
       >
-        <iframe
-          ref={iframeRef}
-          src={iframeSrc}
-          title="Stagex"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
-          allow="clipboard-write"
-        />
-
-        {iframeLoading && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
-            <SmartLoading app="stage" />
-          </div>
-        )}
+        <SharedNavigationContainer
+          activeView={curView}
+          viewOrder={['Editor', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members', 'Preferences', 'Export']}
+        >
+          {(viewId) => (
+            <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
+              <iframe
+                ref={viewId === curView ? iframeRef : null}
+                src={iframeSrc}
+                data-view={viewId}
+                onLoad={handleLoad}
+                title={`Stagex ${viewId}`}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
+                allow="clipboard-write"
+              />
+              {iframeLoading && viewId === curView && (
+                <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
+                  <SmartLoading app="stage" />
+                </div>
+              )}
+            </div>
+          )}
+        </SharedNavigationContainer>
 
         {showDiagnostics && (
           <div style={{

@@ -142,7 +142,15 @@ globalThis.sessionStorage = mockSessionStorage;
 // Mock fetch
 let mockFetchHandler = () => ({});
 globalThis.fetch = async (url, options) => {
-  return mockFetchHandler(url, options);
+  const res = await mockFetchHandler(url, options);
+  if (res && res.ok && !res.text && res.json) {
+    try {
+      const data = await res.json();
+      res.text = async () => JSON.stringify(data);
+      res.json = async () => data;
+    } catch {}
+  }
+  return res;
 };
 
 // Import compiled modules (require build to be completed first)

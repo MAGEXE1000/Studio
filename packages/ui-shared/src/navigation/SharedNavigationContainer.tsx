@@ -82,6 +82,13 @@ export function SharedNavigationContainer({
           animClass = resolvedDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
         }
 
+        let zIndex = 1;
+        if (isEntering) {
+          zIndex = resolvedDir === 'right' ? 2 : 1;
+        } else if (isExiting) {
+          zIndex = resolvedDir === 'right' ? 1 : 2;
+        }
+
         return (
           <div
             key={viewId}
@@ -93,6 +100,8 @@ export function SharedNavigationContainer({
               width: '100%',
               height: '100%',
               display: show ? 'block' : 'none',
+              zIndex,
+              backgroundColor: 'var(--app-bg, var(--c-bg-primary, #000))',
             }}
           >
             {children(viewId)}

@@ -74,7 +74,7 @@ type AccountState =
   | { phase: 'pending'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }; scheduledAtMs: number }
   | { phase: 'disabled'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } };
 
-const ALL_PANELS = ['library', 'chord', 'songs', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'chord', 'settings'] as const;
 
 function getVisualStateForElement(selector: string) {
   const el = document.querySelector(selector);
@@ -2618,6 +2618,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
         <SubAppScaffold appKey="chords">
           <LifecycleTracker name="Chordex" />
           <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
+            {/* Note: safe-area-inset-top is handled by ScreenScaffold */}
             <AppEntryTransition
               className="flex flex-col w-full overflow-hidden select-none"
               style={{

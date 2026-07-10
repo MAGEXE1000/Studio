@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useNavigationStore, NavigationDispatcher, useLiquidGlassNav } from '@workspace/studio-core';
 /**
  * AppModeMenuLogo — app switcher pill in every panel header.
  *
@@ -28,6 +28,8 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
   const triggerRef = useRef<HTMLButtonElement>(null);
   const scrollRef  = useRef<HTMLDivElement>(null);
   const pillRef    = useRef<HTMLDivElement>(null);
+
+  useLiquidGlassNav(pillRef);
 
   // ── Theme-aware colors ────────────────────────────────────────────
   const appKey = settings.appMode ?? 'chords';
@@ -211,6 +213,7 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
         ref={pillRef}
         role="menu"
         aria-hidden={!open}
+        className="glass-nav"
         style={{
           position: 'fixed',
           top: anchorY,
@@ -225,14 +228,14 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
             ? `transform 440ms ${SPRING}, opacity 220ms ease 60ms`
             : `transform 240ms ${SMOOTH}, opacity 180ms ease`,
           background: bgColor,
-          border: `1px solid ${borderColor}`,
+          border: isLight ? '1.5px solid rgba(0, 0, 0, 0.06)' : '1.5px solid rgba(255, 255, 255, 0.30)',
           borderRadius: 999,
           padding: '4px 6px',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           boxShadow: isLight
-            ? '0 12px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)'
-            : '0 16px 40px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.4)',
+            ? '0 8px 32px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.7) inset'
+            : '0 16px 48px rgba(0,0,0,0.50), 0 1px 0 rgba(255,255,255,0.08) inset',
           display: 'flex', alignItems: 'center',
           maxWidth: maxPillWidth,
           zIndex: 9999,

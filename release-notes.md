@@ -1,6 +1,6 @@
 ### Fixed
-- Fixed updater prematurely showing "Studio is up to date" while the Android PackageInstaller was still active installing the update.
-- Introduced an installation lock (`isInstallationLocked`) that prevents any automatic update check from running during or immediately after a system installation session.
-- Prevented `StartupCoordinator` from resetting the startup pipeline while the PackageInstaller dialog is visible — the system was treating the installer overlay as an app-backgrounded event and incorrectly re-triggering a full startup cycle.
-- Added `installationJustCompleted` flag that remains active from `INSTALL_SUCCESS` until the user dismisses the completion screen (or a 60-second safety timeout fires), closing the race window between session cleanup and startup update checks.
-- Added installation lock diagnostic timeline (`installLockTimeline`) to every rejected automatic check for full production auditability.
+- Fixed navigation transition directions globally so they always match the logical layout/order.
+- Corrected Chordex panel order mismatches to resolve reverse sliding tab animations.
+- Eliminated previous-screen ghosting and flashing artifacts by introducing dynamic z-index overlays and solid background wrappers on view transition layers.
+- Integrated SharedNavigationContainer transitions inside Stagex for setups, Rider, scene editor, and settings screens.
+- Redesigned the App Switcher pill overlay to inherit the premium Kyant0 Liquid Glass visual language.

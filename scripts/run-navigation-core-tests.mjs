@@ -72,8 +72,8 @@ async function runNavigationCoreTests() {
     assert.strictEqual(storeStateHasRoute(state.history, { app: 'hub', tab: 'home' }), true);
   });
 
-  // Test 2: push method sets app defaults and locks transitions
-  assertTest('push adds route, applies defaults and transition locks', () => {
+  // Test 2: push method sets app defaults and does not block transitions
+  assertTest('push adds route, applies defaults and does not block transitions', () => {
     resetStore();
     NavigationDispatcher.push({ app: 'chords' });
     
@@ -84,11 +84,11 @@ async function runNavigationCoreTests() {
     assert.strictEqual(state.isTransitioning, true);
     assert.strictEqual(state.transitionType, 'forward');
 
-    // Test transition block during locked state
+    // Test transition is NOT blocked (lock check removed globally)
     NavigationDispatcher.push({ app: 'vocalex' });
     state = useNavigationStore.getState();
-    // Length should still be 2 due to transition lock
-    assert.strictEqual(state.history.length, 2);
+    // Length should be 3 due to transition lock removal
+    assert.strictEqual(state.history.length, 3);
   });
 
   // Test 3: replace method replaces top of stack

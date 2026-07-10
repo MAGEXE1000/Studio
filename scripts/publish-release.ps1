@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.9"
-$VersionCode = "235"
-$ReleaseNote = "v4.0.9 - Updater state machine fix: Prevent premature 'Studio is up to date' during Android PackageInstaller installation by introducing an installation lock that guards all automatic update checks and startup lifecycle resets during active installation sessions."
+$VersionName = "4.0.10"
+$VersionCode = "236"
+$ReleaseNote = "v4.0.10 - Navigation Direction, Stagex Transitions & App Switcher Liquid Glass: Fix transition directions globally, eliminate previous-screen ghosting, adopt SharedNavigationContainer transitions inside Stagex, and style the App Switcher using the premium Kyant0 Liquid Glass style."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

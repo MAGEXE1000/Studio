@@ -4866,7 +4866,6 @@ User Agent: [Automatically Generated]
         <SharedNavigationContainer
           activeView={page}
           viewOrder={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'debug', 'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report', 'developer', 'updater']}
-          direction={slideDir === 'forward' ? 'right' : 'left'}
         >
           {(pageId) => {
             if (pageId === 'developer') {
@@ -5962,7 +5961,6 @@ User Agent: [Automatically Generated]
         <SharedNavigationContainer
           activeView={page}
           viewOrder={['main', 'help-center', 'faq', 'release-notes', 'download-apps', 'keyboard-shortcuts', 'terms', 'privacy-policy', 'bug-report']}
-          direction={slideDir === 'forward' ? 'right' : 'left'}
         >
           {(pageId) => {
             if (standardScrollPages.includes(pageId as HelpPageActiveId)) {

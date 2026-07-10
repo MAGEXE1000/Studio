@@ -34,6 +34,7 @@ import {
   type CentralizedOtaState,
   type OtaUpdateState,
   isUpdateSessionActive,
+  isInstallationLocked,
   startUpdateSession,
   activeUpdateSession,
   verifyAndCleanCaches,
@@ -82,6 +83,7 @@ import {
   getTimelineReport,
   recordCloseEvent,
   recordUpToDatePopup,
+  logInstallLockEvent,
 } from './diagnostics';
 
 import { logDiagnosticEvent, logDetailedJsTrace } from './telemetry';
@@ -365,6 +367,14 @@ export function enforceStartupRecovery(): Promise<void> {
           localStorage.removeItem('studio:install_in_progress');
         }
       } catch (_) {}
+      // Never reset OTA state if an installation just completed — the
+      // PackageInstaller callback may have already transitioned to INSTALL_SUCCESS
+      // and the UI needs to show the completion screen before we clear state.
+      if (isInstallationLocked()) {
+        console.log('[OTA Startup] enforceStartupRecovery: skipping resetOtaUpdateState — installation is locked.');
+        logInstallLockEvent('RECOVERY_SKIPPED', 'enforceStartupRecovery: resetOtaUpdateState skipped — installation is locked');
+        return;
+      }
       resetOtaUpdateState();
       return;
     }
@@ -837,6 +847,16 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     'PREPARING_INSTALL', 'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE', 'INSTALLING', 'INSTALL_SUCCESS',
   ].includes(current);
+
+  // isInstallationLocked() is the authoritative guard — it covers all active
+  // install states PLUS the post-INSTALL_SUCCESS window where isUpdateSessionActive()
+  // already returns false because the session was cleared on success.
+  if (!isManual && isInstallationLocked()) {
+    console.log(`[OTA] Rejecting automatic checkForUpdate (trigger=${trigger}): installation is locked (state: ${current}, installationJustCompleted may be true)`);
+    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_INSTALLATION_LOCKED', `state: ${current}`);
+    logInstallLockEvent('CHECK_BLOCKED', `Automatic checkForUpdate rejected: state=${current}`, { trigger });
+    return Promise.resolve(globalOtaState);
+  }
 
   if (isUpdateSessionActive() || current !== 'IDLE') {
     if (!isManual) {

@@ -19,6 +19,8 @@ export {
   handleWatchdogTimeout,
   activePipelineContext,
   isUpdateSessionActive,
+  isInstallationLocked,
+  clearInstallationJustCompleted,
   startUpdateSession,
   activeUpdateSession,
   loadPersistedSession,
@@ -64,8 +66,11 @@ export {
   getTimelineReport,
   recordCloseEvent,
   recordUpToDatePopup,
+  installLockTimeline,
+  logInstallLockEvent,
+  getInstallLockReport,
 } from './diagnostics';
-export type { HealthStatus } from './diagnostics';
+export type { HealthStatus, InstallLockEvent } from './diagnostics';
 
 // Release metadata
 export { fetchRemoteVersion, versionJsonUrls, validateRemoteMetadata } from './releaseMetadata';

@@ -1252,3 +1252,95 @@ export function getTimelineReport(): string {
     .join('\n');
 }
 
+// ─── Installation Lock Timeline ───────────────────────────────────────────
+
+/**
+ * A single event in the installation lock diagnostic timeline.
+ * Records every check rejection/block caused by isInstallationLocked(),
+ * every lock set, and every lock clear. Used to prove the fix in production.
+ */
+export interface InstallLockEvent {
+  timestamp: number;       // epoch ms
+  timeStr: string;         // HH:MM:SS.mmm
+  type:
+    | 'LOCK_SET'           // installationJustCompleted set to true
+    | 'LOCK_CLEARED'       // installationJustCompleted cleared by UI/caller
+    | 'LOCK_AUTO_CLEARED'  // installationJustCompleted cleared by 60s safety timer
+    | 'CHECK_BLOCKED'      // checkForUpdate() rejected due to lock
+    | 'STARTUP_BLOCKED'    // triggerOtaUpdateCheck rejected due to lock
+    | 'CANCEL_BLOCKED'     // StartupCoordinator.cancel() suppressed due to lock
+    | 'RECOVERY_SKIPPED';  // enforceStartupRecovery reset skipped due to lock
+  caller: string;          // function + file from stack trace
+  state: string;           // OTA state at time of event
+  reason: string;          // human-readable reason string
+  trigger?: string;        // pipeline trigger if applicable
+  locked: boolean;         // value of isInstallationLocked() at event time
+}
+
+/**
+ * In-memory ring buffer of installation lock events.
+ * Capped at 200 entries; oldest entries are dropped first.
+ */
+export const installLockTimeline: InstallLockEvent[] = [];
+const MAX_INSTALL_LOCK_EVENTS = 200;
+
+/**
+ * Record an installation lock event into the ring buffer.
+ * Also logs to the active update session timeline for cross-reference.
+ */
+export function logInstallLockEvent(
+  type: InstallLockEvent['type'],
+  reason: string,
+  extras?: { trigger?: string; caller?: string }
+) {
+  try {
+    const now = Date.now();
+    const d = new Date(now);
+    const pad = (n: number, len = 2) => String(n).padStart(len, '0');
+    const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+
+    let caller = extras?.caller || 'unknown';
+    if (!extras?.caller) {
+      try {
+        const stack = new Error().stack || '';
+        const lines = stack.split('\n');
+        caller = lines[2]?.trim() || 'unknown';
+      } catch { /* ignore */ }
+    }
+
+    const event: InstallLockEvent = {
+      timestamp: now,
+      timeStr,
+      type,
+      caller,
+      state: globalOtaState.updateState,
+      reason,
+      trigger: extras?.trigger,
+      locked: true, // always true at point of recording (it was locked to cause the event)
+    };
+
+    installLockTimeline.push(event);
+    if (installLockTimeline.length > MAX_INSTALL_LOCK_EVENTS) {
+      installLockTimeline.shift();
+    }
+
+    // Mirror to the active session timeline for cross-reference in diagnostics report
+    logTimelineEvent('InstallationLock', type, `${reason}${extras?.trigger ? ` | trigger=${extras.trigger}` : ''} | caller=${caller}`);
+
+    console.log(`[InstallationLock] [${type}] ${reason} | State: ${globalOtaState.updateState} | Caller: ${caller}`);
+  } catch { /* never throw from diagnostics */ }
+}
+
+/**
+ * Returns a formatted text report of the installation lock timeline.
+ */
+export function getInstallLockReport(): string {
+  if (installLockTimeline.length === 0) {
+    return 'Installation lock timeline: (empty — no lock events recorded this session)';
+  }
+  const lines = installLockTimeline.map(e =>
+    `[${e.timeStr}] [${e.type}] State: ${e.state} | ${e.reason}${e.trigger ? ` | trigger=${e.trigger}` : ''} | Caller: ${e.caller}`
+  );
+  return `=== Installation Lock Timeline (${installLockTimeline.length} events) ===\n${lines.join('\n')}`;
+}
+

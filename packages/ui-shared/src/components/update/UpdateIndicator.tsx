@@ -1,5 +1,5 @@
 import { useOtaUpdate, type StructuredReleaseNotes, otaDiagnostics, otaDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, isNative, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller } from '@workspace/studio-core';
-import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent } from '@workspace/studio-core';
+import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent, clearInstallationJustCompleted } from '@workspace/studio-core';
 /**
  * Floating "update available" indicator — top of the Hub.
  *
@@ -1997,6 +1997,9 @@ function UpdateModal({
             onClick={async () => {
               console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
               try {
+                // Clear the post-install lock before closing so future automatic
+                // checks are not blocked on the next cold start.
+                clearInstallationJustCompleted();
                 onClose();
                 ota.dismissUpdate();
                 if (isNative()) {

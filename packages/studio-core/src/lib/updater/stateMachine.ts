@@ -199,8 +199,80 @@ function saveSession() {
   }
 }
 
+/**
+ * Tracks whether an installation just completed successfully.
+ * Remains `true` from INSTALL_SUCCESS until the UI explicitly clears it
+ * (or a 60-second safety timeout fires), preventing any automatic update
+ * check from running and transitioning to "Studio is up to date" before
+ * the installation completion screen has been seen by the user.
+ */
+let installationJustCompleted = false;
+let installationJustCompletedTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Marks the installation as just completed. Called automatically when
+ * transitioning to INSTALL_SUCCESS. Starts a 60-second safety timeout
+ * to auto-clear in case the UI never calls clearInstallationJustCompleted().
+ */
+function setInstallationJustCompleted() {
+  installationJustCompleted = true;
+  if (installationJustCompletedTimer) {
+    clearTimeout(installationJustCompletedTimer);
+  }
+  installationJustCompletedTimer = setTimeout(() => {
+    console.log('[InstallationLock] Safety timeout (60s) reached — clearing installationJustCompleted flag.');
+    installationJustCompleted = false;
+    installationJustCompletedTimer = null;
+  }, 60000);
+  console.log('[InstallationLock] installationJustCompleted set to TRUE. No automatic update checks until cleared.');
+}
+
+/**
+ * Clears the post-installation lock. Must be called by the UI when
+ * the user dismisses the INSTALL_SUCCESS screen, or when the app
+ * restarts into the new version and the changelog screen is shown.
+ */
+export function clearInstallationJustCompleted() {
+  if (installationJustCompleted) {
+    console.log('[InstallationLock] installationJustCompleted cleared by UI/caller.');
+  }
+  installationJustCompleted = false;
+  if (installationJustCompletedTimer) {
+    clearTimeout(installationJustCompletedTimer);
+    installationJustCompletedTimer = null;
+  }
+}
+
+/**
+ * Returns true if any form of installation is currently active or
+ * just completed and the UI has not yet acknowledged it.
+ *
+ * This is a superset of isUpdateSessionActive() — it covers:
+ * - An in-progress session (download, verify, install stages)
+ * - The post-success window where the session has been cleared but
+ *   the user has not yet seen the completion screen
+ *
+ * Use this as the authoritative guard for blocking automatic update
+ * checks, StartupCoordinator lifecycle triggers, and startup recovery.
+ */
+export function isInstallationLocked(): boolean {
+  if (activeUpdateSession !== null) return true;
+  if (installationJustCompleted) return true;
+  const lockedStates: OtaUpdateState[] = [
+    'FETCH_APK_INFORMATION',
+    'DOWNLOAD_APK',
+    'VERIFY_SHA256',
+    'PREPARING_INSTALL',
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING',
+    'INSTALL_SUCCESS',
+  ];
+  return lockedStates.includes(globalOtaState.updateState);
+}
+
 export function isUpdateSessionActive(): boolean {
-  return activeUpdateSession !== null;
+  return isInstallationLocked();
 }
 
 export function startUpdateSession(startedBy: string, trigger: string) {
@@ -603,6 +675,19 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     } else {
       saveSession();
     }
+  }
+
+  // Set the post-install lock when transitioning to INSTALL_SUCCESS.
+  // This prevents automatic update checks from firing and showing
+  // "Studio is up to date" before the completion screen is acknowledged.
+  if (state === 'INSTALL_SUCCESS') {
+    setInstallationJustCompleted();
+  }
+
+  // Clear the post-install lock when transitioning to terminal/reset states
+  // that are NOT INSTALL_SUCCESS (failures, cancellations, or IDLE resets).
+  if (['INSTALL_FAILED', 'INSTALL_CANCELLED', 'IDLE'].includes(state)) {
+    clearInstallationJustCompleted();
   }
 
   // Apply the state change — this is the ONLY place updateState is written

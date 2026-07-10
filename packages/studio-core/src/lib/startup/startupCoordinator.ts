@@ -3,6 +3,8 @@ import { useChordStore } from '../../store/useChordStore';
 import { syncStatusBar } from '../platform/useStatusBar';
 import { applyThemeTokens } from '../preferences/themeEngine';
 import { enforceStartupRecovery, initializeGlobalOtaListeners, globalOtaState } from '../otaUpdate';
+import { isInstallationLocked } from '../updater/stateMachine';
+import { logInstallLockEvent } from '../updater/diagnostics';
 import { seedAudioAssets } from '../storage/assetCache';
 import { ensureNotificationPermission } from '../platform/capgoUpdater';
 
@@ -526,10 +528,17 @@ class StartupCoordinatorClass {
           } else {
             this.stopHiFpsTick();
             this.stopPeriodicUpdatePolling();
-            // Cancel mid-boot if app goes to background
+            // Cancel mid-boot if app goes to background, BUT only if no installation
+            // is in progress. The PackageInstaller overlay causes appStateChange(false)
+            // even during an active installation — we must never reset startup then.
             if (!this.isCompleted) {
-              console.warn('[StartupCoordinator] App backgrounded mid-boot! Cancelling startup.');
-              this.cancel('app_backgrounded');
+              if (isInstallationLocked()) {
+                console.log('[StartupCoordinator] App backgrounded mid-boot but installation is locked. NOT cancelling startup.');
+                logInstallLockEvent('CANCEL_BLOCKED', 'StartupCoordinator.cancel() suppressed: app backgrounded during active installation');
+              } else {
+                console.warn('[StartupCoordinator] App backgrounded mid-boot! Cancelling startup.');
+                this.cancel('app_backgrounded');
+              }
             }
           }
         }).then((h) => {
@@ -610,11 +619,17 @@ class StartupCoordinatorClass {
 
   private async triggerOtaUpdateCheck(trigger: string, reason: string) {
     try {
-      const { checkForUpdate, isUpdateSessionActive } = await import('../otaUpdate');
-      if (isUpdateSessionActive()) {
-        console.log('[StartupCoordinator] Aborting triggerOtaUpdateCheck: update session is active');
+      const { checkForUpdate } = await import('../otaUpdate');
+
+      // Use isInstallationLocked() — stronger than isUpdateSessionActive() because
+      // it also covers the post-INSTALL_SUCCESS window where the session has already
+      // been cleared but the user has not yet seen the completion screen.
+      if (isInstallationLocked()) {
+        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): installation is locked (isInstallationLocked=true)`);
+        logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: trigger=${trigger}, reason=${reason}`, { trigger });
         return;
       }
+
       const otaState = globalOtaState.updateState;
       const isUpdating = ![
         'IDLE',
@@ -646,6 +661,16 @@ class StartupCoordinatorClass {
 
     // Trigger update check and start periodic update polling on startup completion
     this.startPeriodicUpdatePolling();
+
+    // Guard: never fire an automatic update check if an installation is in progress
+    // or just completed. The PackageInstaller dialog causes a brief startup reset
+    // which queues events — flushing those queued events must not start a new check
+    // that races with the completion callback and shows "Studio is up to date".
+    if (isInstallationLocked()) {
+      console.log('[StartupCoordinator] flushQueuedEvents: skipping update check — installation is locked.');
+      logInstallLockEvent('STARTUP_BLOCKED', 'flushQueuedEvents: startup update check skipped due to installation lock', { trigger: 'startup_flush' });
+      return;
+    }
 
     if (hasTriggerEvent) {
       console.log('[StartupCoordinator] Triggering single update check from queued lifecycle triggers.');

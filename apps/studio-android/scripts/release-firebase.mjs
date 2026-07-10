@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 import fs, { cpSync, rmSync, existsSync, readFileSync, writeFileSync, mkdirSync, statSync, readdirSync, copyFileSync, chmodSync } from 'node:fs';
 import path from 'node:path';
@@ -32,20 +32,20 @@ const otaBase = 'https://studio-30f44.web.app';
 const firebasePublicDir = path.join(repoRoot, 'firebase-public');
 const firebaseOtaDir = path.join(firebasePublicDir, 'ota');
 
-// ── Parse NATIVE_VERSION in packages/studio-core/src/lib/appVersion.ts ────────────────────
-const appVersionPath = path.join(repoRoot, 'packages', 'studio-core', 'src', 'lib', 'appVersion.ts');
+// â”€â”€ Parse NATIVE_VERSION in packages/studio-core/src/lib/startup/appVersion.ts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const appVersionPath = path.join(repoRoot, 'packages', 'studio-core', 'src', 'lib', 'startup', 'appVersion.ts');
 let version = '0.0.0';
 if (existsSync(appVersionPath)) {
   const versionSrc = readFileSync(appVersionPath, 'utf8');
   const nativeVersionMatches = [...versionSrc.matchAll(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/g)];
   if (nativeVersionMatches.length !== 1) {
-    console.error('release-firebase: ✗ Unable to resolve NATIVE_VERSION from appVersion.ts');
+    console.error('release-firebase: âœ— Unable to resolve NATIVE_VERSION from appVersion.ts');
     process.exit(1);
   }
   const currentVersion = nativeVersionMatches[0][1];
   const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
   if (!semverRegex.test(currentVersion)) {
-    console.error(`release-firebase: ✗ Invalid semantic version format for NATIVE_VERSION: ${currentVersion}`);
+    console.error(`release-firebase: âœ— Invalid semantic version format for NATIVE_VERSION: ${currentVersion}`);
     process.exit(1);
   }
   version = currentVersion;
@@ -90,31 +90,31 @@ if (existsSync(appVersionPath)) {
     );
     
     writeFileSync(appVersionPath, newSrc, 'utf8');
-    console.log(`release-firebase: → Auto-bumped version in appVersion.ts: ${currentVersion} → ${nextVersion} (date: ${dateString})`);
+    console.log(`release-firebase: â†’ Auto-bumped version in appVersion.ts: ${currentVersion} â†’ ${nextVersion} (date: ${dateString})`);
     version = nextVersion;
   } else {
-    console.log(`release-firebase: → Keeping current version ${currentVersion}`);
+    console.log(`release-firebase: â†’ Keeping current version ${currentVersion}`);
   }
 } else {
-  console.error(`release-firebase: ✗ appVersion.ts does not exist at ${appVersionPath}`);
+  console.error(`release-firebase: âœ— appVersion.ts does not exist at ${appVersionPath}`);
   process.exit(1);
 }
 
-// ── Early Validation Checks ──────────────────────────────────────────
-console.log('release-firebase: → Running early validation checks...');
+// â”€â”€ Early Validation Checks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+console.log('release-firebase: â†’ Running early validation checks...');
 
 // A. GH_TOKEN check
 const ghToken = (process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '').trim();
 if (!ghToken) {
-  console.error('\x1b[31mrelease-firebase: ✗ GITHUB_TOKEN / GH_TOKEN env variable is missing or invalid. Refusing to start release pipeline.\x1b[0m');
+  console.error('\x1b[31mrelease-firebase: âœ— GITHUB_TOKEN / GH_TOKEN env variable is missing or invalid. Refusing to start release pipeline.\x1b[0m');
   process.exit(1);
 }
-console.log('release-firebase: ✓ GH_TOKEN presence validated.');
+console.log('release-firebase: âœ“ GH_TOKEN presence validated.');
 
 // B. CHANGELOG entry check
 const changelogPath = path.join(pkgRoot, 'CHANGELOG.md');
 if (!existsSync(changelogPath)) {
-  console.error(`release-firebase: ✗ Release blocked: CHANGELOG.md not found at ${changelogPath}`);
+  console.error(`release-firebase: âœ— Release blocked: CHANGELOG.md not found at ${changelogPath}`);
   process.exit(1);
 }
 
@@ -127,20 +127,20 @@ const re = new RegExp(
 const match = changelogText.match(re);
 
 if (!match) {
-  console.error(`\x1b[31mrelease-firebase: ✗ Release blocked: missing changelog entry for version ${version} in CHANGELOG.md. Add real release notes before publishing.\x1b[0m`);
+  console.error(`\x1b[31mrelease-firebase: âœ— Release blocked: missing changelog entry for version ${version} in CHANGELOG.md. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
 }
 
 const sectionContent = match[1].trim();
 if (!sectionContent) {
-  console.error(`\x1b[31mrelease-firebase: ✗ Release blocked: changelog entry for version ${version} is empty. Add real release notes before publishing.\x1b[0m`);
+  console.error(`\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} is empty. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
 }
 
 if (sectionContent.toLowerCase() === `version ${version}`.toLowerCase() ||
     sectionContent.toLowerCase() === `release v${version}`.toLowerCase() ||
     sectionContent.toLowerCase() === `version: ${version}`.toLowerCase()) {
-  console.error(`\x1b[31mrelease-firebase: ✗ Release blocked: changelog entry for version ${version} contains only generic placeholder text. Add real release notes before publishing.\x1b[0m`);
+  console.error(`\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} contains only generic placeholder text. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
 }
 
@@ -187,11 +187,11 @@ for (const rawLine of lines) {
 }
 
 if (flatBullets.length === 0) {
-  console.error(`\x1b[31mrelease-firebase: ✗ Release blocked: changelog entry for version ${version} has no meaningful bullet points. Add real release notes before publishing.\x1b[0m`);
+  console.error(`\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} has no meaningful bullet points. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
 }
 
-const changelog = flatBullets.map(b => `• ${b}`).join('\n');
+const changelog = flatBullets.map(b => `â€¢ ${b}`).join('\n');
 const releaseNotes = {
   added: categories.added.length > 0 ? categories.added : undefined,
   improved: categories.improved.length > 0 ? categories.improved : undefined,
@@ -199,17 +199,17 @@ const releaseNotes = {
   changed: categories.changed.length > 0 ? categories.changed : undefined
 };
 
-console.log(`release-firebase: ✓ Validated changelog for version ${version}. Found ${flatBullets.length} bullets.`);
+console.log(`release-firebase: âœ“ Validated changelog for version ${version}. Found ${flatBullets.length} bullets.`);
 
 // Write to release-notes.md in repo root
 const releaseNotesMdPath = path.join(repoRoot, 'release-notes.md');
 writeFileSync(releaseNotesMdPath, sectionContent + '\n', 'utf8');
-console.log(`release-firebase: ✓ Wrote ${path.relative(repoRoot, releaseNotesMdPath)}`);
+console.log(`release-firebase: âœ“ Wrote ${path.relative(repoRoot, releaseNotesMdPath)}`);
 
 // Write temp notes file
 const tempNotesPath = path.join(pkgRoot, '.release-temp-notes.json');
 writeFileSync(tempNotesPath, JSON.stringify({ changelog, releaseNotes, description: changelog }, null, 2) + '\n', 'utf8');
-console.log(`release-firebase: ✓ Wrote temporary notes to ${tempNotesPath}`);
+console.log(`release-firebase: âœ“ Wrote temporary notes to ${tempNotesPath}`);
 
 // C. Verify build.gradle consistency and cross-check against previous release
 let gradleVersionName = '';
@@ -238,7 +238,7 @@ if (existsSync(localAppReleasePath)) {
       console.log(`release-firebase: Local app-release.json versionCode is ${prevVersionCode}`);
     }
   } catch (e) {
-    console.warn(`release-firebase: ⚠ Could not read local app-release.json: ${e.message}`);
+    console.warn(`release-firebase: âš  Could not read local app-release.json: ${e.message}`);
   }
 }
 
@@ -253,21 +253,21 @@ if (!prevVersionCode) {
       }
     }
   } catch (e) {
-    console.warn(`release-firebase: ⚠ Could not fetch app-release.json from Firebase: ${e.message}`);
+    console.warn(`release-firebase: âš  Could not fetch app-release.json from Firebase: ${e.message}`);
   }
 }
 
 // Perform validation checks
 if (gradleVersionName !== version) {
-  console.error(`release-firebase: ✗ NATIVE_VERSION (${version}) differs from build.gradle versionName (${gradleVersionName})!`);
+  console.error(`release-firebase: âœ— NATIVE_VERSION (${version}) differs from build.gradle versionName (${gradleVersionName})!`);
   process.exit(1);
 }
 if (gradleApplicationId !== 'com.chordex.app') {
-  console.error(`release-firebase: ✗ package name (${gradleApplicationId}) differs from com.chordex.app!`);
+  console.error(`release-firebase: âœ— package name (${gradleApplicationId}) differs from com.chordex.app!`);
   process.exit(1);
 }
 if (prevVersionCode && gradleVersionCode <= prevVersionCode) {
-  console.error(`release-firebase: ✗ versionCode (${gradleVersionCode}) is not greater than the previous release (${prevVersionCode})!`);
+  console.error(`release-firebase: âœ— versionCode (${gradleVersionCode}) is not greater than the previous release (${prevVersionCode})!`);
   process.exit(1);
 }
 
@@ -312,13 +312,13 @@ if (existsSync(gradlePropsPath)) {
   ];
   for (const pat of badPatterns) {
     if (pat.test(gp)) {
-      console.error(`\x1b[31mrelease-firebase: ✗ Hardcoded org.gradle.java.home detected in gradle.properties.\x1b[0m`);
+      console.error(`\x1b[31mrelease-firebase: âœ— Hardcoded org.gradle.java.home detected in gradle.properties.\x1b[0m`);
       console.error('  Do not commit local JDK paths. Use JAVA_HOME from the environment instead.');
       process.exit(1);
     }
   }
 }
-console.log('release-firebase: ✓ gradle.properties JVM configuration validated.');
+console.log('release-firebase: âœ“ gradle.properties JVM configuration validated.');
 
 // E. Chmod safety for gradlew
 const gradleCwd = path.join(pkgRoot, 'android');
@@ -328,10 +328,10 @@ if (process.platform !== 'win32') {
     chmodSync(gradlewPath, 0o755);
     console.log(`release-firebase: chmod +x ${gradlewPath}`);
   } catch (e) {
-    console.warn(`release-firebase: ⚠ chmod failed: ${e.message}`);
+    console.warn(`release-firebase: âš  chmod failed: ${e.message}`);
   }
 }
-console.log('release-firebase: ✓ gradlew permissions verified.');
+console.log('release-firebase: âœ“ gradlew permissions verified.');
 
 // F. Validate Supabase build configuration
 const supabaseUrl = (process.env.VITE_SUPABASE_URL || '').trim();
@@ -339,13 +339,13 @@ const supabaseAnonKey = (process.env.VITE_SUPABASE_ANON_KEY || '').trim();
 const syncBackendProvider = (process.env.VITE_SYNC_BACKEND_PROVIDER || '').trim();
 
 if (!supabaseUrl || !supabaseAnonKey || syncBackendProvider !== 'supabase-realtime') {
-  console.error('\x1b[31mrelease-firebase: ✗ Supabase config missing. Refusing to build a Supabase sync release.\x1b[0m');
+  console.error('\x1b[31mrelease-firebase: âœ— Supabase config missing. Refusing to build a Supabase sync release.\x1b[0m');
   process.exit(1);
 }
-console.log('release-firebase: ✓ Supabase build gate validation passed.');
+console.log('release-firebase: âœ“ Supabase build gate validation passed.');
 
 // Update other version configurations
-console.log('release-firebase: → Running version-sync...');
+console.log('release-firebase: â†’ Running version-sync...');
 const syncResult = spawnSync('node', ['scripts/sync-version.mjs'], {
   cwd: pkgRoot,
   stdio: 'inherit',
@@ -355,7 +355,7 @@ if (syncResult.status !== 0) {
   process.exit(syncResult.status ?? 1);
 }
 
-console.log('release-firebase: → Running AppInstaller contract validation...');
+console.log('release-firebase: â†’ Running AppInstaller contract validation...');
 const validateArgs = ['scripts/validate-app-installer.mjs', '--allow-missing-apk'];
 if (isDevPreview) {
   validateArgs.push('--development-preview');
@@ -366,7 +366,7 @@ const validateResult = spawnSync('node', validateArgs, {
   shell: process.platform === 'win32',
 });
 if (validateResult.status !== 0) {
-  console.error('release-firebase: ✗ AppInstaller contract validation failed!');
+  console.error('release-firebase: âœ— AppInstaller contract validation failed!');
   process.exit(validateResult.status ?? 1);
 }
 
@@ -382,9 +382,9 @@ function run(cmd, args, extraEnv = {}) {
   }
 }
 
-// ── Signing preflight — fail fast before expensive builds ───────────
+// â”€â”€ Signing preflight â€” fail fast before expensive builds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (!isDevPreview) {
-  console.log('release-firebase: → Running signing preflight...');
+  console.log('release-firebase: â†’ Running signing preflight...');
   const ksPath = path.join(pkgRoot, 'android', 'app', 'release.keystore');
   const ksAlias = (process.env.ANDROID_KEY_ALIAS || '').trim();
   const ksPwd = (process.env.ANDROID_KEYSTORE_PASSWORD || '').trim();
@@ -399,13 +399,13 @@ if (!isDevPreview) {
   console.log(`release-firebase: release.keystore exists: ${existsSync(ksPath) ? 'Yes' : 'No'}`);
 
   if (!existsSync(ksPath)) {
-    console.error('\x1b[31mrelease-firebase: ✗ Signing preflight failed: release.keystore not found.\x1b[0m');
+    console.error('\x1b[31mrelease-firebase: âœ— Signing preflight failed: release.keystore not found.\x1b[0m');
     console.error(`  Expected at: ${ksPath}`);
     console.error('  Ensure ANDROID_KEYSTORE_BASE64 is configured and the Decode step ran before this script.');
     process.exit(1);
   }
   if (!ksPwd || !ksAlias || !expectedSig) {
-    console.error('\x1b[31mrelease-firebase: ✗ Signing preflight failed: missing signing env vars.\x1b[0m');
+    console.error('\x1b[31mrelease-firebase: âœ— Signing preflight failed: missing signing env vars.\x1b[0m');
     process.exit(1);
   }
 
@@ -421,7 +421,7 @@ if (!isDevPreview) {
     const keytoolOut = (keytoolResult.stdout || '') + (keytoolResult.stderr || '');
     const sha256Match = keytoolOut.match(/SHA256:\s+([A-Fa-f0-9:]+)/);
     if (!sha256Match) {
-      console.error('\x1b[31mrelease-firebase: ✗ Signing preflight failed: could not extract SHA-256 from keytool output.\x1b[0m');
+      console.error('\x1b[31mrelease-firebase: âœ— Signing preflight failed: could not extract SHA-256 from keytool output.\x1b[0m');
       // Print non-secret keytool output for debugging
       const safeLines = keytoolOut.split('\n').filter(l =>
         /alias|SHA256|valid|owner|issuer|entry type|certificate/i.test(l)
@@ -439,7 +439,7 @@ if (!isDevPreview) {
     console.log(`release-firebase: Expected production SHA-256:                     ${targetSig}`);
 
     if (actualFingerprint !== targetSig) {
-      console.error('\x1b[31mrelease-firebase: ✗ Signing preflight FAILED: keystore certificate does not match production fingerprint.\x1b[0m');
+      console.error('\x1b[31mrelease-firebase: âœ— Signing preflight FAILED: keystore certificate does not match production fingerprint.\x1b[0m');
       console.error(`  Keystore fingerprint: ${actualFingerprint}`);
       console.error(`  Expected fingerprint: ${targetSig}`);
       console.error('');
@@ -450,17 +450,17 @@ if (!isDevPreview) {
       console.error('  production keystore that signs with the expected fingerprint.');
       process.exit(1);
     }
-    console.log('release-firebase: ✓ Signing preflight passed — keystore matches production certificate.');
+    console.log('release-firebase: âœ“ Signing preflight passed â€” keystore matches production certificate.');
   } catch (err) {
-    console.error(`\x1b[31mrelease-firebase: ✗ Signing preflight error: ${err.message}\x1b[0m`);
+    console.error(`\x1b[31mrelease-firebase: âœ— Signing preflight error: ${err.message}\x1b[0m`);
     process.exit(1);
   }
 } else {
-  console.log('release-firebase: ⚠ Skipping signing preflight (--development-preview is set).');
+  console.log('release-firebase: âš  Skipping signing preflight (--development-preview is set).');
 }
 
-// ── Build PWA for Firebase ──────────────────────────────────────────
-console.log(`release-firebase: → Building Vite application for Firebase Hosting...`);
+// â”€â”€ Build PWA for Firebase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+console.log(`release-firebase: â†’ Building Vite application for Firebase Hosting...`);
 run('pnpm', ['build'], {
   VITE_OTA_BASE_URL: otaBase,
   BASE_PATH: '/',
@@ -468,14 +468,14 @@ run('pnpm', ['build'], {
 
 const distDir = path.resolve(repoRoot, 'dist', 'android-web');
 if (!existsSync(distDir)) {
-  console.error(`release-firebase: ✗ Build output ${distDir} does not exist.`);
+  console.error(`release-firebase: âœ— Build output ${distDir} does not exist.`);
   process.exit(1);
 }
 
 // Zipping OTA bundle is disabled. All updates are delivered as complete signed APKs.
 
-// ── Copy all web assets into the Firebase public directory ────────────
-console.log(`release-firebase: → Copying assets from dist/android-web to firebase-public`);
+// â”€â”€ Copy all web assets into the Firebase public directory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+console.log(`release-firebase: â†’ Copying assets from dist/android-web to firebase-public`);
 function copyTree(srcRoot, dstRoot, skip = new Set()) {
   for (const entry of readdirSync(srcRoot, { withFileTypes: true })) {
     if (skip.has(entry.name)) continue;
@@ -502,7 +502,7 @@ function computeSha256(filePath) {
 }
 
 // =========================================================================
-// ── 15-STEP RELEASE ORCHESTRATION PIPELINE ────────────────────────────────
+// â”€â”€ 15-STEP RELEASE ORCHESTRATION PIPELINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // =========================================================================
 console.log('\n=== STARTING 15-STEP RELEASE ORCHESTRATION ===\n');
 
@@ -540,11 +540,11 @@ const gradleResult = spawnSync(gradleCmd, gradleArgs, {
   env: gradleEnv
 });
 if (gradleResult.status !== 0) {
-  console.error(`release-firebase: ✗ Gradle build failed with exit code ${gradleResult.status}`);
+  console.error(`release-firebase: âœ— Gradle build failed with exit code ${gradleResult.status}`);
   if (gradleResult.error) {
     console.error(`release-firebase: Gradle spawn error: ${gradleResult.error.message}`);
     if (gradleResult.error.code === 'EACCES') {
-      console.error('release-firebase: ✗ Gradle wrapper is not executable.');
+      console.error('release-firebase: âœ— Gradle wrapper is not executable.');
       console.error('  Fix: git update-index --chmod=+x apps/studio-android/android/gradlew');
       console.error('  And ensure CI runs: chmod +x ./gradlew before Gradle.');
     }
@@ -552,7 +552,7 @@ if (gradleResult.status !== 0) {
   if (gradleResult.signal) {
     console.error(`release-firebase: Gradle killed by signal: ${gradleResult.signal}`);
   }
-  console.error(`release-firebase: Hint — check Gradle logs at: ${path.join(gradleCwd, 'app', 'build', 'reports')}`);
+  console.error(`release-firebase: Hint â€” check Gradle logs at: ${path.join(gradleCwd, 'app', 'build', 'reports')}`);
   process.exit(gradleResult.status ?? 1);
 }
 
@@ -568,7 +568,7 @@ const appInstallerValidateResult = spawnSync('node', appInstallerValidateArgs, {
   shell: process.platform === 'win32',
 });
 if (appInstallerValidateResult.status !== 0) {
-  console.error('release-firebase: ✗ AppInstaller contract validation failed!');
+  console.error('release-firebase: âœ— AppInstaller contract validation failed!');
   process.exit(appInstallerValidateResult.status ?? 1);
 }
 
@@ -585,7 +585,7 @@ if (existsSync(gradlePath)) {
 }
 console.log(`release-firebase: build.gradle versionName = ${gradleVersionName}, versionCode = ${gradleVersionCode}`);
 if (gradleVersionName !== version) {
-  console.error(`release-firebase: ✗ versionName mismatch! build.gradle: ${gradleVersionName}, NATIVE_VERSION: ${version}`);
+  console.error(`release-firebase: âœ— versionName mismatch! build.gradle: ${gradleVersionName}, NATIVE_VERSION: ${version}`);
   process.exit(1);
 }
 
@@ -593,7 +593,7 @@ if (gradleVersionName !== version) {
 console.log('Step 6/15: Generate local APK SHA-256...');
 const localApkPath = path.join(pkgRoot, 'android/app/build/outputs/apk/release/app-release.apk');
 if (!existsSync(localApkPath)) {
-  console.error(`release-firebase: ✗ APK not found at ${localApkPath}`);
+  console.error(`release-firebase: âœ— APK not found at ${localApkPath}`);
   process.exit(1);
 }
 const localApkSha = computeSha256(localApkPath);
@@ -630,7 +630,7 @@ if (viewRes.status !== 0) {
   console.log(`release-firebase: Release ${tag} not found. Creating it pointing to target commit ${currentCommit}...`);
   const createRes = runGh(['release', 'create', tag, '--title', titleText, '--notes-file', releaseNotesFile, '--target', currentCommit, '--repo', 'MAGEXE1000/Studio']);
   if (createRes.status !== 0) {
-    console.error(`release-firebase: ✗ Failed to create GitHub Release: ${createRes.stderr.toString()}`);
+    console.error(`release-firebase: âœ— Failed to create GitHub Release: ${createRes.stderr.toString()}`);
     process.exit(1);
   }
 } else {
@@ -650,10 +650,10 @@ writeFileSync(localUploadShaPath, `${localApkSha}  ${uploadApkName}\n`, 'utf8');
 
 const uploadRes = runGh(['release', 'upload', tag, localUploadApkPath, localUploadShaPath, '--clobber', '--repo', 'MAGEXE1000/Studio']);
 if (uploadRes.status !== 0) {
-  console.error(`release-firebase: ✗ Failed to upload APK asset to GitHub: ${uploadRes.stderr.toString()}`);
+  console.error(`release-firebase: âœ— Failed to upload APK asset to GitHub: ${uploadRes.stderr.toString()}`);
   process.exit(1);
 }
-console.log(`release-firebase: ✓ Uploaded assets ${uploadApkName} and ${uploadShaName}`);
+console.log(`release-firebase: âœ“ Uploaded assets ${uploadApkName} and ${uploadShaName}`);
 
 try {
   rmSync(localUploadApkPath);
@@ -673,7 +673,7 @@ const checkUrl = async (url) => {
     return res.status;
   } catch (err) {
     clearTimeout(timeoutId);
-    console.warn(`release-firebase: ⚠ Fetch error for ${url}:`, err.message);
+    console.warn(`release-firebase: âš  Fetch error for ${url}:`, err.message);
     return 0;
   }
 };
@@ -692,7 +692,7 @@ for (let attempt = 1; attempt <= maxAttempts; attempt++) {
   }
 }
 if (status !== 200) {
-  console.error(`release-firebase: ✗ APK URL returned non-200 status code: ${status}`);
+  console.error(`release-firebase: âœ— APK URL returned non-200 status code: ${status}`);
   process.exit(1);
 }
 
@@ -710,7 +710,7 @@ const downloadFile = async (url, dest) => {
       return;
     } catch (err) {
       if (i === attempts) throw err;
-      console.warn(`release-firebase: ⚠ Download attempt ${i} failed. Retrying in ${i * 2}s... Error: ${err.message || err}`);
+      console.warn(`release-firebase: âš  Download attempt ${i} failed. Retrying in ${i * 2}s... Error: ${err.message || err}`);
       await new Promise(r => setTimeout(r, i * 2000));
     }
   }
@@ -723,12 +723,12 @@ try {
   rmSync(downloadPath);
   console.log(`release-firebase: Downloaded APK SHA-256 = ${downloadedSha}`);
   if (downloadedSha !== localApkSha) {
-    console.error(`release-firebase: ✗ SHA-256 mismatch! Expected ${localApkSha}, got ${downloadedSha}`);
+    console.error(`release-firebase: âœ— SHA-256 mismatch! Expected ${localApkSha}, got ${downloadedSha}`);
     process.exit(1);
   }
-  console.log('release-firebase: ✓ Downloaded APK SHA matches local APK SHA exactly!');
+  console.log('release-firebase: âœ“ Downloaded APK SHA matches local APK SHA exactly!');
 } catch (err) {
-  console.error('release-firebase: ✗ Download or verification failed:', err);
+  console.error('release-firebase: âœ— Download or verification failed:', err);
   if (existsSync(downloadPath)) rmSync(downloadPath);
   process.exit(1);
 }
@@ -745,7 +745,7 @@ const generateResult = spawnSync('node', generateArgs, {
   shell: process.platform === 'win32',
 });
 if (generateResult.status !== 0) {
-  console.error('release-firebase: ✗ Metadata generation script failed!');
+  console.error('release-firebase: âœ— Metadata generation script failed!');
   process.exit(generateResult.status ?? 1);
 }
 
@@ -753,7 +753,7 @@ if (generateResult.status !== 0) {
 // In CI, deployment is handled by the workflow's FirebaseExtended/action-hosting-deploy
 // action using the FIREBASE_SERVICE_ACCOUNT secret. The script only deploys locally.
 if (process.env.CI) {
-  console.log('Step 12/15: Deploy Firebase Hosting... [SKIPPED — CI workflow handles deployment via service account]');
+  console.log('Step 12/15: Deploy Firebase Hosting... [SKIPPED â€” CI workflow handles deployment via service account]');
 } else {
   console.log('Step 12/15: Deploy Firebase Hosting...');
   const fbDeployResult = spawnSync('npx', ['firebase-tools', 'deploy', '--project', 'studio-30f44', '--only', 'hosting'], {
@@ -762,7 +762,7 @@ if (process.env.CI) {
     shell: process.platform === 'win32',
   });
   if (fbDeployResult.status !== 0) {
-    console.error('release-firebase: ✗ Firebase deploy failed!');
+    console.error('release-firebase: âœ— Firebase deploy failed!');
     process.exit(fbDeployResult.status ?? 1);
   }
 }
@@ -770,8 +770,8 @@ if (process.env.CI) {
 // Steps 13-14: Re-fetch and validate deployed metadata
 // In CI, these run as a separate workflow step AFTER the Firebase deploy action.
 if (process.env.CI) {
-  console.log('Step 13/15: Re-fetch deployed metadata... [SKIPPED — CI workflow verifies post-deploy]');
-  console.log('Step 14/15: Re-validate deployed APK URL and SHA... [SKIPPED — CI workflow verifies post-deploy]');
+  console.log('Step 13/15: Re-fetch deployed metadata... [SKIPPED â€” CI workflow verifies post-deploy]');
+  console.log('Step 14/15: Re-validate deployed APK URL and SHA... [SKIPPED â€” CI workflow verifies post-deploy]');
 } else {
   console.log('Step 13/15: Re-fetch deployed version.json and app-release.json...');
   const deployedVersionUrl = `https://studio-30f44.web.app/version.json`;
@@ -790,26 +790,26 @@ if (process.env.CI) {
     console.log('release-firebase: Deployed version.json version =', deployedVer.version);
     console.log('release-firebase: Deployed app-release.json version =', deployedAppRelease.version);
   } catch (err) {
-    console.error('release-firebase: ✗ Failed to fetch deployed metadata files:', err);
+    console.error('release-firebase: âœ— Failed to fetch deployed metadata files:', err);
     process.exit(1);
   }
 
   // Step 14: Re-validate their APK URL and SHA
   console.log('Step 14/15: Re-validate their APK URL and SHA...');
   if (deployedVer.version !== '4.0.0' || deployedAppRelease.version !== version) {
-    console.error(`release-firebase: ✗ Deployed version mismatch! Expected PWA: 4.0.0, Native: ${version}`);
+    console.error(`release-firebase: âœ— Deployed version mismatch! Expected PWA: 4.0.0, Native: ${version}`);
     process.exit(1);
   }
   if (deployedAppRelease.sha256 !== localApkSha) {
-    console.error(`release-firebase: ✗ Deployed SHA-256 mismatch! Deployed: ${deployedAppRelease.sha256}, Expected: ${localApkSha}`);
+    console.error(`release-firebase: âœ— Deployed SHA-256 mismatch! Deployed: ${deployedAppRelease.sha256}, Expected: ${localApkSha}`);
     process.exit(1);
   }
   const deployedApkUrlStatus = await checkUrl(deployedAppRelease.apkUrl || deployedAppRelease.download_url);
   if (deployedApkUrlStatus !== 200) {
-    console.error(`release-firebase: ✗ Deployed APK URL is unreachable (HTTP ${deployedApkUrlStatus})`);
+    console.error(`release-firebase: âœ— Deployed APK URL is unreachable (HTTP ${deployedApkUrlStatus})`);
     process.exit(1);
   }
-  console.log('release-firebase: ✓ Deployed metadata validated successfully!');
+  console.log('release-firebase: âœ“ Deployed metadata validated successfully!');
 }
 
 // Step 15: Print final release report
@@ -821,6 +821,7 @@ console.log(`Version Released: ${version}`);
 console.log(`Version Code:     ${gradleVersionCode}`);
 console.log(`APK Download URL: ${githubApkUrl}`);
 console.log(`APK SHA-256:      ${localApkSha}`);
-console.log(`PWA Deployed:     ${process.env.CI ? '(pending — CI workflow deploys next)' : 'https://studio-30f44.web.app/'}`);
+console.log(`PWA Deployed:     ${process.env.CI ? '(pending â€” CI workflow deploys next)' : 'https://studio-30f44.web.app/'}`);
 console.log('================================================================\n');
+
 

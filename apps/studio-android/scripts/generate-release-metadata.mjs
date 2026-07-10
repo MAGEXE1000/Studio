@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +11,7 @@ const repoRoot = path.resolve(__dirname, '../../..');
 const releaseType = 'apk';
 const isDevPreview = process.argv.includes('--development-preview') && process.env.STUDIO_PRODUCTION_RELEASE !== 'true';
 
-console.log('generate-release-metadata: → Running AppInstaller contract validation...');
+console.log('generate-release-metadata: â†’ Running AppInstaller contract validation...');
 const args = ['scripts/validate-app-installer.mjs'];
 if (releaseType === 'ota') {
   args.push('--allow-missing-apk');
@@ -27,20 +27,20 @@ const validateResult = spawnSync('node', args, {
 if (validateResult.status !== 0) {
   const status = validateResult.status;
   if (status === 10) {
-    console.error('generate-release-metadata: ✗ AppInstaller contract validation failed!');
+    console.error('generate-release-metadata: âœ— AppInstaller contract validation failed!');
   } else if (status === 11) {
-    console.error('generate-release-metadata: ✗ Path or temporary file setup failed!');
+    console.error('generate-release-metadata: âœ— Path or temporary file setup failed!');
   } else if (status === 12) {
-    console.error('generate-release-metadata: ✗ Previous APK download failed!');
+    console.error('generate-release-metadata: âœ— Previous APK download failed!');
   } else if (status === 13) {
-    console.error('generate-release-metadata: ✗ Release validation failed (e.g. versionCode, package, or signatures)!');
+    console.error('generate-release-metadata: âœ— Release validation failed (e.g. versionCode, package, or signatures)!');
   } else {
-    console.error(`generate-release-metadata: ✗ Validation script failed with exit code ${status}`);
+    console.error(`generate-release-metadata: âœ— Validation script failed with exit code ${status}`);
   }
   process.exit(status ?? 1);
 }
 
-const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/appVersion.ts');
+const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
 const versionJsonPath = path.join(repoRoot, 'firebase-public/version.json');
 const appReleaseJsonPath = path.join(repoRoot, 'firebase-public/app-release.json');
 
@@ -48,24 +48,24 @@ const appReleaseJsonPath = path.join(repoRoot, 'firebase-public/app-release.json
 const src = fs.readFileSync(appVersionPath, 'utf8');
 const nativeVersionMatches = [...src.matchAll(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/g)];
 if (nativeVersionMatches.length !== 1) {
-  console.error('generate-release-metadata: ✗ Unable to resolve NATIVE_VERSION from appVersion.ts');
+  console.error('generate-release-metadata: âœ— Unable to resolve NATIVE_VERSION from appVersion.ts');
   process.exit(1);
 }
 const version = nativeVersionMatches[0][1];
 const semverRegex = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
 if (!semverRegex.test(version)) {
-  console.error(`generate-release-metadata: ✗ Invalid semantic version format for NATIVE_VERSION: ${version}`);
+  console.error(`generate-release-metadata: âœ— Invalid semantic version format for NATIVE_VERSION: ${version}`);
   process.exit(1);
 }
 
 const webVersionMatches = [...src.matchAll(/export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/g)];
 if (webVersionMatches.length !== 1) {
-  console.error('generate-release-metadata: ✗ Unable to resolve WEB_VERSION from appVersion.ts');
+  console.error('generate-release-metadata: âœ— Unable to resolve WEB_VERSION from appVersion.ts');
   process.exit(1);
 }
 const webVersion = webVersionMatches[0][1];
 if (!semverRegex.test(webVersion)) {
-  console.error(`generate-release-metadata: ✗ Invalid semantic version format for WEB_VERSION: ${webVersion}`);
+  console.error(`generate-release-metadata: âœ— Invalid semantic version format for WEB_VERSION: ${webVersion}`);
   process.exit(1);
 }
 
@@ -83,9 +83,9 @@ if (fs.existsSync(tempNotesPath)) {
     if (tempNotes.releaseNotes) {
       releaseNotes = tempNotes.releaseNotes;
     }
-    console.log('generate-release-metadata: ✓ Loaded release notes from .release-temp-notes.json');
+    console.log('generate-release-metadata: âœ“ Loaded release notes from .release-temp-notes.json');
   } catch (err) {
-    console.warn('generate-release-metadata: ⚠ Could not parse .release-temp-notes.json', err);
+    console.warn('generate-release-metadata: âš  Could not parse .release-temp-notes.json', err);
   }
 } else {
   const localPath = path.join(appRoot, 'public/version.json');
@@ -97,10 +97,10 @@ if (fs.existsSync(tempNotesPath)) {
         description = localJson.changelog;
         releaseNotes = localJson.releaseNotes;
         loaded = true;
-        console.log('generate-release-metadata: ✓ Loaded release notes from local public/version.json');
+        console.log('generate-release-metadata: âœ“ Loaded release notes from local public/version.json');
       }
     } catch (err) {
-      console.warn('generate-release-metadata: ⚠ Could not parse local public/version.json', err);
+      console.warn('generate-release-metadata: âš  Could not parse local public/version.json', err);
     }
   }
   
@@ -111,10 +111,10 @@ if (fs.existsSync(tempNotesPath)) {
         description = versionJson.changelog;
         releaseNotes = versionJson.releaseNotes;
         loaded = true;
-        console.log('generate-release-metadata: ✓ Loaded release notes from firebase-public/version.json');
+        console.log('generate-release-metadata: âœ“ Loaded release notes from firebase-public/version.json');
       }
     } catch (err) {
-      console.warn('generate-release-metadata: ⚠ Could not parse version.json', err);
+      console.warn('generate-release-metadata: âš  Could not parse version.json', err);
     }
   }
 }
@@ -123,7 +123,7 @@ if (fs.existsSync(tempNotesPath)) {
 if (description.toLowerCase() === `version ${version}`.toLowerCase() ||
     description.toLowerCase() === `release v${version}`.toLowerCase() ||
     description.toLowerCase() === `version: ${version}`.toLowerCase()) {
-  console.error(`\x1b[31mgenerate-release-metadata: ✗ Release blocked: version.json contains generic/placeholder changelog info. Add real release notes before publishing.\x1b[0m`);
+  console.error(`\x1b[31mgenerate-release-metadata: âœ— Release blocked: version.json contains generic/placeholder changelog info. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
 }
 
@@ -135,7 +135,7 @@ let apkSizeBytes = 0;
 
 if (releaseType !== 'ota') {
   if (!fs.existsSync(apkPath)) {
-    console.error(`generate-release-metadata: ✗ APK not found at ${apkPath}`);
+    console.error(`generate-release-metadata: âœ— APK not found at ${apkPath}`);
     process.exit(1);
   }
 
@@ -167,10 +167,10 @@ if (releaseType !== 'ota') {
     const latestApkPath = path.join(firebaseApkDir, 'studio-latest.apk');
 
     fs.copyFileSync(apkPath, versionApkPath);
-    console.log(`generate-release-metadata: ✓ Copied APK to ${versionApkPath}`);
+    console.log(`generate-release-metadata: âœ“ Copied APK to ${versionApkPath}`);
 
     fs.copyFileSync(apkPath, latestApkPath);
-    console.log(`generate-release-metadata: ✓ Copied APK to ${latestApkPath}`);
+    console.log(`generate-release-metadata: âœ“ Copied APK to ${latestApkPath}`);
 
     // Dynamic firebase.json update to add redirects and ignores for the apk files
     try {
@@ -217,14 +217,14 @@ if (releaseType !== 'ota') {
           }
 
           fs.writeFileSync(firebaseJsonPath, JSON.stringify(fbJson, null, 2) + '\n', 'utf8');
-          console.log(`generate-release-metadata: ✓ Dynamically updated redirects and ignores in firebase.json for version ${version}`);
+          console.log(`generate-release-metadata: âœ“ Dynamically updated redirects and ignores in firebase.json for version ${version}`);
         }
       }
     } catch (err) {
-      console.warn('generate-release-metadata: ⚠ Could not dynamically update firebase.json redirects/ignores:', err);
+      console.warn('generate-release-metadata: âš  Could not dynamically update firebase.json redirects/ignores:', err);
     }
   } catch (err) {
-    console.error('generate-release-metadata: ✗ Failed to copy APK to Firebase Hosting:', err);
+    console.error('generate-release-metadata: âœ— Failed to copy APK to Firebase Hosting:', err);
     process.exit(1);
   }
 } else {
@@ -235,7 +235,7 @@ if (releaseType !== 'ota') {
     sha256 = hashSum.digest('hex');
     console.log(`generate-release-metadata: Computed APK SHA-256 = ${sha256}`);
   } else {
-    console.warn(`generate-release-metadata: ⚠ APK not found at ${apkPath}`);
+    console.warn(`generate-release-metadata: âš  APK not found at ${apkPath}`);
   }
 }
 
@@ -251,7 +251,7 @@ try {
     }
   }
 } catch (err) {
-  console.warn('generate-release-metadata: ⚠ Could not parse versionCode from build.gradle:', err);
+  console.warn('generate-release-metadata: âš  Could not parse versionCode from build.gradle:', err);
 }
 
 // Get signature
@@ -287,7 +287,7 @@ try {
     }
   }
 } catch (err) {
-  console.warn('generate-release-metadata: ⚠ Could not fetch previous required version code, defaulting to current version.', err);
+  console.warn('generate-release-metadata: âš  Could not fetch previous required version code, defaulting to current version.', err);
 }
 
 const androidMetadata = {
@@ -361,10 +361,10 @@ const webMetadata = {
 // Validate the constructed metadata before writing
 if (prevVersionCode && prevData && prevData.version !== version && versionCode <= prevVersionCode) {
   if (isDevPreview) {
-    console.warn(`generate-release-metadata: ⚠ Development warning: versionCode (${versionCode}) is not greater than previous versionCode (${prevVersionCode}). Proceeding since --development-preview is enabled.`);
+    console.warn(`generate-release-metadata: âš  Development warning: versionCode (${versionCode}) is not greater than previous versionCode (${prevVersionCode}). Proceeding since --development-preview is enabled.`);
     androidMetadata.developmentPreview = true;
   } else {
-    console.error(`generate-release-metadata: ✗ versionCode (${versionCode}) must be greater than previous versionCode (${prevVersionCode})!`);
+    console.error(`generate-release-metadata: âœ— versionCode (${versionCode}) must be greater than previous versionCode (${prevVersionCode})!`);
     process.exit(1);
   }
 }
@@ -376,15 +376,15 @@ const matches = jsonStr.match(urlRegex) || [];
 for (const url of matches) {
   const cleanUrl = url.replace(/[",}]/g, '').trim();
   if (cleanUrl.includes('github.io') || cleanUrl.includes('gh-pages')) {
-    console.error(`\x1b[31mgenerate-release-metadata: ✗ GitHub Pages URL detected in release metadata: ${cleanUrl}\x1b[0m`);
+    console.error(`\x1b[31mgenerate-release-metadata: âœ— GitHub Pages URL detected in release metadata: ${cleanUrl}\x1b[0m`);
     process.exit(1);
   }
   if (cleanUrl.includes('github.com') && !cleanUrl.startsWith('https://github.com/MAGEXE1000/Studio/releases/download/')) {
-    console.error(`\x1b[31mgenerate-release-metadata: ✗ Invalid GitHub URL detected in release metadata (only official releases/download/ paths are allowed): ${cleanUrl}\x1b[0m`);
+    console.error(`\x1b[31mgenerate-release-metadata: âœ— Invalid GitHub URL detected in release metadata (only official releases/download/ paths are allowed): ${cleanUrl}\x1b[0m`);
     process.exit(1);
   }
 }
-console.log('generate-release-metadata: ✓ Metadata URLs successfully validated (no GitHub Pages URLs detected)');
+console.log('generate-release-metadata: âœ“ Metadata URLs successfully validated (no GitHub Pages URLs detected)');
 
 try {
   fs.writeFileSync(appReleaseJsonPath, JSON.stringify(androidMetadata, null, 2) + '\n', 'utf8');
@@ -393,7 +393,7 @@ try {
   fs.mkdirSync(path.dirname(publicReleasePath), { recursive: true });
   fs.writeFileSync(publicReleasePath, JSON.stringify(androidMetadata, null, 2) + '\n', 'utf8');
 
-  console.log(`generate-release-metadata: ✓ Wrote firebase-public/app-release.json and dist/android-web/app-release.json`);
+  console.log(`generate-release-metadata: âœ“ Wrote firebase-public/app-release.json and dist/android-web/app-release.json`);
 
   // Synchronize version.json files with Web metadata
   const syncVersionJson = (filePath) => {
@@ -404,9 +404,9 @@ try {
     }
     try {
       fs.writeFileSync(filePath, JSON.stringify(webMetadata, null, 2) + '\n', 'utf8');
-      console.log(`generate-release-metadata: ✓ Synchronized ${path.basename(filePath)} with Web-safe metadata`);
+      console.log(`generate-release-metadata: âœ“ Synchronized ${path.basename(filePath)} with Web-safe metadata`);
     } catch (err) {
-      console.warn(`generate-release-metadata: ⚠ Could not update ${filePath}:`, err);
+      console.warn(`generate-release-metadata: âš  Could not update ${filePath}:`, err);
     }
   };
 
@@ -414,7 +414,8 @@ try {
   syncVersionJson(path.join(appRoot, '../../dist/android-web/version.json'));
   syncVersionJson(path.join(appRoot, 'public/version.json'));
 } catch (err) {
-  console.error(`\x1b[31mgenerate-release-metadata: ✗ Metadata generation failure: ${err.message}\x1b[0m`);
+  console.error(`\x1b[31mgenerate-release-metadata: âœ— Metadata generation failure: ${err.message}\x1b[0m`);
   process.exit(1);
 }
+
 

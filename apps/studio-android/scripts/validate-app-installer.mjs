@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
@@ -60,9 +60,9 @@ if (!isDevPreview) {
         `Native or update-system files changed but releaseType is '${releaseType}'! The release type must be 'apk' or 'both' to upgrade native wrappers. Changed files:\n${nativeFiles.join('\n')}`,
         EXIT_CODES.RELEASE_VALIDATION
       );
-      console.log('✓ Release type is correctly set for native / update-system changes.');
+      console.log('âœ“ Release type is correctly set for native / update-system changes.');
     } else {
-      console.log('✓ No native or update-system changes detected.');
+      console.log('âœ“ No native or update-system changes detected.');
     }
   } catch (err) {
     console.warn('validate-app-installer: Warning: Could not verify changed files using git:', err.message);
@@ -95,7 +95,7 @@ for (const method of requiredMethods) {
     `AppInstallerPlugin.java is missing the required @PluginMethod: public void ${method}`
   );
 }
-console.log('✓ AppInstallerPlugin.java structure and methods are correct.');
+console.log('âœ“ AppInstallerPlugin.java structure and methods are correct.');
 
 // 2. Verify MainActivity.java manual registration
 console.log(`Checking ${path.relative(appRoot, paths.mainActivityJava)}...`);
@@ -106,7 +106,7 @@ assert(
   /registerPlugin\s*\(\s*AppInstallerPlugin\.class\s*\)/.test(mainActivityContent),
   'MainActivity.java is missing registerPlugin(AppInstallerPlugin.class) call!'
 );
-console.log('✓ MainActivity.java manual plugin registration is correct.');
+console.log('âœ“ MainActivity.java manual plugin registration is correct.');
 
 // 3. Verify apkDownloader.ts registration
 console.log(`Checking ${path.relative(appRoot, paths.apkDownloaderTs)}...`);
@@ -117,7 +117,7 @@ assert(
   /registerPlugin\s*<\s*AppInstallerPlugin\s*>\s*\(\s*['"]AppInstaller['"]\s*\)/.test(apkDownloaderContent),
   "apkDownloader.ts is missing registerPlugin<AppInstallerPlugin>('AppInstaller')!"
 );
-console.log('✓ apkDownloader.ts TypeScript registration is correct.');
+console.log('âœ“ apkDownloader.ts TypeScript registration is correct.');
 
 // 4. Verify APK packaging integrity
 console.log(`Checking APK packaging at ${path.relative(appRoot, paths.apkPath)}...`);
@@ -125,7 +125,7 @@ const allowMissingApk = process.argv.includes('--allow-missing-apk');
 
 if (!fs.existsSync(paths.apkPath)) {
   if (allowMissingApk) {
-    console.log('⚠ APK file does not exist, but --allow-missing-apk was passed. Skipping APK scan.');
+    console.log('âš  APK file does not exist, but --allow-missing-apk was passed. Skipping APK scan.');
   } else {
     assert(false, `APK file not found at ${paths.apkPath}. Build APK first or pass --allow-missing-apk.`);
   }
@@ -146,13 +146,13 @@ if (!fs.existsSync(paths.apkPath)) {
       // Dex files contain ASCII string pools. We search for the ASCII representation of "AppInstallerPlugin"
       if (buffer.includes('AppInstallerPlugin') || buffer.includes('Lcom/chordex/app/AppInstallerPlugin;')) {
         foundClass = true;
-        console.log(`✓ Found AppInstallerPlugin in ${entry.entryName}`);
+        console.log(`âœ“ Found AppInstallerPlugin in ${entry.entryName}`);
         break;
       }
     }
     
     assert(foundClass, 'AppInstallerPlugin class reference NOT found in any classes.dex! The APK build is broken.');
-    console.log('✓ APK contains the packaged AppInstallerPlugin class.');
+    console.log('âœ“ APK contains the packaged AppInstallerPlugin class.');
   } catch (err) {
     assert(false, `Error occurred while unzipping/reading classes.dex from APK: ${err.message}`);
   }
@@ -204,7 +204,7 @@ if (fs.existsSync(paths.apkPath)) {
       const prevVersion = versionData.version;
       console.log(`Previous deployed version: ${prevVersion}`);
       
-      const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/appVersion.ts');
+      const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
       const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
       const nativeVersionMatches = [...appVersionSrc.matchAll(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/g)];
       if (nativeVersionMatches.length !== 1) {
@@ -222,7 +222,7 @@ if (fs.existsSync(paths.apkPath)) {
           try {
             if (fs.existsSync(tempApkPath)) {
               fs.unlinkSync(tempApkPath);
-              console.log('✓ Cleaned up temporary APK comparison files.');
+              console.log('âœ“ Cleaned up temporary APK comparison files.');
             }
           } catch (_) {}
         };
@@ -246,7 +246,7 @@ if (fs.existsSync(paths.apkPath)) {
           
           if (downloadRes.status === 404) {
             if (process.env.ALLOW_MISSING_PREV_APK === 'true') {
-              console.warn(`⚠ Previous APK at ${prevApkUrl} returned 404 (Not Found). Bypassing check since ALLOW_MISSING_PREV_APK=true.`);
+              console.warn(`âš  Previous APK at ${prevApkUrl} returned 404 (Not Found). Bypassing check since ALLOW_MISSING_PREV_APK=true.`);
             } else {
               console.error(`\x1b[31mERROR: Previous APK at ${prevApkUrl} returned 404 (Not Found).\x1b[0m`);
               console.error(`Live Firebase version is ${prevVersion}, but the corresponding GitHub release APK is missing.`);
@@ -279,7 +279,7 @@ if (fs.existsSync(paths.apkPath)) {
                 fileStream.on('finish', resolve);
                 fileStream.on('error', reject);
               });
-              console.log(`✓ Previous APK downloaded to ${tempApkPath}`);
+              console.log(`âœ“ Previous APK downloaded to ${tempApkPath}`);
             } catch (err) {
               fileStream.destroy();
               cleanupTemp();
@@ -321,15 +321,15 @@ if (fs.existsSync(paths.apkPath)) {
         console.log(`Previous version is same as current version (${currentVersion}). Skipping download.`);
       }
     } else {
-      console.warn(`⚠ Could not fetch version.json from Firebase (Status ${versionRes.status}). Skipping previous APK comparison.`);
+      console.warn(`âš  Could not fetch version.json from Firebase (Status ${versionRes.status}). Skipping previous APK comparison.`);
     }
   } catch (err) {
-    console.warn(`⚠ Failed during previous APK fetch/analysis: ${err.message}. Skipping previous APK comparison.`);
+    console.warn(`âš  Failed during previous APK fetch/analysis: ${err.message}. Skipping previous APK comparison.`);
   }
 }
 
 if (fs.existsSync(paths.apkPath)) {
-  const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/appVersion.ts');
+  const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
   const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
 
   // A. Verify non-debuggable and package manifest attributes
@@ -342,7 +342,7 @@ if (fs.existsSync(paths.apkPath)) {
     if (manifestXml.includes('http://schemas.android.com/apk/res/android:debuggable') && manifestXml.includes('true')) {
       assert(false, 'The release APK is compiled as debuggable (android:debuggable="true")!', EXIT_CODES.RELEASE_VALIDATION);
     }
-    console.log('✓ APK is confirmed to be non-debuggable.');
+    console.log('âœ“ APK is confirmed to be non-debuggable.');
 
     // 2. Package name check
     const packageMatch = manifestXml.match(/package="([^"]+)"/);
@@ -350,7 +350,7 @@ if (fs.existsSync(paths.apkPath)) {
     if (prevPackageName) {
       assert(packageMatch[1] === prevPackageName, `Package name changed! Previous: ${prevPackageName}, Current: ${packageMatch[1]}`, EXIT_CODES.RELEASE_VALIDATION);
     }
-    console.log('✓ APK package name is com.chordex.app.');
+    console.log('âœ“ APK package name is com.chordex.app.');
 
     // 3. VersionCode check
     const codeMatch = manifestXml.match(/versionCode\([^)]+\)=(\d+|0x[0-9a-f]+)/i);
@@ -360,13 +360,13 @@ if (fs.existsSync(paths.apkPath)) {
     if (prevVersionCode) {
       if (versionCodeVal <= prevVersionCode) {
         if (isDevPreview) {
-          console.warn(`⚠ Development warning: versionCode (${versionCodeVal}) is not greater than previous (${prevVersionCode}). Proceeding since --development-preview is enabled.`);
+          console.warn(`âš  Development warning: versionCode (${versionCodeVal}) is not greater than previous (${prevVersionCode}). Proceeding since --development-preview is enabled.`);
         } else {
           assert(false, `Release blocked: versionCode must increase! Installed/Previous: ${prevVersionCode}, Current: ${versionCodeVal}. Please increment versionCode in build.gradle.`, EXIT_CODES.RELEASE_VALIDATION);
         }
       }
     }
-    console.log(`✓ APK versionCode is ${versionCodeVal}.`);
+    console.log(`âœ“ APK versionCode is ${versionCodeVal}.`);
 
     // 4. VersionName check
     const nameMatch = manifestXml.match(/versionName\([^)]+\)="([^"]+)"/i);
@@ -381,12 +381,12 @@ if (fs.existsSync(paths.apkPath)) {
     
     if (versionNameVal !== expectedVersionName) {
       if (isDevPreview) {
-        console.warn(`⚠ Development warning: VersionName mismatch! Expected ${expectedVersionName} but found: ${versionNameVal}. Proceeding since --development-preview is enabled.`);
+        console.warn(`âš  Development warning: VersionName mismatch! Expected ${expectedVersionName} but found: ${versionNameVal}. Proceeding since --development-preview is enabled.`);
       } else {
         assert(false, `VersionName mismatch! Expected ${expectedVersionName} but found: ${versionNameVal}`, EXIT_CODES.RELEASE_VALIDATION);
       }
     }
-    console.log(`✓ APK versionName is ${versionNameVal} (matches expected ${expectedVersionName}).`);
+    console.log(`âœ“ APK versionName is ${versionNameVal} (matches expected ${expectedVersionName}).`);
 
     // 5. Verify inner web assets version matches
     const zip = new AdmZip(paths.apkPath);
@@ -410,7 +410,7 @@ if (fs.existsSync(paths.apkPath)) {
       `Web assets versionCode mismatch! Expected versionCode ${versionCodeVal} inside version.json, but found ${innerVersionJson ? innerVersionJson.versionCode : 'null'}`,
       EXIT_CODES.RELEASE_VALIDATION
     );
-    console.log(`✓ APK web assets version is ${innerVersionJson.version} (versionCode ${innerVersionJson.versionCode}) matches wrapper version.`);
+    console.log(`âœ“ APK web assets version is ${innerVersionJson.version} (versionCode ${innerVersionJson.versionCode}) matches wrapper version.`);
 
   } catch (err) {
     assert(false, `Failed to verify manifest configuration: ${err.message}`, EXIT_CODES.RELEASE_VALIDATION);
@@ -424,13 +424,13 @@ if (fs.existsSync(paths.apkPath)) {
     if (!signInfoVerbose.includes('SHA-256 digest')) {
       assert(false, 'The release APK is not signed!', EXIT_CODES.RELEASE_VALIDATION);
     }
-    console.log('✓ APK is successfully signed.');
+    console.log('âœ“ APK is successfully signed.');
 
     // 1. Signature Scheme Check (V2 or V3 must be true)
     const v2Scheme = /Verified using v2 scheme.*:\s*true/i.test(signInfoVerbose);
     const v3Scheme = /Verified using v3 scheme.*:\s*true/i.test(signInfoVerbose);
     assert(v2Scheme || v3Scheme, 'APK is not signed with a modern signature scheme (V2 or V3 must be true)!', EXIT_CODES.RELEASE_VALIDATION);
-    console.log('✓ APK signature scheme (V2/V3) verified successfully.');
+    console.log('âœ“ APK signature scheme (V2/V3) verified successfully.');
 
     const sha256Match = signInfoVerbose.match(/certificate SHA-256 digest:\s+([a-fA-F0-9:]+)/i);
     const currentSignature = sha256Match ? sha256Match[1].replace(/:/g, '').toLowerCase() : '';
@@ -443,7 +443,7 @@ if (fs.existsSync(paths.apkPath)) {
     if (prevSignature) {
       if (currentSignature !== prevSignature) {
         if (isDevPreview) {
-          console.warn(`⚠ Development warning: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. Proceeding since --development-preview is enabled.`);
+          console.warn(`âš  Development warning: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. Proceeding since --development-preview is enabled.`);
         } else {
           if (process.env.REINSTALL_REQUIRED === 'true') {
             assert(
@@ -451,7 +451,7 @@ if (fs.existsSync(paths.apkPath)) {
               `Controlled reset mismatch! Reset is only allowed from old signature (${oldProdSignature}) to new signature (${expectedProdSignature}). Found previous: ${prevSignature}, current: ${currentSignature}`,
               EXIT_CODES.RELEASE_VALIDATION
             );
-            console.log(`✓ Controlled signature reset allowed: upgrading from old cert (${prevSignature}) to new cert (${currentSignature})`);
+            console.log(`âœ“ Controlled signature reset allowed: upgrading from old cert (${prevSignature}) to new cert (${currentSignature})`);
           } else {
             assert(false, `Release blocked: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. (For controlled reset, set REINSTALL_REQUIRED=true)`, EXIT_CODES.RELEASE_VALIDATION);
           }
@@ -462,12 +462,12 @@ if (fs.existsSync(paths.apkPath)) {
     // Check signature consistency with expected production key
     if (currentSignature !== expectedProdSignature) {
       if (isDevPreview) {
-        console.warn(`⚠ Development warning: APK is not signed with the production certificate. Expected: ${expectedProdSignature}, Found: ${currentSignature}`);
+        console.warn(`âš  Development warning: APK is not signed with the production certificate. Expected: ${expectedProdSignature}, Found: ${currentSignature}`);
       } else {
         assert(false, `Release blocked: APK is not signed with the production certificate! Expected: ${expectedProdSignature}, Found: ${currentSignature}`, EXIT_CODES.RELEASE_VALIDATION);
       }
     }
-    console.log('✓ APK signing certificate validation check passed.');
+    console.log('âœ“ APK signing certificate validation check passed.');
 
     // 2. Certificate Details Check (Owner, Issuer, Validity)
     try {
@@ -499,7 +499,7 @@ if (fs.existsSync(paths.apkPath)) {
       const now = new Date();
       
       assert(now >= validFrom && now <= validUntil, `Certificate is outside its validity range! Valid from: ${validFromStr} until: ${validUntilStr}`, EXIT_CODES.RELEASE_VALIDATION);
-      console.log('✓ Certificate Validity check passed.');
+      console.log('âœ“ Certificate Validity check passed.');
     } catch (err) {
       assert(false, `Failed to verify certificate fields using keytool: ${err.message}`, EXIT_CODES.RELEASE_VALIDATION);
     }
@@ -522,12 +522,12 @@ if (fs.existsSync(paths.apkPath)) {
           if (metadata.sha256 && metadata.sha256 !== localApkSha) {
             assert(false, `Local metadata SHA-256 (${metadata.sha256}) does not match APK SHA-256 (${localApkSha})!`, EXIT_CODES.RELEASE_VALIDATION);
           }
-          console.log('✓ Local app-release.json SHA-256 matches APK hash.');
+          console.log('âœ“ Local app-release.json SHA-256 matches APK hash.');
         } else {
           console.log(`Skipping local app-release.json SHA check because metadata version (${metadata.version}) differs from APK version (${expectedVersionName}). It will be updated later in the pipeline.`);
         }
       } catch (e) {
-        console.warn(`⚠ Could not verify app-release.json match: ${e.message}`);
+        console.warn(`âš  Could not verify app-release.json match: ${e.message}`);
       }
     }
 
@@ -538,3 +538,4 @@ if (fs.existsSync(paths.apkPath)) {
 
 console.log('\x1b[32m=== APPINSTALLER CONTRACT VALIDATION PASSED ===\x1b[0m');
 process.exit(0);
+

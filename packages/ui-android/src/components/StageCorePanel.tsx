@@ -361,6 +361,13 @@ const HIDE_IFRAME_UI_MOBILE = `
   #mobile-nav-bar { opacity: 0 !important; pointer-events: none !important; }
 `;
 
+const getSimplifiedView = (view: string): string => {
+  if (view === 'Editor') return 'Editor';
+  if (view === 'Preferences' || view === 'Assistant') return 'Preferences';
+  if (view === 'Export') return 'Export';
+  return 'Setup';
+};
+
 export default function StagexPanel() {
   const isWebDesktop = useIsWebDesktop();
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
@@ -2546,13 +2553,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         }}
       >
         <SharedNavigationContainer
-          activeView={curView}
-          viewOrder={['Editor', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members', 'Preferences', 'Export']}
+          activeView={getSimplifiedView(curView)}
+          viewOrder={['Editor', 'Setup', 'Preferences', 'Export']}
         >
           {(viewId) => (
             <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
               <iframe
-                ref={viewId === curView ? iframeRef : null}
+                ref={viewId === getSimplifiedView(curView) ? iframeRef : null}
                 src={iframeSrc}
                 data-view={viewId}
                 onLoad={handleLoad}
@@ -2569,7 +2576,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 }}
                 allow="clipboard-write"
               />
-              {iframeLoading && viewId === curView && (
+              {iframeLoading && viewId === getSimplifiedView(curView) && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />
                 </div>

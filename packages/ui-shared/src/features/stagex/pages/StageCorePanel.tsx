@@ -361,6 +361,13 @@ const HIDE_IFRAME_UI_MOBILE = `
   #mobile-nav-bar { opacity: 0 !important; pointer-events: none !important; }
 `;
 
+const getSimplifiedView = (view: string): string => {
+  if (view === 'Editor') return 'Editor';
+  if (view === 'Preferences' || view === 'Assistant') return 'Preferences';
+  if (view === 'Export') return 'Export';
+  return 'Setup';
+};
+
 export default function StagexPanel() {
   const isWebDesktop = useIsWebDesktop();
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
@@ -1095,6 +1102,17 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       injectAmoled(iframe, isAmoled);
     }
   }, [accent.from, accent.to, stageVis.theme, isAmoled, curView]);
+
+  useEffect(() => {
+    try {
+      const win = iframeRef.current?.contentWindow as (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
+      if (win && typeof win.switchView === 'function') {
+        win.switchView(curView);
+      } else {
+        callIframe('switchView', curView);
+      }
+    } catch {}
+  }, [curView, callIframe]);
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
@@ -2111,13 +2129,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         }}
       >
         <SharedNavigationContainer
-          activeView={curView}
-          viewOrder={['Editor', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members', 'Preferences', 'Export']}
+          activeView={getSimplifiedView(curView)}
+          viewOrder={['Editor', 'Setup', 'Preferences', 'Export']}
         >
           {(viewId) => (
             <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
               <iframe
-                ref={viewId === curView ? iframeRef : null}
+                ref={viewId === getSimplifiedView(curView) ? iframeRef : null}
                 src={iframeSrc}
                 data-view={viewId}
                 onLoad={handleLoad}
@@ -2125,7 +2143,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
                 allow="clipboard-write"
               />
-              {iframeLoading && viewId === curView && (
+              {iframeLoading && viewId === getSimplifiedView(curView) && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />
                 </div>

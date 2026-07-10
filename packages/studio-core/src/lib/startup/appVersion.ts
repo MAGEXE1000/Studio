@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.11';
-export const WEB_VERSION = '4.0.11';
+export const NATIVE_VERSION = '4.0.12';
+export const WEB_VERSION = '4.0.12';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed a race condition that caused \"Studio is up to date\" to appear prematurely during Android APK installation.",
-      "The updater now waits for the native PackageInstaller result query to fully resolve before triggering any automatic update check on app resume.",
-      "Eliminated the timing window where a 200ms-debounced update check could read the installation-lock state before the native IPC response had set it, triggering a false version-match comparison.",
-      "Installation lock diagnostics now record `RACE_BLOCKED` events in the install lock timeline for production visibility.",
+      "Fixed Stagex splash and logo freeze when navigating away from the Stagex panel.",
+      "Optimized iframe keep-alive limits inside Stagex by category-mapping views, reducing active background WebGL instances from 8 to at most 4.",
+      "Added watchdog recovery callbacks to the launch transition system to force-dismiss the splash screen if a sub-app unmount takes longer than 4000ms.",
+      "Unified native and web English changelogs to read from a single synchronized source of truth.",
     ],
   },
 ];
@@ -114,10 +114,6 @@ export const APP_CHANGELOG_SECTIONS_DE: ChangelogSection[] = [
 /** Returns the changelog sections for the requested language, falling
  *  back to English when no localized version is available. */
 export function getChangelogSections(lang: string | undefined | null): ChangelogSection[] {
-  const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.();
-  if (isNative && (!lang || lang === 'en')) {
-    return APP_CHANGELOG_SECTIONS_NATIVE;
-  }
   if (lang === 'es') return APP_CHANGELOG_SECTIONS_ES;
   if (lang === 'de') return APP_CHANGELOG_SECTIONS_DE;
   return APP_CHANGELOG_SECTIONS;

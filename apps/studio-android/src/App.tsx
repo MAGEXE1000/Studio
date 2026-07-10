@@ -1127,8 +1127,15 @@ export default function App() {
       (window as any).studioTransitionActive = true;
 
       const safetyTimeout = setTimeout(() => {
-        console.error(`[Launch] Safety timeout fired. ${targetApp} did not report ready within 4000ms.`);
-        addLog('error', 'perf', `App launch transition timed out for: ${targetApp}. App did not report ready in 4000ms.`);
+        console.error(`[Launch] Safety timeout fired. ${targetApp} did not report ready within 4000ms. Forcing recovery.`);
+        addLog('error', 'perf', `App launch transition timed out for: ${targetApp}. Forcing splash recovery.`);
+        
+        // Force recovery
+        setSplashVisible(false);
+        (window as any).studioTransitionActive = false;
+        setTimeout(() => {
+          setLaunchingApp(null);
+        }, 300);
       }, 4000);
 
       // Initialize long task detection during this transition

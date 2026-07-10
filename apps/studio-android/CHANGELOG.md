@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.12
+
+### Fixed
+- Fixed Stagex splash and logo freeze when navigating away from the Stagex panel.
+- Optimized iframe keep-alive limits inside Stagex by category-mapping views, reducing active background WebGL instances from 8 to at most 4.
+- Added watchdog recovery callbacks to the launch transition system to force-dismiss the splash screen if a sub-app unmount takes longer than 4000ms.
+- Unified native and web English changelogs to read from a single synchronized source of truth.
+
 ## 4.0.11
 
 ### Fixed

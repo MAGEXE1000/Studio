@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.11"
-$VersionCode = "237"
-$ReleaseNote = "v4.0.11 - Updater Race-Condition Fix: Eliminate premature 'Studio is up to date' by sequencing automatic update checks to await the native PackageInstaller result IPC before reading the installation lock state."
+$VersionName = "4.0.12"
+$VersionCode = "238"
+$ReleaseNote = "v4.0.12 - Stagex Navigation Stability, Animation Recovery & Updater Changelog Synchronization: Fix Stagex unmount deadlock and WebGL context crash by reducing active iframe count, upgrade safety watchdog timeout in App.tsx to force splash recovery, and unify English changelog return in appVersion.ts."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

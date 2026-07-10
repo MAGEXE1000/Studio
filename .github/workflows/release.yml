@@ -130,7 +130,7 @@ jobs:
           fi
           
           # Resolve version name & code dynamically from badging or source files
-          REQ_VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          REQ_VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
           REQ_CODE=$(node -e "const fs = require('fs'); const src = fs.readFileSync('apps/studio-android/android/app/build.gradle', 'utf8'); const m = src.match(/versionCode\s+(\d+)/); console.log(m ? m[1] : 'unknown');")
           
           # 5. Verify versionName matches
@@ -221,7 +221,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
           TAG="v$VERSION"
           if ! gh release view "$TAG" > /dev/null 2>&1; then
             gh release create "$TAG" --title "$TAG" --notes "${{ github.event.inputs.note }}" --prerelease
@@ -246,7 +246,7 @@ jobs:
         run: |
           echo "Waiting 15s for Firebase CDN propagation..."
           sleep 15
-          NATIVE_VER=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          NATIVE_VER=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
           
           echo "--- Fetching app-release.json ---"
           APP_JSON=$(curl -sf --retry 3 "https://studio-30f44.web.app/app-release.json")

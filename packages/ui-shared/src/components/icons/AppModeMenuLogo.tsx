@@ -310,3 +310,5 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
     </div>
   );
 }
+
+export default AppModeMenuLogo;

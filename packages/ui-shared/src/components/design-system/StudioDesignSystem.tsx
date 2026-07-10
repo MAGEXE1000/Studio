@@ -1,7 +1,7 @@
 import { useChordStore, ACCENT_COLORS, type AppKey } from '@workspace/studio-core';
 import React, { lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AnimatedAppHeader, MOTION_EASINGS } from '../navigation/AppAnimationSystem';
+import { AnimatedAppHeader, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import AppSpinner from '../loading/AppSpinner';
 
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────

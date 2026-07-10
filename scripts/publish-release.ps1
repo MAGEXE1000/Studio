@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.4"
-$VersionCode = "230"
-$ReleaseNote = "v4.0.4 - Release 4.0.4: Fix 'Studio is up to date' regression by blocking background checks when update session is active."
+$VersionName = "4.0.5"
+$VersionCode = "231"
+$ReleaseNote = "v4.0.5 - Release 4.0.5: Unify global navigation slide-transition animations across all sub-apps and Hub, refactor Settings/Help mobile view transitions, and fix safe area layout spacings."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -52,6 +52,7 @@ git add release-notes.md
 git add scripts/run-updater-regression-tests.mjs
 git add scripts/publish-release.ps1
 git add .github/workflows/release.yml
+git add -u
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {

@@ -39,7 +39,8 @@ import {
   GroovexApp,
   VocalexApp,
   StageCorePanel,
-  ErrorBoundary
+  ErrorBoundary,
+  SharedNavigationContainer
 } from '@workspace/ui-shared';
 
 import {
@@ -353,30 +354,11 @@ export default function App() {
   // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
   const [cachedPanel, setCachedPanel] = useState<ActivePanel>(activePanel);
 
-  const [visiblePanel, setVisiblePanel] = useState(activePanel);
-  const [exitingPanel, setExitingPanel] = useState<string | null>(null);
-  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
-
   useEffect(() => {
-    if (appMode === 'chords' && activePanel !== visiblePanel) {
-      const oldIdx = ALL_PANELS.indexOf(visiblePanel as any);
-      const newIdx = ALL_PANELS.indexOf(activePanel as any);
-      setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
-      setExitingPanel(visiblePanel);
-      setVisiblePanel(activePanel);
+    if (appMode === 'chords' && activePanel !== cachedPanel) {
       setCachedPanel(activePanel);
     }
-  }, [activePanel, visiblePanel, appMode]);
-
-  useEffect(() => {
-    if (exitingPanel !== null) {
-      const timer = setTimeout(() => {
-        setExitingPanel(null);
-      }, 320);
-      return () => clearTimeout(timer);
-    }
-    return;
-  }, [exitingPanel]);
+  }, [activePanel, cachedPanel, appMode]);
 
   // Register diagnostics getters for printDiagnosticsDump
   useEffect(() => {
@@ -524,7 +506,7 @@ export default function App() {
                 )}
 
                 {stableKey === 'chords' && (
-                  <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
+                  <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)', paddingTop: isWebDesktop ? '0px' : 'calc(16px + env(safe-area-inset-top))' }}>
                     <AppEntryTransition
                       className="flex flex-col w-full overflow-hidden select-none app-bg"
                       style={{
@@ -550,37 +532,23 @@ export default function App() {
                           />
                         )}
                         <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
-                          {ALL_PANELS.map(panel => {
-                            const isVisible = visiblePanel === panel;
-                            const isExiting = exitingPanel === panel;
-                            if (!isVisible && !isExiting) return null;
-                            const isEntering = isVisible && exitingPanel !== null;
-
-                            let animClass = '';
-                            if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
-                            else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
-
-                            return (
-                              <div
-                                key={panel}
-                                className={animClass}
-                                style={{
-                                  position: 'absolute',
-                                  inset: 0,
-                                  pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
-                                }}
+                          <ErrorBoundary moduleName="Chordex">
+                            <Suspense fallback={<SmartLoading fallbackSkeleton={<ChordexPanelSkeleton />} />}>
+                              <SharedNavigationContainer
+                                activeView={cachedPanel}
+                                viewOrder={ALL_PANELS}
                               >
-                                <ErrorBoundary moduleName="Chordex">
-                                  <Suspense fallback={<SmartLoading fallbackSkeleton={<ChordexPanelSkeleton />} />}>
+                                {(panel) => (
+                                  <>
                                     {panel === 'library'  && <LibraryPanel />}
                                     {panel === 'chord'    && <ChordPanel />}
                                     {panel === 'songs'    && <SongsPanel />}
                                     {panel === 'settings' && <SettingsPanel />}
-                                  </Suspense>
-                                </ErrorBoundary>
-                              </div>
-                            );
-                          })}
+                                  </>
+                                )}
+                              </SharedNavigationContainer>
+                            </Suspense>
+                          </ErrorBoundary>
                         </div>
                       </div>
                     </AppEntryTransition>

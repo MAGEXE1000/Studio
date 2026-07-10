@@ -32,8 +32,8 @@ import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpTo
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import StudioSpinner from './animata/progress/spinner';
-import AnimatedActionButton from './animata/container/animated-border-trail';
+import StudioSpinner from '../animata/progress/spinner';
+import AnimatedActionButton from '../animata/container/animated-border-trail';
 import StudioUpdateScreen from '../sheets/StudioUpdateScreen';
 import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
 import ChangelogSheet from '../sheets/ChangelogSheet';

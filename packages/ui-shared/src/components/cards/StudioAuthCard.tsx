@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import AppSpinner from "./AppSpinner";
-import AnimatedActionButton from "./animata/container/animated-border-trail";
+import AppSpinner from "../AppSpinner";
+import AnimatedActionButton from "../animata/container/animated-border-trail";
 
 interface StudioAuthCardProps {
   accent: { from: string; to: string; mid: string };

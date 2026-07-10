@@ -1,7 +1,7 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+﻿import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from '../../../components/navigation/navStyles';
+import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from '../../../navigation/navStyles';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
@@ -196,7 +196,7 @@ const STAGEX_LIBRARY: Record<string, { name: string; icon: string; type: string 
     { name: 'Drum Kit',    icon: 'drum',              type: 'Acoustic Drums' },
     { name: 'E-Drums',     icon: 'cx-edrum',         type: 'Electronic Drums' },
     { name: 'Percussion',  icon: 'cx-percussion',    type: 'Percussion' },
-    { name: 'Cajón',       icon: 'cx-cajon',          type: 'Cajón' },
+    { name: 'CajÃ³n',       icon: 'cx-cajon',          type: 'CajÃ³n' },
   ],
   inst: [
     { name: 'Elec Guitar', icon: 'cx-elec-guitar',   type: 'Electric Guitar' },
@@ -467,7 +467,7 @@ export default function StagexPanel() {
     useChordStore.getState().setLastSession({ stagexView: curView });
   }, [curView]);
 
-  /* ── Glassmorphism bottom nav state ─────────────────────── */
+  /* â”€â”€ Glassmorphism bottom nav state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const stageNavRef    = useRef<HTMLDivElement | null>(null);
   useLiquidGlassNav(stageNavRef as React.RefObject<HTMLElement | null>);
   const stageBtnRefs   = useRef<(HTMLButtonElement | null)[]>([]);
@@ -486,12 +486,12 @@ export default function StagexPanel() {
   const [pdfFileName, setPdfFileName] = useState('');
   const [pdfBusy, setPdfBusy] = useState(false);
   const [canShareFiles, setCanShareFiles] = useState(false);
-  // Scenes feature (v3.0.63+) — picker for which stage plot(s) to include
+  // Scenes feature (v3.0.63+) â€” picker for which stage plot(s) to include
   const [pdfSceneInfo, setPdfSceneInfo] = useState<{ count: number; currentIdx: number; names: string[] }>({ count: 1, currentIdx: 0, names: ['Scene 1'] });
   const [pdfSceneChoice, setPdfSceneChoice] = useState<'current' | 'all' | number>('current');
   const [isStageExpanded, setIsStageExpanded] = useState(false);
 
-  // ── Diagnostics & Safe Mode state ──────────────────────────
+  // â”€â”€ Diagnostics & Safe Mode state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [showDiagnostics, setShowDiagnostics] = useState(() => {
     try {
       return localStorage.getItem('stagex_diagnostics_enabled') === 'true';
@@ -659,7 +659,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     };
   }, [showDiagnostics, logDiagnostic]);
 
-  // ── Automated interaction test runner ───────────────────────
+  // â”€â”€ Automated interaction test runner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [testActive, setTestActive] = useState(false);
   const [testCycle, setTestCycle] = useState(0);
   const [testStep, setTestStep] = useState('');
@@ -986,7 +986,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     setNavCollapsed(false);
   }, [curView]);
   // Functions that are idempotent navigation actions and should never be
-  // throttled — spam-tapping Stage/Setup/Preferences must always feel instant.
+  // throttled â€” spam-tapping Stage/Setup/Preferences must always feel instant.
   const NO_THROTTLE_FNS = new Set(['switchView', 'stageGoBack']);
   const pendingAcks = useRef<Map<string, { fn: string; timer: ReturnType<typeof setTimeout> }>>(new Map());
   const callIframe = useCallback((fn: string, arg?: string | number) => {
@@ -1276,7 +1276,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   const handleNavTap = useCallback((view: string) => {
     setNavCollapsed(false);
-    // Optimistically update curView so the top toolbar swaps immediately —
+    // Optimistically update curView so the top toolbar swaps immediately â€”
     // don't wait for the iframe's __onViewChange callback to round-trip,
     // which can race on iframe reloads and leave the wrong toolbar showing.
     if (view === 'Setup') {
@@ -1292,14 +1292,14 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     callIframe('toggleSCDial');
   }, [callIframe]);
 
-  /* ── Glassmorphism pill bg ──────────────────────────────── */
+  /* â”€â”€ Glassmorphism pill bg â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const stagePillBg = isAmoled
     ? 'rgba(4,4,4,0.88)'
     : isLight
       ? 'rgba(255, 255, 255, 0.40)'
       : 'rgba(26,26,30,0.82)';
 
-  /* ── Pill measurement helpers ───────────────────────────── */
+  /* â”€â”€ Pill measurement helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const measureStageBtn = (idx: number) => {
     const btn = stageBtnRefs.current[idx];
     const nav = stageNavRef.current;
@@ -1360,7 +1360,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       if (item.imageData) {
         return <img src={item.imageData} style={{ width: '20px', height: '20px', objectFit: 'contain' }} alt="" />;
       }
-      return <span style={{ fontSize: '18px', lineHeight: 1 }}>{item.emoji || '🎵'}</span>;
+      return <span style={{ fontSize: '18px', lineHeight: 1 }}>{item.emoji || 'ðŸŽµ'}</span>;
     }
     const svgPath = STAGEX_ICON_MAP[item.icon];
     if (svgPath) {
@@ -1999,7 +1999,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
             {(
               [
-                // v3.0.56: Auto-arrange removed from top toolbar — its
+                // v3.0.56: Auto-arrange removed from top toolbar â€” its
                 // function moved into the iframe vertical sidebar slot
                 // that already shows `auto_fix_high`. Live mode (eye)
                 // moved out of the top toolbar to a floating button
@@ -2189,7 +2189,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           </div>
         )}
 
-        {/* ── Stage Expand/Rotate Toggle ── */}
+        {/* â”€â”€ Stage Expand/Rotate Toggle â”€â”€ */}
         {curView === 'Editor' && (
           <button
             onClick={toggleStageExpanded}
@@ -2231,7 +2231,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           </button>
         )}
 
-        {/* ── Live-mode toggle (eye) — stacked 8px above the FAB ── */}
+        {/* â”€â”€ Live-mode toggle (eye) â€” stacked 8px above the FAB â”€â”€ */}
         {curView === 'Editor' && (
           <button
             id="stagex-eye-button"
@@ -2275,7 +2275,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           </button>
         )}
 
-        {/* ── FAB: add instrument ── */}
+        {/* â”€â”€ FAB: add instrument â”€â”€ */}
         {curView === 'Editor' && (
           <button
             id="stagex-plus-button"
@@ -2375,7 +2375,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           </button>
         )}
 
-        {/* ── Glassmorphism bottom nav — matches Chordex BottomNav ── */}
+        {/* â”€â”€ Glassmorphism bottom nav â€” matches Chordex BottomNav â”€â”€ */}
         <div
           ref={stageNavRef}
           className="glass-nav"
@@ -2613,3 +2613,4 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     </div>
   );
 }
+

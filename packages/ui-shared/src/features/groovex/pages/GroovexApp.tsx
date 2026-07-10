@@ -2,12 +2,13 @@ import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, 
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from '../state/useGroovexStore';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
-import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../components/navigation/navStyles';
+import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
+import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 
-const GroovexLibrary = lazy(() => import('./GroovexLibrary'));
-const GroovexPlayer = lazy(() => import('./GroovexPlayer'));
-const GroovexPreferences = lazy(() => import('./GroovexPreferences'));
+const GroovexLibrary = lazy(() => import('../components/GroovexLibrary'));
+const GroovexPlayer = lazy(() => import('../components/GroovexPlayer'));
+const GroovexPreferences = lazy(() => import('../components/GroovexPreferences'));
 
 const VIEW_ORDER: GroovexView[] = ['library', 'player', 'preferences'];
 
@@ -21,10 +22,6 @@ export default function GroovexApp() {
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
   });
-
-  const [visibleView, setVisibleView] = useState<GroovexView>(view);
-  const [exitingView, setExitingView] = useState<GroovexView | null>(null);
-  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
 
   useEffect(() => {
     if (!isWebDesktop) return;
@@ -55,26 +52,6 @@ export default function GroovexApp() {
       unregisterDebugProvider('groovex');
     };
   }, []);
-
-  useEffect(() => {
-    if (view !== visibleView) {
-      const oldIdx = VIEW_ORDER.indexOf(visibleView);
-      const newIdx = VIEW_ORDER.indexOf(view);
-      setSlideDir(newIdx >= oldIdx ? 'right' : 'left');
-      setExitingView(visibleView);
-      setVisibleView(view);
-    }
-  }, [view, visibleView]);
-
-  useEffect(() => {
-    if (exitingView !== null) {
-      const timer = setTimeout(() => {
-        setExitingView(null);
-      }, 320);
-      return () => clearTimeout(timer);
-    }
-    return;
-  }, [exitingView]);
 
   function navigate(next: GroovexView) {
     NavigationDispatcher.push({ app: 'groovex', page: next });
@@ -144,38 +121,18 @@ export default function GroovexApp() {
           />
         )}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative', paddingTop: isWebDesktop ? '20px' : '0px', paddingBottom: '0px', display: 'flex', flexDirection: 'column' }}>
-          {VIEW_ORDER.map(v => {
-            const isVisible = visibleView === v;
-            const isExiting = exitingView === v;
-            if (!isVisible && !isExiting) return null;
-            const isEntering = isVisible && exitingView !== null;
-
-            let animClass = '';
-            if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
-            else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
-
-            return (
-              <div
-                key={v}
-                className={animClass}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                  overflow: 'hidden',
-                }}
-              >
-                <Suspense fallback={null}>
-                  {v === 'library' && <GroovexLibrary />}
-                  {v === 'player' && <GroovexPlayer />}
-                  {v === 'preferences' && <GroovexPreferences />}
-                </Suspense>
-              </div>
-            );
-          })}
+          <SharedNavigationContainer
+            activeView={view}
+            viewOrder={VIEW_ORDER}
+          >
+            {(viewId) => (
+              <Suspense fallback={null}>
+                {viewId === 'library' && <GroovexLibrary />}
+                {viewId === 'player' && <GroovexPlayer />}
+                {viewId === 'preferences' && <GroovexPreferences />}
+              </Suspense>
+            )}
+          </SharedNavigationContainer>
         </div>
       </div>
 
@@ -394,3 +351,4 @@ function GroovexNav({ view, setView, hasActiveSong }: {
     </nav>
   );
 }
+

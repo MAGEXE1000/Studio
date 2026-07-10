@@ -1,10 +1,10 @@
-import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
+﻿import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { SongPracticeView } from '../../../components/feature/SongPracticeView';
 import EmptyStateLottie from '../../../components/lottie/EmptyStateLottie';
 import ChordDiagram from '../../../components/diagrams/ChordDiagram';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../components/navigation/AppAnimationSystem';
+import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 import { useScrollFade } from '../../../components/typography/ScrollFade';
 import GuitarDiagram from '../../../components/diagrams/GuitarDiagram';
 import PianoDiagram from '../../../components/diagrams/PianoDiagram';
@@ -48,7 +48,7 @@ function RelatedPlayBtn({ guitar, accent, isLight }: {
   );
 }
 
-// ── Category definitions ──────────────────────────────────────
+// â”€â”€ Category definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CATEGORIES: {
   type: ChordType | 'all';
   icon: string;
@@ -73,7 +73,7 @@ const CATEGORIES: {
   { type: 'add9',    icon: 'add_circle',          label: 'Add9',         desc: 'Major with color.',                color: '#34d399' },
   { type: '6th',     icon: 'hexagon',             label: '6th',          desc: 'Sweet & vintage.',                 color: '#fbbf24' },
   { type: 'min6',    icon: 'star_half',           label: 'Min6',         desc: 'Bittersweet.',                     color: '#fbbf24' },
-  { type: 'halfdim', icon: 'contrast',            label: 'Half-Dim ø7',  desc: 'Jazz & classical tension.',        color: '#ee7d77' },
+  { type: 'halfdim', icon: 'contrast',            label: 'Half-Dim Ã¸7',  desc: 'Jazz & classical tension.',        color: '#ee7d77' },
   { type: 'dim7',    icon: 'block',               label: 'Dim7',         desc: 'Symmetrical & eerie.',             color: '#ee7d77' },
   { type: '11th',    icon: 'stacked_bar_chart',   label: '11th',         desc: 'Dense & modern.',                  color: '#b57bee' },
   { type: 'min11',   icon: 'stacked_bar_chart',   label: 'Min11',        desc: 'Mellow minor 11th.',               color: '#b57bee' },
@@ -82,7 +82,7 @@ const CATEGORIES: {
   { type: '7sus4',   icon: 'pending',             label: '7sus4',        desc: 'Funky & unresolved.',              color: '#34d399' },
   { type: '7sus2',   icon: 'radio_button_unchecked', label: '7sus2',     desc: 'Open dominant.',                   color: '#34d399' },
   { type: 'maj6',    icon: 'grade',               label: 'Maj6',         desc: 'Vintage & melodic.',               color: '#fbbf24' },
-  // ── New types ──
+  // â”€â”€ New types â”€â”€
   { type: 'power',   icon: 'flash_on',            label: 'Power',        desc: 'Rock & metal essential.',          color: '#ee7d77' },
   { type: 'minmaj7', icon: 'merge',               label: 'm/maj7',       desc: 'Jazz sophistication.',             color: '#b57bee' },
   { type: 'aug7',    icon: 'north_east',          label: 'Aug7',         desc: 'Tense jazz transition.',           color: '#2dd4bf' },
@@ -92,7 +92,7 @@ const CATEGORIES: {
   { type: '9sus4',   icon: 'blur_on',             label: '9sus4',        desc: 'Soulful & unresolved.',            color: '#34d399' },
 ];
 
-// ── Instrument decorative silhouette for category tiles ───────
+// â”€â”€ Instrument decorative silhouette for category tiles â”€â”€â”€â”€â”€â”€â”€
 function BigInstrumentDecor({ instrument, accentFrom }: { instrument: string; accentFrom: string }) {
   const wrap: React.CSSProperties = {
     position: 'absolute',
@@ -104,7 +104,7 @@ function BigInstrumentDecor({ instrument, accentFrom }: { instrument: string; ac
   };
 
   if (instrument === 'guitar') {
-    // Electric guitar — SG-style double cutaway, cherry red
+    // Electric guitar â€” SG-style double cutaway, cherry red
     return (
       <div style={{ ...wrap, transform: 'rotate(-18deg)' }}>
         <svg viewBox="0 0 40 64" width="94" height="150" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -124,7 +124,7 @@ function BigInstrumentDecor({ instrument, accentFrom }: { instrument: string; ac
           ))}
           <circle cx="20" cy="14.5" r="0.9" fill="rgba(255,255,255,0.45)" />
           <circle cx="20" cy="21" r="0.9" fill="rgba(255,255,255,0.45)" />
-          {/* SG body — symmetrical double cutaway */}
+          {/* SG body â€” symmetrical double cutaway */}
           <path d="M9 31 Q5 27 7 22 Q9 18 13 20 Q17 23 18 28 L20 28 L22 28 Q23 23 27 20 Q31 18 33 22 Q35 27 31 31 Q36 36 36 44 Q36 57 20 59 Q4 57 4 44 Q4 36 9 31Z" fill="#CC2200" />
           <path d="M9 31 Q6 28 8 23 Q10 20 13 21" stroke="rgba(255,140,80,0.22)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
           {/* Neck pickup */}
@@ -186,7 +186,7 @@ function BigInstrumentDecor({ instrument, accentFrom }: { instrument: string; ac
   }
 
   if (instrument === 'piano') {
-    // Grand piano — plan view from above, showing full curved body + keyboard
+    // Grand piano â€” plan view from above, showing full curved body + keyboard
     return (
       <div style={{ ...wrap, right: '-10px', bottom: '-24px', transform: 'rotate(-10deg)' }}>
         <svg viewBox="0 0 56 46" width="164" height="135" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -253,7 +253,7 @@ function BigInstrumentDecor({ instrument, accentFrom }: { instrument: string; ac
   );
 }
 
-// ── Mini fretboard preview (faded, for category tiles) ──
+// â”€â”€ Mini fretboard preview (faded, for category tiles) â”€â”€
 type MiniBarre = { fret: number; fromString: number; toString: number };
 function MiniChordPreview({ frets, baseFret = 1, barres = [], isDark = true }: {
   frets: number[];
@@ -306,7 +306,7 @@ function MiniChordPreview({ frets, baseFret = 1, barres = [], isDark = true }: {
           />
         );
       })}
-      {/* Individual dots — skip strings covered by a barre */}
+      {/* Individual dots â€” skip strings covered by a barre */}
       {frets.slice(0, n).map((fret, i) => {
         if (fret <= 0) return null;
         const d = fret - (base - 1);
@@ -336,7 +336,7 @@ function MiniChordPreview({ frets, baseFret = 1, barres = [], isDark = true }: {
   );
 }
 
-// ── Chord card (2-col grid view) ──────────────────────────────
+// â”€â”€ Chord card (2-col grid view) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ChordPlayBtn({ chord, accent, size = 26 }: {
   chord: NonNullable<ReturnType<typeof getChordById>>;
   accent: { from: string; to: string; mid: string };
@@ -424,12 +424,12 @@ function ChordCard({
         color: 'var(--c-text-muted)',
         fontFamily: 'Inter', fontSize: '9.5px', letterSpacing: '0.05em',
         fontWeight: 500, textAlign: 'center',
-      }}>{chord.notes.join(' · ')}</p>
+      }}>{chord.notes.join(' Â· ')}</p>
     </div>
   );
 }
 
-// ── Main panel ────────────────────────────────────────────────
+// â”€â”€ Main panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LibraryPanel() {
   const isWebDesktop = useIsWebDesktop();
   const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
@@ -508,7 +508,7 @@ export default function LibraryPanel() {
   // always sees the first page of results for the new query.
   useEffect(() => { setDiscoverLimit(DISCOVER_PAGE_SIZE); }, [activeGenre, discoverQuery]);
 
-  // ── Back navigation ──────────────────────────────────────────────────────
+  // â”€â”€ Back navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useBackHandler('nested', () => {
     if (activePanel !== 'library') return false;
     if (activePracticeSong) {
@@ -591,8 +591,8 @@ export default function LibraryPanel() {
   const goBack      = () => setActiveType(null);
 
   // Pull current language so Discover descriptions can be shown in
-  // Spanish when applicable. Fallback chain: Spanish map → English
-  // description → empty. Search also matches against the localized
+  // Spanish when applicable. Fallback chain: Spanish map â†’ English
+  // description â†’ empty. Search also matches against the localized
   // description so es users can search using Spanish words.
   const language = useChordStore(s => s.settings.language);
   const isSpanish = language === 'es';
@@ -902,7 +902,7 @@ export default function LibraryPanel() {
                           style={{ fontFamily: 'Manrope' }}
                         >
                           <span>{chord.name}</span>
-                          <span className="text-[9px] opacity-65 font-bold uppercase">{chord.notes.join(' · ')}</span>
+                          <span className="text-[9px] opacity-65 font-bold uppercase">{chord.notes.join(' Â· ')}</span>
                         </button>
                       );
                     })}
@@ -1035,7 +1035,7 @@ export default function LibraryPanel() {
                           {/* Mobile Practice trigger row */}
                           <div className="flex justify-between items-center mt-2 pt-2 border-t border-zinc-900/60">
                             <span style={{ fontSize: '9px', color: 'var(--c-text-muted)', fontFamily: 'Inter' }}>
-                              {song.bpm ? `${song.bpm} BPM` : ''} {song.capo ? `· Capo ${song.capo}` : ''}
+                              {song.bpm ? `${song.bpm} BPM` : ''} {song.capo ? `Â· Capo ${song.capo}` : ''}
                             </span>
                             <button
                               onClick={() => setActivePracticeSong(song)}
@@ -1047,7 +1047,7 @@ export default function LibraryPanel() {
                               }}
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>play_circle</span>
-                              {isSpanish ? 'Práctica' : 'Practice'}
+                              {isSpanish ? 'PrÃ¡ctica' : 'Practice'}
                             </button>
                           </div>
                         </div>
@@ -1086,7 +1086,7 @@ export default function LibraryPanel() {
                         {c.name}
                       </span>
                       <span className="text-[10px] text-zinc-500 block mt-1" style={{ fontFamily: 'Inter' }}>
-                        {c.notes.join(' · ')}
+                        {c.notes.join(' Â· ')}
                       </span>
                     </div>
                     <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600">
@@ -1118,7 +1118,7 @@ export default function LibraryPanel() {
                         {c.name}
                       </span>
                       <span className="text-[10px] text-zinc-500 block mt-1" style={{ fontFamily: 'Inter' }}>
-                        {c.notes.join(' · ')}
+                        {c.notes.join(' Â· ')}
                       </span>
                     </div>
                     <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600">
@@ -1139,7 +1139,7 @@ export default function LibraryPanel() {
   return (
     <div className="flex flex-col h-full overflow-hidden app-bg" style={{ position: 'relative' }}>
 
-      {/* ── Scroll-to-top button (Discover tab) — always mounted, animated via transition ── */}
+      {/* â”€â”€ Scroll-to-top button (Discover tab) â€” always mounted, animated via transition â”€â”€ */}
       <button
         onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label="Scroll to top"
@@ -1176,7 +1176,7 @@ export default function LibraryPanel() {
             display: 'flex', alignItems: 'center', gap: '0',
             transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
           }}>
-          {/* Back button — slides in/out to animate the logo position */}
+          {/* Back button â€” slides in/out to animate the logo position */}
           <div style={{
             overflow: 'hidden',
             flexShrink: 0,
@@ -1209,7 +1209,7 @@ export default function LibraryPanel() {
 
 
 
-      {/* ── Tab bar: Explore | Discover ── */}
+      {/* â”€â”€ Tab bar: Explore | Discover â”€â”€ */}
       {(mainTab === 'explore' ? showDefault || showSearch : true) && (
         <div className="flex-none px-5 pb-3" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
           {/* Title */}
@@ -1287,11 +1287,11 @@ export default function LibraryPanel() {
         </div>
       )}
 
-      {/* ── Scrollable body ── */}
+      {/* â”€â”€ Scrollable body â”€â”€ */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar" style={{ willChange: 'transform', WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'], overscrollBehavior: 'contain', paddingBottom: 'var(--content-bottom-pad)' }}>
        <div key={mainTab} className="library-tab-fade">
 
-        {/* ══ EXPLORE: Search results ══ */}
+        {/* â•â• EXPLORE: Search results â•â• */}
         {mainTab === 'explore' && showSearch && (
           <div className="px-5 pb-32 spring-in">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope' }}>
@@ -1311,7 +1311,7 @@ export default function LibraryPanel() {
           </div>
         )}
 
-        {/* ══ EXPLORE: Category chord grid ══ */}
+        {/* â•â• EXPLORE: Category chord grid â•â• */}
         {mainTab === 'explore' && showType && (
           <div key={activeType} className="px-5 pb-32 content-enter">
             <div className="grid grid-cols-2 gap-3">
@@ -1324,7 +1324,7 @@ export default function LibraryPanel() {
           </div>
         )}
 
-        {/* ══ EXPLORE: Default bento grid ══ */}
+        {/* â•â• EXPLORE: Default bento grid â•â• */}
         {mainTab === 'explore' && showDefault && (
           <div key="default-grid" className="flex flex-col justify-between h-full pb-32 content-enter">
             <div className="flex-1 px-5 py-4">
@@ -1435,7 +1435,7 @@ export default function LibraryPanel() {
           </div>
         )}
 
-        {/* ══ DISCOVER ══ */}
+        {/* â•â• DISCOVER â•â• */}
         {mainTab === 'discover' && (
           <div className="pb-32 spring-in">
 
@@ -1453,7 +1453,7 @@ export default function LibraryPanel() {
                   type="text"
                   value={discoverQuery}
                   onChange={e => setDiscoverQuery(e.target.value)}
-                  placeholder={(t.library as { discoverSearchPlaceholder?: string }).discoverSearchPlaceholder ?? 'Search songs or artists…'}
+                  placeholder={(t.library as { discoverSearchPlaceholder?: string }).discoverSearchPlaceholder ?? 'Search songs or artistsâ€¦'}
                   className="flex-1 bg-transparent outline-none"
                   style={{
                     color: 'var(--c-text-primary)',
@@ -1514,8 +1514,8 @@ export default function LibraryPanel() {
                   Math.min(discoverLimit, discoverSongs.length),
                   discoverSongs.length,
                 ) ?? `${Math.min(discoverLimit, discoverSongs.length)} / ${discoverSongs.length} song${discoverSongs.length !== 1 ? 's' : ''}`)}
-                {activeGenre ? ` · ${localizedGenre(activeGenre, GENRE_META[activeGenre].label)}` : ''}
-                {discoverQuery.trim() ? ` · "${discoverQuery.trim()}"` : ''}
+                {activeGenre ? ` Â· ${localizedGenre(activeGenre, GENRE_META[activeGenre].label)}` : ''}
+                {discoverQuery.trim() ? ` Â· "${discoverQuery.trim()}"` : ''}
               </p>
             </div>
 
@@ -1553,7 +1553,7 @@ export default function LibraryPanel() {
                           {song.title}
                         </h3>
                         <p className="font-semibold" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '12px', marginTop: '1px' }}>
-                          {song.artist}{song.era ? ` · ${song.era}` : ''}
+                          {song.artist}{song.era ? ` Â· ${song.era}` : ''}
                         </p>
                       </div>
                       {/* Genre badge */}
@@ -1592,7 +1592,7 @@ export default function LibraryPanel() {
                       {song.progressionLabel}
                     </p>
 
-                    {/* Description (localized — Spanish when language is es) */}
+                    {/* Description (localized â€” Spanish when language is es) */}
                     <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '12px', lineHeight: '1.5' }}>
                       {describe(song.id, song.description)}
                     </p>
@@ -1634,7 +1634,7 @@ export default function LibraryPanel() {
                 );
               })}
 
-              {/* Load more — shown when there are more songs to reveal */}
+              {/* Load more â€” shown when there are more songs to reveal */}
               {discoverLimit < discoverSongs.length && (
                 <div className="flex justify-center pt-2">
                   <button
@@ -1671,7 +1671,7 @@ export default function LibraryPanel() {
   );
 }
 
-// ── Chord list item ───────────────────────────────────────────
+// â”€â”€ Chord list item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ChordListItem({
   chord, isSelected, onClick, tag, accent, showDiagram = false,
 }: {
@@ -1715,7 +1715,7 @@ function ChordListItem({
       <div className="flex-1 min-w-0">
         <p className="font-bold text-sm" style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>{chord.name}</p>
         <p className="text-[10px] font-bold uppercase tracking-wider mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope' }}>
-          {chord.type.toUpperCase()}{tag ? ` · ${tag}` : ''}
+          {chord.type.toUpperCase()}{tag ? ` Â· ${tag}` : ''}
         </p>
       </div>
       {showDiagram && (
@@ -1730,3 +1730,4 @@ function ChordListItem({
     </div>
   );
 }
+

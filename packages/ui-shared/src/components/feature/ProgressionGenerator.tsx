@@ -19,7 +19,7 @@ import { useChordStore, getChordById, useBackHandler, setNavLocked, setNavHidden
  */
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import AnimatedActionButton from './animata/container/animated-border-trail';
+import AnimatedActionButton from '../animata/container/animated-border-trail';
 import {
   KEYS, SCALE_TYPES, STYLES,
   generateProgression, diatonicChordIds, romanToChordId, labelKey,

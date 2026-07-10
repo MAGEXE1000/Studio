@@ -1,7 +1,7 @@
-import { useT } from '@workspace/studio-core';
+﻿import { useT } from '@workspace/studio-core';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { setVocalexBack } from '../utilities/headerBack';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../components/navigation/AppAnimationSystem';
+import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 
 interface Tip {
   title: string;
@@ -317,3 +317,4 @@ export default function PracticePanel() {
     </div>
   );
 }
+

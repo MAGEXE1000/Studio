@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.4';
-export const WEB_VERSION = '4.0.4';
+export const NATIVE_VERSION = '4.0.5';
+export const WEB_VERSION = '4.0.5';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,11 +60,12 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed post-update startup check loop by invalidating session caches when local version matches target.",
-      "Restored and reorganized Developer Options Diagnostics page into 11 distinct sections.",
-      "Restored simulation overrides, chronological timelines, PackageInstaller telemetry, and clipboard tools.",
+      "Unified the navigation experience across all Studio apps using the Drumex slide-transition animation standard.",
+      "Integrated the SharedNavigationContainer into Chordex, Drumex, Groovex, Vocalex, and StudioHub.",
+      "Isolated page-level scroll states across tabs to prevent navigation scroll sharing issues.",
+      "Optimized Chordex layout top padding and resolved transition flashing issues.",
     ],
   },
 ];

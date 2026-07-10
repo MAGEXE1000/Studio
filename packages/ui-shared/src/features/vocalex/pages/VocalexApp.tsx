@@ -1,14 +1,15 @@
 import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, useScrollHide } from '@workspace/studio-core';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
+import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { subscribeVocalexBack } from '../utilities/headerBack';
-import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../components/navigation/navStyles';
+import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 
-const PracticePanelLazy = lazy(() => import('./PracticePanel'));
-const PitchPanelLazy = lazy(() => import('./PitchPanel'));
-const TakesPanelLazy = lazy(() => import('./TakesPanel'));
-const LabPanelLazy = lazy(() => import('./LabPanel'));
+const PracticePanelLazy = lazy(() => import('../components/PracticePanel'));
+const PitchPanelLazy = lazy(() => import('../components/PitchPanel'));
+const TakesPanelLazy = lazy(() => import('../components/TakesPanel'));
+const LabPanelLazy = lazy(() => import('../components/LabPanel'));
 
 type VocalexPanel = 'practice' | 'pitch' | 'vocalLab' | 'takes';
 
@@ -95,14 +96,10 @@ export default function VocalexApp() {
     ? (currentRoute.page as VocalexPanel)
     : initialVocalexTab);
 
-  const [visibleTab, setVisibleTab] = useState<VocalexPanel>(initialVocalexTab);
-  const [exitingTab, setExitingTab] = useState<VocalexPanel | null>(null);
-  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
-  const prevTab = useRef<VocalexPanel>(initialVocalexTab);
-
   // Persist the active tab on every change so cold-start can resume here.
   useEffect(() => {
     useChordStore.getState().setLastSession({ vocalexTab: activeTab });
+    resetNav();
   }, [activeTab]);
 
   const appKey = 'vocalex' as AppKey;
@@ -124,12 +121,6 @@ export default function VocalexApp() {
 
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
-  const visibleTabRef = useRef(visibleTab);
-  visibleTabRef.current = visibleTab;
-  const exitingTabRef = useRef(exitingTab);
-  exitingTabRef.current = exitingTab;
-  const slideDirRef = useRef(slideDir);
-  slideDirRef.current = slideDir;
   const activeVisAccentRef = useRef(activeVis.accentColor);
   activeVisAccentRef.current = activeVis.accentColor;
   const isLightRef = useRef(isLight);
@@ -141,9 +132,6 @@ export default function VocalexApp() {
       name: 'Vocalex App',
       getDebugState: () => ({
         activeTab: activeTabRef.current,
-        visibleTab: visibleTabRef.current,
-        exitingTab: exitingTabRef.current,
-        slideDirection: slideDirRef.current,
         accentColor: activeVisAccentRef.current,
         isLight: isLightRef.current
       })
@@ -152,24 +140,6 @@ export default function VocalexApp() {
       unregisterDebugProvider('vocalex');
     };
   }, []);
-
-  const durMs = settings.animationSpeed === 'fast' ? 200 : settings.animationSpeed === 'reduced' ? 0 : 280;
-
-  useEffect(() => {
-    if (activeTab === prevTab.current) return;
-    const prevIdx = NAV_ORDER.indexOf(prevTab.current);
-    const nextIdx = NAV_ORDER.indexOf(activeTab);
-    setSlideDir(nextIdx >= prevIdx ? 'right' : 'left');
-    setExitingTab(prevTab.current);
-    setVisibleTab(activeTab);
-    prevTab.current = activeTab;
-    // Reset nav fully on every tab switch — resets both hidden AND collapsed states.
-    // Critical: setNavHidden(false) alone left the nav as a collapsed pill when switching
-    // from a scrolled-down panel to a non-scrollable one (e.g. pitch detector).
-    resetNav();
-    const ti = setTimeout(() => setExitingTab(null), durMs + 20);
-    return () => clearTimeout(ti);
-  }, [activeTab, durMs]);
 
   const NAV_ITEMS: { panel: VocalexPanel; Icon: React.FC<{ active: boolean }>; label: string }[] = [
     { panel: 'practice', Icon: IconMic,   label: t.vocalex.navTips },
@@ -180,7 +150,7 @@ export default function VocalexApp() {
 
   const navRef = useRef<HTMLElement | null>(null);
   useLiquidGlassNav(navRef);
-  // Fixed nav height — same rationale as BottomNav: always 64px, dynamic
+  // Fixed nav height - same rationale as BottomNav: always 64px, dynamic
   // measurement was a race condition that returned 64 anyway.
   const NAV_HEIGHT_PX = 56;
   const [expandedW, setExpandedW] = useState(350);
@@ -195,10 +165,13 @@ export default function VocalexApp() {
   const labScrollRef      = useRef<HTMLDivElement | null>(null);
   const takesScrollRef    = useRef<HTMLDivElement | null>(null);
 
-  useScrollHide(practiceScrollRef, activeTab);
-  useScrollHide(pitchScrollRef, activeTab);
-  useScrollHide(labScrollRef, activeTab);
-  useScrollHide(takesScrollRef, activeTab);
+  const activeScrollRef =
+    activeTab === 'practice' ? practiceScrollRef :
+    activeTab === 'pitch'    ? pitchScrollRef    :
+    activeTab === 'vocalLab' ? labScrollRef      :
+                               takesScrollRef;
+
+  useScrollHide(activeScrollRef, activeTab);
 
   const navHidden   = useNavHidden();
   const navCollapsed = useNavCollapsed();
@@ -271,6 +244,8 @@ export default function VocalexApp() {
     : activeVis.amoledMode
       ? 'rgba(4,4,4,0.88)'
       : 'rgba(26,26,30,0.72)';
+
+  const durMs = settings.animationSpeed === 'fast' ? 200 : settings.animationSpeed === 'reduced' ? 0 : 280;
 
   return (
     <div style={{
@@ -358,38 +333,32 @@ export default function VocalexApp() {
           />
         )}
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative', paddingTop: isWebDesktop ? '20px' : '0px', paddingBottom: '0px', display: 'flex', flexDirection: 'column' }}>
-        {NAV_ORDER.map(panel => {
-          const isVisible = visibleTab === panel;
-          const isExiting = exitingTab === panel;
-          if (!isVisible && !isExiting) return null;
-          const isEntering = isVisible && exitingTab !== null;
-
-          let animClass = '';
-          if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
-          else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
-
-          const scrollRef =
-            panel === 'practice' ? practiceScrollRef :
-            panel === 'pitch'    ? pitchScrollRef    :
-            panel === 'vocalLab' ? labScrollRef      :
-                                   takesScrollRef;
-
-          return (
-            <div key={panel} ref={scrollRef} className={animClass} style={{
-              position: 'absolute', inset: 0,
-              opacity: isExiting && !animClass ? 0 : undefined,
-              pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              paddingBottom: 'var(--content-bottom-pad)',
-            }}>
-              {panel === 'practice' && <Suspense fallback={null}><PracticePanelLazy /></Suspense>}
-              {panel === 'pitch' && <Suspense fallback={null}><PitchPanelLazy active={activeTab === 'pitch'} /></Suspense>}
-              {panel === 'vocalLab' && <Suspense fallback={null}><LabPanelLazy /></Suspense>}
-              {panel === 'takes' && <Suspense fallback={null}><TakesPanelLazy /></Suspense>}
-            </div>
-          );
-        })}
+          <SharedNavigationContainer
+            activeView={activeTab}
+            viewOrder={NAV_ORDER}
+          >
+            {(viewId) => {
+              const scrollRef =
+                viewId === 'practice' ? practiceScrollRef :
+                viewId === 'pitch'    ? pitchScrollRef    :
+                viewId === 'vocalLab' ? labScrollRef      :
+                                       takesScrollRef;
+              return (
+                <div ref={scrollRef} style={{
+                  position: 'absolute', inset: 0,
+                  pointerEvents: activeTab === viewId ? 'auto' : 'none',
+                  overflowY: 'auto',
+                  WebkitOverflowScrolling: 'touch',
+                  paddingBottom: 'var(--content-bottom-pad)',
+                }}>
+                  {viewId === 'practice' && <Suspense fallback={null}><PracticePanelLazy /></Suspense>}
+                  {viewId === 'pitch' && <Suspense fallback={null}><PitchPanelLazy active={activeTab === 'pitch'} /></Suspense>}
+                  {viewId === 'vocalLab' && <Suspense fallback={null}><LabPanelLazy /></Suspense>}
+                  {viewId === 'takes' && <Suspense fallback={null}><TakesPanelLazy /></Suspense>}
+                </div>
+              );
+            }}
+          </SharedNavigationContainer>
         </div>
       </div>
 
@@ -397,7 +366,7 @@ export default function VocalexApp() {
         ref={navRef}
         className="glass-nav fixed"
         aria-hidden={(navHidden || navCollapsed) || undefined}
-        // @ts-expect-error – `inert` is valid HTML but missing from React types in this version
+        // @ts-expect-error â€“ `inert` is valid HTML but missing from React types in this version
         inert={(navHidden || navCollapsed) ? '' : undefined}
         style={{
           display: isWebDesktop ? 'none' : undefined,
@@ -508,3 +477,4 @@ export default function VocalexApp() {
     </div>
   );
 }
+

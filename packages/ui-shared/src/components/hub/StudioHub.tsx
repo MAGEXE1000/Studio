@@ -11,24 +11,25 @@ import ChangelogSheet from '../sheets/ChangelogSheet';
 import GradientBorderCard from '../cards/GradientBorderCard';
 import StudioTitleReveal from '../typography/StudioTitleReveal';
 import { EncryptedText } from '../ui/encrypted-text';
-import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../navigation/navStyles';
+import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../navigation/navStyles';
 import ProfileDropdown from '../kokonutui/profile-dropdown';
 import SmartLoading from '../loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../loading/StudioSkeleton';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
-import { useNavigationCoordinator, PageTransition } from '../navigation/AppAnimationSystem';
+import { useNavigationCoordinator, PageTransition } from '../../navigation/AppAnimationSystem';
+import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
 
 // AccountCard pulls Firebase (auth + firestore). Lazy-load it so Firebase
 // stays out of the initial bundle graph; only fetched when Settings tab opens.
-const AccountCard = lazy(() => import('./AccountCard'));
+const AccountCard = lazy(() => import('../cards/AccountCard'));
 const AccountDangerZone = lazy(() =>
-  import('./AccountCard').then(m => ({ default: m.AccountDangerZone }))
+  import('../cards/AccountCard').then(m => ({ default: m.AccountDangerZone }))
 );
 const AccountSettingsPage = lazy(() =>
-  import('./AccountCard').then(m => ({ default: m.AccountSettingsPage }))
+  import('../cards/AccountCard').then(m => ({ default: m.AccountSettingsPage }))
 );
-const DevToolsDashboard = lazy(() => import('./DevToolsDashboard'));
+const DevToolsDashboard = lazy(() => import('../DevToolsDashboard'));
 
 type HubTab = 'home' | 'settings' | 'profile' | 'help';
 type HelpPageId = 'help-center' | 'faq' | 'release-notes' | 'download-apps' | 'keyboard-shortcuts' | 'terms' | 'privacy-policy' | 'bug-report';
@@ -247,12 +248,21 @@ export default function StudioHub() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [successAnimationState, setSuccessAnimationState] = useState<'entering' | 'exiting' | 'hidden'>('hidden');
   const [successName, setSuccessName] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const homeScrollRef = useRef<HTMLDivElement>(null);
+  const profileScrollRef = useRef<HTMLDivElement>(null);
+  const settingsScrollRef = useRef<HTMLDivElement>(null);
+  const helpScrollRef = useRef<HTMLDivElement>(null);
   const launchTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const lastUserRef = useRef<AuthUser | null>(null);
 
-  useScrollHide(scrollRef);
+  const activeScrollRef =
+    tab === 'home' ? homeScrollRef :
+    tab === 'profile' ? profileScrollRef :
+    tab === 'settings' ? settingsScrollRef :
+    helpScrollRef;
+
+  useScrollHide(activeScrollRef, tab);
 
   const isFirstAuthRun = useRef(true);
 
@@ -543,450 +553,476 @@ export default function StudioHub() {
         opacity: zooming ? 0 : 1,
         transition: zooming
           ? 'transform 285ms cubic-bezier(0.4,0,1,1), opacity 210ms ease-in, background-color 700ms cubic-bezier(0.4,0,0.2,1)'
-          : 'transform 285ms cubic-bezier(0.16, 1, 0.3, 1), opacity 285ms ease-out, background-color 700ms cubic-bezier(0.4,0,0.2,1)',
+          : 'transform 285ms cubic-bezier(0.16, 1, 0.3, 1), opacity 285ms ease-out, background-color 700ms cubic-bezier(0.4, 0, 0.2, 1)',
         pointerEvents: introFinished ? 'auto' : 'none',
       }}
     >
-
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }}>
-
-        {/* ── HOME TAB ── */}
-        {tab === 'home' && (
-          <div data-hub-tab-content style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
-
-
-
-            {/* Logo area */}
-            <div className={introFinished ? 'spring-in' : ''} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              paddingTop: 'clamp(36px, 7vh, 56px)',
-            }}>
-              <div data-intro-target="studio" style={{ color: isHubLight ? '#18181b' : 'white', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <StudioLogo size={56} />
-              </div>
-              <p style={{ fontSize: 28, fontWeight: 800, margin: '10px 0 0', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                <StudioTitleReveal text={String(t.hub.studio)} />
-              </p>
-            </div>
-
-            {/* Combined welcome + apps card */}
-            <GradientBorderCard
-              data-livex-hub-content="true"
-              borderRadius={24}
-              wrapStyle={{
-                width: '100%', maxWidth: 380,
-                marginTop: 'clamp(28px, 6vh, 48px)',
-                animation: introFinished
-                  ? 'spring-in 400ms 80ms cubic-bezier(0.34,1.56,0.64,1) both, gb-spin 14s linear infinite'
-                  : 'gb-spin 14s linear infinite',
-              }}
-              innerStyle={{
-                overflow: 'hidden',
-                transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
-              }}
-            >
-              {/* Welcome header */}
-              <div style={{ padding: '22px 22px 18px' }}>
-                <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-                  <EncryptedText
-                    text={greeting}
-                    onlyOnce={false}
-                    paused={!introFinished}
-                    revealDelayMs={35}
-                    flipDelayMs={45}
-                    encryptedClassName="text-[var(--accent-from)] opacity-60 font-mono"
-                  />
-                </p>
-                <p style={{
-                  fontSize: 14, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500,
-                  opacity: introFinished ? 1 : 0,
-                  transition: 'opacity 300ms ease'
-                }}>
-                  {subtitle}
-                </p>
-              </div>
-
-              {/* Divider */}
-              <div style={{ height: 1, background: 'rgba(128,128,128,0.1)', margin: '0 16px' }} />
-
-              {/* App rows */}
-              {([
-                { app: 'chords' as TargetApp, Logo: ChordexLogo,       name: 'Chordex',    desc: t.hub.chordexDesc       },
-                { app: 'drums'  as TargetApp, Logo: DrumexLogo,        name: 'Drumex',     desc: t.hub.drumexDesc        },
-                { app: 'stage'  as TargetApp, Logo: StagexLogoIcon, name: 'Stagex',     desc: t.hub.stagexDesc        },
-                { app: 'groovex' as TargetApp, Logo: GroovexLogo,     name: 'Groovex',    desc: t.hub.groovexDesc       },
-                { app: 'vocalex' as TargetApp, Logo: VocalexLogo,    name: 'Vocalex',    desc: t.hub.vocalexDesc       },
-              ]).map(({ app, Logo, name, desc }, i, arr) => (
-                <AppRow
-                  key={app}
-                  app={app}
-                  Logo={Logo}
-                  name={name}
-                  desc={desc}
-                  last={i === arr.length - 1}
-                  onClick={() => launchApp(app)}
-                />
-              ))}
-            </GradientBorderCard>
-
-          </div>
-        )}
-
-        {/* ── PROFILE TAB ── */}
-        {tab === 'profile' && (
-          <>
-            <style>{HUB_SETTINGS_CSS}</style>
-            <ProfileHeaderBack onBack={() => { setTab('settings'); }} />
-            <Suspense fallback={<SmartLoading fallbackSkeleton={<div style={{ padding: '0 20px 80px' }}><StudioSkeletonProfile /></div>} />}>
-              {authUser ? (
-                <div data-hub-tab-content style={{ padding: '0 0 100px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
-                <AccountSettingsPage
-                  accent={accent}
-                  cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
-                  onBack={() => { setTab('settings'); }}
-                />
-                </div>
-              ) : (
-                <div data-hub-tab-content style={{ padding: '0 20px 80px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
-                  <div style={{ marginBottom: 16 }}>
-                    <StudioFamilyOrbit
-                      items={[
-                        { key: 'chordex', label: 'Chordex', node: <ChordexLogo size={34} /> },
-                        { key: 'drumex',  label: 'Drumex',  node: <DrumexLogo size={34} /> },
-                        { key: 'stagex',  label: 'Stagex',  node: <StagexLogoIcon size={34} /> },
-                        { key: 'groovex', label: 'Groovex', node: <GroovexLogo size={34} /> },
-                        { key: 'vocalex', label: 'Vocalex', node: <VocalexLogo size={34} /> },
-                      ]}
-                    />
-                  </div>
-                  <AccountCard
-                    accent={accent}
-                    cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', marginBottom: 20 }}
-                    rowStyle={{ padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12 }}
-                  />
-
-                  {/* Polished Benefits Section */}
-                  {(() => {
-                    const benefitsList = [
-                      {
-                        icon: 'sync',
-                        title: lang === 'es' ? 'Sincronización en la Nube' : 'Cloud Sync',
-                        desc: lang === 'es' ? 'Sincroniza tus proyectos, canciones, setlists y configuraciones entre todos tus dispositivos de forma segura.' : 'Sync your workspace, projects, and transpositions across all devices securely.',
-                      },
-                      {
-                        icon: 'devices',
-                        title: lang === 'es' ? 'Acceso Multi-Dispositivo' : 'Multi-Device Access',
-                        desc: lang === 'es' ? 'Mantén tu progreso en tiempo real al cambiar entre tu teléfono, tablet o computadora.' : 'Keep your progress synced in real-time when switching between mobile, tablet, or web.',
-                      },
-                      {
-                        icon: 'backup',
-                        title: lang === 'es' ? 'Respaldo Seguro' : 'Secure Cloud Backup',
-                        desc: lang === 'es' ? 'Nunca pierdas tu trabajo. Tus datos locales se respaldan automáticamente en la nube.' : 'Never lose your progress. Your local creations are backed up automatically in the cloud.',
-                      },
-                      {
-                        icon: 'palette',
-                        title: lang === 'es' ? 'Espacio Personalizado' : 'Personalized Workspace',
-                        desc: lang === 'es' ? 'Guarda tus preferencias de color de acento, temas visuales y ajustes personalizados de cada sub-app.' : 'Save your custom accent colors, visual themes, and per-app settings to your profile.',
-                      },
-                      {
-                        icon: 'settings_backup_restore',
-                        title: lang === 'es' ? 'Recuperación Sencilla' : 'Instant Recovery',
-                        desc: lang === 'es' ? 'Restaura todo tu ecosistema de Studio al instante en caso de cambiar o reinstalar el dispositivo.' : 'Restore your entire Studio setup instantly when setting up a new device or browser.',
-                      },
-                      {
-                        icon: 'rocket_launch',
-                        title: lang === 'es' ? 'Herramientas Colaborativas' : 'Upcoming Collaborations',
-                        desc: lang === 'es' ? 'Prepárate para compartir setlists, colaborar en tiempo real y usar las nuevas herramientas en la nube.' : 'Prepare your account for real-time setlist sharing, jam tools, and cloud collaboration.',
-                        comingSoon: true
-                      }
-                    ];
-
-                    return (
-                      <div style={{ marginTop: 28, padding: '0 4px 20px', textAlign: 'center' }}>
-                        <h3 style={{
-                          fontSize: 20,
-                          fontWeight: 800,
-                          fontFamily: 'Manrope, sans-serif',
-                          color: 'var(--c-text-primary)',
-                          margin: '0 0 6px',
-                          letterSpacing: '-0.02em',
-                        }}>
-                          {lang === 'es' ? 'Tu espacio de trabajo de Studio, en todas partes' : 'Unlock the Full Power of Studio'}
-                        </h3>
-                        <p style={{
-                          fontSize: 12.5,
-                          fontFamily: 'Inter, sans-serif',
-                          color: 'var(--c-text-secondary)',
-                          opacity: 0.75,
-                          lineHeight: 1.45,
-                          margin: '0 auto 24px',
-                          maxWidth: 340,
-                        }}>
-                          {lang === 'es'
-                            ? 'Crea una cuenta gratuita para conectar tus dispositivos, habilitar respaldos y acceder a funciones premium.'
-                            : 'Create a free account to back up your projects, enable seamless syncing, and unlock upcoming collaborative tools.'}
-                        </p>
-
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 12,
-                          textAlign: 'left',
-                          width: '100%',
-                          maxWidth: 380,
-                          margin: '0 auto',
-                        }}>
-                          {benefitsList.map((item, idx) => (
-                            <motion.div
-                              key={idx}
-                              whileHover={{ y: -2, scale: 1.01 }}
-                              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                              style={{
-                                background: isHubLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(20, 20, 24, 0.45)',
-                                border: isHubLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.05)',
-                                borderRadius: 18,
-                                padding: '14px 16px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 14,
-                                backdropFilter: 'blur(16px)',
-                                WebkitBackdropFilter: 'blur(16px)',
-                                boxShadow: isHubLight ? '0 4px 16px rgba(0,0,0,0.03)' : '0 4px 20px rgba(0, 0, 0, 0.15)',
-                                position: 'relative',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {/* Left Glowing Icon Circle */}
-                              <div style={{
-                                width: 42,
-                                height: 42,
-                                borderRadius: 14,
-                                background: `color-mix(in srgb, ${accent.from} 12%, transparent)`,
-                                border: `1px solid color-mix(in srgb, ${accent.from} 20%, transparent)`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                              }}>
-                                <span className="material-symbols-outlined" style={{
-                                  fontSize: 20,
-                                  color: accent.from,
-                                  fontVariationSettings: "'FILL' 1"
-                                }}>
-                                  {item.icon}
-                                </span>
-                              </div>
-
-                              {/* Right Content */}
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                  <h4 style={{
-                                    fontSize: 13.5,
-                                    fontWeight: 700,
-                                    fontFamily: 'Manrope, sans-serif',
-                                    color: 'var(--c-text-primary)',
-                                    margin: 0,
-                                  }}>
-                                    {item.title}
-                                  </h4>
-                                  {item.comingSoon && (
-                                    <span style={{
-                                      fontSize: 8,
-                                      fontWeight: 800,
-                                      color: accent.from,
-                                      background: `color-mix(in srgb, ${accent.from} 14%, transparent)`,
-                                      padding: '1px 5px',
-                                      borderRadius: 99,
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.03em',
-                                      fontFamily: 'Manrope, sans-serif',
-                                    }}>
-                                      {lang === 'es' ? 'Próximamente' : 'Coming soon'}
-                                    </span>
-                                  )}
-                                </div>
-                                <p style={{
-                                  fontSize: 11,
-                                  fontFamily: 'Inter, sans-serif',
-                                  color: 'var(--c-text-secondary)',
-                                  opacity: 0.8,
-                                  lineHeight: 1.4,
-                                  margin: '3px 0 0',
-                                }}>
-                                  {item.desc}
-                                </p>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
-            </Suspense>
-
-            {/* Premium Login Success Check Overlay */}
-            {successAnimationState !== 'hidden' && (
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', width: '100%', height: '100%' }}>
+        <SharedNavigationContainer
+          activeView={tab}
+          viewOrder={['home', 'profile', 'settings', 'help']}
+        >
+          {(tabId) => {
+            const currentScrollRef =
+              tabId === 'home' ? homeScrollRef :
+              tabId === 'profile' ? profileScrollRef :
+              tabId === 'settings' ? settingsScrollRef :
+                                    helpScrollRef;
+            return (
               <div
+                ref={currentScrollRef}
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  zIndex: 9999,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(10, 10, 12, 0.72)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  animation: successAnimationState === 'entering'
-                    ? 'success-fade-in-blur 0.4s cubic-bezier(0.16, 1, 0.3, 1) both'
-                    : 'success-fade-out-blur 0.45s cubic-bezier(0.16, 1, 0.3, 1) both',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  willChange: 'transform',
+                  transform: 'translate3d(0, 0, 0)',
+                  WebkitOverflowScrolling: 'touch',
                 }}
               >
-                <style>{`
-                  @keyframes success-fade-in-blur {
-                    from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
-                    to { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-                  }
-                  @keyframes success-fade-out-blur {
-                    from { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transform: scale(1); }
-                    to { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); transform: scale(0.95); filter: blur(8px); }
-                  }
-                  @keyframes success-pop {
-                    0% { transform: scale(0.85) translateY(16px); opacity: 0; }
-                    100% { transform: scale(1) translateY(0); opacity: 1; }
-                  }
-                  @keyframes draw-circle {
-                    0% { stroke-dashoffset: 166; }
-                    100% { stroke-dashoffset: 0; }
-                  }
-                  @keyframes draw-check {
-                    0% { stroke-dashoffset: 48; }
-                    100% { stroke-dashoffset: 0; }
-                  }
-                  @keyframes draw-ripple {
-                    0% { transform: scale(1); opacity: 0.6; stroke-width: 4px; }
-                    100% { transform: scale(1.4); opacity: 0; stroke-width: 0.5px; }
-                  }
-                  @keyframes fade-circle-fill {
-                    from { fill: rgba(16, 185, 129, 0); }
-                    to { fill: rgba(16, 185, 129, 0.06); }
-                  }
-                  @keyframes fade-in-up-stagger {
-                    from { opacity: 0; transform: translateY(8px); }
-                    to { opacity: 1; transform: translateY(0); }
-                  }
-                  .success-card {
-                    padding: 40px 32px;
-                    border-radius: 32px;
-                    background: var(--app-surface, rgba(20, 20, 24, 0.8));
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-                    text-align: center;
-                    max-width: 320px;
-                    width: calc(100% - 40px);
-                    animation: success-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-                  }
-                  .success-svg {
-                    width: 76px;
-                    height: 76px;
-                    display: block;
-                    margin: 0 auto 24px;
-                    overflow: visible;
-                  }
-                  .success-circle {
-                    stroke-dasharray: 166;
-                    stroke-dashoffset: 166;
-                    stroke-linecap: round;
-                    animation: draw-circle 0.65s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-                    animation-delay: 0.05s;
-                  }
-                  .success-circle-fill {
-                    animation: fade-circle-fill 0.4s ease forwards;
-                    animation-delay: 0.6s;
-                  }
-                  .success-check {
-                    stroke-dasharray: 48;
-                    stroke-dashoffset: 48;
-                    animation: draw-check 0.48s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-                    animation-delay: 0.55s;
-                  }
-                  .success-ripple {
-                    transform-origin: center;
-                    animation: draw-ripple 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                  }
-                  .success-ripple-1 {
-                    animation-delay: 0.4s;
-                  }
-                  .success-ripple-2 {
-                    animation-delay: 0.62s;
-                  }
-                  .success-title {
-                    margin: 0 0 8px;
-                    font-family: 'Manrope', sans-serif;
-                    font-weight: 800;
-                    font-size: 20px;
-                    color: var(--c-text-primary);
-                    animation: fade-in-up-stagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-                    animation-delay: 0.78s;
-                  }
-                  .success-text {
-                    margin: 0;
-                    font-family: 'Inter', sans-serif;
-                    font-size: 12.5px;
-                    color: var(--c-text-secondary);
-                    line-height: 1.4;
-                    word-break: break-all;
-                    animation: fade-in-up-stagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-                    animation-delay: 0.9s;
-                  }
-                `}</style>
-                <div className="success-card">
-                  <svg className="success-svg" viewBox="0 0 52 52" fill="none">
-                    <circle className="success-circle success-circle-fill" cx="26" cy="26" r="25" stroke="#10b981" strokeWidth="4" />
-                    <circle className="success-ripple success-ripple-1" cx="26" cy="26" r="25" stroke="#10b981" strokeWidth="4" fill="none" />
-                    <circle className="success-ripple success-ripple-2" cx="26" cy="26" r="25" stroke="#10b981" strokeWidth="4" fill="none" />
-                    <path className="success-check" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-                  </svg>
-                  <h3 className="success-title">
-                    {t.hub.accountSection.signedIn}
-                  </h3>
-                  <p className="success-text">
-                    {successName}
-                  </p>
-                </div>
+                {/* 🏠 HOME TAB */}
+                {tabId === 'home' && (
+                  <div data-hub-tab-content style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
+
+
+
+                    {/* Logo area */}
+                    <div className={introFinished ? 'spring-in' : ''} style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      paddingTop: 'clamp(36px, 7vh, 56px)',
+                    }}>
+                      <div data-intro-target="studio" style={{ color: isHubLight ? '#18181b' : 'white', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <StudioLogo size={56} />
+                      </div>
+                      <p style={{ fontSize: 28, fontWeight: 800, margin: '10px 0 0', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                        <StudioTitleReveal text={String(t.hub.studio)} />
+                      </p>
+                    </div>
+
+                    {/* Combined welcome + apps card */}
+                    <GradientBorderCard
+                      data-livex-hub-content="true"
+                      borderRadius={24}
+                      wrapStyle={{
+                        width: '100%', maxWidth: 380,
+                        marginTop: 'clamp(28px, 6vh, 48px)',
+                        animation: introFinished
+                          ? 'spring-in 400ms 80ms cubic-bezier(0.34,1.56,0.64,1) both, gb-spin 14s linear infinite'
+                          : 'gb-spin 14s linear infinite',
+                      }}
+                      innerStyle={{
+                        overflow: 'hidden',
+                        transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
+                      }}
+                    >
+                      {/* Welcome header */}
+                      <div style={{ padding: '22px 22px 18px' }}>
+                        <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
+                          <EncryptedText
+                            text={greeting}
+                            onlyOnce={false}
+                            paused={!introFinished}
+                            revealDelayMs={35}
+                            flipDelayMs={45}
+                            encryptedClassName="text-[var(--accent-from)] opacity-60 font-mono"
+                          />
+                        </p>
+                        <p style={{
+                          fontSize: 14, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500,
+                          opacity: introFinished ? 1 : 0,
+                          transition: 'opacity 300ms ease'
+                        }}>
+                          {subtitle}
+                        </p>
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{ height: 1, background: 'rgba(128,128,128,0.1)', margin: '0 16px' }} />
+
+                      {/* App rows */}
+                      {([
+                        { app: 'chords' as TargetApp, Logo: ChordexLogo,       name: 'Chordex',    desc: t.hub.chordexDesc       },
+                        { app: 'drums'  as TargetApp, Logo: DrumexLogo,        name: 'Drumex',     desc: t.hub.drumexDesc        },
+                        { app: 'stage'  as TargetApp, Logo: StagexLogoIcon, name: 'Stagex',     desc: t.hub.stagexDesc        },
+                        { app: 'groovex' as TargetApp, Logo: GroovexLogo,     name: 'Groovex',    desc: t.hub.groovexDesc       },
+                        { app: 'vocalex' as TargetApp, Logo: VocalexLogo,    name: 'Vocalex',    desc: t.hub.vocalexDesc       },
+                      ]).map(({ app, Logo, name, desc }, i, arr) => (
+                        <AppRow
+                          key={app}
+                          app={app}
+                          Logo={Logo}
+                          name={name}
+                          desc={desc}
+                          last={i === arr.length - 1}
+                          onClick={() => launchApp(app)}
+                        />
+                      ))}
+                    </GradientBorderCard>
+
+                  </div>
+                )}
+
+                {/* 👤 PROFILE TAB */}
+                {tabId === 'profile' && (
+                  <>
+                    <style>{HUB_SETTINGS_CSS}</style>
+                    <ProfileHeaderBack onBack={() => { setTab('settings'); }} />
+                    <Suspense fallback={<SmartLoading fallbackSkeleton={<div style={{ padding: '0 20px 80px' }}><StudioSkeletonProfile /></div>} />}>
+                      {authUser ? (
+                        <div data-hub-tab-content style={{ padding: '0 0 100px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
+                        <AccountSettingsPage
+                          accent={accent}
+                          cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
+                          onBack={() => { setTab('settings'); }}
+                        />
+                        </div>
+                      ) : (
+                        <div data-hub-tab-content style={{ padding: '0 20px 80px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
+                          <div style={{ marginBottom: 16 }}>
+                            <StudioFamilyOrbit
+                              items={[
+                                { key: 'chordex', label: 'Chordex', node: <ChordexLogo size={34} /> },
+                                { key: 'drumex',  label: 'Drumex',  node: <DrumexLogo size={34} /> },
+                                { key: 'stagex',  label: 'Stagex',  node: <StagexLogoIcon size={34} /> },
+                                { key: 'groovex', label: 'Groovex', node: <GroovexLogo size={34} /> },
+                                { key: 'vocalex', label: 'Vocalex', node: <VocalexLogo size={34} /> },
+                              ]}
+                            />
+                          </div>
+
+                          <AccountCard
+                            accent={accent}
+                            cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', marginBottom: 20 }}
+                            rowStyle={{ padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12 }}
+                          />
+
+                          {/* Polished Benefits Section */}
+                          {(() => {
+                            const benefitsList = [
+                              {
+                                icon: 'sync',
+                                title: lang === 'es' ? 'Sincronización en la Nube' : 'Cloud Sync',
+                                desc: lang === 'es' ? 'Sincroniza tus proyectos, canciones, setlists y configuraciones entre todos tus dispositivos de forma segura.' : 'Sync your workspace, projects, and transpositions across all devices securely.',
+                              },
+                              {
+                                icon: 'devices',
+                                title: lang === 'es' ? 'Acceso Multi-Dispositivo' : 'Multi-Device Access',
+                                desc: lang === 'es' ? 'Mantén tu progreso en tiempo real al cambiar entre tu teléfono, tablet o computadora.' : 'Keep your progress synced in real-time when switching between mobile, tablet, or web.',
+                              },
+                              {
+                                icon: 'backup',
+                                title: lang === 'es' ? 'Respaldo Seguro' : 'Secure Cloud Backup',
+                                desc: lang === 'es' ? 'Nunca pierdas tu trabajo. Tus datos locales se respaldan automáticamente en la nube.' : 'Never lose your progress. Your local creations are backed up automatically in the cloud.',
+                              },
+                              {
+                                icon: 'palette',
+                                title: lang === 'es' ? 'Espacio Personalizado' : 'Personalized Workspace',
+                                desc: lang === 'es' ? 'Guarda tus preferencias de color de acento, temas visuales y ajustes personalizados de cada sub-app.' : 'Save your custom accent colors, visual themes, and per-app settings to your profile.',
+                              },
+                              {
+                                icon: 'settings_backup_restore',
+                                title: lang === 'es' ? 'Recuperación Sencilla' : 'Instant Recovery',
+                                desc: lang === 'es' ? 'Restaura todo tu ecosistema de Studio al instante en caso de cambiar o reinstalar el dispositivo.' : 'Restore your entire Studio setup instantly when setting up a new device or browser.',
+                              },
+                              {
+                                icon: 'rocket_launch',
+                                title: lang === 'es' ? 'Herramientas Colaborativas' : 'Upcoming Collaborations',
+                                desc: lang === 'es' ? 'Prepárate para compartir setlists, colaborar en tiempo real y usar las nuevas herramientas en la nube.' : 'Prepare your account for real-time setlist sharing, jam tools, and cloud collaboration.',
+                                comingSoon: true
+                              }
+                            ];
+
+                            return (
+                              <div style={{ marginTop: 28, padding: '0 4px 20px', textAlign: 'center' }}>
+                                <h3 style={{
+                                  fontSize: 20,
+                                  fontWeight: 800,
+                                  fontFamily: 'Manrope, sans-serif',
+                                  color: 'var(--c-text-primary)',
+                                  margin: '0 0 6px',
+                                  letterSpacing: '-0.02em',
+                                }}>
+                                  {lang === 'es' ? 'Tu espacio de trabajo de Studio, en todas partes' : 'Unlock the Full Power of Studio'}
+                                </h3>
+                                <p style={{
+                                  fontSize: 12.5,
+                                  fontFamily: 'Inter, sans-serif',
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.75,
+                                  lineHeight: 1.45,
+                                  margin: '0 auto 24px',
+                                  maxWidth: 340,
+                                }}>
+                                  {lang === 'es'
+                                    ? 'Crea una cuenta gratuita para conectar tus dispositivos, habilitar respaldos y acceder a funciones premium.'
+                                    : 'Create a free account to back up your projects, enable seamless syncing, and unlock upcoming collaborative tools.'}
+                                </p>
+
+                                <div style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 12,
+                                  textAlign: 'left',
+                                  width: '100%',
+                                  maxWidth: 380,
+                                  margin: '0 auto',
+                                }}>
+                                  {benefitsList.map((item, idx) => (
+                                    <motion.div
+                                      key={idx}
+                                      whileHover={{ y: -2, scale: 1.01 }}
+                                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                      style={{
+                                        background: isHubLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(20, 20, 24, 0.45)',
+                                        border: isHubLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.05)',
+                                        borderRadius: 18,
+                                        padding: '14px 16px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 14,
+                                        backdropFilter: 'blur(16px)',
+                                        WebkitBackdropFilter: 'blur(16px)',
+                                        boxShadow: isHubLight ? '0 4px 16px rgba(0,0,0,0.03)' : '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                      }}
+                                    >
+                                      {/* Left Glowing Icon Circle */}
+                                      <div style={{
+                                        width: 42,
+                                        height: 42,
+                                        borderRadius: 14,
+                                        background: `color-mix(in srgb, ${accent.from} 12%, transparent)`,
+                                        border: `1px solid color-mix(in srgb, ${accent.from} 20%, transparent)`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                      }}>
+                                        <span className="material-symbols-outlined" style={{
+                                          fontSize: 20,
+                                          color: accent.from,
+                                          fontVariationSettings: "'FILL' 1"
+                                        }}>
+                                          {item.icon}
+                                        </span>
+                                      </div>
+
+                                      {/* Right Content */}
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                          <h4 style={{
+                                            fontSize: 13.5,
+                                            fontWeight: 700,
+                                            fontFamily: 'Manrope, sans-serif',
+                                            color: 'var(--c-text-primary)',
+                                            margin: 0,
+                                          }}>
+                                            {item.title}
+                                          </h4>
+                                          {item.comingSoon && (
+                                            <span style={{
+                                              fontSize: 8,
+                                              fontWeight: 800,
+                                              color: accent.from,
+                                              background: `color-mix(in srgb, ${accent.from} 14%, transparent)`,
+                                              padding: '1px 5px',
+                                              borderRadius: 99,
+                                              textTransform: 'uppercase',
+                                              letterSpacing: '0.03em',
+                                              fontFamily: 'Manrope, sans-serif',
+                                            }}>
+                                              {lang === 'es' ? 'Próximamente' : 'Coming soon'}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p style={{
+                                          fontSize: 11,
+                                          fontFamily: 'Inter, sans-serif',
+                                          color: 'var(--c-text-secondary)',
+                                          opacity: 0.8,
+                                          lineHeight: 1.4,
+                                          margin: '3px 0 0',
+                                        }}>
+                                          {item.desc}
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </Suspense>
+
+                    {/* Premium Login Success Check Overlay */}
+                    {successAnimationState !== 'hidden' && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          zIndex: 9999,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'rgba(10, 10, 12, 0.72)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                          animation: successAnimationState === 'entering'
+                            ? 'success-fade-in-blur 0.4s cubic-bezier(0.16, 1, 0.3, 1) both'
+                            : 'success-fade-out-blur 0.45s cubic-bezier(0.16, 1, 0.3, 1) both',
+                        }}
+                      >
+                        <style>{`
+                          @keyframes success-fade-in-blur {
+                            from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+                            to { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+                          }
+                          @keyframes success-fade-out-blur {
+                            from { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transform: scale(1); }
+                            to { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); transform: scale(0.95); filter: blur(8px); }
+                          }
+                          @keyframes success-pop {
+                            0% { transform: scale(0.85) translateY(16px); opacity: 0; }
+                            100% { transform: scale(1) translateY(0); opacity: 1; }
+                          }
+                          @keyframes draw-circle {
+                            0% { stroke-dashoffset: 166; }
+                            100% { stroke-dashoffset: 0; }
+                          }
+                          @keyframes draw-check {
+                            0% { stroke-dashoffset: 48; }
+                            100% { stroke-dashoffset: 0; }
+                          }
+                          @keyframes draw-ripple {
+                            0% { transform: scale(1); opacity: 0.6; stroke-width: 4px; }
+                            100% { transform: scale(1.4); opacity: 0; stroke-width: 0.5px; }
+                          }
+                          @keyframes fade-circle-fill {
+                            from { fill: rgba(16, 185, 129, 0); }
+                            to { fill: rgba(16, 185, 129, 0.06); }
+                          }
+                          @keyframes fade-in-up-stagger {
+                            from { opacity: 0; transform: translateY(8px); }
+                            to { opacity: 1; transform: translateY(0); }
+                          }
+                          .success-card {
+                            padding: 40px 32px;
+                            border-radius: 32px;
+                            background: var(--app-surface, rgba(20, 20, 24, 0.8));
+                            border: 1px solid rgba(255, 255, 255, 0.08);
+                            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+                            text-align: center;
+                            max-width: 320px;
+                            width: calc(100% - 40px);
+                            animation: success-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+                          }
+                          .success-svg {
+                            width: 76px;
+                            height: 76px;
+                            display: block;
+                            margin: 0 auto 24px;
+                            overflow: visible;
+                          }
+                          .success-circle {
+                            stroke-dasharray: 166;
+                            stroke-dashoffset: 166;
+                            stroke-linecap: round;
+                            animation: draw-circle 0.65s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+                            animation-delay: 0.05s;
+                          }
+                          .success-circle-fill {
+                            animation: fade-circle-fill 0.4s ease forwards;
+                            animation-delay: 0.6s;
+                          }
+                          .success-check {
+                            stroke-dasharray: 48;
+                            stroke-dashoffset: 48;
+                            animation: draw-check 0.48s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                            animation-delay: 0.55s;
+                          }
+                          .success-ripple {
+                            transform-origin: center;
+                            animation: draw-ripple 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                          }
+                          .success-ripple-1 {
+                            animation-delay: 0.4s;
+                          }
+                          .success-ripple-2 {
+                            animation-delay: 0.62s;
+                          }
+                          .success-title {
+                            margin: 0 0 8px;
+                            font-family: 'Manrope', sans-serif;
+                            font-weight: 800;
+                            font-size: 20px;
+                            color: var(--c-text-primary);
+                            animation: fade-in-up-stagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+                            animation-delay: 0.78s;
+                          }
+                          .success-text {
+                            margin: 0;
+                            font-family: 'Inter', sans-serif;
+                            font-size: 12.5px;
+                            color: var(--c-text-secondary);
+                            line-height: 1.4;
+                            word-break: break-all;
+                            animation: fade-in-up-stagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+                            animation-delay: 0.9s;
+                          }
+                        `}</style>
+                        <div className="success-card">
+                          <svg className="success-svg" viewBox="0 0 52 52" fill="none">
+                            <circle className="success-circle success-circle-fill" cx="26" cy="26" r="25" stroke="#10b981" strokeWidth="4" />
+                            <circle className="success-ripple success-ripple-1" cx="26" cy="26" r="25" stroke="#10b981" strokeWidth="4" fill="none" />
+                            <circle className="success-ripple success-ripple-2" cx="26" cy="26" r="25" stroke="#10b981" strokeWidth="4" fill="none" />
+                            <path className="success-check" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                          </svg>
+                          <h3 className="success-title">
+                            {t.hub.accountSection.signedIn}
+                          </h3>
+                          <p className="success-text">
+                            {successName}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* ⚙️ SETTINGS TAB */}
+                {tabId === 'settings' && (
+                  <HubSettings
+                    accent={accent}
+                    scrollRef={settingsScrollRef}
+                    authUser={authUser}
+                    onProfile={() => setTab('profile')}
+                    tab={tab}
+                    setTab={setTab}
+                    showDevToast={showDevToast}
+                    handleLogoTap={handleLogoTap}
+                    devToast={devToast}
+                    renderDevToast={renderDevToast}
+                  />
+                )}
+
+                {/* ❓ HELP TAB */}
+                {tabId === 'help' && (
+                  <HubHelp
+                    accent={accent}
+                    authUser={authUser}
+                    tab={tab}
+                    setTab={setTab}
+                  />
+                )}
               </div>
-            )}
-          </>
-        )}
-
-        {/* ── SETTINGS TAB ── */}
-        {tab === 'settings' && (
-          <HubSettings
-            accent={accent}
-            scrollRef={scrollRef}
-            authUser={authUser}
-            onProfile={() => setTab('profile')}
-            tab={tab}
-            setTab={setTab}
-            showDevToast={showDevToast}
-            handleLogoTap={handleLogoTap}
-            devToast={devToast}
-            renderDevToast={renderDevToast}
-          />
-        )}
-
-        {/* ── HELP TAB ── */}
-        {tab === 'help' && (
-          <HubHelp
-            accent={accent}
-            authUser={authUser}
-            tab={tab}
-            setTab={setTab}
-          />
-        )}
+            );
+          }}
+        </SharedNavigationContainer>
       </div>
 
       {/* ── Bottom nav ── */}
@@ -4822,34 +4858,36 @@ User Agent: [Automatically Generated]
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-        <AnimatePresence initial={false} mode="popLayout">
-          {page === 'developer' && (
-            <PageTransition key="developer" direction={slideDir}>
-              <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
-                <DevToolsDashboard accent={accent} onBack={goBack} />
-              </Suspense>
-            </PageTransition>
-          )}
-
-          {page === 'updater' && (
-            <PageTransition key="updater" direction={slideDir}>
-              <SettingsScaffold title="App Updater" onBack={goBack}>
-                {renderUpdaterContent()}
-              </SettingsScaffold>
-            </PageTransition>
-          )}
-
-          {standardScrollPages.includes(page) && (
-            <PageTransition key={page} direction={slideDir}>
-              <SettingsScaffold title={getPageTitle(page)} onBack={goBack}>
-                {renderActivePageContent(page)}
-              </SettingsScaffold>
-            </PageTransition>
-          )}
-
-          {page === 'main' && (
-            <PageTransition key="main" direction={slideDir}>
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <SharedNavigationContainer
+          activeView={page}
+          viewOrder={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'debug', 'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report', 'developer', 'updater']}
+          direction={slideDir === 'forward' ? 'right' : 'left'}
+        >
+          {(pageId) => {
+            if (pageId === 'developer') {
+              return (
+                <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
+                  <DevToolsDashboard accent={accent} onBack={goBack} />
+                </Suspense>
+              );
+            }
+            if (pageId === 'updater') {
+              return (
+                <SettingsScaffold title="App Updater" onBack={goBack}>
+                  {renderUpdaterContent()}
+                </SettingsScaffold>
+              );
+            }
+            if (standardScrollPages.includes(pageId as SettingsPageId)) {
+              return (
+                <SettingsScaffold title={getPageTitle(pageId as SettingsPageId)} onBack={goBack}>
+                  {renderActivePageContent(pageId as SettingsPageId)}
+                </SettingsScaffold>
+              );
+            }
+            if (pageId === 'main') {
+              return (
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <style>{HUB_SETTINGS_CSS}</style>
                 <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
                   <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
@@ -4910,9 +4948,11 @@ User Agent: [Automatically Generated]
                   <ChangelogSheet open={changelogOpen} onClose={() => setChangelogOpen(false)} />
                 </div>
               </div>
-            </PageTransition>
-          )}
-        </AnimatePresence>
+              );
+            }
+            return null;
+          }}
+        </SharedNavigationContainer>
       </div>
     );
   }
@@ -5912,18 +5952,22 @@ User Agent: [Automatically Generated]
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-        <AnimatePresence initial={false} mode="popLayout">
-          {standardScrollPages.includes(page) && (
-            <PageTransition key={page} direction={slideDir}>
-              <SettingsScaffold title={getPageTitle(page as HelpPageId)} onBack={goBack}>
-                {renderActivePageContent(page as HelpPageId)}
-              </SettingsScaffold>
-            </PageTransition>
-          )}
-
-          {page === 'main' && (
-            <PageTransition key="main" direction={slideDir}>
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <SharedNavigationContainer
+          activeView={page}
+          viewOrder={['main', 'help-center', 'faq', 'release-notes', 'download-apps', 'keyboard-shortcuts', 'terms', 'privacy-policy', 'bug-report']}
+          direction={slideDir === 'forward' ? 'right' : 'left'}
+        >
+          {(pageId) => {
+            if (standardScrollPages.includes(pageId as HelpPageActiveId)) {
+              return (
+                <SettingsScaffold title={getPageTitle(pageId as HelpPageId)} onBack={goBack}>
+                  {renderActivePageContent(pageId as HelpPageId)}
+                </SettingsScaffold>
+              );
+            }
+            if (pageId === 'main') {
+              return (
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <style>{HUB_SETTINGS_CSS}</style>
                 <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
                   <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
@@ -5948,9 +5992,11 @@ User Agent: [Automatically Generated]
 
                 </div>
               </div>
-            </PageTransition>
-          )}
-        </AnimatePresence>
+              );
+            }
+            return null;
+          }}
+        </SharedNavigationContainer>
       </div>
     );
   }

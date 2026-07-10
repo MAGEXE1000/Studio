@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MOTION_EASINGS } from '../navigation/AppAnimationSystem';
+import { MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import { useScrollHide } from '@workspace/studio-core';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
@@ -152,7 +152,6 @@ export function SettingsScaffold({
   return (
     <div
       style={{
-        animation: 'slide-forward var(--motion-duration-medium) var(--motion-ease-decelerate) both',
         height: '100%',
         width: '100%',
         display: 'flex',

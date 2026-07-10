@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
-const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/appVersion.ts');
+const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
 
 function parseSemver(v) {
   const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(v).trim());

@@ -5,8 +5,8 @@ import { Button } from '../design-system/StudioDesignSystem';
 import { createPortal } from 'react-dom';
 import AppSpinner from '../loading/AppSpinner';
 import { Circle, Layers3, BadgeCheck, FlaskConical, ShieldCheck } from 'lucide-react';
-import StudioSpinner from './animata/progress/spinner';
-import AnimatedActionButton from './animata/container/animated-border-trail';
+import StudioSpinner from '../animata/progress/spinner';
+import AnimatedActionButton from '../animata/container/animated-border-trail';
 import StudioAuthCard from './StudioAuthCard';
 import {
   isFirebaseConfigured,
@@ -1314,7 +1314,7 @@ export function AccountSettingsPage({ accent, cardStyle, onBack }: {
 
     let dbBytes = 0;
     try {
-      const { getCacheSize } = await import('../groovex/stemCache');
+      const { getCacheSize } = await import('../../groovex/stemCache');
       const sizeInfo = await getCacheSize();
       dbBytes = sizeInfo.totalBytes;
     } catch (e) {
@@ -1408,7 +1408,7 @@ export function AccountSettingsPage({ accent, cardStyle, onBack }: {
   async function doClearCache() {
     setClearingCache(true);
     try {
-      const { clearAllCache } = await import('../groovex/stemCache');
+      const { clearAllCache } = await import('../../groovex/stemCache');
       await clearAllCache();
       showToast(lang === 'es' ? 'Caché de audio eliminada' : 'Audio cache cleared successfully');
       await refreshStorageSize();

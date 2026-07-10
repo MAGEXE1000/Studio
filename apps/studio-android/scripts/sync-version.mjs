@@ -19,7 +19,7 @@ import { execSync } from 'node:child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(root, '../..');
-const sourcePath = path.join(repoRoot, 'packages/studio-core/src/lib/appVersion.ts');
+const sourcePath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
 const outPath = path.join(root, 'public/version.json');
 
 const preserveNewer = process.argv.includes('--preserve-newer');

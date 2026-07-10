@@ -8,7 +8,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const paths = {
   webPkg: path.join(repoRoot, 'apps/studio-web/package.json'),
   androidPkg: path.join(repoRoot, 'apps/studio-android/package.json'),
-  appVersionTs: path.join(repoRoot, 'packages/studio-core/src/lib/appVersion.ts'),
+  appVersionTs: path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts'),
   buildGradle: path.join(repoRoot, 'apps/studio-android/android/app/build.gradle')
 };
 

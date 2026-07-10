@@ -1,10 +1,10 @@
-import { useT, useScrollHide, useIsWebDesktop, useChordStore, NavigationDispatcher } from '@workspace/studio-core';
+﻿import { useT, useScrollHide, useIsWebDesktop, useChordStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useState, useMemo, useRef } from 'react';
 import NoResultsLottie from '../../../components/lottie/NoResultsLottie';
 import { SONG_CATALOG, getArtists, getGenres } from '../services/songCatalog';
 import type { SongMeta } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../components/navigation/AppAnimationSystem';
+import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 
 export default function GroovexLibrary() {
   const searchQuery = useGroovexStore(s => s.searchQuery);
@@ -313,3 +313,4 @@ function FilterChip({ label, active, onClick, isLight }: { label: string; active
     </button>
   );
 }
+

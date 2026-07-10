@@ -12,6 +12,12 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.8
+
+### Optimized
+- Modernized the Chords home screen: visually refreshed Quick Categories grid with custom colored squircle badges, hover scale elevation, dynamic borders, and enhanced spacing/alignment.
+- Eagerly preloaded Tolgee translations on application startup, eliminating the "Loading translation resources" text modal for a seamless native boot experience.
+
 ## 4.0.7
 
 ### Fixed

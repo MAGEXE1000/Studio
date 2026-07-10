@@ -52,4 +52,6 @@ export const tolgee = Tolgee()
   .use(FormatSimple())
   .init(tolgeeConfig);
 
+void tolgee.run();
+
 export default i18n;

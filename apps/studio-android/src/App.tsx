@@ -2260,7 +2260,7 @@ export default function App() {
 
       
       <ErrorBoundary moduleName="RootApp">
-        <Suspense fallback={<TolgeeSuspenseFallback />}>
+        <Suspense fallback={null}>
           <TolgeeProvider tolgee={tolgee} fallback={null}>
             <div
               className="app-main-layout"

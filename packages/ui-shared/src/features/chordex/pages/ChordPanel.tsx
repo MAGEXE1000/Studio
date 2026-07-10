@@ -79,6 +79,7 @@ export default function ChordPanel() {
 
   const [saving, setSaving] = useState(false);
   const [progName, setProgName] = useState('');
+  const [hoveredCatIndex, setHoveredCatIndex] = useState<number | null>(null);
   
   const showFinder = currentRoute.app === 'chords' && currentRoute.page === 'chord' && currentRoute.subView === 'finder';
   const showGenerator = currentRoute.app === 'chords' && currentRoute.page === 'chord' && currentRoute.subView === 'generator';
@@ -316,7 +317,7 @@ export default function ChordPanel() {
           </header>
         )}
         <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32 spring-in" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
-          <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Deterministic Chord of the Day Card */}
             {dailyChord && (
               <div style={{
@@ -506,9 +507,9 @@ export default function ChordPanel() {
                 fontSize: '11px',
                 fontWeight: 800,
                 textTransform: 'uppercase',
-                letterSpacing: '0.1em',
+                letterSpacing: '0.12em',
                 color: 'var(--c-text-secondary)',
-                marginBottom: '12px',
+                marginBottom: '16px',
                 fontFamily: 'Manrope',
                 textAlign: 'left'
               }}>
@@ -517,57 +518,88 @@ export default function ChordPanel() {
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '10px',
+                gap: '12px',
               }}>
-                {QUICK_CATS.map(cat => (
-                  <button
-                    key={cat.type}
-                    onClick={() => {
-                      setLibraryActiveType(cat.type);
-                      setActivePanel('library');
-                    }}
-                    style={{
-                      background: 'var(--app-surface-high)',
-                      border: '1px solid rgba(128,128,128,0.06)',
-                      borderRadius: '16px',
-                      padding: '12px 14px',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                      transition: 'all 200ms ease',
-                    }}
-                    className="btn-smooth"
-                  >
-                    <span className="material-symbols-outlined" style={{
-                      fontSize: '18px',
-                      color: cat.color,
-                    }}>
-                      {cat.icon || 'music_note'}
-                    </span>
-                    <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
-                      {cat.label}
-                    </div>
-                    <div style={{ fontSize: '10px', color: 'var(--c-text-muted)', fontFamily: 'Inter', lineHeight: '1.3' }}>
-                      {cat.desc}
-                    </div>
-                  </button>
-                ))}
+                {QUICK_CATS.map((cat, idx) => {
+                  const isHovered = hoveredCatIndex === idx;
+                  return (
+                    <button
+                      key={cat.type}
+                      onMouseEnter={() => setHoveredCatIndex(idx)}
+                      onMouseLeave={() => setHoveredCatIndex(null)}
+                      onClick={() => {
+                        setLibraryActiveType(cat.type);
+                        setActivePanel('library');
+                      }}
+                      style={{
+                        background: isHovered 
+                          ? (isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)')
+                          : (isLight ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.025)'),
+                        border: isHovered
+                          ? `1px solid ${cat.color}50`
+                          : (isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,255,255,0.04)'),
+                        borderRadius: '20px',
+                        padding: '16px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                        boxShadow: isHovered ? `0 6px 20px ${cat.color}15` : 'none',
+                        transition: 'all 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+                      }}
+                      className="btn-smooth"
+                    >
+                      <div style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '12px',
+                        background: `${cat.color}15`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '4px',
+                      }}>
+                        <span className="material-symbols-outlined" style={{
+                          fontSize: '18px',
+                          color: cat.color,
+                        }}>
+                          {cat.icon || 'music_note'}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.01em' }}>
+                        {cat.label}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                        {cat.desc}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Search & Progression Generator buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '12px',
+              marginTop: '8px'
+            }}>
               <button
                 onClick={() => setShowFinder(true)}
-                className="btn-smooth flex items-center justify-center gap-2 px-5 py-3 font-bold"
+                className="btn-smooth flex items-center justify-center gap-2 px-5 py-3.5 font-bold"
                 style={{
                   background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  color: 'white', borderRadius: '16px', fontFamily: 'Manrope', fontSize: '13px',
-                  boxShadow: `0 4px 20px ${accent.to}25`,
+                  color: 'white',
+                  borderRadius: '18px',
+                  fontFamily: 'Manrope',
+                  fontSize: '13px',
+                  boxShadow: `0 6px 20px ${accent.to}25`,
                   border: 'none',
                   cursor: 'pointer',
+                  transition: 'all 200ms ease',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>search</span>
@@ -576,13 +608,17 @@ export default function ChordPanel() {
               <AnimatedActionButton
                 data-testid="open-generator-empty"
                 onClick={() => setShowGenerator(true)}
-                className="btn-smooth flex items-center justify-center gap-2 px-5 py-2.5 font-bold"
+                className="btn-smooth flex items-center justify-center gap-2 px-5 py-3 font-bold"
                 trailColor={accent.from}
                 style={{
-                  background: 'transparent', color: accent.from,
-                  border: `1.5px solid ${accent.from}55`,
-                  borderRadius: '16px',
-                  fontFamily: 'Manrope', fontSize: '12px', cursor: 'pointer',
+                  background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                  color: 'var(--c-text-primary)',
+                  border: `1px solid ${accent.from}30`,
+                  borderRadius: '18px',
+                  fontFamily: 'Manrope',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>auto_awesome</span>

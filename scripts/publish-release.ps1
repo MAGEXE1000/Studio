@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.7"
-$VersionCode = "233"
-$ReleaseNote = "v4.0.7 - Chordex navigation and layout fixes: Fix Chordex safe area top padding alignment, correct bottom nav routing, unify transitions using SharedNavigationContainer, and remove transition locks (cooldown) globally."
+$VersionName = "4.0.8"
+$VersionCode = "234"
+$ReleaseNote = "v4.0.8 - Chordex startup polish and screen refresh: Preload Tolgee translations synchronously to prevent loading flashes, and modernise Quick Categories & action buttons on Chords home screen."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

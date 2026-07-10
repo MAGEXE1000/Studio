@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.7';
-export const WEB_VERSION = '4.0.7';
+export const NATIVE_VERSION = '4.0.8';
+export const WEB_VERSION = '4.0.8';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -59,15 +59,6 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
-  {
-    heading: "Fixed",
-    items: [
-      "Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.",
-      "Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.",
-      "Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.",
-      "Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance.",
-    ],
-  },
 ];
 
 /** Native English version of the current changelog for Android. */

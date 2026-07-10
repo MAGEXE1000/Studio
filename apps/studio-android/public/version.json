@@ -1,22 +1,15 @@
 {
   "platform": "android",
-  "version": "4.0.7",
-  "versionName": "4.0.7",
-  "versionCode": 233,
-  "version_code": 233,
-  "commit": "56126e28",
-  "releasedAt": "7/9/2026, 9:51:14 PM CST",
-  "buildTimestamp": "7/9/2026, 9:51:14 PM CST",
+  "version": "4.0.8",
+  "versionName": "4.0.8",
+  "versionCode": 234,
+  "version_code": 234,
+  "commit": "a562bbb1",
+  "releasedAt": "7/9/2026, 10:11:02 PM CST",
+  "buildTimestamp": "7/9/2026, 10:11:02 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.\n• Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.\n• Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.\n• Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance.",
-  "whatsNew": "• Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.\n• Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.\n• Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.\n• Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance.",
-  "releaseNotes": {
-    "fixed": [
-      "Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.",
-      "Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.",
-      "Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.",
-      "Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance."
-    ]
-  },
+  "changelog": "• Modernized the Chords home screen: visually refreshed Quick Categories grid with custom colored squircle badges, hover scale elevation, dynamic borders, and enhanced spacing/alignment.\n• Eagerly preloaded Tolgee translations on application startup, eliminating the \"Loading translation resources\" text modal for a seamless native boot experience.",
+  "whatsNew": "• Modernized the Chords home screen: visually refreshed Quick Categories grid with custom colored squircle badges, hover scale elevation, dynamic borders, and enhanced spacing/alignment.\n• Eagerly preloaded Tolgee translations on application startup, eliminating the \"Loading translation resources\" text modal for a seamless native boot experience.",
+  "releaseNotes": {},
   "mandatory": false
 }

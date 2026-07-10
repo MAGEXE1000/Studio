@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
@@ -11,7 +11,7 @@ const repoRoot = path.resolve(__dirname, '../../..');
 const paths = {
   pluginJava: path.join(appRoot, 'android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java'),
   mainActivityJava: path.join(appRoot, 'android/app/src/main/java/com/chordex/app/MainActivity.java'),
-  apkDownloaderTs: path.join(appRoot, '../../packages/studio-core/src/lib/apkDownloader.ts'),
+  apkDownloaderTs: path.join(appRoot, '../../packages/studio-core/src/lib/platform/apkDownloader.ts'),
   apkPath: path.join(appRoot, 'android/app/build/outputs/apk/release/app-release.apk'),
 };
 
@@ -49,8 +49,11 @@ if (!isDevPreview) {
     const nativeFiles = changedFiles.filter(f => 
       f.startsWith('apps/studio-android/android/') ||
       f === 'packages/studio-core/src/lib/apkDownloader.ts' ||
+      f === 'packages/studio-core/src/lib/platform/apkDownloader.ts' ||
       f === 'packages/studio-core/src/lib/capgoUpdater.ts' ||
+      f === 'packages/studio-core/src/lib/platform/capgoUpdater.ts' ||
       f === 'packages/studio-core/src/lib/otaUpdate.ts' ||
+      f === 'packages/studio-core/src/lib/updater/useOtaUpdate.ts' ||
       f === 'apps/studio-android/scripts/validate-app-installer.mjs' ||
       f === 'apps/studio-android/scripts/generate-release-metadata.mjs'
     );

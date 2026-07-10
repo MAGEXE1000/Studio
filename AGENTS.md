@@ -169,3 +169,17 @@ Every completed task must answer:
 3. Which platforms were affected?
 4. What regressions were checked?
 5. What remains risky?
+
+---
+
+### Architecture Index Rule
+
+**`ARCHITECTURE_INDEX.md` is the primary source of project structure.**
+
+Before reading any implementation file, consult `ARCHITECTURE_INDEX.md` first. It documents every module's purpose, main files, imports, exports, dependencies, consumers, and known technical debt.
+
+Rules:
+- Use `ARCHITECTURE_INDEX.md` to locate the relevant files for any task before opening them.
+- Only open implementation files that are **directly required** for the requested task — do not speculatively explore unrelated modules.
+- **Never re-index the repository** (i.e., do not re-survey directory trees or re-read all source files to rebuild structural understanding) unless the user explicitly requests it.
+- If `ARCHITECTURE_INDEX.md` is stale or missing an entry for a module you need, read only that module's files, then update the index entry before proceeding.

@@ -313,6 +313,26 @@ let activeInstallPromiseRejecter: ((err: Error) => void) | null = null;
 let isOtaInitialized = false;
 let lastInstallProgressTime = 0;
 
+/**
+ * Holds the in-flight promise for checkAndRecoverInstallState() while the app
+ * is resuming from background. This is the sequencing gate that prevents
+ * triggerOtaUpdateCheck from reading isInstallationLocked() before the native
+ * IPC query (getLastInstallResult) has resolved and set installationJustCompleted.
+ *
+ * The window where this is non-null is typically 100–500ms on real devices.
+ * On a normal resume with no active session it resolves in < 10ms.
+ */
+let installRecoveryPromise: Promise<void> | null = null;
+
+/**
+ * Returns the current in-flight install-state recovery promise, or null if
+ * no recovery is running. Consumed by startupCoordinator.triggerOtaUpdateCheck
+ * to sequence update checks AFTER native install-result IPC resolves.
+ */
+export function getInstallRecoveryPromise(): Promise<void> | null {
+  return installRecoveryPromise;
+}
+
 const MIN_AUTO_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
 export function resetLastCheckedTime() {
@@ -1625,7 +1645,16 @@ export function initializeGlobalOtaListeners() {
         if (state.isActive) {
           console.log('[OTA Lifecycle] App returned to foreground. Recovering updater state...');
           logTimelineEvent('AppLifecycle', 'RECOVERY_TRIGGERED_ON_RESUME');
-          await checkAndRecoverInstallState();
+          // Assign to the shared recovery promise BEFORE awaiting, so that any
+          // concurrent triggerOtaUpdateCheck in startupCoordinator can await this
+          // same promise and read isInstallationLocked() only after the native IPC
+          // (getLastInstallResult) has resolved and installationJustCompleted is set.
+          installRecoveryPromise = checkAndRecoverInstallState();
+          try {
+            await installRecoveryPromise;
+          } finally {
+            installRecoveryPromise = null;
+          }
         }
       });
     }).catch((e) => {

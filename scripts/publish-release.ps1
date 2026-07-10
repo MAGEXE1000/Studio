@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.10"
-$VersionCode = "236"
-$ReleaseNote = "v4.0.10 - Navigation Direction, Stagex Transitions & App Switcher Liquid Glass: Fix transition directions globally, eliminate previous-screen ghosting, adopt SharedNavigationContainer transitions inside Stagex, and style the App Switcher using the premium Kyant0 Liquid Glass style."
+$VersionName = "4.0.11"
+$VersionCode = "237"
+$ReleaseNote = "v4.0.11 - Updater Race-Condition Fix: Eliminate premature 'Studio is up to date' by sequencing automatic update checks to await the native PackageInstaller result IPC before reading the installation lock state."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -18,11 +18,9 @@ node apps/studio-web/scripts/sync-version.mjs
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/studio-core/src/lib/startup/startupCoordinator.ts
-git add packages/studio-core/src/lib/updater/stateMachine.ts
 git add packages/studio-core/src/lib/updater/pipeline.ts
 git add packages/studio-core/src/lib/updater/diagnostics.ts
 git add packages/studio-core/src/lib/updater/index.ts
-git add packages/ui-shared/src/components/update/UpdateIndicator.tsx
 git add apps/studio-android/package.json
 git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/public/version.json

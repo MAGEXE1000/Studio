@@ -1269,7 +1269,8 @@ export interface InstallLockEvent {
     | 'CHECK_BLOCKED'      // checkForUpdate() rejected due to lock
     | 'STARTUP_BLOCKED'    // triggerOtaUpdateCheck rejected due to lock
     | 'CANCEL_BLOCKED'     // StartupCoordinator.cancel() suppressed due to lock
-    | 'RECOVERY_SKIPPED';  // enforceStartupRecovery reset skipped due to lock
+    | 'RECOVERY_SKIPPED'   // enforceStartupRecovery reset skipped due to lock
+    | 'RACE_BLOCKED';      // triggerOtaUpdateCheck awaited recovery promise to prevent race
   caller: string;          // function + file from stack trace
   state: string;           // OTA state at time of event
   reason: string;          // human-readable reason string

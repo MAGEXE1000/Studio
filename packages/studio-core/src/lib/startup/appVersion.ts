@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.10';
-export const WEB_VERSION = '4.0.10';
+export const NATIVE_VERSION = '4.0.11';
+export const WEB_VERSION = '4.0.11';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,11 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed navigation transition directions globally so they always match the logical layout/order.",
-      "Corrected Chordex panel order mismatches to resolve reverse sliding tab animations.",
-      "Eliminated previous-screen ghosting and flashing artifacts by introducing dynamic z-index overlays and solid background wrappers on view transition layers.",
-      "Integrated SharedNavigationContainer transitions inside Stagex for setups, Rider, scene editor, and settings screens.",
-      "Redesigned the App Switcher pill overlay to inherit the premium Kyant0 Liquid Glass visual language.",
+      "Fixed a race condition that caused \"Studio is up to date\" to appear prematurely during Android APK installation.",
+      "The updater now waits for the native PackageInstaller result query to fully resolve before triggering any automatic update check on app resume.",
+      "Eliminated the timing window where a 200ms-debounced update check could read the installation-lock state before the native IPC response had set it, triggering a false version-match comparison.",
+      "Installation lock diagnostics now record `RACE_BLOCKED` events in the install lock timeline for production visibility.",
     ],
   },
 ];

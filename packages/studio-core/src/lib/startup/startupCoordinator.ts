@@ -619,7 +619,30 @@ class StartupCoordinatorClass {
 
   private async triggerOtaUpdateCheck(trigger: string, reason: string) {
     try {
-      const { checkForUpdate } = await import('../otaUpdate');
+      const { checkForUpdate, getInstallRecoveryPromise } = await import('../otaUpdate');
+
+      // ─── Race-prevention gate ────────────────────────────────────────────
+      // The appStateChange(isActive: true) event launches two concurrent paths:
+      //   Path A: checkAndRecoverInstallState() → native IPC → INSTALL_SUCCESS
+      //           → installationJustCompleted = true
+      //   Path B (this function): debounce 200ms → isInstallationLocked() check
+      //
+      // Path B can read isInstallationLocked() before Path A's native IPC resolves
+      // (typical IPC latency 100–500ms), causing checkForUpdate to proceed and show
+      // "Studio is up to date" prematurely.
+      //
+      // Awaiting the shared installRecoveryPromise guarantees Path B always
+      // sees the final state after Path A's IPC completes. On normal resumes
+      // with no active session the promise resolves in < 10ms. On devices with
+      // no install in progress the promise is null and this await is skipped.
+      const recoveryPromise = getInstallRecoveryPromise();
+      if (recoveryPromise) {
+        console.log(`[StartupCoordinator] Awaiting in-flight install recovery before update check (trigger=${trigger})...`);
+        logInstallLockEvent('RACE_BLOCKED', `triggerOtaUpdateCheck yielded to installRecoveryPromise: trigger=${trigger}, reason=${reason}`, { trigger });
+        await recoveryPromise;
+        console.log(`[StartupCoordinator] Install recovery resolved. Proceeding with isInstallationLocked() check (trigger=${trigger}).`);
+      }
+      // ─────────────────────────────────────────────────────────────────────
 
       // Use isInstallationLocked() — stronger than isUpdateSessionActive() because
       // it also covers the post-INSTALL_SUCCESS window where the session has already

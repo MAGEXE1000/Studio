@@ -136,6 +136,7 @@ export {
   applyUpdate,
   initializeGlobalOtaListeners,
   triggerDowngrade,
+  getInstallRecoveryPromise,
 } from './pipeline';
 
 // React hooks

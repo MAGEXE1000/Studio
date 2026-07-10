@@ -1,22 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.10",
-  "versionName": "4.0.10",
-  "versionCode": 236,
-  "version_code": 236,
-  "commit": "cd34bb08",
-  "releasedAt": "7/10/2026, 8:20:50 AM CST",
-  "buildTimestamp": "7/10/2026, 8:20:50 AM CST",
+  "version": "4.0.11",
+  "versionName": "4.0.11",
+  "versionCode": 237,
+  "version_code": 237,
+  "commit": "bad2964d",
+  "releasedAt": "7/10/2026, 8:35:47 AM CST",
+  "buildTimestamp": "7/10/2026, 8:35:47 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed navigation transition directions globally so they always match the logical layout/order.\n• Corrected Chordex panel order mismatches to resolve reverse sliding tab animations.\n• Eliminated previous-screen ghosting and flashing artifacts by introducing dynamic z-index overlays and solid background wrappers on view transition layers.\n• Integrated SharedNavigationContainer transitions inside Stagex for setups, Rider, scene editor, and settings screens.\n• Redesigned the App Switcher pill overlay to inherit the premium Kyant0 Liquid Glass visual language.",
-  "whatsNew": "• Fixed navigation transition directions globally so they always match the logical layout/order.\n• Corrected Chordex panel order mismatches to resolve reverse sliding tab animations.\n• Eliminated previous-screen ghosting and flashing artifacts by introducing dynamic z-index overlays and solid background wrappers on view transition layers.\n• Integrated SharedNavigationContainer transitions inside Stagex for setups, Rider, scene editor, and settings screens.\n• Redesigned the App Switcher pill overlay to inherit the premium Kyant0 Liquid Glass visual language.",
+  "changelog": "• Fixed a race condition that caused \"Studio is up to date\" to appear prematurely during Android APK installation.\n• The updater now waits for the native PackageInstaller result query to fully resolve before triggering any automatic update check on app resume.\n• Eliminated the timing window where a 200ms-debounced update check could read the installation-lock state before the native IPC response had set it, triggering a false version-match comparison.\n• Installation lock diagnostics now record `RACE_BLOCKED` events in the install lock timeline for production visibility.",
+  "whatsNew": "• Fixed a race condition that caused \"Studio is up to date\" to appear prematurely during Android APK installation.\n• The updater now waits for the native PackageInstaller result query to fully resolve before triggering any automatic update check on app resume.\n• Eliminated the timing window where a 200ms-debounced update check could read the installation-lock state before the native IPC response had set it, triggering a false version-match comparison.\n• Installation lock diagnostics now record `RACE_BLOCKED` events in the install lock timeline for production visibility.",
   "releaseNotes": {
     "fixed": [
-      "Fixed navigation transition directions globally so they always match the logical layout/order.",
-      "Corrected Chordex panel order mismatches to resolve reverse sliding tab animations.",
-      "Eliminated previous-screen ghosting and flashing artifacts by introducing dynamic z-index overlays and solid background wrappers on view transition layers.",
-      "Integrated SharedNavigationContainer transitions inside Stagex for setups, Rider, scene editor, and settings screens.",
-      "Redesigned the App Switcher pill overlay to inherit the premium Kyant0 Liquid Glass visual language."
+      "Fixed a race condition that caused \"Studio is up to date\" to appear prematurely during Android APK installation.",
+      "The updater now waits for the native PackageInstaller result query to fully resolve before triggering any automatic update check on app resume.",
+      "Eliminated the timing window where a 200ms-debounced update check could read the installation-lock state before the native IPC response had set it, triggering a false version-match comparison.",
+      "Installation lock diagnostics now record `RACE_BLOCKED` events in the install lock timeline for production visibility."
     ]
   },
   "mandatory": false

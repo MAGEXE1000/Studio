@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.6
+
+### Optimized
+- Implemented zero-latency navigation tab state retention across the entire application workspace.
+- Optimized SharedNavigationContainer to keep visited panels alive in the DOM using display: none, avoiding costly unmounting/re-mounting.
+- Tuned Zustand subscription selectors across all sub-apps to return literal state strings directly, eliminating redundant parent component re-renders.
+- Stabilized bottom navigation setTab callback reference to prevent child re-rendering overhead.
+
 ## 4.0.5
 
 ### Added

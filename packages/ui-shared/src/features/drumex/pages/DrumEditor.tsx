@@ -1,4 +1,4 @@
-﻿import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, setNavCollapsed, useLiquidGlassNav, DRUM_LIBRARY, LIBRARY_CATEGORIES, LIBRARY_GENRES, type LibraryCategory, type LibraryGenre, type LibraryPattern, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, setNavCollapsed, useLiquidGlassNav, DRUM_LIBRARY, LIBRARY_CATEGORIES, LIBRARY_GENRES, type LibraryCategory, type LibraryGenre, type LibraryPattern, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import {
   memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from 'react';
@@ -1760,11 +1760,10 @@ export default function DrumEditor() {
   }, []);
 
   // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
-
-  const activeTab = useMemo<DrumTab>(() => {
-    if (currentRoute.app === 'drums' && currentRoute.page) {
-      const page = currentRoute.page;
+  const activeTab = useNavigationStore(s => {
+    const lastRoute = s.history[s.history.length - 1];
+    if (lastRoute?.app === 'drums' && lastRoute.page) {
+      const page = lastRoute.page;
       if (page === 'songs' || page === 'patterns' || page === 'prefs') return page as DrumTab;
     }
     const st = useChordStore.getState();
@@ -1773,10 +1772,13 @@ export default function DrumEditor() {
       if (last === 'songs' || last === 'patterns' || last === 'prefs') return last;
     }
     const dt = st.settings.defaultDrumTab;
-    return (dt === 'songs' || dt === 'patterns' || dt === 'prefs') ? dt : 'songs';
-  }, [currentRoute]);
+    return ((dt === 'songs' || dt === 'patterns' || dt === 'prefs') ? dt : 'songs') as DrumTab;
+  });
 
-  const inEditor = currentRoute.app === 'drums' && currentRoute.subView === 'editor';
+  const inEditor = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return last?.app === 'drums' && last.subView === 'editor';
+  });
 
   // Persist the active Drumex tab on every change.
   useEffect(() => {
@@ -1973,7 +1975,10 @@ export default function DrumEditor() {
   const [editingSong,      setEditingSong]      = useState<DrumSong | null>(null);
   const [editingName,      setEditingName]      = useState('');
   const [editingArtist,    setEditingArtist]    = useState('');
-  const activeDrumSongId = (currentRoute.app === 'drums' && currentRoute.subView === 'editor' ? currentRoute.id || null : null);
+  const activeDrumSongId = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.app === 'drums' && last.subView === 'editor' ? last.id || null : null);
+  });
 
   const currentView: DrumView = 
     activeTab === 'patterns' ? 'patterns' :

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.5"
-$VersionCode = "231"
-$ReleaseNote = "v4.0.5 - Release 4.0.5: Unify global navigation slide-transition animations across all sub-apps and Hub, refactor Settings/Help mobile view transitions, and fix safe area layout spacings."
+$VersionName = "4.0.6"
+$VersionCode = "232"
+$ReleaseNote = "v4.0.6 - Zero-latency global navigation optimization: Implement view state retention (keep-alive) and optimize Zustand subscription selectors/callbacks to reduce rendering overhead."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

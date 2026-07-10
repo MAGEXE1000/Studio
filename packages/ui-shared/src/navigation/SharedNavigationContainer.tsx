@@ -20,6 +20,16 @@ export function SharedNavigationContainer({
   const [visibleView, setVisibleView] = useState<string>(activeView);
   const [exitingView, setExitingView] = useState<string | null>(null);
   const [resolvedDir, setResolvedDir] = useState<'right' | 'left'>('right');
+  const [visitedViews, setVisitedViews] = useState<Set<string>>(() => new Set([activeView]));
+
+  useEffect(() => {
+    setVisitedViews(prev => {
+      if (prev.has(activeView)) return prev;
+      const next = new Set(prev);
+      next.add(activeView);
+      return next;
+    });
+  }, [activeView]);
 
   useEffect(() => {
     if (activeView !== visibleView) {
@@ -47,21 +57,23 @@ export function SharedNavigationContainer({
     return () => clearTimeout(timer);
   }, [exitingView]);
 
-  // Render both views if transitioning, with the correct layout/layering order.
-  const activeViews = [visibleView];
-  if (exitingView !== null && exitingView !== visibleView) {
-    activeViews.push(exitingView);
-  }
+  // Keep visited views in the DOM (keep-alive) to preserve their states/scroll positions,
+  // falling back to active/exiting views if viewOrder is not supplied.
+  const renderList = viewOrder
+    ? viewOrder.filter(viewId => visitedViews.has(viewId))
+    : [visibleView].concat(exitingView !== null && exitingView !== visibleView ? [exitingView] : []);
 
   return (
     <div
       className={`relative w-full h-full overflow-hidden ${className}`}
       style={{ ...style }}
     >
-      {activeViews.map(viewId => {
+      {renderList.map(viewId => {
         const isVisible = visibleView === viewId;
         const isExiting = exitingView === viewId;
         const isEntering = isVisible && exitingView !== null;
+
+        const show = isVisible || isExiting;
 
         let animClass = '';
         if (isEntering) {
@@ -80,6 +92,7 @@ export function SharedNavigationContainer({
               pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
               width: '100%',
               height: '100%',
+              display: show ? 'block' : 'none',
             }}
           >
             {children(viewId)}

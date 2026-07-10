@@ -216,14 +216,17 @@ export default function StudioHub() {
     return false;
   })();
 
-  const navigationHistory = useNavigationStore(s => s.history);
-  const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'home' };
-  const tab = currentRoute.tab ?? 'home';
+  const tab = useNavigationStore(s => {
+    const history = s.history;
+    const current = history[history.length - 1];
+    return (current?.tab ?? 'home') as HubTab;
+  });
  
   const setTab = useCallback((action: React.SetStateAction<HubTab>) => {
-    const nextTab = typeof action === 'function' ? action(tab) : action;
+    const currentTab = useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]?.tab ?? 'home';
+    const nextTab = typeof action === 'function' ? action(currentTab as HubTab) : action;
     NavigationDispatcher.push({ app: 'hub', tab: nextTab, page: 'main' });
-  }, [tab]) as React.Dispatch<React.SetStateAction<HubTab>>;
+  }, []) as React.Dispatch<React.SetStateAction<HubTab>>;
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('studio:hub-tab-active', { detail: tab }));
@@ -2465,8 +2468,7 @@ function HubSettings({
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
   const updatePerApp = useChordStore(state => state.updatePerApp);
-  const navigationHistory = useNavigationStore(s => s.history);
-  const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'settings' };
+  const historyLength = useNavigationStore(s => s.history.length);
   const { preferences, setPreference } = useStudioPreferences();
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -2507,10 +2509,13 @@ function HubSettings({
     return 'main';
   };
 
-  const page = (currentRoute.tab === 'settings' ? (currentRoute.page ?? 'main') : 'main') as SettingsPageId;
-  const pageKey = navigationHistory.length;
+  const page = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.tab === 'settings' ? (last.page ?? 'main') : 'main') as SettingsPageId;
+  });
+  const pageKey = historyLength;
 
-  const curLen = navigationHistory.length;
+  const curLen = historyLength;
   const prevLenRef = useRef(curLen);
   const prevDirRef = useRef<'forward' | 'backward'>('forward');
 
@@ -5354,8 +5359,7 @@ function HubHelp({
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
 }) {
   const settings = useChordStore(state => state.settings);
-  const navigationHistory = useNavigationStore(s => s.history);
-  const currentRoute = navigationHistory[navigationHistory.length - 1] || { app: 'hub', tab: 'help' };
+  const historyLength = useNavigationStore(s => s.history.length);
   const t = useT();
   const lang = settings.language ?? 'en';
   const isWebDesktop = useIsWebDesktop();
@@ -5369,10 +5373,13 @@ function HubHelp({
     return 'main';
   };
 
-  const page = (currentRoute.tab === 'help' ? (currentRoute.page ?? 'main') : 'main') as HelpPageActiveId;
-  const pageKey = navigationHistory.length;
+  const page = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.tab === 'help' ? (last.page ?? 'main') : 'main') as HelpPageActiveId;
+  });
+  const pageKey = historyLength;
 
-  const curLen = navigationHistory.length;
+  const curLen = historyLength;
   const prevLenRef = useRef(curLen);
   const prevDirRef = useRef<'forward' | 'backward'>('forward');
 

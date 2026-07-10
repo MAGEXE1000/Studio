@@ -90,11 +90,12 @@ export default function VocalexApp() {
       ? saved
       : 'practice';
   })();
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
-
-  const activeTab = (currentRoute.app === 'vocalex' && currentRoute.page && NAV_ORDER.includes(currentRoute.page as VocalexPanel)
-    ? (currentRoute.page as VocalexPanel)
-    : initialVocalexTab);
+  const activeTab = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.app === 'vocalex' && last.page && NAV_ORDER.includes(last.page as VocalexPanel)
+      ? (last.page as VocalexPanel)
+      : initialVocalexTab);
+  });
 
   // Persist the active tab on every change so cold-start can resume here.
   useEffect(() => {

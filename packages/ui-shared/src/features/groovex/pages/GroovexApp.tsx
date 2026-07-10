@@ -14,10 +14,12 @@ const VIEW_ORDER: GroovexView[] = ['library', 'player', 'preferences'];
 
 export default function GroovexApp() {
   const isWebDesktop = useIsWebDesktop();
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
-  const view = (currentRoute.app === 'groovex' && currentRoute.page && VIEW_ORDER.includes(currentRoute.page as GroovexView)
-    ? (currentRoute.page as GroovexView)
-    : 'library');
+  const view = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.app === 'groovex' && last.page && VIEW_ORDER.includes(last.page as GroovexView)
+      ? (last.page as GroovexView)
+      : 'library');
+  });
   const activeSongId = useGroovexStore(s => s.activeSongId);
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;

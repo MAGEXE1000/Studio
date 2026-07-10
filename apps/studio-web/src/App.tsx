@@ -75,20 +75,23 @@ const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
 const ALL_PANELS = ['library', 'chord', 'songs', 'settings'] as const;
 
 export default function App() {
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
-  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
+  const activePanel = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.app === 'chords' && last.page ? last.page as ActivePanel : 'library');
+  });
   const setActivePanel = (panel: ActivePanel) => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   };
   const { settings, activePresetId, updateSettings } = useChordStore();
   const { preferences } = useStudioPreferences();
 
+  const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
+
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);
   const lastSyncedSettingsAppRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const routeApp = currentRoute.app || 'hub';
     const settingsApp = settings.appMode || 'hub';
 
     if (routeApp !== settingsApp) {
@@ -119,7 +122,7 @@ export default function App() {
 
     lastSyncedRouteAppRef.current = routeApp;
     lastSyncedSettingsAppRef.current = settingsApp;
-  }, [currentRoute.app, settings.appMode, updateSettings]);
+  }, [routeApp, settings.appMode, updateSettings]);
 
   const returnToStudioHub = useCallback((isSwipeSuccess = false) => {
     // 1. Close active modals/sheets/overlays

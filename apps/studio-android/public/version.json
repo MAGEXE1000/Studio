@@ -1,15 +1,22 @@
 {
   "platform": "android",
-  "version": "4.0.6",
-  "versionName": "4.0.6",
-  "versionCode": 232,
-  "version_code": 232,
-  "commit": "80e9c18f",
-  "releasedAt": "7/9/2026, 9:23:33 PM CST",
-  "buildTimestamp": "7/9/2026, 9:23:33 PM CST",
+  "version": "4.0.7",
+  "versionName": "4.0.7",
+  "versionCode": 233,
+  "version_code": 233,
+  "commit": "56126e28",
+  "releasedAt": "7/9/2026, 9:51:14 PM CST",
+  "buildTimestamp": "7/9/2026, 9:51:14 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented zero-latency navigation tab state retention across the entire application workspace.\n• Optimized SharedNavigationContainer to keep visited panels alive in the DOM using display: none, avoiding costly unmounting/re-mounting.\n• Tuned Zustand subscription selectors across all sub-apps to return literal state strings directly, eliminating redundant parent component re-renders.\n• Stabilized bottom navigation setTab callback reference to prevent child re-rendering overhead.",
-  "whatsNew": "• Implemented zero-latency navigation tab state retention across the entire application workspace.\n• Optimized SharedNavigationContainer to keep visited panels alive in the DOM using display: none, avoiding costly unmounting/re-mounting.\n• Tuned Zustand subscription selectors across all sub-apps to return literal state strings directly, eliminating redundant parent component re-renders.\n• Stabilized bottom navigation setTab callback reference to prevent child re-rendering overhead.",
-  "releaseNotes": {},
+  "changelog": "• Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.\n• Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.\n• Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.\n• Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance.",
+  "whatsNew": "• Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.\n• Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.\n• Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.\n• Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance.",
+  "releaseNotes": {
+    "fixed": [
+      "Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.",
+      "Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.",
+      "Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.",
+      "Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance."
+    ]
+  },
   "mandatory": false
 }

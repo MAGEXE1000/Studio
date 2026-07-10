@@ -31,7 +31,7 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold } from '@workspace/ui-shared';
+import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer } from '@workspace/ui-shared';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -720,8 +720,11 @@ function TolgeeSuspenseFallback() {
   );
 }
 export default function App() {
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
-  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
+  const activePanel = useNavigationStore(s => {
+    const last = s.history[s.history.length - 1];
+    return (last?.app === 'chords' && last.page ? last.page as ActivePanel : 'library');
+  });
+  const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
@@ -732,7 +735,6 @@ export default function App() {
   const lastSyncedSettingsAppRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const routeApp = currentRoute.app || 'hub';
     const settingsApp = settings.appMode || 'hub';
 
     if (routeApp !== settingsApp) {
@@ -763,7 +765,7 @@ export default function App() {
 
     lastSyncedRouteAppRef.current = routeApp;
     lastSyncedSettingsAppRef.current = settingsApp;
-  }, [currentRoute.app, settings.appMode, updateSettings]);
+  }, [routeApp, settings.appMode, updateSettings]);
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
 
@@ -2615,62 +2617,49 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       {cachedApp === 'chords' && (
         <SubAppScaffold appKey="chords">
           <LifecycleTracker name="Chordex" />
-          <AppEntryTransition
-            className="flex flex-col w-full overflow-hidden select-none app-bg"
-            style={{
-              position: 'relative',
-              height: '100%',
-              // Note: safe-area-inset-top is handled by layout scaffolds to avoid duplicate paddingTop overrides.
-            } as React.CSSProperties}
-          >
-            <div 
-              style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                flex: 1, 
-                width: '100%', 
-                height: '100%', 
-                overflow: 'hidden' 
-              }}
+          <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
+            <AppEntryTransition
+              className="flex flex-col w-full overflow-hidden select-none"
+              style={{
+                position: 'relative',
+                height: '100%',
+              } as React.CSSProperties}
             >
-              <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
-                {ALL_PANELS.map(panel => {
-                  const isVisible = visiblePanel === panel;
-                  const isExiting = exitingPanel === panel;
-                  if (!isVisible && !isExiting) return null;
-                  const isEntering = isVisible && exitingPanel !== null;
-
-                  let animClass = '';
-                  if (isEntering) animClass = slideDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
-                  else if (isExiting) animClass = slideDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
-
-                  return (
-                    <div
-                      key={panel}
-                      className={animClass}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
-                      }}
-                    >
-                      <ErrorBoundary moduleName="Chordex">
-                        <Suspense fallback={<FallbackTracker app="chords"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-                          <AppReadyNotifier app="chords" onReady={onReady} />
-                          {panel === 'library'  && <LibraryPanel />}
-                          {panel === 'chord'    && <ChordPanel />}
-                          {panel === 'songs'    && <SongsPanel />}
-                          {panel === 'settings' && <SettingsPanel />}
-                        </Suspense>
-                      </ErrorBoundary>
-                    </div>
-                  );
-                })}
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  flex: 1, 
+                  width: '100%', 
+                  height: '100%', 
+                  overflow: 'hidden' 
+                }}
+              >
+                <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
+                  <ErrorBoundary moduleName="Chordex">
+                    <Suspense fallback={<FallbackTracker app="chords"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+                      <AppReadyNotifier app="chords" onReady={onReady} />
+                      <SharedNavigationContainer
+                        activeView={cachedPanel}
+                        viewOrder={ALL_PANELS}
+                      >
+                        {(panel) => (
+                          <>
+                            {panel === 'library'  && <LibraryPanel />}
+                            {panel === 'chord'    && <ChordPanel />}
+                            {panel === 'songs'    && <SongsPanel />}
+                            {panel === 'settings' && <SettingsPanel />}
+                          </>
+                        )}
+                      </SharedNavigationContainer>
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
               </div>
-            </div>
 
-            {cachedApp === 'chords' && <BottomNav />}
-          </AppEntryTransition>
+              {cachedApp === 'chords' && <BottomNav />}
+            </AppEntryTransition>
+          </ScreenScaffold>
         </SubAppScaffold>
       )}
     </>

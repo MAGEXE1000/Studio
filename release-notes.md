@@ -1,5 +1,5 @@
-### Optimized
-- Implemented zero-latency navigation tab state retention across the entire application workspace.
-- Optimized SharedNavigationContainer to keep visited panels alive in the DOM using display: none, avoiding costly unmounting/re-mounting.
-- Tuned Zustand subscription selectors across all sub-apps to return literal state strings directly, eliminating redundant parent component re-renders.
-- Stabilized bottom navigation setTab callback reference to prevent child re-rendering overhead.
+### Fixed
+- Aligned Chordex layout top offsets correctly using the shared ScreenScaffold system, fixing overlapping content with the status bar on Android.
+- Fixed Chordex tab routing to navigate internally inside Chordex instead of launching Hub settings.
+- Removed transition locked guards (cooldown) from NavigationDispatcher to make spam clicks and rapid tab transitions instant everywhere.
+- Replaced the custom copy-pasted animation logic in Android project with SharedNavigationContainer to unify transition performance.

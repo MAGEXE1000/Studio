@@ -1,4 +1,4 @@
-﻿import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher, setNavCollapsed } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher, setNavCollapsed } from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
 
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
@@ -274,11 +274,7 @@ export default function BottomNav() {
             onPointerLeave={() => setPressedPanel(null)}
             onPointerCancel={() => setPressedPanel(null)}
             onClick={() => {
-              if (panel === 'settings') {
-                NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
-              } else {
-                NavigationDispatcher.push({ app: 'chords', page: panel });
-              }
+              NavigationDispatcher.push({ app: 'chords', page: panel });
             }}
             style={{
               flex: 1,

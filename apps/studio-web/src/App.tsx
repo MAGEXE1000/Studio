@@ -40,7 +40,8 @@ import {
   VocalexApp,
   StageCorePanel,
   ErrorBoundary,
-  SharedNavigationContainer
+  SharedNavigationContainer,
+  ScreenScaffold
 } from '@workspace/ui-shared';
 
 import {
@@ -509,52 +510,54 @@ export default function App() {
                 )}
 
                 {stableKey === 'chords' && (
-                  <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)', paddingTop: isWebDesktop ? '0px' : 'calc(16px + env(safe-area-inset-top))' }}>
-                    <AppEntryTransition
-                      className="flex flex-col w-full overflow-hidden select-none app-bg"
-                      style={{
-                        position: 'relative',
-                        height: '100%',
-                      } as React.CSSProperties}
-                    >
-                      <div 
-                        style={{ 
-                          display: 'flex', 
-                          flexDirection: (isWebDesktop && isLargeDesktop) ? 'row' : 'column', 
-                          flex: 1, 
-                          width: '100%', 
-                          height: '100%', 
-                          overflow: 'hidden' 
-                        }}
+                  <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
+                    <ScreenScaffold safeAreaTop={!isWebDesktop} safeAreaBottom={false} className="app-bg">
+                      <AppEntryTransition
+                        className="flex flex-col w-full overflow-hidden select-none"
+                        style={{
+                          position: 'relative',
+                          height: '100%',
+                        } as React.CSSProperties}
                       >
-                        {isWebDesktop && (
-                          <WebAppSectionDock 
-                            app="chords" 
-                            activeSection={cachedPanel} 
-                            onChangeSection={setActivePanel} 
-                          />
-                        )}
-                        <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
-                          <ErrorBoundary moduleName="Chordex">
-                            <Suspense fallback={<SmartLoading fallbackSkeleton={<ChordexPanelSkeleton />} />}>
-                              <SharedNavigationContainer
-                                activeView={cachedPanel}
-                                viewOrder={ALL_PANELS}
-                              >
-                                {(panel) => (
-                                  <>
-                                    {panel === 'library'  && <LibraryPanel />}
-                                    {panel === 'chord'    && <ChordPanel />}
-                                    {panel === 'songs'    && <SongsPanel />}
-                                    {panel === 'settings' && <SettingsPanel />}
-                                  </>
-                                )}
-                              </SharedNavigationContainer>
-                            </Suspense>
-                          </ErrorBoundary>
+                        <div 
+                          style={{ 
+                            display: 'flex', 
+                            flexDirection: (isWebDesktop && isLargeDesktop) ? 'row' : 'column', 
+                            flex: 1, 
+                            width: '100%', 
+                            height: '100%', 
+                            overflow: 'hidden' 
+                          }}
+                        >
+                          {isWebDesktop && (
+                            <WebAppSectionDock 
+                              app="chords" 
+                              activeSection={cachedPanel} 
+                              onChangeSection={setActivePanel} 
+                            />
+                          )}
+                          <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
+                            <ErrorBoundary moduleName="Chordex">
+                              <Suspense fallback={<SmartLoading fallbackSkeleton={<ChordexPanelSkeleton />} />}>
+                                <SharedNavigationContainer
+                                  activeView={cachedPanel}
+                                  viewOrder={ALL_PANELS}
+                                >
+                                  {(panel) => (
+                                    <>
+                                      {panel === 'library'  && <LibraryPanel />}
+                                      {panel === 'chord'    && <ChordPanel />}
+                                      {panel === 'songs'    && <SongsPanel />}
+                                      {panel === 'settings' && <SettingsPanel />}
+                                    </>
+                                  )}
+                                </SharedNavigationContainer>
+                              </Suspense>
+                            </ErrorBoundary>
+                          </div>
                         </div>
-                      </div>
-                    </AppEntryTransition>
+                      </AppEntryTransition>
+                    </ScreenScaffold>
                   </div>
                 )}
               </motion.div>

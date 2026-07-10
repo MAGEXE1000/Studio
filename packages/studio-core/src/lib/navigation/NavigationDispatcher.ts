@@ -18,10 +18,7 @@ export class NavigationDispatcher {
   public static push(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
     console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)}`);
-    if (isTransitionLocked()) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
-      return;
-    }
+    // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
     const store = useNavigationStore.getState();
@@ -54,10 +51,7 @@ export class NavigationDispatcher {
   public static replace(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
     console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`);
-    if (isTransitionLocked()) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Replace ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
-      return;
-    }
+    // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
     const store = useNavigationStore.getState();
@@ -74,10 +68,7 @@ export class NavigationDispatcher {
   public static pop(): void {
     const timestamp = new Date().toISOString();
     console.log(`[NavigationDispatcher] [${timestamp}] pop`);
-    if (isTransitionLocked()) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Pop ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
-      return;
-    }
+    // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();
     if (isRootRouteOnly(store.history)) {
@@ -103,10 +94,7 @@ export class NavigationDispatcher {
   public static popTo(predicate: (route: NavigationRoute) => boolean): void {
     const timestamp = new Date().toISOString();
     console.log(`[NavigationDispatcher] [${timestamp}] popTo`);
-    if (isTransitionLocked()) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] popTo ignored: Transition is locked. Current history: ${JSON.stringify(useNavigationStore.getState().history)}`);
-      return;
-    }
+    // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();
     const index = store.history.findIndex(predicate);

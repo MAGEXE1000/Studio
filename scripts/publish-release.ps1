@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.6"
-$VersionCode = "232"
-$ReleaseNote = "v4.0.6 - Zero-latency global navigation optimization: Implement view state retention (keep-alive) and optimize Zustand subscription selectors/callbacks to reduce rendering overhead."
+$VersionName = "4.0.7"
+$VersionCode = "233"
+$ReleaseNote = "v4.0.7 - Chordex navigation and layout fixes: Fix Chordex safe area top padding alignment, correct bottom nav routing, unify transitions using SharedNavigationContainer, and remove transition locks (cooldown) globally."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

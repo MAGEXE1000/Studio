@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.8"
-$VersionCode = "234"
-$ReleaseNote = "v4.0.8 - Chordex startup polish and screen refresh: Preload Tolgee translations synchronously to prevent loading flashes, and modernise Quick Categories & action buttons on Chords home screen."
+$VersionName = "4.0.9"
+$VersionCode = "235"
+$ReleaseNote = "v4.0.9 - Updater state machine fix: Prevent premature 'Studio is up to date' during Android PackageInstaller installation by introducing an installation lock that guards all automatic update checks and startup lifecycle resets during active installation sessions."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -16,42 +16,19 @@ node apps/studio-android/scripts/sync-version.mjs
 node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
-git add packages/studio-core/src/lib/appVersion.ts
-git add packages/studio-core/src/lib/startupCoordinator.ts
-git add packages/studio-core/src/lib/otaUpdate.ts
-git add packages/studio-core/src/lib/performanceProfiler.ts
+git add packages/studio-core/src/lib/startup/appVersion.ts
+git add packages/studio-core/src/lib/startup/startupCoordinator.ts
+git add packages/studio-core/src/lib/updater/stateMachine.ts
+git add packages/studio-core/src/lib/updater/pipeline.ts
 git add packages/studio-core/src/lib/updater/diagnostics.ts
-git add packages/studio-core/src/lib/updater/stateMachine.ts
-git add packages/studio-core/src/lib/updater/updaterSimulation.ts
-git add packages/studio-core/src/lib/apkDownloader.ts
-git add packages/studio-core/src/lib/updater/cacheManager.ts
-git add packages/studio-core/src/lib/updater/releaseMetadata.ts
-git add packages/studio-core/src/lib/updater/versionLogger.ts
-git add packages/studio-core/src/lib/updater/versionComparison.ts
-git add packages/studio-core/src/index.ts
-git add packages/ui-shared/src/components/updater-diagnostics/diagnosticsGenerator.ts
-git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
-git add packages/ui-shared/src/components/updater-diagnostics/TelemetryGrid.tsx
-git add packages/ui-shared/src/components/updater-diagnostics/SimulationLab.tsx
-git add packages/ui-shared/src/components/UpdateIndicator.tsx
-git add packages/studio-core/src/lib/otaUpdate.ts
-git add packages/studio-core/src/lib/updater/releaseMetadata.ts
-git add packages/studio-core/src/lib/updater/stateMachine.ts
-git add packages/ui-shared/src/components/StudioUpdateScreen.tsx
-git add packages/ui-shared/src/components/StudioHub.tsx
-git add apps/studio-android/src/index.css
-git add apps/studio-web/src/index.css
+git add packages/studio-core/src/lib/updater/index.ts
+git add packages/ui-shared/src/components/update/UpdateIndicator.tsx
 git add apps/studio-android/package.json
 git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/public/version.json
 git add apps/studio-web/package.json
 git add CHANGELOG.md
-git add apps/studio-android/CHANGELOG.md
-git add apps/studio-web/CHANGELOG.md
-git add release-notes.md
-git add scripts/run-updater-regression-tests.mjs
 git add scripts/publish-release.ps1
-git add .github/workflows/release.yml
 git add -u
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."

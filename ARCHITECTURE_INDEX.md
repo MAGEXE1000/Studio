@@ -1,6 +1,6 @@
-﻿# Studio Architecture Index
+# Studio Architecture Index
 
-> **Last updated:** 2026-07-10
+> **Last updated:** 2026-07-10 (Sprint B — Navigation Module Refactor)
 > **Version:** 4.0.4 (Beta)
 > **Scope:** Full monorepo — all apps, packages, and lib layers
 > **Purpose:** Permanent, read-only reference. Do NOT modify application behavior to satisfy this document.
@@ -32,7 +32,9 @@ Studio/
 │   └── studio-android/    # Capacitor + Android native app (APK)
 ├── packages/
 │   ├── studio-core/       # Platform-neutral business logic & stores
+│   │   └── src/lib/navigation/  # [Sprint B] Navigation module (all nav concerns)
 │   ├── ui-shared/         # Cross-platform React components
+│   │   └── src/navigation/      # [Sprint B] Navigation UI module (BottomNav, animations, styles)
 │   ├── ui-web/            # Web-only layout components
 │   └── ui-android/        # Android-only components
 └── lib/
@@ -628,9 +630,14 @@ Auto-generated. Do not hand-edit.
 
 ### 6.2 Navigation System
 
-**Path:** src/lib/navigation/ — Introduced in Sprint 9.1
+**Path:** `src/lib/navigation/` — Introduced in Sprint 9.1, reorganized in Sprint B
 
-A typed, stack-based navigation system that replaces ad-hoc useState routing.
+All navigation concerns are co-located in `studio-core/src/lib/navigation/`. The directory has a single barrel (`index.ts`) that exports everything. Old import paths are preserved via 1-line re-export shims.
+
+**Shims (preserved for backward compatibility):**
+- `src/store/useNavigationStore.ts` → re-exports from `lib/navigation/useNavigationStore`
+- `src/lib/navScroll.ts` → re-exports from `lib/navigation/navScroll`
+- `src/lib/studioAppNavigationRegistry.ts` → re-exports from `lib/navigation/appRegistry`
 
 #### navigationTypes.ts
 
@@ -685,6 +692,31 @@ ormalizeAndValidateRoute, isRouteEqual, detectRecursion, isTransitionLocked, isR
 #### useBackHandler.ts
 
 React hook: registers a back-handler on mount via BackDispatcher, unregisters on unmount.
+
+#### useNavigationStore.ts — `src/lib/navigation/useNavigationStore.ts`
+
+| Field | Detail |
+|---|---|
+| **Purpose** | Zustand store for the typed route history stack and transition state |
+| **Key state** | `history: NavigationRoute[]`, `transitionType`, `isTransitioning`, `gestureState`, `predictiveProgress` |
+| **Key actions** | `setHistory`, `setTransition`, `setGestureState`, `registerHandler`, `unregisterHandler`, `resetStore` |
+| **Consumers** | `NavigationDispatcher`, `App.tsx`, `StudioHub.tsx`, `BottomNav.tsx` |
+
+#### navScroll.ts — `src/lib/navigation/navScroll.ts`
+
+| Field | Detail |
+|---|---|
+| **Purpose** | Scroll-hide + pill-collapse engine for the bottom navigation bar |
+| **Key exports** | `setNavHidden`, `setNavLocked`, `setNavCollapsed`, `useNavHidden`, `useNavCollapsed`, `useScrollHide`, `resetNav`, `onStateChanged` |
+| **Notable** | Contains a watchdog recovery system that auto-expands the nav if stuck in a collapsed state with no active scroll owner |
+
+#### appRegistry.ts — `src/lib/navigation/appRegistry.ts`
+
+| Field | Detail |
+|---|---|
+| **Purpose** | Per-app section definitions used by StudioHub and BottomNav to render sub-tabs |
+| **Key exports** | `APP_SECTIONS: Record<string, AppSection[]>`, `AppSection` interface |
+| **Apps covered** | `chords`, `drums`, `groovex`, `vocalex`, `stage` |
 
 ---
 
@@ -1010,28 +1042,58 @@ Stem-player app for multi-track song playback with mute/solo per stem.
 
 | Component | File | Purpose |
 |---|---|---|
-| **StudioHub** | StudioHub.tsx | Master app shell; all modes and drill-down navigation |
-| **SharedNavigationContainer** | SharedNavigationContainer.tsx | CSS-animation panel switcher (no Framer dependency) |
-| **AppAnimationSystem** | AppAnimationSystem.tsx | Framer Motion presets, AnimationCoordinator, AppEntryTransition |
-| **StudioLayoutSystem** | StudioLayoutSystem.tsx | SettingsScaffold, SettingsSection, DrillDownLayout |
-| **SmartLoading** | SmartLoading.tsx | Async gating with skeleton fallback and configurable delay |
-| **ErrorBoundary** | ErrorBoundary.tsx | React error boundary with recovery dialog |
-| **BottomNav** | BottomNav.tsx | Mobile bottom navigation with Liquid Glass effect |
-| **DevToolsDashboard** | DevToolsDashboard.tsx | Developer overlay: logs, navigation, network, performance, OTA |
-| **UpdateIndicator** | UpdateIndicator.tsx | Morphing update banner → pill → modal |
-| **AccountCard** | AccountCard.tsx | Full account management: profile, subscription, deletion |
-| **StudioDesignSystem** | StudioDesignSystem.tsx | Design tokens, color palettes, button/card primitives |
-| **WebDesignSystem** | WebDesignSystem.tsx | Web-specific WebToolbar, WebButton |
-| **StudioSkeleton** | StudioSkeleton.tsx | Skeleton loaders for each app mode |
-| **StageCorePanel** | StageCorePanel.tsx | StageX live chord display and stage mode UI |
-| **SongPracticeView** | SongPracticeView.tsx | Song chord chart practice view |
-| **ProgressionGenerator** | ProgressionGenerator.tsx | AI-style chord progression generator UI |
-| **CustomChordBuilder** | CustomChordBuilder.tsx | Interactive custom chord diagram builder |
-| **LiveMode** | LiveMode.tsx | Fullscreen live performance chord display |
-| **ChordDiagram** | ChordDiagram.tsx | Chord diagram router (guitar/piano/bass) |
-| **GuitarDiagram** | GuitarDiagram.tsx | SVG guitar fretboard chord diagram |
-| **PianoDiagram** | PianoDiagram.tsx | SVG piano key chord diagram |
-| **FourStringDiagram** | FourStringDiagram.tsx | SVG bass/ukulele chord diagram |
+| **StudioHub** | `components/StudioHub.tsx` | Master app shell; all modes and drill-down navigation |
+| **SharedNavigationContainer** | `navigation/SharedNavigationContainer.tsx` ⬅ Sprint B | CSS-animation panel switcher (no Framer dependency) |
+| **AppAnimationSystem** | `navigation/AppAnimationSystem.tsx` ⬅ Sprint B | Framer Motion presets, AnimationCoordinator, AppEntryTransition |
+| **BottomNav** | `navigation/BottomNav.tsx` ⬅ Sprint B | Mobile bottom navigation with Liquid Glass effect |
+| **StudioLayoutSystem** | `components/StudioLayoutSystem.tsx` | SettingsScaffold, SettingsSection, DrillDownLayout |
+| **SmartLoading** | `components/SmartLoading.tsx` | Async gating with skeleton fallback and configurable delay |
+| **ErrorBoundary** | `components/ErrorBoundary.tsx` | React error boundary with recovery dialog |
+| **DevToolsDashboard** | `components/DevToolsDashboard.tsx` | Developer overlay: logs, navigation, network, performance, OTA |
+| **UpdateIndicator** | `components/UpdateIndicator.tsx` | Morphing update banner → pill → modal |
+| **AccountCard** | `components/AccountCard.tsx` | Full account management: profile, subscription, deletion |
+| **StudioDesignSystem** | `components/StudioDesignSystem.tsx` | Design tokens, color palettes, button/card primitives |
+| **WebDesignSystem** | `components/WebDesignSystem.tsx` | Web-specific WebToolbar, WebButton |
+| **StudioSkeleton** | `components/StudioSkeleton.tsx` | Skeleton loaders for each app mode |
+| **StageCorePanel** | `components/StageCorePanel.tsx` | StageX live chord display and stage mode UI |
+| **SongPracticeView** | `components/SongPracticeView.tsx` | Song chord chart practice view |
+| **ProgressionGenerator** | `components/ProgressionGenerator.tsx` | AI-style chord progression generator UI |
+| **CustomChordBuilder** | `components/CustomChordBuilder.tsx` | Interactive custom chord diagram builder |
+| **LiveMode** | `components/LiveMode.tsx` | Fullscreen live performance chord display |
+| **ChordDiagram** | `components/ChordDiagram.tsx` | Chord diagram router (guitar/piano/bass) |
+| **GuitarDiagram** | `components/GuitarDiagram.tsx` | SVG guitar fretboard chord diagram |
+| **PianoDiagram** | `components/PianoDiagram.tsx` | SVG piano key chord diagram |
+| **FourStringDiagram** | `components/FourStringDiagram.tsx` | SVG bass/ukulele chord diagram |
+
+---
+
+### 7.5 Navigation Module (ui-shared) — Sprint B
+
+**Path:** `packages/ui-shared/src/navigation/`
+**Entry point:** `packages/ui-shared/src/navigation/index.ts`
+
+All navigation UI concerns are now co-located in this directory. The `index.ts` barrel re-exports all four items. The original `components/` paths are preserved as 1-line `export *` shims.
+
+| File | Role |
+|---|---|
+| `index.ts` | Barrel — re-exports all navigation UI |
+| `navStyles.ts` | `SHARED_NAV_TRANSITION`, `getSharedNavTransform`, `getSharedNavOpacity` — shared CSS transition/transform constants |
+| `SharedNavigationContainer.tsx` | CSS-animation panel switcher used in `App.tsx`; zero Framer Motion dependency |
+| `AppAnimationSystem.tsx` | Framer Motion presets (`MOTION_DURATIONS`, `MOTION_EASINGS`), `AnimationCoordinator`, `useNavigationCoordinator`, `PageTransition`, `AppEntryTransition`, `StaggeredReveal`, `AnimatedAppHeader` |
+| `BottomNav.tsx` | Mobile bottom navigation bar; reads `useNavigationStore`, `useNavHidden`, `useNavCollapsed`, `useLiquidGlassNav`; renders Liquid Glass pill on collapse |
+
+**Shims in `components/`:**
+- `components/navStyles.ts` → `export * from '../navigation/navStyles'`
+- `components/SharedNavigationContainer.tsx` → `export * from '../navigation/SharedNavigationContainer'`
+- `components/AppAnimationSystem.tsx` → `export * from '../navigation/AppAnimationSystem'`
+- `components/BottomNav.tsx` → `export * from '../navigation/BottomNav'`
+
+**index.ts updated lines (Sprint B):**
+- Line 6: `SharedNavigationContainer` now points to `'./navigation/SharedNavigationContainer'`
+- Line 29: `AppAnimationSystem` now points to `'./navigation/AppAnimationSystem'`
+- Line 71: `BottomNav` now points to `'./navigation/BottomNav'`
+
+
 
 ---
 

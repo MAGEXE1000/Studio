@@ -3,6 +3,7 @@ export { default as AppSpinner } from './components/AppSpinner';
 export { default as ElasticSlider } from './components/ElasticSlider';
 export { default as GradientBorderCard } from './components/GradientBorderCard';
 export { default as SmartLoading, AppLoadingScreen } from './components/SmartLoading';
+export { SharedNavigationContainer } from './navigation/SharedNavigationContainer';
 export { default as StudioCountUpPercentage } from './components/StudioCountUpPercentage';
 export { default as StudioProgressBar } from './components/StudioProgressBar';
 export { default as StudioThemeToggler } from './components/StudioThemeToggler';
@@ -25,7 +26,7 @@ export { default as VocalexApp } from './vocalex/VocalexApp';
 export { default as StageCorePanel } from './components/StageCorePanel';
 export { default as StudioHub } from './components/StudioHub';
 export * from './components/NavIcons';
-export * from './components/AppAnimationSystem';
+export * from './navigation/AppAnimationSystem';
 export { SongPracticeView } from './components/SongPracticeView';
 
 // Remaining components in ui-shared/components
@@ -67,7 +68,7 @@ export { WebToolbar, WebButton } from './components/WebDesignSystem';
 export { default as WebAppSectionDock } from './components/WebAppSectionDock';
 export { default as DevToolsDashboard } from './components/DevToolsDashboard';
 
-export { default as BottomNav } from './components/BottomNav';
+export { default as BottomNav } from './navigation/BottomNav';
 export { default as UpdateIndicator } from './components/UpdateIndicator';
 export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';export { default as UpdaterDiagnosticsPage } from './components/updater-diagnostics/UpdaterDiagnosticsPage';
 export { copyToClipboard } from './components/updater-diagnostics/centralizedClipboard';

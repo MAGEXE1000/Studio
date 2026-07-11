@@ -1,5 +1,5 @@
 import { useOtaUpdate, type StructuredReleaseNotes, otaDiagnostics, otaDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, isNative, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller } from '@workspace/studio-core';
-import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent, clearInstallationJustCompleted } from '@workspace/studio-core';
+import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent, clearInstallationJustCompleted, endPostInstallSession } from '@workspace/studio-core';
 /**
  * Floating "update available" indicator — top of the Hub.
  *
@@ -983,27 +983,17 @@ function UpdateModal({
   useEffect(() => {
     const isCompleted = ota.updateState === 'INSTALL_SUCCESS';
     if (!isCompleted) return;
-    console.log('[OTA UI] Installation success detected. Will attempt app exit in 2.5s...');
-    // After a successful APK installation, attempt to exit the app so
-    // Android can relaunch with the new version. Do NOT call dismissUpdate()
-    // here — that clears the installation lock and allows automatic
-    // checkForUpdate to run while the old process is still alive, causing
-    // the premature "Studio is up to date" message.
-    const timer = setTimeout(async () => {
-      if (isNative()) {
-        try {
-          const { App: CapApp } = await import('@capacitor/app');
-          await CapApp.exitApp();
-        } catch (_) {
-          // If exit fails (e.g. emulator), keep the success screen visible.
-          // The user can tap "Done" to dismiss manually.
-          console.warn('[OTA UI] exitApp() failed. Success screen remains visible.');
-        }
-      }
-      // On non-native (web), do nothing — the success screen stays
-      // until the user taps Done. This prevents the premature reset.
-    }, 2500);
-    return () => clearTimeout(timer);
+    // The success screen stays visible until one of:
+    // 1. Android kills this process and relaunches the new version
+    // 2. The user taps the "Done" button (which calls endPostInstallSession)
+    // 3. The 5-minute safety timeout in stateMachine.ts expires
+    //
+    // We do NOT auto-close, dismiss, or exit. The post-install session in
+    // stateMachine.ts blocks ALL automatic update checks, lifecycle triggers,
+    // and state resets. This eliminates the premature "Studio is up to date"
+    // message that occurred when the old process was still alive after APK
+    // installation.
+    console.log('[OTA UI] Installation success detected. Success screen will remain visible until lifecycle transition.');
   }, [ota.updateState, ota]);
 
   const getDiagnosticsText = () => {
@@ -2012,8 +2002,9 @@ function UpdateModal({
             onClick={async () => {
               console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
               try {
-                // Clear the post-install lock before closing so future automatic
-                // checks are not blocked on the next cold start.
+                // End the post-install session and clear all locks so future
+                // automatic checks are not blocked on the next cold start.
+                endPostInstallSession('user_done_button');
                 clearInstallationJustCompleted();
                 onClose();
                 ota.dismissUpdate();

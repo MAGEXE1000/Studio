@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.13';
-export const WEB_VERSION = '4.0.13';
+export const NATIVE_VERSION = '4.0.14';
+export const WEB_VERSION = '4.0.14';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.",
-      "Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.",
-      "Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running.",
+      "Replaced timer-based auto-close after installation with a lifecycle-synchronized post-install session that stays active until Android confirms the process transition.",
+      "The updater success screen now remains visible until the app process is replaced, the user taps Done, or a 5-minute safety timeout expires.",
+      "All automatic update checks, lifecycle triggers, and state resets are blocked during the post-install session using process boot ID detection.",
+      "Added detailed process-level instrumentation for post-install lifecycle events.",
     ],
   },
 ];

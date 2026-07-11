@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.13"
-$VersionCode = "239"
-$ReleaseNote = "v4.0.13 - Fix premature 'Studio is up to date': Remove auto-dismiss timer after INSTALL_SUCCESS, guard dismissUpdate against active install states, and preserve installationJustCompleted lock across INSTALL_SUCCESS to IDLE transitions."
+$VersionName = "4.0.14"
+$VersionCode = "240"
+$ReleaseNote = "v4.0.14 - Lifecycle-synchronized post-install session: Replace timer-based auto-close with process boot ID detection. Block all automatic update checks during post-install window. Success screen remains visible until genuine lifecycle transition."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

@@ -3,7 +3,7 @@ import { useChordStore } from '../../store/useChordStore';
 import { syncStatusBar } from '../platform/useStatusBar';
 import { applyThemeTokens } from '../preferences/themeEngine';
 import { enforceStartupRecovery, initializeGlobalOtaListeners, globalOtaState } from '../otaUpdate';
-import { isInstallationLocked } from '../updater/stateMachine';
+import { isInstallationLocked, isPostInstallSessionActive, getPostInstallSessionInfo } from '../updater/stateMachine';
 import { logInstallLockEvent } from '../updater/diagnostics';
 import { seedAudioAssets } from '../storage/assetCache';
 import { ensureNotificationPermission } from '../platform/capgoUpdater';
@@ -619,6 +619,17 @@ class StartupCoordinatorClass {
 
   private async triggerOtaUpdateCheck(trigger: string, reason: string) {
     try {
+      // Post-install session guard — blocks ALL lifecycle-triggered update checks
+      // while the post-install session is active. This prevents visibilitychange,
+      // focus, appStateChange, resume, and polling from running checkForUpdate
+      // in the zombie process window after APK installation.
+      if (isPostInstallSessionActive()) {
+        const info = getPostInstallSessionInfo();
+        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): post-install session is active. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+        logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: post-install session active. bootId=${info.bootId}`, { trigger });
+        return;
+      }
+
       const { checkForUpdate, getInstallRecoveryPromise } = await import('../otaUpdate');
 
       // ─── Race-prevention gate ────────────────────────────────────────────

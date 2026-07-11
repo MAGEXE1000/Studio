@@ -243,6 +243,117 @@ export function clearInstallationJustCompleted() {
   }
 }
 
+// ─── Post-Install Session ─────────────────────────────────────────────────
+// A lifecycle-synchronized session that stays active after INSTALL_SUCCESS
+// until the Android process is genuinely replaced or the user explicitly
+// dismisses. This is the authoritative lock that prevents ALL automatic
+// update checks, lifecycle triggers, and state resets in the zombie
+// process window after APK installation.
+
+/**
+ * Process boot marker. Set to a unique value on each cold start via
+ * sessionStorage (which is cleared when the process dies). If this value
+ * differs from the value stored when the post-install session was created,
+ * the current process is a NEW process (the APK install completed and
+ * Android relaunched the app).
+ */
+const PROCESS_BOOT_ID = (() => {
+  const key = 'studio:processBootId';
+  try {
+    const existing = sessionStorage.getItem(key);
+    if (existing) return existing;
+    const id = `boot_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    sessionStorage.setItem(key, id);
+    return id;
+  } catch {
+    return `boot_${Date.now()}_fallback`;
+  }
+})();
+
+let postInstallSessionActive = false;
+let postInstallSessionBootId: string | null = null;
+let postInstallSessionTimestamp: number | null = null;
+let postInstallSessionTimer: ReturnType<typeof setTimeout> | null = null;
+const POST_INSTALL_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes safety
+
+/**
+ * Activates the post-install session. Called on INSTALL_SUCCESS.
+ * The session blocks ALL automatic update checks until one of:
+ * 1. A cold start is detected (new PROCESS_BOOT_ID)
+ * 2. The user explicitly calls endPostInstallSession() via Done button
+ * 3. A 5-minute safety timeout expires
+ */
+function activatePostInstallSession() {
+  postInstallSessionActive = true;
+  postInstallSessionBootId = PROCESS_BOOT_ID;
+  postInstallSessionTimestamp = Date.now();
+  if (postInstallSessionTimer) clearTimeout(postInstallSessionTimer);
+  postInstallSessionTimer = setTimeout(() => {
+    console.log('[PostInstallSession] Safety timeout (5min) reached — ending post-install session.');
+    postInstallSessionActive = false;
+    postInstallSessionBootId = null;
+    postInstallSessionTimestamp = null;
+    postInstallSessionTimer = null;
+  }, POST_INSTALL_SESSION_TIMEOUT_MS);
+  console.log(`[PostInstallSession] ACTIVATED. bootId=${PROCESS_BOOT_ID}. All automatic checks blocked until session ends.`);
+}
+
+/**
+ * Returns true if a post-install session is active AND we are still in the
+ * same process that started it. If the process has been replaced (different
+ * PROCESS_BOOT_ID), the session is automatically cleared.
+ */
+export function isPostInstallSessionActive(): boolean {
+  if (!postInstallSessionActive) return false;
+  // Cold start detection: if the current process boot ID differs from the
+  // one that activated the session, the process was replaced by Android.
+  if (postInstallSessionBootId !== null && postInstallSessionBootId !== PROCESS_BOOT_ID) {
+    console.log(`[PostInstallSession] Cold start detected — bootId changed from ${postInstallSessionBootId} to ${PROCESS_BOOT_ID}. Ending session.`);
+    endPostInstallSessionInternal('cold_start_detected');
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Ends the post-install session. Called explicitly by the user (Done button)
+ * or by cold start detection.
+ */
+export function endPostInstallSession(reason: string) {
+  endPostInstallSessionInternal(reason);
+}
+
+function endPostInstallSessionInternal(reason: string) {
+  if (postInstallSessionActive) {
+    const duration = postInstallSessionTimestamp ? Date.now() - postInstallSessionTimestamp : 0;
+    console.log(`[PostInstallSession] ENDED. Reason: ${reason}. Duration: ${duration}ms. bootId=${postInstallSessionBootId}`);
+  }
+  postInstallSessionActive = false;
+  postInstallSessionBootId = null;
+  postInstallSessionTimestamp = null;
+  if (postInstallSessionTimer) {
+    clearTimeout(postInstallSessionTimer);
+    postInstallSessionTimer = null;
+  }
+}
+
+/** Returns instrumentation data for the post-install session. */
+export function getPostInstallSessionInfo(): {
+  active: boolean;
+  bootId: string;
+  sessionBootId: string | null;
+  timestamp: number | null;
+  elapsed: number | null;
+} {
+  return {
+    active: postInstallSessionActive,
+    bootId: PROCESS_BOOT_ID,
+    sessionBootId: postInstallSessionBootId,
+    timestamp: postInstallSessionTimestamp,
+    elapsed: postInstallSessionTimestamp ? Date.now() - postInstallSessionTimestamp : null,
+  };
+}
+
 /**
  * Returns true if any form of installation is currently active or
  * just completed and the UI has not yet acknowledged it.
@@ -258,6 +369,7 @@ export function clearInstallationJustCompleted() {
 export function isInstallationLocked(): boolean {
   if (activeUpdateSession !== null) return true;
   if (installationJustCompleted) return true;
+  if (isPostInstallSessionActive()) return true;
   const lockedStates: OtaUpdateState[] = [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
@@ -682,6 +794,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   // "Studio is up to date" before the completion screen is acknowledged.
   if (state === 'INSTALL_SUCCESS') {
     setInstallationJustCompleted();
+    activatePostInstallSession();
   }
 
   // Clear the post-install lock when transitioning to terminal/reset states

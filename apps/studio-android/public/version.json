@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.13",
-  "versionName": "4.0.13",
-  "versionCode": 239,
-  "version_code": 239,
-  "commit": "fe938c11",
-  "releasedAt": "7/10/2026, 10:26:20 AM CST",
-  "buildTimestamp": "7/10/2026, 10:26:20 AM CST",
+  "version": "4.0.14",
+  "versionName": "4.0.14",
+  "versionCode": 240,
+  "version_code": 240,
+  "commit": "47f79bf0",
+  "releasedAt": "7/10/2026, 7:39:41 PM CST",
+  "buildTimestamp": "7/10/2026, 7:39:41 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.\n• Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.\n• Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running.",
-  "whatsNew": "• Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.\n• Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.\n• Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running.",
+  "changelog": "• Replaced timer-based auto-close after installation with a lifecycle-synchronized post-install session that stays active until Android confirms the process transition.\n• The updater success screen now remains visible until the app process is replaced, the user taps Done, or a 5-minute safety timeout expires.\n• All automatic update checks, lifecycle triggers, and state resets are blocked during the post-install session using process boot ID detection.\n• Added detailed process-level instrumentation for post-install lifecycle events.",
+  "whatsNew": "• Replaced timer-based auto-close after installation with a lifecycle-synchronized post-install session that stays active until Android confirms the process transition.\n• The updater success screen now remains visible until the app process is replaced, the user taps Done, or a 5-minute safety timeout expires.\n• All automatic update checks, lifecycle triggers, and state resets are blocked during the post-install session using process boot ID detection.\n• Added detailed process-level instrumentation for post-install lifecycle events.",
   "releaseNotes": {
     "fixed": [
-      "Fixed premature \"Studio is up to date\" message appearing while Android is still installing the update.",
-      "Prevented the auto-close timer from resetting the installation lock after a successful install, which allowed stale update checks to run in the old app process.",
-      "Added a safety guard to dismissUpdate so it cannot reset state while the PackageInstaller is actively running."
+      "Replaced timer-based auto-close after installation with a lifecycle-synchronized post-install session that stays active until Android confirms the process transition.",
+      "The updater success screen now remains visible until the app process is replaced, the user taps Done, or a 5-minute safety timeout expires.",
+      "All automatic update checks, lifecycle triggers, and state resets are blocked during the post-install session using process boot ID detection.",
+      "Added detailed process-level instrumentation for post-install lifecycle events."
     ]
   },
   "mandatory": false

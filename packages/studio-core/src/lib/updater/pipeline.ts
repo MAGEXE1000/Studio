@@ -35,6 +35,8 @@ import {
   type OtaUpdateState,
   isUpdateSessionActive,
   isInstallationLocked,
+  isPostInstallSessionActive,
+  getPostInstallSessionInfo,
   startUpdateSession,
   activeUpdateSession,
   verifyAndCleanCaches,
@@ -868,6 +870,19 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     'PACKAGEINSTALLER_VISIBLE', 'INSTALLING', 'INSTALL_SUCCESS',
   ].includes(current);
 
+  // Post-install session guard — blocks ALL update checks (even manual) while
+  // the post-install session is active. This session persists after INSTALL_SUCCESS
+  // until the process is replaced by Android, the user taps Done, or the 5-min
+  // safety timeout expires. This is the definitive guard against the premature
+  // "Studio is up to date" message.
+  if (isPostInstallSessionActive()) {
+    const info = getPostInstallSessionInfo();
+    console.log(`[OTA] Rejecting checkForUpdate (trigger=${trigger}): post-install session is active. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_POST_INSTALL_SESSION', `trigger=${trigger}, bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+    logInstallLockEvent('CHECK_BLOCKED', `checkForUpdate rejected: post-install session active`, { trigger, caller: `bootId=${info.bootId}` });
+    return Promise.resolve(globalOtaState);
+  }
+
   // isInstallationLocked() is the authoritative guard — it covers all active
   // install states PLUS the post-INSTALL_SUCCESS window where isUpdateSessionActive()
   // already returns false because the session was cleared on success.
@@ -1643,6 +1658,15 @@ export function initializeGlobalOtaListeners() {
           logTimelineEvent('AppLifecycle', current === 'active' ? 'ACTIVITY_RESUMED' : 'ACTIVITY_PAUSED');
         }
         if (state.isActive) {
+          // Block all recovery during post-install session — the old process
+          // may resume from background after the PackageInstaller closes, but
+          // we must not run any state recovery or update checks.
+          if (isPostInstallSessionActive()) {
+            const info = getPostInstallSessionInfo();
+            console.log(`[OTA Lifecycle] App resumed but post-install session is active. Skipping recovery. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+            logTimelineEvent('AppLifecycle', 'RECOVERY_SKIPPED_POST_INSTALL', `bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+            return;
+          }
           console.log('[OTA Lifecycle] App returned to foreground. Recovering updater state...');
           logTimelineEvent('AppLifecycle', 'RECOVERY_TRIGGERED_ON_RESUME');
           // Assign to the shared recovery promise BEFORE awaiting, so that any

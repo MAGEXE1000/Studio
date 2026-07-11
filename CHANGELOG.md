@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.22
+
+### Added
+- Overhauled Updater Diagnostics UI into 4 high-density collapsible sections.
+- Added real-time Live Timeline with filter, search, pause/resume, copy/export controls.
+- Implemented Capacitor AppInstaller plugin Proxy guard to guarantee simulated updates never trigger native installations.
+- Redesigned Updater Flight Recorder with 300 events ring buffer, size limits, severity levels, and automated session pruning.
+
 ## 4.0.21
 
 ### Added

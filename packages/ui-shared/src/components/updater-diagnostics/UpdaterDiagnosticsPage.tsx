@@ -1,54 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   isNative, 
-  AppInstaller, 
-  addJsLog, 
-  useChordStore,
-  ACCENT_COLORS,
+  globalOtaState, 
+  updaterSimulation, 
+  triggerSimulatedStatus, 
+  resetOtaUpdateState, 
+  applyUpdate, 
+  downloadUpdate, 
+  checkForUpdate, 
+  stateListeners, 
+  UpdaterFlightRecorder, 
+  isInstallationLocked, 
+  isPostInstallSessionActive, 
+  shouldUseAndroidApkUpdater, 
+  useIsWebDesktop,
   getLogs,
-  useScrollHide,
-  getUpdateSessions,
-  deleteAllUpdateSessions,
-  deleteUpdateSession,
-  getActiveSession,
-  exportSessionSubset,
-  type UpdateSession,
-  otaDebugLogs,
-  isUpdateSessionActive,
-  loadPersistedSession,
-  activeUpdateSession,
-  globalOtaState,
-  releaseMetadataInspector,
-  activityLifecycleTimeline,
-  transitionHistory,
-  rejectedTransitions,
-  updaterSimulation,
-  triggerSimulatedStatus,
-  resetOtaUpdateState,
-  applyUpdate,
-  downloadUpdate,
-  checkForUpdate,
-  stateListeners,
-  UpdaterFlightRecorder,
   getErrors,
-  APP_VERSION,
+  activeUpdateSession,
   activePipelineContext,
   otaDiagnostics,
   PerformanceProfiler,
-  isInstallationLocked,
-  isPostInstallSessionActive,
-  shouldUseAndroidApkUpdater,
-  useIsWebDesktop
+  transitionHistory,
+  rejectedTransitions,
+  clearSimulationLogs,
+  addJsLog,
+  getUpdateSessions,
+  getActiveSession,
+  otaDebugLogs,
+  useChordStore,
+  useNavigationStore,
+  APP_VERSION
 } from '@workspace/studio-core';
-import TelemetryGrid from './TelemetryGrid';
-import ProductionActions from './ProductionActions';
-import LiveConsole from './LiveConsole';
-import DiagnosticsStack from './DiagnosticsStack';
 import { CopyDropdown } from '../devtools/DevToolsDashboard';
-import SimulationLab from './SimulationLab';
-import StateMachineVisualizer from './StateMachineVisualizer';
-import ReportPreview from './ReportPreview';
 import { copyToClipboard } from './centralizedClipboard';
+import { generateCopyEverythingReport } from './diagnosticsGenerator';
 
 interface Props {
   onBack: () => void;
@@ -57,9 +42,9 @@ interface Props {
 export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const { settings } = useChordStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  useScrollHide(scrollRef);
+  const isWebDesktop = useIsWebDesktop();
 
-  // Increment render and paint counts
+  // Increment render count
   if (otaDebugLogs) {
     otaDebugLogs.renderCount = (otaDebugLogs.renderCount || 0) + 1;
     if (typeof window !== 'undefined') {
@@ -74,23 +59,34 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   });
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  
-  // Persistent Diagnostics Session History
-  const [sessions, setSessions] = useState<UpdateSession[]>([]);
-  const [selectedSessionId, setSelectedSessionId] = useState<string>('current');
   const [refreshCount, setRefreshCount] = useState(0);
+  const triggerRefresh = useCallback(() => setRefreshCount(prev => prev + 1), []);
 
-  const triggerRefresh = () => setRefreshCount(prev => prev + 1);
-
-  // Native platform diagnostics states
-  const [nativeDeviceInfo, setNativeDeviceInfo] = useState<any>(null);
-  const [nativeInstallerDetails, setNativeInstallerDetails] = useState<any>(null);
-  const [localApkDetails, setLocalApkDetails] = useState<any>(null);
-  const [nativeLogsList, setNativeLogsList] = useState<any[]>([]);
-
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
+  }, []);
+
+  // Persistent collapse states
+  const [secOverviewOpen, setSecOverviewOpen] = useState(() => {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('studio:diag_sec_overview') !== 'false' : true;
+  });
+  const [secTestingOpen, setSecTestingOpen] = useState(() => {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('studio:diag_sec_testing') !== 'false' : true;
+  });
+  const [secTimelineOpen, setSecTimelineOpen] = useState(() => {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('studio:diag_sec_timeline') !== 'false' : true;
+  });
+  const [secDiagnosticsOpen, setSecDiagnosticsOpen] = useState(() => {
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('studio:diag_sec_diagnostics') !== 'false' : true;
+  });
+
+  const toggleSection = (key: string, current: boolean, setter: (val: boolean) => void) => {
+    const next = !current;
+    setter(next);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(`studio:diag_sec_${key}`, String(next));
+    }
   };
 
   const [simActive, setSimActive] = useState(() => {
@@ -98,15 +94,50 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   });
 
   const [otaState, setOtaState] = useState(globalOtaState);
+  const [fps, setFps] = useState(60);
 
-  // Subscribe to state machine listeners to update UI live and run auto-progress simulation workflows
+  // FPS tracker
+  useEffect(() => {
+    let lastTime = performance.now();
+    let frames = 0;
+    let animFrameId: number;
+
+    const tick = () => {
+      frames++;
+      const now = performance.now();
+      if (now >= lastTime + 1000) {
+        setFps(Math.round((frames * 1000) / (now - lastTime)));
+        frames = 0;
+        lastTime = now;
+      }
+      animFrameId = requestAnimationFrame(tick);
+    };
+
+    tick();
+    return () => cancelAnimationFrame(animFrameId);
+  }, []);
+
+  // Global update execution scenario status
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+  const [scenarioDurations, setScenarioDurations] = useState<Record<string, number>>({});
+  const scenarioTimerRef = useRef<any>(null);
+
+  // Subscribe to state machine transitions to drive simulation
   useEffect(() => {
     const listener = (newState: any) => {
       setOtaState(newState);
-      setSimActive(typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true');
+      const isSim = typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
+      setSimActive(isSim);
       triggerRefresh();
 
-      // Auto-progress simulation workflow if runWorkflowActive is true
+      if (newState.updateState === 'INSTALL_SUCCESS' || newState.updateState === 'INSTALL_FAILED') {
+        setActiveScenarioId(null);
+        if (scenarioTimerRef.current) {
+          clearInterval(scenarioTimerRef.current);
+        }
+      }
+
+      // Auto-progress simulation workflow steps
       if (updaterSimulation.runWorkflowActive && newState.updateState === 'UPDATE_AVAILABLE') {
         setTimeout(() => {
           if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'UPDATE_AVAILABLE') {
@@ -115,7 +146,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
               console.error('Simulated downloadUpdate failed:', e);
             });
           }
-        }, 1500);
+        }, 1200);
       }
 
       if (updaterSimulation.runWorkflowActive && newState.updateState === 'WAITING_USER_CONFIRMATION') {
@@ -126,7 +157,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
               console.error('Simulated applyUpdate failed:', e);
             });
           }
-        }, 1500);
+        }, 1200);
       }
 
       if (updaterSimulation.runWorkflowActive && newState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
@@ -143,12 +174,15 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
               simulateCancelledInstall();
             }
           }
-        }, 1500);
+        }, 1200);
       }
     };
     stateListeners.add(listener);
     return () => {
       stateListeners.delete(listener);
+      if (scenarioTimerRef.current) {
+        clearInterval(scenarioTimerRef.current);
+      }
     };
   }, [triggerRefresh]);
 
@@ -182,6 +216,25 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.simulateDownloadThrottling = false;
   };
 
+  const startScenario = (id: string, workflowAction: () => Promise<void>) => {
+    setActiveScenarioId(id);
+    setScenarioDurations(prev => ({ ...prev, [id]: 0 }));
+    if (scenarioTimerRef.current) {
+      clearInterval(scenarioTimerRef.current);
+    }
+    const startTime = Date.now();
+    scenarioTimerRef.current = setInterval(() => {
+      setScenarioDurations(prev => ({ ...prev, [id]: Date.now() - startTime }));
+    }, 100);
+
+    workflowAction().catch(err => {
+      console.error(`Workflow scenario ${id} failed:`, err);
+      showToast(`Scenario failed: ${err.message || String(err)}`);
+      setActiveScenarioId(null);
+      clearInterval(scenarioTimerRef.current);
+    });
+  };
+
   const runSuccessfulUpdateWorkflow = async () => {
     localStorage.setItem('studio:is_simulation_active', 'true');
     setSimActive(true);
@@ -190,7 +243,6 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.forceUpdateAvailable = true;
     updaterSimulation.simulateDownload = true;
     updaterSimulation.forceInstallSuccess = true;
-    showToast('Successful Update Workflow started');
     await checkForUpdate(true, 'dev_tools', 'Simulation: Successful Update');
     triggerRefresh();
   };
@@ -204,7 +256,6 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.simulateDownload = true;
     updaterSimulation.injectDownloadFailure = true;
     updaterSimulation.forceDownloadFailure = true;
-    showToast('Download Failure Workflow started');
     await checkForUpdate(true, 'dev_tools', 'Simulation: Download Failure');
     triggerRefresh();
   };
@@ -218,8 +269,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.simulateDownload = true;
     updaterSimulation.injectChecksumFailure = true;
     updaterSimulation.forceShaFailure = true;
-    showToast('Verification Failure Workflow started');
-    await checkForUpdate(true, 'dev_tools', 'Simulation: Verification Failure');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Verification Mismatch');
     triggerRefresh();
   };
 
@@ -231,21 +281,19 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.forceUpdateAvailable = true;
     updaterSimulation.simulateDownload = true;
     updaterSimulation.forcePendingUserAction = true;
-    showToast('PackageInstaller Workflow started');
-    await checkForUpdate(true, 'dev_tools', 'Simulation: PackageInstaller');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: PackageInstaller Dialog');
     triggerRefresh();
   };
 
-  const runInstallationFailureWorkflow = async () => {
+  const runRecoveryWorkflow = async () => {
     localStorage.setItem('studio:is_simulation_active', 'true');
     setSimActive(true);
     clearOverrides();
     updaterSimulation.runWorkflowActive = true;
     updaterSimulation.forceUpdateAvailable = true;
     updaterSimulation.simulateDownload = true;
-    updaterSimulation.forceInstallFailure = true;
-    showToast('Installation Failure Workflow started');
-    await checkForUpdate(true, 'dev_tools', 'Simulation: Installation Failure');
+    updaterSimulation.forceSignatureMismatch = true;
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Signature Mismatch Recovery');
     triggerRefresh();
   };
 
@@ -254,7 +302,11 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     setSimActive(false);
     clearOverrides();
     resetOtaUpdateState();
-    showToast('Simulation overrides cleared and updater reset');
+    setActiveScenarioId(null);
+    if (scenarioTimerRef.current) {
+      clearInterval(scenarioTimerRef.current);
+    }
+    showToast('Workflow simulation stopped & reset to IDLE');
     triggerRefresh();
   };
 
@@ -264,16 +316,17 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.forceInstallFailure = false;
     updaterSimulation.forceUserCancel = false;
     
+    // Simulate installer states
     setTimeout(() => triggerSimulatedStatus(-2, 'installing_start'), 100);
     for (let i = 1; i <= 10; i++) {
       const progress = i / 10;
       setTimeout(() => {
-        triggerSimulatedStatus(-3, progress > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', progress);
+        triggerSimulatedStatus(-3, progress > 0.9 ? 'Finalizing installation...' : 'Optimizing system packages...', progress);
       }, 100 + i * 150);
     }
     setTimeout(() => {
       triggerSimulatedStatus(0, 'STATUS_SUCCESS');
-      showToast('Simulating: Successful Installation');
+      showToast('Simulated Success Installation Complete');
       triggerRefresh();
     }, 1800);
   };
@@ -283,13 +336,9 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.forceInstallSuccess = false;
     updaterSimulation.forceInstallFailure = true;
     updaterSimulation.forceUserCancel = false;
-    
-    setTimeout(() => triggerSimulatedStatus(-2, 'installing_start'), 100);
-    setTimeout(() => {
-      triggerSimulatedStatus(1, 'STATUS_FAILURE');
-      showToast('Simulating: Installation Failure');
-      triggerRefresh();
-    }, 1000);
+    triggerSimulatedStatus(1, 'STATUS_FAILURE');
+    showToast('Simulated Installation Failed');
+    triggerRefresh();
   };
 
   const simulateCancelledInstall = () => {
@@ -297,1020 +346,813 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     updaterSimulation.forceInstallSuccess = false;
     updaterSimulation.forceInstallFailure = false;
     updaterSimulation.forceUserCancel = true;
-    
-    setTimeout(() => {
-      triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
-      showToast('Simulating: User Cancelled Installation');
-      triggerRefresh();
-    }, 500);
+    triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
+    showToast('Simulated Installation Cancelled');
+    triggerRefresh();
   };
 
-  const refreshSessionsList = () => {
-    const list = getUpdateSessions();
-    setSessions(list);
-    if (list.length > 0 && selectedSessionId === 'current') {
-      const active = getActiveSession();
-      if (active) {
-        setSelectedSessionId(active.id);
-      } else {
-        setSelectedSessionId(list[list.length - 1].id);
-      }
-    }
-  };
+  // Section 3: Live Timeline States
+  const [timelineSearch, setTimelineSearch] = useState('');
+  const [timelineFilter, setTimelineFilter] = useState<'all' | 'transitions' | 'errors' | 'native' | 'lifecycle'>('all');
+  const [timelinePaused, setTimelinePaused] = useState(false);
+  const [timelineAutoScroll, setTimelineAutoScroll] = useState(true);
+  const timelineViewportRef = useRef<HTMLDivElement>(null);
 
-  // Sync data loop on native platform
+  // Group events by session ID and capture logs
+  const rawFlightEvents = UpdaterFlightRecorder.getEvents();
+  const cachedTimelineLogs = useMemo(() => {
+    const list: Array<{ timestamp: number; sessionId: string | null; type: 'transition' | 'error' | 'native' | 'lifecycle'; text: string; details?: string; severity?: string; count?: number }> = [];
+
+    transitionHistory.forEach(t => {
+      list.push({
+        timestamp: t.timestamp,
+        sessionId: otaState.sessionId ? String(otaState.sessionId) : null,
+        type: 'transition',
+        text: `State: ${t.from} → ${t.to}`,
+        details: `Caller: ${t.caller} | Reason: ${t.reason} ${t.invalid ? '(INVALID)' : ''}`
+      });
+    });
+
+    rejectedTransitions.forEach(t => {
+      list.push({
+        timestamp: t.timestamp,
+        sessionId: otaState.sessionId ? String(otaState.sessionId) : null,
+        type: 'error',
+        text: `FSM Invariant Violation: Transition Rejected`,
+        details: `From: ${t.from} → Attempted: ${t.attempted} | Reason: ${t.reason}`
+      });
+    });
+
+    rawFlightEvents.forEach(e => {
+      if (e.eventType === 'transitionToState') return; // Skip duplicate transition logs
+      let type: 'transition' | 'error' | 'native' | 'lifecycle' = 'lifecycle';
+      if (e.severity === 'ERROR' || e.severity === 'FATAL' || e.error) type = 'error';
+      else if (e.thread === 'native' || e.eventType.toLowerCase().includes('installer')) type = 'native';
+
+      list.push({
+        timestamp: e.timestamp,
+        sessionId: e.sessionId,
+        type,
+        text: e.eventType,
+        details: e.reason || e.details,
+        severity: e.severity,
+        count: e.count
+      });
+    });
+
+    return list.sort((a, b) => a.timestamp - b.timestamp);
+  }, [otaState.sessionId, rawFlightEvents]);
+
+  // Keep a frozen snapshot of timeline if paused
+  const [frozenTimeline, setFrozenTimeline] = useState<typeof cachedTimelineLogs>([]);
+  const activeTimelineList = timelinePaused ? frozenTimeline : cachedTimelineLogs;
+
   useEffect(() => {
-    let active = true;
-
-    const fetchData = async () => {
-      try {
-        refreshSessionsList();
-
-        if (isNative() && typeof AppInstaller !== 'undefined') {
-          const dev = await AppInstaller.getDeviceInfo();
-          if (active) setNativeDeviceInfo(dev);
-
-          if (typeof AppInstaller.getExtendedDiagnostics === 'function') {
-            const det = await AppInstaller.getExtendedDiagnostics();
-            if (active) setNativeInstallerDetails(det);
-          } else if (typeof (AppInstaller as any).getPackageInstallerDetails === 'function') {
-            const det = await (AppInstaller as any).getPackageInstallerDetails();
-            if (active) setNativeInstallerDetails(det);
-          }
-
-          if (typeof AppInstaller.getInstallerLogHistory === 'function') {
-            const historyRes = await AppInstaller.getInstallerLogHistory();
-            if (active && historyRes && historyRes.logs) {
-              try {
-                const parsed = JSON.parse(historyRes.logs);
-                setNativeLogsList(Array.isArray(parsed) ? parsed : []);
-              } catch (e) {
-                console.warn('Failed to parse history logs:', e);
-              }
-            }
-          }
-
-          const cachedPath = localStorage.getItem('studio:downloadedApkPath');
-          if (cachedPath) {
-            try {
-              if (typeof AppInstaller.inspectApk === 'function') {
-                const apkDet = await AppInstaller.inspectApk({ filePath: cachedPath });
-                if (active) setLocalApkDetails(apkDet);
-              }
-            } catch (err) {
-              console.warn('Failed to inspect cached APK:', err);
-            }
-          } else {
-            if (active) setLocalApkDetails(null);
-          }
-        }
-      } catch (err) {
-        console.warn('Diagnostics background refresh failed:', err);
-      }
-    };
-
-    fetchData();
-    const interval = setInterval(fetchData, 3000);
-
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, [refreshCount]);
-
-  const handleCopySubset = async (subset: 'all' | 'workflow' | 'timeline' | 'native' | 'js', format: 'txt' | 'json' | 'md') => {
-    const text = exportSessionSubset(selectedSessionId, subset, format);
-    try {
-      await copyToClipboard(text, `${subset.toUpperCase()} (${format.toUpperCase()})`);
-      showToast('Trace copied to clipboard!');
-    } catch (err: any) {
-      showToast(`Copy failed: ${err.message || String(err)}`);
+    if (!timelinePaused) {
+      setFrozenTimeline(cachedTimelineLogs);
     }
+  }, [cachedTimelineLogs, timelinePaused]);
+
+  // Apply filters and searches to active timeline list
+  const filteredTimeline = useMemo(() => {
+    let list = activeTimelineList;
+
+    if (timelineFilter === 'transitions') {
+      list = list.filter(e => e.type === 'transition');
+    } else if (timelineFilter === 'errors') {
+      list = list.filter(e => e.type === 'error' || e.severity === 'ERROR' || e.severity === 'FATAL');
+    } else if (timelineFilter === 'native') {
+      list = list.filter(e => e.type === 'native');
+    } else if (timelineFilter === 'lifecycle') {
+      list = list.filter(e => e.type === 'lifecycle');
+    }
+
+    if (timelineSearch.trim() !== '') {
+      const q = timelineSearch.toLowerCase();
+      list = list.filter(e => e.text.toLowerCase().includes(q) || (e.details && e.details.toLowerCase().includes(q)));
+    }
+
+    return list;
+  }, [activeTimelineList, timelineFilter, timelineSearch]);
+
+  // Group filtered timeline events by sessionId
+  const groupedSessions = useMemo(() => {
+    const groups: Record<string, typeof filteredTimeline> = {};
+    filteredTimeline.forEach(e => {
+      const sId = e.sessionId || 'Global / Startup';
+      if (!groups[sId]) groups[sId] = [];
+      groups[sId].push(e);
+    });
+    return groups;
+  }, [filteredTimeline]);
+
+  // Scroll to bottom of timeline viewport
+  useEffect(() => {
+    if (timelineAutoScroll && timelineViewportRef.current && !timelinePaused) {
+      timelineViewportRef.current.scrollTop = timelineViewportRef.current.scrollHeight;
+    }
+  }, [filteredTimeline, timelineAutoScroll, timelinePaused]);
+
+  const copyTimelineMarkdown = () => {
+    if (filteredTimeline.length === 0) {
+      showToast('Timeline is empty');
+      return;
+    }
+    let md = `# Updater Diagnostics Live Timeline\n*Generated: ${new Date().toLocaleString()}*\n\n`;
+    Object.entries(groupedSessions).forEach(([sId, events]) => {
+      md += `## Session: ${sId}\n\n`;
+      md += `| Timestamp | Type | Event | Description |\n`;
+      md += `|---|---|---|---|\n`;
+      events.forEach(e => {
+        const timeStr = new Date(e.timestamp).toLocaleTimeString();
+        md += `| ${timeStr} | ${e.type.toUpperCase()} | ${e.text} | ${e.details || ''} |\n`;
+      });
+      md += `\n`;
+    });
+
+    copyToClipboard(md, 'Timeline Markdown').then(msg => showToast(msg));
   };
 
-  const handleExportFile = (format: 'json' | 'txt' | 'md') => {
-    const text = exportSessionSubset(selectedSessionId, 'all', format);
-    const mimeMap = {
-      json: 'application/json',
-      txt: 'text/plain',
-      md: 'text/markdown'
-    };
-    const extMap = {
-      json: 'json',
-      txt: 'txt',
-      md: 'md'
-    };
-    const blob = new Blob([text], { type: mimeMap[format] });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `studio-updater-diagnostics-${selectedSessionId.replace(/\s+/g, '_')}-${Date.now()}.${extMap[format]}`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    showToast(`Session diagnostics exported as ${format.toUpperCase()}`);
-  };
-
-  const handleDeleteSession = () => {
-    if (!window.confirm(`Delete persistent logs for ${selectedSessionId}?`)) return;
-    deleteUpdateSession(selectedSessionId);
-    showToast('Session logs deleted');
-    setSelectedSessionId('current');
-    triggerRefresh();
-  };
-
-  const handleDeleteAll = () => {
-    if (!window.confirm('WARNING: This will permanently delete all update session history logs. Continue?')) return;
-    deleteAllUpdateSessions();
-    showToast('All diagnostics session logs deleted');
-    setSelectedSessionId('current');
-    triggerRefresh();
+  const exportTimelineJson = () => {
+    try {
+      const data = JSON.stringify(filteredTimeline, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `updater-diagnostics-timeline-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Timeline exported successfully');
+    } catch (err: any) {
+      showToast('Export failed: ' + err.message);
+    }
   };
 
   const handleCopyEverything = async () => {
     try {
-      const { generateCopyEverythingReport } = await import('./diagnosticsGenerator');
-      const text = generateCopyEverythingReport(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
-      await copyToClipboard(text, 'Full Diagnostics Center Export');
-      showToast('Trace copied to clipboard!');
+      const report = generateCopyEverythingReport(null, null, null, getLogs() || []);
+      await navigator.clipboard.writeText(report);
+      showToast('Comprehensive report copied to clipboard!');
     } catch (err: any) {
       showToast(`Copy failed: ${err.message || String(err)}`);
     }
   };
-
-  const handleCopySelectedSession = () => {
-    handleCopySubset('all', 'md');
-  };
-
-  const handleCopyEntireHistory = async () => {
-    const allSess = getUpdateSessions();
-    const text = allSess.map(s => exportSessionSubset(s.id, 'all', 'md')).join('\n\n---\n\n');
-    try {
-      await copyToClipboard(text, 'Full Update History');
-      showToast('Full update history copied to clipboard!');
-    } catch (err: any) {
-      showToast(`Copy failed: ${err.message || String(err)}`);
-    }
-  };
-
-  const handleExportHistory = (format: 'json' | 'md') => {
-    const allSess = getUpdateSessions();
-    let text = '';
-    if (format === 'json') {
-      text = JSON.stringify(allSess, null, 2);
-    } else {
-      text = allSess.map(s => exportSessionSubset(s.id, 'all', 'md')).join('\n\n---\n\n');
-    }
-    const mimeMap = {
-      json: 'application/json',
-      md: 'text/markdown'
-    };
-    const extMap = {
-      json: 'json',
-      md: 'md'
-    };
-    const blob = new Blob([text], { type: mimeMap[format] });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `studio-updater-full-history-${Date.now()}.${extMap[format]}`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    showToast(`Full history exported as ${format.toUpperCase()}`);
-  };
-
-  const handleShareApk = async () => {
-    const cachedPath = localStorage.getItem('studio:downloadedApkPath');
-    if (!cachedPath) {
-      showToast('No cached APK package exists on disk.');
-      return;
-    }
-    try {
-      const { Share } = await import('@capacitor/share');
-      await Share.share({
-        title: 'Studio Cached APK',
-        url: cachedPath.startsWith('file://') ? cachedPath : `file://${cachedPath}`
-      });
-    } catch (err: any) {
-      showToast(`Share failed: ${err.message || String(err)}`);
-    }
-  };
-
-  const handlePrintLogs = async () => {
-    let txt = `=== CHRONOLOGICAL SYSTEM EVENT TIMELINE ===\n`;
-    const logs = getLogs() || [];
-    const timeline = [
-      ...logs.map(l => ({ time: l.timestamp, type: 'JS', text: l.message })),
-      ...nativeLogsList.map(l => ({ time: l.timestamp || Date.now(), type: 'NATIVE', text: `${l.stage}: ${l.message}` }))
-    ].sort((a, b) => a.time - b.time);
-    
-    timeline.forEach(e => {
-      txt += `[${new Date(e.time).toLocaleTimeString()}] [${e.type}] ${e.text}\n`;
-    });
-
-    try {
-      const msg = await copyToClipboard(txt, 'System Timeline');
-      showToast(msg);
-    } catch (err: any) {
-      showToast(`Print failed: ${err.message || String(err)}`);
-    }
-  };
-
-  const [isWorkflowTestingOpen, setIsWorkflowTestingOpen] = useState(true);
-  const [isFlightRecorderOpen, setIsFlightRecorderOpen] = useState(false);
-  const [isRuntimeSessionOpen, setIsRuntimeSessionOpen] = useState(false);
-  const [isAdvancedDiagnosticsOpen, setIsAdvancedDiagnosticsOpen] = useState(false);
-
-  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
-  const [scenarioDurations, setScenarioDurations] = useState<Record<string, number>>({});
-  const [advTab, setAdvTab] = useState<'fsm' | 'native' | 'config'>('fsm');
-  const [fps, setFps] = useState(60);
-
-  // Live Scenario Timer
-  useEffect(() => {
-    if (!activeScenarioId) return;
-    const start = Date.now();
-    setScenarioDurations(prev => ({ ...prev, [activeScenarioId]: 0 }));
-    const timer = setInterval(() => {
-      setScenarioDurations(prev => ({
-        ...prev,
-        [activeScenarioId]: Date.now() - start
-      }));
-    }, 100);
-    return () => clearInterval(timer);
-  }, [activeScenarioId]);
-
-  // Terminal state listener to stop scenario timer
-  useEffect(() => {
-    const listener = (state: any) => {
-      if (!activeScenarioId) return;
-      const isTerminal = 
-        state.updateState === 'INSTALL_SUCCESS' || 
-        state.updateState === 'INSTALL_FAILED' || 
-        state.updateState === 'INSTALL_CANCELLED' || 
-        state.updateState === 'RECOVERY' || 
-        state.updateState === 'IDLE' || 
-        state.updateState === 'NO_UPDATE_AVAILABLE';
-      if (isTerminal) {
-        setActiveScenarioId(null);
-      }
-    };
-    stateListeners.add(listener);
-    return () => {
-      stateListeners.delete(listener);
-    };
-  }, [activeScenarioId]);
-
-  // FPS Tracker
-  useEffect(() => {
-    let frameCount = 0;
-    let lastTime = performance.now();
-    let animId: number;
-
-    const tick = () => {
-      frameCount++;
-      const now = performance.now();
-      if (now - lastTime >= 1000) {
-        setFps(Math.round((frameCount * 1000) / (now - lastTime)));
-        frameCount = 0;
-        lastTime = now;
-      }
-      animId = requestAnimationFrame(tick);
-    };
-    animId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(animId);
-  }, []);
-
-  const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[sessions.length - 1];
-
-  const handleCopyFlightRecorderLogs = async () => {
-    const events = UpdaterFlightRecorder.getEvents();
-    const text = events.map(e => {
-      return `[${new Date(e.timestamp).toISOString()}] [${e.thread.toUpperCase()}] ${e.eventType}
-  Caller: ${e.caller} | Func: ${e.funcName || 'none'} | File: ${e.fileName || 'none'}
-  Transition: ${e.previousState || 'none'} -> ${e.newState || 'none'} (Duration: ${e.duration ? e.duration + 'ms' : 'N/A'})
-  Reason: ${e.reason || 'none'}
-  Warning: ${e.warning || 'none'} | Error: ${e.error || 'none'}
-  Details: ${e.details || 'none'}
---------------------------------------------------`;
-    }).join('\n');
-    
-    try {
-      await copyToClipboard(text, 'Flight Recorder Logs');
-      showToast('Flight recorder logs copied to clipboard!');
-    } catch (err: any) {
-      showToast(`Copy failed: ${err.message}`);
-    }
-  };
-
-  const errorCount = getErrors()?.length || 0;
-  const warningCount = getLogs()?.filter(l => l.level === 'warn').length || 0;
-
-  const isWebDesktop = useIsWebDesktop();
 
   return (
-    <div ref={scrollRef} style={{ background: '#000', color: 'var(--c-text-primary, #fff)', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }} className="h-full overflow-y-auto overflow-x-hidden relative flex flex-col">
-      <style>{`
-        @media (min-width: 768px) {
-          .dev-grid-4col {
-            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-          }
-        }
-      `}</style>
-
-      {/* Reused SubView Header styling from DevToolsDashboard */}
+    <div 
+      ref={scrollRef} 
+      style={{ background: '#000', color: '#fff', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }} 
+      className="h-full overflow-y-auto overflow-x-hidden relative flex flex-col scrollbar-none selection:bg-[#8b5cf6]/30 selection:text-white"
+    >
+      {/* Sticky Premium Toolbar Header */}
       <header
         style={{
           padding: isWebDesktop ? '16px 24px' : '12px 16px',
-          borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'var(--app-surface-low, #131313)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          background: 'rgba(10, 10, 12, 0.85)',
+          backdropFilter: 'blur(20px)',
           position: 'sticky',
           top: 0,
-          zIndex: 100
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
           <button
-            onClick={() => {
-              console.log("BUTTON PRESSED:\nBack to Developer Panel");
-              addJsLog("BUTTON PRESSED:\nBack to Developer Panel");
-              onBack();
-            }}
-            className="btn-smooth"
+            onClick={onBack}
+            className="btn-smooth hover:bg-white/5 active:scale-95"
             style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: 'none',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '999px',
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: 'var(--studio-accent-from, #679cff)',
+              color: '#8b5cf6',
               transition: 'all 0.15s ease'
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
           </button>
           <div>
-            <h1 style={{ margin: 0, fontSize: isWebDesktop ? '20px' : '15px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Updater Diagnostics</h1>
-            <p style={{ margin: '2px 0 0', fontSize: isWebDesktop ? '12px' : '10px', color: 'rgba(255,255,255,0.4)' }}>OTA Updates &amp; Diagnostics</p>
+            <h1 style={{ margin: 0, fontSize: isWebDesktop ? '20px' : '16px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }} className="font-headline">
+              Updater Diagnostics
+            </h1>
+            <p style={{ margin: '2px 0 0', fontSize: isWebDesktop ? '11px' : '9px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter' }}>
+              OTA Operations, Pipeline Verification &amp; Simulation
+            </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <CopyDropdown
-            moduleName="Updater"
-            activeTab="overview"
-            onCopySuccess={(msg) => showToast(msg)}
-            nativeDeviceInfo={nativeDeviceInfo}
-            nativeInstallerDetails={nativeInstallerDetails}
-            localApkDetails={localApkDetails}
-            nativeLogsList={nativeLogsList}
-            title="Copy Everything"
-          />
-          {isWebDesktop && (
-            <button
-              onClick={() => {
-                console.log("BUTTON PRESSED:\nBack to Developer Panel");
-                addJsLog("BUTTON PRESSED:\nBack to Developer Panel");
-                onBack();
-              }}
-              style={{
-                padding: '7px 16px',
-                borderRadius: '999px',
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: 'rgba(255,255,255,0.6)',
-                cursor: 'pointer',
-                fontSize: '11px',
-                fontWeight: 700,
-                transition: 'all 0.15s ease',
-                fontFamily: "'Outfit', 'Inter', sans-serif"
-              }}
-            >
-              Back
-            </button>
-          )}
+          <button
+            onClick={handleCopyEverything}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '999px',
+              background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: '11px',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)',
+              transition: 'all 0.15s ease'
+            }}
+            className="hover:scale-[1.03] active:scale-95"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>content_copy</span>
+            <span>Copy Everything</span>
+          </button>
         </div>
       </header>
 
-      {/* Main Collapsible Sections */}
-      <main className="max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 flex flex-col">
-        
-        {/* System Health Dashboard Cards Section */}
-        <div style={{ padding: '0 20px', marginTop: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h2 style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-secondary, rgba(255,255,255,0.6))', margin: 0, fontFamily: "'Outfit', 'Inter', sans-serif" }}>System Health</h2>
-          </div>
+      {/* Main 자연스럽게 스크롤되는 Container */}
+      <main className="flex-1 p-5 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: 12,
-          }} className="dev-grid-4col">
-            {/* App Version */}
-            <div style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
-              borderRadius: 16,
-              padding: 16,
-              border: '1px solid rgba(128, 128, 128, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>terminal</span>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>App Version</span>
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary, #fff)', fontFamily: "'Outfit', 'Inter', sans-serif" }}>v{APP_VERSION}</div>
-            </div>
-
-            {/* Android */}
-            <div style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
-              borderRadius: 16,
-              padding: 16,
-              border: '1px solid rgba(128, 128, 128, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>android</span>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>Android</span>
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary, #fff)', fontFamily: "'Outfit', 'Inter', sans-serif" }}>{otaDiagnostics?.androidVersion || '14.0'}</div>
-            </div>
-
-            {/* Alerts */}
-            <div style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
-              borderRadius: 16,
-              padding: 16,
-              border: '1px solid rgba(128, 128, 128, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>report_problem</span>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>Alerts</span>
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 800, display: 'flex', gap: 6, fontFamily: "'Outfit', 'Inter', sans-serif" }}>
-                <span style={{ color: errorCount > 0 ? 'var(--studio-error, #ee7d77)' : 'var(--c-text-primary, #fff)' }}>{errorCount} E</span>
-                <span style={{ color: 'var(--c-text-secondary, rgba(255,255,255,0.6))', opacity: 0.5 }}>/</span>
-                <span style={{ color: warningCount > 0 ? '#fb923c' : 'var(--c-text-primary, #fff)' }}>{warningCount} W</span>
-              </div>
-            </div>
-
-            {/* Status */}
-            <div style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
-              borderRadius: 16,
-              padding: 16,
-              border: '1px solid rgba(128, 128, 128, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>published_with_changes</span>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>Status</span>
-              </div>
-              <div style={{
-                fontSize: 14,
-                fontWeight: 800,
-                color: 'var(--studio-accent-from, #679cff)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                fontFamily: "'Outfit', 'Inter', sans-serif"
-              }}>{otaState.updateState}</div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ padding: '0 20px' }} className="space-y-4">
-        
-        {/* 1. WORKFLOW TESTING COLLAPSIBLE */}
-        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+        {/* 1. OVERVIEW COLLAPSIBLE SECTION */}
+        <section className="border border-white/5 bg-[#0a0a0c]/60 backdrop-blur-md rounded-2xl overflow-hidden transition-all duration-300">
           <div 
-            onClick={() => setIsWorkflowTestingOpen(!isWorkflowTestingOpen)}
+            onClick={() => toggleSection('overview', secOverviewOpen, setSecOverviewOpen)}
             className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
           >
             <div className="flex items-center gap-3">
-              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isWorkflowTestingOpen ? 'rotate-180' : ''}`}>
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${secOverviewOpen ? 'rotate-180' : ''}`}>
                 expand_more
               </span>
               <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
-                Workflow Testing
+                Section 1: Overview
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Simulator Panel</span>
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase ${simActive ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'}`}>
+                {simActive ? 'Simulated Pipeline' : 'Production Active'}
+              </span>
+            </div>
           </div>
-          
-          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isWorkflowTestingOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
-          }`}>
-            {isWorkflowTestingOpen && (
-              <div className="p-6 space-y-4">
-                <p className="text-xs text-zinc-400 leading-relaxed font-mono">
-                  Trigger isolated, deterministic scenarios that execute the <strong>REAL</strong> production state machine by overriding local metadata providers.
-                </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  <ScenarioCard 
-                    id="successful_update"
-                    title="Successful Update"
-                    description="Run a full mock updater sequence: Check -> Available -> Auto-confirm Apply -> Mock Download -> Verify -> Mock Success."
-                    icon="check_circle"
-                    colorClass="text-green-400"
-                    action={() => startScenario('successful_update', runSuccessfulUpdateWorkflow)}
-                    isActive={activeScenarioId === 'successful_update'}
-                    duration={scenarioDurations.successful_update}
-                  />
-
-                  <ScenarioCard 
-                    id="download_failure"
-                    title="Download Failure"
-                    description="Trigger an update check and force the download stage to fail with an HTTP retrieval connection exception."
-                    icon="cloud_off"
-                    colorClass="text-red-400"
-                    action={() => startScenario('download_failure', runDownloadFailureWorkflow)}
-                    isActive={activeScenarioId === 'download_failure'}
-                    duration={scenarioDurations.download_failure}
-                  />
-
-                  <ScenarioCard 
-                    id="verification_failure"
-                    title="Verification Failure"
-                    description="Simulate an update package with a checksum mismatch that fails verification before native installation."
-                    icon="gpp_bad"
-                    colorClass="text-red-400"
-                    action={() => startScenario('verification_failure', runVerificationFailureWorkflow)}
-                    isActive={activeScenarioId === 'verification_failure'}
-                    duration={scenarioDurations.verification_failure}
-                  />
-
-                  <ScenarioCard 
-                    id="package_installer"
-                    title="PackageInstaller Dialog"
-                    description="Pause the installation sequence at the dialog confirmation screen to test custom native listener state transitions."
-                    icon="visibility"
-                    colorClass="text-purple-400"
-                    action={() => startScenario('package_installer', runPackageInstallerWorkflow)}
-                    isActive={activeScenarioId === 'package_installer'}
-                    duration={scenarioDurations.package_installer}
-                    inlineActions={
-                      <div className="flex flex-col gap-1 w-full pt-1">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); simulateSuccessInstall(); }}
-                          className="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
-                        >
-                          Simulate Install Success
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); simulateFailedInstall(); }}
-                          className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
-                        >
-                          Simulate Install Fail
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); simulateCancelledInstall(); }}
-                          className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
-                        >
-                          Simulate User Cancel
-                        </button>
-                      </div>
-                    }
-                  />
-
-                  <ScenarioCard 
-                    id="installation_failure"
-                    title="Installation Failure"
-                    description="Simulate a transaction error during native PackageInstaller execution, triggering recovery pathways."
-                    icon="cancel"
-                    colorClass="text-red-400"
-                    action={() => startScenario('installation_failure', runInstallationFailureWorkflow)}
-                    isActive={activeScenarioId === 'installation_failure'}
-                    duration={scenarioDurations.installation_failure}
-                  />
-
-                  <ScenarioCard 
-                    id="reset_workflow"
-                    title="Reset Workflow"
-                    description="Clear all simulator overrides, wipe active session cache configurations, and reset update status to IDLE."
-                    icon="restart_alt"
-                    colorClass="text-zinc-400"
-                    action={runResetWorkflow}
-                    isActive={false}
-                  />
+          {secOverviewOpen && (
+            <div className="p-6 border-t border-white/5 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Updater Status</span>
+                  <span className="text-sm font-bold text-white block">
+                    {isInstallationLocked() ? '🔒 Blocked (Locked)' : '🔓 Available'}
+                  </span>
+                </div>
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Current Version</span>
+                  <span className="text-sm font-bold text-white block font-mono">v{APP_VERSION}</span>
+                </div>
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Remote Version Target</span>
+                  <span className="text-sm font-bold text-[#8b5cf6] block font-mono">{otaState.remoteVersion || 'Check Pending'}</span>
+                </div>
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">FSM State Machine</span>
+                  <span className="text-sm font-bold text-white block font-mono">{otaState.updateState}</span>
+                </div>
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Installation Lock</span>
+                  <span className="text-sm font-bold text-white block">
+                    {isPostInstallSessionActive() ? 'Holding Session' : 'Released'}
+                  </span>
+                </div>
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-1">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">Current Session ID</span>
+                  <span className="text-sm font-bold text-white block font-mono truncate">{otaState.sessionId || 'None'}</span>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* 2. FLIGHT RECORDER COLLAPSIBLE */}
-        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
+                <button
+                  onClick={() => checkForUpdate(false, 'dev_tools', 'Manual Check')}
+                  className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 text-xs font-bold text-white transition-all outline-none"
+                >
+                  Check Update
+                </button>
+                <button
+                  onClick={() => {
+                    toggleSection('testing', false, setSecTestingOpen);
+                    setTimeout(() => {
+                      const el = document.getElementById('workflow-testing-anchor');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="px-4 py-2.5 bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 rounded-xl hover:bg-[#8b5cf6]/20 text-xs font-bold text-[#a78bfa] transition-all outline-none"
+                >
+                  Configure Workflow Testing
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Anchor for scroll focusing */}
+        <div id="workflow-testing-anchor" />
+
+        {/* 2. WORKFLOW TESTING COLLAPSIBLE SECTION */}
+        <section className="border border-white/5 bg-[#0a0a0c]/60 backdrop-blur-md rounded-2xl overflow-hidden transition-all duration-300">
           <div 
-            onClick={() => setIsFlightRecorderOpen(!isFlightRecorderOpen)}
+            onClick={() => toggleSection('testing', secTestingOpen, setSecTestingOpen)}
             className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
           >
             <div className="flex items-center gap-3">
-              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isFlightRecorderOpen ? 'rotate-180' : ''}`}>
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${secTestingOpen ? 'rotate-180' : ''}`}>
                 expand_more
               </span>
               <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
-                Flight Recorder
+                Section 2: Workflow Testing
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Simulation Sandbox</span>
+          </div>
+
+          {secTestingOpen && (
+            <div className="p-6 border-t border-white/5 space-y-6">
+              <p className="text-xs text-zinc-400 leading-relaxed font-mono">
+                Execute automated, deterministic updates through the **REAL** production state machine. All external platform side-effects (APK downloading, native installer broadcasts, shell commands) are safely mocked.
+              </p>
+
+              {/* Simulation Mode Toggle Card */}
+              <div className="flex items-center justify-between bg-white/2 border border-white/5 p-4 rounded-xl">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-bold text-white font-headline">Simulated Test Mode</span>
+                  <span className="text-[10px] text-zinc-500">Enable to route state steps through simulation safety adapters.</span>
+                </div>
+                <div className="flex gap-2">
+                  {!simActive ? (
+                    <button 
+                      onClick={() => {
+                        localStorage.setItem('studio:is_simulation_active', 'true');
+                        setSimActive(true);
+                        resetOtaUpdateState();
+                        showToast('Simulation state guard armed.');
+                      }}
+                      className="px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl hover:bg-green-500/25 text-xs font-bold transition-all outline-none"
+                    >
+                      Enable Simulation
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={runResetWorkflow}
+                      className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/25 text-xs font-bold transition-all outline-none"
+                    >
+                      Disable Simulation
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid of Simulation Workflows */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <ScenarioCard 
+                  id="successful_update"
+                  title="Run Complete Workflow"
+                  description="Starts checking, discovers update available, downloads APK chunks, verifies checksum, and triggers simulated installer confirmation success."
+                  icon="check_circle"
+                  colorClass="text-green-400"
+                  action={() => startScenario('successful_update', runSuccessfulUpdateWorkflow)}
+                  isActive={activeScenarioId === 'successful_update'}
+                  duration={scenarioDurations.successful_update}
+                />
+
+                <ScenarioCard 
+                  id="download_failure"
+                  title="Run Download Test"
+                  description="Triggers the pipeline but intercepts the download manager to reject downloads with an HTTP connection timeout failure."
+                  icon="cloud_off"
+                  colorClass="text-red-400"
+                  action={() => startScenario('download_failure', runDownloadFailureWorkflow)}
+                  isActive={activeScenarioId === 'download_failure'}
+                  duration={scenarioDurations.download_failure}
+                />
+
+                <ScenarioCard 
+                  id="verification_failure"
+                  title="Run Verification Test"
+                  description="Completes download successfully but triggers a checksum hashing verification signature mismatch, blocking install."
+                  icon="gpp_bad"
+                  colorClass="text-red-400"
+                  action={() => startScenario('verification_failure', runVerificationFailureWorkflow)}
+                  isActive={activeScenarioId === 'verification_failure'}
+                  duration={scenarioDurations.verification_failure}
+                />
+
+                <ScenarioCard 
+                  id="package_installer"
+                  title="Run Installation Test"
+                  description="Brings the state to the PackageInstaller visible phase, holding for simulated success, fail, or user cancellations."
+                  icon="visibility"
+                  colorClass="text-purple-400"
+                  action={() => startScenario('package_installer', runPackageInstallerWorkflow)}
+                  isActive={activeScenarioId === 'package_installer'}
+                  duration={scenarioDurations.package_installer}
+                  inlineActions={
+                    <div className="flex flex-col gap-1 w-full pt-1">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); simulateSuccessInstall(); }}
+                        className="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
+                      >
+                        Simulate Install Success
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); simulateFailedInstall(); }}
+                        className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
+                      >
+                        Simulate Install Failure
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); simulateCancelledInstall(); }}
+                        className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
+                      >
+                        Simulate User Cancel
+                      </button>
+                    </div>
+                  }
+                />
+
+                <ScenarioCard 
+                  id="recovery_mismatch"
+                  title="Run Recovery Test"
+                  description="Forces update checking to fail signature requirements, running cleanup and re-initiating auto-recovery checking loop."
+                  icon="healing"
+                  colorClass="text-amber-400"
+                  action={() => startScenario('recovery_mismatch', runRecoveryWorkflow)}
+                  isActive={activeScenarioId === 'recovery_mismatch'}
+                  duration={scenarioDurations.recovery_mismatch}
+                />
+
+                <ScenarioCard 
+                  id="reset_workflow"
+                  title="Reset Workflow"
+                  description="Clear active variables, wipe memory buffers, reset OTA updates, and restore to IDLE state."
+                  icon="restart_alt"
+                  colorClass="text-zinc-400"
+                  action={runResetWorkflow}
+                  isActive={false}
+                />
+              </div>
+
+              {/* Throttling and Cleanup Controls */}
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-white/5">
+                <button 
+                  onClick={() => {
+                    updaterSimulation.simulateDownloadThrottling = !updaterSimulation.simulateDownloadThrottling;
+                    showToast(updaterSimulation.simulateDownloadThrottling ? 'Download Throttling Active' : 'Download Throttling Disabled');
+                    triggerRefresh();
+                  }}
+                  className={`px-4 py-2.5 rounded-xl border font-bold text-xs transition-all outline-none ${
+                    updaterSimulation.simulateDownloadThrottling 
+                      ? 'bg-purple-500/20 border-purple-500/40 text-purple-300' 
+                      : 'bg-black border-white/10 text-zinc-400 hover:bg-white/5'
+                  }`}
+                >
+                  {updaterSimulation.simulateDownloadThrottling ? 'Speed: Throttled (2G/3G)' : 'Speed: Full Downloader'}
+                </button>
+                <button 
+                  onClick={clearOverrides}
+                  className="px-4 py-2.5 rounded-xl bg-black border border-white/10 text-white font-bold text-xs hover:bg-white/5 transition-all outline-none"
+                >
+                  Clear Scenario Overrides
+                </button>
+                <button 
+                  onClick={() => {
+                    clearSimulationLogs();
+                    showToast('Timeline simulation history wiped');
+                    triggerRefresh();
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-black border border-white/10 text-red-400 font-bold text-xs hover:bg-red-500/10 hover:border-red-500/20 transition-all outline-none"
+                >
+                  Clear Timelines Cache
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 3. LIVE TIMELINE COLLAPSIBLE SECTION */}
+        <section className="border border-white/5 bg-[#0a0a0c]/60 backdrop-blur-md rounded-2xl overflow-hidden transition-all duration-300">
+          <div 
+            onClick={() => toggleSection('timeline', secTimelineOpen, setSecTimelineOpen)}
+            className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
+          >
+            <div className="flex items-center gap-3">
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${secTimelineOpen ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+              <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
+                Section 3: Live Timeline
               </h3>
             </div>
             
             <div className="flex items-center gap-3 text-[10px] font-mono text-zinc-400" onClick={e => e.stopPropagation()}>
-              <span>LOGS: <strong className="text-white">{UpdaterFlightRecorder.getEvents().length}</strong></span>
-              <span className="hidden sm:inline border-l border-[#484848]/20 pl-3">NEWEST: <strong className="text-[#8b5cf6]">{UpdaterFlightRecorder.getEvents().slice(-1)[0]?.eventType || 'NONE'}</strong></span>
-              <div className="flex items-center gap-2 border-l border-[#484848]/20 pl-3">
+              <span>LOGS: <strong className="text-white">{filteredTimeline.length}</strong></span>
+              <div className="flex items-center gap-2 border-l border-white/10 pl-3">
                 <button 
-                  onClick={handleCopyFlightRecorderLogs}
-                  className="bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 border border-[#8b5cf6]/20 text-[#c084fc] px-2 py-1 rounded text-[9px] font-bold uppercase transition-all cursor-pointer outline-none"
+                  onClick={copyTimelineMarkdown}
+                  className="bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 border border-[#8b5cf6]/20 text-[#c084fc] px-2 py-0.5 rounded text-[9px] font-bold uppercase transition-all cursor-pointer outline-none"
                 >
-                  Copy Logs
+                  Copy
                 </button>
                 <button 
-                  onClick={() => { UpdaterFlightRecorder.clear(); triggerRefresh(); showToast('Logs wiped'); }}
-                  className="bg-red-950/20 hover:bg-red-900/30 border border-red-500/20 text-red-400 px-2 py-1 rounded text-[9px] font-bold uppercase transition-all cursor-pointer outline-none"
+                  onClick={exportTimelineJson}
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-white/5 text-zinc-300 px-2 py-0.5 rounded text-[9px] font-bold uppercase transition-all cursor-pointer outline-none"
                 >
-                  Clear Logs
+                  Export
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Collapsed view: Only show latest event */}
-          {!isFlightRecorderOpen && UpdaterFlightRecorder.getEvents().length > 0 && (
-            <div className="px-6 pb-4 pt-1 flex items-center justify-between text-[10px] font-mono text-zinc-400 border-t border-[#484848]/5">
-              <div className="flex items-center gap-2 truncate">
-                <span className="text-zinc-500">LATEST EVENT:</span>
-                <span className="text-[#c084fc] font-bold">{UpdaterFlightRecorder.getEvents().slice(-1)[0]?.eventType}</span>
-                <span className="text-zinc-500 truncate">({UpdaterFlightRecorder.getEvents().slice(-1)[0]?.reason})</span>
+          {secTimelineOpen && (
+            <div className="p-6 border-t border-white/5 space-y-4">
+              
+              {/* Toolbar: Search & Filter Mode */}
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex-1 flex items-center gap-2 bg-black px-3 py-2 rounded-xl border border-white/5">
+                  <span className="material-symbols-outlined text-sm text-zinc-500">search</span>
+                  <input 
+                    className="bg-transparent border-none text-xs text-white placeholder:text-zinc-600 focus:ring-0 w-full font-mono outline-none" 
+                    placeholder="Search transition details, caller stack, errors..." 
+                    type="text"
+                    value={timelineSearch}
+                    onChange={e => setTimelineSearch(e.target.value)}
+                  />
+                  {timelineSearch && (
+                    <button onClick={() => setTimelineSearch('')} className="text-zinc-500 hover:text-white">
+                      <span className="material-symbols-outlined text-xs">close</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+                  {(['all', 'transitions', 'errors', 'native', 'lifecycle'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setTimelineFilter(mode)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors outline-none whitespace-nowrap ${
+                        timelineFilter === mode 
+                          ? 'bg-[#8b5cf6] text-white shadow-lg shadow-purple-500/20' 
+                          : 'bg-white/2 border border-white/5 text-zinc-400 hover:bg-white/5'
+                      }`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <span className="text-zinc-500 shrink-0">{new Date(UpdaterFlightRecorder.getEvents().slice(-1)[0]?.timestamp).toLocaleTimeString()}</span>
-            </div>
-          )}
-          
-          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isFlightRecorderOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
-          }`}>
-            {isFlightRecorderOpen && (
-              <div className="p-6 space-y-4">
-                {UpdaterFlightRecorder.getEvents().length > 0 ? (
-                  <div className="border border-[#484848]/10 rounded-xl overflow-hidden font-mono text-[10px] bg-black/40 max-h-[450px] overflow-y-auto p-4 space-y-3 divide-y divide-[#484848]/15">
-                    {UpdaterFlightRecorder.getEvents().slice().reverse().map((e, idx) => {
-                      const isErr = !!e.error || e.warning === 'INSTALL_FAILED' || e.warning === 'CHECK_BLOCKED_INSTALLATION_LOCKED';
-                      const isWarn = !!e.warning && !isErr;
-                      const isSuccess = e.eventType === 'checkForUpdateAllowed' || e.newState === 'INSTALL_SUCCESS';
-                      
-                      return (
-                        <div key={idx} className="pt-3 first:pt-0 flex flex-col gap-1.5 border-t border-[#484848]/15">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full shrink-0 ${
-                                isErr ? 'bg-red-500 animate-pulse' : isWarn ? 'bg-yellow-500' : isSuccess ? 'bg-green-500' : 'bg-purple-500'
-                              }`} />
-                              <span className="font-bold text-[#e7e5e4] text-xs">
-                                {e.eventType}
-                              </span>
-                            </div>
-                            <span className="text-on-surface-variant text-[9px] font-bold bg-[#1c1c1e] px-2 py-0.5 rounded border border-outline-variant/10">
-                              {new Date(e.timestamp).toLocaleTimeString()} {e.duration ? `(${e.duration}ms)` : ''}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[9px] text-zinc-400 pl-4.5 leading-relaxed">
-                            <div>
-                              <span className="text-zinc-500 font-bold uppercase tracking-wider">Source/Thread:</span>{' '}
-                              <span className="text-purple-300">{e.caller} ({e.thread})</span>
-                            </div>
-                            <div>
-                              <span className="text-zinc-500 font-bold uppercase tracking-wider">Reason:</span>{' '}
-                              <span className="text-zinc-300">{e.reason}</span>
-                            </div>
-                            {e.previousState && (
-                              <div className="sm:col-span-2">
-                                <span className="text-zinc-500 font-bold uppercase tracking-wider">Transition:</span>{' '}
-                                <span className="text-zinc-300">{e.previousState} &rarr; {e.newState}</span>
-                              </div>
-                            )}
-                            {e.error && (
-                              <div className="sm:col-span-2 text-red-400">
-                                <span className="text-red-500 font-bold uppercase tracking-wider">Error:</span>{' '}
-                                <span>{e.error}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+
+              {/* Viewport Control Panel */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setTimelinePaused(!timelinePaused)}
+                    className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase transition-all flex items-center gap-1 border outline-none ${
+                      timelinePaused 
+                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' 
+                        : 'bg-zinc-800 border-white/5 text-zinc-300 hover:bg-zinc-700'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[10px]">{timelinePaused ? 'play_arrow' : 'pause'}</span>
+                    {timelinePaused ? 'Resume Updates' : 'Pause Timeline'}
+                  </button>
+                  {timelinePaused && (
+                    <span className="text-[10px] text-amber-400 font-mono animate-pulse">Updates Frozen</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-zinc-500 font-bold uppercase">Auto Scroll</span>
+                  <button 
+                    onClick={() => setTimelineAutoScroll(prev => !prev)}
+                    className={`w-7 h-4 rounded-full flex items-center px-0.5 transition-colors outline-none ${
+                      timelineAutoScroll ? 'bg-[#8b5cf6]' : 'bg-white/10'
+                    }`}
+                  >
+                    <div className={`w-3 h-3 bg-white rounded-full transition-transform ${
+                      timelineAutoScroll ? 'translate-x-3' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Grouped Timelines View */}
+              <div 
+                ref={timelineViewportRef}
+                className="bg-black border border-white/5 rounded-xl h-96 overflow-y-auto p-4 space-y-6 shadow-inner"
+              >
+                {Object.keys(groupedSessions).length === 0 ? (
+                  <div className="text-zinc-600 text-center py-24 italic text-xs font-mono">
+                    No timeline records available matching query filters.
                   </div>
                 ) : (
-                  <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant font-mono">
-                    No Flight Recorder logs in storage buffer.
-                  </div>
+                  Object.entries(groupedSessions).map(([sId, events]) => (
+                    <div key={sId} className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
+                        <span className="text-[10px] font-mono text-[#8b5cf6] font-bold flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-xs">database</span>
+                          Session ID: {sId}
+                        </span>
+                        <span className="text-[9px] font-mono text-zinc-500 font-bold">
+                          {events.length} events
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {events.map((e, idx) => {
+                          const isErr = e.type === 'error' || e.severity === 'ERROR' || e.severity === 'FATAL';
+                          const isTrans = e.type === 'transition';
+                          const timeStr = new Date(e.timestamp).toLocaleTimeString();
+                          
+                          return (
+                            <TimelineEventRow 
+                              key={idx}
+                              time={timeStr}
+                              type={e.type}
+                              text={e.text}
+                              details={e.details}
+                              isError={isErr}
+                              isTransition={isTrans}
+                              count={e.count}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
 
-        {/* 3. RUNTIME & SESSION COLLAPSIBLE */}
-        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+        {/* 4. ADVANCED DIAGNOSTICS & TELEMETRY COLLAPSIBLE SECTION */}
+        <section className="border border-white/5 bg-[#0a0a0c]/60 backdrop-blur-md rounded-2xl overflow-hidden transition-all duration-300">
           <div 
-            onClick={() => setIsRuntimeSessionOpen(!isRuntimeSessionOpen)}
+            onClick={() => toggleSection('diagnostics', secDiagnosticsOpen, setSecDiagnosticsOpen)}
             className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
           >
             <div className="flex items-center gap-3">
-              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isRuntimeSessionOpen ? 'rotate-180' : ''}`}>
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${secDiagnosticsOpen ? 'rotate-180' : ''}`}>
                 expand_more
               </span>
               <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
-                Runtime &amp; Session
+                Section 4: Diagnostics
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Telemetry stats</span>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Hardware &amp; Engine Stats</span>
           </div>
 
-          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isRuntimeSessionOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
-          }`}>
-            {isRuntimeSessionOpen && (
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  
-                  {/* Group 1: Session */}
-                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
-                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-xs">timeline</span>
-                      Session
-                    </h4>
-                    <div className="space-y-2.5 text-[11px] font-mono">
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Session ID</span>
-                        <span className="text-white font-bold break-all leading-relaxed block">{activeUpdateSession?.sessionId || 'None'}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Current State</span>
-                        <span className="text-white font-bold">{otaState.updateState}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Previous State</span>
-                        <span className="text-white font-bold">{transitionHistory.slice(-1)[0]?.from || 'None'}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Current Transition</span>
-                        <span className="text-white font-bold leading-relaxed block">{transitionHistory.slice(-1)[0] ? `${transitionHistory.slice(-1)[0].from} -> ${transitionHistory.slice(-1)[0].to}` : 'None'}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Pipeline Duration</span>
-                        <span className="text-white font-bold">
-                          {activePipelineContext?.pipelineStartTime ? `${Math.round((Date.now() - activePipelineContext.pipelineStartTime) / 1000)}s` : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Group 2: Update */}
-                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
-                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-xs">download</span>
-                      Update
-                    </h4>
-                    <div className="space-y-2.5 text-[11px] font-mono">
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Download Progress</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex-1 bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-[#8b5cf6] h-full rounded-full transition-all" style={{ width: `${(otaState.progress * 100).toFixed(0)}%` }} />
-                          </div>
-                          <span className="text-white font-bold text-[10px]">{(otaState.progress * 100).toFixed(0)}%</span>
-                        </div>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Verification Status</span>
-                        <span className={`font-bold ${localApkDetails?.isValidApk ? 'text-green-400' : 'text-zinc-400'}`}>
-                          {localApkDetails?.isValidApk ? 'VERIFIED' : 'PENDING'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">PackageInstaller Status</span>
-                        <span className="text-white font-bold">{nativeInstallerDetails?.sessionState || 'IDLE'}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Recovery Status</span>
-                        <span className={`font-bold ${otaState.recoveryMode ? 'text-yellow-400' : 'text-zinc-400'}`}>
-                          {otaState.recoveryMode ? 'ACTIVE' : 'INACTIVE'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Update Status</span>
-                        <span className="text-white font-bold">{otaState.updateState}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Group 3: Device */}
-                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
-                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-xs">phone_android</span>
-                      Device
-                    </h4>
-                    <div className="space-y-2.5 text-[11px] font-mono">
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Network Connection</span>
-                        <span className="text-white font-bold">{nativeDeviceInfo?.networkState || otaDiagnostics?.networkState || 'CONNECTED'}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Storage Capacity</span>
-                        <span className="text-white font-bold leading-normal block">{nativeDeviceInfo?.storageAvailable || otaDiagnostics?.storageAvailable || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Battery Status</span>
-                        <span className="text-white font-bold">{nativeDeviceInfo?.battery !== undefined ? `${nativeDeviceInfo.battery}%` : 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Group 4: Performance */}
-                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
-                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-xs">insights</span>
-                      Performance
-                    </h4>
-                    <div className="space-y-2.5 text-[11px] font-mono">
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">CPU Usage</span>
-                        <span className="text-white font-bold">AVG: {PerformanceProfiler.getInstance().getMetrics().cpuAverage}% | PEAK: {PerformanceProfiler.getInstance().getMetrics().cpuPeak}%</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Memory Overhead</span>
-                        <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().memoryAverage}</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">JS Thread Delay</span>
-                        <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().jsThreadAverage} ms</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">UI Thread Paint</span>
-                        <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().uiThreadAverage} ms</span>
-                      </div>
-                      <div>
-                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Frame Pacing (FPS)</span>
-                        <span className={`text-xs font-bold ${fps > 55 ? 'text-green-400' : fps > 40 ? 'text-yellow-400' : 'text-red-400'}`}>{fps} FPS</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 4. ADVANCED DIAGNOSTICS COLLAPSIBLE */}
-        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
-          <div 
-            onClick={() => setIsAdvancedDiagnosticsOpen(!isAdvancedDiagnosticsOpen)}
-            className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
-          >
-            <div className="flex items-center gap-3">
-              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isAdvancedDiagnosticsOpen ? 'rotate-180' : ''}`}>
-                expand_more
-              </span>
-              <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
-                Advanced Diagnostics
-              </h3>
-            </div>
-            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Engineering logs</span>
-          </div>
-
-          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isAdvancedDiagnosticsOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
-          }`}>
-            {isAdvancedDiagnosticsOpen && (
-              <div className="p-6 space-y-4">
+          {secDiagnosticsOpen && (
+            <div className="p-6 border-t border-white/5 space-y-6">
+              
+              {/* Telemetry Metrics Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 
-                {/* Advanced mini-tab select */}
-                <div className="flex border-b border-[#484848]/10 font-mono text-[10px] uppercase font-bold tracking-wider mb-2">
-                  <button 
-                    onClick={() => setAdvTab('fsm')}
-                    className={`px-4 py-2 border-b-2 transition-all cursor-pointer bg-transparent outline-none ${advTab === 'fsm' ? 'border-[#8b5cf6] text-[#c084fc]' : 'border-transparent text-zinc-400 hover:text-white'}`}
-                  >
-                    FSM &amp; Locks
-                  </button>
-                  <button 
-                    onClick={() => setAdvTab('native')}
-                    className={`px-4 py-2 border-b-2 transition-all cursor-pointer bg-transparent outline-none ${advTab === 'native' ? 'border-[#8b5cf6] text-[#c084fc]' : 'border-transparent text-zinc-400 hover:text-white'}`}
-                  >
-                    Callbacks Console
-                  </button>
-                  <button 
-                    onClick={() => setAdvTab('config')}
-                    className={`px-4 py-2 border-b-2 transition-all cursor-pointer bg-transparent outline-none ${advTab === 'config' ? 'border-[#8b5cf6] text-[#c084fc]' : 'border-transparent text-zinc-400 hover:text-white'}`}
-                  >
-                    Config &amp; Cache
-                  </button>
+                {/* Device & OS */}
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-3 font-mono text-[11px]">
+                  <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-white/5 pb-1.5 flex items-center gap-1.5 font-headline">
+                    <span className="material-symbols-outlined text-xs">phone_android</span>
+                    Environment
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Platform Target</span>
+                      <span className="text-white font-bold">{isNative() ? 'Native Android' : 'Web Browser'}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Network state</span>
+                      <span className="text-white font-bold">{otaDiagnostics?.networkState || 'CONNECTED'}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Storage available</span>
+                      <span className="text-white font-bold">{otaDiagnostics?.storageAvailable || 'N/A'}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Sub Tab Contents */}
-                {advTab === 'fsm' && (
-                  <div className="space-y-4 animate-fadeIn">
-                    <StateMachineVisualizer />
-                    
-                    <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3 font-mono text-[10px]">
-                      <h5 className="font-bold text-xs text-[#e7e5e4]">Locks &amp; Safety Guards</h5>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-zinc-300">
-                        <div>INSTALLATION LOCK: <strong className="text-white">{isInstallationLocked() ? 'LOCKED' : 'UNLOCKED'}</strong></div>
-                        <div>POST-INSTALL ACTIVE: <strong className="text-white">{isPostInstallSessionActive() ? 'ACTIVE' : 'INACTIVE'}</strong></div>
-                        <div>PROCESS BOOT KEY: <strong className="text-white">{localStorage.getItem('studio:processBootId') || 'N/A'}</strong></div>
-                        <div>RECOVERY IN_PROGRESS: <strong className="text-white">{otaState.recoveryMode ? 'YES' : 'NO'}</strong></div>
-                      </div>
+                {/* State Machine Variables */}
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-3 font-mono text-[11px]">
+                  <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-white/5 pb-1.5 flex items-center gap-1.5 font-headline">
+                    <span className="material-symbols-outlined text-xs">timeline</span>
+                    OTA Engine
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">FSM Lock Status</span>
+                      <span className={`font-bold ${isInstallationLocked() ? 'text-red-400' : 'text-green-400'}`}>
+                        {isInstallationLocked() ? 'LOCKED' : 'UNLOCKED'}
+                      </span>
                     </div>
-
-                    <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3">
-                      <h5 className="font-bold text-xs text-[#e7e5e4] font-headline">Transition Attempts Log</h5>
-                      {transitionHistory.length > 0 ? (
-                        <div className="font-mono text-[10px] text-zinc-300 space-y-1 divide-y divide-[#484848]/10 max-h-48 overflow-y-auto">
-                          {transitionHistory.slice().reverse().map((t, idx) => (
-                            <div key={idx} className="py-1.5 flex justify-between items-center">
-                              <span className="text-[#a855f7] font-bold">{t.from} &rarr; {t.to}</span>
-                              <span className="text-zinc-500 truncate max-w-[60%]">{t.reason}</span>
-                              <span className="text-zinc-400">{new Date(t.timestamp).toLocaleTimeString()}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-[10px] text-zinc-500 font-mono">No transition events logged this session.</p>
-                      )}
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Post Install state</span>
+                      <span className="text-white font-bold">{isPostInstallSessionActive() ? 'HOLDING' : 'RELEASED'}</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Consecutive Failures</span>
+                      <span className="text-white font-bold">{globalOtaState.consecutiveFailures}</span>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {advTab === 'native' && (
-                  <div className="space-y-4 animate-fadeIn">
-                    <LiveConsole 
-                      nativeLogsList={nativeLogsList}
-                      clearNativeLogsList={() => setNativeLogsList([])}
-                      showToast={showToast}
-                      addJsLog={addJsLog}
-                    />
-
-                    {nativeInstallerDetails && (
-                      <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3">
-                        <h5 className="font-bold text-xs text-[#e7e5e4] font-headline">Extended PackageInstaller Telemetry</h5>
-                        <pre className="bg-black/60 border border-[#484848]/15 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-56">
-                          {JSON.stringify(nativeInstallerDetails, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {advTab === 'config' && (
-                  <div className="space-y-4 animate-fadeIn">
-                    <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3 font-mono text-[10px] text-zinc-300">
-                      <h5 className="font-bold text-xs text-[#e7e5e4]">Capacitor Updater Configuration</h5>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div>IS NATIVE SHELL: <strong className="text-white">{isNative() ? 'TRUE' : 'FALSE'}</strong></div>
-                        <div>ANDROID APK CHANNEL: <strong className="text-white">{shouldUseAndroidApkUpdater() ? 'ENABLED' : 'DISABLED'}</strong></div>
-                        <div>DOWNLOADER API: <strong className="text-white">CapacitorHttp (Fetch)</strong></div>
-                        <div>OTA LISTENERS BINDING: <strong className="text-white">Active</strong></div>
-                      </div>
+                {/* Storage & Caches */}
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-3 font-mono text-[11px]">
+                  <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-white/5 pb-1.5 flex items-center gap-1.5 font-headline">
+                    <span className="material-symbols-outlined text-xs">database</span>
+                    Storage &amp; Cache
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Cached APK Status</span>
+                      <span className="text-white font-bold">{localStorage.getItem('studio:downloadedApkPath') ? 'PRESENT' : 'ABSENT'}</span>
                     </div>
-
-                    <DiagnosticsStack 
-                      nativeDeviceInfo={nativeDeviceInfo}
-                      nativeInstallerDetails={nativeInstallerDetails}
-                      localApkDetails={localApkDetails}
-                      nativeLogsList={nativeLogsList}
-                      showToast={showToast}
-                    />
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">APK URL Endpoint</span>
+                      <span className="text-white font-bold truncate block max-w-full" title={otaState.apkUrl || 'N/A'}>
+                        {otaState.apkUrl ? 'Resolved' : 'N/A'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Recovery Mode</span>
+                      <span className={`font-bold ${otaState.recoveryMode ? 'text-amber-400' : 'text-zinc-400'}`}>
+                        {otaState.recoveryMode ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Performance profile */}
+                <div className="bg-white/2 border border-white/5 rounded-xl p-4.5 space-y-3 font-mono text-[11px]">
+                  <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-white/5 pb-1.5 flex items-center gap-1.5 font-headline">
+                    <span className="material-symbols-outlined text-xs">insights</span>
+                    Performance
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">JS Thread Delay</span>
+                      <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().jsThreadAverage} ms</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">UI Thread Delay</span>
+                      <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().uiThreadAverage} ms</span>
+                    </div>
+                    <div>
+                      <span className="text-zinc-500 text-[8px] uppercase font-bold block mb-0.5">Frame rate (FPS)</span>
+                      <span className={`font-bold ${fps > 50 ? 'text-green-400' : fps > 30 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {fps} FPS
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+
+              {/* Logger configuration dropdown */}
+              <div className="flex flex-col sm:flex-row items-center justify-between p-4.5 bg-white/2 border border-white/5 rounded-xl">
+                <div className="flex flex-col gap-0.5 self-start">
+                  <span className="text-xs font-bold text-white font-headline">Flight Recorder Logging Severity</span>
+                  <span className="text-[10px] text-zinc-500">Filters events captured in storage and copy logs.</span>
+                </div>
+                <div className="flex gap-1.5 mt-3 sm:mt-0">
+                  {(['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'] as const).map(lvl => (
+                    <button
+                      key={lvl}
+                      onClick={() => {
+                        UpdaterFlightRecorder.setSeverityLevel(lvl);
+                        triggerRefresh();
+                        showToast(`Log filter severity set to ${lvl}`);
+                      }}
+                      className={`px-2 py-1 rounded text-[9px] font-mono font-bold transition-all border outline-none ${
+                        UpdaterFlightRecorder.getSeverityLevel() === lvl
+                          ? 'bg-[#8b5cf6]/20 border-[#8b5cf6]/40 text-[#c084fc] scale-105'
+                          : 'bg-black border-white/5 text-zinc-500 hover:text-white'
+                      }`}
+                    >
+                      {lvl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
       </main>
 
-      {/* Toast Notification Container */}
+      {/* Floating toast notification */}
       {toastMsg && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-[#1c1c1e] border border-[#484848]/25 px-5 py-2.5 rounded-xl text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce font-mono">
-          <span className="material-symbols-outlined text-[16px] text-green-400">done</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#1c1c1e] border border-white/10 px-5 py-3 rounded-2xl text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2.5 animate-bounce font-mono">
+          <span className="material-symbols-outlined text-[16px] text-[#8b5cf6]">done</span>
           {toastMsg}
         </div>
       )}
@@ -1318,8 +1160,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   );
 }
 
-// Compact helper components declared outside the main view to keep code clean and performant
-
+// Collapsible scenario helper card declared locally to avoid duplicated imports
 function ScenarioCard({
   id,
   title,
@@ -1346,30 +1187,30 @@ function ScenarioCard({
   return (
     <div 
       onClick={!isActive ? action : undefined}
-      className={`relative flex flex-col justify-between bg-black/40 border border-[#484848]/15 hover:border-[#8b5cf6]/40 p-4 rounded-xl transition-all text-left outline-none min-h-[145px] select-none ${
-        isActive ? 'ring-1 ring-[#8b5cf6]' : 'cursor-pointer active:scale-[0.98]'
+      className={`relative flex flex-col justify-between bg-white/2 border border-white/5 hover:border-[#8b5cf6]/30 p-4.5 rounded-xl transition-all text-left outline-none min-h-[155px] select-none ${
+        isActive ? 'ring-1 ring-[#8b5cf6]/80 bg-white/4' : 'cursor-pointer active:scale-[0.98]'
       }`}
     >
       <div className="flex items-start justify-between w-full">
         <div className={`flex items-center gap-2 ${colorClass}`}>
-          <span className="material-symbols-outlined text-[18px]">{icon}</span>
+          <span className="material-symbols-outlined style={{ fontSize: 18 }}">{icon}</span>
           <span className="text-xs font-bold font-headline">{title}</span>
         </div>
         {isActive && (
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
           </span>
         )}
       </div>
-      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed flex-1">
+      <p className="text-[10px] text-zinc-400 mt-2.5 leading-relaxed flex-1">
         {description}
       </p>
       
-      <div className="mt-3 flex items-center justify-between text-[9px] font-mono text-zinc-500 border-t border-[#484848]/10 pt-2 w-full">
+      <div className="mt-3.5 flex items-center justify-between text-[9px] font-mono text-zinc-500 border-t border-white/5 pt-2.5 w-full">
         <div>
           <span>STATE: </span>
-          <span className={isActive ? 'text-green-400 font-bold animate-pulse' : 'text-zinc-400'}>
+          <span className={isActive ? 'text-green-400 font-bold animate-pulse' : 'text-zinc-500'}>
             {isActive ? 'RUNNING' : (currentState || 'IDLE')}
           </span>
         </div>
@@ -1389,11 +1230,76 @@ function ScenarioCard({
   );
 }
 
-// Start deterministic scenario workflow
-async function startScenario(id: string, workflowAction: () => Promise<void> | void) {
-  try {
-    await workflowAction();
-  } catch (err) {
-    console.error(`Workflow scenario ${id} failed:`, err);
+// Collapsible row item helper for the timeline viewport
+function TimelineEventRow({
+  time,
+  type,
+  text,
+  details,
+  isError,
+  isTransition,
+  count
+}: {
+  time: string;
+  type: string;
+  text: string;
+  details?: string;
+  isError: boolean;
+  isTransition: boolean;
+  count?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  let icon = 'info';
+  let badgeColor = 'bg-zinc-800 text-zinc-400 border-zinc-700/30';
+  if (isError) {
+    icon = 'error';
+    badgeColor = 'bg-red-500/10 text-red-400 border-red-500/20';
+  } else if (isTransition) {
+    icon = 'sync';
+    badgeColor = 'bg-[#8b5cf6]/10 text-[#a78bfa] border-[#8b5cf6]/20';
+  } else if (type === 'native') {
+    icon = 'settings_ethernet';
+    badgeColor = 'bg-green-500/10 text-green-400 border-green-500/20';
   }
+
+  return (
+    <div 
+      onClick={() => setExpanded(!expanded)}
+      className="bg-white/1 border border-white/5 hover:bg-white/3 rounded-xl p-3 flex flex-col gap-2 transition-all cursor-pointer select-none"
+    >
+      <div className="flex items-start justify-between gap-3 w-full">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className={`material-symbols-outlined text-[15px] shrink-0 ${isError ? 'text-red-400 animate-pulse' : isTransition ? 'text-[#8b5cf6]' : 'text-zinc-500'}`}>
+            {icon}
+          </span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-white block truncate">{text}</span>
+            {count && count > 1 && (
+              <span className="inline-block mt-0.5 bg-[#8b5cf6]/10 text-[#c084fc] px-1.5 py-0.2 rounded text-[8px] font-mono font-bold uppercase">
+                Aggregated {count} events
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`px-2 py-0.5 rounded text-[8px] font-mono font-bold border ${badgeColor}`}>
+            {type.toUpperCase()}
+          </span>
+          <span className="text-[9px] font-mono text-zinc-500">{time}</span>
+          {details && (
+            <span className={`material-symbols-outlined text-[14px] text-zinc-500 transition-transform ${expanded ? 'rotate-180' : ''}`}>
+              expand_more
+            </span>
+          )}
+        </div>
+      </div>
+
+      {expanded && details && (
+        <div className="pl-6.5 text-[10px] text-zinc-400 font-mono leading-relaxed border-t border-white/5 pt-2 select-text word-break-all">
+          {details}
+        </div>
+      )}
+    </div>
+  );
 }

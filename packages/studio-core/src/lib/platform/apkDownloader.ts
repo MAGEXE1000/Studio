@@ -2,6 +2,7 @@ import { registerPlugin } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { parseAndNormalizeVersion } from '../startup/appVersion';
 import { logRawSource, releaseMetadataInspector } from '../updater/versionLogger';
+import { isSimulationActive } from '../updater/updaterSimulation';
 
 // CRITICAL WARNING:
 // This interface, the registered plugin name 'AppInstaller', and its methods:
@@ -89,7 +90,27 @@ export interface AppInstallerPlugin {
   copyToClipboard(options: { text: string }): Promise<void>;
 }
 
-export const AppInstaller = registerPlugin<AppInstallerPlugin>('AppInstaller');
+const rawAppInstaller = registerPlugin<AppInstallerPlugin>('AppInstaller');
+
+export const AppInstaller = new Proxy(rawAppInstaller, {
+  get(target, prop, receiver) {
+    if (prop === 'installApk' || prop === 'installApkDirect' || prop === 'downloadAndInstallApk') {
+      return async (options: any) => {
+        const filePath = options?.filePath || options?.url || '';
+        if (
+          filePath.includes('mock') || 
+          filePath.includes('simulated') || 
+          isSimulationActive()
+        ) {
+          console.warn(`[Proxy Guard] Blocked native ${String(prop)} call in simulation. Path/URL: ${filePath}`);
+          throw new Error(`[Proxy Guard] Blocked native ${String(prop)} call in simulation. Path/URL: ${filePath}`);
+        }
+        return (target as any)[prop](options);
+      };
+    }
+    return Reflect.get(target, prop, receiver);
+  }
+});
 
 export interface GitHubReleaseAsset {
   name: string;

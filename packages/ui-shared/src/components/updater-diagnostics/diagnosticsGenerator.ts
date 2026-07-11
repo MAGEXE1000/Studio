@@ -19,7 +19,10 @@ import {
   globalOtaState,
   updaterSimulation,
   stateListeners,
-  UpdaterFlightRecorder
+  UpdaterFlightRecorder,
+  isSimulationActive,
+  shouldUseAndroidApkUpdater,
+  useChordStore
 } from '@workspace/studio-core';
 
 export interface DiagnosticsData {
@@ -449,315 +452,254 @@ export function generateCopyEverythingReport(
   else if (healthScore < 75) overallStatus = 'Attention Required';
   else if (healthScore < 90) overallStatus = 'Minor Warnings';
 
-  let report = `# STUDIO UPDATER ENGINEERING DIAGNOSTICS REPORT\n`;
+  let report = `# STUDIO UPDATER SYSTEM COMPREHENSIVE ENGINEERING REPORT\n`;
   report += `*Generated on: ${data.timestamp}*\n\n`;
 
   // ==========================================
   // SECTION 1: SUMMARY
   // ==========================================
-  report += `## 1. SUMMARY\n`;
-  report += `### Engineering Verdict\n`;
+  report += `## 1. ENGINEERING SUMMARY\n`;
+  report += `### System Verdict\n`;
   if (healthScore >= 90) {
     report += `*   **Status**: **HEALTHY** (Score: ${healthScore}/100)\n`;
-    report += `*   **Diagnosis**: The updater system is healthy. All core state machines, pipeline stages, and thread activities are operating within normal parameters.\n`;
+    report += `*   **Diagnosis**: The updater system is healthy. All state machine transitions and execution logs are within normal thresholds.\n`;
   } else if (healthScore >= 70) {
     report += `*   **Status**: **WARNING** (Score: ${healthScore}/100)\n`;
-    report += `*   **Diagnosis**: The system is functional but requires attention. Performance profiling or event warning counts have triggered sub-optimal scoring thresholds.\n`;
+    report += `*   **Diagnosis**: System requires attention. Frame variance or alert flags are elevated.\n`;
   } else {
     report += `*   **Status**: **CRITICAL** (Score: ${healthScore}/100)\n`;
-    report += `*   **Diagnosis**: CRITICAL FAILURE DETECTED. Multi-stage errors or thread lock conditions are currently blocking normal operations.\n`;
+    report += `*   **Diagnosis**: CRITICAL anomalies detected. Please check FSM log details and recovery counters.\n`;
   }
 
   const lockedVal = isInstallationLocked();
   const postInstallActive = isPostInstallSessionActive();
-  const currentState = data.otaDebugLogs.downloadStatus || 'IDLE';
 
-  report += `\n### System Checks\n`;
-  report += `| Metric | Status | Evaluation |\n`;
+  report += `\n### Core System Verification Gating\n`;
+  report += `| Gate / Guard | Status | Evaluation |\n`;
   report += `|---|---|---|\n`;
-  report += `| Updater Health | ${healthScore}/100 | ${overallStatus} |\n`;
-  report += `| Race Conditions | NONE DETECTED | State transitions are synchronous and serial. |\n`;
-  report += `| Lifecycle Conflicts | NONE DETECTED | Event handlers are correctly registered and isolated. |\n`;
-  report += `| PackageInstaller Handoff | ${nativeInstallerDetails ? 'WAITING / ACTIVE' : 'IDLE'} | Handled correctly via broadcast IPC channel. |\n`;
-  report += `| Invalid Transitions | ${data.rejectedTransitions.length === 0 ? 'NONE' : 'REJECTED DETECTED'} | Evaluated transitions matched validation rules. |\n`;
-  report += `| Installation Lock | ${lockedVal ? 'LOCKED' : 'UNLOCKED'} | State transitions are protected from parallel check threads. |\n`;
-  report += `| Post-Install Session | ${postInstallActive ? 'ACTIVE' : 'INACTIVE'} | Post-install screen holds process until Android termination. |\n`;
-
-  if (currentState !== 'IDLE' && currentState !== 'COMPLETED') {
-    report += `\n*   **Current workflow block**: System is currently active in state \`${currentState}\`.\n`;
-  }
+  report += `| Overall Updater Score | ${healthScore}/100 | Class: ${overallStatus} |\n`;
+  report += `| Installation Lock | ${lockedVal ? '🔒 LOCKED' : '🔓 UNLOCKED'} | Blocks concurrent check/recovery loops |\n`;
+  report += `| Post-Install Session | ${postInstallActive ? '⏳ ACTIVE' : '⏹️ INACTIVE'} | Session holding process until process boot update |\n`;
+  report += `| Simulation Mode | ${isSimulationActive() ? '🧪 ACTIVE' : '⏹️ INACTIVE'} | Isolated mock pipeline execution |\n`;
+  report += `| Invalid Transitions | ${data.rejectedTransitions.length} | Rejected transition violations |\n`;
 
   report += `\n### Recommendations & Issues\n`;
   let recIndex = 0;
   if (data.errors.length > 0) {
     recIndex++;
-    report += `${recIndex}. **Resolve ${data.errors.length} unhandled console errors**: Check the Event Log section for stack details.\n`;
+    report += `${recIndex}. **Resolve ${data.errors.length} console errors**: Detailed stack traces are in Section 8.\n`;
   }
   if (warningLogs.length > 5) {
     recIndex++;
-    report += `${recIndex}. **Audit ${warningLogs.length} warning events**: Suppress warning loops emitting duplicate log messages.\n`;
-  }
-  if (perfScore < 85) {
-    recIndex++;
-    report += `${recIndex}. **Optimize thread execution delays**: Frame variance is currently ${perfMetrics.frameVariance}ms.\n`;
+    report += `${recIndex}. **Audit warning log frequency**: Group repeated warnings to prevent console pollution.\n`;
   }
   if (recIndex === 0) {
-    report += `* No actionable recommendations. Core updater system is operating perfectly.\n`;
+    report += `* No actionable errors or warnings found. System is running healthy.\n`;
   }
   report += `\n`;
 
   // ==========================================
-  // SECTION 2: APPLICATION
+  // SECTION 2: ENVIRONMENT & DEVICE
   // ==========================================
-  report += `## 2. APPLICATION\n`;
+  report += `## 2. ENVIRONMENT & DEVICE\n`;
   report += `| Property | Value | Description |\n`;
   report += `|---|---|---|\n`;
-  report += `| Version Name | ${data.device.versionName} | Current versionName as configured in build.gradle |\n`;
-  report += `| Version Code | ${data.device.versionCode} | Current versionCode numeric value |\n`;
-  report += `| Build Type | ${data.device.isNative ? 'Native Release' : 'Development Web'} | Binary build classification mode |\n`;
-  report += `| Platform | ${data.device.platform} | Runtime host engine platform |\n`;
-  report += `| WebView Version | ${data.device.userAgent.substring(0, 60)}... | Browser WebView wrapper identification string |\n`;
-  report += `| Android Version | ${data.device.osVersion} | Native OS release level |\n`;
-  report += `| Device Model | ${data.device.model} | Hardware device model string |\n`;
-  report += `| Manufacturer | ${data.device.manufacturer} | Device manufacturer name |\n`;
-  report += `| Architecture | ${data.device.supportedABIs.join(', ') || 'N/A'} | CPU architecture compilation target |\n`;
-  report += `| ABI | ${data.device.supportedABIs[0] || 'N/A'} | Primary Application Binary Interface |\n`;
-  report += `| Locale | ${typeof navigator !== 'undefined' ? navigator.language : 'en-US'} | Active client system language locale |\n`;
-  report += `| Theme | ${typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'Dark' : 'Light'} | Rendered color stylesheet mode |\n`;
-  report += `| Battery | ${data.device.batteryLevel}% | Hardware battery power state |\n`;
-  report += `| Memory | ${(otaDiagnostics as any).memoryLimit || 'Available: ' + perfMetrics.memoryAverage} | System hardware memory statistics |\n`;
-  report += `| Storage | ${data.device.storageAvailable} | Free disk storage available on target block |\n`;
-  report += `| Network | ${data.device.networkState} | Connection transport method type |\n`;
-  report += `| Startup Time | ${(otaDiagnostics as any).startupDurationMs || 340} ms | App loading initialization timing |\n`;
-  report += `| Current Screen | App: ${navState.history[navState.history.length - 1]?.app || 'hub'}, Tab: ${navState.history[navState.history.length - 1]?.tab || 'home'} | Active screen navigation coordinator context |\n`;
+  report += `| Manufacturer | ${data.device.manufacturer} | Device manufacturer |\n`;
+  report += `| Model | ${data.device.model} | Device model |\n`;
+  report += `| OS Version | ${data.device.osVersion} | Android OS Version |\n`;
+  report += `| User Agent | ${data.device.userAgent.substring(0, 80)}... | Browser wrapper context |\n`;
+  report += `| Network Connection | ${data.device.networkState} | Active network transport |\n`;
+  report += `| Storage Available | ${data.device.storageAvailable} | Disk storage left on partition |\n`;
+  report += `| Battery | ${data.device.batteryLevel}% | Device battery level |\n`;
+  report += `| Language Locale | ${typeof navigator !== 'undefined' ? navigator.language : 'en-US'} | Host language preference |\n`;
   report += `\n`;
 
   // ==========================================
-  // SECTION 3: UPDATER
+  // SECTION 3: APPLICATION & VERSIONS
   // ==========================================
-  report += `## 3. UPDATER\n`;
+  report += `## 3. APPLICATION & VERSIONS\n`;
   report += `| Property | Value | Description |\n`;
   report += `|---|---|---|\n`;
-  report += `| Current State | ${globalOtaState.updateState} | Current FSM stage state |\n`;
-  report += `| Previous State | ${transitionHistory[transitionHistory.length - 1]?.from || 'None'} | FSM stage state prior to last transition |\n`;
-  report += `| Current Session ID | \`${globalOtaState.sessionId || 'None'}\` | Unique ID of current update lifecycle run |\n`;
-  report += `| Active Update Session | ${activeSession ? 'YES' : 'NO'} | Whether update coordinator is holding an active session |\n`;
-  report += `| Current Workflow Step | ${globalOtaState.updateState} | Stage within the current execution sequence |\n`;
-  report += `| Pipeline State | ${globalOtaState.updateState} | Active execution node state |\n`;
-  report += `| State Machine State | ${globalOtaState.updateState} | Core validation machine state |\n`;
-  report += `| Transition Count | ${transitionHistory.length} | Total transitions executed since process startup |\n`;
-  report += `| Last Transition | ${transitionHistory[transitionHistory.length - 1] ? `${transitionHistory[transitionHistory.length - 1].from} -> ${transitionHistory[transitionHistory.length - 1].to}` : 'None'} | Most recent state change executed |\n`;
-  report += `| Transition Durations | ${transitionHistory[transitionHistory.length - 1]?.durationMs ? transitionHistory[transitionHistory.length - 1].durationMs + ' ms' : 'N/A'} | Elapsed time of last FSM transition |\n`;
-  report += `| Current Progress | ${(globalOtaState.progress * 100).toFixed(0)}% | Overall state progression percentage |\n`;
-  report += `| Download Progress | ${(globalOtaState.progress * 100).toFixed(0)}% | Percentage of current update file downloaded |\n`;
-  report += `| Install Progress | ${(globalOtaState.progress * 100).toFixed(0)}% | Percentage of Android package installation finished |\n`;
-  report += `| Verification Status | ${otaDebugLogs.shaVerification || 'N/A'} | Integrity and signature check result |\n`;
-  report += `| PackageInstaller Status | ${nativeInstallerDetails?.sessionState || 'N/A'} | Broadcast status from native PackageInstaller |\n`;
-  report += `| Installation Lock | ${lockedVal ? 'LOCKED' : 'UNLOCKED'} | Installation lock preventing check collisions |\n`;
-  report += `| Post-Install Session | ${postInstallActive ? 'ACTIVE' : 'INACTIVE'} | Verification screen hold prior to process exit |\n`;
-  report += `| Recovery Mode | ${globalOtaState.recoveryMode ? 'ACTIVE' : 'INACTIVE'} | Recovery mode bypassing corrupted builds |\n`;
-  report += `| Recovery Attempts | ${globalOtaState.consecutiveFailures} | Number of sequential update failures logged |\n`;
-  report += `| Current Version | ${APP_VERSION} | Local bundle semantic version name |\n`;
-  report += `| Latest Version | ${globalOtaState.remoteVersion || 'N/A'} | Target version returned by remote metadata checks |\n`;
-  report += `| Comparison Result | ${globalOtaState.remoteVersion ? (globalOtaState.remoteVersion === APP_VERSION ? 'EQUALS' : 'MISMATCH') : 'N/A'} | Comparison status of remote and local version levels |\n`;
-  report += `| Mandatory Update | ${globalOtaState.mandatory ? 'YES' : 'NO'} | Force upgrade bypass block toggle flag |\n`;
-  report += `| Release Channel | production-ota | Remote CDN metadata pull channel |\n`;
-  report += `| Release Notes Summary | ${globalOtaState.changelog ? globalOtaState.changelog.substring(0, 60) + '...' : 'N/A'} | Release notes of update manifest |\n`;
-  report += `| Update Available | ${globalOtaState.remoteVersion && globalOtaState.remoteVersion !== APP_VERSION ? 'YES' : 'NO'} | If remote metadata version > local version |\n`;
-  report += `| Update Source | ${globalOtaState.apkUrl || 'N/A'} | Remote link to APK file |\n`;
-  report += `| APK URL | ${globalOtaState.apkUrl || 'N/A'} | Download source endpoint |\n`;
-  report += `| APK Size | ${localApkDetails?.sizeBytes || 'N/A'} | Size of update file on disk |\n`;
-  report += `| APK SHA256 | ${globalOtaState.apkSha256 || 'N/A'} | Cryptographic checksum manifest digest |\n`;
-  report += `| Cached APK Status | ${localApkDetails ? 'PRESENT' : 'ABSENT'} | Whether update binary exists on local storage |\n`;
-  report += `| Download Resume Status | ${updaterSimulation.forceResumeDownload ? 'FORCED' : 'NORMAL'} | Status of HTTP Range chunk resume features |\n`;
-  report += `| Current Downloader | CapacitorHttp | Network download backend classification |\n`;
-  report += `| Verification Result | ${localApkDetails?.isValidApk ? 'VERIFIED' : 'PENDING'} | Overall file validity outcome |\n`;
-  report += `| Signature Verification | ${localApkDetails?.isValidApk ? 'PASSED' : 'PENDING'} | Valid security certificate matches local app |\n`;
-  report += `| SHA Verification | ${otaDebugLogs.shaVerification || 'PASSED'} | SHA-256 validation outcome |\n`;
-  report += `| Checksum | ${localApkDetails?.signingSha256 || 'N/A'} | Downloaded APK calculated digest |\n`;
+  report += `| App Version | ${APP_VERSION} | Local JS application version |\n`;
+  report += `| Version Code | ${data.device.versionCode} | Native Version code |\n`;
+  report += `| Platform Host | ${data.device.platform} | Capacitor WebView target host |\n`;
+  report += `| Native Shell | ${data.device.isNative ? 'Native Capacitor App' : 'Web Browser'} | Client wrapper context |\n`;
+  report += `| Startup Duration | ${(otaDiagnostics as any).startupDurationMs || 'N/A'} ms | Execution load time |\n`;
+  report += `| Current Active Screen | App: ${navState.history[navState.history.length - 1]?.app || 'hub'}, Tab: ${navState.history[navState.history.length - 1]?.tab || 'home'} | Navigation stack state |\n`;
   report += `\n`;
 
   // ==========================================
-  // SECTION 4: LIFECYCLE
+  // SECTION 4: STATE MACHINE & SESSION
   // ==========================================
-  report += `## 4. LIFECYCLE\n`;
+  report += `## 4. STATE MACHINE & SESSION\n`;
   report += `| Property | Value | Description |\n`;
   report += `|---|---|---|\n`;
-  report += `| AppState | ${typeof document !== 'undefined' && document.hidden ? 'background' : 'active'} | Application host thread lifecycle visibility state |\n`;
-  report += `| Resume Events | ${activityLifecycleTimeline.filter(e => e.stage === 'RESUME').length} | Count of app resume triggers logged |\n`;
-  report += `| Pause Events | ${activityLifecycleTimeline.filter(e => e.stage === 'PAUSE').length} | Count of app pause triggers logged |\n`;
-  report += `| Focus Events | ${activityLifecycleTimeline.filter(e => e.stage === 'FOCUS').length} | Count of window focus events recorded |\n`;
-  report += `| Visibility Events | ${activityLifecycleTimeline.filter(e => e.stage === 'VISIBILITY_CHANGE').length} | Visibility index transition updates |\n`;
-  report += `| Lifecycle Queue | ${activityLifecycleTimeline.length} entries | Event buffer cache depth |\n`;
-  report += `| Pending Callbacks | 0 | Tasks awaiting processing cycle |\n`;
-  report += `| StartupCoordinator | INITIALIZED | Startup coordinator lock state |\n`;
-  report += `| Recovery State | ${globalOtaState.recoveryMode ? 'RECOVERY_ACTIVE' : 'NORMAL'} | Internal recovery execution mode |\n`;
-  report += `| Initialization State | COMPLETE | Bundle compilation loading level |\n`;
-  report += `| Listener Count | ${stateListeners.size} | Number of observers subscribed to FSM states |\n`;
-  report += `| Hook Count | 1 | Active React hooks tracking updates |\n`;
-  report += `| Mounted Components | UpdateIndicator, DiagnosticsSheet | Active components registered in render loop |\n`;
-  report += `| UpdateIndicator | ${globalOtaState.updateState} | Render state of the update indicator overlay |\n`;
-  report += `| StudioUpdateScreen | ${globalOtaState.updateState} | Main Update Screen display index status |\n`;
+  report += `| Current State | ${globalOtaState.updateState} | Active stage state in state machine |\n`;
+  report += `| Previous State | ${transitionHistory[transitionHistory.length - 1]?.from || 'None'} | Prior state machine state |\n`;
+  report += `| Current Session ID | \`${globalOtaState.sessionId || 'None'}\` | Session ID generated for this update |\n`;
+  report += `| Active Update Session | ${activeSession ? 'YES' : 'NO'} | Persistent session check outcome |\n`;
+  report += `| Transition Count | ${transitionHistory.length} | FSM transitions during current run |\n`;
+  report += `| Last Transition | ${transitionHistory[transitionHistory.length - 1] ? `${transitionHistory[transitionHistory.length - 1].from} -> ${transitionHistory[transitionHistory.length - 1].to}` : 'None'} | Direction of state transition |\n`;
+  report += `| Transition Elapsed Time | ${transitionHistory[transitionHistory.length - 1]?.durationMs ? transitionHistory[transitionHistory.length - 1].durationMs + ' ms' : 'N/A'} | Time taken in last state change |\n`;
   report += `\n`;
 
   // ==========================================
-  // SECTION 5: PIPELINE
+  // SECTION 5: DOWNLOAD, VERIFICATION & INSTALLATION
   // ==========================================
-  report += `## 5. PIPELINE\n`;
+  report += `## 5. DOWNLOAD, VERIFICATION & INSTALLATION\n`;
   report += `| Property | Value | Description |\n`;
   report += `|---|---|---|\n`;
-  report += `| Current Pipeline Stage | ${globalOtaState.updateState} | Running pipeline execution node |\n`;
-  report += `| Pipeline Locks | ${lockedVal ? 'LOCKED' : 'UNLOCKED'} | Global concurrency pipeline check lock |\n`;
-  report += `| Active Promises | 0 | Concurrently executing async hooks |\n`;
-  report += `| Pending Tasks | 0 | Tasks queued in pipeline coordinator |\n`;
-  report += `| Queue Status | IDLE | State of queue executor |\n`;
-  report += `| Download Queue | 0 | Files pending download queue |\n`;
-  report += `| Verification Queue | 0 | Files pending SHA computation |\n`;
-  report += `| Installation Queue | 0 | Installation tasks waiting for FSM slots |\n`;
-  report += `| Watchdog State | ARMED | Watchdog monitoring active pipeline tasks |\n`;
-  report += `| Timeouts | 5000 ms | Pipeline coordinator threshold timeout |\n`;
-  report += `| Retry Count | ${globalOtaState.consecutiveFailures} | Number of re-runs executed on failed stages |\n`;
-  report += `| Fallback State | INACTIVE | Fallback web reload path status |\n`;
+  report += `| Download URL | ${globalOtaState.apkUrl || 'N/A'} | APK download source URL |\n`;
+  report += `| Downloaded APK Path | ${localStorage.getItem('studio:downloadedApkPath') || 'N/A'} | Local storage path of file |\n`;
+  report += `| Downloaded APK Size | ${otaDebugLogs.downloadedApkSize || 'N/A'} | Size on filesystem |\n`;
+  report += `| Expected Hash (SHA-256) | ${globalOtaState.apkSha256 || 'N/A'} | Release manifest hash |\n`;
+  report += `| Verification Status | ${otaDebugLogs.shaVerification || 'N/A'} | Checksum evaluation result |\n`;
+  report += `| APK Signatures Fingerprint | ${localApkDetails?.signingSha256 || 'N/A'} | Native certificate fingerprint |\n`;
+  report += `| PackageInstaller Status | ${nativeInstallerDetails?.sessionState || 'N/A'} | Callback updates from system |\n`;
+  report += `| Last Successful Update | ${localStorage.getItem('studio:lastSuccessfulUpdate') || 'N/A'} | Timestamp of last success |\n`;
   report += `\n`;
 
   // ==========================================
-  // SECTION 6: EVENT HISTORY (FLIGHT RECORDER)
+  // SECTION 6: RECOVERY & FAULT TOLERANCE
   // ==========================================
-  report += `## 6. EVENT HISTORY (FLIGHT RECORDER)\n`;
+  report += `## 6. RECOVERY & FAULT TOLERANCE\n`;
+  report += `| Property | Value | Description |\n`;
+  report += `|---|---|---|\n`;
+  report += `| Recovery Mode | ${globalOtaState.recoveryMode ? 'ACTIVE' : 'INACTIVE'} | Recovery mode status |\n`;
+  report += `| Consecutive Failures | ${globalOtaState.consecutiveFailures} | Failed attempts counts |\n`;
+  report += `| Auto-Clean Triggered | ${otaDebugLogs.suggestedFix ? 'YES' : 'NO'} | Auto recovery actions performed |\n`;
+  report += `\n`;
+
+  // ==========================================
+  // SECTION 7: CONFIGURATION & FLAGS
+  // ==========================================
+  report += `## 7. CONFIGURATION & FLAGS\n`;
+  report += `| Flag / Parameter | Value | Description |\n`;
+  report += `|---|---|---|\n`;
+  report += `| APK Channel Enabled | ${shouldUseAndroidApkUpdater() ? 'YES' : 'NO'} | Android APK update strategy status |\n`;
+  report += `| Developer Settings Mode | ${useChordStore.getState().settings.developerMode ? 'ACTIVE' : 'INACTIVE'} | Admin dashboard console visibility |\n`;
+  report += `| Simulation Active Flag | ${isSimulationActive() ? 'YES' : 'NO'} | Simulation flag toggle status |\n`;
+  report += `| Log Filter Severity | ${UpdaterFlightRecorder.getSeverityLevel()} | Current flight recorder logging limit |\n`;
+  report += `\n`;
+  
+  report += `### Active Simulation Overrides\n`;
+  report += `| Override Flag | Status | Description |\n`;
+  report += `|---|---|---|\n`;
+  report += `| runWorkflowActive | ${updaterSimulation.runWorkflowActive ? 'ON' : 'OFF'} | Runs full auto-sequence check -> install |\n`;
+  report += `| forceUpdateAvailable | ${updaterSimulation.forceUpdateAvailable ? 'ON' : 'OFF'} | Simulates check results finding a newer APK |\n`;
+  report += `| forceNoUpdate | ${updaterSimulation.forceNoUpdate ? 'ON' : 'OFF'} | Force check to resolve as up-to-date |\n`;
+  report += `| forceInstallSuccess | ${updaterSimulation.forceInstallSuccess ? 'ON' : 'OFF'} | Simulate package installation success |\n`;
+  report += `| forceInstallFailure | ${updaterSimulation.forceInstallFailure ? 'ON' : 'OFF'} | Force simulated PackageInstaller failure |\n`;
+  report += `| forceUserCancel | ${updaterSimulation.forceUserCancel ? 'ON' : 'OFF'} | Simulate user aborting installer dialog |\n`;
+  report += `| forceSignatureMismatch | ${updaterSimulation.forceSignatureMismatch ? 'ON' : 'OFF'} | Simulate APK certificate signature conflict |\n`;
+  report += `| forceShaFailure | ${updaterSimulation.forceShaFailure ? 'ON' : 'OFF'} | Force simulated SHA verification failure |\n`;
+  report += `\n`;
+
+  // ==========================================
+  // SECTION 8: LIFECYCLE & EVENT LOGS
+  // ==========================================
+  report += `## 8. LIFECYCLE & EVENT LOGS\n`;
+  report += `### Lifecycle Event Counters\n`;
+  report += `*   **Resume Events**: ${data.activityLifecycle.filter(e => e.stage === 'RESUME').length}\n`;
+  report += `*   **Pause Events**: ${data.activityLifecycle.filter(e => e.stage === 'PAUSE').length}\n`;
+  report += `*   **Focus Events**: ${data.activityLifecycle.filter(e => e.stage === 'FOCUS').length}\n`;
+  report += `*   **Visibility Changes**: ${data.activityLifecycle.filter(e => e.stage === 'VISIBILITY_CHANGE').length}\n\n`;
+
+  report += `### Active State Machine Listeners\n`;
+  report += `*   **Registered State Observers**: ${stateListeners.size}\n\n`;
+
+  report += `### Console Diagnostic Errors (${data.errors.length} logged)\n`;
+  if (data.errors.length > 0) {
+    data.errors.slice(-10).forEach(e => {
+      report += `*   **[${new Date(e.timestamp).toLocaleTimeString()}]** \`${e.message}\`\n`;
+    });
+  } else {
+    report += `*   No console errors in buffer.\n`;
+  }
+  report += `\n`;
+
+  // ==========================================
+  // SECTION 9: FLIGHT RECORDER LOGS
+  // ==========================================
+  report += `## 9. FLIGHT RECORDER LOGS\n`;
   const frEvents = UpdaterFlightRecorder.getEvents();
   if (frEvents.length > 0) {
-    frEvents.slice(-50).forEach(e => {
+    frEvents.slice().reverse().forEach(e => {
       const timeStr = new Date(e.timestamp).toLocaleTimeString();
-      report += `${timeStr}\n`;
-      report += `${e.eventType}`;
+      report += `\`[${timeStr}] [${e.severity || 'INFO'}] [${e.thread.toUpperCase()}] ${e.eventType}\`\n`;
+      report += `> Caller: ${e.caller} | Reason: ${e.reason || 'None'}\n`;
       if (e.previousState || e.newState) {
-        report += `(${e.previousState} -> ${e.newState})`;
+        report += `> State change: ${e.previousState} &rarr; ${e.newState}\n`;
+      }
+      if (e.count && e.count > 1) {
+        report += `> Repetition count: aggregated ${e.count} events\n`;
+      }
+      if (e.error || e.warning) {
+        report += `> Alert: Error: ${e.error || 'N/A'} | Warning: ${e.warning || 'N/A'}\n`;
       }
       report += `\n`;
-      report += `caller:\n${e.caller}\n`;
-      report += `reason:\n${e.reason || 'None'}\n`;
-      if (e.warning) {
-        report += `WARNING: ${e.warning}\n`;
-      }
-      if (e.error) {
-        report += `ERROR: ${e.error}\n`;
-      }
-      report += `--------------------------------\n\n`;
     });
   } else {
-    report += `*No Flight Recorder events recorded.*\n\n`;
+    report += `*No Flight Recorder log traces generated.*\n\n`;
   }
 
   // ==========================================
-  // SECTION 7: PERFORMANCE
+  // SECTION 10: PERFORMANCE METRICS
   // ==========================================
-  report += `## 7. PERFORMANCE\n`;
+  report += `## 10. PERFORMANCE METRICS\n`;
   report += `| Metric | Average | Peak | Description |\n`;
   report += `|---|---|---|---|\n`;
-  report += `| JS Thread | ${perfMetrics.jsThreadAverage} ms | ${perfMetrics.jsThreadPeak} ms | Execution delay of JS event loop |\n`;
-  report += `| UI Thread | ${perfMetrics.uiThreadAverage} ms | ${perfMetrics.uiThreadPeak} ms | Layout painting thread response timing |\n`;
-  report += `| Frame Time | ${perfMetrics.framePacing || perfMetrics.frameTime} ms | ${perfMetrics.frameVariance} ms | Variance between frame rendering slots |\n`;
-  report += `| GPU Layers | ${perfMetrics.gpuLayerCount} | ${perfMetrics.gpuLayerCount} | Hardware composition layers in use |\n`;
-  report += `| React Renders | ${data.otaDebugLogs.renderCount || 0} | N/A | Total React lifecycle render calculations |\n`;
-  report += `| Paint Count | ${data.otaDebugLogs.paintCount || 0} | N/A | Total screen buffer updates draw count |\n`;
-  report += `| Layout Count | ${data.otaDebugLogs.layoutCount || 0} | N/A | DOM layout tree recalculations trigger count |\n`;
-  report += `| Memory Usage | ${perfMetrics.memoryAverage} | ${perfMetrics.memoryPeak} | Active memory size details |\n`;
-  report += `| CPU Usage | ${perfMetrics.cpuAverage}% | ${perfMetrics.cpuPeak}% | Host processor allocation load percentage |\n`;
-  report += `| Callback Latency | ${perfMetrics.averageCallbackLatency} ms | ${perfMetrics.packageInstallerLatency} ms | Handler response delay timing |\n`;
-  report += `| Pipeline Duration | ${perfMetrics.updatePipelineDuration} | N/A | Time taken to run state FSM pipeline |\n`;
+  report += `| JS Event loop delay | ${perfMetrics.jsThreadAverage} ms | ${perfMetrics.jsThreadPeak} ms | Execution overhead |\n`;
+  report += `| UI Layout Paint time | ${perfMetrics.uiThreadAverage} ms | ${perfMetrics.uiThreadPeak} ms | WebView frame drawing duration |\n`;
+  report += `| Frame Time variance | ${perfMetrics.framePacing || perfMetrics.frameTime} ms | ${perfMetrics.frameVariance} ms | Frame rate jitter factor |\n`;
+  report += `| CPU Overhead | ${perfMetrics.cpuAverage}% | ${perfMetrics.cpuPeak}% | Processor consumption percentage |\n`;
+  report += `| Memory Footprint | ${perfMetrics.memoryAverage} | ${perfMetrics.memoryPeak} | Active RAM allocation |\n`;
+  report += `| Render cycles (React) | ${otaDebugLogs.renderCount || 1} | N/A | React updates cycle counts |\n`;
   report += `\n`;
 
   // ==========================================
-  // AUTOMATIC ANALYSIS
+  // SECTION 11: AUTOMATIC SYSTEM ANALYSIS
   // ==========================================
-  report += `## 8. AUTOMATIC ANALYSIS\n`;
-  report += `### Diagnostics Rules Engine Findings\n`;
-  
-  let anomaliesFound = 0;
-  
-  // 1. Recovery Mode
-  if (globalOtaState.recoveryMode || globalOtaState.consecutiveFailures > 0) {
-    anomaliesFound++;
-    report += `*   **Recovery Activated**: Updater recovery mode is active. Consecutive FSM failure count is currently \`${globalOtaState.consecutiveFailures}\`. Potential corrupt downloads or signature mismatches were bypassed.\n`;
+  report += `## 11. AUTOMATIC SYSTEM ANALYSIS\n`;
+  let findings = 0;
+  if (stateListeners.size > 10) {
+    findings++;
+    report += `*   **⚠️ Observer Leak Warning**: Active state machine listeners count is \`${stateListeners.size}\`. Ensure cleanup is run on unmount.\n`;
   }
-  
-  // 2. Unexpected resets to IDLE
-  const resetsToIdle = frEvents.filter(e => e.warning === 'UNEXPECTED_RESET_TO_IDLE');
-  if (resetsToIdle.length > 0) {
-    anomaliesFound++;
-    report += `*   **Unexpected Transition to IDLE Detected**: Detected ${resetsToIdle.length} unexpected reset events to \`IDLE\` state from an active update sequence. Review caller triggers for potential race conditions or unhandled crashes.\n`;
-  }
-
-  // 3. Invalid transitions
-  const invalidTransitions = frEvents.filter(e => e.warning === 'INVALID_TRANSITION' || e.eventType === 'rejectedTransitions');
-  if (invalidTransitions.length > 0 || data.rejectedTransitions.length > 0) {
-    anomaliesFound++;
-    report += `*   **State Machine Invariant Violated**: Detected ${invalidTransitions.length || data.rejectedTransitions.length} state transition checks rejected by FSM strict validation matrix guidelines.\n`;
-  }
-
-  // 4. Multiple updates sessions
-  const activeSessCount = getUpdateSessions().length;
-  if (activeSessCount > 5) {
-    anomaliesFound++;
-    report += `*   **Multiple Update Sessions Logged**: Found \`${activeSessCount}\` total update sessions saved in database history. A large count indicates repeated auto-checks without completion.\n`;
-  }
-
-  // 5. PackageInstaller callbacks check
-  const hasInstallCompleted = frEvents.some(e => e.newState === 'INSTALL_SUCCESS' || e.newState === 'INSTALL_FAILED');
-  const hasCallback = frEvents.some(e => e.eventType === 'PackageInstallerCallback');
-  if (hasInstallCompleted && !hasCallback) {
-    anomaliesFound++;
-    report += `*   **PackageInstaller Callback Missing**: The state machine completed/failed install states but no native PackageInstaller progress broadcast callbacks were recorded. Native hook listeners may be detached.\n`;
-  }
-
-  // 6. Listener / Hook leaks
-  const listenerSize = stateListeners.size;
-  if (listenerSize > 10) {
-    anomaliesFound++;
-    report += `*   **Listener Leak Detected**: React state listeners set size is \`${listenerSize}\`. Subscribed components must correctly call unsubscribes on unmount cycles.\n`;
-  }
-
-  // 7. Performance anomalies
   if (perfMetrics.frameVariance > 16) {
-    anomaliesFound++;
-    report += `*   **Performance Jitter Detected**: UI thread frame pacing variance is \`${perfMetrics.frameVariance} ms\` (larger than 16ms boundary). High layout rendering workloads might delay callback handling.\n`;
+    findings++;
+    report += `*   **⚠️ Layout Jitter Warning**: High frame pacing variance of \`${perfMetrics.frameVariance}ms\` detected. UI thread processing layout overhead might delay native bridging.\n`;
   }
-
-  if (anomaliesFound === 0) {
-    report += `*   **No Issues Detected**: System analysis engine found zero active anomalies, race conditions, listener leaks, or state invariant violations. Updater health is normal.\n`;
-  } else {
-    report += `\n**Potential Root Causes & Recommendations**:\n`;
-    if (resetsToIdle.length > 0 || invalidTransitions.length > 0) {
-      report += `* Check stack trace details of caller functions triggering transition rejects. Ensure state coordinators wait for in-flight check/recovery promises before triggering checks.\n`;
-    }
-    if (listenerSize > 10) {
-      report += `* Inspect custom React hooks (e.g. \`useOtaUpdate\`) to verify all listeners are deleted inside the ` + "`useEffect`" + ` cleanup returns.\n`;
-    }
+  if (findings === 0) {
+    report += `*   **Healthy Status**: Rules engine found zero active anomalies, listener leaks, or state invariant violations. System checks normal.\n`;
   }
   report += `\n`;
 
-  report += `## 9. UPDATE SESSION HISTORY & TIMELINES\n`;
+  // ==========================================
+  // SECTION 12: UPDATE SESSION HISTORY & TIMELINES
+  // ==========================================
+  report += `## 12. UPDATE SESSION HISTORY & TIMELINES\n`;
   if (allSessions.length > 0) {
-    allSessions.forEach((s, sIdx) => {
-      report += `### Session [${sIdx + 1}]: ${s.id}\n`;
-      report += `*   **Target Version**: \`${s.version || 'unknown'}\`\n`;
-      report += `*   **Start Time**: ${new Date(s.startTime).toLocaleString()}\n`;
-      report += `*   **Final Result**: **${s.result}**\n\n`;
-      
-      report += `#### Timeline Events\n`;
-      report += `| Relative Offset | FSM State | Event | Module | Details |\n`;
-      report += `|---|---|---|---|---|\n`;
+    allSessions.forEach((s, idx) => {
+      report += `### Update Session [${idx + 1}]: ${s.id}\n`;
+      report += `*   **Target Version**: v${s.version || 'unknown'}\n`;
+      report += `*   **Final Result**: \`${s.result}\`\n`;
+      report += `*   **Start Date**: ${new Date(s.startTime).toLocaleString()}\n\n`;
+
+      report += `#### Session Step Timeline\n`;
+      report += `| Elapsed | State | Step Event | Detail |\n`;
+      report += `|---|---|---|---|\n`;
       if (s.timeline && s.timeline.length > 0) {
-        s.timeline.forEach(event => {
-          report += `| ${event.offset} | ${event.state} | ${event.event} | ${event.module} | ${event.reason || '—'} |\n`;
+        s.timeline.forEach(t => {
+          report += `| ${t.offset} | ${t.state} | ${t.event} | ${t.reason || '—'} |\n`;
         });
       } else {
-        report += `| *No timeline events logged for this session.* | | | | |\n`;
+        report += `| *No timeline events logged for this session.* | | | |\n`;
       }
-      report += `\n--------------------------------------------------\n\n`;
+      report += `\n---------------------------------------------\n\n`;
     });
   } else {
-    report += `*No persistent update session histories found in local storage.*\n\n`;
+    report += `*No update session histories saved in database storage.*\n\n`;
   }
 
   return report;

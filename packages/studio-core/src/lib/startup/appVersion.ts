@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.21';
-export const WEB_VERSION = '4.0.21';
+export const NATIVE_VERSION = '4.0.22';
+export const WEB_VERSION = '4.0.22';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -39,7 +39,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-10'; // 4.0.9
+export const APP_VERSION_DATE = '2026-07-11'; // 4.0.22
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
@@ -62,9 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Refined diagnostic console header typography, spacing, and back button alignment.",
-      "Added sticky Back button when desktop view is active.",
-      "Enhanced simulation workflow testing to run the standard download-then-apply flow.",
+      "Overhauled Updater Diagnostics UI into 4 high-density collapsible sections.",
+      "Added real-time Live Timeline with filter, search, pause/resume, copy/export controls.",
+      "Implemented Capacitor AppInstaller plugin Proxy guard to guarantee simulated updates never trigger native installations.",
+      "Redesigned Updater Flight Recorder with 300 events ring buffer, size limits, severity levels, and automated session pruning.",
     ],
   },
 ];
@@ -74,11 +75,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Unified Copy Everything diagnostics button restored to header.",
-      "Cleaned destructive delete actions from main diagnostics screen.",
-      "Wipes simulated installation screens on app launch.",
-      "Optimized simulated loops (removed fake sleeps and awaits).",
-      "Capped update history to last 25 persistent sessions.",
+      "Overhauled diagnostics console into 4 collapsible sections matching Developer Options.",
+      "Added real-time timeline viewer with text search, custom category filters, and pause controls.",
+      "Implemented a secure JS Proxy wrapper around the Capacitor AppInstaller native plugin to strictly block native installations in simulator mode.",
+      "Redesigned the flight recorder with a 300 events ring buffer, log aggregation, and automated session pruning.",
     ],
   },
 ];

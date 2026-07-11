@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   updaterSimulation, 
   triggerSimulatedStatus, 
@@ -7,7 +7,10 @@ import {
   AppInstaller,
   checkForUpdate,
   globalOtaState,
-  resetOtaDiagnostics,
+  stateListeners,
+  activeUpdateSession,
+  transitionHistory,
+  clearSimulationLogs,
   addJsLog
 } from '@workspace/studio-core';
 import { copyToClipboard } from './centralizedClipboard';
@@ -30,8 +33,23 @@ export default function SimulationLab({
   nativeLogsList
 }: SimulationLabProps) {
   const [throttled, setThrottled] = useState(false);
-  const [auditStatus, setAuditStatus] = useState<'idle' | 'running' | 'success' | 'failed'>('idle');
-  const [auditResults, setAuditResults] = useState<Array<{ name: string; status: 'success' | 'failed'; message: string }>>([]);
+  const [simActive, setSimActive] = useState(() => {
+    return typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
+  });
+
+  // Subscribe to state machine listeners to update UI live during simulation
+  const [otaState, setOtaState] = useState(globalOtaState);
+  useEffect(() => {
+    const listener = (newState: any) => {
+      setOtaState(newState);
+      setSimActive(typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true');
+      triggerRefresh();
+    };
+    stateListeners.add(listener);
+    return () => {
+      stateListeners.delete(listener);
+    };
+  }, [triggerRefresh]);
 
   const toggleThrottling = () => {
     const next = !throttled;
@@ -41,7 +59,26 @@ export default function SimulationLab({
     triggerRefresh();
   };
 
+  const startSimulation = () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    resetOtaUpdateState();
+    showToast('Workflow simulation started');
+    triggerRefresh();
+  };
+
+  const stopSimulation = () => {
+    localStorage.removeItem('studio:is_simulation_active');
+    setSimActive(false);
+    clearOverrides();
+    resetOtaUpdateState();
+    showToast('Workflow simulation stopped');
+    triggerRefresh();
+  };
+
   const simulateUpdateAvailable = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
     updaterSimulation.forceUpdateAvailable = true;
     updaterSimulation.forceNoUpdate = false;
     updaterSimulation.forceDowngrade = false;
@@ -50,13 +87,64 @@ export default function SimulationLab({
     triggerRefresh();
   };
 
-  const simulateFailure = () => {
+  const simulateDownload = () => {
+    updaterSimulation.simulateDownload = true;
+    showToast('Simulating: Download Mock active');
+    triggerRefresh();
+  };
+
+  const simulateVerification = () => {
+    updaterSimulation.forceShaFailure = false;
+    updaterSimulation.forceSignatureMismatch = false;
+    updaterSimulation.forceInvalidApk = false;
+    showToast('Simulating: Integrity check passed');
+    triggerRefresh();
+  };
+
+  const simulatePackageInstaller = () => {
+    updaterSimulation.forcePendingUserAction = true;
+    showToast('Simulating: PackageInstaller Visibility');
+    triggerRefresh();
+  };
+
+  const simulateSuccessInstall = () => {
+    updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.forceInstallSuccess = true;
+    updaterSimulation.forceInstallFailure = false;
+    updaterSimulation.forceUserCancel = false;
+    
+    // Simulate active, progress, success statuses
+    setTimeout(() => triggerSimulatedStatus(-2, 'installing_start'), 100);
+    for (let i = 1; i <= 10; i++) {
+      const progress = i / 10;
+      setTimeout(() => {
+        triggerSimulatedStatus(-3, progress > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', progress);
+      }, 100 + i * 150);
+    }
+    setTimeout(() => {
+      triggerSimulatedStatus(0, 'STATUS_SUCCESS');
+      showToast('Simulating: Successful Installation');
+      triggerRefresh();
+    }, 1800);
+  };
+
+  const simulateFailedInstall = () => {
+    updaterSimulation.forcePendingUserAction = false;
     updaterSimulation.forceInstallSuccess = false;
     updaterSimulation.forceInstallFailure = true;
     updaterSimulation.forceUserCancel = false;
-    updaterSimulation.forcePendingUserAction = false;
     triggerSimulatedStatus(1, 'STATUS_FAILURE');
-    showToast('Simulating: Installation Failure');
+    showToast('Simulating: Failed Installation');
+    triggerRefresh();
+  };
+
+  const simulateCancelledInstall = () => {
+    updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.forceInstallSuccess = false;
+    updaterSimulation.forceInstallFailure = false;
+    updaterSimulation.forceUserCancel = true;
+    triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
+    showToast('Simulating: Cancelled Installation');
     triggerRefresh();
   };
 
@@ -66,7 +154,7 @@ export default function SimulationLab({
     triggerRefresh();
   };
 
-  const clearSimulations = () => {
+  const clearOverrides = () => {
     updaterSimulation.forceUpdateAvailable = false;
     updaterSimulation.forceNoUpdate = false;
     updaterSimulation.forceDowngrade = false;
@@ -83,195 +171,271 @@ export default function SimulationLab({
     updaterSimulation.forceInstallFailure = false;
     updaterSimulation.forceUserCancel = false;
     updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.simulateDownload = false;
+    updaterSimulation.injectDownloadFailure = false;
+    updaterSimulation.injectChecksumFailure = false;
+    updaterSimulation.injectNetworkTimeout = false;
     updaterSimulation.simulateDownloadThrottling = false;
     setThrottled(false);
     showToast('Simulation overrides cleared');
     triggerRefresh();
   };
 
-  const runAutomatedAudit = async () => {
-    setAuditStatus('running');
-    setAuditResults([]);
-    addJsLog('=== STARTING AUTOMATED BUTTON AUDIT ===');
-    
-    const results: typeof auditResults = [];
-    const addResult = (name: string, status: 'success' | 'failed', message: string) => {
-      results.push({ name, status, message });
-      setAuditResults([...results]);
-      addJsLog(`[Audit] ${name}: ${status.toUpperCase()} - ${message}`);
-    };
-
-    const waitForCondition = async (predicate: () => boolean, timeoutMs = 1500) => {
-      const start = Date.now();
-      while (Date.now() - start < timeoutMs) {
-        if (predicate()) return true;
-        await new Promise(resolve => setTimeout(resolve, 50));
-      }
-      return false;
-    };
-
-    const originalWriteText = navigator.clipboard.writeText;
-    let lastWrittenClipboardText = '';
-    navigator.clipboard.writeText = async (text) => {
-      lastWrittenClipboardText = text;
-      return Promise.resolve();
-    };
-
+  const exportTimeline = () => {
     try {
-      resetOtaUpdateState();
-      resetOtaDiagnostics();
-      
-      // Clean overridden properties
-      updaterSimulation.forceUpdateAvailable = false;
-      updaterSimulation.forceNoUpdate = false;
-      updaterSimulation.forceDowngrade = false;
-      updaterSimulation.forceMetadataFailure = false;
-
-      // 1. Force Available Check
-      updaterSimulation.forceUpdateAvailable = true;
-      await checkForUpdate(true, 'dev_tools', 'Audit Check');
-      if (await waitForCondition(() => globalOtaState.updateState === 'UPDATE_AVAILABLE')) {
-        addResult('Force Update Available', 'success', 'State transitioned to UPDATE_AVAILABLE.');
-      } else {
-        addResult('Force Update Available', 'failed', `State remained: ${globalOtaState.updateState}`);
-      }
-      updaterSimulation.forceUpdateAvailable = false;
-
-      // 2. Force No Update Check
-      updaterSimulation.forceNoUpdate = true;
-      await checkForUpdate(true, 'dev_tools', 'Audit Check');
-      if (await waitForCondition(() => globalOtaState.updateState === 'NO_UPDATE_AVAILABLE' || globalOtaState.updateState === 'IDLE')) {
-        addResult('Force No Update', 'success', 'State transitioned to NO_UPDATE_AVAILABLE.');
-      } else {
-        addResult('Force No Update', 'failed', `State: ${globalOtaState.updateState}`);
-      }
-      updaterSimulation.forceNoUpdate = false;
-
-      // 3. Simulated status change trigger
-      triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
-      if (await waitForCondition(() => globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE')) {
-        addResult('Status Pending User Action', 'success', 'Simulated callback triggered successfully.');
-      } else {
-        addResult('Status Pending User Action', 'failed', `State: ${globalOtaState.updateState}`);
-      }
-
-      // 4. Test Clipboard writes
-      try {
-        await copyToClipboard('TEST_PAYLOAD', 'Audit Clipboard');
-        if (lastWrittenClipboardText === 'TEST_PAYLOAD') {
-          addResult('Clipboard Copy API', 'success', 'Text written to clipboard successfully.');
-        } else {
-          addResult('Clipboard Copy API', 'failed', 'Clipboard write succeeded, but content mismatch.');
-        }
-      } catch (err: any) {
-        addResult('Clipboard Copy API', 'failed', err?.message || String(err));
-      }
-
-      const hasFailures = results.some(r => r.status === 'failed');
-      setAuditStatus(hasFailures ? 'failed' : 'success');
-      showToast(hasFailures ? 'QA Audit Failed!' : 'QA Audit Passed Successfully!');
+      const data = JSON.stringify(transitionHistory, null, 2);
+      copyToClipboard(data, 'Workflow Timeline');
+      showToast('Timeline exported to clipboard');
     } catch (err: any) {
-      setAuditStatus('failed');
-      showToast(`Audit crashed: ${err.message || String(err)}`);
-    } finally {
-      navigator.clipboard.writeText = originalWriteText;
-      triggerRefresh();
+      showToast('Export failed: ' + err.message);
     }
   };
 
+  const clearHistory = () => {
+    clearSimulationLogs();
+    showToast('Workflow history cleared');
+    triggerRefresh();
+  };
+
+  // Get last transition info for display
+  const lastTransition = transitionHistory[transitionHistory.length - 1];
+
   return (
     <div className="space-y-6 bg-black">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black">
+      {/* Simulation Active Indicator */}
+      <div className="flex items-center justify-between bg-[#1c1c1e]/60 border border-outline-variant/10 p-5 rounded-2xl">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Simulation Mode</span>
+          <span className={`text-sm font-bold ${simActive ? 'text-green-400' : 'text-zinc-500'}`}>
+            {simActive ? 'ACTIVE (Production overridden)' : 'INACTIVE (Running production code)'}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          {!simActive ? (
+            <button 
+              onClick={startSimulation}
+              className="px-4 py-2 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl hover:bg-green-500/20 text-xs font-bold transition-all"
+            >
+              Start Simulation
+            </button>
+          ) : (
+            <button 
+              onClick={stopSimulation}
+              className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl hover:bg-red-500/20 text-xs font-bold transition-all"
+            >
+              Stop Simulation
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Simulation Action Buttons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {/* Simulate Update Available */}
         <button 
           onClick={simulateUpdateAvailable}
-          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
         >
-          <span className="text-sm font-semibold text-on-surface">Simulate Update Available</span>
-          <span className="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+          <div className="flex items-center gap-2 text-on-surface">
+            <span className="material-symbols-outlined text-[18px]">system_update</span>
+            <span className="text-xs font-bold">Simulate Update Available</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Forces comparison state update</span>
         </button>
 
-        {/* Simulate Failure */}
+        {/* Simulate Download */}
         <button 
-          onClick={simulateFailure}
-          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
+          onClick={simulateDownload}
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
         >
-          <span className="text-sm font-semibold text-error">Simulate Failure</span>
-          <span className="material-symbols-outlined text-error/50">warning</span>
+          <div className="flex items-center gap-2 text-on-surface">
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span className="text-xs font-bold">Simulate Download</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Toggles download progress mock</span>
+        </button>
+
+        {/* Simulate Verification */}
+        <button 
+          onClick={simulateVerification}
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
+        >
+          <div className="flex items-center gap-2 text-on-surface">
+            <span className="material-symbols-outlined text-[18px]">verified_user</span>
+            <span className="text-xs font-bold">Simulate Verification</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Fakes validation integrity check</span>
+        </button>
+
+        {/* Simulate PackageInstaller */}
+        <button 
+          onClick={simulatePackageInstaller}
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
+        >
+          <div className="flex items-center gap-2 text-on-surface">
+            <span className="material-symbols-outlined text-[18px]">security</span>
+            <span className="text-xs font-bold">Simulate PackageInstaller</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Pauses state at prompt dialogue</span>
+        </button>
+
+        {/* Simulate Successful Installation */}
+        <button 
+          onClick={simulateSuccessInstall}
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
+        >
+          <div className="flex items-center gap-2 text-green-400">
+            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+            <span className="text-xs font-bold">Simulate Success Install</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Completes update installation</span>
+        </button>
+
+        {/* Simulate Failed Installation */}
+        <button 
+          onClick={simulateFailedInstall}
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
+        >
+          <div className="flex items-center gap-2 text-error">
+            <span className="material-symbols-outlined text-[18px]">error</span>
+            <span className="text-xs font-bold">Simulate Failed Install</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Triggers status failure event</span>
+        </button>
+
+        {/* Simulate Cancelled Installation */}
+        <button 
+          onClick={simulateCancelledInstall}
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
+        >
+          <div className="flex items-center gap-2 text-amber-500">
+            <span className="material-symbols-outlined text-[18px]">cancel</span>
+            <span className="text-xs font-bold">Simulate Cancel Install</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Triggers user abort status event</span>
         </button>
 
         {/* Toggle Network Throttling */}
         <button 
           onClick={toggleThrottling}
-          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 w-full active:scale-[0.98]"
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
         >
-          <span className="text-sm font-semibold text-on-surface">Toggle Network Throttling</span>
-          <div className={`w-8 h-4 rounded-full flex items-center px-0.5 transition-colors ${
-            throttled ? 'bg-tertiary' : 'bg-[#161616]'
-          }`}>
-            <div className={`w-3 h-3 bg-white rounded-full transition-transform ${
-              throttled ? 'translate-x-4' : 'translate-x-0'
-            }`} />
+          <div className="flex items-center justify-between w-full text-on-surface">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">speed</span>
+              <span className="text-xs font-bold">Network Throttling</span>
+            </div>
+            <div className={`w-7 h-4 rounded-full flex items-center px-0.5 transition-colors ${
+              throttled ? 'bg-tertiary' : 'bg-[#161616]'
+            }`}>
+              <div className={`w-3 h-3 bg-white rounded-full transition-transform ${
+                throttled ? 'translate-x-3.5' : 'translate-x-0'
+              }`} />
+            </div>
           </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Throttles download loop updates</span>
         </button>
 
         {/* Reset State Machine */}
         <button 
           onClick={resetStateMachine}
-          className="flex items-center justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98]"
+          className="flex flex-col justify-between bg-black hover:bg-white/5 p-4 rounded-xl transition-all text-left outline-none border border-outline-variant/10 active:scale-[0.98] min-h-[82px]"
         >
-          <span className="text-sm font-semibold text-on-surface">Reset State Machine</span>
-          <span className="material-symbols-outlined text-on-surface-variant">restart_alt</span>
+          <div className="flex items-center gap-2 text-on-surface">
+            <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+            <span className="text-xs font-bold">Reset Workflow</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Resets state to IDLE</span>
         </button>
       </div>
 
+      {/* Control Utility Buttons */}
       <div className="flex flex-wrap gap-2 pt-2 border-t border-outline-variant/10">
         <button 
-          onClick={clearSimulations}
-          className="flex-1 min-w-[120px] py-2.5 rounded-lg bg-tertiary text-on-tertiary font-bold text-xs hover:brightness-110 active:scale-95 transition-all outline-none"
+          onClick={clearOverrides}
+          className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-black border border-outline-variant/15 text-on-surface font-bold text-xs hover:bg-white/5 active:scale-95 transition-all outline-none"
         >
           Clear Overrides
         </button>
 
-        {isNative() && (
-          <button 
-            onClick={() => AppInstaller.openUnknownAppSourcesSettings()}
-            className="flex-1 min-w-[120px] py-2.5 rounded-lg bg-black border border-outline-variant/10 text-on-surface font-bold text-xs hover:bg-white/5 active:scale-95 transition-all outline-none"
-          >
-            Unknown Apps Permission
-          </button>
-        )}
+        <button 
+          onClick={clearHistory}
+          className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-black border border-outline-variant/15 text-on-surface font-bold text-xs hover:bg-white/5 active:scale-95 transition-all outline-none"
+        >
+          Clear Workflow History
+        </button>
+
+        <button 
+          onClick={exportTimeline}
+          className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-tertiary text-on-tertiary font-bold text-xs hover:brightness-110 active:scale-95 transition-all outline-none"
+        >
+          Export Timeline
+        </button>
       </div>
 
-      {/* Automated QA Functional Audit */}
-      <div className="mt-4 pt-4 border-t border-outline-variant/10 bg-black">
-        <div className="flex justify-between items-center">
-          <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">QA Functional Audit</span>
-          <button
-            onClick={runAutomatedAudit}
-            disabled={auditStatus === 'running'}
-            className="px-3 py-1.5 rounded-lg bg-tertiary/10 border border-tertiary/20 text-tertiary font-bold text-xs hover:brightness-110 active:scale-95 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {auditStatus === 'running' ? 'Running Audit...' : 'Execute Audit'}
-          </button>
+      {/* Live Workflow Timeline Diagnostics */}
+      <div className="bg-[#1c1c1e]/60 border border-outline-variant/10 rounded-2xl p-5 space-y-4">
+        <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+          <span className="material-symbols-outlined text-[#8b5cf6]">timeline</span>
+          Live Workflow Timeline
+        </h3>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-black/40 p-4 border border-outline-variant/10 rounded-xl font-mono text-[11px]">
+          <div>
+            <div className="text-on-surface-variant text-[10px] uppercase font-bold">Current State</div>
+            <div className="text-white font-bold mt-1 text-sm">{otaState.updateState}</div>
+          </div>
+          <div>
+            <div className="text-on-surface-variant text-[10px] uppercase font-bold">Previous State</div>
+            <div className="text-white mt-1 text-sm">{lastTransition?.from || 'None'}</div>
+          </div>
+          <div>
+            <div className="text-on-surface-variant text-[10px] uppercase font-bold">Active Session ID</div>
+            <div className="text-[#8b5cf6] font-bold mt-1 text-sm truncate">
+              {otaState.sessionId ? String(otaState.sessionId).substring(0, 12) : 'None'}
+            </div>
+          </div>
+          <div>
+            <div className="text-on-surface-variant text-[10px] uppercase font-bold">Last Trans Duration</div>
+            <div className="text-white mt-1 text-sm">{lastTransition?.durationMs ? `${lastTransition.durationMs}ms` : '—'}</div>
+          </div>
         </div>
 
-        {auditStatus !== 'idle' && (
-          <div className="bg-black border border-outline-variant/10 rounded-lg p-3 font-mono text-[10px] max-h-32 overflow-y-auto space-y-1.5 mt-3">
-            {auditResults.map((res, idx) => (
-              <div key={idx} className="flex justify-between items-center">
-                <span className="text-[#e7e5e4]">{res.name}</span>
-                <span className={`px-1.5 py-0.5 rounded font-bold text-[8px] ${
-                  res.status === 'success' 
-                    ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
-                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                }`}>
-                  {res.status.toUpperCase()}
-                </span>
-              </div>
-            ))}
+        {lastTransition && (
+          <div className="bg-black/20 p-4 border border-outline-variant/10 rounded-xl space-y-2 font-mono text-[11px]">
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant font-bold">Caller:</span>
+              <span className="text-[#e7e5e4]">{lastTransition.caller}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant font-bold">Reason:</span>
+              <span className="text-[#e7e5e4]">{lastTransition.reason}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant font-bold">Timestamp:</span>
+              <span className="text-[#e7e5e4]">{new Date(lastTransition.timestamp).toLocaleTimeString()}</span>
+            </div>
           </div>
         )}
+
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Transition History</span>
+          {transitionHistory.length > 0 ? (
+            <div className="border border-outline-variant/10 rounded-xl overflow-hidden divide-y divide-[#484848]/10 font-mono text-[10px] bg-black/40 max-h-48 overflow-y-auto p-3.5 space-y-1">
+              {transitionHistory.slice().reverse().map((t, idx) => (
+                <div key={idx} className="py-2 flex items-center justify-between">
+                  <span className="text-[#8b5cf6] font-bold">{t.from} → {t.to}</span>
+                  <span className="text-on-surface-variant text-[9px] max-w-[45%] truncate">{t.reason}</span>
+                  <span className="text-on-surface-variant">{new Date(t.timestamp).toLocaleTimeString()}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-[#1c1c1e]/40 border border-outline-variant/10 rounded-xl p-6 text-center text-xs text-on-surface-variant">
+              No workflow history transitions recorded.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

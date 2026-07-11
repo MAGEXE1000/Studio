@@ -795,6 +795,11 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   if (state === 'INSTALL_SUCCESS') {
     setInstallationJustCompleted();
     activatePostInstallSession();
+    try {
+      if (globalOtaState.releaseNotes) {
+        localStorage.setItem('studio:last_installed_release_notes', JSON.stringify(globalOtaState.releaseNotes));
+      }
+    } catch (_) {}
   }
 
   // Clear the post-install lock when transitioning to terminal/reset states

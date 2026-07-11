@@ -46,6 +46,7 @@ import {
 } from '@workspace/studio-core';
 
 const isUpdateInProgress = (state: string) => {
+  const isSim = typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
   return [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
@@ -53,7 +54,8 @@ const isUpdateInProgress = (state: string) => {
     'PREPARING_INSTALL',
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
-    'INSTALLING'
+    'INSTALLING',
+    ...(isSim ? [] : ['INSTALL_SUCCESS'])
   ].includes(state);
 };
 
@@ -176,6 +178,35 @@ function markBannerShown(): void {
   }
 }
 
+function getSavedReleaseNotesAsSections(): any[] | undefined {
+  try {
+    const saved = localStorage.getItem('studio:last_installed_release_notes');
+    if (saved) {
+      const rn = JSON.parse(saved);
+      if (Array.isArray(rn)) {
+        return [{ heading: "What's New", items: rn }];
+      }
+      if (typeof rn === 'object') {
+        const sections: any[] = [];
+        if (rn.added && rn.added.length > 0) {
+          sections.push({ heading: "Added", items: rn.added });
+        }
+        if (rn.improved && rn.improved.length > 0) {
+          sections.push({ heading: "Improved", items: rn.improved });
+        }
+        if (rn.fixed && rn.fixed.length > 0) {
+          sections.push({ heading: "Fixed", items: rn.fixed });
+        }
+        if (rn.changed && rn.changed.length > 0) {
+          sections.push({ heading: "Changed", items: rn.changed });
+        }
+        return sections.length > 0 ? sections : undefined;
+      }
+    }
+  } catch (_) {}
+  return undefined;
+}
+
 export default function UpdateIndicator({
   accentFrom,
   accentTo,
@@ -239,7 +270,9 @@ export default function UpdateIndicator({
             if (expectedVerName && expectedVerName === currentAppVer) {
               const lastShownDone = localStorage.getItem('studio:lastShownDoneVersion');
               if (lastShownDone !== currentAppVer) {
-                setSuccessNotificationVersion(currentAppVer);
+                setShowChangelogSheet(true);
+                localStorage.setItem('studio:lastShownDoneVersion', currentAppVer);
+                ota.dismissUpdate();
               }
             }
           }
@@ -814,8 +847,14 @@ export default function UpdateIndicator({
 
       <ChangelogSheet
         open={showChangelogSheet}
-        onClose={() => setShowChangelogSheet(false)}
-        version={successNotificationVersion || undefined}
+        onClose={() => {
+          setShowChangelogSheet(false);
+          try {
+            localStorage.removeItem('studio:last_installed_release_notes');
+          } catch (_) {}
+        }}
+        version={successNotificationVersion || APP_VERSION_LABEL}
+        sections={getSavedReleaseNotesAsSections()}
       />
 
       <style>{`
@@ -1174,7 +1213,10 @@ function UpdateModal({
     if (s === 'WAITING_USER_CONFIRMATION') return 'ready_to_install';
     if (s === 'PACKAGEINSTALLER_VISIBLE') return 'packageinstaller_visible';
     if (s === 'INSTALLING') return 'installing';
-    if (s === 'INSTALL_SUCCESS') return 'completed';
+    if (s === 'INSTALL_SUCCESS') {
+      const isSim = typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
+      return isSim ? 'completed' : 'installing';
+    }
     if (s === 'INSTALL_CANCELLED') return 'cancelled';
     if (s === 'INSTALL_FAILED') return 'failed';
     if (s === 'RECOVERY') {
@@ -1330,11 +1372,12 @@ function UpdateModal({
       iconName = 'sync';
       iconColor = purpleFrom;
       showSpinner = true;
-      title = 'Installing...';
+      const isSuccess = ota.updateState === 'INSTALL_SUCCESS';
+      title = isSuccess ? 'Finalizing...' : 'Installing...';
       const hasRealProgress = ota.progress > 0 && ota.progress < 1;
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
-          <div>{ota.statusText || 'Android is installing the update.'}</div>
+          <div>{isSuccess ? 'Finalizing installation...' : (ota.statusText || 'Android is installing the update.')}</div>
           <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>Please wait... Do not close the application.</div>
         </div>
       );

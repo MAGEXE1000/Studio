@@ -62,6 +62,9 @@ export function dismissUpdate(): void {
     localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION);
   }
   transitionToState('IDLE', 'Reset update state');
+  try {
+    localStorage.removeItem('studio:is_simulation_active');
+  } catch (_) {}
   updateGlobalState({
     progress: 0,
     error: null,

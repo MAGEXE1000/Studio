@@ -355,6 +355,9 @@ export function resetOtaUpdateState() {
     return;
   }
   transitionToState('IDLE', 'Reset update state');
+  try {
+    localStorage.removeItem('studio:is_simulation_active');
+  } catch (_) {}
   recordCloseEvent('resetOtaUpdateState called');
   updateGlobalState({
     progress: 0,

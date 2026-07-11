@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.15';
-export const WEB_VERSION = '4.0.15';
+export const NATIVE_VERSION = '4.0.16';
+export const WEB_VERSION = '4.0.16';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,7 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Verification of fix for premature 'Studio is up to date' bug on real device without the 2500ms auto-close timer.",
+      "Fixed native PackageInstaller handoff so the app remains on the Installing screen during update instead of resetting or hiding the updater.",
+      "Restored comprehensive updater workflow simulation and timeline diagnostics to the developer diagnostics dashboard.",
+      "Ensured changelog displayed post-update matches the target release notes perfectly using saved localStorage release notes.",
     ],
   },
 ];

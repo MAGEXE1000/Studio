@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.23';
-export const WEB_VERSION = '4.0.23';
+export const NATIVE_VERSION = '4.0.25';
+export const WEB_VERSION = '4.0.25';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,7 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Test release with updater pipeline architectural fixes.",
+      "Native Android OTA instrumentation logging.",
+      "Flight recorder categorized events (NATIVE, LIFECYCLE, PIPELINE, STATE).",
+      "FSM transition instrumentation tracking.",
     ],
   },
 ];

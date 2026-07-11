@@ -655,6 +655,13 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
 
 function commitTransition(state: OtaUpdateState, reason: string, failureReason?: string) {
   const current = globalOtaState.updateState;
+  
+  UpdaterFlightRecorder.record({
+    action: `FSM Transition: ${current} -> ${state}`,
+    category: 'STATE',
+    details: { reason, failureReason }
+  });
+
   addJsLog(`Transition Trigger: ${current} -> ${state}. Reason: ${reason}`);
   recordStateTransition(current, state, reason);
   stopWatchdog();

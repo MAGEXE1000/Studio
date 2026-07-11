@@ -1789,6 +1789,23 @@ export function initializeGlobalOtaListeners() {
   isOtaInitialized = true;
   console.log('[OTA] Initializing global PackageInstaller listeners...');
 
+  if (isNative()) {
+    (AppInstaller as any).addListener('onNativeInstrumentation', (ev: any) => {
+      // The event from Java should already have timestamp, thread, caller, action, details, stack, category.
+      UpdaterFlightRecorder.record({
+        category: ev.category || 'NATIVE',
+        thread: 'native',
+        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+        eventType: ev.action || 'NativeEvent',
+        caller: ev.caller || 'AppInstallerPlugin',
+        details: ev.details,
+        stack: ev.stack,
+        timestamp: ev.timestamp
+      });
+    }).catch((e: any) => console.warn('[OTA] Failed to add onNativeInstrumentation listener', e));
+  }
+
   const handleInstallStatusChange = (eventData: any) => {
     const { status, message, progress, timestamp } = eventData;
     if (timestamp) {
@@ -1800,6 +1817,7 @@ export function initializeGlobalOtaListeners() {
 
     const statusName = getPackageInstallerStatusName(status);
     UpdaterFlightRecorder.record({
+      category: 'NATIVE',
       thread: 'native',
       sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
       workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,

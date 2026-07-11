@@ -153,6 +153,22 @@ public class AppInstallerPlugin extends Plugin {
         if (context != null) {
             InstallReceiver.appendLog(context, "[INSTRUMENTATION] " + methodName, 0, message, context.getPackageName(), stackTraceStr);
         }
+
+        try {
+            if (AppInstallerPlugin.instance != null) {
+                JSObject ev = new JSObject();
+                ev.put("timestamp", now);
+                ev.put("thread", "native");
+                ev.put("caller", callerClass + "." + callerMethod);
+                ev.put("action", event);
+                ev.put("details", details);
+                ev.put("stack", stackTraceStr);
+                ev.put("category", "NATIVE");
+                AppInstallerPlugin.instance.notifyListeners("onNativeInstrumentation", ev);
+            }
+        } catch (Exception e) {
+            Log.e("INSTRUMENTATION", "Failed to bridge instrumentation to JS", e);
+        }
     }
 
     private SharedPreferences getSecurePreferences() throws Exception {

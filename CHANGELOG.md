@@ -12,6 +12,20 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.25
+
+### Added
+- Native Android OTA instrumentation logging.
+- Flight recorder categorized events (NATIVE, LIFECYCLE, PIPELINE, STATE).
+- FSM transition instrumentation tracking.
+
+## 4.0.24
+
+### Added
+- Native Android OTA instrumentation logging.
+- Flight recorder categorized events (NATIVE, LIFECYCLE, PIPELINE, STATE).
+- FSM transition instrumentation tracking.
+
 ## 4.0.23
 
 ### Added

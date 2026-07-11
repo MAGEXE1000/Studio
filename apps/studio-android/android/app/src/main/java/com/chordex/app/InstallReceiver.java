@@ -13,6 +13,11 @@ public class InstallReceiver extends BroadcastReceiver {
     
     public static void appendLog(Context context, String stage, int status, String message, String packageName, String exceptionStack) {
         try {
+            AppInstallerPlugin.logNativeInstrumentation(context, "InstallReceiver", -1, stage, 
+                "Status: " + status + " | Pkg: " + packageName + " | Msg: " + message + 
+                (exceptionStack != null ? " | Stack: " + exceptionStack : ""));
+
+            // Still write to SharedPreferences for cold-start recovery, but simplify it
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             String logHistory = prefs.getString("installer_log_history", "[]");
             org.json.JSONArray array = new org.json.JSONArray(logHistory);

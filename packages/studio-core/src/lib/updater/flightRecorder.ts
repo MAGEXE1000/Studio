@@ -1,5 +1,7 @@
 export interface FlightRecorderEvent {
+  sequenceId: number; // Global sequence number
   timestamp: number; // UTC ms
+  category: 'NATIVE' | 'LIFECYCLE' | 'STATE' | 'PIPELINE' | 'UI' | 'SYSTEM' | 'UNKNOWN';
   thread: 'js' | 'native' | 'ui';
   sessionId: string | null;
   workflowId: string | null;
@@ -21,8 +23,9 @@ export interface FlightRecorderEvent {
 
 const STORAGE_KEY = 'studio:updater_flight_recorder_events';
 const SEVERITY_KEY = 'studio:updater_flight_recorder_severity';
-const MAX_EVENTS = 300; // Ring buffer bounds
-const MAX_SIZE_BYTES = 50 * 1024; // 50 KB limit
+const SEQUENCE_KEY = 'studio:updater_flight_recorder_sequence';
+const MAX_EVENTS = 2000; // Expanded ring buffer bounds
+const MAX_SIZE_BYTES = 2000000; // 2 MB limit
 const RETENTION_DAYS = 7;
 
 const SEVERITY_VALUES = {
@@ -38,6 +41,7 @@ export class UpdaterFlightRecorder {
   private static events: FlightRecorderEvent[] = [];
   private static loaded = false;
   private static severityLevel: 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL' = 'INFO';
+  private static globalSequenceCounter = 0;
 
   private static load() {
     if (this.loaded) return;
@@ -52,6 +56,12 @@ export class UpdaterFlightRecorder {
         if (severity && severity in SEVERITY_VALUES) {
           this.severityLevel = severity as any;
         }
+        const seq = localStorage.getItem(SEQUENCE_KEY);
+        if (seq) {
+          this.globalSequenceCounter = parseInt(seq, 10);
+        } else if (this.events.length > 0) {
+          this.globalSequenceCounter = Math.max(...this.events.map(e => e.sequenceId || 0));
+        }
       }
     } catch (e) {
       console.warn('[FlightRecorder] Failed to load persisted events:', e);
@@ -63,6 +73,7 @@ export class UpdaterFlightRecorder {
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.events));
+        localStorage.setItem(SEQUENCE_KEY, String(this.globalSequenceCounter));
       }
     } catch (e) {
       console.warn('[FlightRecorder] Failed to persist events:', e);
@@ -73,7 +84,7 @@ export class UpdaterFlightRecorder {
     try {
       return JSON.stringify(events).length;
     } catch {
-      return events.length * 150;
+      return events.length * 200;
     }
   }
 
@@ -83,10 +94,10 @@ export class UpdaterFlightRecorder {
     // 1. Filter out items older than 7 days
     let filtered = this.events.filter(e => e.timestamp >= cutOff);
 
-    // 2. Clean up expired sessions (keep only the 5 most recent sessions)
+    // 2. Clean up expired sessions (keep only the 10 most recent sessions to give more room)
     const sessionIds = Array.from(new Set(filtered.map(e => e.sessionId).filter(Boolean)));
-    if (sessionIds.length > 5) {
-      const activeSessionsToKeep = sessionIds.slice(sessionIds.length - 5);
+    if (sessionIds.length > 10) {
+      const activeSessionsToKeep = sessionIds.slice(sessionIds.length - 10);
       filtered = filtered.filter(e => !e.sessionId || activeSessionsToKeep.includes(e.sessionId));
     }
 
@@ -95,7 +106,7 @@ export class UpdaterFlightRecorder {
       filtered = filtered.slice(filtered.length - MAX_EVENTS);
     }
 
-    // 4. Limit by size (50KB) - slice from start (oldest) if too large
+    // 4. Limit by size (2MB) - slice from start (oldest) if too large
     while (filtered.length > 0 && this.estimateSize(filtered) > MAX_SIZE_BYTES) {
       filtered.shift();
     }
@@ -117,7 +128,7 @@ export class UpdaterFlightRecorder {
     return this.severityLevel;
   }
 
-  public static record(event: Omit<FlightRecorderEvent, 'timestamp'> & { timestamp?: number }) {
+  public static record(event: Omit<FlightRecorderEvent, 'timestamp' | 'sequenceId'> & { timestamp?: number }) {
     this.load();
     
     const eventSeverity = event.severity || 'INFO';
@@ -125,9 +136,23 @@ export class UpdaterFlightRecorder {
       return; // Skip logs below the active severity threshold
     }
 
+    this.globalSequenceCounter++;
+
+    let inferredCategory = event.category;
+    if (!inferredCategory) {
+      const et = event.eventType.toLowerCase();
+      if (event.thread === 'native' || et.includes('packageinstaller')) inferredCategory = 'NATIVE';
+      else if (et.includes('appstate') || et.includes('lifecycle') || et.includes('focus') || et.includes('blur') || et.includes('visibility') || et.includes('resume')) inferredCategory = 'LIFECYCLE';
+      else if (et.includes('state') || et.includes('transition')) inferredCategory = 'STATE';
+      else if (et.includes('ui') || et.includes('render')) inferredCategory = 'UI';
+      else inferredCategory = 'PIPELINE';
+    }
+
     const fullEvent: FlightRecorderEvent = {
+      sequenceId: this.globalSequenceCounter,
       timestamp: event.timestamp || Date.now(),
       severity: eventSeverity,
+      category: inferredCategory as any,
       ...event
     };
 
@@ -142,13 +167,17 @@ export class UpdaterFlightRecorder {
        lastEvent.previousState === fullEvent.previousState &&
        lastEvent.caller === fullEvent.caller &&
        lastEvent.error === fullEvent.error &&
-       lastEvent.warning === fullEvent.warning) ||
+       lastEvent.warning === fullEvent.warning &&
+       lastEvent.category === fullEvent.category &&
+       lastEvent.thread === fullEvent.thread) ||
       (isProgress && lastEvent.eventType.toLowerCase().includes('progress')) ||
       (isLifecycle && (lastEvent.eventType === 'appStateChange' || lastEvent.eventType.toLowerCase().includes('lifecycle')))
     )) {
       lastEvent.count = (lastEvent.count || 1) + 1;
       lastEvent.timestamp = fullEvent.timestamp;
       lastEvent.reason = fullEvent.reason;
+      lastEvent.details = fullEvent.details;
+      // We don't bump sequenceId for deduplicated events, but we keep the latest timestamp.
       if (fullEvent.newState !== undefined) lastEvent.newState = fullEvent.newState;
       this.prune();
       this.save();
@@ -162,7 +191,7 @@ export class UpdaterFlightRecorder {
     // Log to JS console
     const warningText = fullEvent.warning ? ` [WARNING: ${fullEvent.warning}]` : '';
     const errorText = fullEvent.error ? ` [ERROR: ${fullEvent.error}]` : '';
-    console.log(`[FlightRecorder] [${fullEvent.severity}] [${fullEvent.thread.toUpperCase()}] ${fullEvent.eventType} | ${fullEvent.reason || 'None'}${warningText}${errorText}`);
+    console.log(`[FlightRecorder] [${fullEvent.sequenceId}] [${fullEvent.severity}] [${fullEvent.category}] [${fullEvent.thread.toUpperCase()}] ${fullEvent.eventType} | ${fullEvent.caller} | ${fullEvent.reason || 'None'}${warningText}${errorText}`);
   }
 
   public static getEvents(): FlightRecorderEvent[] {
@@ -170,8 +199,43 @@ export class UpdaterFlightRecorder {
     return this.events;
   }
 
+  public static compileFullReport(): string {
+    this.load();
+    const sorted = [...this.events].sort((a, b) => a.sequenceId - b.sequenceId);
+    let out = "=== FLIGHT RECORDER REAL RUNTIME TRACE ===\n";
+    out += `Total Events: ${sorted.length}\n`;
+    out += `Time Range: ${sorted.length > 0 ? new Date(sorted[0].timestamp).toISOString() : 'N/A'} to ${sorted.length > 0 ? new Date(sorted[sorted.length - 1].timestamp).toISOString() : 'N/A'}\n`;
+    out += "--------------------------------------------------\n";
+    
+    if (sorted.length === 0) {
+      out += "No events recorded.\n";
+      return out;
+    }
+    
+    let baseTime = sorted[0].timestamp;
+    for (const ev of sorted) {
+      const timeStr = new Date(ev.timestamp).toISOString();
+      const elapsed = ev.timestamp - baseTime;
+      const countStr = ev.count && ev.count > 1 ? ` (x${ev.count})` : '';
+      const sev = (ev.severity || 'INFO').padEnd(5, ' ');
+      const cat = (ev.category || 'UNKNOWN').padEnd(10, ' ');
+      const thr = ev.thread.toUpperCase().padEnd(6, ' ');
+      
+      out += `[${timeStr}] (+${elapsed}ms) [Seq:${ev.sequenceId}] [${sev}] [${cat}] [${thr}] ${ev.caller} -> ${ev.eventType}${countStr}\n`;
+      if (ev.reason) out += `    Reason:  ${ev.reason}\n`;
+      if (ev.details) out += `    Details: ${ev.details}\n`;
+      if (ev.previousState || ev.newState) out += `    State:   ${ev.previousState || 'N/A'} -> ${ev.newState || 'N/A'}\n`;
+      if (ev.error) out += `    ERROR:   ${ev.error}\n`;
+      if (ev.warning) out += `    WARN:    ${ev.warning}\n`;
+      if (ev.stack) out += `    Stack:   ${ev.stack}\n`;
+    }
+    out += "==================================================\n";
+    return out;
+  }
+
   public static clear() {
     this.events = [];
+    this.globalSequenceCounter = 0;
     this.save();
   }
 }

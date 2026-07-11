@@ -246,71 +246,128 @@ export function clearInstallationJustCompleted() {
 
 // ─── Post-Install Session ─────────────────────────────────────────────────
 // A lifecycle-synchronized session that stays active after INSTALL_SUCCESS
-// until the Android process is genuinely replaced or the user explicitly
+// until the new version is confirmed running or the user explicitly
 // dismisses. This is the authoritative lock that prevents ALL automatic
-// update checks, lifecycle triggers, and state resets in the zombie
-// process window after APK installation.
+// update checks, lifecycle triggers, and state resets after APK installation.
+//
+// DESIGN NOTE: This uses localStorage (persistent) instead of sessionStorage
+// (per-process) for cold-start detection. The reason: a successful APK
+// install ALWAYS kills the old process and starts a new one. sessionStorage
+// would be cleared, making cold-start detection self-defeating. Instead, we
+// store the version being installed and check if APP_VERSION matches on the
+// next cold start.
 
-/**
- * Process boot marker. Set to a unique value on each cold start via
- * sessionStorage (which is cleared when the process dies). If this value
- * differs from the value stored when the post-install session was created,
- * the current process is a NEW process (the APK install completed and
- * Android relaunched the app).
- */
-const PROCESS_BOOT_ID = (() => {
-  const key = 'studio:processBootId';
-  try {
-    const existing = sessionStorage.getItem(key);
-    if (existing) return existing;
-    const id = `boot_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    sessionStorage.setItem(key, id);
-    return id;
-  } catch {
-    return `boot_${Date.now()}_fallback`;
-  }
-})();
+const POST_INSTALL_VERSION_KEY = 'studio:postInstallVersion';
+const POST_INSTALL_TIMESTAMP_KEY = 'studio:postInstallTimestamp';
 
 let postInstallSessionActive = false;
-let postInstallSessionBootId: string | null = null;
 let postInstallSessionTimestamp: number | null = null;
 let postInstallSessionTimer: ReturnType<typeof setTimeout> | null = null;
 const POST_INSTALL_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes safety
 
+// On module load, check if a post-install session should be restored from
+// a previous process. This handles the case where the old process set
+// the post-install version in localStorage before being killed by Android.
+(() => {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const storedVersion = localStorage.getItem(POST_INSTALL_VERSION_KEY);
+    if (!storedVersion) return;
+
+    const storedTimestamp = parseInt(localStorage.getItem(POST_INSTALL_TIMESTAMP_KEY) || '0', 10);
+    const elapsed = Date.now() - storedTimestamp;
+
+    // If the stored version matches APP_VERSION, the install succeeded and
+    // the new version is now running. Activate the post-install session so
+    // the completion screen is shown instead of "Studio is up to date".
+    if (storedVersion === APP_VERSION) {
+      // Only restore if within the safety timeout window
+      if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
+        console.log(`[PostInstallSession] Cold start detected with matching version v${APP_VERSION}. Restoring post-install session.`);
+        postInstallSessionActive = true;
+        postInstallSessionTimestamp = storedTimestamp;
+        postInstallSessionTimer = setTimeout(() => {
+          console.log('[PostInstallSession] Safety timeout (5min) reached — ending post-install session.');
+          postInstallSessionActive = false;
+          postInstallSessionTimestamp = null;
+          postInstallSessionTimer = null;
+          try {
+            localStorage.removeItem(POST_INSTALL_VERSION_KEY);
+            localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
+          } catch (_) {}
+        }, Math.max(0, POST_INSTALL_SESSION_TIMEOUT_MS - elapsed));
+      } else {
+        console.log(`[PostInstallSession] Cold start with matching version but safety timeout expired (${elapsed}ms). Clearing.`);
+        localStorage.removeItem(POST_INSTALL_VERSION_KEY);
+        localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
+      }
+    } else {
+      // Version mismatch — either install hasn't happened, a different version
+      // was installed, or a downgrade occurred. Clear the stale marker.
+      console.log(`[PostInstallSession] Version mismatch: stored=${storedVersion}, current=${APP_VERSION}. Clearing stale post-install marker.`);
+      localStorage.removeItem(POST_INSTALL_VERSION_KEY);
+      localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
+    }
+  } catch (e) {
+    console.warn('[PostInstallSession] Error during cold-start restoration:', e);
+  }
+})();
+
 /**
  * Activates the post-install session. Called on INSTALL_SUCCESS.
  * The session blocks ALL automatic update checks until one of:
- * 1. A cold start is detected (new PROCESS_BOOT_ID)
+ * 1. The new version is confirmed running (APP_VERSION matches) and user dismisses
  * 2. The user explicitly calls endPostInstallSession() via Done button
  * 3. A 5-minute safety timeout expires
  */
 function activatePostInstallSession() {
   postInstallSessionActive = true;
-  postInstallSessionBootId = PROCESS_BOOT_ID;
   postInstallSessionTimestamp = Date.now();
   if (postInstallSessionTimer) clearTimeout(postInstallSessionTimer);
   postInstallSessionTimer = setTimeout(() => {
     console.log('[PostInstallSession] Safety timeout (5min) reached — ending post-install session.');
     postInstallSessionActive = false;
-    postInstallSessionBootId = null;
     postInstallSessionTimestamp = null;
     postInstallSessionTimer = null;
+    try {
+      localStorage.removeItem(POST_INSTALL_VERSION_KEY);
+      localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
+    } catch (_) {}
   }, POST_INSTALL_SESSION_TIMEOUT_MS);
-  console.log(`[PostInstallSession] ACTIVATED. bootId=${PROCESS_BOOT_ID}. All automatic checks blocked until session ends.`);
+
+  // Persist the version being installed so the NEW process can detect it
+  // after Android kills this process and relaunches the app.
+  try {
+    const targetVersion = globalOtaState.remoteVersion || APP_VERSION;
+    localStorage.setItem(POST_INSTALL_VERSION_KEY, targetVersion);
+    localStorage.setItem(POST_INSTALL_TIMESTAMP_KEY, String(Date.now()));
+  } catch (_) {}
+
+  console.log(`[PostInstallSession] ACTIVATED. targetVersion=${globalOtaState.remoteVersion}. All automatic checks blocked until session ends.`);
 }
 
 /**
- * Returns true if a post-install session is active AND we are still in the
- * same process that started it. If the process has been replaced (different
- * PROCESS_BOOT_ID), the session is automatically cleared.
+ * Returns true if a post-install session is active. Unlike the previous
+ * sessionStorage-based approach, this survives process restarts because
+ * it uses localStorage for persistence and version matching for detection.
  */
 export function isPostInstallSessionActive(): boolean {
-  if (!postInstallSessionActive) return false;
-  // Cold start detection: if the current process boot ID differs from the
-  // one that activated the session, the process was replaced by Android.
-  if (postInstallSessionBootId !== null && postInstallSessionBootId !== PROCESS_BOOT_ID) {
-    console.log(`[PostInstallSession] Cold start detected — bootId changed from ${postInstallSessionBootId} to ${PROCESS_BOOT_ID}. Ending session.`);
-    endPostInstallSessionInternal('cold_start_detected');
+  if (!postInstallSessionActive) {
+    // Check localStorage as fallback in case the in-memory flag was lost
+    // (e.g., module re-evaluation in HMR). This is a safety net.
+    try {
+      const storedVersion = localStorage.getItem(POST_INSTALL_VERSION_KEY);
+      if (storedVersion && storedVersion === APP_VERSION) {
+        const storedTimestamp = parseInt(localStorage.getItem(POST_INSTALL_TIMESTAMP_KEY) || '0', 10);
+        const elapsed = Date.now() - storedTimestamp;
+        if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
+          console.log(`[PostInstallSession] Restoring session from localStorage fallback (elapsed=${elapsed}ms).`);
+          postInstallSessionActive = true;
+          postInstallSessionTimestamp = storedTimestamp;
+          return true;
+        }
+      }
+    } catch (_) {}
     return false;
   }
   return true;
@@ -318,7 +375,7 @@ export function isPostInstallSessionActive(): boolean {
 
 /**
  * Ends the post-install session. Called explicitly by the user (Done button)
- * or by cold start detection.
+ * or when the completion screen is acknowledged.
  */
 export function endPostInstallSession(reason: string) {
   endPostInstallSessionInternal(reason);
@@ -327,29 +384,36 @@ export function endPostInstallSession(reason: string) {
 function endPostInstallSessionInternal(reason: string) {
   if (postInstallSessionActive) {
     const duration = postInstallSessionTimestamp ? Date.now() - postInstallSessionTimestamp : 0;
-    console.log(`[PostInstallSession] ENDED. Reason: ${reason}. Duration: ${duration}ms. bootId=${postInstallSessionBootId}`);
+    console.log(`[PostInstallSession] ENDED. Reason: ${reason}. Duration: ${duration}ms.`);
   }
   postInstallSessionActive = false;
-  postInstallSessionBootId = null;
   postInstallSessionTimestamp = null;
   if (postInstallSessionTimer) {
     clearTimeout(postInstallSessionTimer);
     postInstallSessionTimer = null;
   }
+  try {
+    localStorage.removeItem(POST_INSTALL_VERSION_KEY);
+    localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
+  } catch (_) {}
 }
 
 /** Returns instrumentation data for the post-install session. */
 export function getPostInstallSessionInfo(): {
   active: boolean;
-  bootId: string;
-  sessionBootId: string | null;
+  storedVersion: string | null;
+  currentVersion: string;
   timestamp: number | null;
   elapsed: number | null;
 } {
+  let storedVersion: string | null = null;
+  try {
+    storedVersion = localStorage.getItem(POST_INSTALL_VERSION_KEY);
+  } catch (_) {}
   return {
     active: postInstallSessionActive,
-    bootId: PROCESS_BOOT_ID,
-    sessionBootId: postInstallSessionBootId,
+    storedVersion,
+    currentVersion: APP_VERSION,
     timestamp: postInstallSessionTimestamp,
     elapsed: postInstallSessionTimestamp ? Date.now() - postInstallSessionTimestamp : null,
   };
@@ -784,6 +848,49 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
         handleWatchdogTimeout(`Update package verification timed out (20s) at state ${state}.`);
       }
     }, 20000);
+  } else if (state === 'WAITING_USER_CONFIRMATION') {
+    // P4: 5-minute watchdog for user confirmation screen.
+    // If the user never taps Update/Install, recover after 5 minutes.
+    watchdogTimer = setTimeout(() => {
+      if (globalOtaState.updateState === 'WAITING_USER_CONFIRMATION') {
+        console.warn('[Watchdog] User confirmation timeout (5min) reached.');
+        handleWatchdogTimeout('User did not confirm update within 5 minutes.');
+      }
+    }, 5 * 60 * 1000);
+  } else if (state === 'PACKAGEINSTALLER_VISIBLE') {
+    // P4: 3-minute watchdog for native PackageInstaller dialog.
+    // Checks native state before timing out to prevent false positives.
+    watchdogTimer = setTimeout(async () => {
+      if (globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+        try {
+          const { AppInstaller } = await import('../apkDownloader');
+          const check = await AppInstaller.isInstallActive();
+          if (check.active) {
+            console.log('[Watchdog] PackageInstaller session is active in PACKAGEINSTALLER_VISIBLE. Extending watchdog by 2min...');
+            watchdogTimer = setTimeout(() => {
+              if (globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+                handleWatchdogTimeout('PackageInstaller dialog timed out (5min total).');
+              }
+            }, 2 * 60 * 1000);
+            return;
+          }
+          // Not active — check if there's already a result
+          const result = await AppInstaller.getLastInstallResult();
+          if (result.statusCode === 0) {
+            console.log('[Watchdog] Install succeeded while in PACKAGEINSTALLER_VISIBLE. Transitioning.');
+            transitionToState('INSTALL_SUCCESS', 'Watchdog detected install success');
+            return;
+          } else if (result.statusCode > 0) {
+            console.log(`[Watchdog] Install failed (code ${result.statusCode}) while in PACKAGEINSTALLER_VISIBLE.`);
+            transitionToState('INSTALL_FAILED', `Watchdog detected install failure: ${result.statusMessage || result.statusCode}`);
+            return;
+          }
+        } catch (err) {
+          console.warn('[Watchdog] Failed to check native installer state during PACKAGEINSTALLER_VISIBLE timeout:', err);
+        }
+        handleWatchdogTimeout('PackageInstaller dialog confirmation timed out (3min).');
+      }
+    }, 3 * 60 * 1000);
   } else if (state === 'INSTALLING') {
     watchdogTimer = setTimeout(async () => {
       if (globalOtaState.updateState === 'INSTALLING') {
@@ -827,7 +934,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   // "Studio is up to date" before the completion screen is acknowledged.
   if (state === 'INSTALL_SUCCESS') {
     setInstallationJustCompleted();
-    activatePostInstallSession();
+    activatePostInstallSession(); // Persists target version to localStorage for cold-start detection
     try {
       if (globalOtaState.releaseNotes) {
         localStorage.setItem('studio:last_installed_release_notes', JSON.stringify(globalOtaState.releaseNotes));

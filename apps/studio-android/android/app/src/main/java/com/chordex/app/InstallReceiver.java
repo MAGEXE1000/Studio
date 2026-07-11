@@ -121,8 +121,24 @@ public class InstallReceiver extends BroadcastReceiver {
                 eventData.put("packageName", otherPackageName != null ? otherPackageName : "");
                 Log.d(TAG, "[INSTRUMENTATION] [NATIVE] Emitting status " + status + " to JS");
                 AppInstallerPlugin.instance.emitInstallStatus(eventData);
+                // P2: Clear pending notification flag since we successfully delivered to JS
+                if (status >= 0) {
+                    prefs.edit().putBoolean("pending_js_notification", false).apply();
+                }
             } else {
                 Log.w(TAG, "[INSTRUMENTATION] [NATIVE] AppInstallerPlugin.instance is null. Cannot emit status to JS.");
+                // P2: Set a flag so the JS side can detect on cold start that a
+                // terminal install result arrived but couldn't be delivered to the
+                // WebView (because the old process was killed during installation).
+                // The JS enforceStartupRecovery() checks SharedPreferences on cold
+                // start and will find this result via getLastInstallResult().
+                if (status >= 0) {
+                    Log.w(TAG, "[INSTRUMENTATION] [NATIVE] Setting pending_js_notification flag for cold-start recovery. Status: " + status);
+                    prefs.edit().putBoolean("pending_js_notification", true).apply();
+                    appendLog(context, "Pending JS Notification", status,
+                            "Plugin instance null during terminal status. Flagged for cold-start recovery.",
+                            otherPackageName, null);
+                }
             }
             
             appendLog(context, "Broadcast Received", status, message, otherPackageName, null);

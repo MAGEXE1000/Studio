@@ -379,6 +379,55 @@ export function enforceStartupRecovery(): Promise<void> {
           localStorage.removeItem('studio:install_in_progress');
         }
       } catch (_) {}
+
+      // P3: On cold start, always check native SharedPreferences for a
+      // pending install result — even without an active session. This covers
+      // the case where the old process was killed during installation and
+      // the session was lost, but the install actually completed.
+      if (isPostInstallSessionActive()) {
+        console.log('[OTA Startup] Post-install session is active (version matched). Checking native install result...');
+        try {
+          const { AppInstaller: NativeInstaller } = await import('../apkDownloader');
+
+          // First check if an installation is still actively running
+          const activeCheck = await NativeInstaller.isInstallActive();
+          if (activeCheck.active) {
+            console.log('[OTA Startup] Active PackageInstaller session detected on cold start. Setting state to INSTALLING.');
+            updateGlobalState({
+              statusText: 'Installing update...',
+              sessionId: typeof activeCheck.sessionId === 'number' ? activeCheck.sessionId : null,
+            });
+            transitionToState('INSTALLING', 'Active PackageInstaller session detected on cold start (no session)');
+            return;
+          }
+
+          // No active session — check SharedPreferences for a completed result
+          const result = await NativeInstaller.getLastInstallResult();
+          console.log('[OTA Startup] Cold start install result:', result);
+
+          if (result.statusCode === 0) {
+            console.log('[OTA Startup] SUCCESS result detected on cold start (no session). Showing completion screen.');
+            transitionToState('INSTALL_SUCCESS', 'Native install completed (cold start, no session)');
+            await NativeInstaller.clearInstallerLogHistory().catch(() => {});
+            return;
+          } else if (result.statusCode > 0 && result.statusCode !== -999) {
+            console.log(`[OTA Startup] FAILURE result detected on cold start (no session): ${result.statusMessage}`);
+            const processed = processLastInstallResult(result);
+            updateGlobalState({ error: processed?.errMsg || 'Install failed' });
+            transitionToState('INSTALL_FAILED', 'Native install failed on cold start (no session)');
+            return;
+          } else if (result.statusCode === -999) {
+            // Installation may still be in progress (committed but not completed)
+            console.log('[OTA Startup] Install in progress on cold start (no session). Setting state to INSTALLING.');
+            transitionToState('INSTALLING', 'Installation in progress on cold start (no session)');
+            updateGlobalState({ statusText: 'Installing update...' });
+            return;
+          }
+        } catch (err) {
+          console.warn('[OTA Startup] Error checking native install result on cold start:', err);
+        }
+      }
+
       // Never reset OTA state if an installation just completed — the
       // PackageInstaller callback may have already transitioned to INSTALL_SUCCESS
       // and the UI needs to show the completion screen before we clear state.
@@ -876,9 +925,9 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
   // the post-install session is active.
   if (isPostInstallSessionActive()) {
     const info = getPostInstallSessionInfo();
-    console.log(`[OTA] Rejecting checkForUpdate (trigger=${trigger}): post-install session is active. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
-    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_POST_INSTALL_SESSION', `trigger=${trigger}, bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
-    logInstallLockEvent('CHECK_BLOCKED', `checkForUpdate rejected: post-install session active`, { trigger, caller: `bootId=${info.bootId}` });
+    console.log(`[OTA] Rejecting checkForUpdate (trigger=${trigger}): post-install session is active. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
+    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_POST_INSTALL_SESSION', `trigger=${trigger}, storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
+    logInstallLockEvent('CHECK_BLOCKED', `checkForUpdate rejected: post-install session active`, { trigger, caller: `storedVersion=${info.storedVersion}` });
     
     UpdaterFlightRecorder.record({
       thread: 'js',
@@ -1522,8 +1571,17 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
             addJsLog('[Simulate Install] runWorkflowActive is true. Simulating user action delay (1.5s)...');
             await new Promise((resolve) => setTimeout(resolve, 1500));
           } else if (updaterSimulation.forcePendingUserAction) {
-            addJsLog('[Simulate Install] Pausing in STATUS_PENDING_USER_ACTION.');
-            return;
+            // S1: Instead of returning early and leaving statusPromise unresolved
+            // forever, add a 30-second timeout. This prevents infinite hangs while
+            // still allowing developers to observe the PACKAGEINSTALLER_VISIBLE state.
+            addJsLog('[Simulate Install] forcePendingUserAction active. Pausing for 30s before auto-continuing...');
+            await new Promise((resolve) => setTimeout(resolve, 30000));
+            // After timeout, check if state was changed externally (e.g., by dismiss)
+            if (globalOtaState.updateState !== 'PACKAGEINSTALLER_VISIBLE') {
+              addJsLog(`[Simulate Install] State changed during forcePendingUserAction pause (now: ${globalOtaState.updateState}). Stopping simulation.`);
+              return;
+            }
+            addJsLog('[Simulate Install] forcePendingUserAction timeout reached. Auto-continuing simulation...');
           }
 
           await delayForSim(10);
@@ -1900,8 +1958,8 @@ export function initializeGlobalOtaListeners() {
           // Block all recovery during post-install session
           if (isPostInstallSessionActive()) {
             const info = getPostInstallSessionInfo();
-            console.log(`[OTA Lifecycle] App resumed but post-install session is active. Skipping recovery. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
-            logTimelineEvent('AppLifecycle', 'RECOVERY_SKIPPED_POST_INSTALL', `bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+            console.log(`[OTA Lifecycle] App resumed but post-install session is active. Skipping recovery. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
+            logTimelineEvent('AppLifecycle', 'RECOVERY_SKIPPED_POST_INSTALL', `storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
             
             UpdaterFlightRecorder.record({
               thread: 'js',
@@ -1909,7 +1967,7 @@ export function initializeGlobalOtaListeners() {
               workflowId: null,
               eventType: 'appResumeRecoverySkipped',
               caller: 'AppLifecycle',
-              reason: `Skipped recovery on resume (post-install session active). bootId=${info.bootId}`
+              reason: `Skipped recovery on resume (post-install session active). storedVersion=${info.storedVersion}`
             });
             return;
           }

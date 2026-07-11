@@ -632,8 +632,8 @@ class StartupCoordinatorClass {
       // Post-install session guard — blocks ALL lifecycle-triggered update checks
       if (isPostInstallSessionActive()) {
         const info = getPostInstallSessionInfo();
-        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): post-install session is active. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
-        logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: post-install session active. bootId=${info.bootId}`, { trigger });
+        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): post-install session is active. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
+        logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: post-install session active. storedVersion=${info.storedVersion}`, { trigger });
         
         UpdaterFlightRecorder.record({
           thread: 'js',

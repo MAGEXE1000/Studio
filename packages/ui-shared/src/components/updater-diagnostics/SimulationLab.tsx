@@ -6,6 +6,7 @@ import {
   isNative, 
   AppInstaller,
   checkForUpdate,
+  applyUpdate,
   globalOtaState,
   stateListeners,
   activeUpdateSession,
@@ -44,6 +45,18 @@ export default function SimulationLab({
       setOtaState(newState);
       setSimActive(typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true');
       triggerRefresh();
+
+      // Auto-progress simulation workflow if runWorkflowActive is true
+      if (updaterSimulation.runWorkflowActive && newState.updateState === 'UPDATE_AVAILABLE') {
+        setTimeout(() => {
+          if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'UPDATE_AVAILABLE') {
+            addJsLog('[Simulate Workflow] Auto-triggering applyUpdate...');
+            applyUpdate('Simulation: Run Workflow').catch((e) => {
+              console.error('Simulated applyUpdate failed:', e);
+            });
+          }
+        }, 1500);
+      }
     };
     stateListeners.add(listener);
     return () => {
@@ -73,6 +86,19 @@ export default function SimulationLab({
     clearOverrides();
     resetOtaUpdateState();
     showToast('Workflow simulation stopped');
+    triggerRefresh();
+  };
+
+  const runWorkflow = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    clearOverrides();
+    updaterSimulation.runWorkflowActive = true;
+    updaterSimulation.forceUpdateAvailable = true;
+    updaterSimulation.simulateDownload = true;
+    updaterSimulation.simulateDownloadThrottling = true;
+    showToast('Starting automated workflow simulation...');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Run Workflow');
     triggerRefresh();
   };
 
@@ -176,6 +202,7 @@ export default function SimulationLab({
     updaterSimulation.injectChecksumFailure = false;
     updaterSimulation.injectNetworkTimeout = false;
     updaterSimulation.simulateDownloadThrottling = false;
+    updaterSimulation.runWorkflowActive = false;
     setThrottled(false);
     showToast('Simulation overrides cleared');
     triggerRefresh();
@@ -184,10 +211,37 @@ export default function SimulationLab({
   const exportTimeline = () => {
     try {
       const data = JSON.stringify(transitionHistory, null, 2);
-      copyToClipboard(data, 'Workflow Timeline');
-      showToast('Timeline exported to clipboard');
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `studio-updater-workflow-timeline-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Workflow timeline exported as JSON file');
     } catch (err: any) {
       showToast('Export failed: ' + err.message);
+    }
+  };
+
+  const copyTimeline = () => {
+    try {
+      if (transitionHistory.length === 0) {
+        showToast('Timeline is empty');
+        return;
+      }
+      let md = `## Updater State Transition Timeline\n\n`;
+      md += `| Step | Transition | Duration | Caller | Reason | Timestamp |\n`;
+      md += `| --- | --- | --- | --- | --- | --- |\n`;
+      transitionHistory.forEach((t, idx) => {
+        const timeStr = new Date(t.timestamp).toLocaleTimeString();
+        md += `| ${idx + 1} | \`${t.from} → ${t.to}\` | ${t.durationMs ? `${t.durationMs}ms` : '—'} | ${t.caller} | ${t.reason} | ${timeStr} |\n`;
+      });
+      copyToClipboard(md, 'Workflow Timeline');
+      showToast('Timeline copied to clipboard as Markdown');
+    } catch (err: any) {
+      showToast('Copy failed: ' + err.message);
     }
   };
 
@@ -231,6 +285,18 @@ export default function SimulationLab({
 
       {/* Main Simulation Action Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {/* Run Workflow (Simulate Everything) */}
+        <button 
+          onClick={runWorkflow}
+          className="flex flex-col justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] p-4 rounded-xl transition-all text-left outline-none border border-green-500/30 active:scale-[0.98] min-h-[82px]"
+        >
+          <div className="flex items-center gap-2 text-green-400">
+            <span className="material-symbols-outlined text-[18px]">play_circle</span>
+            <span className="text-xs font-bold">Run Workflow</span>
+          </div>
+          <span className="text-[10px] text-on-surface-variant mt-1.5">Automates entire OTA update sequence</span>
+        </button>
+
         {/* Simulate Update Available */}
         <button 
           onClick={simulateUpdateAvailable}
@@ -366,10 +432,17 @@ export default function SimulationLab({
         </button>
 
         <button 
+          onClick={copyTimeline}
+          className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-black border border-outline-variant/15 text-on-surface font-bold text-xs hover:bg-white/5 active:scale-95 transition-all outline-none"
+        >
+          Copy Workflow Timeline
+        </button>
+
+        <button 
           onClick={exportTimeline}
           className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-tertiary text-on-tertiary font-bold text-xs hover:brightness-110 active:scale-95 transition-all outline-none"
         >
-          Export Timeline
+          Export Workflow Timeline
         </button>
       </div>
 

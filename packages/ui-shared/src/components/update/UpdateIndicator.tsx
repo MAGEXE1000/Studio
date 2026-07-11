@@ -43,10 +43,11 @@ import {
   enableLiquidGlass,
   tagLiquidTarget,
   untagLiquidTarget,
+  isSimulationActive,
 } from '@workspace/studio-core';
 
 const isUpdateInProgress = (state: string) => {
-  const isSim = typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
+  const isSim = isSimulationActive();
   return [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
@@ -1214,7 +1215,7 @@ function UpdateModal({
     if (s === 'PACKAGEINSTALLER_VISIBLE') return 'packageinstaller_visible';
     if (s === 'INSTALLING') return 'installing';
     if (s === 'INSTALL_SUCCESS') {
-      const isSim = typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
+      const isSim = isSimulationActive();
       return isSim ? 'completed' : 'installing';
     }
     if (s === 'INSTALL_CANCELLED') return 'cancelled';

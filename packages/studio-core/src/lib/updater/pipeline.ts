@@ -60,6 +60,7 @@ import {
   simulateStatusCallback,
   addJsLog,
   triggerSimulatedStatus,
+  isSimulationActive,
 } from './updaterSimulation';
 import {
   validateLocalApk,
@@ -271,27 +272,11 @@ function safeTransition(expectedState: OtaUpdateState, nextState: OtaUpdateState
   return true;
 }
 
-function isSimulationActive(): boolean {
-  return !!(
-    updaterSimulation.simulateDownload ||
-    updaterSimulation.forceInstallSuccess ||
-    updaterSimulation.forceInstallFailure ||
-    updaterSimulation.forceUserCancel ||
-    updaterSimulation.forcePendingUserAction ||
-    updaterSimulation.forceUpdateAvailable ||
-    updaterSimulation.forceNoUpdate ||
-    updaterSimulation.forceDowngrade ||
-    updaterSimulation.forceMetadataFailure ||
-    updaterSimulation.forceDownloadFailure ||
-    updaterSimulation.forceDownloadTimeout ||
-    updaterSimulation.forceShaFailure ||
-    updaterSimulation.forceSignatureMismatch ||
-    updaterSimulation.forceInvalidApk
-  );
-}
-
 async function delayForSim(ms: number) {
-  if (updaterSimulation.simulateDownloadThrottling) {
+  if (updaterSimulation.runWorkflowActive) {
+    // High-fidelity slow simulation for visual inspection (e.g. 200ms per download step)
+    await new Promise((resolve) => setTimeout(resolve, ms * 20));
+  } else if (updaterSimulation.simulateDownloadThrottling) {
     await new Promise((resolve) => setTimeout(resolve, ms));
   } else {
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -594,16 +579,28 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 
     let remote;
     if (updaterSimulation.forceUpdateAvailable) {
+      let targetVersion = '5.0.0';
+      if (natVer) {
+        const parts = natVer.split('.');
+        if (parts.length >= 3) {
+          const patch = parseInt(parts[2], 10);
+          if (!isNaN(patch)) {
+            parts[2] = String(patch + 1);
+            targetVersion = parts.join('.');
+          }
+        }
+      }
+      const targetCode = (natVerCode ?? 0) + 1;
       remote = {
-        version: '3.7.99',
-        versionCode: 999,
+        version: targetVersion,
+        versionCode: targetCode,
         mandatory: updaterSimulation.forceMandatoryUpdate,
-        apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.7.54/studio-3.7.54.apk',
-        apkSha256: realRemote?.apkSha256 || '456b5d19cf42cafb29d14da71885a7601d8fef566ff8f4dd756ed2d196cfe8d3',
+        apkUrl: realRemote?.apkUrl || 'https://github.com/MAGEXE1000/Studio/releases/download/v4.0.16/studio-4.0.16.apk',
+        apkSha256: realRemote?.apkSha256 || '53d281dcd9f32c58d5035dd7e5424e651c24859b0ec47dded97557ac029bea17',
         changelog: 'Simulated update release notes.',
-        releaseNotes: { added: ['Feature A'], improved: ['Performance B'], fixed: ['Bug C'] }
+        releaseNotes: { added: ['Simulated Feature A'], improved: ['Simulated Performance B'], fixed: ['Simulated Bug C'] }
       };
-      addJsLog(`Simulation override: Forcing Update Available (v3.7.99)`);
+      addJsLog(`Simulation override: Forcing Update Available (v${targetVersion}, code ${targetCode})`);
     } else if (updaterSimulation.forceNoUpdate) {
       remote = {
         version: APP_VERSION,
@@ -1360,7 +1357,10 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           await delayForSim(10);
           triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
 
-          if (updaterSimulation.forcePendingUserAction) {
+          if (updaterSimulation.runWorkflowActive) {
+            addJsLog('[Simulate Install] runWorkflowActive is true. Simulating user action delay (1.5s)...');
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+          } else if (updaterSimulation.forcePendingUserAction) {
             addJsLog('[Simulate Install] Pausing in STATUS_PENDING_USER_ACTION.');
             return;
           }

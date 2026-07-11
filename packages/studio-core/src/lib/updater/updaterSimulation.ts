@@ -27,6 +27,7 @@ export interface UpdaterSimulation {
   injectChecksumFailure: boolean;
   injectNetworkTimeout: boolean;
   simulateDownloadThrottling: boolean;
+  runWorkflowActive: boolean;
 }
 
 export const updaterSimulation: UpdaterSimulation = {
@@ -56,6 +57,7 @@ export const updaterSimulation: UpdaterSimulation = {
   injectChecksumFailure: false,
   injectNetworkTimeout: false,
   simulateDownloadThrottling: false,
+  runWorkflowActive: false,
 };
 
 // Logs and timelines stored in memory
@@ -128,4 +130,24 @@ export function triggerSimulatedStatus(status: number, message = '', progress = 
   } else {
     addJsLog('Warning: No active PackageInstaller listener to receive simulated status.');
   }
+}
+
+export function isSimulationActive(): boolean {
+  return !!(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true') ||
+    updaterSimulation.simulateDownload ||
+    updaterSimulation.forceInstallSuccess ||
+    updaterSimulation.forceInstallFailure ||
+    updaterSimulation.forceUserCancel ||
+    updaterSimulation.forcePendingUserAction ||
+    updaterSimulation.forceUpdateAvailable ||
+    updaterSimulation.forceNoUpdate ||
+    updaterSimulation.forceDowngrade ||
+    updaterSimulation.forceMetadataFailure ||
+    updaterSimulation.forceDownloadFailure ||
+    updaterSimulation.forceDownloadTimeout ||
+    updaterSimulation.forceShaFailure ||
+    updaterSimulation.forceSignatureMismatch ||
+    updaterSimulation.forceInvalidApk
+  );
 }

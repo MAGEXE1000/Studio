@@ -107,6 +107,7 @@ export {
   simulateStatusCallback,
   addJsLog,
   triggerSimulatedStatus,
+  isSimulationActive,
 } from './updaterSimulation';
 
 // Version logger

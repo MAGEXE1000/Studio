@@ -62,10 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Redesigned the diagnostics dashboard into a high-density, professional engineering console.",
-      "Created sticky console statistics strip containing only critical versions, states, and counts.",
-      "Replaced tab sheets with 4 collapsible segments utilizing rotating chevrons and lazy rendering.",
-      "Upgraded Copy Everything report to loop over all sessions and export histories.",
+      "Refined diagnostic console header typography, spacing, and back button alignment.",
+      "Added sticky Back button when desktop view is active.",
+      "Enhanced simulation workflow testing to run the standard download-then-apply flow.",
     ],
   },
 ];

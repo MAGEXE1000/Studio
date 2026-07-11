@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.21
+
+### Added
+- Refined diagnostic console header typography, spacing, and back button alignment.
+- Added sticky Back button when desktop view is active.
+- Enhanced simulation workflow testing to run the standard download-then-apply flow.
+
 ## 4.0.20
 
 ### Added

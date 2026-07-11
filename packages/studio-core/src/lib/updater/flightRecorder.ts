@@ -1,7 +1,7 @@
 export interface FlightRecorderEvent {
   sequenceId: number; // Global sequence number
   timestamp: number; // UTC ms
-  category: 'NATIVE' | 'LIFECYCLE' | 'STATE' | 'PIPELINE' | 'UI' | 'SYSTEM' | 'UNKNOWN';
+  category?: 'NATIVE' | 'LIFECYCLE' | 'STATE' | 'PIPELINE' | 'UI' | 'SYSTEM' | 'UNKNOWN';
   thread: 'js' | 'native' | 'ui';
   sessionId: string | null;
   workflowId: string | null;

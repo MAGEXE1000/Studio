@@ -659,7 +659,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   UpdaterFlightRecorder.record({
     action: `FSM Transition: ${current} -> ${state}`,
     category: 'STATE',
-    details: { reason, failureReason }
+    details: JSON.stringify({ reason, failureReason })
   });
 
   addJsLog(`Transition Trigger: ${current} -> ${state}. Reason: ${reason}`);

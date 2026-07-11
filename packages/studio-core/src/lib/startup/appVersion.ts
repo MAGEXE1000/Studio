@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.19';
-export const WEB_VERSION = '4.0.19';
+export const NATIVE_VERSION = '4.0.20';
+export const WEB_VERSION = '4.0.20';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Exposed a persistent local flight recorder that logs updater transitions and PackageInstaller events.",
-      "Integrated a compact workflow testing scenarios panel inside the real updater diagnostics page.",
-      "Added automatic verdict analysis for state machine anomalies and listener leaks.",
+      "Redesigned the diagnostics dashboard into a high-density, professional engineering console.",
+      "Created sticky console statistics strip containing only critical versions, states, and counts.",
+      "Replaced tab sheets with 4 collapsible segments utilizing rotating chevrons and lazy rendering.",
+      "Upgraded Copy Everything report to loop over all sessions and export histories.",
     ],
   },
 ];

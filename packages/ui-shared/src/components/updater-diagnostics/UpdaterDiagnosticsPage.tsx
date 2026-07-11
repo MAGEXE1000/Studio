@@ -28,7 +28,15 @@ import {
   applyUpdate,
   checkForUpdate,
   stateListeners,
-  UpdaterFlightRecorder
+  UpdaterFlightRecorder,
+  getErrors,
+  APP_VERSION,
+  activePipelineContext,
+  otaDiagnostics,
+  PerformanceProfiler,
+  isInstallationLocked,
+  isPostInstallSessionActive,
+  shouldUseAndroidApkUpdater
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -495,22 +503,52 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<
-    | 'overview'
-    | 'livestate'
-    | 'workflow'
-    | 'session'
-    | 'performance'
-    | 'installer'
-    | 'logs'
-    | 'simulation'
-    | 'history'
-    | 'export'
-    | 'devtools'
-  >('overview');
+  const [isWorkflowTestingOpen, setIsWorkflowTestingOpen] = useState(true);
+  const [isFlightRecorderOpen, setIsFlightRecorderOpen] = useState(false);
+  const [isRuntimeSessionOpen, setIsRuntimeSessionOpen] = useState(false);
+  const [isAdvancedDiagnosticsOpen, setIsAdvancedDiagnosticsOpen] = useState(false);
 
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+  const [scenarioDurations, setScenarioDurations] = useState<Record<string, number>>({});
+  const [advTab, setAdvTab] = useState<'fsm' | 'native' | 'config'>('fsm');
   const [fps, setFps] = useState(60);
 
+  // Live Scenario Timer
+  useEffect(() => {
+    if (!activeScenarioId) return;
+    const start = Date.now();
+    setScenarioDurations(prev => ({ ...prev, [activeScenarioId]: 0 }));
+    const timer = setInterval(() => {
+      setScenarioDurations(prev => ({
+        ...prev,
+        [activeScenarioId]: Date.now() - start
+      }));
+    }, 100);
+    return () => clearInterval(timer);
+  }, [activeScenarioId]);
+
+  // Terminal state listener to stop scenario timer
+  useEffect(() => {
+    const listener = (state: any) => {
+      if (!activeScenarioId) return;
+      const isTerminal = 
+        state.updateState === 'INSTALL_SUCCESS' || 
+        state.updateState === 'INSTALL_FAILED' || 
+        state.updateState === 'INSTALL_CANCELLED' || 
+        state.updateState === 'RECOVERY' || 
+        state.updateState === 'IDLE' || 
+        state.updateState === 'NO_UPDATE_AVAILABLE';
+      if (isTerminal) {
+        setActiveScenarioId(null);
+      }
+    };
+    stateListeners.add(listener);
+    return () => {
+      stateListeners.delete(listener);
+    };
+  }, [activeScenarioId]);
+
+  // FPS Tracker
   useEffect(() => {
     let frameCount = 0;
     let lastTime = performance.now();
@@ -531,730 +569,694 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   }, []);
 
   const selectedSession = sessions.find(s => s.id === selectedSessionId) || sessions[sessions.length - 1];
-  const curSession = loadPersistedSession();
 
-  const accent = settings.accentColor || 'purple';
-  const cFrom = ACCENT_COLORS[accent]?.from || ACCENT_COLORS.purple.from;
-  const cTo = ACCENT_COLORS[accent]?.to || ACCENT_COLORS.purple.to;
+  const handleCopyFlightRecorderLogs = async () => {
+    const events = UpdaterFlightRecorder.getEvents();
+    const text = events.map(e => {
+      return `[${new Date(e.timestamp).toISOString()}] [${e.thread.toUpperCase()}] ${e.eventType}
+  Caller: ${e.caller} | Func: ${e.funcName || 'none'} | File: ${e.fileName || 'none'}
+  Transition: ${e.previousState || 'none'} -> ${e.newState || 'none'} (Duration: ${e.duration ? e.duration + 'ms' : 'N/A'})
+  Reason: ${e.reason || 'none'}
+  Warning: ${e.warning || 'none'} | Error: ${e.error || 'none'}
+  Details: ${e.details || 'none'}
+--------------------------------------------------`;
+    }).join('\n');
+    
+    try {
+      await copyToClipboard(text, 'Flight Recorder Logs');
+      showToast('Flight recorder logs copied to clipboard!');
+    } catch (err: any) {
+      showToast(`Copy failed: ${err.message}`);
+    }
+  };
+
+  const errorCount = getErrors()?.length || 0;
+  const warningCount = getLogs()?.filter(l => l.level === 'warn').length || 0;
 
   return (
     <div ref={scrollRef} className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
-      {/* Top sticky app bar */}
-      <header className="w-full sticky top-0 z-50 bg-[#000000] flex items-center justify-between px-6 pt-4 pb-4 border-b border-[#484848]/10 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors outline-none cursor-pointer border-none bg-transparent"
-          >
-            <span className="material-symbols-outlined text-on-surface">arrow_back</span>
-          </button>
-          <div>
-            <h1 className="text-lg font-bold text-[#e7e5e4] tracking-tight font-headline">Updater Diagnostics</h1>
-            <p className="text-xs text-on-surface-variant font-medium">OTA Diagnostics &amp; Developer Control Dashboard</p>
+      
+      {/* Sticky Premium Engineering Header */}
+      <header className="w-full sticky top-0 z-50 bg-[#000000]/90 border-b border-[#484848]/25 backdrop-blur-md flex flex-col select-none px-6 pt-4 pb-3">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onBack}
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors outline-none cursor-pointer border-none bg-transparent"
+            >
+              <span className="material-symbols-outlined text-[#e7e5e4] text-lg">arrow_back</span>
+            </button>
+            <div>
+              <h1 className="text-md font-bold text-[#e7e5e4] tracking-tight font-headline uppercase font-mono">Updater Console</h1>
+            </div>
           </div>
-        </div>
-        
-        <div className="flex gap-2">
+
           <button
             onClick={handleCopyEverything}
-            className="flex items-center gap-1.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer shadow-sm"
           >
             <span className="material-symbols-outlined text-xs">content_copy</span>
             <span>Copy Everything</span>
           </button>
         </div>
+
+        {/* Console stats strip - containing ONLY requested items */}
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-4 mt-4 pt-3 border-t border-[#484848]/15 text-[10px] uppercase font-bold tracking-wider font-mono">
+          <div>
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Local Ver</span>
+            <span className="text-white text-xs leading-none">{APP_VERSION}</span>
+          </div>
+          <div>
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Latest Rel</span>
+            <span className="text-white text-xs leading-none">{otaState.remoteVersion || 'N/A'}</span>
+          </div>
+          <div className="col-span-1 sm:col-span-1">
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">FSM State</span>
+            <span className="text-[#c084fc] text-xs leading-none truncate block">{otaState.updateState}</span>
+          </div>
+          <div className="col-span-1 sm:col-span-1">
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">PkgInstaller</span>
+            <span className="text-white text-xs leading-none truncate block">{nativeInstallerDetails?.sessionState || 'IDLE'}</span>
+          </div>
+          <div>
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Active Session</span>
+            <span className={isUpdateSessionActive() ? 'text-green-400 text-xs leading-none' : 'text-zinc-500 text-xs leading-none'}>
+              {isUpdateSessionActive() ? 'ACTIVE' : 'INACTIVE'}
+            </span>
+          </div>
+          <div>
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Errors</span>
+            <span className={errorCount > 0 ? 'text-red-400 text-xs leading-none font-black' : 'text-white text-xs leading-none'}>
+              {errorCount}
+            </span>
+          </div>
+          <div>
+            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Warnings</span>
+            <span className={warningCount > 0 ? 'text-yellow-400 text-xs leading-none font-black' : 'text-white text-xs leading-none'}>
+              {warningCount}
+            </span>
+          </div>
+        </div>
       </header>
 
-      {/* Horizontal scrolling tab list */}
-      <div className="flex border-b border-[#484848]/10 overflow-x-auto no-scrollbar bg-black sticky top-[72px] z-40 px-6">
-        {[
-          { id: 'overview', label: 'Overview', icon: 'info' },
-          { id: 'livestate', label: 'Live State', icon: 'sync' },
-          { id: 'workflow', label: 'Workflow Timeline', icon: 'event_note' },
-          { id: 'session', label: 'Session Timeline', icon: 'timeline' },
-          { id: 'performance', label: 'Performance', icon: 'insights' },
-          { id: 'installer', label: 'PackageInstaller', icon: 'install_mobile' },
-          { id: 'logs', label: 'Logs', icon: 'terminal' },
-          { id: 'simulation', label: 'Simulation', icon: 'science' },
-          { id: 'history', label: 'History', icon: 'history' },
-          { id: 'export', label: 'Export', icon: 'download' },
-          { id: 'devtools', label: 'Developer Tools', icon: 'build' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-5 py-4 border-b-2 text-sm font-semibold whitespace-nowrap cursor-pointer transition-colors outline-none bg-transparent ${
-              activeTab === tab.id
-                ? 'border-[#8b5cf6] text-[#8b5cf6]'
-                : 'border-transparent text-on-surface-variant hover:text-white'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Main Content viewport */}
-      <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 select-none">
+      {/* Main Collapsible Sections */}
+      <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 flex flex-col">
         
-        {/* TAB 1: OVERVIEW */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">info</span>
-                System Overview
+        {/* 1. WORKFLOW TESTING COLLAPSIBLE */}
+        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+          <div 
+            onClick={() => setIsWorkflowTestingOpen(!isWorkflowTestingOpen)}
+            className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
+          >
+            <div className="flex items-center gap-3">
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isWorkflowTestingOpen ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+              <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
+                Workflow Testing
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Update State</span>
-                  <span className="text-sm font-bold text-white font-mono">{globalOtaState.updateState}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Session Active</span>
-                  <span className="text-sm font-bold text-white">{isUpdateSessionActive() ? 'Yes' : 'No'}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Consecutive Failures</span>
-                  <span className="text-sm font-bold text-white">{globalOtaState.consecutiveFailures}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Active Fallback</span>
-                  <span className="text-sm font-bold text-white font-mono">{globalOtaState.activeFallback || 'None'}</span>
+            </div>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Simulator Panel</span>
+          </div>
+          
+          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isWorkflowTestingOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
+          }`}>
+            {isWorkflowTestingOpen && (
+              <div className="p-6 space-y-4">
+                <p className="text-xs text-zinc-400 leading-relaxed font-mono">
+                  Trigger isolated, deterministic scenarios that execute the <strong>REAL</strong> production state machine by overriding local metadata providers.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  <ScenarioCard 
+                    id="successful_update"
+                    title="Successful Update"
+                    description="Run a full mock updater sequence: Check -> Available -> Auto-confirm Apply -> Mock Download -> Verify -> Mock Success."
+                    icon="check_circle"
+                    colorClass="text-green-400"
+                    action={() => startScenario('successful_update', runSuccessfulUpdateWorkflow)}
+                    isActive={activeScenarioId === 'successful_update'}
+                    duration={scenarioDurations.successful_update}
+                  />
+
+                  <ScenarioCard 
+                    id="download_failure"
+                    title="Download Failure"
+                    description="Trigger an update check and force the download stage to fail with an HTTP retrieval connection exception."
+                    icon="cloud_off"
+                    colorClass="text-red-400"
+                    action={() => startScenario('download_failure', runDownloadFailureWorkflow)}
+                    isActive={activeScenarioId === 'download_failure'}
+                    duration={scenarioDurations.download_failure}
+                  />
+
+                  <ScenarioCard 
+                    id="verification_failure"
+                    title="Verification Failure"
+                    description="Simulate an update package with a checksum mismatch that fails verification before native installation."
+                    icon="gpp_bad"
+                    colorClass="text-red-400"
+                    action={() => startScenario('verification_failure', runVerificationFailureWorkflow)}
+                    isActive={activeScenarioId === 'verification_failure'}
+                    duration={scenarioDurations.verification_failure}
+                  />
+
+                  <ScenarioCard 
+                    id="package_installer"
+                    title="PackageInstaller Dialog"
+                    description="Pause the installation sequence at the dialog confirmation screen to test custom native listener state transitions."
+                    icon="visibility"
+                    colorClass="text-purple-400"
+                    action={() => startScenario('package_installer', runPackageInstallerWorkflow)}
+                    isActive={activeScenarioId === 'package_installer'}
+                    duration={scenarioDurations.package_installer}
+                    inlineActions={
+                      <div className="flex flex-col gap-1 w-full pt-1">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); simulateSuccessInstall(); }}
+                          className="bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
+                        >
+                          Simulate Install Success
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); simulateFailedInstall(); }}
+                          className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
+                        >
+                          Simulate Install Fail
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); simulateCancelledInstall(); }}
+                          className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 px-2 py-1 rounded text-[9px] font-bold font-mono transition-all cursor-pointer outline-none w-full"
+                        >
+                          Simulate User Cancel
+                        </button>
+                      </div>
+                    }
+                  />
+
+                  <ScenarioCard 
+                    id="installation_failure"
+                    title="Installation Failure"
+                    description="Simulate a transaction error during native PackageInstaller execution, triggering recovery pathways."
+                    icon="cancel"
+                    colorClass="text-red-400"
+                    action={() => startScenario('installation_failure', runInstallationFailureWorkflow)}
+                    isActive={activeScenarioId === 'installation_failure'}
+                    duration={scenarioDurations.installation_failure}
+                  />
+
+                  <ScenarioCard 
+                    id="reset_workflow"
+                    title="Reset Workflow"
+                    description="Clear all simulator overrides, wipe active session cache configurations, and reset update status to IDLE."
+                    icon="restart_alt"
+                    colorClass="text-zinc-400"
+                    action={runResetWorkflow}
+                    isActive={false}
+                  />
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            {/* WORKFLOW TESTING SCENARIOS */}
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">science</span>
-                Production Workflow Testing Scenarios
+        {/* 2. FLIGHT RECORDER COLLAPSIBLE */}
+        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+          <div 
+            onClick={() => setIsFlightRecorderOpen(!isFlightRecorderOpen)}
+            className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
+          >
+            <div className="flex items-center gap-3">
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isFlightRecorderOpen ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+              <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
+                Flight Recorder
               </h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Execute complete scenarios using the **REAL** production updater pipeline and state machine. Simulated external providers are used.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                <button 
-                  onClick={runSuccessfulUpdateWorkflow}
-                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-green-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 text-green-400">
-                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                    <span className="text-xs font-bold">Successful Update</span>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify &rarr; Success</span>
-                </button>
-
-                <button 
-                  onClick={runDownloadFailureWorkflow}
-                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-red-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 text-red-400">
-                    <span className="material-symbols-outlined text-[18px]">cloud_off</span>
-                    <span className="text-xs font-bold">Download Failure</span>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download Fail</span>
-                </button>
-
-                <button 
-                  onClick={runVerificationFailureWorkflow}
-                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-red-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 text-red-400">
-                    <span className="material-symbols-outlined text-[18px]">gpp_bad</span>
-                    <span className="text-xs font-bold">Verification Failure</span>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify Fail</span>
-                </button>
-
-                <button 
-                  onClick={runPackageInstallerWorkflow}
-                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-purple-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 text-purple-400">
-                    <span className="material-symbols-outlined text-[18px]">visibility</span>
-                    <span className="text-xs font-bold">PackageInstaller Dialog</span>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify &rarr; Pauses at Dialog</span>
-                </button>
-
-                <button 
-                  onClick={runInstallationFailureWorkflow}
-                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-red-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 text-red-400">
-                    <span className="material-symbols-outlined text-[18px]">cancel</span>
-                    <span className="text-xs font-bold">Installation Failure</span>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify &rarr; Install Fail</span>
-                </button>
-
-                <button 
-                  onClick={runResetWorkflow}
-                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/20 p-4 rounded-xl transition-all text-left outline-none border border-zinc-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 text-zinc-400">
-                    <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-                    <span className="text-xs font-bold">Reset Workflow</span>
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant mt-1.5">Clear simulator overrides &amp; Reset FSM</span>
-                </button>
-              </div>
             </div>
-
-            {/* FLIGHT RECORDER LIVE TIMELINE */}
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#8b5cf6]">flight_takeoff</span>
-                  Flight Recorder Live Timeline (Survives Restarts)
-                </h3>
+            
+            <div className="flex items-center gap-3 text-[10px] font-mono text-zinc-400" onClick={e => e.stopPropagation()}>
+              <span>LOGS: <strong className="text-white">{UpdaterFlightRecorder.getEvents().length}</strong></span>
+              <span className="hidden sm:inline border-l border-[#484848]/20 pl-3">NEWEST: <strong className="text-[#8b5cf6]">{UpdaterFlightRecorder.getEvents().slice(-1)[0]?.eventType || 'NONE'}</strong></span>
+              <div className="flex items-center gap-2 border-l border-[#484848]/20 pl-3">
                 <button 
-                  onClick={() => { UpdaterFlightRecorder.clear(); triggerRefresh(); showToast('Flight Recorder cleared'); }}
-                  className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase cursor-pointer outline-none bg-transparent border-none"
+                  onClick={handleCopyFlightRecorderLogs}
+                  className="bg-[#8b5cf6]/10 hover:bg-[#8b5cf6]/20 border border-[#8b5cf6]/20 text-[#c084fc] px-2 py-1 rounded text-[9px] font-bold uppercase transition-all cursor-pointer outline-none"
+                >
+                  Copy Logs
+                </button>
+                <button 
+                  onClick={() => { UpdaterFlightRecorder.clear(); triggerRefresh(); showToast('Logs wiped'); }}
+                  className="bg-red-950/20 hover:bg-red-900/30 border border-red-500/20 text-red-400 px-2 py-1 rounded text-[9px] font-bold uppercase transition-all cursor-pointer outline-none"
                 >
                   Clear Logs
                 </button>
               </div>
-              
-              {UpdaterFlightRecorder.getEvents().length > 0 ? (
-                <div className="border border-[#484848]/10 rounded-xl overflow-hidden font-mono text-[10px] bg-black/40 max-h-[300px] overflow-y-auto p-4 space-y-3 divide-y divide-[#484848]/15">
-                  {UpdaterFlightRecorder.getEvents().slice().reverse().map((e, idx) => {
-                    const isErr = !!e.error || e.warning === 'INSTALL_FAILED' || e.warning === 'CHECK_BLOCKED_INSTALLATION_LOCKED';
-                    const isWarn = !!e.warning && !isErr;
-                    const isSuccess = e.eventType === 'checkForUpdateAllowed' || e.newState === 'INSTALL_SUCCESS';
-                    
-                    const timeStr = new Date(e.timestamp).toLocaleTimeString();
-                    const durationStr = e.duration ? `${e.duration}ms` : '—';
-                    
-                    return (
-                      <div key={idx} className="pt-3 first:pt-0 flex flex-col gap-1.5 border-t border-[#484848]/15">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                              isErr ? 'bg-red-500 animate-pulse' : isWarn ? 'bg-yellow-500' : isSuccess ? 'bg-green-500' : 'bg-purple-500'
-                            }`} />
-                            <span className="font-bold text-[#e7e5e4] text-xs">
-                              {e.eventType}
+            </div>
+          </div>
+
+          {/* Collapsed view: Only show latest event */}
+          {!isFlightRecorderOpen && UpdaterFlightRecorder.getEvents().length > 0 && (
+            <div className="px-6 pb-4 pt-1 flex items-center justify-between text-[10px] font-mono text-zinc-400 border-t border-[#484848]/5">
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-zinc-500">LATEST EVENT:</span>
+                <span className="text-[#c084fc] font-bold">{UpdaterFlightRecorder.getEvents().slice(-1)[0]?.eventType}</span>
+                <span className="text-zinc-500 truncate">({UpdaterFlightRecorder.getEvents().slice(-1)[0]?.reason})</span>
+              </div>
+              <span className="text-zinc-500 shrink-0">{new Date(UpdaterFlightRecorder.getEvents().slice(-1)[0]?.timestamp).toLocaleTimeString()}</span>
+            </div>
+          )}
+          
+          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isFlightRecorderOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
+          }`}>
+            {isFlightRecorderOpen && (
+              <div className="p-6 space-y-4">
+                {UpdaterFlightRecorder.getEvents().length > 0 ? (
+                  <div className="border border-[#484848]/10 rounded-xl overflow-hidden font-mono text-[10px] bg-black/40 max-h-[450px] overflow-y-auto p-4 space-y-3 divide-y divide-[#484848]/15">
+                    {UpdaterFlightRecorder.getEvents().slice().reverse().map((e, idx) => {
+                      const isErr = !!e.error || e.warning === 'INSTALL_FAILED' || e.warning === 'CHECK_BLOCKED_INSTALLATION_LOCKED';
+                      const isWarn = !!e.warning && !isErr;
+                      const isSuccess = e.eventType === 'checkForUpdateAllowed' || e.newState === 'INSTALL_SUCCESS';
+                      
+                      return (
+                        <div key={idx} className="pt-3 first:pt-0 flex flex-col gap-1.5 border-t border-[#484848]/15">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${
+                                isErr ? 'bg-red-500 animate-pulse' : isWarn ? 'bg-yellow-500' : isSuccess ? 'bg-green-500' : 'bg-purple-500'
+                              }`} />
+                              <span className="font-bold text-[#e7e5e4] text-xs">
+                                {e.eventType}
+                              </span>
+                            </div>
+                            <span className="text-on-surface-variant text-[9px] font-bold bg-[#1c1c1e] px-2 py-0.5 rounded border border-outline-variant/10">
+                              {new Date(e.timestamp).toLocaleTimeString()} {e.duration ? `(${e.duration}ms)` : ''}
                             </span>
                           </div>
-                          <span className="text-on-surface-variant text-[9px] font-bold bg-[#1c1c1e] px-2 py-0.5 rounded border border-outline-variant/10">
-                            {timeStr} ({durationStr})
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[9px] text-zinc-400 pl-4.5 leading-relaxed">
-                          <div>
-                            <span className="text-zinc-500 font-bold uppercase tracking-wider">Source/Thread:</span>{' '}
-                            <span className="text-purple-300">{e.caller} ({e.thread})</span>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 font-bold uppercase tracking-wider">Reason:</span>{' '}
-                            <span className="text-zinc-300">{e.reason}</span>
-                          </div>
-                          {e.previousState && (
-                            <div className="sm:col-span-2">
-                              <span className="text-zinc-500 font-bold uppercase tracking-wider">Transition:</span>{' '}
-                              <span className="text-zinc-300">{e.previousState} &rarr; {e.newState}</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[9px] text-zinc-400 pl-4.5 leading-relaxed">
+                            <div>
+                              <span className="text-zinc-500 font-bold uppercase tracking-wider">Source/Thread:</span>{' '}
+                              <span className="text-purple-300">{e.caller} ({e.thread})</span>
                             </div>
-                          )}
-                          {e.error && (
-                            <div className="sm:col-span-2 text-red-400">
-                              <span className="text-red-500 font-bold uppercase tracking-wider">Error:</span>{' '}
-                              <span>{e.error}</span>
+                            <div>
+                              <span className="text-zinc-500 font-bold uppercase tracking-wider">Reason:</span>{' '}
+                              <span className="text-zinc-300">{e.reason}</span>
                             </div>
-                          )}
+                            {e.previousState && (
+                              <div className="sm:col-span-2">
+                                <span className="text-zinc-500 font-bold uppercase tracking-wider">Transition:</span>{' '}
+                                <span className="text-zinc-300">{e.previousState} &rarr; {e.newState}</span>
+                              </div>
+                            )}
+                            {e.error && (
+                              <div className="sm:col-span-2 text-red-400">
+                                <span className="text-red-500 font-bold uppercase tracking-wider">Error:</span>{' '}
+                                <span>{e.error}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                  No Flight Recorder events recorded.
-                </div>
-              )}
-            </div>
-
-            <TelemetryGrid 
-              nativeDeviceInfo={nativeDeviceInfo}
-              nativeInstallerDetails={nativeInstallerDetails}
-            />
-          </div>
-        )}
-
-        {/* TAB 2: LIVE STATE */}
-        {activeTab === 'livestate' && (
-          <div className="space-y-4 animate-fadeIn">
-            <StateMachineVisualizer />
-            
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">history</span>
-                Live State Transition History
-              </h3>
-              {transitionHistory && transitionHistory.length > 0 ? (
-                <div className="border border-[#484848]/10 rounded-xl overflow-hidden divide-y divide-[#484848]/10 font-mono text-[11px] bg-black/40 p-4 space-y-1">
-                  {transitionHistory.map((t, idx) => (
-                    <div key={idx} className="py-2 flex items-center justify-between">
-                      <span className="text-[#8b5cf6] font-bold">{t.from} → {t.to}</span>
-                      <span className="text-on-surface-variant text-[10px] max-w-[50%] truncate">{t.reason}</span>
-                      <span className="text-on-surface-variant">{new Date(t.timestamp).toLocaleTimeString()}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                  No state transitions recorded this session.
-                </div>
-              )}
-            </div>
-
-            {rejectedTransitions && rejectedTransitions.length > 0 && (
-              <div className="bg-[#1c1c1e]/60 border border-red-500/15 rounded-2xl p-5 space-y-4">
-                <h3 className="font-bold text-sm text-[#ef4444] font-headline tracking-wide flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#ef4444]">warning</span>
-                  Rejected Transitions
-                </h3>
-                <div className="border border-red-500/10 rounded-xl overflow-hidden divide-y divide-red-950/20 font-mono text-[11px] bg-red-950/5 p-4 space-y-1">
-                  {rejectedTransitions.map((t, idx) => (
-                    <div key={idx} className="py-2 flex items-center justify-between text-red-300">
-                      <span>{t.from} ↛ {t.attempted}</span>
-                      <span className="text-red-400/75 text-[10px] max-w-[50%] truncate">{t.reason}</span>
-                      <span>{new Date(t.timestamp).toLocaleTimeString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 3: WORKFLOW TIMELINE */}
-        {activeTab === 'workflow' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">event_note</span>
-                Workflow Timeline Events
-              </h3>
-              {activityLifecycleTimeline && activityLifecycleTimeline.length > 0 ? (
-                <div className="border border-[#484848]/10 rounded-xl bg-black/20 p-4 divide-y divide-[#484848]/10 space-y-1">
-                  {activityLifecycleTimeline.map((item, idx) => (
-                    <div key={idx} className="py-2.5 flex items-center justify-between font-mono text-[11px]">
-                      <span className="text-white font-bold">{item.stage}</span>
-                      <span className="text-on-surface-variant">{new Date(item.timestamp).toLocaleTimeString()}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                  No workflow timeline events logged in this session.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: SESSION TIMELINE */}
-        {activeTab === 'session' && (
-          <div className="space-y-4 animate-fadeIn">
-            {curSession ? (
-              <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-                <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#8b5cf6]">settings_backup_restore</span>
-                  Active Update Session Details
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Session ID</span>
-                    <span className="text-sm font-bold text-white font-mono">{curSession.sessionId}</span>
+                      );
+                    })}
                   </div>
-                  <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Created At</span>
-                    <span className="text-sm font-bold text-white">{new Date(curSession.creationTimestamp).toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Pipeline ID</span>
-                    <span className="text-sm font-bold text-white font-mono">{curSession.pipelineId || 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Current State</span>
-                    <span className="text-sm font-bold text-white font-mono">{curSession.currentState}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Previous State</span>
-                    <span className="text-sm font-bold text-white font-mono">{curSession.previousState || 'None'}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Started By</span>
-                    <span className="text-sm font-bold text-white">{curSession.startedBy}</span>
-                  </div>
-                </div>
-                <div className="border-t border-[#484848]/10 pt-4">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase mb-1">Session Progress</span>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-[#2c2c2e] h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-[#8b5cf6] h-full rounded-full transition-all duration-300" style={{ width: `${curSession.progress * 100}%` }} />
-                    </div>
-                    <span className="text-sm font-bold text-white">{Math.round(curSession.progress * 100)}%</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-6 text-center text-sm text-on-surface-variant font-medium">
-                No active updater session currently running.
-              </div>
-            )}
-
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">timeline</span>
-                Timeline Viewer
-              </h3>
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-on-surface-variant uppercase mb-2">Select Diagnostic Session</label>
-                <select
-                  value={selectedSessionId}
-                  onChange={(e) => setSelectedSessionId(e.target.value)}
-                  className="w-full bg-[#1c1c1e] border border-[#484848]/35 rounded-xl px-4 py-3 text-sm text-[#e7e5e4] font-semibold outline-none focus:border-[#8b5cf6] transition-colors"
-                >
-                  <option value="current">-- Active/Latest Session --</option>
-                  {sessions.slice().reverse().map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.id} ({s.result} - {s.version || 'unknown'} - {new Date(s.startTime).toLocaleDateString()})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {selectedSession && selectedSession.timeline.length > 0 ? (
-                <div className="border border-[#484848]/10 rounded-2xl overflow-hidden bg-[#1c1c1e]/30 flex flex-col divide-y divide-[#484848]/10 font-mono text-xs max-h-[480px] overflow-y-auto">
-                  {selectedSession.timeline.map((event, idx) => (
-                    <div key={idx} className="p-3 flex items-start gap-4 hover:bg-white/2 transition-colors">
-                      <div className="text-on-surface-variant min-w-[70px] font-bold">{event.timestamp}</div>
-                      <div className="text-[#a8a29e] min-w-[80px] font-bold">{event.offset}</div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[#8b5cf6] font-bold uppercase text-[10px] bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 px-1.5 rounded">{event.module}</span>
-                          <span className="text-white font-bold">{event.event}</span>
-                          <span className="text-on-surface-variant text-[10px]">State: {event.state}</span>
-                        </div>
-                        {event.reason && <div className="text-on-surface-variant text-[11px] break-words">{event.reason}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                  No timeline logs recorded for this session.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: PERFORMANCE */}
-        {activeTab === 'performance' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">insights</span>
-                Real-Time Performance
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">UI Thread Performance</span>
-                  <span className="text-xl font-bold text-green-400 font-mono">{fps} FPS</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">React Commit Count</span>
-                  <span className="text-xl font-bold text-white font-mono">{otaDebugLogs?.renderCount ?? 0}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">React Layout Cycles</span>
-                  <span className="text-xl font-bold text-white font-mono">{otaDebugLogs?.layoutCount ?? 0}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Frame Paints</span>
-                  <span className="text-xl font-bold text-white font-mono">{otaDebugLogs?.paintCount ?? 0}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: PACKAGEINSTALLER */}
-        {activeTab === 'installer' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">install_mobile</span>
-                PackageInstaller Native Check Status
-              </h3>
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">AppInstaller Available</span>
-                  <span className="font-mono text-white text-sm">{otaDebugLogs.appInstallerAvailable ? 'YES' : 'NO'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Download Apk Hook</span>
-                  <span className="font-mono text-white text-sm">{otaDebugLogs.downloadApkAvailable ? 'YES' : 'NO'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Verify Apk Sha256</span>
-                  <span className="font-mono text-white text-sm">{otaDebugLogs.verifyApkSha256Available ? 'YES' : 'NO'}</span>
-                </div>
-                <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1">
-                  <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Install Apk Hook</span>
-                  <span className="font-mono text-white text-sm">{otaDebugLogs.installApkAvailable ? 'YES' : 'NO'}</span>
-                </div>
-              </div>
-              <div className="bg-black/40 border border-outline-variant/5 p-4 rounded-xl space-y-1 text-xs">
-                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Installer Launch Logs</span>
-                <span className="font-mono text-white text-sm">{otaDebugLogs.installerLaunchStatus || 'N/A'}</span>
-              </div>
-            </div>
-
-            {nativeInstallerDetails && (
-              <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-                <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#8b5cf6]">description</span>
-                  Extended PackageInstaller Telemetry
-                </h3>
-                <pre className="bg-black/60 border border-outline-variant/10 rounded-xl p-4 font-mono text-[11px] text-zinc-300 overflow-x-auto max-h-72">
-                  {JSON.stringify(nativeInstallerDetails, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 7: LOGS */}
-        {activeTab === 'logs' && (
-          <div className="space-y-4 animate-fadeIn">
-            <LiveConsole 
-              nativeLogsList={nativeLogsList}
-              clearNativeLogsList={() => setNativeLogsList([])}
-              showToast={showToast}
-              addJsLog={addJsLog}
-            />
-          </div>
-        )}
-
-        {/* TAB 8: SIMULATION */}
-        {activeTab === 'simulation' && (
-          <div className="space-y-4 animate-fadeIn">
-            <SimulationLab 
-              showToast={showToast}
-              triggerRefresh={triggerRefresh}
-              nativeDeviceInfo={nativeDeviceInfo}
-              nativeInstallerDetails={nativeInstallerDetails}
-              localApkDetails={localApkDetails}
-              nativeLogsList={nativeLogsList}
-            />
-          </div>
-        )}
-
-        {/* TAB 9: HISTORY */}
-        {activeTab === 'history' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">history</span>
-                Persistent Session History logs
-              </h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {sessions.length > 0 ? (
-                  sessions.slice().reverse().map(s => (
-                    <div key={s.id} className="border border-outline-variant/10 rounded-xl p-4 bg-black/40 flex flex-col gap-2 relative">
-                      <div className="flex justify-between items-start">
-                        <span className="font-mono text-xs text-white font-bold">{s.id.substring(0, 18)}...</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                          s.result === 'SUCCESS' ? 'bg-green-500/10 text-green-400 border-green-500/25' :
-                          s.result === 'FAILED' ? 'bg-red-500/10 text-red-400 border-red-500/25' :
-                          s.result === 'CANCELLED' ? 'bg-amber-500/10 text-amber-400 border-amber-500/25' :
-                          s.result === 'FINISHED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/25' :
-                          'bg-gray-500/10 text-gray-400 border-gray-500/25'
-                        }`}>{s.result}</span>
-                      </div>
-                      <div className="text-[11px] text-on-surface-variant">
-                        <div><span className="font-semibold text-[#e7e5e4]">Target:</span> {s.version || 'unknown'}</div>
-                        <div><span className="font-semibold text-[#e7e5e4]">Date:</span> {new Date(s.startTime).toLocaleString()}</div>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          deleteUpdateSession(s.id);
-                          showToast('Session deleted');
-                          refreshSessionsList();
-                        }}
-                        className="absolute right-3 bottom-3 text-red-400 hover:text-red-300 bg-transparent border-none cursor-pointer outline-none"
-                      >
-                        <span className="material-symbols-outlined text-sm">delete</span>
-                      </button>
-                    </div>
-                  ))
                 ) : (
-                  <div className="col-span-2 bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
-                    No persistent diagnostic sessions recorded yet.
+                  <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant font-mono">
+                    No Flight Recorder logs in storage buffer.
                   </div>
                 )}
               </div>
+            )}
+          </div>
+        </div>
 
-              {sessions.length > 0 && (
-                <div className="pt-4 border-t border-[#484848]/10 flex justify-end">
-                  <button
-                    onClick={handleDeleteAll}
-                    className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/50 border border-red-500/20 text-red-400 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        {/* 3. RUNTIME & SESSION COLLAPSIBLE */}
+        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+          <div 
+            onClick={() => setIsRuntimeSessionOpen(!isRuntimeSessionOpen)}
+            className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
+          >
+            <div className="flex items-center gap-3">
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isRuntimeSessionOpen ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+              <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
+                Runtime &amp; Session
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Telemetry stats</span>
+          </div>
+
+          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isRuntimeSessionOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
+          }`}>
+            {isRuntimeSessionOpen && (
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  
+                  {/* Group 1: Session */}
+                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
+                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-xs">timeline</span>
+                      Session
+                    </h4>
+                    <div className="space-y-2.5 text-[11px] font-mono">
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Session ID</span>
+                        <span className="text-white font-bold break-all leading-relaxed block">{activeUpdateSession?.sessionId || 'None'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Current State</span>
+                        <span className="text-white font-bold">{otaState.updateState}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Previous State</span>
+                        <span className="text-white font-bold">{transitionHistory.slice(-1)[0]?.from || 'None'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Current Transition</span>
+                        <span className="text-white font-bold leading-relaxed block">{transitionHistory.slice(-1)[0] ? `${transitionHistory.slice(-1)[0].from} -> ${transitionHistory.slice(-1)[0].to}` : 'None'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Pipeline Duration</span>
+                        <span className="text-white font-bold">
+                          {activePipelineContext?.pipelineStartTime ? `${Math.round((Date.now() - activePipelineContext.pipelineStartTime) / 1000)}s` : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Group 2: Update */}
+                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
+                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-xs">download</span>
+                      Update
+                    </h4>
+                    <div className="space-y-2.5 text-[11px] font-mono">
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Download Progress</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex-1 bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-[#8b5cf6] h-full rounded-full transition-all" style={{ width: `${(otaState.progress * 100).toFixed(0)}%` }} />
+                          </div>
+                          <span className="text-white font-bold text-[10px]">{(otaState.progress * 100).toFixed(0)}%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Verification Status</span>
+                        <span className={`font-bold ${localApkDetails?.isValidApk ? 'text-green-400' : 'text-zinc-400'}`}>
+                          {localApkDetails?.isValidApk ? 'VERIFIED' : 'PENDING'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">PackageInstaller Status</span>
+                        <span className="text-white font-bold">{nativeInstallerDetails?.sessionState || 'IDLE'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Recovery Status</span>
+                        <span className={`font-bold ${otaState.recoveryMode ? 'text-yellow-400' : 'text-zinc-400'}`}>
+                          {otaState.recoveryMode ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Update Status</span>
+                        <span className="text-white font-bold">{otaState.updateState}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Group 3: Device */}
+                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
+                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-xs">phone_android</span>
+                      Device
+                    </h4>
+                    <div className="space-y-2.5 text-[11px] font-mono">
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Network Connection</span>
+                        <span className="text-white font-bold">{nativeDeviceInfo?.networkState || otaDiagnostics?.networkState || 'CONNECTED'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Storage Capacity</span>
+                        <span className="text-white font-bold leading-normal block">{nativeDeviceInfo?.storageAvailable || otaDiagnostics?.storageAvailable || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Battery Status</span>
+                        <span className="text-white font-bold">{nativeDeviceInfo?.battery !== undefined ? `${nativeDeviceInfo.battery}%` : 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Group 4: Performance */}
+                  <div className="bg-black/35 border border-[#484848]/15 rounded-xl p-4.5 space-y-3.5">
+                    <h4 className="text-[10px] font-bold text-[#8b5cf6] uppercase tracking-wider border-b border-[#484848]/10 pb-1.5 flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-xs">insights</span>
+                      Performance
+                    </h4>
+                    <div className="space-y-2.5 text-[11px] font-mono">
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">CPU Usage</span>
+                        <span className="text-white font-bold">AVG: {PerformanceProfiler.getInstance().getMetrics().cpuAverage}% | PEAK: {PerformanceProfiler.getInstance().getMetrics().cpuPeak}%</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Memory Overhead</span>
+                        <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().memoryAverage}</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">JS Thread Delay</span>
+                        <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().jsThreadAverage} ms</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">UI Thread Paint</span>
+                        <span className="text-white font-bold">{PerformanceProfiler.getInstance().getMetrics().uiThreadAverage} ms</span>
+                      </div>
+                      <div>
+                        <span className="block text-zinc-500 text-[8px] uppercase font-bold leading-none mb-1">Frame Pacing (FPS)</span>
+                        <span className={`text-xs font-bold ${fps > 55 ? 'text-green-400' : fps > 40 ? 'text-yellow-400' : 'text-red-400'}`}>{fps} FPS</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 4. ADVANCED DIAGNOSTICS COLLAPSIBLE */}
+        <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
+          <div 
+            onClick={() => setIsAdvancedDiagnosticsOpen(!isAdvancedDiagnosticsOpen)}
+            className="flex items-center justify-between px-6 py-4.5 cursor-pointer hover:bg-white/3 transition-colors select-none"
+          >
+            <div className="flex items-center gap-3">
+              <span className={`material-symbols-outlined text-[#8b5cf6] transition-transform duration-300 ${isAdvancedDiagnosticsOpen ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+              <h3 className="font-bold text-sm text-[#e7e5e4] tracking-wide font-headline">
+                Advanced Diagnostics
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider font-bold">Engineering logs</span>
+          </div>
+
+          <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            isAdvancedDiagnosticsOpen ? 'max-h-[8000px] opacity-100 border-t border-[#484848]/10' : 'max-h-0 opacity-0 pointer-events-none'
+          }`}>
+            {isAdvancedDiagnosticsOpen && (
+              <div className="p-6 space-y-4">
+                
+                {/* Advanced mini-tab select */}
+                <div className="flex border-b border-[#484848]/10 font-mono text-[10px] uppercase font-bold tracking-wider mb-2">
+                  <button 
+                    onClick={() => setAdvTab('fsm')}
+                    className={`px-4 py-2 border-b-2 transition-all cursor-pointer bg-transparent outline-none ${advTab === 'fsm' ? 'border-[#8b5cf6] text-[#c084fc]' : 'border-transparent text-zinc-400 hover:text-white'}`}
                   >
-                    <span className="material-symbols-outlined text-[16px]">delete_forever</span>
-                    <span>Wipe All Sessions</span>
+                    FSM &amp; Locks
+                  </button>
+                  <button 
+                    onClick={() => setAdvTab('native')}
+                    className={`px-4 py-2 border-b-2 transition-all cursor-pointer bg-transparent outline-none ${advTab === 'native' ? 'border-[#8b5cf6] text-[#c084fc]' : 'border-transparent text-zinc-400 hover:text-white'}`}
+                  >
+                    Callbacks Console
+                  </button>
+                  <button 
+                    onClick={() => setAdvTab('config')}
+                    className={`px-4 py-2 border-b-2 transition-all cursor-pointer bg-transparent outline-none ${advTab === 'config' ? 'border-[#8b5cf6] text-[#c084fc]' : 'border-transparent text-zinc-400 hover:text-white'}`}
+                  >
+                    Config &amp; Cache
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* TAB 10: EXPORT */}
-        {activeTab === 'export' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">download</span>
-                Diagnostics &amp; Session Clipboard Exporters
-              </h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  onClick={handleCopySelectedSession}
-                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
-                >
-                  <div>
-                    <span className="block font-bold text-sm text-tertiary">Copy Selected Session</span>
-                    <span className="text-[10px] text-on-surface-variant">Copy current selected history session as MD</span>
-                  </div>
-                  <span className="material-symbols-outlined text-tertiary">content_copy</span>
-                </button>
+                {/* Sub Tab Contents */}
+                {advTab === 'fsm' && (
+                  <div className="space-y-4 animate-fadeIn">
+                    <StateMachineVisualizer />
+                    
+                    <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3 font-mono text-[10px]">
+                      <h5 className="font-bold text-xs text-[#e7e5e4]">Locks &amp; Safety Guards</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-zinc-300">
+                        <div>INSTALLATION LOCK: <strong className="text-white">{isInstallationLocked() ? 'LOCKED' : 'UNLOCKED'}</strong></div>
+                        <div>POST-INSTALL ACTIVE: <strong className="text-white">{isPostInstallSessionActive() ? 'ACTIVE' : 'INACTIVE'}</strong></div>
+                        <div>PROCESS BOOT KEY: <strong className="text-white">{localStorage.getItem('studio:processBootId') || 'N/A'}</strong></div>
+                        <div>RECOVERY IN_PROGRESS: <strong className="text-white">{otaState.recoveryMode ? 'YES' : 'NO'}</strong></div>
+                      </div>
+                    </div>
 
-                <button
-                  onClick={handleCopyEntireHistory}
-                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
-                >
-                  <div>
-                    <span className="block font-bold text-sm text-tertiary">Copy Entire History</span>
-                    <span className="text-[10px] text-on-surface-variant">Copy all recorded history logs together</span>
+                    <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3">
+                      <h5 className="font-bold text-xs text-[#e7e5e4] font-headline">Transition Attempts Log</h5>
+                      {transitionHistory.length > 0 ? (
+                        <div className="font-mono text-[10px] text-zinc-300 space-y-1 divide-y divide-[#484848]/10 max-h-48 overflow-y-auto">
+                          {transitionHistory.slice().reverse().map((t, idx) => (
+                            <div key={idx} className="py-1.5 flex justify-between items-center">
+                              <span className="text-[#a855f7] font-bold">{t.from} &rarr; {t.to}</span>
+                              <span className="text-zinc-500 truncate max-w-[60%]">{t.reason}</span>
+                              <span className="text-zinc-400">{new Date(t.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-zinc-500 font-mono">No transition events logged this session.</p>
+                      )}
+                    </div>
                   </div>
-                  <span className="material-symbols-outlined text-tertiary">library_books</span>
-                </button>
+                )}
 
-                <button
-                  onClick={() => handleExportHistory('json')}
-                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
-                >
-                  <div>
-                    <span className="block font-bold text-sm text-tertiary">Export History (JSON)</span>
-                    <span className="text-[10px] text-on-surface-variant">Download all session histories in JSON</span>
-                  </div>
-                  <span className="material-symbols-outlined text-tertiary">download</span>
-                </button>
+                {advTab === 'native' && (
+                  <div className="space-y-4 animate-fadeIn">
+                    <LiveConsole 
+                      nativeLogsList={nativeLogsList}
+                      clearNativeLogsList={() => setNativeLogsList([])}
+                      showToast={showToast}
+                      addJsLog={addJsLog}
+                    />
 
-                <button
-                  onClick={() => handleExportHistory('md')}
-                  className="flex items-center justify-between bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none"
-                >
-                  <div>
-                    <span className="block font-bold text-sm text-tertiary">Export History (Markdown)</span>
-                    <span className="text-[10px] text-on-surface-variant">Download all session histories in Markdown</span>
+                    {nativeInstallerDetails && (
+                      <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3">
+                        <h5 className="font-bold text-xs text-[#e7e5e4] font-headline">Extended PackageInstaller Telemetry</h5>
+                        <pre className="bg-black/60 border border-[#484848]/15 rounded-xl p-4 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-56">
+                          {JSON.stringify(nativeInstallerDetails, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
-                  <span className="material-symbols-outlined text-tertiary">download</span>
-                </button>
+                )}
+
+                {advTab === 'config' && (
+                  <div className="space-y-4 animate-fadeIn">
+                    <div className="bg-black/40 border border-[#484848]/15 rounded-xl p-4 space-y-3 font-mono text-[10px] text-zinc-300">
+                      <h5 className="font-bold text-xs text-[#e7e5e4]">Capacitor Updater Configuration</h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>IS NATIVE SHELL: <strong className="text-white">{isNative() ? 'TRUE' : 'FALSE'}</strong></div>
+                        <div>ANDROID APK CHANNEL: <strong className="text-white">{shouldUseAndroidApkUpdater() ? 'ENABLED' : 'DISABLED'}</strong></div>
+                        <div>DOWNLOADER API: <strong className="text-white">CapacitorHttp (Fetch)</strong></div>
+                        <div>OTA LISTENERS BINDING: <strong className="text-white">Active</strong></div>
+                      </div>
+                    </div>
+
+                    <DiagnosticsStack 
+                      nativeDeviceInfo={nativeDeviceInfo}
+                      nativeInstallerDetails={nativeInstallerDetails}
+                      localApkDetails={localApkDetails}
+                      nativeLogsList={nativeLogsList}
+                      showToast={showToast}
+                    />
+                  </div>
+                )}
               </div>
-
-              <div className="pt-4 border-t border-[#484848]/10 space-y-3">
-                <span className="block text-[10px] text-on-surface-variant font-bold uppercase">Generate report Subsets</span>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => handleCopySubset('workflow', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Workflow</button>
-                  <button onClick={() => handleCopySubset('timeline', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Timeline</button>
-                  <button onClick={() => handleCopySubset('native', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Native Logs</button>
-                  <button onClick={() => handleCopySubset('js', 'txt')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">JS Logs</button>
-                  <button onClick={() => handleCopySubset('all', 'json')} className="px-3 py-2 rounded-xl bg-black hover:bg-white/5 border border-outline-variant/10 text-xs font-bold text-white cursor-pointer">Raw JSON</button>
-                </div>
-              </div>
-
-              <DiagnosticsStack 
-                nativeDeviceInfo={nativeDeviceInfo}
-                nativeInstallerDetails={nativeInstallerDetails}
-                localApkDetails={localApkDetails}
-                nativeLogsList={nativeLogsList}
-                showToast={showToast}
-              />
-            </div>
+            )}
           </div>
-        )}
-
-        {/* TAB 11: DEVELOPER TOOLS */}
-        {activeTab === 'devtools' && (
-          <div className="space-y-4 animate-fadeIn">
-            <ProductionActions 
-              showToast={showToast} 
-              triggerRefresh={triggerRefresh}
-              addJsLog={addJsLog}
-            />
-
-            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
-              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#8b5cf6]">build</span>
-                Additional Verification Actions
-              </h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Share APK */}
-                <button
-                  onClick={handleShareApk}
-                  className="flex items-center justify-between bg-black hover:bg-white/5 border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none active:scale-[0.98]"
-                >
-                  <div>
-                    <span className="block font-bold text-sm text-tertiary">Share Downloaded APK</span>
-                    <span className="text-[10px] text-on-surface-variant font-medium">Send target binary package via standard share dialog</span>
-                  </div>
-                  <span className="material-symbols-outlined text-tertiary">share</span>
-                </button>
-
-                {/* Print Timeline */}
-                <button
-                  onClick={handlePrintLogs}
-                  className="flex items-center justify-between bg-black hover:bg-white/5 border border-[#484848]/20 text-white p-4 rounded-xl text-xs font-bold transition-all cursor-pointer text-left outline-none active:scale-[0.98]"
-                >
-                  <div>
-                    <span className="block font-bold text-sm text-tertiary">Print System Timeline</span>
-                    <span className="text-[10px] text-on-surface-variant font-medium">Export full chronological timeline of native/JS events</span>
-                  </div>
-                  <span className="material-symbols-outlined text-tertiary">print</span>
-                </button>
-              </div>
-            </div>
-            
-            <ReportPreview 
-              nativeDeviceInfo={nativeDeviceInfo}
-              nativeInstallerDetails={nativeInstallerDetails}
-              localApkDetails={localApkDetails}
-              nativeLogsList={nativeLogsList}
-            />
-          </div>
-        )}
+        </div>
 
       </main>
 
       {/* Toast Notification Container */}
       {toastMsg && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-[#1c1c1e] border border-outline-variant/10 px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce">
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-[#1c1c1e] border border-[#484848]/25 px-5 py-2.5 rounded-xl text-xs font-bold shadow-2xl z-[9999] text-white flex items-center gap-2 animate-bounce font-mono">
           <span className="material-symbols-outlined text-[16px] text-green-400">done</span>
           {toastMsg}
         </div>
       )}
     </div>
   );
+}
+
+// Compact helper components declared outside the main view to keep code clean and performant
+
+function ScenarioCard({
+  id,
+  title,
+  description,
+  icon,
+  colorClass,
+  action,
+  isActive,
+  duration,
+  currentState,
+  inlineActions
+}: {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  colorClass: string;
+  action: () => void;
+  isActive: boolean;
+  duration?: number;
+  currentState?: string;
+  inlineActions?: React.ReactNode;
+}) {
+  return (
+    <div 
+      onClick={!isActive ? action : undefined}
+      className={`relative flex flex-col justify-between bg-black/40 border border-[#484848]/15 hover:border-[#8b5cf6]/40 p-4 rounded-xl transition-all text-left outline-none min-h-[145px] select-none ${
+        isActive ? 'ring-1 ring-[#8b5cf6]' : 'cursor-pointer active:scale-[0.98]'
+      }`}
+    >
+      <div className="flex items-start justify-between w-full">
+        <div className={`flex items-center gap-2 ${colorClass}`}>
+          <span className="material-symbols-outlined text-[18px]">{icon}</span>
+          <span className="text-xs font-bold font-headline">{title}</span>
+        </div>
+        {isActive && (
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+        )}
+      </div>
+      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed flex-1">
+        {description}
+      </p>
+      
+      <div className="mt-3 flex items-center justify-between text-[9px] font-mono text-zinc-500 border-t border-[#484848]/10 pt-2 w-full">
+        <div>
+          <span>STATE: </span>
+          <span className={isActive ? 'text-green-400 font-bold animate-pulse' : 'text-zinc-400'}>
+            {isActive ? 'RUNNING' : (currentState || 'IDLE')}
+          </span>
+        </div>
+        {duration !== undefined && duration > 0 && (
+          <div>
+            <span>TIME: </span>
+            <span className="text-[#8b5cf6] font-bold">{(duration / 1000).toFixed(1)}s</span>
+          </div>
+        )}
+      </div>
+      {isActive && inlineActions && (
+        <div className="mt-3.5 space-y-1.5 w-full">
+          {inlineActions}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Start deterministic scenario workflow
+async function startScenario(id: string, workflowAction: () => Promise<void> | void) {
+  try {
+    await workflowAction();
+  } catch (err) {
+    console.error(`Workflow scenario ${id} failed:`, err);
+  }
 }

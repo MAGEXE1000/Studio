@@ -736,5 +736,29 @@ export function generateCopyEverythingReport(
   }
   report += `\n`;
 
+  report += `## 9. UPDATE SESSION HISTORY & TIMELINES\n`;
+  if (allSessions.length > 0) {
+    allSessions.forEach((s, sIdx) => {
+      report += `### Session [${sIdx + 1}]: ${s.id}\n`;
+      report += `*   **Target Version**: \`${s.version || 'unknown'}\`\n`;
+      report += `*   **Start Time**: ${new Date(s.startTime).toLocaleString()}\n`;
+      report += `*   **Final Result**: **${s.result}**\n\n`;
+      
+      report += `#### Timeline Events\n`;
+      report += `| Relative Offset | FSM State | Event | Module | Details |\n`;
+      report += `|---|---|---|---|---|\n`;
+      if (s.timeline && s.timeline.length > 0) {
+        s.timeline.forEach(event => {
+          report += `| ${event.offset} | ${event.state} | ${event.event} | ${event.module} | ${event.reason || '—'} |\n`;
+        });
+      } else {
+        report += `| *No timeline events logged for this session.* | | | | |\n`;
+      }
+      report += `\n--------------------------------------------------\n\n`;
+    });
+  } else {
+    report += `*No persistent update session histories found in local storage.*\n\n`;
+  }
+
   return report;
 }

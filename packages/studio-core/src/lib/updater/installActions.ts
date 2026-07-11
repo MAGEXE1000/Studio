@@ -13,6 +13,7 @@ import { isAppInstallerAvailable } from './diagnostics';
 import { globalOtaState, updateGlobalState, transitionToState } from './stateMachine';
 import { addToStoredList } from './sessionStorage';
 import { recordCloseEvent } from './diagnostics';
+import { UpdaterFlightRecorder } from './flightRecorder';
 
 export async function applyUpdateDirect(): Promise<void> {
   const filePath = localStorage.getItem('studio:downloadedApkPath');
@@ -45,12 +46,31 @@ export async function shareDownloadedApk(): Promise<void> {
 // Forward-declaration: resetOtaUpdateState is in pipeline.ts; imported lazily to avoid circular deps.
 // dismissUpdate calls it after updating state.
 export function dismissUpdate(): void {
+  UpdaterFlightRecorder.record({
+    thread: 'js',
+    sessionId: null,
+    workflowId: null,
+    eventType: 'dismissUpdate',
+    caller: 'installActions',
+    reason: `dismissUpdate called. Current state: ${globalOtaState.updateState}`
+  });
+
   // Hard guard: never reset state while the PackageInstaller is actively running.
   // This prevents any UI timer or accidental call from clearing installation locks
   // during an active install session.
   const isBusy = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(globalOtaState.updateState);
   if (isBusy) {
     console.warn(`[OTA] Rejecting dismissUpdate: installer is active (state: ${globalOtaState.updateState}).`);
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'dismissUpdateRejected',
+      caller: 'installActions',
+      reason: `dismissUpdate rejected because installer is active (state: ${globalOtaState.updateState})`,
+      warning: 'DISMISS_REJECTED_ACTIVE_INSTALLER'
+    });
     return;
   }
   recordCloseEvent('dismissUpdate called');

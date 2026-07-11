@@ -21,7 +21,14 @@ import {
   releaseMetadataInspector,
   activityLifecycleTimeline,
   transitionHistory,
-  rejectedTransitions
+  rejectedTransitions,
+  updaterSimulation,
+  triggerSimulatedStatus,
+  resetOtaUpdateState,
+  applyUpdate,
+  checkForUpdate,
+  stateListeners,
+  UpdaterFlightRecorder
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
@@ -73,6 +80,207 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
+  };
+
+  const [simActive, setSimActive] = useState(() => {
+    return typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true';
+  });
+
+  const [otaState, setOtaState] = useState(globalOtaState);
+
+  // Subscribe to state machine listeners to update UI live and run auto-progress simulation workflows
+  useEffect(() => {
+    const listener = (newState: any) => {
+      setOtaState(newState);
+      setSimActive(typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true');
+      triggerRefresh();
+
+      // Auto-progress simulation workflow if runWorkflowActive is true
+      if (updaterSimulation.runWorkflowActive && newState.updateState === 'UPDATE_AVAILABLE') {
+        setTimeout(() => {
+          if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'UPDATE_AVAILABLE') {
+            addJsLog('[Simulate Workflow] Auto-triggering applyUpdate...');
+            applyUpdate('Simulation: Run Workflow').catch((e) => {
+              console.error('Simulated applyUpdate failed:', e);
+            });
+          }
+        }, 1500);
+      }
+
+      if (updaterSimulation.runWorkflowActive && newState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+        setTimeout(() => {
+          if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+            if (updaterSimulation.forceInstallSuccess) {
+              addJsLog('[Simulate Workflow] Auto-triggering simulated success installation...');
+              simulateSuccessInstall();
+            } else if (updaterSimulation.forceInstallFailure) {
+              addJsLog('[Simulate Workflow] Auto-triggering simulated failed installation...');
+              simulateFailedInstall();
+            } else if (updaterSimulation.forceUserCancel) {
+              addJsLog('[Simulate Workflow] Auto-triggering simulated cancelled installation...');
+              simulateCancelledInstall();
+            }
+          }
+        }, 1500);
+      }
+    };
+    stateListeners.add(listener);
+    return () => {
+      stateListeners.delete(listener);
+    };
+  }, [triggerRefresh]);
+
+  const clearOverrides = () => {
+    updaterSimulation.runWorkflowActive = false;
+    updaterSimulation.forceUpdateAvailable = false;
+    updaterSimulation.forceNoUpdate = false;
+    updaterSimulation.forceDowngrade = false;
+    updaterSimulation.forceMandatoryUpdate = false;
+    updaterSimulation.forceOptionalUpdate = false;
+    
+    updaterSimulation.forceSignatureMismatch = false;
+    updaterSimulation.forceShaFailure = false;
+    updaterSimulation.forceMetadataFailure = false;
+    updaterSimulation.forceInvalidApk = false;
+    updaterSimulation.forceDownloadFailure = false;
+    updaterSimulation.forceDownloadTimeout = false;
+    updaterSimulation.forceRecoveryMode = false;
+    updaterSimulation.forceResumeDownload = false;
+    updaterSimulation.forceCachedApk = false;
+    
+    updaterSimulation.forceInstallSuccess = false;
+    updaterSimulation.forceInstallFailure = false;
+    updaterSimulation.forceUserCancel = false;
+    updaterSimulation.forcePendingUserAction = false;
+
+    updaterSimulation.simulateDownload = false;
+    updaterSimulation.injectDownloadFailure = false;
+    updaterSimulation.injectChecksumFailure = false;
+    updaterSimulation.injectNetworkTimeout = false;
+    updaterSimulation.simulateDownloadThrottling = false;
+  };
+
+  const runSuccessfulUpdateWorkflow = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    clearOverrides();
+    updaterSimulation.runWorkflowActive = true;
+    updaterSimulation.forceUpdateAvailable = true;
+    updaterSimulation.simulateDownload = true;
+    updaterSimulation.forceInstallSuccess = true;
+    showToast('Successful Update Workflow started');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Successful Update');
+    triggerRefresh();
+  };
+
+  const runDownloadFailureWorkflow = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    clearOverrides();
+    updaterSimulation.runWorkflowActive = true;
+    updaterSimulation.forceUpdateAvailable = true;
+    updaterSimulation.simulateDownload = true;
+    updaterSimulation.injectDownloadFailure = true;
+    updaterSimulation.forceDownloadFailure = true;
+    showToast('Download Failure Workflow started');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Download Failure');
+    triggerRefresh();
+  };
+
+  const runVerificationFailureWorkflow = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    clearOverrides();
+    updaterSimulation.runWorkflowActive = true;
+    updaterSimulation.forceUpdateAvailable = true;
+    updaterSimulation.simulateDownload = true;
+    updaterSimulation.injectChecksumFailure = true;
+    updaterSimulation.forceShaFailure = true;
+    showToast('Verification Failure Workflow started');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Verification Failure');
+    triggerRefresh();
+  };
+
+  const runPackageInstallerWorkflow = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    clearOverrides();
+    updaterSimulation.runWorkflowActive = true;
+    updaterSimulation.forceUpdateAvailable = true;
+    updaterSimulation.simulateDownload = true;
+    updaterSimulation.forcePendingUserAction = true;
+    showToast('PackageInstaller Workflow started');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: PackageInstaller');
+    triggerRefresh();
+  };
+
+  const runInstallationFailureWorkflow = async () => {
+    localStorage.setItem('studio:is_simulation_active', 'true');
+    setSimActive(true);
+    clearOverrides();
+    updaterSimulation.runWorkflowActive = true;
+    updaterSimulation.forceUpdateAvailable = true;
+    updaterSimulation.simulateDownload = true;
+    updaterSimulation.forceInstallFailure = true;
+    showToast('Installation Failure Workflow started');
+    await checkForUpdate(true, 'dev_tools', 'Simulation: Installation Failure');
+    triggerRefresh();
+  };
+
+  const runResetWorkflow = () => {
+    localStorage.removeItem('studio:is_simulation_active');
+    setSimActive(false);
+    clearOverrides();
+    resetOtaUpdateState();
+    showToast('Simulation overrides cleared and updater reset');
+    triggerRefresh();
+  };
+
+  const simulateSuccessInstall = () => {
+    updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.forceInstallSuccess = true;
+    updaterSimulation.forceInstallFailure = false;
+    updaterSimulation.forceUserCancel = false;
+    
+    setTimeout(() => triggerSimulatedStatus(-2, 'installing_start'), 100);
+    for (let i = 1; i <= 10; i++) {
+      const progress = i / 10;
+      setTimeout(() => {
+        triggerSimulatedStatus(-3, progress > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', progress);
+      }, 100 + i * 150);
+    }
+    setTimeout(() => {
+      triggerSimulatedStatus(0, 'STATUS_SUCCESS');
+      showToast('Simulating: Successful Installation');
+      triggerRefresh();
+    }, 1800);
+  };
+
+  const simulateFailedInstall = () => {
+    updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.forceInstallSuccess = false;
+    updaterSimulation.forceInstallFailure = true;
+    updaterSimulation.forceUserCancel = false;
+    
+    setTimeout(() => triggerSimulatedStatus(-2, 'installing_start'), 100);
+    setTimeout(() => {
+      triggerSimulatedStatus(1, 'STATUS_FAILURE');
+      showToast('Simulating: Installation Failure');
+      triggerRefresh();
+    }, 1000);
+  };
+
+  const simulateCancelledInstall = () => {
+    updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.forceInstallSuccess = false;
+    updaterSimulation.forceInstallFailure = false;
+    updaterSimulation.forceUserCancel = true;
+    
+    setTimeout(() => {
+      triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
+      showToast('Simulating: User Cancelled Installation');
+      triggerRefresh();
+    }, 500);
   };
 
   const refreshSessionsList = () => {
@@ -417,6 +625,158 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* WORKFLOW TESTING SCENARIOS */}
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#8b5cf6]">science</span>
+                Production Workflow Testing Scenarios
+              </h3>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                Execute complete scenarios using the **REAL** production updater pipeline and state machine. Simulated external providers are used.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <button 
+                  onClick={runSuccessfulUpdateWorkflow}
+                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-green-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-green-400">
+                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                    <span className="text-xs font-bold">Successful Update</span>
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify &rarr; Success</span>
+                </button>
+
+                <button 
+                  onClick={runDownloadFailureWorkflow}
+                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-red-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-red-400">
+                    <span className="material-symbols-outlined text-[18px]">cloud_off</span>
+                    <span className="text-xs font-bold">Download Failure</span>
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download Fail</span>
+                </button>
+
+                <button 
+                  onClick={runVerificationFailureWorkflow}
+                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-red-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-red-400">
+                    <span className="material-symbols-outlined text-[18px]">gpp_bad</span>
+                    <span className="text-xs font-bold">Verification Failure</span>
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify Fail</span>
+                </button>
+
+                <button 
+                  onClick={runPackageInstallerWorkflow}
+                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-purple-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-purple-400">
+                    <span className="material-symbols-outlined text-[18px]">visibility</span>
+                    <span className="text-xs font-bold">PackageInstaller Dialog</span>
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify &rarr; Pauses at Dialog</span>
+                </button>
+
+                <button 
+                  onClick={runInstallationFailureWorkflow}
+                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/10 p-4 rounded-xl transition-all text-left outline-none border border-red-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-red-400">
+                    <span className="material-symbols-outlined text-[18px]">cancel</span>
+                    <span className="text-xs font-bold">Installation Failure</span>
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant mt-1.5">Check &rarr; Download &rarr; Verify &rarr; Install Fail</span>
+                </button>
+
+                <button 
+                  onClick={runResetWorkflow}
+                  className="flex flex-col justify-between bg-black/40 hover:bg-[#8b5cf6]/20 p-4 rounded-xl transition-all text-left outline-none border border-zinc-500/30 active:scale-[0.98] min-h-[82px] cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <span className="material-symbols-outlined text-[18px]">restart_alt</span>
+                    <span className="text-xs font-bold">Reset Workflow</span>
+                  </div>
+                  <span className="text-[10px] text-on-surface-variant mt-1.5">Clear simulator overrides &amp; Reset FSM</span>
+                </button>
+              </div>
+            </div>
+
+            {/* FLIGHT RECORDER LIVE TIMELINE */}
+            <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl p-5 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-sm text-[#e7e5e4] font-headline tracking-wide flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#8b5cf6]">flight_takeoff</span>
+                  Flight Recorder Live Timeline (Survives Restarts)
+                </h3>
+                <button 
+                  onClick={() => { UpdaterFlightRecorder.clear(); triggerRefresh(); showToast('Flight Recorder cleared'); }}
+                  className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase cursor-pointer outline-none bg-transparent border-none"
+                >
+                  Clear Logs
+                </button>
+              </div>
+              
+              {UpdaterFlightRecorder.getEvents().length > 0 ? (
+                <div className="border border-[#484848]/10 rounded-xl overflow-hidden font-mono text-[10px] bg-black/40 max-h-[300px] overflow-y-auto p-4 space-y-3 divide-y divide-[#484848]/15">
+                  {UpdaterFlightRecorder.getEvents().slice().reverse().map((e, idx) => {
+                    const isErr = !!e.error || e.warning === 'INSTALL_FAILED' || e.warning === 'CHECK_BLOCKED_INSTALLATION_LOCKED';
+                    const isWarn = !!e.warning && !isErr;
+                    const isSuccess = e.eventType === 'checkForUpdateAllowed' || e.newState === 'INSTALL_SUCCESS';
+                    
+                    const timeStr = new Date(e.timestamp).toLocaleTimeString();
+                    const durationStr = e.duration ? `${e.duration}ms` : '—';
+                    
+                    return (
+                      <div key={idx} className="pt-3 first:pt-0 flex flex-col gap-1.5 border-t border-[#484848]/15">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                              isErr ? 'bg-red-500 animate-pulse' : isWarn ? 'bg-yellow-500' : isSuccess ? 'bg-green-500' : 'bg-purple-500'
+                            }`} />
+                            <span className="font-bold text-[#e7e5e4] text-xs">
+                              {e.eventType}
+                            </span>
+                          </div>
+                          <span className="text-on-surface-variant text-[9px] font-bold bg-[#1c1c1e] px-2 py-0.5 rounded border border-outline-variant/10">
+                            {timeStr} ({durationStr})
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[9px] text-zinc-400 pl-4.5 leading-relaxed">
+                          <div>
+                            <span className="text-zinc-500 font-bold uppercase tracking-wider">Source/Thread:</span>{' '}
+                            <span className="text-purple-300">{e.caller} ({e.thread})</span>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 font-bold uppercase tracking-wider">Reason:</span>{' '}
+                            <span className="text-zinc-300">{e.reason}</span>
+                          </div>
+                          {e.previousState && (
+                            <div className="sm:col-span-2">
+                              <span className="text-zinc-500 font-bold uppercase tracking-wider">Transition:</span>{' '}
+                              <span className="text-zinc-300">{e.previousState} &rarr; {e.newState}</span>
+                            </div>
+                          )}
+                          {e.error && (
+                            <div className="sm:col-span-2 text-red-400">
+                              <span className="text-red-500 font-bold uppercase tracking-wider">Error:</span>{' '}
+                              <span>{e.error}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="bg-[#1c1c1e]/40 border border-[#484848]/10 rounded-2xl p-6 text-center text-xs text-on-surface-variant">
+                  No Flight Recorder events recorded.
+                </div>
+              )}
+            </div>
+
             <TelemetryGrid 
               nativeDeviceInfo={nativeDeviceInfo}
               nativeInstallerDetails={nativeInstallerDetails}

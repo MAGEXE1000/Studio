@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { UpdaterFlightRecorder } from '@workspace/studio-core';
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -48,6 +49,16 @@ export default function StudioUpdateScreen({
   fromVersion,
   toVersion,
 }: StudioUpdateScreenProps) {
+  // Record render of StudioUpdateScreen
+  UpdaterFlightRecorder.record({
+    thread: 'ui',
+    sessionId: null,
+    workflowId: null,
+    eventType: 'StudioUpdateScreenRender',
+    caller: 'StudioUpdateScreen',
+    reason: `Rendered StudioUpdateScreen with state: ${state} and progress: ${Math.round(progress * 100)}%`
+  });
+
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {

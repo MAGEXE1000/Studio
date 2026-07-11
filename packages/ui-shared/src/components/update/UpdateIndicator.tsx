@@ -1,4 +1,4 @@
-import { useOtaUpdate, type StructuredReleaseNotes, otaDiagnostics, otaDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, isNative, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller } from '@workspace/studio-core';
+import { useOtaUpdate, type StructuredReleaseNotes, otaDiagnostics, otaDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, isNative, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder } from '@workspace/studio-core';
 import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent, clearInstallationJustCompleted, endPostInstallSession } from '@workspace/studio-core';
 /**
  * Floating "update available" indicator — top of the Hub.
@@ -218,6 +218,20 @@ export default function UpdateIndicator({
   accentTo: string;
 }) {
   const ota = useOtaUpdate();
+
+  // Record render of UpdateIndicator during active install states
+  const installStates = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING', 'INSTALL_SUCCESS'];
+  if (installStates.includes(ota.updateState)) {
+    UpdaterFlightRecorder.record({
+      thread: 'ui',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'UpdateIndicatorRender',
+      caller: 'UpdateIndicator',
+      reason: `Rendered UpdateIndicator in state: ${ota.updateState} with progress: ${Math.round(ota.progress * 100)}%`
+    });
+  }
+
   const [phase, setPhase] = useState<Phase>(readInitialPhase);
   const [open, setOpen] = useState(() => isUpdateInProgress(ota.updateState));
   const [installFailedReason, setInstallFailedReason] = useState<string | null>(null);

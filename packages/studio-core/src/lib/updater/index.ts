@@ -110,6 +110,10 @@ export {
   isSimulationActive,
 } from './updaterSimulation';
 
+// Flight Recorder
+export { UpdaterFlightRecorder } from './flightRecorder';
+export type { FlightRecorderEvent } from './flightRecorder';
+
 // Version logger
 export { releaseMetadataInspector } from './versionLogger';
 

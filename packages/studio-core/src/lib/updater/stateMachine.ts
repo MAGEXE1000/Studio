@@ -20,6 +20,7 @@ export type OtaUpdateState =
 
 import { parseSemver, APP_VERSION, compareSemver } from '../appVersion';
 import { releaseMetadataInspector } from './versionLogger';
+import { UpdaterFlightRecorder } from './flightRecorder';
 
 export interface StructuredReleaseNotes {
   added?: string[];
@@ -721,12 +722,36 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     prevEntry.durationMs = now - prevEntry.timestamp;
   }
 
+  const isUnexpectedResetToIdle = state === 'IDLE' && [
+    'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256',
+    'PREPARING_INSTALL', 'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'
+  ].includes(current);
+
+  const durationVal = prevEntry ? now - prevEntry.timestamp : 0;
+
+  UpdaterFlightRecorder.record({
+    thread: 'js',
+    sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+    workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+    eventType: 'transitionToState',
+    caller: caller,
+    previousState: current,
+    newState: state,
+    reason: reason + (isUnexpectedResetToIdle ? ' [UNEXPECTED_RESET_TO_IDLE]' : ''),
+    duration: durationVal,
+    warning: (isUnexpectedResetToIdle || !isValid) ? (isUnexpectedResetToIdle ? 'UNEXPECTED_RESET_TO_IDLE' : 'INVALID_TRANSITION') : null,
+    error: failureReason || null,
+    stack: stackTrace,
+    details: `Transition from ${current} to ${state}. isUnexpectedResetToIdle=${isUnexpectedResetToIdle}, isValid=${isValid}`
+  });
+
   transitionHistory.push({
     from: current,
     to: state,
     reason: reason,
     timestamp: now,
-    durationMs: 0,
+    durationMs: durationVal,
     invalid: !isValid,
     caller: caller,
     stackTrace: stackTrace,

@@ -18,7 +18,8 @@ import {
   isPostInstallSessionActive,
   globalOtaState,
   updaterSimulation,
-  stateListeners
+  stateListeners,
+  UpdaterFlightRecorder
 } from '@workspace/studio-core';
 
 export interface DiagnosticsData {
@@ -620,19 +621,32 @@ export function generateCopyEverythingReport(
   report += `\n`;
 
   // ==========================================
-  // SECTION 6: EVENT LOG
+  // SECTION 6: EVENT HISTORY (FLIGHT RECORDER)
   // ==========================================
-  report += `## 6. EVENT LOG\n`;
-  if (activeSession && activeSession.timeline.length > 0) {
-    report += `| Timestamp | Offset | State | Module | Event | Details |\n`;
-    report += `|---|---|---|---|---|---|\n`;
-    activeSession.timeline.slice(-30).forEach(e => {
-      report += `| ${e.timestamp} | ${e.offset} | ${e.state} | ${e.module} | ${e.event} | ${e.reason.replace(/\|/g, '\\|')} |\n`;
+  report += `## 6. EVENT HISTORY (FLIGHT RECORDER)\n`;
+  const frEvents = UpdaterFlightRecorder.getEvents();
+  if (frEvents.length > 0) {
+    frEvents.slice(-50).forEach(e => {
+      const timeStr = new Date(e.timestamp).toLocaleTimeString();
+      report += `${timeStr}\n`;
+      report += `${e.eventType}`;
+      if (e.previousState || e.newState) {
+        report += `(${e.previousState} -> ${e.newState})`;
+      }
+      report += `\n`;
+      report += `caller:\n${e.caller}\n`;
+      report += `reason:\n${e.reason || 'None'}\n`;
+      if (e.warning) {
+        report += `WARNING: ${e.warning}\n`;
+      }
+      if (e.error) {
+        report += `ERROR: ${e.error}\n`;
+      }
+      report += `--------------------------------\n\n`;
     });
   } else {
-    report += `*No update session events logged.*\n`;
+    report += `*No Flight Recorder events recorded.*\n\n`;
   }
-  report += `\n`;
 
   // ==========================================
   // SECTION 7: PERFORMANCE
@@ -651,6 +665,75 @@ export function generateCopyEverythingReport(
   report += `| CPU Usage | ${perfMetrics.cpuAverage}% | ${perfMetrics.cpuPeak}% | Host processor allocation load percentage |\n`;
   report += `| Callback Latency | ${perfMetrics.averageCallbackLatency} ms | ${perfMetrics.packageInstallerLatency} ms | Handler response delay timing |\n`;
   report += `| Pipeline Duration | ${perfMetrics.updatePipelineDuration} | N/A | Time taken to run state FSM pipeline |\n`;
+  report += `\n`;
+
+  // ==========================================
+  // AUTOMATIC ANALYSIS
+  // ==========================================
+  report += `## 8. AUTOMATIC ANALYSIS\n`;
+  report += `### Diagnostics Rules Engine Findings\n`;
+  
+  let anomaliesFound = 0;
+  
+  // 1. Recovery Mode
+  if (globalOtaState.recoveryMode || globalOtaState.consecutiveFailures > 0) {
+    anomaliesFound++;
+    report += `*   **Recovery Activated**: Updater recovery mode is active. Consecutive FSM failure count is currently \`${globalOtaState.consecutiveFailures}\`. Potential corrupt downloads or signature mismatches were bypassed.\n`;
+  }
+  
+  // 2. Unexpected resets to IDLE
+  const resetsToIdle = frEvents.filter(e => e.warning === 'UNEXPECTED_RESET_TO_IDLE');
+  if (resetsToIdle.length > 0) {
+    anomaliesFound++;
+    report += `*   **Unexpected Transition to IDLE Detected**: Detected ${resetsToIdle.length} unexpected reset events to \`IDLE\` state from an active update sequence. Review caller triggers for potential race conditions or unhandled crashes.\n`;
+  }
+
+  // 3. Invalid transitions
+  const invalidTransitions = frEvents.filter(e => e.warning === 'INVALID_TRANSITION' || e.eventType === 'rejectedTransitions');
+  if (invalidTransitions.length > 0 || data.rejectedTransitions.length > 0) {
+    anomaliesFound++;
+    report += `*   **State Machine Invariant Violated**: Detected ${invalidTransitions.length || data.rejectedTransitions.length} state transition checks rejected by FSM strict validation matrix guidelines.\n`;
+  }
+
+  // 4. Multiple updates sessions
+  const activeSessCount = getUpdateSessions().length;
+  if (activeSessCount > 5) {
+    anomaliesFound++;
+    report += `*   **Multiple Update Sessions Logged**: Found \`${activeSessCount}\` total update sessions saved in database history. A large count indicates repeated auto-checks without completion.\n`;
+  }
+
+  // 5. PackageInstaller callbacks check
+  const hasInstallCompleted = frEvents.some(e => e.newState === 'INSTALL_SUCCESS' || e.newState === 'INSTALL_FAILED');
+  const hasCallback = frEvents.some(e => e.eventType === 'PackageInstallerCallback');
+  if (hasInstallCompleted && !hasCallback) {
+    anomaliesFound++;
+    report += `*   **PackageInstaller Callback Missing**: The state machine completed/failed install states but no native PackageInstaller progress broadcast callbacks were recorded. Native hook listeners may be detached.\n`;
+  }
+
+  // 6. Listener / Hook leaks
+  const listenerSize = stateListeners.size;
+  if (listenerSize > 10) {
+    anomaliesFound++;
+    report += `*   **Listener Leak Detected**: React state listeners set size is \`${listenerSize}\`. Subscribed components must correctly call unsubscribes on unmount cycles.\n`;
+  }
+
+  // 7. Performance anomalies
+  if (perfMetrics.frameVariance > 16) {
+    anomaliesFound++;
+    report += `*   **Performance Jitter Detected**: UI thread frame pacing variance is \`${perfMetrics.frameVariance} ms\` (larger than 16ms boundary). High layout rendering workloads might delay callback handling.\n`;
+  }
+
+  if (anomaliesFound === 0) {
+    report += `*   **No Issues Detected**: System analysis engine found zero active anomalies, race conditions, listener leaks, or state invariant violations. Updater health is normal.\n`;
+  } else {
+    report += `\n**Potential Root Causes & Recommendations**:\n`;
+    if (resetsToIdle.length > 0 || invalidTransitions.length > 0) {
+      report += `* Check stack trace details of caller functions triggering transition rejects. Ensure state coordinators wait for in-flight check/recovery promises before triggering checks.\n`;
+    }
+    if (listenerSize > 10) {
+      report += `* Inspect custom React hooks (e.g. \`useOtaUpdate\`) to verify all listeners are deleted inside the ` + "`useEffect`" + ` cleanup returns.\n`;
+    }
+  }
   report += `\n`;
 
   return report;

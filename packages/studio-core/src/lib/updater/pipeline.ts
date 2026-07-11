@@ -23,6 +23,7 @@ import { nativeSet, NATIVE_PREFS } from '../nativePrefs';
 import { useNavigationStore } from '../../store/useNavigationStore';
 import { logActivity } from '../activityLogger';
 import { PerformanceProfiler } from '../performanceProfiler';
+import { UpdaterFlightRecorder } from './flightRecorder';
 
 import {
   globalOtaState,
@@ -31,6 +32,7 @@ import {
   stopWatchdog,
   stateListeners,
   setActivePipelineContext,
+  activePipelineContext,
   type CentralizedOtaState,
   type OtaUpdateState,
   isUpdateSessionActive,
@@ -871,25 +873,42 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
   ].includes(current);
 
   // Post-install session guard — blocks ALL update checks (even manual) while
-  // the post-install session is active. This session persists after INSTALL_SUCCESS
-  // until the process is replaced by Android, the user taps Done, or the 5-min
-  // safety timeout expires. This is the definitive guard against the premature
-  // "Studio is up to date" message.
+  // the post-install session is active.
   if (isPostInstallSessionActive()) {
     const info = getPostInstallSessionInfo();
     console.log(`[OTA] Rejecting checkForUpdate (trigger=${trigger}): post-install session is active. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
     logTimelineEvent('UpdateCore', 'CHECK_REJECTED_POST_INSTALL_SESSION', `trigger=${trigger}, bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
     logInstallLockEvent('CHECK_BLOCKED', `checkForUpdate rejected: post-install session active`, { trigger, caller: `bootId=${info.bootId}` });
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'checkForUpdateRejected',
+      caller: callerInfo,
+      reason: `Blocked check (post-install session active). Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
+      warning: 'CHECK_BLOCKED_POST_INSTALL_SESSION',
+      stack: stackTrace
+    });
     return Promise.resolve(globalOtaState);
   }
 
-  // isInstallationLocked() is the authoritative guard — it covers all active
-  // install states PLUS the post-INSTALL_SUCCESS window where isUpdateSessionActive()
-  // already returns false because the session was cleared on success.
+  // isInstallationLocked() is the authoritative guard
   if (!isManual && isInstallationLocked()) {
     console.log(`[OTA] Rejecting automatic checkForUpdate (trigger=${trigger}): installation is locked (state: ${current}, installationJustCompleted may be true)`);
     logTimelineEvent('UpdateCore', 'CHECK_REJECTED_INSTALLATION_LOCKED', `state: ${current}`);
     logInstallLockEvent('CHECK_BLOCKED', `Automatic checkForUpdate rejected: state=${current}`, { trigger });
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'checkForUpdateRejected',
+      caller: callerInfo,
+      reason: `Blocked automatic check (installation locked in state ${current}). Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
+      warning: 'CHECK_BLOCKED_INSTALLATION_LOCKED',
+      stack: stackTrace
+    });
     return Promise.resolve(globalOtaState);
   }
 
@@ -897,6 +916,17 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     if (!isManual) {
       console.log(`[OTA] Rejecting automatic/background checkForUpdate (trigger=${trigger}): Update session or state is active (state: ${current})`);
       logTimelineEvent('UpdateCore', 'CHECK_REJECTED_ACTIVE_SESSION', `state: ${current}`);
+      
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'checkForUpdateRejected',
+        caller: callerInfo,
+        reason: `Blocked automatic check (update session active, state: ${current}). Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
+        warning: 'CHECK_BLOCKED_ACTIVE_SESSION',
+        stack: stackTrace
+      });
       return Promise.resolve(globalOtaState);
     }
   }
@@ -904,8 +934,29 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
   if (isBusy) {
     console.log(`[OTA] Rejecting checkForUpdate (isManual=${isManual}): installer is currently busy (state: ${current})`);
     logTimelineEvent('UpdateCore', 'CHECK_REJECTED_BUSY', `state: ${current}`);
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'checkForUpdateRejected',
+      caller: callerInfo,
+      reason: `Blocked check (installer busy in state ${current}). isManual: ${isManual}, Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
+      warning: 'CHECK_BLOCKED_INSTALLER_BUSY',
+      stack: stackTrace
+    });
     return Promise.resolve(globalOtaState);
   }
+
+  UpdaterFlightRecorder.record({
+    thread: 'js',
+    sessionId: null,
+    workflowId: null,
+    eventType: 'checkForUpdateAllowed',
+    caller: callerInfo,
+    reason: `Starting update check. isManual: ${isManual}, Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
+    stack: stackTrace
+  });
 
   startUpdateSession(isManual ? 'manual' : 'automatic', trigger);
   return UpdatePipelineCoordinator.dispatch(isManual, trigger, reason);
@@ -1253,20 +1304,58 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
   logTimelineEvent('UpdateCore', 'INSTALL_REQUESTED', `Trigger: ${trigger}`);
   logDetailedJsTrace('applyUpdate', 'pipeline.ts', 867, `Entering applyUpdate Call #${callId}`, { prevState: globalOtaState.updateState, reason: `Trigger: ${trigger}` });
 
+  UpdaterFlightRecorder.record({
+    thread: 'js',
+    sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+    workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+    eventType: 'applyUpdateRequested',
+    caller: 'applyUpdate',
+    reason: `applyUpdate called. Trigger: ${trigger}, State: ${globalOtaState.updateState}`
+  });
+
   if (activeApplyPromise) {
     logDetailedJsTrace('applyUpdate', 'pipeline.ts', 872, `Exiting applyUpdate Call #${callId} early (activeApplyPromise running)`, { prevState: globalOtaState.updateState });
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+      eventType: 'applyUpdateRejected',
+      caller: 'applyUpdate',
+      reason: `applyUpdate rejected because activeApplyPromise is already running`,
+      warning: 'APPLY_REJECTED_ALREADY_RUNNING'
+    });
     return activeApplyPromise;
   }
 
   const remoteVersion = globalOtaState.remoteVersion;
   if (!remoteVersion) {
     logDetailedJsTrace('applyUpdate', 'pipeline.ts', 879, `Exiting applyUpdate Call #${callId} early (missing remoteVersion)`, { prevState: globalOtaState.updateState });
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'applyUpdateRejected',
+      caller: 'applyUpdate',
+      reason: `applyUpdate rejected because remoteVersion is missing`,
+      warning: 'APPLY_REJECTED_MISSING_VERSION'
+    });
     return Promise.resolve();
   }
 
   logDiagnosticEvent('INSTALL_REQUESTED', { version: remoteVersion });
 
   if ((!isNative() || !isAppInstallerAvailable()) && !isSimulationActive()) {
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: null,
+      workflowId: null,
+      eventType: 'applyUpdateWebReload',
+      caller: 'applyUpdate',
+      reason: `Applying update in non-native / simulated environment. Triggering web reload.`
+    });
+
     (async () => {
       try {
         const { Filesystem } = await import('@capacitor/filesystem');
@@ -1292,12 +1381,34 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
     console.warn(`[OTA] Rejecting applyUpdate. State is ${globalOtaState.updateState}, expected 'WAITING_USER_CONFIRMATION'.`);
     const err = new Error(`Cannot apply update. State is ${globalOtaState.updateState}, expected 'WAITING_USER_CONFIRMATION'.`);
     void logProgressStage('[INSTRUMENTATION] applyUpdate EXIT', `Call #${callId} rejected (invalid state)`);
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+      eventType: 'applyUpdateRejected',
+      caller: 'applyUpdate',
+      reason: `applyUpdate rejected because state is not WAITING_USER_CONFIRMATION (State: ${globalOtaState.updateState})`,
+      warning: 'APPLY_REJECTED_INVALID_STATE',
+      error: err.message
+    });
     return Promise.reject(err);
   }
 
   if (!safeTransition('WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'applyUpdate start')) {
     const err = new Error(`Cannot apply update. Expected WAITING_USER_CONFIRMATION, found ${globalOtaState.updateState}.`);
     void logProgressStage('[INSTRUMENTATION] applyUpdate EXIT', `Call #${callId} rejected (invalid state)`);
+    
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+      eventType: 'applyUpdateRejected',
+      caller: 'applyUpdate',
+      reason: `applyUpdate rejected because safeTransition to PACKAGEINSTALLER_VISIBLE failed`,
+      warning: 'APPLY_REJECTED_TRANSITION_FAILED',
+      error: err.message
+    });
     return Promise.reject(err);
   }
   logActivity('apk_install', `Installing APK system update (v${remoteVersion})`, 'Studio');
@@ -1314,6 +1425,16 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
 
       UpdatePipelineCoordinator.setStage('AWAIT_ELIGIBILITY_VERIFICATION');
       updateGlobalState({ statusText: 'Preparing package...' });
+      
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+        eventType: 'eligibilityCheckStarted',
+        caller: 'applyUpdate',
+        reason: `Verifying APK file eligibility: ${filePath}`
+      });
+
       const isEligible = await (async () => {
         if (shouldSimulateInstall) {
           return true;
@@ -1322,11 +1443,41 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       })();
       if (!isEligible) {
         if (otaDebugLogs.eligibilityReason === 'signature_mismatch' && !isRecovering) {
+          UpdaterFlightRecorder.record({
+            thread: 'js',
+            sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+            workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+            eventType: 'eligibilityCheckSignatureMismatch',
+            caller: 'applyUpdate',
+            reason: `Signature mismatch eligibility failure detected. Triggering recovery...`,
+            warning: 'SIGNATURE_MISMATCH_RECOVERY_TRIGGERED'
+          });
+
           const recovered = await runSignatureMismatchRecovery(applyUpdate, downloadUpdate);
           if (recovered) return;
         }
-        throw new Error('[Eligibility Check] Validation failed: ' + (otaDebugLogs.eligibilityReason || 'unknown'));
+        const err = new Error('[Eligibility Check] Validation failed: ' + (otaDebugLogs.eligibilityReason || 'unknown'));
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+          workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+          eventType: 'eligibilityCheckFailed',
+          caller: 'applyUpdate',
+          reason: `Eligibility check validation failed`,
+          error: err.message
+        });
+        throw err;
       }
+
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+        eventType: 'eligibilityCheckSuccess',
+        caller: 'applyUpdate',
+        reason: `APK is eligible for installation`
+      });
 
       const statusPromise = new Promise<void>((resolvePromise, rejectPromise) => {
         activeInstallPromiseResolver = resolvePromise;
@@ -1342,6 +1493,16 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
             localStorage.setItem('studio:is_simulation_active', 'true');
           }
         } catch (_) {}
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'simulatedInstallLaunch',
+          caller: 'applyUpdate',
+          reason: `Launching simulated install sequence`
+        });
+
         addJsLog('[Simulate Install] Simulation active. Setting simulation handler.');
         setSimulateStatusCallback((eventData: any) => {
           if (typeof (window as any).triggerOtaInstallStatus === 'function') {
@@ -1390,11 +1551,30 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       } else {
         void logProgressStage('Session committed', 'Handing over to PackageInstaller');
         UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'nativeInstallLaunch',
+          caller: 'applyUpdate',
+          reason: `Triggering native APK installer intent: ${filePath}`
+        });
+
         const res = await triggerNativeInstall(filePath);
         if (res && typeof res.sessionId === 'number') {
           updateGlobalState({ sessionId: res.sessionId });
           logDiagnosticEvent('SESSION_CREATED', { sessionId: res.sessionId });
           logTimelineEvent('UpdateCore', 'SESSION_CREATED', `SessionID: ${res.sessionId}`);
+          
+          UpdaterFlightRecorder.record({
+            thread: 'js',
+            sessionId: res.sessionId,
+            workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+            eventType: 'nativeSessionCreated',
+            caller: 'applyUpdate',
+            reason: `Native PackageInstaller session created successfully. SessionID: ${res.sessionId}`
+          });
         }
         updateGlobalState({ statusText: 'Waiting for installer...' });
         logTimelineEvent('UpdateCore', 'NATIVE_INSTALLER_LAUNCHED', 'System PackageInstaller intent triggered');
@@ -1410,6 +1590,15 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       await statusPromise;
 
       logDetailedJsTrace('applyUpdate', 'pipeline.ts', 987, `Exiting applyUpdate Call #${callId} successfully (Installer completed)`, { prevState: globalOtaState.updateState });
+      
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+        eventType: 'applyUpdateSuccess',
+        caller: 'applyUpdate',
+        reason: `applyUpdate finished successfully (state: ${globalOtaState.updateState})`
+      });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const errStack = (err instanceof Error && err.stack ? err.stack : null);
@@ -1418,6 +1607,17 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       otaDebugLogs.lastExceptionStackTrace = errStack;
       otaDebugLogs.installerLaunchStatus = 'FAILED';
       await populateDiagnostics(err, 'APK installation failed');
+
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+        eventType: 'applyUpdateError',
+        caller: 'applyUpdate',
+        reason: `applyUpdate failed with exception`,
+        error: errMsg,
+        warning: 'INSTALL_FAILED'
+      });
 
       if (globalOtaState.updateState !== 'RECOVERY') {
         transitionToState('INSTALL_FAILED', 'PackageInstaller exception', errMsg);
@@ -1540,6 +1740,19 @@ export function initializeGlobalOtaListeners() {
     console.log(`[OTA Global Listener] Received status ${status}: ${message} (progress ${progress}%)`);
     addJsLog(`[Global Listener Event] Received status ${status}: ${message} (progress ${progress}%)`);
 
+    const statusName = getPackageInstallerStatusName(status);
+    UpdaterFlightRecorder.record({
+      thread: 'native',
+      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+      eventType: 'PackageInstallerCallback',
+      caller: 'PackageInstallerReceiver',
+      reason: `Status: ${status} (${statusName}) | Msg: ${message || 'none'} | Progress: ${progress || 0}`,
+      warning: (status > 0 || status === 3) ? (status === 3 ? 'INSTALL_CANCELLED' : 'INSTALL_FAILED') : null,
+      error: status > 0 ? (message || `PackageInstaller error code ${status}`) : null,
+      details: JSON.stringify(eventData)
+    });
+
     (window as any).__studioInstallerStatus = String(status);
     logDiagnosticEvent('PACKAGEINSTALLER_CALLBACK', { status, message, progress });
 
@@ -1557,7 +1770,6 @@ export function initializeGlobalOtaListeners() {
       void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
     }
 
-    const statusName = getPackageInstallerStatusName(status);
     logTimelineEvent('NativeInstaller', 'NATIVE_CALLBACK_RECEIVED', `Status: ${status} (${statusName}) | Msg: ${message || 'none'} | Progress: ${progress || 0}`);
 
     const allowedStates = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'];
@@ -1655,27 +1867,50 @@ export function initializeGlobalOtaListeners() {
       await App.addListener('appStateChange', async (state) => {
         const prev = (window as any).__studioActivityState;
         const current = state.isActive ? 'active' : 'background';
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'appStateChange',
+          caller: 'AppLifecycle',
+          reason: `App state transitioned from ${prev} to ${current} (isActive: ${state.isActive})`
+        });
+
         if (prev !== current) {
           (window as any).__studioActivityState = current;
           logDiagnosticEvent(current === 'active' ? 'ACTIVITY_RESUMED' : 'ACTIVITY_PAUSED');
           logTimelineEvent('AppLifecycle', current === 'active' ? 'ACTIVITY_RESUMED' : 'ACTIVITY_PAUSED');
         }
         if (state.isActive) {
-          // Block all recovery during post-install session — the old process
-          // may resume from background after the PackageInstaller closes, but
-          // we must not run any state recovery or update checks.
+          // Block all recovery during post-install session
           if (isPostInstallSessionActive()) {
             const info = getPostInstallSessionInfo();
             console.log(`[OTA Lifecycle] App resumed but post-install session is active. Skipping recovery. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
             logTimelineEvent('AppLifecycle', 'RECOVERY_SKIPPED_POST_INSTALL', `bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
+            
+            UpdaterFlightRecorder.record({
+              thread: 'js',
+              sessionId: null,
+              workflowId: null,
+              eventType: 'appResumeRecoverySkipped',
+              caller: 'AppLifecycle',
+              reason: `Skipped recovery on resume (post-install session active). bootId=${info.bootId}`
+            });
             return;
           }
           console.log('[OTA Lifecycle] App returned to foreground. Recovering updater state...');
           logTimelineEvent('AppLifecycle', 'RECOVERY_TRIGGERED_ON_RESUME');
-          // Assign to the shared recovery promise BEFORE awaiting, so that any
-          // concurrent triggerOtaUpdateCheck in startupCoordinator can await this
-          // same promise and read isInstallationLocked() only after the native IPC
-          // (getLastInstallResult) has resolved and installationJustCompleted is set.
+          
+          UpdaterFlightRecorder.record({
+            thread: 'js',
+            sessionId: null,
+            workflowId: null,
+            eventType: 'appResumeRecoveryTriggered',
+            caller: 'AppLifecycle',
+            reason: `Triggered install state recovery check on app resume`
+          });
+
           installRecoveryPromise = checkAndRecoverInstallState();
           try {
             await installRecoveryPromise;
@@ -1693,6 +1928,37 @@ export function initializeGlobalOtaListeners() {
     document.addEventListener('visibilitychange', () => {
       const state = document.visibilityState === 'visible' ? 'VISIBLE' : 'HIDDEN';
       logTimelineEvent('AppLifecycle', `VISIBILITY_CHANGE_${state}`, `Document visibility state changed to ${state}`);
+      
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'visibilitychange',
+        caller: 'DocumentLifecycle',
+        reason: `Visibility changed to ${state}`
+      });
+    });
+
+    window.addEventListener('focus', () => {
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'focus',
+        caller: 'WindowLifecycle',
+        reason: `Window gained focus`
+      });
+    });
+
+    window.addEventListener('blur', () => {
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'blur',
+        caller: 'WindowLifecycle',
+        reason: `Window lost focus`
+      });
     });
   }
 }

@@ -60,6 +60,7 @@ export * from './lib/updater/diagnostics';
 export { deleteLocalApk } from './lib/updater/cacheManager';
 export * from './lib/updater/versionLogger';
 export * from './lib/updater/stateMachine';
+export * from './lib/updater/flightRecorder';
 export * from './lib/startupCoordinator';
 export * from './lib/themeEngine';
 export * from './lib/performanceProfiler';

@@ -7,6 +7,7 @@ import { isInstallationLocked, isPostInstallSessionActive, getPostInstallSession
 import { logInstallLockEvent } from '../updater/diagnostics';
 import { seedAudioAssets } from '../storage/assetCache';
 import { ensureNotificationPermission } from '../platform/capgoUpdater';
+import { UpdaterFlightRecorder } from '../updater/flightRecorder';
 
 export interface StartupPhase {
   name: string;
@@ -619,48 +620,69 @@ class StartupCoordinatorClass {
 
   private async triggerOtaUpdateCheck(trigger: string, reason: string) {
     try {
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'triggerOtaUpdateCheck',
+        caller: 'StartupCoordinator',
+        reason: `Trigger: ${trigger}, Reason: ${reason}`
+      });
+
       // Post-install session guard — blocks ALL lifecycle-triggered update checks
-      // while the post-install session is active. This prevents visibilitychange,
-      // focus, appStateChange, resume, and polling from running checkForUpdate
-      // in the zombie process window after APK installation.
       if (isPostInstallSessionActive()) {
         const info = getPostInstallSessionInfo();
         console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): post-install session is active. bootId=${info.bootId}, elapsed=${info.elapsed}ms`);
         logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: post-install session active. bootId=${info.bootId}`, { trigger });
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'triggerOtaUpdateCheckBlocked',
+          caller: 'StartupCoordinator',
+          reason: `Blocked check (post-install session active). Trigger: ${trigger}, Reason: ${reason}`,
+          warning: 'STARTUP_BLOCKED_POST_INSTALL_SESSION'
+        });
         return;
       }
 
       const { checkForUpdate, getInstallRecoveryPromise } = await import('../otaUpdate');
 
       // ─── Race-prevention gate ────────────────────────────────────────────
-      // The appStateChange(isActive: true) event launches two concurrent paths:
-      //   Path A: checkAndRecoverInstallState() → native IPC → INSTALL_SUCCESS
-      //           → installationJustCompleted = true
-      //   Path B (this function): debounce 200ms → isInstallationLocked() check
-      //
-      // Path B can read isInstallationLocked() before Path A's native IPC resolves
-      // (typical IPC latency 100–500ms), causing checkForUpdate to proceed and show
-      // "Studio is up to date" prematurely.
-      //
-      // Awaiting the shared installRecoveryPromise guarantees Path B always
-      // sees the final state after Path A's IPC completes. On normal resumes
-      // with no active session the promise resolves in < 10ms. On devices with
-      // no install in progress the promise is null and this await is skipped.
       const recoveryPromise = getInstallRecoveryPromise();
       if (recoveryPromise) {
         console.log(`[StartupCoordinator] Awaiting in-flight install recovery before update check (trigger=${trigger})...`);
         logInstallLockEvent('RACE_BLOCKED', `triggerOtaUpdateCheck yielded to installRecoveryPromise: trigger=${trigger}, reason=${reason}`, { trigger });
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'triggerOtaUpdateCheckYielded',
+          caller: 'StartupCoordinator',
+          reason: `Awaiting in-flight install recovery. Trigger: ${trigger}, Reason: ${reason}`
+        });
+
         await recoveryPromise;
         console.log(`[StartupCoordinator] Install recovery resolved. Proceeding with isInstallationLocked() check (trigger=${trigger}).`);
       }
       // ─────────────────────────────────────────────────────────────────────
 
-      // Use isInstallationLocked() — stronger than isUpdateSessionActive() because
-      // it also covers the post-INSTALL_SUCCESS window where the session has already
-      // been cleared but the user has not yet seen the completion screen.
+      // Use isInstallationLocked()
       if (isInstallationLocked()) {
         console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): installation is locked (isInstallationLocked=true)`);
         logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: trigger=${trigger}, reason=${reason}`, { trigger });
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'triggerOtaUpdateCheckBlocked',
+          caller: 'StartupCoordinator',
+          reason: `Blocked check (installation locked). Trigger: ${trigger}, Reason: ${reason}`,
+          warning: 'STARTUP_BLOCKED_INSTALLATION_LOCKED'
+        });
         return;
       }
 
@@ -675,11 +697,41 @@ class StartupCoordinatorClass {
       ].includes(otaState);
       if (isUpdating) {
         console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck: updater is active (state: ${otaState})`);
+        
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'triggerOtaUpdateCheckBlocked',
+          caller: 'StartupCoordinator',
+          reason: `Blocked check (updater active in state: ${otaState}). Trigger: ${trigger}, Reason: ${reason}`,
+          warning: 'STARTUP_BLOCKED_UPDATER_ACTIVE'
+        });
         return;
       }
+
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'triggerOtaUpdateCheckProceed',
+        caller: 'StartupCoordinator',
+        reason: `Proceeding to checkForUpdate. Trigger: ${trigger}, Reason: ${reason}`
+      });
+
       void checkForUpdate(false, trigger, reason);
     } catch (err) {
       console.error('[StartupCoordinator] Failed to trigger update check:', err);
+      
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: null,
+        workflowId: null,
+        eventType: 'triggerOtaUpdateCheckError',
+        caller: 'StartupCoordinator',
+        reason: `Failed to trigger update check. Trigger: ${trigger}, Reason: ${reason}`,
+        error: err instanceof Error ? err.message : String(err)
+      });
     }
   }
 

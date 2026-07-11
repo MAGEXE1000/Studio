@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.18
+
+### Added
+- Implemented compact workflow testing scenarios in the diagnostics panel.
+- Enhanced real-time Live Workflow Timeline with elapsed durations, transition sources, and error highlights.
+- Expanded Copy Everything into a comprehensive Markdown engineering report for debugging.
+
 ## 4.0.17
 
 ### Added

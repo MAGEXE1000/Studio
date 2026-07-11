@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.17"
-$VersionCode = "243"
-$ReleaseNote = "v4.0.17 - Isolate developer simulation modes from the production updater pipeline and implement dynamic version target generation."
+$VersionName = "4.0.18"
+$VersionCode = "244"
+$ReleaseNote = "v4.0.18 - Restored workflow diagnostics scenarios, real-time live timeline details, and complete engineering report copying."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

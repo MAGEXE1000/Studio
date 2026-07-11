@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.17';
-export const WEB_VERSION = '4.0.17';
+export const NATIVE_VERSION = '4.0.18';
+export const WEB_VERSION = '4.0.18';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Isolated developer simulation modes cleanly from the production updater pipeline.",
-      "Implemented dynamically generated simulation target versions based on the currently installed version.",
-      "Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab.",
+      "Implemented compact workflow testing scenarios in the diagnostics panel.",
+      "Enhanced real-time Live Workflow Timeline with elapsed durations, transition sources, and error highlights.",
+      "Expanded Copy Everything into a comprehensive Markdown engineering report for debugging.",
     ],
   },
 ];

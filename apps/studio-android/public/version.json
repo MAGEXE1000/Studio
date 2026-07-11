@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.17",
-  "versionName": "4.0.17",
-  "versionCode": 243,
-  "version_code": 243,
-  "commit": "63a3197f",
-  "releasedAt": "7/11/2026, 6:17:59 AM CST",
-  "buildTimestamp": "7/11/2026, 6:17:59 AM CST",
+  "version": "4.0.18",
+  "versionName": "4.0.18",
+  "versionCode": 244,
+  "version_code": 244,
+  "commit": "fca1a97e",
+  "releasedAt": "7/11/2026, 6:42:42 AM CST",
+  "buildTimestamp": "7/11/2026, 6:42:42 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Isolated developer simulation modes cleanly from the production updater pipeline.\n• Implemented dynamically generated simulation target versions based on the currently installed version.\n• Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab.",
-  "whatsNew": "• Isolated developer simulation modes cleanly from the production updater pipeline.\n• Implemented dynamically generated simulation target versions based on the currently installed version.\n• Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab.",
+  "changelog": "• Implemented compact workflow testing scenarios in the diagnostics panel.\n• Enhanced real-time Live Workflow Timeline with elapsed durations, transition sources, and error highlights.\n• Expanded Copy Everything into a comprehensive Markdown engineering report for debugging.",
+  "whatsNew": "• Implemented compact workflow testing scenarios in the diagnostics panel.\n• Enhanced real-time Live Workflow Timeline with elapsed durations, transition sources, and error highlights.\n• Expanded Copy Everything into a comprehensive Markdown engineering report for debugging.",
   "releaseNotes": {
     "added": [
-      "Isolated developer simulation modes cleanly from the production updater pipeline.",
-      "Implemented dynamically generated simulation target versions based on the currently installed version.",
-      "Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab."
+      "Implemented compact workflow testing scenarios in the diagnostics panel.",
+      "Enhanced real-time Live Workflow Timeline with elapsed durations, transition sources, and error highlights.",
+      "Expanded Copy Everything into a comprehensive Markdown engineering report for debugging."
     ]
   },
   "mandatory": false

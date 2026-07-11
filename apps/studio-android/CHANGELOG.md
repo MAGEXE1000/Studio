@@ -12,6 +12,11 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.15
+
+### Fixed
+- Verification of fix for premature 'Studio is up to date' bug on real device without the 2500ms auto-close timer.
+
 ## 4.0.14
 
 ### Fixed

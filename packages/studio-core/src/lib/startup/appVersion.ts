@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.14';
-export const WEB_VERSION = '4.0.14';
+export const NATIVE_VERSION = '4.0.15';
+export const WEB_VERSION = '4.0.15';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Replaced timer-based auto-close after installation with a lifecycle-synchronized post-install session that stays active until Android confirms the process transition.",
-      "The updater success screen now remains visible until the app process is replaced, the user taps Done, or a 5-minute safety timeout expires.",
-      "All automatic update checks, lifecycle triggers, and state resets are blocked during the post-install session using process boot ID detection.",
-      "Added detailed process-level instrumentation for post-install lifecycle events.",
+      "Verification of fix for premature 'Studio is up to date' bug on real device without the 2500ms auto-close timer.",
     ],
   },
 ];

@@ -1,20 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.21",
-  "versionName": "4.0.21",
-  "versionCode": 247,
-  "version_code": 247,
-  "commit": "db0ce987",
-  "releasedAt": "7/11/2026, 8:29:40 AM CST",
-  "buildTimestamp": "7/11/2026, 8:29:40 AM CST",
+  "version": "4.0.23",
+  "versionName": "4.0.23",
+  "versionCode": 249,
+  "version_code": 249,
+  "commit": "41e71ccf",
+  "releasedAt": "7/11/2026, 10:29:43 AM CST",
+  "buildTimestamp": "7/11/2026, 10:29:43 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Refined diagnostic console header typography, spacing, and back button alignment.\n• Added sticky Back button when desktop view is active.\n• Enhanced simulation workflow testing to run the standard download-then-apply flow.",
-  "whatsNew": "• Refined diagnostic console header typography, spacing, and back button alignment.\n• Added sticky Back button when desktop view is active.\n• Enhanced simulation workflow testing to run the standard download-then-apply flow.",
+  "changelog": "• Test release with updater pipeline architectural fixes.",
+  "whatsNew": "• Test release with updater pipeline architectural fixes.",
   "releaseNotes": {
     "added": [
-      "Refined diagnostic console header typography, spacing, and back button alignment.",
-      "Added sticky Back button when desktop view is active.",
-      "Enhanced simulation workflow testing to run the standard download-then-apply flow."
+      "Test release with updater pipeline architectural fixes."
     ]
   },
   "mandatory": false

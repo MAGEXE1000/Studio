@@ -62,10 +62,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Overhauled Updater Diagnostics UI into 4 high-density collapsible sections.",
-      "Added real-time Live Timeline with filter, search, pause/resume, copy/export controls.",
-      "Implemented Capacitor AppInstaller plugin Proxy guard to guarantee simulated updates never trigger native installations.",
-      "Redesigned Updater Flight Recorder with 300 events ring buffer, size limits, severity levels, and automated session pruning.",
+      "Test release with updater pipeline architectural fixes.",
     ],
   },
 ];

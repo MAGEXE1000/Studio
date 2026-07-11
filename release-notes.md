@@ -1,3 +1,2 @@
-### Fixed
-- Fixed recursive logging loop in native Android OTA instrumentation.
-- Ensured strict unidirectional logging flow without re-entrant native calls.
+### Added
+- Test release validation build with no functional code changes.

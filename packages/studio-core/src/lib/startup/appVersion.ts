@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.26';
-export const WEB_VERSION = '4.0.26';
+export const NATIVE_VERSION = '4.0.27';
+export const WEB_VERSION = '4.0.27';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,10 +60,9 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed recursive logging loop in native Android OTA instrumentation.",
-      "Ensured strict unidirectional logging flow without re-entrant native calls.",
+      "Test release validation build with no functional code changes.",
     ],
   },
 ];

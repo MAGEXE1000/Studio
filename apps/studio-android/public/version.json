@@ -1,19 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.26",
-  "versionName": "4.0.26",
-  "versionCode": 40026,
-  "version_code": 40026,
-  "commit": "e815cc80",
-  "releasedAt": "7/11/2026, 1:56:47 PM CST",
-  "buildTimestamp": "7/11/2026, 1:56:47 PM CST",
+  "version": "4.0.27",
+  "versionName": "4.0.27",
+  "versionCode": 40027,
+  "version_code": 40027,
+  "commit": "578a1d9b",
+  "releasedAt": "7/11/2026, 2:39:33 PM CST",
+  "buildTimestamp": "7/11/2026, 2:39:33 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed recursive logging loop in native Android OTA instrumentation.\n• Ensured strict unidirectional logging flow without re-entrant native calls.",
-  "whatsNew": "• Fixed recursive logging loop in native Android OTA instrumentation.\n• Ensured strict unidirectional logging flow without re-entrant native calls.",
+  "changelog": "• Test release validation build with no functional code changes.",
+  "whatsNew": "• Test release validation build with no functional code changes.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed recursive logging loop in native Android OTA instrumentation.",
-      "Ensured strict unidirectional logging flow without re-entrant native calls."
+    "added": [
+      "Test release validation build with no functional code changes."
     ]
   },
   "mandatory": false

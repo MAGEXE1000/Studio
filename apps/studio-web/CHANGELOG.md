@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.19
+
+### Added
+- Exposed a persistent local flight recorder that logs updater transitions and PackageInstaller events.
+- Integrated a compact workflow testing scenarios panel inside the real updater diagnostics page.
+- Added automatic verdict analysis for state machine anomalies and listener leaks.
+
 ## 4.0.18
 
 ### Added

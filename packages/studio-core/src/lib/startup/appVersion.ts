@@ -62,9 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented compact workflow testing scenarios in the diagnostics panel.",
-      "Enhanced real-time Live Workflow Timeline with elapsed durations, transition sources, and error highlights.",
-      "Expanded Copy Everything into a comprehensive Markdown engineering report for debugging.",
+      "Exposed a persistent local flight recorder that logs updater transitions and PackageInstaller events.",
+      "Integrated a compact workflow testing scenarios panel inside the real updater diagnostics page.",
+      "Added automatic verdict analysis for state machine anomalies and listener leaks.",
     ],
   },
 ];

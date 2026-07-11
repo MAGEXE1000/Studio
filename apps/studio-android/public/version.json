@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.16",
-  "versionName": "4.0.16",
-  "versionCode": 242,
-  "version_code": 242,
-  "commit": "2dc9b547",
-  "releasedAt": "7/10/2026, 9:52:56 PM CST",
-  "buildTimestamp": "7/10/2026, 9:52:56 PM CST",
+  "version": "4.0.17",
+  "versionName": "4.0.17",
+  "versionCode": 243,
+  "version_code": 243,
+  "commit": "70ad0b7c",
+  "releasedAt": "7/10/2026, 10:55:55 PM CST",
+  "buildTimestamp": "7/10/2026, 10:55:55 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed native PackageInstaller handoff so the app remains on the Installing screen during update instead of resetting or hiding the updater.\n• Restored comprehensive updater workflow simulation and timeline diagnostics to the developer diagnostics dashboard.\n• Ensured changelog displayed post-update matches the target release notes perfectly using saved localStorage release notes.",
-  "whatsNew": "• Fixed native PackageInstaller handoff so the app remains on the Installing screen during update instead of resetting or hiding the updater.\n• Restored comprehensive updater workflow simulation and timeline diagnostics to the developer diagnostics dashboard.\n• Ensured changelog displayed post-update matches the target release notes perfectly using saved localStorage release notes.",
+  "changelog": "• Isolated developer simulation modes cleanly from the production updater pipeline.\n• Implemented dynamically generated simulation target versions based on the currently installed version.\n• Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab.",
+  "whatsNew": "• Isolated developer simulation modes cleanly from the production updater pipeline.\n• Implemented dynamically generated simulation target versions based on the currently installed version.\n• Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed native PackageInstaller handoff so the app remains on the Installing screen during update instead of resetting or hiding the updater.",
-      "Restored comprehensive updater workflow simulation and timeline diagnostics to the developer diagnostics dashboard.",
-      "Ensured changelog displayed post-update matches the target release notes perfectly using saved localStorage release notes."
+    "added": [
+      "Isolated developer simulation modes cleanly from the production updater pipeline.",
+      "Implemented dynamically generated simulation target versions based on the currently installed version.",
+      "Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab."
     ]
   },
   "mandatory": false

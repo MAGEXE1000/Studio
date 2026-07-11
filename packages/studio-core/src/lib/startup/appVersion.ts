@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.16';
-export const WEB_VERSION = '4.0.16';
+export const NATIVE_VERSION = '4.0.17';
+export const WEB_VERSION = '4.0.17';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,11 +60,11 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed native PackageInstaller handoff so the app remains on the Installing screen during update instead of resetting or hiding the updater.",
-      "Restored comprehensive updater workflow simulation and timeline diagnostics to the developer diagnostics dashboard.",
-      "Ensured changelog displayed post-update matches the target release notes perfectly using saved localStorage release notes.",
+      "Isolated developer simulation modes cleanly from the production updater pipeline.",
+      "Implemented dynamically generated simulation target versions based on the currently installed version.",
+      "Restored visual progression pacing and a 1.5s simulated confirmation wait to the Simulation Lab.",
     ],
   },
 ];

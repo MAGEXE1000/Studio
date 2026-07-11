@@ -584,6 +584,21 @@ class StartupCoordinatorClass {
     const autoCheck = useChordStore.getState().settings.otaAutoCheck ?? true;
     if (!autoCheck) return;
 
+    // ==================================================
+    // DESIRED ARCHITECTURE: SCHEDULER ISOLATION
+    // ==================================================
+    // During an active installation session there should be NO new update checks scheduled at all.
+    const otaState = globalOtaState.updateState;
+    const isUpdatePendingOrActive = 
+      isInstallationLocked() || 
+      isPostInstallSessionActive() || 
+      ['UPDATE_AVAILABLE', 'RECOVERY', 'FETCH_APK_INFORMATION'].includes(otaState);
+
+    if (isUpdatePendingOrActive) {
+      console.log(`[StartupCoordinator] Suppressing lifecycle event (${type}): Update pipeline is completely isolated during active sessions (state=${otaState}).`);
+      return;
+    }
+
     // Coalesce events to prevent trigger storms (e.g. visibilitychange + focus on resume)
     this.pendingLifecycleEvents.push({ type, trigger, reason, payload });
     
@@ -690,10 +705,8 @@ class StartupCoordinatorClass {
       const isUpdating = ![
         'IDLE',
         'NO_UPDATE_AVAILABLE',
-        'UPDATE_AVAILABLE',
         'INSTALL_FAILED',
         'INSTALL_CANCELLED',
-        'RECOVERY',
       ].includes(otaState);
       if (isUpdating) {
         console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck: updater is active (state: ${otaState})`);

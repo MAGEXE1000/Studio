@@ -743,29 +743,40 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     'FETCH_REMOTE_METADATA',
     'VALIDATE_METADATA',
     'COMPARE_VERSION',
+    'UPDATE_AVAILABLE',
     'NO_UPDATE_AVAILABLE'
   ];
 
-  if (!isValid) {
-    if (downloadInstallStates.includes(current) && checkInitStates.includes(state)) {
-      console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] Illegal transition blocked: ${current} -> ${state} (Reason: ${reason}). Keeping current state.`);
+  // ==================================================
+  // FSM HARD GUARANTEE
+  // ==================================================
+  // While an installation session is active, NO transition may move the FSM to
+  // IDLE, NO_UPDATE_AVAILABLE, or UPDATE_AVAILABLE unless explicitly closed.
+  if (downloadInstallStates.includes(current) || isPostInstallSessionActive()) {
+    if (state === 'IDLE' || state === 'NO_UPDATE_AVAILABLE' || state === 'UPDATE_AVAILABLE') {
+      console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] FSM Hard Guarantee Violation: Blocked attempt to transition from ${current} to ${state} while an installation session is active. Reason: ${reason}`);
       rejectedTransitions.push({
         from: current,
         attempted: state,
-        reason: `ILLEGAL_INSTALL_TO_CHECK: ${reason}`,
+        reason: `FSM_HARD_GUARANTEE_VIOLATION: ${reason}`,
         timestamp: now
       });
       state = current;
-    } else {
-      console.warn(`[UPDATE STATE WARNING] Invalid transition: ${current} -> ${state} (Reason: ${reason}). Resetting to IDLE.`);
-      rejectedTransitions.push({
-        from: current,
-        attempted: state,
-        reason: reason,
-        timestamp: now
-      });
-      state = 'IDLE';
+      isValid = true; // We intercepted it; treat the preservation of current state as the final resolution
     }
+  }
+
+  if (!isValid) {
+    console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] Invalid transition blocked: ${current} -> ${state} (Reason: ${reason}). Keeping current state.`);
+    rejectedTransitions.push({
+      from: current,
+      attempted: state,
+      reason: `INVALID_TRANSITION_BLOCKED: ${reason}`,
+      timestamp: now
+    });
+    // DESTRUCTIVE FALLBACK REMOVED.
+    // Invalid transitions must NEVER destroy active session state.
+    state = current;
   }
 
   let caller = 'Unknown';

@@ -60,11 +60,10 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Native Android OTA instrumentation logging.",
-      "Flight recorder categorized events (NATIVE, LIFECYCLE, PIPELINE, STATE).",
-      "FSM transition instrumentation tracking.",
+      "Fixed recursive logging loop in native Android OTA instrumentation.",
+      "Ensured strict unidirectional logging flow without re-entrant native calls.",
     ],
   },
 ];

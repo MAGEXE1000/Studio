@@ -12,6 +12,11 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.26
+
+### Fixed
+- Fixed recursive logging loop in native Android OTA instrumentation.
+- Ensured strict unidirectional logging flow without re-entrant native calls.
 ## 4.0.25
 
 ### Added

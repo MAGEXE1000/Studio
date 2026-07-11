@@ -15,6 +15,7 @@ export interface FlightRecorderEvent {
   error?: string | null;
   stack?: string | null;
   details?: string;
+  count?: number; // Repetition aggregator
 }
 
 const STORAGE_KEY = 'studio:updater_flight_recorder_events';
@@ -68,6 +69,23 @@ export class UpdaterFlightRecorder {
       timestamp: event.timestamp || Date.now(),
       ...event
     };
+
+    // Compress consecutive identical entries to prevent excessive log size & noise
+    const lastEvent = this.events[this.events.length - 1];
+    if (lastEvent &&
+        lastEvent.eventType === fullEvent.eventType &&
+        lastEvent.newState === fullEvent.newState &&
+        lastEvent.previousState === fullEvent.previousState &&
+        lastEvent.caller === fullEvent.caller &&
+        lastEvent.error === fullEvent.error &&
+        lastEvent.warning === fullEvent.warning) {
+      lastEvent.count = (lastEvent.count || 1) + 1;
+      lastEvent.timestamp = fullEvent.timestamp;
+      lastEvent.reason = `${fullEvent.reason || ''} (Repeated ${lastEvent.count} times)`;
+      this.save();
+      return;
+    }
+
     this.events.push(fullEvent);
     this.prune();
     this.save();

@@ -56,7 +56,7 @@ const isUpdateInProgress = (state: string) => {
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
     'INSTALLING',
-    ...(isSim ? [] : ['INSTALL_SUCCESS'])
+    'INSTALL_SUCCESS'
   ].includes(state);
 };
 

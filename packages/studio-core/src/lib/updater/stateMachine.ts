@@ -499,12 +499,20 @@ export const MAX_CONSECUTIVE_FAILURES = 5;
  */
 export function updateGlobalState(patch: Partial<CentralizedOtaState>) {
   if (patch.progress !== undefined && globalOtaState.updateState === 'DOWNLOAD_APK') {
-    const prevPct = Math.round(globalOtaState.progress * 10);
-    const currPct = Math.round(patch.progress * 10);
+    const prevPct = Math.round(globalOtaState.progress * 20);
+    const currPct = Math.round(patch.progress * 20);
     if (prevPct !== currPct) {
       if (typeof (window as any).logDiagnosticEvent === 'function') {
         (window as any).logDiagnosticEvent('DOWNLOAD_PROGRESS', { progress: patch.progress });
       }
+      UpdaterFlightRecorder.record({
+        thread: 'js',
+        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+        eventType: 'downloadProgress',
+        caller: 'updateGlobalState',
+        reason: `Download progress: ${Math.round(patch.progress * 100)}%`
+      });
     }
   }
 

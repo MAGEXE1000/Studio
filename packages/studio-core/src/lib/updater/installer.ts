@@ -1,6 +1,10 @@
 import { AppInstaller } from '../apkDownloader';
 
 export async function triggerNativeInstall(filePath: string): Promise<any> {
+  if (filePath.includes('mock') || filePath.includes('simulated') || (typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true')) {
+    console.warn('[PackageInstaller] Rejecting native install for mock/simulated path:', filePath);
+    throw new Error('[Simulation Guard] Blocked native install for simulated path');
+  }
   try {
     const res = await AppInstaller.installApk({ filePath });
     return res;

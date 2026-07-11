@@ -415,7 +415,7 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
   );
 };
 
-interface CopyDropdownProps {
+export interface CopyDropdownProps {
   moduleName: string;
   activeTab: string;
   onCopySuccess: (msg: string) => void;
@@ -423,16 +423,18 @@ interface CopyDropdownProps {
   nativeInstallerDetails: any;
   localApkDetails: any;
   nativeLogsList: any[];
+  title?: string;
 }
 
-const CopyDropdown = ({
+export const CopyDropdown = ({
   moduleName,
   activeTab,
   onCopySuccess,
   nativeDeviceInfo,
   nativeInstallerDetails,
   localApkDetails,
-  nativeLogsList
+  nativeLogsList,
+  title
 }: CopyDropdownProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement | null>(null);
@@ -529,7 +531,7 @@ const CopyDropdown = ({
         }}
       >
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>content_copy</span>
-        <span>Copy Diagnostics</span>
+        <span>{title || 'Copy Diagnostics'}</span>
         <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
           {isOpen ? 'expand_less' : 'expand_more'}
         </span>

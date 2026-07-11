@@ -1816,6 +1816,20 @@ export function initializeGlobalOtaListeners() {
         activeInstallPromiseResolver = null;
         activeInstallPromiseRejecter = null;
       }
+      
+      if (isSimulationActive()) {
+        setTimeout(() => {
+          transitionToState('IDLE', 'Simulation completed successfully');
+          updateGlobalState({
+            statusText: 'Pipeline completed',
+            remoteVersion: APP_VERSION,
+            updateAvailable: false
+          });
+          try {
+            localStorage.removeItem('studio:is_simulation_active');
+          } catch (_) {}
+        }, 2000);
+      }
     } else if (status === 3) {
       logTimelineEvent('NativeInstaller', 'INSTALL_CANCELLED', 'User cancelled installation');
       transitionToState('INSTALL_CANCELLED', 'User cancelled installation');

@@ -7,6 +7,7 @@ import {
   AppInstaller,
   checkForUpdate,
   applyUpdate,
+  downloadUpdate,
   globalOtaState,
   stateListeners,
   activeUpdateSession,
@@ -50,6 +51,17 @@ export default function SimulationLab({
       if (updaterSimulation.runWorkflowActive && newState.updateState === 'UPDATE_AVAILABLE') {
         setTimeout(() => {
           if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'UPDATE_AVAILABLE') {
+            addJsLog('[Simulate Workflow] Auto-triggering downloadUpdate...');
+            downloadUpdate('Simulation: Run Workflow').catch((e) => {
+              console.error('Simulated downloadUpdate failed:', e);
+            });
+          }
+        }, 1500);
+      }
+
+      if (updaterSimulation.runWorkflowActive && newState.updateState === 'WAITING_USER_CONFIRMATION') {
+        setTimeout(() => {
+          if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'WAITING_USER_CONFIRMATION') {
             addJsLog('[Simulate Workflow] Auto-triggering applyUpdate...');
             applyUpdate('Simulation: Run Workflow').catch((e) => {
               console.error('Simulated applyUpdate failed:', e);

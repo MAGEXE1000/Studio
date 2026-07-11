@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.20"
-$VersionCode = "246"
-$ReleaseNote = "v4.0.20 - Redesigned diagnostics dashboard into a high-density, professional engineering console with collapsible sections and lazy rendering."
+$VersionName = "4.0.21"
+$VersionCode = "247"
+$ReleaseNote = "v4.0.21 - Refinement pass aligning diagnostics dashboard header, dashboard cards, layout and typography with Developer Options, adding simulation safety guards and correcting workflow simulation auto-progressions."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

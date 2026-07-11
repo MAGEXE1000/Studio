@@ -26,6 +26,7 @@ import {
   triggerSimulatedStatus,
   resetOtaUpdateState,
   applyUpdate,
+  downloadUpdate,
   checkForUpdate,
   stateListeners,
   UpdaterFlightRecorder,
@@ -36,12 +37,14 @@ import {
   PerformanceProfiler,
   isInstallationLocked,
   isPostInstallSessionActive,
-  shouldUseAndroidApkUpdater
+  shouldUseAndroidApkUpdater,
+  useIsWebDesktop
 } from '@workspace/studio-core';
 import TelemetryGrid from './TelemetryGrid';
 import ProductionActions from './ProductionActions';
 import LiveConsole from './LiveConsole';
 import DiagnosticsStack from './DiagnosticsStack';
+import { CopyDropdown } from '../devtools/DevToolsDashboard';
 import SimulationLab from './SimulationLab';
 import StateMachineVisualizer from './StateMachineVisualizer';
 import ReportPreview from './ReportPreview';
@@ -107,6 +110,17 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
       if (updaterSimulation.runWorkflowActive && newState.updateState === 'UPDATE_AVAILABLE') {
         setTimeout(() => {
           if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'UPDATE_AVAILABLE') {
+            addJsLog('[Simulate Workflow] Auto-triggering downloadUpdate...');
+            downloadUpdate('Simulation: Run Workflow').catch((e) => {
+              console.error('Simulated downloadUpdate failed:', e);
+            });
+          }
+        }, 1500);
+      }
+
+      if (updaterSimulation.runWorkflowActive && newState.updateState === 'WAITING_USER_CONFIRMATION') {
+        setTimeout(() => {
+          if (updaterSimulation.runWorkflowActive && globalOtaState.updateState === 'WAITING_USER_CONFIRMATION') {
             addJsLog('[Simulate Workflow] Auto-triggering applyUpdate...');
             applyUpdate('Simulation: Run Workflow').catch((e) => {
               console.error('Simulated applyUpdate failed:', e);
@@ -593,74 +607,196 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const errorCount = getErrors()?.length || 0;
   const warningCount = getLogs()?.filter(l => l.level === 'warn').length || 0;
 
-  return (
-    <div ref={scrollRef} className="bg-[#000000] text-[#e7e5e4] h-full overflow-y-auto overflow-x-hidden relative flex flex-col font-body">
-      
-      {/* Sticky Premium Engineering Header */}
-      <header className="w-full sticky top-0 z-50 bg-[#000000]/90 border-b border-[#484848]/25 backdrop-blur-md flex flex-col select-none px-6 pt-4 pb-3">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={onBack}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors outline-none cursor-pointer border-none bg-transparent"
-            >
-              <span className="material-symbols-outlined text-[#e7e5e4] text-lg">arrow_back</span>
-            </button>
-            <div>
-              <h1 className="text-md font-bold text-[#e7e5e4] tracking-tight font-headline uppercase font-mono">Updater Console</h1>
-            </div>
-          </div>
+  const isWebDesktop = useIsWebDesktop();
 
+  return (
+    <div ref={scrollRef} style={{ background: '#000', color: 'var(--c-text-primary, #fff)', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }} className="h-full overflow-y-auto overflow-x-hidden relative flex flex-col">
+      <style>{`
+        @media (min-width: 768px) {
+          .dev-grid-4col {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
+
+      {/* Reused SubView Header styling from DevToolsDashboard */}
+      <header
+        style={{
+          padding: isWebDesktop ? '16px 24px' : '12px 16px',
+          borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'var(--app-surface-low, #131313)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
           <button
-            onClick={handleCopyEverything}
-            className="flex items-center gap-1.5 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer shadow-sm"
+            onClick={() => {
+              console.log("BUTTON PRESSED:\nBack to Developer Panel");
+              addJsLog("BUTTON PRESSED:\nBack to Developer Panel");
+              onBack();
+            }}
+            className="btn-smooth"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: 'none',
+              borderRadius: '999px',
+              width: 36,
+              height: 36,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'var(--studio-accent-from, #679cff)',
+              transition: 'all 0.15s ease'
+            }}
           >
-            <span className="material-symbols-outlined text-xs">content_copy</span>
-            <span>Copy Everything</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
           </button>
+          <div>
+            <h1 style={{ margin: 0, fontSize: isWebDesktop ? '20px' : '15px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Updater Diagnostics</h1>
+            <p style={{ margin: '2px 0 0', fontSize: isWebDesktop ? '12px' : '10px', color: 'rgba(255,255,255,0.4)' }}>OTA Updates &amp; Diagnostics</p>
+          </div>
         </div>
 
-        {/* Console stats strip - containing ONLY requested items */}
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-4 mt-4 pt-3 border-t border-[#484848]/15 text-[10px] uppercase font-bold tracking-wider font-mono">
-          <div>
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Local Ver</span>
-            <span className="text-white text-xs leading-none">{APP_VERSION}</span>
-          </div>
-          <div>
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Latest Rel</span>
-            <span className="text-white text-xs leading-none">{otaState.remoteVersion || 'N/A'}</span>
-          </div>
-          <div className="col-span-1 sm:col-span-1">
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">FSM State</span>
-            <span className="text-[#c084fc] text-xs leading-none truncate block">{otaState.updateState}</span>
-          </div>
-          <div className="col-span-1 sm:col-span-1">
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">PkgInstaller</span>
-            <span className="text-white text-xs leading-none truncate block">{nativeInstallerDetails?.sessionState || 'IDLE'}</span>
-          </div>
-          <div>
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Active Session</span>
-            <span className={isUpdateSessionActive() ? 'text-green-400 text-xs leading-none' : 'text-zinc-500 text-xs leading-none'}>
-              {isUpdateSessionActive() ? 'ACTIVE' : 'INACTIVE'}
-            </span>
-          </div>
-          <div>
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Errors</span>
-            <span className={errorCount > 0 ? 'text-red-400 text-xs leading-none font-black' : 'text-white text-xs leading-none'}>
-              {errorCount}
-            </span>
-          </div>
-          <div>
-            <span className="block text-zinc-500 text-[8px] font-medium leading-none mb-1">Warnings</span>
-            <span className={warningCount > 0 ? 'text-yellow-400 text-xs leading-none font-black' : 'text-white text-xs leading-none'}>
-              {warningCount}
-            </span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <CopyDropdown
+            moduleName="Updater"
+            activeTab="overview"
+            onCopySuccess={(msg) => showToast(msg)}
+            nativeDeviceInfo={nativeDeviceInfo}
+            nativeInstallerDetails={nativeInstallerDetails}
+            localApkDetails={localApkDetails}
+            nativeLogsList={nativeLogsList}
+            title="Copy Everything"
+          />
+          {isWebDesktop && (
+            <button
+              onClick={() => {
+                console.log("BUTTON PRESSED:\nBack to Developer Panel");
+                addJsLog("BUTTON PRESSED:\nBack to Developer Panel");
+                onBack();
+              }}
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.6)',
+                cursor: 'pointer',
+                fontSize: '11px',
+                fontWeight: 700,
+                transition: 'all 0.15s ease',
+                fontFamily: "'Outfit', 'Inter', sans-serif"
+              }}
+            >
+              Back
+            </button>
+          )}
         </div>
       </header>
 
       {/* Main Collapsible Sections */}
-      <main className="px-6 max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 flex flex-col">
+      <main className="max-w-4xl w-full mx-auto space-y-4 pt-6 pb-[calc(var(--content-bottom-pad,96px)+20px)] flex-1 flex flex-col">
+        
+        {/* System Health Dashboard Cards Section */}
+        <div style={{ padding: '0 20px', marginTop: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <h2 style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--c-text-secondary, rgba(255,255,255,0.6))', margin: 0, fontFamily: "'Outfit', 'Inter', sans-serif" }}>System Health</h2>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 12,
+          }} className="dev-grid-4col">
+            {/* App Version */}
+            <div style={{
+              background: 'var(--app-surface-high, #1c1c1e)',
+              borderRadius: 16,
+              padding: 16,
+              border: '1px solid rgba(128, 128, 128, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>terminal</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>App Version</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary, #fff)', fontFamily: "'Outfit', 'Inter', sans-serif" }}>v{APP_VERSION}</div>
+            </div>
+
+            {/* Android */}
+            <div style={{
+              background: 'var(--app-surface-high, #1c1c1e)',
+              borderRadius: 16,
+              padding: 16,
+              border: '1px solid rgba(128, 128, 128, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>android</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>Android</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary, #fff)', fontFamily: "'Outfit', 'Inter', sans-serif" }}>{otaDiagnostics?.androidVersion || '14.0'}</div>
+            </div>
+
+            {/* Alerts */}
+            <div style={{
+              background: 'var(--app-surface-high, #1c1c1e)',
+              borderRadius: 16,
+              padding: 16,
+              border: '1px solid rgba(128, 128, 128, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>report_problem</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>Alerts</span>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, display: 'flex', gap: 6, fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+                <span style={{ color: errorCount > 0 ? 'var(--studio-error, #ee7d77)' : 'var(--c-text-primary, #fff)' }}>{errorCount} E</span>
+                <span style={{ color: 'var(--c-text-secondary, rgba(255,255,255,0.6))', opacity: 0.5 }}>/</span>
+                <span style={{ color: warningCount > 0 ? '#fb923c' : 'var(--c-text-primary, #fff)' }}>{warningCount} W</span>
+              </div>
+            </div>
+
+            {/* Status */}
+            <div style={{
+              background: 'var(--app-surface-high, #1c1c1e)',
+              borderRadius: 16,
+              padding: 16,
+              border: '1px solid rgba(128, 128, 128, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text-secondary, rgba(255,255,255,0.6))' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>published_with_changes</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Outfit', 'Inter', sans-serif" }}>Status</span>
+              </div>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 800,
+                color: 'var(--studio-accent-from, #679cff)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontFamily: "'Outfit', 'Inter', sans-serif"
+              }}>{otaState.updateState}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: '0 20px' }} className="space-y-4">
         
         {/* 1. WORKFLOW TESTING COLLAPSIBLE */}
         <div className="bg-[#1c1c1e]/60 border border-[#484848]/15 rounded-2xl overflow-hidden transition-all duration-300">
@@ -1167,6 +1303,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
             )}
           </div>
         </div>
+      </div>
 
       </main>
 

@@ -150,9 +150,6 @@ public class AppInstallerPlugin extends Plugin {
         );
         
         Log.d("INSTRUMENTATION", "NATIVE: " + methodName + " " + message);
-        if (context != null) {
-            InstallReceiver.appendLog(context, "[INSTRUMENTATION] " + methodName, 0, message, context.getPackageName(), stackTraceStr);
-        }
 
         try {
             if (AppInstallerPlugin.instance != null) {

@@ -1,20 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.56",
-  "versionName": "4.0.56",
-  "versionCode": 40056,
-  "version_code": 40056,
-  "commit": "604a8567",
-  "releasedAt": "7/12/2026, 4:43:20 PM CST",
-  "buildTimestamp": "7/12/2026, 4:43:20 PM CST",
+  "version": "4.0.57",
+  "versionName": "4.0.57",
+  "versionCode": 40057,
+  "version_code": 40057,
+  "commit": "ccc4c3f6",
+  "releasedAt": "7/12/2026, 5:03:14 PM CST",
+  "buildTimestamp": "7/12/2026, 5:03:14 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.\n• Eliminated BackDispatcher handler churn (unregister/register loops).\n• Hardened performance diagnostics to accurately report render, paint, and layout counts.",
-  "whatsNew": "• Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.\n• Eliminated BackDispatcher handler churn (unregister/register loops).\n• Hardened performance diagnostics to accurately report render, paint, and layout counts.",
+  "changelog": "• Fixed release pipeline failure by committing untracked diagnostic tools.",
+  "whatsNew": "• Fixed release pipeline failure by committing untracked diagnostic tools.",
   "releaseNotes": {
     "fixed": [
-      "Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.",
-      "Eliminated BackDispatcher handler churn (unregister/register loops).",
-      "Hardened performance diagnostics to accurately report render, paint, and layout counts."
+      "Fixed release pipeline failure by committing untracked diagnostic tools."
     ]
   },
   "mandatory": false

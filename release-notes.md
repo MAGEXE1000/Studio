@@ -1,2 +1,2 @@
 ### Added
-- Native persistent forensic logging.
+- Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)

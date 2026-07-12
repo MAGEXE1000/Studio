@@ -9,8 +9,9 @@ import {
   StagexPanelSkeleton,
   WebToolbar,
   WebButton,
-  SharedNavigationContainer
+  StagexLogoIcon
 } from '@workspace/ui-shared';
+import { SharedNavigationContainer } from '@workspace/ui-shared/src/navigation/SharedNavigationContainer';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 

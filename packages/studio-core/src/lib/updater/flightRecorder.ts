@@ -203,7 +203,8 @@ export class UpdaterFlightRecorder {
 
     if (typeof window !== 'undefined' && (window as any).NativeForensicLogger) {
       try {
-        (window as any).NativeForensicLogger.log(logMsg);
+        (window as any).NativeForensicLogger.log(fullEvent.category || 'UNKNOWN', logMsg);
+        (window as any).NativeForensicLogger.logJson(JSON.stringify(fullEvent));
       } catch (e) {}
     }
   }

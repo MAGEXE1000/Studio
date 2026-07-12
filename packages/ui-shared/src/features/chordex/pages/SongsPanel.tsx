@@ -1,5 +1,5 @@
 import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity, useNavigationStore } from '@workspace/studio-core';
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../components/lottie/SuccessLottie';
@@ -2425,7 +2425,7 @@ function PresetForm({ initial, onSave, onCancel, accent }: { initial?: FormData;
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Main SongsPanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const ITEM_H = 76;
 
-const PresetCard = React.memo(function PresetCard({
+const PresetCard = memo(function PresetCard({
   preset, accent, t, setActivePreset, setShowLive, setExportModal, setEditingId, setShowForm, setShowDeleteId
 }: {
   preset: SongPreset;

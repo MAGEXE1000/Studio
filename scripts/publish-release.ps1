@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.52"
-$VersionCode = "40052"
-$ReleaseNote = "v4.0.52 - Add Native persistent forensic logger."
+$VersionName = "4.0.53"
+$VersionCode = "40053"
+$ReleaseNote = "v4.0.53 - Add Permanent Native Forensic Diagnostics System"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -16,9 +16,9 @@ node apps/studio-android/scripts/sync-version.mjs
 node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
-git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/studio-core/src/lib/startup/startupCoordinator.ts
 git add packages/studio-core/src/lib/updater/flightRecorder.ts
+git add apps/studio-android/src/EmergencyDebugOverlay.tsx
 git add apps/studio-android/package.json
 git add apps/studio-android/android/app/src/main/java/com/chordex/app/ForensicLogger.java
 git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainApplication.java

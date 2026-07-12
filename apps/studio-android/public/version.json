@@ -1,18 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.52",
-  "versionName": "4.0.52",
-  "versionCode": 40052,
-  "version_code": 40052,
-  "commit": "d25b32b4",
-  "releasedAt": "7/12/2026, 12:32:54 PM CST",
-  "buildTimestamp": "7/12/2026, 12:32:54 PM CST",
+  "version": "4.0.53",
+  "versionName": "4.0.53",
+  "versionCode": 40053,
+  "version_code": 40053,
+  "commit": "b613232e",
+  "releasedAt": "7/12/2026, 12:55:24 PM CST",
+  "buildTimestamp": "7/12/2026, 12:55:24 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Native persistent forensic logging.",
-  "whatsNew": "• Native persistent forensic logging.",
+  "changelog": "• Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)",
+  "whatsNew": "• Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)",
   "releaseNotes": {
     "added": [
-      "Native persistent forensic logging."
+      "Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)"
     ]
   },
   "mandatory": false

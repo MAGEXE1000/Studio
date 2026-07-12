@@ -20,7 +20,7 @@ export const TIME_GREETING_ES: Record<TimeWord, string> = { morning: 'Buenos dí
 export const _INDEX_KEY = 'sx_idx';
 let _cachedIdx: number | null = null;
 
-function getSessionIndex(): number {
+export function getSessionIndex(): number {
   if (_cachedIdx !== null) return _cachedIdx;
   const prev = parseInt(localStorage.getItem(_INDEX_KEY) ?? '-1', 10);
   _cachedIdx = prev + 1;

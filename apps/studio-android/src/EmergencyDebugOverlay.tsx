@@ -765,6 +765,36 @@ export default function EmergencyDebugOverlay() {
     }
   };
 
+  const exportNativeFile = async (type: string) => {
+    if (typeof window !== 'undefined' && (window as any).NativeForensicLogger) {
+      try {
+        let path = '';
+        if (type === 'zip') {
+          path = (window as any).NativeForensicLogger.exportZip();
+        } else {
+          path = (window as any).NativeForensicLogger.getLatestFilePath(type);
+        }
+        if (path) {
+          if (typeof window !== 'undefined' && (window as any).Capacitor && (window as any).Capacitor.Plugins && (window as any).Capacitor.Plugins.Share) {
+            await (window as any).Capacitor.Plugins.Share.share({ url: path });
+          } else {
+            setToastMsg(`Saved to: ${path}`);
+            setTimeout(() => setToastMsg(null), 3000);
+          }
+        } else {
+          setToastMsg(`No ${type} file found.`);
+          setTimeout(() => setToastMsg(null), 3000);
+        }
+      } catch (e) {
+        setToastMsg(`Error: ${e}`);
+        setTimeout(() => setToastMsg(null), 3000);
+      }
+    } else {
+      setToastMsg('Native Forensic Logger not available');
+      setTimeout(() => setToastMsg(null), 3000);
+    }
+  };
+
   // ── COPY DIAGNOSTIC ACTIONS ──────────────────────────────────────────────
   const copyEverything = () => {
     const payload = {
@@ -3510,6 +3540,14 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
             <button onClick={copyLastCapture} style={panicMenuItemStyle}>📸 Capture</button>
             <button onClick={copyOverlayHealth} style={panicMenuItemStyle}>❤️ Health</button>
           </div>
+
+          <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#9ca3af', marginTop: '6px', marginBottom: '4px', textAlign: 'center', borderTop: '1px solid #374151', paddingTop: '6px' }}>
+            NATIVE FORENSICS
+          </div>
+          <button onClick={() => exportNativeFile('startup')} style={{ ...panicMenuItemStyle, marginBottom: '4px', background: 'rgba(56, 189, 248, 0.2)', borderColor: 'rgb(56, 189, 248)' }}>📁 Export Startup Log</button>
+          <button onClick={() => exportNativeFile('crash')} style={{ ...panicMenuItemStyle, marginBottom: '4px', background: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgb(239, 68, 68)' }}>📁 Export Crash Report</button>
+          <button onClick={() => exportNativeFile('update')} style={{ ...panicMenuItemStyle, marginBottom: '4px', background: 'rgba(168, 85, 247, 0.2)', borderColor: 'rgb(168, 85, 247)' }}>📁 Export Updater Report</button>
+          <button onClick={() => exportNativeFile('zip')} style={{ ...panicMenuItemStyle, marginBottom: '4px', background: 'rgba(16, 185, 129, 0.2)', borderColor: 'rgb(16, 185, 129)' }}>🗜️ Export All ZIP</button>
 
           <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#9ca3af', marginTop: '6px', marginBottom: '4px', textAlign: 'center', borderTop: '1px solid #374151', paddingTop: '6px' }}>
             RECOVERY & TOOLS

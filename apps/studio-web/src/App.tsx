@@ -40,8 +40,8 @@ import {
   VocalexApp,
   StageCorePanel,
   ErrorBoundary,
-  SharedNavigationContainer,
-  ScreenScaffold
+  ScreenScaffold,
+  WebAppSectionDock
 } from '@workspace/ui-shared';
 
 import {
@@ -49,9 +49,9 @@ import {
   SidebarProvider,
   SidebarInset,
   useSidebar,
-  WebAppSectionDock,
   StudioLandingPage
 } from '@workspace/ui-web';
+import { SharedNavigationContainer } from '@workspace/ui-shared/src/navigation/SharedNavigationContainer';
 
 import "./index.css";
 

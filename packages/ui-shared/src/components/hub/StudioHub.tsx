@@ -31,8 +31,8 @@ const AccountSettingsPage = lazy(() =>
 );
 const DevToolsDashboard = lazy(() => import('../DevToolsDashboard'));
 
-import { HubTab, HelpPageId, TargetApp, THEME_OPTIONS, TimeWord, TIME_GREETING_ES, GreetingPair, _NAMED_PAIRS_EN, _NAMED_PAIRS_ES, _ANON_PAIRS_EN, _ANON_PAIRS_ES, Theme } from './hubConstants';
-import { FAQ_ITEMS } from './faqConstants';
+import { HubTab, HelpPageId, TargetApp, THEME_OPTIONS, TimeWord, TIME_GREETING_ES, GreetingPair, _NAMED_PAIRS_EN, _NAMED_PAIRS_ES, _ANON_PAIRS_EN, _ANON_PAIRS_ES, getSessionIndex } from './hubConstants';
+import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
 
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
   const h = new Date().getHours();

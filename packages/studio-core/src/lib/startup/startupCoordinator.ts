@@ -858,6 +858,11 @@ class StartupCoordinatorClass {
 
   private triggerRecovery(reason: string) {
     console.error(`[Watchdog] Triggering startup recovery. Reason: ${reason}`);
+    if (typeof window !== 'undefined' && (window as any).NativeForensicLogger) {
+      try {
+        (window as any).NativeForensicLogger.exportCurrentSession(`Startup watchdog recovery: ${reason}`);
+      } catch (e) {}
+    }
     this.restart(`Watchdog recovery: ${reason}`);
   }
 

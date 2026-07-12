@@ -95,13 +95,13 @@ export async function initSoundTouch(engine: AudioEngine): Promise<void> {
     await workletRegistering;
     workletRegistered = true;
   }
-  const stNode = new SoundTouchNode({ context: ctx });
+  const stNode = new SoundTouchNode(ctx);
   engine.masterGain.disconnect(engine.scrubFilter);
   engine.masterGain.connect(stNode);
   stNode.connect(engine.scrubFilter);
   engine.stNode = stNode;
 
-  const stNodeDrums = new SoundTouchNode({ context: ctx });
+  const stNodeDrums = new SoundTouchNode(ctx);
   engine.drumBus.disconnect(engine.scrubFilter);
   engine.drumBus.connect(stNodeDrums);
   stNodeDrums.connect(engine.scrubFilter);

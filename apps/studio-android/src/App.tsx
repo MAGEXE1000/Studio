@@ -32,7 +32,8 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer } from '@workspace/ui-shared';
+import { SubAppScaffold, ScreenScaffold } from '@workspace/ui-shared';
+import { SharedNavigationContainer } from '@workspace/ui-shared/src/navigation/SharedNavigationContainer';
 import {
   ChordexLogo,
   DrumexLogo,

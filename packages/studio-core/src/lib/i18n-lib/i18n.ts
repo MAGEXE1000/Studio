@@ -91,6 +91,6 @@ type WidenStrings<T> =
   T;
 type DeepPartial<T> = T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 
-export const partialOverrides: { [K in Language]?: DeepPartial<WidenStrings<Translations>> } = translations;
+const partialOverrides: { [K in Language]?: DeepPartial<WidenStrings<Translations>> } = translations;
 
 export default translations;

@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.30",
-  "versionName": "4.0.30",
-  "versionCode": 40030,
-  "version_code": 40030,
-  "commit": "4e1f0801",
-  "releasedAt": "7/11/2026, 10:21:00 PM CST",
-  "buildTimestamp": "7/11/2026, 10:21:00 PM CST",
+  "version": "4.0.33",
+  "versionName": "4.0.33",
+  "versionCode": 40033,
+  "version_code": 40033,
+  "commit": "64933438",
+  "releasedAt": "7/12/2026, 12:19:54 AM CST",
+  "buildTimestamp": "7/12/2026, 12:19:54 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Complete SDK modernization verification release.\n• Validated compatibility of Capacitor 8, Android SDK 35, AGP 8.8.0, and Gradle 8.12.\n• Verified zero native compilation warnings under JDK 21.",
-  "whatsNew": "• Complete SDK modernization verification release.\n• Validated compatibility of Capacitor 8, Android SDK 35, AGP 8.8.0, and Gradle 8.12.\n• Verified zero native compilation warnings under JDK 21.",
+  "changelog": "• Architecture and tech debt reduction pass.\n• Removed dead code and unused exports.\n• Resolved circular dependencies.\n• Extracted constants from massive UI components.",
+  "whatsNew": "• Architecture and tech debt reduction pass.\n• Removed dead code and unused exports.\n• Resolved circular dependencies.\n• Extracted constants from massive UI components.",
   "releaseNotes": {
     "added": [
-      "Complete SDK modernization verification release.",
-      "Validated compatibility of Capacitor 8, Android SDK 35, AGP 8.8.0, and Gradle 8.12.",
-      "Verified zero native compilation warnings under JDK 21."
+      "Architecture and tech debt reduction pass.",
+      "Removed dead code and unused exports.",
+      "Resolved circular dependencies.",
+      "Extracted constants from massive UI components."
     ]
   },
   "mandatory": false

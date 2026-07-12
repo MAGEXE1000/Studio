@@ -1,4 +1,14 @@
-import { type Genre } from './progressions';
+export type Genre =
+  | 'english-rock'
+  | 'spanish-rock'
+  | 'yacht-rock'
+  | 'blues'
+  | 'jazz'
+  | 'pop'
+  | 'folk'
+  | 'latin'
+  | 'hard-rock'
+  | 'r-and-b';
 
 export interface ChordMarker {
   chord: string;

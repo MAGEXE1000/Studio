@@ -358,7 +358,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
     const res = await AppInstaller.verifySha256({ filePath, expectedHash });
     console.log(`[apkDownloader] Native SHA-256 verification matches: ${res.matches}, computed: ${res.computedHash}`);
     try {
-      const { otaDebugLogs } = await import('../otaUpdate');
+      const { otaDebugLogs } = await import('../updater/diagnostics');
       otaDebugLogs.downloadedApkSha256 = res.computedHash;
     } catch {}
     console.log(`[INSTRUMENTATION] [JS] verifyApkSha256 EXIT matches=${res.matches}`);
@@ -368,7 +368,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
     console.error('[apkDownloader] Native verifySha256 failed, falling back to JS implementation:', err);
     // Write error to otaDebugLogs if possible
     try {
-      const { otaDebugLogs } = await import('../otaUpdate');
+      const { otaDebugLogs } = await import('../updater/diagnostics');
       const errMsg = err instanceof Error ? err.message : String(err);
       otaDebugLogs.installError = `Native verifySha256 failed: ${errMsg}`;
       otaDebugLogs.downloadedApkSha256 = `ERROR: Native verifySha256 failed - ${errMsg}`;
@@ -384,7 +384,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
       if (!base64Data) {
         console.warn('[apkDownloader] Empty file content read for hash verification.');
         try {
-          const { otaDebugLogs } = await import('../otaUpdate');
+          const { otaDebugLogs } = await import('../updater/diagnostics');
           otaDebugLogs.downloadedApkSha256 = 'ERROR: Empty file read';
         } catch {}
         return false;
@@ -401,7 +401,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       
       try {
-        const { otaDebugLogs } = await import('../otaUpdate');
+        const { otaDebugLogs } = await import('../updater/diagnostics');
         otaDebugLogs.downloadedApkSha256 = hashHex;
       } catch {}
       
@@ -411,7 +411,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
     } catch (jsErr) {
       console.error('[apkDownloader] JS Fallback verification failed:', jsErr);
       try {
-        const { otaDebugLogs } = await import('../otaUpdate');
+        const { otaDebugLogs } = await import('../updater/diagnostics');
         const errMsg = jsErr instanceof Error ? jsErr.message : String(jsErr);
         otaDebugLogs.installError += `\nJS Fallback failed: ${errMsg}`;
         otaDebugLogs.downloadedApkSha256 = `ERROR: JS Fallback failed - ${errMsg}`;

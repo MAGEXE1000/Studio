@@ -1,17 +1,7 @@
-export type Genre =
-  | 'english-rock'
-  | 'spanish-rock'
-  | 'yacht-rock'
-  | 'blues'
-  | 'jazz'
-  | 'pop'
-  | 'folk'
-  | 'latin'
-  | 'hard-rock'
-  | 'r-and-b';
 
-import { type SongChart, ENJAMBRE_SONGS, type SongChartSection } from './songs';
-export type { ChordMarker, LyricsLine, SongChartSection, SongChart } from './songs';
+
+import { type SongChart, ENJAMBRE_SONGS, type SongChartSection, type Genre } from './songs';
+export type { ChordMarker, LyricsLine, SongChartSection, SongChart, Genre } from './songs';
 
 export interface SongProgression {
   id: string;

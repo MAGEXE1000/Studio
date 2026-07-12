@@ -16,7 +16,7 @@
  *     · Shimmer overlay on the indicator (preserved from original)
  */
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { motion } from 'motion/react';
 import type { MotionProps, Transition } from 'motion/react';
 
@@ -48,8 +48,9 @@ function ProgressRoot({
   ...props
 }: ProgressRootProps) {
   const clamped = Math.max(0, Math.min(max, value));
+  const contextValue = useMemo(() => ({ value: clamped }), [clamped]);
   return (
-    <ProgressContext.Provider value={{ value: clamped }}>
+    <ProgressContext.Provider value={contextValue}>
       <div
         role="progressbar"
         aria-valuemin={0}

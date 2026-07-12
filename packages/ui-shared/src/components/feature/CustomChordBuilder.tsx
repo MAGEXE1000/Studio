@@ -525,7 +525,7 @@ interface Props {
 export default function CustomChordBuilder({ accent, editChord, onSave, onClose: onCloseProp, mode = 'build' }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const t = useT();
   const resolvedAccent = ACCENT_COLORS[settings.accentColor];
   const instLabels: Record<Instrument, string> = {

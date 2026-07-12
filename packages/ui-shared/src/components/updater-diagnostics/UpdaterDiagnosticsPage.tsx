@@ -40,7 +40,7 @@ interface Props {
 }
 
 export default function UpdaterDiagnosticsPage({ onBack }: Props) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const isWebDesktop = useIsWebDesktop();
 

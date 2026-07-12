@@ -151,7 +151,7 @@ function MiniLiveDiagram({ data, accentFrom }: { data: GuitarChordData; accentFr
 }
 
 export default function LiveMode({ preset, onClose, transposeOffset = 0 }: LiveModeProps) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const accent = ACCENT_COLORS[settings.accentColor];
 
   const [currentIdx, setCurrentIdx]     = useState(0);

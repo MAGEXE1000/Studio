@@ -19,7 +19,8 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
   const isWebDesktop = useIsWebDesktop();
   if (isWebDesktop) return null;
 
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const updateSettings = useChordStore(s => s.updateSettings);
   const [open, setOpen]         = useState(false);
   const [anchorY, setAnchorY]   = useState<number>(0);
   const [maxPillWidth, setMaxPillWidth] = useState(360);

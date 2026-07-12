@@ -154,7 +154,7 @@ export default function WebAppSectionDock({
   activeSection: string;
   onChangeSection: (sectionId: any) => void;
 }) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const { preferences } = useStudioPreferences();
   const t = useT();
 

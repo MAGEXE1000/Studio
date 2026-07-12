@@ -1,4 +1,4 @@
-﻿import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
+import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { SongPracticeView } from '../../../components/feature/SongPracticeView';
 import EmptyStateLottie from '../../../components/lottie/EmptyStateLottie';
@@ -11,7 +11,7 @@ import PianoDiagram from '../../../components/diagrams/PianoDiagram';
 import FourStringDiagram from '../../../components/diagrams/FourStringDiagram';
 import { WebEmptyState } from '../../../components/design-system/WebDesignSystem';
 
-function RelatedPlayBtn({ guitar, accent, isLight }: {
+const RelatedPlayBtn = React.memo(function RelatedPlayBtn({ guitar, accent, isLight }: {
   guitar: GuitarChordData;
   accent: { from: string; to: string; mid: string };
   isLight?: boolean;
@@ -46,7 +46,7 @@ function RelatedPlayBtn({ guitar, accent, isLight }: {
       }}>{playing ? 'stop' : 'play_arrow'}</span>
     </button>
   );
-}
+});
 
 // â”€â”€ Category definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CATEGORIES: {
@@ -337,7 +337,7 @@ function MiniChordPreview({ frets, baseFret = 1, barres = [], isDark = true }: {
 }
 
 // â”€â”€ Chord card (2-col grid view) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function ChordPlayBtn({ chord, accent, size = 26 }: {
+const ChordPlayBtn = React.memo(function ChordPlayBtn({ chord, accent, size = 26 }: {
   chord: NonNullable<ReturnType<typeof getChordById>>;
   accent: { from: string; to: string; mid: string };
   size?: number;
@@ -376,19 +376,20 @@ function ChordPlayBtn({ chord, accent, size = 26 }: {
       }}>{playing ? 'stop' : 'play_arrow'}</span>
     </button>
   );
-}
+});
 
-function ChordCard({
+const ChordCard = React.memo(function ChordCard({
   chord, isSelected, onClick, accent,
 }: {
   chord: NonNullable<ReturnType<typeof getChordById>>;
   isSelected: boolean;
-  onClick: () => void;
+  onClick: (id: string) => void;
   accent: { from: string; to: string; mid: string };
 }) {
+  const handleClick = useCallback(() => onClick(chord.id), [chord.id, onClick]);
   return (
-    <div role="button" tabIndex={0} onClick={onClick}
-      onKeyDown={e => e.key === 'Enter' && onClick()}
+    <div role="button" tabIndex={0} onClick={handleClick}
+      onKeyDown={e => e.key === 'Enter' && handleClick()}
       className="card-hover cursor-pointer"
       style={{
         background: isSelected ? `${accent.to}16` : 'var(--app-surface)',
@@ -427,7 +428,7 @@ function ChordCard({
       }}>{chord.notes.join(' Â· ')}</p>
     </div>
   );
-}
+});
 
 // â”€â”€ Main panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LibraryPanel() {
@@ -461,13 +462,13 @@ export default function LibraryPanel() {
   const setActiveType = useChordStore(s => s.setLibraryActiveType);
   const [chordPlaying, setChordPlaying] = useState(false);
 
-  const handleChordClick = (chordId: string) => {
+  const handleChordClick = useCallback((chordId: string) => {
     useChordStore.setState((state) => {
       const recent = [chordId, ...state.recentChords.filter(id => id !== chordId)].slice(0, 10);
       return { recentChords: recent };
     });
     selectChord(chordId);
-  };
+  }, [selectChord]);
   const { ref: recentScrollRef, fadeClass: recentFadeClass } = useScrollFade();
   const { ref: favoritesScrollRef, fadeClass: favoritesFadeClass } = useScrollFade();
   const { ref: genreScrollRef, fadeClass: genreFadeClass } = useScrollFade();
@@ -1304,7 +1305,7 @@ export default function LibraryPanel() {
                 {searchResults.map(chord => (
                   <ChordCard key={chord.id} chord={chord}
                     isSelected={selectedChordId === chord.id}
-                    onClick={() => handleChordClick(chord.id)} accent={accent} />
+                    onClick={handleChordClick} accent={accent} />
                 ))}
               </div>
             )}
@@ -1318,7 +1319,7 @@ export default function LibraryPanel() {
               {filteredByType.map(chord => (
                 <ChordCard key={chord.id} chord={chord}
                   isSelected={selectedChordId === chord.id}
-                  onClick={() => handleChordClick(chord.id)} accent={accent} />
+                  onClick={handleChordClick} accent={accent} />
               ))}
             </div>
           </div>

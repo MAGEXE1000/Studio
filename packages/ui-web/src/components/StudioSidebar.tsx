@@ -1,5 +1,5 @@
 import { useStudioPreferences } from '@workspace/studio-core';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface SidebarContextType {
@@ -43,7 +43,7 @@ export function SidebarProvider({
 
   const isMobile = false; // Strictly desktop web layout helper
 
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     setOpen(prev => {
       const next = !prev;
       try {
@@ -51,13 +51,15 @@ export function SidebarProvider({
       } catch {}
       return next;
     });
-  };
+  }, []);
 
   const state = open ? 'expanded' : 'collapsed';
   const width = open ? '240px' : '0px';
 
+  const contextValue = useMemo(() => ({ state, open, setOpen, isMobile, toggleSidebar }), [state, open, isMobile, toggleSidebar]);
+
   return (
-    <SidebarContext.Provider value={{ state, open, setOpen, isMobile, toggleSidebar }}>
+    <SidebarContext.Provider value={contextValue}>
       <div
         className={`flex w-full h-full min-h-[100dvh] overflow-hidden ${className}`}
         style={{

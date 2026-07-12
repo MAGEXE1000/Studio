@@ -241,7 +241,7 @@ export default function UpdateIndicator({
   const checkRef = useRef<HTMLDivElement | null>(null);
   const pillRef = useRef<HTMLButtonElement | null>(null);
 
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
   const isLight = (() => {
     if (hubVis.theme === 'light') return true;
@@ -958,7 +958,7 @@ function UpdateModal({
   const [linkCopied, setLinkCopied] = useState(false);
   const [showGitHubConfirm, setShowGitHubConfirm] = useState(false);
 
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
   const isLight = (() => {
     if (hubVis.theme === 'light') return true;

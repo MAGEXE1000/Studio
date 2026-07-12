@@ -7,7 +7,8 @@ import { WebSettingsSection, WebPreferenceRow } from '../components/WebDesignSys
 import { DialogScaffold } from '../components/StudioLayoutSystem';
 
 export default function SettingsPanel() {
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const updateSettings = useChordStore(s => s.updateSettings);
   const acc = ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ?? ACCENT_COLORS.blue;
 
   const scrollRef = useRef<HTMLDivElement>(null);

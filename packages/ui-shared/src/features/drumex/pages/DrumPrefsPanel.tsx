@@ -44,7 +44,8 @@ function IconPrefs({ active }: { active: boolean }) {
 }
 
 export default function DrumPrefsPanel() {
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const updateSettings = useChordStore(s => s.updateSettings);
   const { drumPrefs, updateDrumPrefs } = useDrumStore();
   const t = useT();
   const dp = t.drumPrefs;

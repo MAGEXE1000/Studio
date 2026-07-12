@@ -28,7 +28,7 @@ export default function ChangelogSheet({
   sections,
 }: Props) {
   const t = useT();
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const renderSections: ChangelogSection[] = sections ?? getChangelogSections(settings.language ?? 'en');
   void APP_CHANGELOG_SECTIONS; // keep import compatibility for any consumer relying on the re-export shape
 

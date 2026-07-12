@@ -54,7 +54,8 @@ export default function GroovexPreferences() {
     return SONG_CATALOG.find(s => s.id === songId);
   }
 
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const updateSettings = useChordStore(s => s.updateSettings);
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   return (
@@ -319,7 +320,7 @@ function PrefCard({ title, icon, children, isWebDesktop }: { title: string; icon
 function SliderRow({ label, value, onChange, displayValue, isWebDesktop }: {
   label: string; value: number; onChange: (v: number) => void; displayValue: string; isWebDesktop?: boolean;
 }) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   if (isWebDesktop) {
@@ -359,7 +360,7 @@ function SliderRow({ label, value, onChange, displayValue, isWebDesktop }: {
 function ToggleRow({ label, value, onChange, isWebDesktop }: {
   label: string; value: boolean; onChange: (v: boolean) => void; isWebDesktop?: boolean;
 }) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   if (isWebDesktop) {

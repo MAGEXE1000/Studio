@@ -1,10 +1,18 @@
 import React from 'react';
 import { useNavigationStore } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { NavigationDispatcher } from '@workspace/studio-core';
 import { TransitionCoordinator } from '@workspace/studio-core';
 
 export default function NavDiagnosticsWidget() {
-  const store = useNavigationStore();
+  const store = useNavigationStore(useShallow(s => ({
+    history: s.history,
+    isTransitioning: s.isTransitioning,
+    transitionType: s.transitionType,
+    gestureState: s.gestureState,
+    predictiveProgress: s.predictiveProgress,
+    activeHandlers: s.activeHandlers,
+  })));
   const current = NavigationDispatcher.currentRoute();
   const previous = NavigationDispatcher.previousRoute();
 

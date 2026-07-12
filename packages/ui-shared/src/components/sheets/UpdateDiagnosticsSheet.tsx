@@ -243,7 +243,7 @@ export function getStructuredDiagnostics(developerMode: boolean): DiagnosticEntr
 }
 
 export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const accentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'blue';
   const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
 

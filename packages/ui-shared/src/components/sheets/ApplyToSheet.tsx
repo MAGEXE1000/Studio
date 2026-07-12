@@ -26,7 +26,7 @@ interface ApplyToSheetProps {
 }
 
 export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetProps) {
-  const { settings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
   const t = useT();
   const appKey = (settings.appMode ?? 'hub') as AppKey;
   const perApp = settings.perApp;

@@ -1,4 +1,4 @@
-﻿import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity, useNavigationStore } from '@workspace/studio-core';
+import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity, useNavigationStore } from '@workspace/studio-core';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';
@@ -2425,6 +2425,93 @@ function PresetForm({ initial, onSave, onCancel, accent }: { initial?: FormData;
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Main SongsPanel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const ITEM_H = 76;
 
+const PresetCard = React.memo(function PresetCard({
+  preset, accent, t, setActivePreset, setShowLive, setExportModal, setEditingId, setShowForm, setShowDeleteId
+}: {
+  preset: SongPreset;
+  accent: { from: string; to: string; mid: string };
+  t: any;
+  setActivePreset: (id: string) => void;
+  setShowLive: (v: boolean) => void;
+  setExportModal: (p: SongPreset) => void;
+  setEditingId: (id: string) => void;
+  setShowForm: (v: boolean) => void;
+  setShowDeleteId: (id: string) => void;
+}) {
+  const handleMainClick = useCallback(() => setActivePreset(preset.id), [setActivePreset, preset.id]);
+  const handleLiveClick = useCallback(() => { setActivePreset(preset.id); setTimeout(() => setShowLive(true), 100); }, [setActivePreset, preset.id, setShowLive]);
+  const handlePdfClick = useCallback(() => setExportModal(preset), [setExportModal, preset]);
+  const handleEditClick = useCallback(() => { setEditingId(preset.id); setShowForm(true); }, [setEditingId, preset.id, setShowForm]);
+  const handleDeleteClick = useCallback(() => setShowDeleteId(preset.id), [setShowDeleteId, preset.id]);
+
+  return (
+    <div className="card-hover"
+      style={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(72,72,72,0.06)' }}>
+      {/* Clickable main area */}
+      <button onClick={handleMainClick} data-testid={`preset-${preset.id}`}
+        style={{ width: '100%', textAlign: 'left', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${accent.to}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '24px', fontVariationSettings: "'FILL' 1" }}>queue_music</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{preset.name}</p>
+          {preset.artist && <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '12px', marginTop: '2px' }}>{preset.artist}</p>}
+          <div style={{ display: 'flex', gap: '6px', marginTop: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {preset.key && (
+              <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-primary)', background: 'var(--app-surface-high)', padding: '2px 8px 2px 7px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'Manrope', fontWeight: 900, fontSize: '11px', lineHeight: 1, color: 'var(--c-text-secondary)' }}>#</span>
+                {preset.key}
+              </span>
+            )}
+            {preset.bpm > 0 && (
+              <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '11px', lineHeight: 1 }}>speed</span>
+                {preset.bpm} BPM
+              </span>
+            )}
+            <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-muted)' }}>{t.songs.chordsLabel(preset.chords.length)}</span>
+          </div>
+        </div>
+        <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: '20px', flexShrink: 0 }}>chevron_right</span>
+      </button>
+
+      {/* Quick action row: Live | Export PDF | Edit | Delete */}
+      <div style={{ display: 'flex', borderTop: '1px solid rgba(72,72,72,0.07)' }}>
+        <button
+          onClick={handleLiveClick}
+          className="btn-smooth"
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: accent.from, fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}
+          data-testid={`live-${preset.id}`}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>play_circle</span>
+          Live
+        </button>
+        <button
+          onClick={handlePdfClick}
+          className="btn-smooth"
+          data-testid={`pdf-${preset.id}`}
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#9d9da6', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>picture_as_pdf</span>
+          PDF
+        </button>
+        <button
+          onClick={handleEditClick}
+          className="btn-smooth"
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>edit</span>
+          Edit
+        </button>
+        <button
+          onClick={handleDeleteClick}
+          className="btn-smooth"
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#ee7d77', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>delete</span>
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+});
+
 export default function SongsPanel() {
   const t = useT();
   const isWebDesktop = useIsWebDesktop();
@@ -3633,70 +3720,18 @@ export default function SongsPanel() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <StaggeredReveal staggerInterval={40}>
             {presets.map(preset => (
-            <div key={preset.id} className="card-hover"
-              style={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(72,72,72,0.06)' }}>
-              {/* Clickable main area */}
-              <button onClick={() => setActivePreset(preset.id)} data-testid={`preset-${preset.id}`}
-                style={{ width: '100%', textAlign: 'left', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: `${accent.to}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '24px', fontVariationSettings: "'FILL' 1" }}>queue_music</span>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{preset.name}</p>
-                  {preset.artist && <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '12px', marginTop: '2px' }}>{preset.artist}</p>}
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {preset.key && (
-                      <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-primary)', background: 'var(--app-surface-high)', padding: '2px 8px 2px 7px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontFamily: 'Manrope', fontWeight: 900, fontSize: '11px', lineHeight: 1, color: 'var(--c-text-secondary)' }}>#</span>
-                        {preset.key}
-                      </span>
-                    )}
-                    {preset.bpm > 0 && (
-                      <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '11px', lineHeight: 1 }}>speed</span>
-                        {preset.bpm} BPM
-                      </span>
-                    )}
-                    <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-muted)' }}>{t.songs.chordsLabel(preset.chords.length)}</span>
-                  </div>
-                </div>
-                <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: '20px', flexShrink: 0 }}>chevron_right</span>
-              </button>
-
-              {/* Quick action row: Live | Export PDF | Edit | Delete */}
-              <div style={{ display: 'flex', borderTop: '1px solid rgba(72,72,72,0.07)' }}>
-                <button
-                  onClick={() => { setActivePreset(preset.id); setTimeout(() => setShowLive(true), 100); }}
-                  className="btn-smooth"
-                  style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: accent.from, fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}
-                  data-testid={`live-${preset.id}`}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>play_circle</span>
-                  Live
-                </button>
-                <button
-                  onClick={() => setExportModal(preset)}
-                  className="btn-smooth"
-                  data-testid={`pdf-${preset.id}`}
-                  style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#9d9da6', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>picture_as_pdf</span>
-                  PDF
-                </button>
-                <button
-                  onClick={() => { setEditingId(preset.id); setShowForm(true); }}
-                  className="btn-smooth"
-                  style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>edit</span>
-                  Edit
-                </button>
-                <button
-                  onClick={() => setShowDeleteId(preset.id)}
-                  className="btn-smooth"
-                  style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#ee7d77', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>delete</span>
-                  Delete
-                </button>
-              </div>
-            </div>
+              <PresetCard
+                key={preset.id}
+                preset={preset}
+                accent={accent}
+                t={t}
+                setActivePreset={setActivePreset}
+                setShowLive={setShowLive}
+                setExportModal={setExportModal}
+                setEditingId={setEditingId}
+                setShowForm={setShowForm}
+                setShowDeleteId={setShowDeleteId}
+              />
             ))}
           </StaggeredReveal>
         </div>

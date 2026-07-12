@@ -26,7 +26,8 @@ function SidebarLabel({ children, open }: { children: React.ReactNode; open: boo
 }
 
 export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSidebar: boolean }) {
-  const { settings, updateSettings } = useChordStore();
+  const settings = useChordStore(s => s.settings);
+  const updateSettings = useChordStore(s => s.updateSettings);
   const { open, toggleSidebar } = useSidebar();
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;

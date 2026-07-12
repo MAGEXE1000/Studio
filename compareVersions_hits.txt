@@ -1,0 +1,36 @@
+﻿
+apps\studio-android\node_modules\@workspace\studio-core\dist\src\lib\updater\versionComparison.d.ts:8:export declare 
+function compareVersions(remote: RemoteVersionInfo, localVersionName?: string, localVersionCode?: number): 
+VersionComparisonResult;
+apps\studio-android\node_modules\@workspace\studio-core\src\lib\updater\versionComparison.ts:11:export function 
+compareVersions(
+apps\studio-android\node_modules\@workspace\studio-core\src\lib\otaUpdate.ts:25:import { compareVersions } from 
+'./updater/versionComparison';
+apps\studio-android\node_modules\@workspace\ui-android\node_modules\@workspace\studio-core\dist\src\lib\updater\version
+Comparison.d.ts:8:export declare function compareVersions(remote: RemoteVersionInfo, localVersionName?: string, 
+localVersionCode?: number): VersionComparisonResult;
+apps\studio-android\node_modules\@workspace\ui-android\node_modules\@workspace\studio-core\src\lib\updater\versionCompa
+rison.ts:11:export function compareVersions(
+apps\studio-android\node_modules\@workspace\ui-android\node_modules\@workspace\studio-core\src\lib\otaUpdate.ts:25:impo
+rt { compareVersions } from './updater/versionComparison';
+apps\studio-android\node_modules\@workspace\ui-android\node_modules\@workspace\ui-shared\node_modules\@workspace\studio
+-core\dist\src\lib\updater\versionComparison.d.ts:8:export declare function compareVersions(remote: RemoteVersionInfo, 
+localVersionName?: string, localVersionCode?: number): VersionComparisonResult;
+apps\studio-android\node_modules\@workspace\ui-android\node_modules\@workspace\ui-shared\node_modules\@workspace\studio
+-core\src\lib\updater\versionComparison.ts:11:export function compareVersions(
+apps\studio-android\node_modules\@workspace\ui-android\node_modules\@workspace\ui-shared\node_modules\@workspace\studio
+-core\src\lib\otaUpdate.ts:25:import { compareVersions } from './updater/versionComparison';
+apps\studio-android\node_modules\@workspace\ui-shared\node_modules\@workspace\studio-core\dist\src\lib\updater\versionC
+omparison.d.ts:8:export declare function compareVersions(remote: RemoteVersionInfo, localVersionName?: string, 
+localVersionCode?: number): VersionComparisonResult;
+apps\studio-android\node_modules\@workspace\ui-shared\node_modules\@workspace\studio-core\src\lib\updater\versionCompar
+ison.ts:11:export function compareVersions(
+apps\studio-android\node_modules\@workspace\ui-shared\node_modules\@workspace\studio-core\src\lib\otaUpdate.ts:25:impor
+t { compareVersions } from './updater/versionComparison';
+apps\studio-web\node_modules\@workspace\studio-core\dist\src\lib\updater\versionComparison.d.ts:8:export declare 
+function compareVersions(remote: RemoteVersionInfo, localVersionName?: string, localVersionCode?: number): 
+VersionComparisonResult;
+apps\studio-web\node_modules\@workspace\studio-core\src\lib\updater\versionComparison.ts:11:export function 
+compareVersions(
+apps\studio-web\node_modules\@workspace\studio-core\src\lib\otaUpdate.ts:25:import { compareVersions } from 
+'./updater/versionComparison';

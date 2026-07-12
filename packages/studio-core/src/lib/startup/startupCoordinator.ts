@@ -291,19 +291,20 @@ class StartupCoordinatorClass {
     });
     if (!p5Success || this.currentRunId !== runId) return;
 
-    // Phase 4: Updater initialization (Runs after Hub is visible)
-    const p4Success = await this.executePhase('4', 10000, async () => {
+    // Run Phases 4, 6 & 7 asynchronously after the Hub is visible and interactive
+    void this.runPhase4(runId);
+    void this.runPhase6(runId);
+    void this.runPhase7(runId);
+  }
+
+  private async runPhase4(runId: number) {
+    await this.executePhase('4', 10000, async () => {
       // 1. Enforce startup recovery (restores installer session state)
       await enforceStartupRecovery();
 
       // 2. Initialize OTA update listener registry
       initializeGlobalOtaListeners();
     });
-    if (!p4Success || this.currentRunId !== runId) return;
-
-    // Run Phases 6 & 7 asynchronously after the Hub is visible and interactive
-    void this.runPhase6(runId);
-    void this.runPhase7(runId);
   }
 
   private waitForIntroDone(): Promise<void> {

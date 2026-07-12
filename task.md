@@ -1,0 +1,20 @@
+- `[x]` Step 1: Implement direct foreground activity launch & resume relaunch in native Android code
+  - `[x]` Store pending confirm intents as static references in AppInstallerPlugin.java
+  - `[x]` Relaunch pending confirm intents inside MainActivity.onResume()
+  - `[x]` Launch confirmIntent via MainActivity active instance in InstallReceiver.java
+  - `[x]` Implement getExtendedDiagnostics() method in AppInstallerPlugin.java
+- `[x]` Step 2: Implement JS interface, installation locks, and recovery fixes
+  - `[x]` Update apkDownloader.ts to include getExtendedDiagnostics and its mocks
+  - `[x]` Establish strict state transition locks in stateMachine.ts/otaUpdate.ts
+  - `[x]` Fix enforceStartupRecovery() failure path handling and map 'cancelled' to 'failed'
+- `[x]` Step 3: UI fixes & GSAP warnings resolution
+  - `[x]` Fix GSAP unmount warning in StudioTitleReveal.tsx by killing active tweens
+  - `[x]` Restructure grid columns using minmax(0, 1fr) in DevToolsDashboard.tsx to fix layout shifts
+  - `[x]` Display extended diagnostics and prevent horizontal scrolling in DevTools outer container
+- `[x]` Step 4: Verification and local checks
+  - `[x]` Verify typechecks and version matching
+  - `[x]` Run automated updater regression tests
+  - `[x]` Commit and push changes
+- `[x]` Step 5: Release and publication
+  - `[x]` Trigger GitHub Actions Release Pipeline and monitor to completion
+  - `[x]` Perform final validation of CDN assets and metadata

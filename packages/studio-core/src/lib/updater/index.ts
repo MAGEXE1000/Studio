@@ -76,7 +76,7 @@ export {
 export type { HealthStatus, InstallLockEvent } from './diagnostics';
 
 // Release metadata
-export { fetchRemoteVersion, versionJsonUrls, validateRemoteMetadata } from './releaseMetadata';
+export { fetchRemoteVersion, versionJsonUrls, validateRemoteMetadata, logPipelineTrace } from './releaseMetadata';
 export type { RemoteVersionInfo } from './releaseMetadata';
 
 // Version comparison
@@ -108,6 +108,8 @@ export {
   addJsLog,
   triggerSimulatedStatus,
   isSimulationActive,
+  getTransitionHistory,
+  getRejectedTransitions,
 } from './updaterSimulation';
 
 // Flight Recorder

@@ -49,6 +49,7 @@ import {
   fetchRemoteVersion,
   versionJsonUrls,
   validateRemoteMetadata,
+  logPipelineTrace,
 } from './releaseMetadata';
 import { compareVersions } from './versionComparison';
 import { downloadUpdateApk, downloadAndInstallGitHubApk } from './downloadManager';
@@ -625,6 +626,8 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 
     UpdatePipelineCoordinator.setStage('AWAIT_FETCH_METADATA');
     const realRemote = await fetchRemoteVersion();
+    console.warn(`[OTA DIAGNOSTICS] fetchRemoteVersion returned:`, realRemote);
+      
     logTimelineEvent('UpdateCore', 'MANIFEST_FETCHED', realRemote ? `Version: ${realRemote.version} (Code: ${realRemote.versionCode})` : 'Failed');
     checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');
 
@@ -785,7 +788,8 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
       console.log(`[INSTRUMENTATION] checkForUpdate EXIT Call #${callId} duration=${duration}ms resolvedState=${globalOtaState.updateState}`);
       return globalOtaState;
     }
-    const comp = compareVersions(remote, APP_VERSION, natVerCode ?? undefined);
+        const comp = compareVersions(remote, APP_VERSION, natVerCode ?? undefined);
+    logPipelineTrace('executeCheckForUpdateInternal', 'version comparison', { remote: remote.version, remoteCode: remote.versionCode, local: APP_VERSION, localCode: natVerCode }, comp);
     const updateAvailable = comp.updateAvailable || (isManual && comp.isDowngrade);
     logTimelineEvent('UpdateCore', 'VERSION_COMPARISON_COMPLETED', `Update available: ${updateAvailable} | Reason: ${comp.explanation}`);
     otaDebugLogs.updateDecision = updateAvailable ? 'UPDATE_AVAILABLE' : 'NO_UPDATE_AVAILABLE';
@@ -804,6 +808,8 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 
       if (!isManual && (isDismissed || isLater)) {
         console.log(`[OTA] Skipping auto-prompt for version ${remote.version} (user dismissed/later).`);
+        logPipelineTrace('executeCheckForUpdateInternal', 'remoteVersion assignment', remote.version, remote.version);
+        logPipelineTrace('executeCheckForUpdateInternal', 'remoteVersion updates', remote.version, remote.version);
         updateGlobalState({
           remoteVersion: remote.version,
           updateAvailable: false,
@@ -827,6 +833,8 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
         return globalOtaState;
       }
 
+      logPipelineTrace('executeCheckForUpdateInternal', 'remoteVersion assignment', remote.version, remote.version);
+      logPipelineTrace('executeCheckForUpdateInternal', 'remoteVersion updates', remote.version, remote.version);
       updateGlobalState({
         remoteVersion: remote.version,
         updateAvailable: true,
@@ -1046,6 +1054,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
   }
 
   const apkUrl = globalOtaState.updateAvailable ? (globalOtaState as any).apkUrl : null;
+  logPipelineTrace('downloadUpdateInternal', 'download URL generation', { version: ver }, { apkUrl });
   logDiagnosticEvent('DOWNLOAD_STARTED', { version: ver, url: apkUrl });
   const isDowngrade = globalOtaState.updateAvailable && compareSemver(ver, APP_VERSION) < 0;
 
@@ -1172,14 +1181,17 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
             addJsLog('Simulation override: Forcing download resumption mode');
           }
           logDetailedJsTrace('downloadUpdate', 'pipeline.ts', 749, 'Starting APK download from URL: ' + apkUrl);
+          logPipelineTrace('downloadUpdateInternal', 'download', { url: apkUrl, version: ver }, 'download started');
           filePath = await downloadUpdateApk({
             url: apkUrl,
             version: ver,
             manualApkUrl: (globalOtaState as any).manualApkUrl,
             fallbackApkUrl: (globalOtaState as any).fallbackApkUrl,
           });
+          logPipelineTrace('downloadUpdateInternal', 'download', { url: apkUrl, version: ver }, { filePath, status: 'complete' });
           logDetailedJsTrace('downloadUpdate', 'pipeline.ts', 755, 'APK download completed successfully. File path: ' + filePath);
         } catch (dlErr) {
+          logPipelineTrace('downloadUpdateInternal', 'download', { url: apkUrl, version: ver }, { error: dlErr instanceof Error ? dlErr.message : String(dlErr) });
           if (globalOtaState.updateState === 'DOWNLOAD_APK') {
             transitionToState('INSTALL_FAILED', 'APK download execution failed');
           }
@@ -1217,18 +1229,22 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
         logDiagnosticEvent('APK_VERIFIED', { filePath, simulated: true });
       } else {
         const expectedHash = (globalOtaState as any).apkSha256;
+        logPipelineTrace('downloadUpdateInternal', 'verification', { filePath, expectedHash }, 'SHA-256 verification started');
         if (expectedHash) {
           try {
             await verifyFileIntegrity(filePath, expectedHash);
+            logPipelineTrace('downloadUpdateInternal', 'verification', { filePath, expectedHash }, { verified: true });
             logDetailedJsTrace('downloadUpdate', 'pipeline.ts', 783, 'SHA-256 integrity verification passed');
             logDiagnosticEvent('APK_VERIFIED', { filePath });
           } catch (shaErr) {
+            logPipelineTrace('downloadUpdateInternal', 'verification', { filePath, expectedHash }, { verified: false, error: shaErr instanceof Error ? shaErr.message : String(shaErr) });
             if (globalOtaState.updateState === 'VERIFY_SHA256') {
               transitionToState('INSTALL_FAILED', 'SHA integrity check failed');
             }
             throw shaErr;
           }
         } else {
+          logPipelineTrace('downloadUpdateInternal', 'verification', { filePath }, { verified: 'skipped (no expected hash)' });
           otaDebugLogs.shaVerification = 'SKIPPED (No expected hash)';
           logDiagnosticEvent('APK_VERIFIED', { filePath, warning: 'SHA skipped' });
         }
@@ -1277,8 +1293,10 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
           addJsLog('[Simulate Install] Bypassing native eligibility check in simulation mode.');
           return true;
         }
+        logPipelineTrace('downloadUpdateInternal', 'verification', { filePath, isDowngrade }, 'eligibility check started');
         return await runEligibilityCheck(filePath, isDowngrade);
       })();
+      logPipelineTrace('downloadUpdateInternal', 'verification', { filePath, isDowngrade }, { isEligible, reason: otaDebugLogs.eligibilityReason });
       logDetailedJsTrace('downloadUpdate', 'pipeline.ts', 820, 'Pre-install eligibility check completed. Result: ' + isEligible);
       logTimelineEvent('UpdateCore', 'ELIGIBILITY_CHECK_COMPLETED', isEligible ? 'Passed' : `Failed: ${otaDebugLogs.eligibilityReason}`);
 

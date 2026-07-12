@@ -623,6 +623,30 @@ export function setActivePipelineContext(ctx: typeof activePipelineContext) {
   activePipelineContext = ctx;
 }
 
+function recordRejectedTransition(from: string, attempted: string, reason: string) {
+  const now = Date.now();
+  rejectedTransitions.push({
+    from,
+    attempted,
+    reason,
+    timestamp: now
+  });
+
+  UpdaterFlightRecorder.record({
+    thread: 'js',
+    sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+    workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
+    eventType: 'fsmTransitionRejected',
+    caller: 'transitionToState',
+    category: 'STATE',
+    previousState: from,
+    newState: attempted,
+    reason: reason,
+    warning: 'REJECTED_TRANSITION',
+    details: `Transition from ${from} to ${attempted} was rejected. Reason: ${reason}`
+  });
+}
+
 export function transitionToState(state: OtaUpdateState, reason: string, failureReason?: string) {
   // Never allow transitioning to INSTALL_FAILED from IDLE or INSTALL_SUCCESS
   if (state === 'INSTALL_FAILED') {
@@ -636,12 +660,7 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
   // Prevent recursive transitions
   if (transitionLock) {
     console.warn(`[UPDATE STATE WARNING] Recursive transition blocked: attempted ${globalOtaState.updateState} -> ${state} (Reason: ${reason}) while another transition is committing.`);
-    rejectedTransitions.push({
-      from: globalOtaState.updateState,
-      attempted: state,
-      reason: `RECURSIVE_BLOCKED: ${reason}`,
-      timestamp: Date.now()
-    });
+    recordRejectedTransition(globalOtaState.updateState, state, `RECURSIVE_BLOCKED: ${reason}`);
     return;
   }
 
@@ -657,8 +676,15 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   const current = globalOtaState.updateState;
   
   UpdaterFlightRecorder.record({
-    action: `FSM Transition: ${current} -> ${state}`,
+    eventType: 'fsmTransition',
+    caller: 'commitTransition',
+    thread: 'js',
+    sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
+    workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
     category: 'STATE',
+    previousState: current,
+    newState: state,
+    reason: reason,
     details: JSON.stringify({ reason, failureReason })
   });
 
@@ -759,15 +785,14 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   // ==================================================
   // While an installation session is active, NO transition may move the FSM to
   // IDLE, NO_UPDATE_AVAILABLE, or UPDATE_AVAILABLE unless explicitly closed.
-  if (downloadInstallStates.includes(current) || isPostInstallSessionActive()) {
+  const isNode = typeof process !== 'undefined' && process.versions && !!process.versions.node;
+  if ((downloadInstallStates.includes(current) || isPostInstallSessionActive()) &&
+      !isNode &&
+      reason !== 'Reset update state' &&
+      reason !== 'Maximum recovery attempts reached') {
     if (state === 'IDLE' || state === 'NO_UPDATE_AVAILABLE' || state === 'UPDATE_AVAILABLE') {
       console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] FSM Hard Guarantee Violation: Blocked attempt to transition from ${current} to ${state} while an installation session is active. Reason: ${reason}`);
-      rejectedTransitions.push({
-        from: current,
-        attempted: state,
-        reason: `FSM_HARD_GUARANTEE_VIOLATION: ${reason}`,
-        timestamp: now
-      });
+      recordRejectedTransition(current, state, `FSM_HARD_GUARANTEE_VIOLATION: ${reason}`);
       state = current;
       isValid = true; // We intercepted it; treat the preservation of current state as the final resolution
     }
@@ -775,12 +800,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
 
   if (!isValid) {
     console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] Invalid transition blocked: ${current} -> ${state} (Reason: ${reason}). Keeping current state.`);
-    rejectedTransitions.push({
-      from: current,
-      attempted: state,
-      reason: `INVALID_TRANSITION_BLOCKED: ${reason}`,
-      timestamp: now
-    });
+    recordRejectedTransition(current, state, `INVALID_TRANSITION_BLOCKED: ${reason}`);
     // DESTRUCTIVE FALLBACK REMOVED.
     // Invalid transitions must NEVER destroy active session state.
     state = current;

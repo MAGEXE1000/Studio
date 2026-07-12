@@ -1,3 +1,5 @@
+import { UpdaterFlightRecorder } from './flightRecorder';
+
 export interface UpdaterSimulation {
   forceUpdateAvailable: boolean;
   forceNoUpdate: boolean;
@@ -86,6 +88,46 @@ export const rejectedTransitions: {
   reason: string;
   timestamp: number;
 }[] = [];
+
+export function getTransitionHistory() {
+  const events = typeof UpdaterFlightRecorder !== 'undefined' ? UpdaterFlightRecorder.getEvents() : [];
+  const history: any[] = [];
+  events.forEach(e => {
+    if (e.eventType === 'transitionToState' || e.eventType === 'fsmTransition') {
+      history.push({
+        from: e.previousState || 'IDLE',
+        to: e.newState || 'IDLE',
+        reason: e.reason || 'None',
+        timestamp: e.timestamp,
+        durationMs: e.duration || 0,
+        invalid: e.warning === 'INVALID_TRANSITION',
+        caller: e.caller || 'unknown',
+        stackTrace: e.stack || '',
+        thread: e.thread === 'native' ? 'Native Thread' : 'Main JS Thread',
+        checkId: e.workflowId ? Number(e.workflowId) : null,
+        trigger: null,
+        elapsedMs: null,
+      });
+    }
+  });
+  return history;
+}
+
+export function getRejectedTransitions() {
+  const events = typeof UpdaterFlightRecorder !== 'undefined' ? UpdaterFlightRecorder.getEvents() : [];
+  const rejected: any[] = [];
+  events.forEach(e => {
+    if (e.eventType === 'fsmTransitionRejected') {
+      rejected.push({
+        from: e.previousState || 'IDLE',
+        attempted: e.newState || 'IDLE',
+        reason: e.reason || 'None',
+        timestamp: e.timestamp
+      });
+    }
+  });
+  return rejected;
+}
 
 export const activityLifecycleTimeline: { stage: string; timestamp: number }[] = [];
 

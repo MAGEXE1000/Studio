@@ -1,15 +1,21 @@
 import { AppInstaller } from '../apkDownloader';
+import { logPipelineTrace } from './releaseMetadata';
 
 export async function triggerNativeInstall(filePath: string): Promise<any> {
+  logPipelineTrace('triggerNativeInstall', 'PackageInstaller', { filePath }, 'PackageInstaller trigger requested');
   if (filePath.includes('mock') || filePath.includes('simulated') || (typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true')) {
     console.warn('[PackageInstaller] Rejecting native install for mock/simulated path:', filePath);
+    logPipelineTrace('triggerNativeInstall', 'PackageInstaller', { filePath }, { status: 'blocked (simulation)' });
     throw new Error('[Simulation Guard] Blocked native install for simulated path');
   }
   try {
     const res = await AppInstaller.installApk({ filePath });
+    logPipelineTrace('triggerNativeInstall', 'PackageInstaller', { filePath }, { status: 'success', res });
     return res;
   } catch (err: any) {
-    throw new Error('[PackageInstaller] ' + (err.message || String(err)));
+    const errMsg = err.message || String(err);
+    logPipelineTrace('triggerNativeInstall', 'PackageInstaller', { filePath }, { status: 'failed', error: errMsg });
+    throw new Error('[PackageInstaller] ' + errMsg);
   }
 }
 

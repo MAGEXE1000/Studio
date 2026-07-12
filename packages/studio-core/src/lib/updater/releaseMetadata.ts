@@ -1,8 +1,9 @@
 import { APP_VERSION, compareSemver, parseAndNormalizeVersion, parseSemver } from '../appVersion';
 import { shouldUseAndroidApkUpdater } from '../capgoUpdater';
 import { otaDebugLogs } from './diagnostics';
-import { StructuredReleaseNotes } from './stateMachine';
+import { StructuredReleaseNotes, globalOtaState, activeUpdateSession } from './stateMachine';
 import { logRawSource } from './versionLogger';
+import { UpdaterFlightRecorder } from './flightRecorder';
 
 export interface RemoteVersionInfo {
   version: string;
@@ -27,6 +28,8 @@ export interface RemoteVersionInfo {
   signatures?: string;
   apkSizeBytes?: number;
   packageName?: string;
+  tag_name?: string;
+  name?: string;
 }
 
 const FETCH_TIMEOUT_MS = 6000;
@@ -48,6 +51,8 @@ export function versionJsonUrls(): string[] {
     const localBase = import.meta.env.BASE_URL || '/';
     urls.push(`${localBase}version.json?t=${t}`);
   }
+  
+  console.warn(`[OTA DIAGNOSTICS] Generated urls to fetch:`, urls);
 
   return urls;
 }
@@ -208,75 +213,255 @@ async function fetchOne(
   }
 }
 
+export function logPipelineTrace(caller: string, stage: string, input: any, output: any) {
+  const timestamp = new Date().toISOString();
+  const state = globalOtaState?.updateState || 'UNKNOWN';
+  const sessionId = activeUpdateSession ? String(activeUpdateSession.sessionId) : (globalOtaState?.sessionId ? String(globalOtaState.sessionId) : 'N/A');
+  
+  const logMsg = `[PIPELINE_TRACE] [${timestamp}] [Session:${sessionId}] [State:${state}] [Caller:${caller}] [Stage:${stage}] | Input: ${typeof input === 'object' ? JSON.stringify(input) : input} | Output: ${typeof output === 'object' ? JSON.stringify(output) : output}`;
+  console.log(logMsg);
+  
+  // Also push to the Flight Recorder so it is captured in the diagnostic copy everything report
+  try {
+    UpdaterFlightRecorder.record({
+      thread: 'js',
+      sessionId: sessionId !== 'N/A' ? sessionId : null,
+      workflowId: null,
+      eventType: `trace_${stage}`,
+      caller: caller,
+      category: 'PIPELINE',
+      reason: `${stage} trace`,
+      details: JSON.stringify({ input, output, timestamp, state })
+    });
+  } catch (e) {
+    // ignore
+  }
+}
+
+interface GitHubReleaseAsset {
+  name: string;
+  browser_download_url: string;
+}
+
+interface GitHubRelease {
+  tag_name: string;
+  name?: string;
+  body?: string;
+  assets: GitHubReleaseAsset[];
+}
+
+async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersionInfo | null> {
+  const caller = 'fetchLatestFromGitHub';
+  const url = 'https://api.github.com/repos/MAGEXE1000/Studio/releases';
+  logPipelineTrace(caller, 'HTTP_REQUEST_URL', { url }, 'N/A');
+  
+  try {
+    const res = await fetch(url, {
+      signal,
+      headers: {
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { status: res.status, statusText: res.statusText });
+    
+    if (!res.ok) {
+      console.warn(`[AppUpdater] GitHub releases fetch failed: HTTP ${res.status}`);
+      return null;
+    }
+    
+    const text = await res.text();
+    logPipelineTrace(caller, 'RAW_JSON', { url }, { rawLength: text.length, sample: text.slice(0, 200) });
+    logRawSource('github-releases', text);
+
+    const releases = JSON.parse(text) as GitHubRelease[];
+    if (!Array.isArray(releases) || releases.length === 0) {
+      return null;
+    }
+
+    // Find the first/latest release that contains an APK asset
+    let targetRelease: GitHubRelease | null = null;
+    let apkAsset: GitHubReleaseAsset | null = null;
+    let shaAsset: GitHubReleaseAsset | null = null;
+
+    for (const r of releases) {
+      if (r.assets && Array.isArray(r.assets)) {
+        const foundApk = r.assets.find(a => a.name.toLowerCase().endsWith('.apk'));
+        if (foundApk) {
+          targetRelease = r;
+          apkAsset = foundApk;
+          shaAsset = r.assets.find(a => a.name.toLowerCase().endsWith('.sha256')) || null;
+          break;
+        }
+      }
+    }
+
+    if (!targetRelease || !apkAsset) {
+      return null;
+    }
+
+    const version = parseAndNormalizeVersion(targetRelease.tag_name);
+    if (!version) {
+      return null;
+    }
+
+    logPipelineTrace(caller, 'METADATA_PARSING', { tag_name: targetRelease.tag_name }, { version });
+
+    // Calculate versionCode from version string (e.g. 4.0.29 -> 40029)
+    const semver = parseSemver(version);
+    let versionCode = 0;
+    if (semver) {
+      versionCode = semver.major * 10000 + semver.minor * 100 + semver.patch;
+    }
+    logPipelineTrace(caller, 'VERSION_CODE_ASSIGNMENT', { version }, { versionCode });
+
+    // Attempt to fetch the SHA-256 hash from the .sha256 asset
+    let apkSha256 = '';
+    if (shaAsset) {
+      const shaUrl = shaAsset.browser_download_url;
+      logPipelineTrace(caller, 'HTTP_REQUEST_URL', { url: shaUrl }, 'N/A');
+      try {
+        const shaRes = await fetch(shaUrl, { signal });
+        logPipelineTrace(caller, 'HTTP_RESPONSE', { url: shaUrl }, { status: shaRes.status });
+        if (shaRes.ok) {
+          const shaText = await shaRes.text();
+          logPipelineTrace(caller, 'RAW_JSON', { url: shaUrl }, { raw: shaText.trim() });
+          const match = shaText.trim().match(/^([a-fA-F0-9]{64})/);
+          if (match) {
+            apkSha256 = match[1].toLowerCase();
+          }
+        }
+      } catch (shaErr) {
+        console.warn('[AppUpdater] Failed to fetch SHA-256 asset from GitHub:', shaErr);
+      }
+    }
+
+    const info: RemoteVersionInfo = {
+      version,
+      versionCode,
+      changelog: targetRelease.body || '',
+      mandatory: false,
+      downloadUrl: apkAsset.browser_download_url,
+      apkUrl: apkAsset.browser_download_url,
+      apkSha256: apkSha256 || undefined,
+      manualApkUrl: apkAsset.browser_download_url,
+      fallbackApkUrl: apkAsset.browser_download_url,
+      platform: 'github',
+      updateType: 'apk',
+      tag_name: targetRelease.tag_name,
+      name: targetRelease.name || `Studio v${version}`
+    };
+
+    logPipelineTrace(caller, 'RELEASE_METADATA_OBJECT', { source: 'github' }, info);
+    return info;
+  } catch (err) {
+    console.warn('[AppUpdater] Exception in fetchLatestFromGitHub:', err);
+    return null;
+  }
+}
+
 export async function fetchRemoteVersion(
   signal?: AbortSignal,
 ): Promise<RemoteVersionInfo | null> {
+  const caller = 'fetchRemoteVersion';
   const urls = versionJsonUrls();
-  if (urls.length === 0) return null;
-
   const ctrl = signal ? null : new AbortController();
   const sig = signal ?? ctrl!.signal;
 
-  return new Promise<RemoteVersionInfo | null>((resolve) => {
+  const firebasePromise = new Promise<RemoteVersionInfo | null>((resolve) => {
+    if (urls.length === 0) return resolve(null);
     let completed = false;
-
-    const timer = setTimeout(() => {
-      if (!completed) {
-        completed = true;
-        console.warn('[AppUpdater] fetchRemoteVersion timed out (6s). Aborting fetches.');
-        if (ctrl) {
-          try {
-            ctrl.abort();
-          } catch (_) {}
-        }
-        resolve(null);
-      }
-    }, FETCH_TIMEOUT_MS);
-
     let resolved = false;
     let failedCount = 0;
     let fallbackRes: RemoteVersionInfo | null = null;
     const total = urls.length;
 
     urls.forEach((url) => {
+      logPipelineTrace(caller, 'HTTP_REQUEST_URL', { url }, 'N/A');
       fetchOne(url, sig)
         .then((res) => {
           if (resolved || completed) return;
           if (res) {
-            if (compareSemver(res.version, APP_VERSION) > 0) {
-              resolved = true;
-              completed = true;
-              clearTimeout(timer);
-              resolve(res);
-            } else {
-              fallbackRes = res;
-              failedCount++;
-              if (failedCount === total) {
-                completed = true;
-                clearTimeout(timer);
-                resolve(fallbackRes);
-              }
-            }
+            logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { status: 200 });
+            logPipelineTrace(caller, 'RELEASE_METADATA_OBJECT', { source: 'firebase', url }, res);
+            resolved = true;
+            completed = true;
+            resolve(res);
           } else {
+            logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { status: 'failed/null' });
             failedCount++;
             if (failedCount === total) {
               completed = true;
-              clearTimeout(timer);
               resolve(fallbackRes);
             }
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { error: err?.message || String(err) });
           if (resolved || completed) return;
           failedCount++;
           if (failedCount === total) {
             completed = true;
-            clearTimeout(timer);
             resolve(fallbackRes);
           }
         });
     });
   });
+
+  const githubPromise = fetchLatestFromGitHub(sig);
+
+  let timerId: any = null;
+  const timerPromise = new Promise<null>((resolve) => {
+    timerId = setTimeout(() => {
+      console.warn('[AppUpdater] Concurrent version check timed out (6s).');
+      resolve(null);
+    }, FETCH_TIMEOUT_MS);
+  });
+
+  try {
+    const [firebaseRes, githubRes] = await Promise.race([
+      Promise.all([firebasePromise, githubPromise]),
+      timerPromise.then(() => [null, null])
+    ]) as [RemoteVersionInfo | null, RemoteVersionInfo | null];
+
+    if (timerId) {
+      clearTimeout(timerId);
+    }
+
+    if (!firebaseRes && !githubRes) {
+      logPipelineTrace(caller, 'remoteVersion updates', 'N/A', { error: 'Both Firebase and GitHub checks failed.' });
+      return null;
+    }
+
+    let finalRemote: RemoteVersionInfo | null = null;
+
+    if (firebaseRes && githubRes) {
+      const cmp = compareSemver(firebaseRes.version, githubRes.version);
+      if (cmp > 0) {
+        console.log(`[AppUpdater] Firebase metadata (${firebaseRes.version}) is newer than GitHub release (${githubRes.version}). Using Firebase.`);
+        finalRemote = firebaseRes;
+      } else if (cmp < 0) {
+        console.log(`[AppUpdater] GitHub release (${githubRes.version}) is newer than Firebase metadata (${firebaseRes.version}). Using GitHub.`);
+        finalRemote = githubRes;
+      } else {
+        const codeF = firebaseRes.versionCode || 0;
+        const codeG = githubRes.versionCode || 0;
+        if (codeF >= codeG) {
+          finalRemote = firebaseRes;
+        } else {
+          finalRemote = githubRes;
+        }
+      }
+    } else {
+      finalRemote = firebaseRes || githubRes;
+    }
+
+    logPipelineTrace(caller, 'remoteVersion updates', { firebaseRes, githubRes }, { selected: finalRemote });
+    return finalRemote;
+  } catch (err) {
+    console.warn('[AppUpdater] Error in fetchRemoteVersion:', err);
+    return null;
+  }
 }
 
 export function validateRemoteMetadata(remote: RemoteVersionInfo | null): boolean {

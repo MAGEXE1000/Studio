@@ -1,6 +1,7 @@
 import { downloadApk, resolveApkUrl, AppInstaller } from '../apkDownloader';
 import { updateGlobalState, resetDownloadWatchdog, globalOtaState, transitionToState } from './stateMachine';
 import { otaDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
+import { logPipelineTrace } from './releaseMetadata';
 
 export interface DownloadOptions {
   url: string;
@@ -13,6 +14,7 @@ export interface DownloadOptions {
 export async function downloadUpdateApk(options: DownloadOptions): Promise<string> {
   const { url, version, manualApkUrl, fallbackApkUrl, onProgress } = options;
   const fileName = `studio-update-${version}.apk`;
+  logPipelineTrace('downloadUpdateApk', 'APK filename generation', { version }, { fileName });
   
   const sources = [
     url,

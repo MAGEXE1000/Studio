@@ -139,9 +139,13 @@ export class UpdaterFlightRecorder {
     this.globalSequenceCounter++;
 
     let inferredCategory = event.category;
+    const eventType = event.eventType || 'unknown';
+    const caller = event.caller || 'unknown';
+    const thread = event.thread || 'js';
+
     if (!inferredCategory) {
-      const et = event.eventType.toLowerCase();
-      if (event.thread === 'native' || et.includes('packageinstaller')) inferredCategory = 'NATIVE';
+      const et = eventType.toLowerCase();
+      if (thread === 'native' || et.includes('packageinstaller')) inferredCategory = 'NATIVE';
       else if (et.includes('appstate') || et.includes('lifecycle') || et.includes('focus') || et.includes('blur') || et.includes('visibility') || et.includes('resume')) inferredCategory = 'LIFECYCLE';
       else if (et.includes('state') || et.includes('transition')) inferredCategory = 'STATE';
       else if (et.includes('ui') || et.includes('render')) inferredCategory = 'UI';
@@ -153,7 +157,10 @@ export class UpdaterFlightRecorder {
       timestamp: event.timestamp || Date.now(),
       severity: eventSeverity,
       category: inferredCategory as any,
-      ...event
+      ...event,
+      thread: event.thread || thread,
+      eventType: event.eventType || eventType,
+      caller: event.caller || caller
     };
 
     // Deduplicate / aggregate progress and lifecycle events to prevent excessive noise

@@ -20,8 +20,8 @@ import {
   activePipelineContext,
   otaDiagnostics,
   PerformanceProfiler,
-  transitionHistory,
-  rejectedTransitions,
+  getTransitionHistory,
+  getRejectedTransitions,
   clearSimulationLogs,
   addJsLog,
   getUpdateSessions,
@@ -363,7 +363,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const cachedTimelineLogs = useMemo(() => {
     const list: Array<{ timestamp: number; sessionId: string | null; type: 'transition' | 'error' | 'native' | 'lifecycle'; text: string; details?: string; severity?: string; count?: number }> = [];
 
-    transitionHistory.forEach(t => {
+    getTransitionHistory().forEach(t => {
       list.push({
         timestamp: t.timestamp,
         sessionId: otaState.sessionId ? String(otaState.sessionId) : null,
@@ -373,7 +373,7 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
       });
     });
 
-    rejectedTransitions.forEach(t => {
+    getRejectedTransitions().forEach(t => {
       list.push({
         timestamp: t.timestamp,
         sessionId: otaState.sessionId ? String(otaState.sessionId) : null,

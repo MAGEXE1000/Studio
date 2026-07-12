@@ -4,8 +4,8 @@ import {
   otaDiagnostics,
   otaDebugLogs,
   activityLifecycleTimeline,
-  transitionHistory,
-  rejectedTransitions,
+  getTransitionHistory,
+  getRejectedTransitions,
   getErrors,
   getLogs,
   getPerfStats,
@@ -50,8 +50,8 @@ export interface DiagnosticsData {
   otaDiagnostics: typeof otaDiagnostics;
   otaDebugLogs: typeof otaDebugLogs;
   activityLifecycle: any[];
-  stateTransitions: typeof transitionHistory;
-  rejectedTransitions: typeof rejectedTransitions;
+  stateTransitions: any[];
+  rejectedTransitions: any[];
   localApkDetails: any;
   nativeLogs: any[];
 }
@@ -64,6 +64,8 @@ export function buildDiagnosticDataObject(
 ): DiagnosticsData {
   const devInfo = nativeDeviceInfo || {};
   const perf = getPerfStats();
+  const transitionHistory = getTransitionHistory();
+  const rejectedTransitions = getRejectedTransitions();
 
   return {
     appVersion: APP_VERSION,
@@ -433,6 +435,8 @@ export function generateCopyEverythingReport(
   nativeLogsList: any[]
 ): string {
   const data = buildDiagnosticDataObject(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+  const transitionHistory = getTransitionHistory();
+  const rejectedTransitions = getRejectedTransitions();
   const activeSession = getActiveSession();
   const allSessions = getUpdateSessions();
   const profiler = PerformanceProfiler.getInstance();

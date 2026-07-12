@@ -1,6 +1,7 @@
 import { isNative } from '../capgoUpdater';
 import { APP_VERSION } from '../appVersion';
 import { globalOtaState, activePipelineContext, startUpdateSession, activeUpdateSession } from './stateMachine';
+import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 
 export interface OtaDiagnostics {
   exceptionMessage: string | null;
@@ -1040,11 +1041,145 @@ export function deleteAllUpdateSessions() {
 }
 
 export function getUpdateSessions(): UpdateSession[] {
-  return updateSessions;
+  const events = UpdaterFlightRecorder.getEvents();
+  
+  // Group events by sessionId
+  const sessionsMap = new Map<string, FlightRecorderEvent[]>();
+  events.forEach(e => {
+    if (e.sessionId) {
+      if (!sessionsMap.has(e.sessionId)) {
+        sessionsMap.set(e.sessionId, []);
+      }
+      sessionsMap.get(e.sessionId)!.push(e);
+    }
+  });
+
+  const sessions: UpdateSession[] = [];
+  let nextNum = 1;
+
+  sessionsMap.forEach((sessionEvents, sId) => {
+    // Sort by timestamp
+    sessionEvents.sort((a, b) => a.timestamp - b.timestamp);
+
+    const firstEvent = sessionEvents[0];
+    const lastEvent = sessionEvents[sessionEvents.length - 1];
+    const startTimestamp = firstEvent.timestamp;
+    
+    // Find final state of session
+    let result: 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'IN_PROGRESS' | 'FINISHED' | 'ABORTED' = 'IN_PROGRESS';
+    let endTime: string | null = null;
+    let durationMs: number | null = null;
+
+    // Check if session has ended
+    const successEvent = sessionEvents.find(e => e.newState === 'INSTALL_SUCCESS' || e.eventType === 'applyUpdateSuccess' || e.eventType === 'INSTALL_SUCCESS');
+    const failureEvent = sessionEvents.find(e => e.newState === 'INSTALL_FAILED' || e.eventType === 'applyUpdateError' || e.eventType === 'INSTALL_FAILED');
+    const cancelEvent = sessionEvents.find(e => e.newState === 'INSTALL_CANCELLED' || e.eventType === 'INSTALL_CANCELLED');
+
+    if (successEvent) {
+      result = 'SUCCESS';
+      endTime = new Date(successEvent.timestamp).toISOString();
+      durationMs = successEvent.timestamp - startTimestamp;
+    } else if (failureEvent) {
+      result = 'FAILED';
+      endTime = new Date(failureEvent.timestamp).toISOString();
+      durationMs = failureEvent.timestamp - startTimestamp;
+    } else if (cancelEvent) {
+      result = 'CANCELLED';
+      endTime = new Date(cancelEvent.timestamp).toISOString();
+      durationMs = cancelEvent.timestamp - startTimestamp;
+    } else {
+      // Look at the last event to check if it represents a terminal state
+      if (lastEvent.newState === 'NO_UPDATE_AVAILABLE' || lastEvent.eventType === 'NO_UPDATE_AVAILABLE') {
+        result = 'FINISHED';
+        endTime = new Date(lastEvent.timestamp).toISOString();
+        durationMs = lastEvent.timestamp - startTimestamp;
+      }
+    }
+
+    // Build timeline and transitions
+    const timeline: TimelineEvent[] = [];
+    const transitions: WorkflowTransition[] = [];
+    const stateDurations: Record<string, number> = {};
+
+    sessionEvents.forEach((e) => {
+      const offsetMs = e.timestamp - startTimestamp;
+      const min = Math.floor(offsetMs / 60000);
+      const sec = Math.floor((offsetMs % 60000) / 1000);
+      const ms = offsetMs % 1000;
+      const offset = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
+
+      // Add to timeline
+      timeline.push({
+        timestamp: new Date(e.timestamp).toTimeString().split(' ')[0],
+        absoluteTimestamp: e.timestamp,
+        offset,
+        offsetMs,
+        module: e.category || 'Pipeline',
+        event: e.eventType,
+        state: (e.newState || 'IDLE') as any,
+        reason: e.reason || e.details || ''
+      });
+
+      // Add to transitions if it's a state transition
+      if (e.eventType === 'transitionToState' || e.eventType === 'fsmTransition') {
+        transitions.push({
+          timestamp: new Date(e.timestamp).toTimeString().split(' ')[0],
+          absoluteTimestamp: e.timestamp,
+          previousState: e.previousState || 'IDLE',
+          nextState: e.newState || 'IDLE',
+          caller: e.caller || 'unknown',
+          file: e.fileName || 'unknown',
+          functionName: e.funcName || 'unknown',
+          reason: e.reason || 'unknown',
+          thread: e.thread === 'native' ? 'Native Thread' : 'Main JS Thread',
+          elapsedTimeMs: offsetMs,
+          sessionId: sId,
+          pipelineId: e.workflowId ? Number(e.workflowId) : null,
+          durationMs: e.duration || 0,
+          screen: 'unknown',
+          lifecycleState: 'unknown',
+          packageInstallerStatus: 'none',
+          progress: 0
+        });
+
+        // Compute state durations
+        if (e.previousState) {
+          const prevTrans = transitions[transitions.length - 2];
+          const enteredTime = prevTrans ? prevTrans.absoluteTimestamp : startTimestamp;
+          const duration = e.timestamp - enteredTime;
+          stateDurations[e.previousState] = (stateDurations[e.previousState] || 0) + duration;
+        }
+      }
+    });
+
+    sessions.push({
+      id: sId,
+      sessionNumber: nextNum++,
+      startTime: new Date(startTimestamp).toISOString(),
+      startTimestamp,
+      endTime,
+      durationMs,
+      result,
+      version: globalOtaState.remoteVersion,
+      buildType: isNative() ? 'Native Android' : 'Web',
+      deviceModel: 'Android Device',
+      androidVersion: 'Android OS',
+      timeline,
+      transitions,
+      closeEvent: null,
+      upToDateEvent: null,
+      stateDurations
+    });
+  });
+
+  return sessions;
 }
 
 export function getActiveSession(): UpdateSession | null {
-  return updateSessions.find(s => s.id === activeSessionId) || updateSessions[updateSessions.length - 1] || null;
+  const sessions = getUpdateSessions();
+  if (sessions.length === 0) return null;
+  const active = sessions.find(s => s.id === activeSessionId) || sessions[sessions.length - 1];
+  return active || null;
 }
 if (typeof window !== 'undefined') {
   (window as any)._getActiveSession = getActiveSession;

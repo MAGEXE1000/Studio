@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.28
+
+### Added
+- Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.
+- Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.
+- Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.
+- Cleaned up background version check timeout resource leaks.
+
 ## 4.0.27
 
 ### Added

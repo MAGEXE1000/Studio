@@ -60,9 +60,9 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)",
+      "Fixed build pipeline failure caused by untracked UI component files",
     ],
   },
 ];

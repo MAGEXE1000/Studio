@@ -1,2 +1,2 @@
-### Added
-- Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)
+### Fixed
+- Fixed build pipeline failure caused by untracked UI component files

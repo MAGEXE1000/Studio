@@ -1,18 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.53",
-  "versionName": "4.0.53",
-  "versionCode": 40053,
-  "version_code": 40053,
-  "commit": "b613232e",
-  "releasedAt": "7/12/2026, 12:55:24 PM CST",
-  "buildTimestamp": "7/12/2026, 12:55:24 PM CST",
+  "version": "4.0.54",
+  "versionName": "4.0.54",
+  "versionCode": 40054,
+  "version_code": 40054,
+  "commit": "d0dde8d2",
+  "releasedAt": "7/12/2026, 12:59:14 PM CST",
+  "buildTimestamp": "7/12/2026, 12:59:14 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)",
-  "whatsNew": "• Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)",
+  "changelog": "• Fixed build pipeline failure caused by untracked UI component files",
+  "whatsNew": "• Fixed build pipeline failure caused by untracked UI component files",
   "releaseNotes": {
-    "added": [
-      "Permanent Forensic Diagnostics System (Public filesystem storage & ZIP export)"
+    "fixed": [
+      "Fixed build pipeline failure caused by untracked UI component files"
     ]
   },
   "mandatory": false

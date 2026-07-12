@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.55"
-$VersionCode = "40055"
-$ReleaseNote = "v4.0.55 - Profiler & Optimization"
+$VersionName = "4.0.56"
+$VersionCode = "40056"
+$ReleaseNote = "v4.0.56 - Performance Loop Hotfix"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

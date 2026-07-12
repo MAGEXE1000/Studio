@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { otaDebugLogs } from '../updater/diagnostics';
 
 const globalRenderStats = new Map<string, { count: number, reasons: Set<string>, lastProps: any, lastState: any }>();
 
@@ -21,7 +22,16 @@ export function useRenderProfiler(componentName: string, props: any = {}, state:
 
   renderCount.current++;
 
+  useLayoutEffect(() => {
+    otaDebugLogs.layoutCount = (otaDebugLogs.layoutCount || 0) + 1;
+  });
+
   useEffect(() => {
+    otaDebugLogs.renderCount = (otaDebugLogs.renderCount || 0) + 1;
+    requestAnimationFrame(() => {
+      otaDebugLogs.paintCount = (otaDebugLogs.paintCount || 0) + 1;
+    });
+
     let stats = globalRenderStats.get(componentName);
     if (!stats) {
       stats = { count: 0, reasons: new Set(), lastProps: props, lastState: state };

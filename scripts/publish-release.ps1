@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.51"
-$VersionCode = "40051"
-$ReleaseNote = "v4.0.51 - Forensic build for startup black screen investigation."
+$VersionName = "4.0.52"
+$VersionCode = "40052"
+$ReleaseNote = "v4.0.52 - Add Native persistent forensic logger."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -18,11 +18,13 @@ node apps/studio-web/scripts/sync-version.mjs
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/studio-core/src/lib/startup/startupCoordinator.ts
-git add packages/studio-core/src/lib/updater/pipeline.ts
-git add packages/studio-core/src/lib/updater/diagnostics.ts
-git add packages/studio-core/src/lib/updater/index.ts
+git add packages/studio-core/src/lib/updater/flightRecorder.ts
 git add apps/studio-android/package.json
-git add apps/studio-android/android/app/build.gradle
+git add apps/studio-android/android/app/src/main/java/com/chordex/app/ForensicLogger.java
+git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainApplication.java
+git add apps/studio-android/android/app/src/main/AndroidManifest.xml
+git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainActivity.java
+git add apps/studio-android/src/main.tsx
 git add apps/studio-android/public/version.json
 git add apps/studio-web/package.json
 git add CHANGELOG.md

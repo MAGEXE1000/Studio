@@ -807,6 +807,25 @@ class StartupCoordinatorClass {
   private checkWatchdogStatus() {
     const now = performance.now();
 
+    // Dump state to native logger
+    if (typeof window !== 'undefined' && (window as any).NativeForensicLogger) {
+      try {
+        const diag = this.getDiagnostics();
+        const reactMounted = (window as any).__reactMounted === true;
+        const currentOpacity = document.getElementById('root')?.style.opacity || document.body.style.opacity || 'unknown';
+        const lastPhase = diag.completedPhases.length > 0 ? diag.completedPhases[diag.completedPhases.length - 1] : 'none';
+        (window as any).NativeForensicLogger.updateState(
+          diag.currentPhase,
+          lastPhase,
+          reactMounted,
+          this.isCompleted, // hub mounted
+          (window as any).__studioStartupComplete || false,
+          'unknown', // pending promises
+          currentOpacity
+        );
+      } catch (e) {}
+    }
+
     if (this.isCompleted) {
       const hubDom = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
       if (!hubDom) {

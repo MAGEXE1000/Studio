@@ -29,6 +29,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ForensicLogger.getInstance(this).logNative("MainActivity.onCreate");
+        ForensicLogger.getInstance(this).startWatchdog();
+
         // Intercept file sharing intent BEFORE calling super.onCreate to prevent Bridge from redirecting
         handleIncomingIntent(getIntent());
 
@@ -65,6 +68,9 @@ public class MainActivity extends BridgeActivity {
         // Custom WebChromeClient to automatically grant WebView permission requests (e.g. getUserMedia microphone)
         // This bypasses any site-level permission blocks inside WebView once OS permission is granted.
         if (this.bridge != null && this.bridge.getWebView() != null) {
+            ForensicLogger.getInstance(this).logNative("Bridge initialization, WebView ready");
+            this.bridge.getWebView().addJavascriptInterface(ForensicLogger.getInstance(this), "NativeForensicLogger");
+
             android.util.Log.i("LivexBoot", "WebView initialized at " + android.os.SystemClock.elapsedRealtime() + "ms since boot");
             this.bridge.getWebView().setBackgroundColor(android.graphics.Color.TRANSPARENT);
             

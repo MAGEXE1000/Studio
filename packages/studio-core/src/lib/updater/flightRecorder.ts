@@ -198,7 +198,14 @@ export class UpdaterFlightRecorder {
     // Log to JS console
     const warningText = fullEvent.warning ? ` [WARNING: ${fullEvent.warning}]` : '';
     const errorText = fullEvent.error ? ` [ERROR: ${fullEvent.error}]` : '';
-    console.log(`[FlightRecorder] [${fullEvent.sequenceId}] [${fullEvent.severity}] [${fullEvent.category}] [${fullEvent.thread.toUpperCase()}] ${fullEvent.eventType} | ${fullEvent.caller} | ${fullEvent.reason || 'None'}${warningText}${errorText}`);
+    const logMsg = `[FlightRecorder] [${fullEvent.sequenceId}] [${fullEvent.severity}] [${fullEvent.category}] [${fullEvent.thread.toUpperCase()}] ${fullEvent.eventType} | ${fullEvent.caller} | ${fullEvent.reason || 'None'}${warningText}${errorText}`;
+    console.log(logMsg);
+
+    if (typeof window !== 'undefined' && (window as any).NativeForensicLogger) {
+      try {
+        (window as any).NativeForensicLogger.log(logMsg);
+      } catch (e) {}
+    }
   }
 
   public static getEvents(): FlightRecorderEvent[] {

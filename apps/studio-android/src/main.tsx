@@ -129,6 +129,9 @@ if (typeof window !== 'undefined') {
 }
 
 // Mount React immediately (native splash screen takes care of hiding visual load transitions)
+if (typeof window !== 'undefined') {
+  (window as any).__reactMounted = true;
+}
 UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_REACT_MOUNT', caller: 'main', reason: 'createRoot.render called' });
 createRoot(document.getElementById("root")!).render(
   <>

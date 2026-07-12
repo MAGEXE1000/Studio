@@ -12,6 +12,11 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.52
+
+### Added
+- Native persistent forensic logging.
+
 ## 4.0.51
 
 ### Added

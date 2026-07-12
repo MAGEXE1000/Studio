@@ -1,18 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.51",
-  "versionName": "4.0.51",
-  "versionCode": 40051,
-  "version_code": 40051,
-  "commit": "2c56da5b",
-  "releasedAt": "7/12/2026, 12:18:40 PM CST",
-  "buildTimestamp": "7/12/2026, 12:18:40 PM CST",
+  "version": "4.0.52",
+  "versionName": "4.0.52",
+  "versionCode": 40052,
+  "version_code": 40052,
+  "commit": "d25b32b4",
+  "releasedAt": "7/12/2026, 12:32:54 PM CST",
+  "buildTimestamp": "7/12/2026, 12:32:54 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Forensic build for startup black screen investigation.",
-  "whatsNew": "• Forensic build for startup black screen investigation.",
+  "changelog": "• Native persistent forensic logging.",
+  "whatsNew": "• Native persistent forensic logging.",
   "releaseNotes": {
     "added": [
-      "Forensic build for startup black screen investigation."
+      "Native persistent forensic logging."
     ]
   },
   "mandatory": false

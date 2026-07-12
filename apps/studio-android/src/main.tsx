@@ -8,10 +8,15 @@ import {
   seedAudioAssets,
   NATIVE_VERSION,
   initDevToolsFramework,
-  UpdaterFlightRecorder
+  UpdaterFlightRecorder,
+  initLongTaskObserver
 } from "@workspace/studio-core";
+import { PerformanceProfiler } from "@workspace/ui-shared";
 import { Capacitor } from "@capacitor/core";
 import "./index.css";
+
+initLongTaskObserver();
+
 const LazyEmergencyOverlay = lazy(() => import("./EmergencyDebugOverlay"));
 
 function EmergencyDebugOverlayWrapper() {
@@ -134,11 +139,11 @@ if (typeof window !== 'undefined') {
 }
 UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_REACT_MOUNT', caller: 'main', reason: 'createRoot.render called' });
 createRoot(document.getElementById("root")!).render(
-  <>
+  <PerformanceProfiler id="AppRoot_Android">
     <RootAppContainer />
     <GlobalOverlays />
     <EmergencyDebugOverlayWrapper />
-  </>,
+  </PerformanceProfiler>,
 );
 
 // Clean up all service workers since they are not supported in native wrappers.

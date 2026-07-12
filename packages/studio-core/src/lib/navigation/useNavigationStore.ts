@@ -20,15 +20,14 @@ export interface NavigationStore {
   isTransitioning: boolean;
   gestureState: GestureState;
   predictiveProgress: number;
-  activeHandlers: BackHandlerInfo[];
 
   setHistory: (history: NavigationHistory) => void;
   setTransition: (type: TransitionType | null, active: boolean) => void;
   setGestureState: (state: GestureState, progress: number) => void;
-  registerHandler: (id: string, priority: string, fn: () => boolean) => void;
-  unregisterHandler: (id: string) => void;
   resetStore: () => void;
 }
+
+export const activeBackHandlers: BackHandlerInfo[] = [];
 
 export const useNavigationStore = create<NavigationStore>()(
   persist(
@@ -38,7 +37,6 @@ export const useNavigationStore = create<NavigationStore>()(
       isTransitioning: false,
       gestureState: 'idle',
       predictiveProgress: 0,
-      activeHandlers: [],
 
       setHistory: (history) => {
         const prev = useNavigationStore.getState().history;
@@ -55,18 +53,6 @@ export const useNavigationStore = create<NavigationStore>()(
         console.log(`[NavigationStore] [${new Date().toISOString()}] setGestureState | State: ${gestureState}, Progress: ${predictiveProgress} | Prev: {state: ${store.gestureState}, progress: ${store.predictiveProgress}}`);
         set({ gestureState, predictiveProgress });
       },
-      registerHandler: (id, priority, fn) => {
-        console.log(`[NavigationStore] [${new Date().toISOString()}] registerHandler | id: ${id}, priority: ${priority}`);
-        set((state) => ({
-          activeHandlers: [...state.activeHandlers.filter((h) => h.id !== id), { id, priority, fn }],
-        }));
-      },
-      unregisterHandler: (id) => {
-        console.log(`[NavigationStore] [${new Date().toISOString()}] unregisterHandler | id: ${id}`);
-        set((state) => ({
-          activeHandlers: state.activeHandlers.filter((h) => h.id !== id),
-        }));
-      },
       resetStore: () => {
         console.log(`[NavigationStore] [${new Date().toISOString()}] resetStore`);
         set({
@@ -75,7 +61,6 @@ export const useNavigationStore = create<NavigationStore>()(
           isTransitioning: false,
           gestureState: 'idle',
           predictiveProgress: 0,
-          activeHandlers: [],
         });
       },
     }),

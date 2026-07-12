@@ -33,9 +33,6 @@ Timestamp: ${timestamp}
 Current Navigation Stack (History):
 ${JSON.stringify(store.history, null, 2)}
 
-Current Back Stack (Active Handlers):
-${JSON.stringify(store.activeHandlers.map(h => ({ id: h.id, priority: h.priority })), null, 2)}
-
 Mounted React Tree:
 ${JSON.stringify(mountedTree, null, 2)}
 

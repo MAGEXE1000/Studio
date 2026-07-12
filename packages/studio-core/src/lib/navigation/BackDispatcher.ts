@@ -1,4 +1,4 @@
-import { useNavigationStore } from '../../store/useNavigationStore.js';
+import { useNavigationStore, activeBackHandlers } from '../../store/useNavigationStore.js';
 import { NavigationDispatcher } from './NavigationDispatcher.js';
 
 export type BackPriority = 'modal' | 'sheet' | 'overlay' | 'nested' | 'panel';
@@ -34,11 +34,19 @@ export class BackDispatcher {
     this.initialize();
     const id = Math.random().toString(36).substring(2, 9);
     console.log(`[BackDispatcher] [${new Date().toISOString()}] Register handler | id: ${id}, priority: ${priority}`);
-    useNavigationStore.getState().registerHandler(id, priority, fn);
+    
+    const existingIndex = activeBackHandlers.findIndex(h => h.id === id);
+    if (existingIndex !== -1) {
+      activeBackHandlers.splice(existingIndex, 1);
+    }
+    activeBackHandlers.push({ id, priority, fn });
 
     return () => {
       console.log(`[BackDispatcher] [${new Date().toISOString()}] Unregister handler | id: ${id}, priority: ${priority}`);
-      useNavigationStore.getState().unregisterHandler(id);
+      const idx = activeBackHandlers.findIndex(h => h.id === id);
+      if (idx !== -1) {
+        activeBackHandlers.splice(idx, 1);
+      }
     };
   }
 
@@ -49,7 +57,7 @@ export class BackDispatcher {
   public static handleBackEvent(): boolean {
     const timestamp = new Date().toISOString();
     const store = useNavigationStore.getState();
-    const handlers = [...store.activeHandlers];
+    const handlers = [...activeBackHandlers];
     console.log(`[BackDispatcher] [${timestamp}] handleBackEvent | Active handlers count: ${handlers.length}`);
 
     // Sort handlers based on PRIORITY_ORDER index (lower index = higher priority)

@@ -1,19 +1,15 @@
 {
   "platform": "android",
-  "version": "4.0.54",
-  "versionName": "4.0.54",
-  "versionCode": 40054,
-  "version_code": 40054,
-  "commit": "d0dde8d2",
-  "releasedAt": "7/12/2026, 12:59:14 PM CST",
-  "buildTimestamp": "7/12/2026, 12:59:14 PM CST",
+  "version": "4.0.55",
+  "versionName": "4.0.55",
+  "versionCode": 40055,
+  "version_code": 40055,
+  "commit": "95451bab",
+  "releasedAt": "7/12/2026, 2:02:23 PM CST",
+  "buildTimestamp": "7/12/2026, 2:02:23 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed build pipeline failure caused by untracked UI component files",
-  "whatsNew": "• Fixed build pipeline failure caused by untracked UI component files",
-  "releaseNotes": {
-    "fixed": [
-      "Fixed build pipeline failure caused by untracked UI component files"
-    ]
-  },
+  "changelog": "• Instrumented React Profiler and Performance Observer to detect Long Tasks.\n• Optimized NavigationStore to prevent global app re-renders on back handler registrations.\n• Eliminated continuous register/unregister cycles in BackDispatcher.",
+  "whatsNew": "• Instrumented React Profiler and Performance Observer to detect Long Tasks.\n• Optimized NavigationStore to prevent global app re-renders on back handler registrations.\n• Eliminated continuous register/unregister cycles in BackDispatcher.",
+  "releaseNotes": {},
   "mandatory": false
 }

@@ -61,7 +61,11 @@ function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): Gree
 
 let _sessionIntroFinished = false;
 
+import { useRenderProfiler } from '@workspace/studio-core';
+import { PerformanceProfiler } from '../../profiling/PerformanceProfiler';
+
 export default function StudioHub() {
+  useRenderProfiler('StudioHub');
   UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_RENDER', caller: 'StudioHub', reason: '<StudioHub /> rendered' });
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
@@ -5882,6 +5886,7 @@ User Agent: [Automatically Generated]
 
   /* ── DESKTOP LAYOUT ────────────────────────────────────────────── */
   return createPortal(
+    <PerformanceProfiler id="studio-hub-desktop">
     <div
       style={{
         position: 'fixed',
@@ -6050,7 +6055,8 @@ User Agent: [Automatically Generated]
           </div>
         </div>
       </div>
-    </div>,
+      </div>
+    </PerformanceProfiler>,
     document.body
   );
 }

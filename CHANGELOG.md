@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.55
+
+### Performance
+- Instrumented React Profiler and Performance Observer to detect Long Tasks.
+- Optimized NavigationStore to prevent global app re-renders on back handler registrations.
+- Eliminated continuous register/unregister cycles in BackDispatcher.
+
 ## 4.0.54
 
 ### Fixed

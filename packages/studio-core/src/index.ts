@@ -57,6 +57,8 @@ export * from './data/authorizedChords';
 export * from './lib/chordService';
 export * from './lib/updater/updaterSimulation';
 export * from './lib/updater/diagnostics';
+export * from './lib/profiling/useRenderProfiler';
+export * from './lib/profiling/longTaskObserver';
 export { deleteLocalApk } from './lib/updater/cacheManager';
 export * from './lib/updater/versionLogger';
 export * from './lib/updater/stateMachine';

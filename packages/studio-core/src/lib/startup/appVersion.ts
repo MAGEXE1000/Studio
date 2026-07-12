@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.54';
-export const WEB_VERSION = '4.0.54';
+export const NATIVE_VERSION = '4.0.55';
+export const WEB_VERSION = '4.0.55';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -59,12 +59,6 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
-  {
-    heading: "Fixed",
-    items: [
-      "Fixed build pipeline failure caused by untracked UI component files",
-    ],
-  },
 ];
 
 /** Native English version of the current changelog for Android. */

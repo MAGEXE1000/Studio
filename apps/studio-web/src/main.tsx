@@ -1,7 +1,9 @@
-import { tolgee, initDevToolsFramework } from '@workspace/studio-core';
+import { tolgee, initDevToolsFramework, initLongTaskObserver } from '@workspace/studio-core';
+import { PerformanceProfiler } from '@workspace/ui-shared';
 
 // Initialize DevTools
 initDevToolsFramework();
+initLongTaskObserver();
 import { createRoot } from "react-dom/client";
 import { TolgeeProvider } from "@tolgee/react";
 import App from "./App";
@@ -9,7 +11,9 @@ import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
   <TolgeeProvider tolgee={tolgee} fallback={null}>
-    <App />
+    <PerformanceProfiler id="AppRoot">
+      <App />
+    </PerformanceProfiler>
   </TolgeeProvider>,
 );
 

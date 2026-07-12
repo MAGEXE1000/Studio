@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigationStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { NavigationDispatcher } from '@workspace/studio-core';
-import { TransitionCoordinator } from '@workspace/studio-core';
+import { TransitionCoordinator, activeBackHandlers } from '@workspace/studio-core';
 
 export default function NavDiagnosticsWidget() {
   const store = useNavigationStore(useShallow(s => ({
@@ -11,7 +11,6 @@ export default function NavDiagnosticsWidget() {
     transitionType: s.transitionType,
     gestureState: s.gestureState,
     predictiveProgress: s.predictiveProgress,
-    activeHandlers: s.activeHandlers,
   })));
   const current = NavigationDispatcher.currentRoute();
   const previous = NavigationDispatcher.previousRoute();
@@ -122,8 +121,8 @@ export default function NavDiagnosticsWidget() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderTop: '1px solid rgba(128,128,128,0.05)', paddingTop: '8px' }}>
           <span style={{ color: 'rgba(255,255,255,0.5)' }}>Registered Priority Handlers:</span>
-          <span style={{ fontWeight: 600, color: store.activeHandlers.length > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)' }}>
-            {store.activeHandlers.length} active
+          <span style={{ fontWeight: 600, color: activeBackHandlers.length > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)' }}>
+            {activeBackHandlers.length} active
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderTop: '1px solid rgba(128,128,128,0.05)', paddingTop: '8px' }}>

@@ -74,3 +74,4 @@ export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnostic
 export { copyToClipboard } from './components/updater-diagnostics/centralizedClipboard';
 export * from './components/StudioLayoutSystem';
 export { default as NavDiagnosticsWidget } from './components/updater-diagnostics/NavDiagnosticsWidget';
+export * from './profiling/PerformanceProfiler';

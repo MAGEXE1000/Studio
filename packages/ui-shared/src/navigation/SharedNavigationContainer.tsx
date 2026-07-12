@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useRenderProfiler } from '@workspace/studio-core';
+import { PerformanceProfiler } from '../profiling/PerformanceProfiler';
 
 interface SharedNavigationContainerProps {
   activeView: string;
@@ -21,6 +23,8 @@ export function SharedNavigationContainer({
   const [exitingView, setExitingView] = useState<string | null>(null);
   const [resolvedDir, setResolvedDir] = useState<'right' | 'left'>('right');
   const [visitedViews, setVisitedViews] = useState<Set<string>>(() => new Set([activeView]));
+
+  useRenderProfiler('SharedNavigationContainer', { activeView, direction, viewOrder, className, style }, { visibleView, exitingView, resolvedDir });
 
   useEffect(() => {
     setVisitedViews(prev => {
@@ -64,11 +68,12 @@ export function SharedNavigationContainer({
     : [visibleView].concat(exitingView !== null && exitingView !== visibleView ? [exitingView] : []);
 
   return (
-    <div
-      className={`relative w-full h-full overflow-hidden ${className}`}
-      style={{ ...style }}
-    >
-      {renderList.map(viewId => {
+    <PerformanceProfiler id="SharedNavigationContainer">
+      <div
+        className={`relative w-full h-full overflow-hidden ${className}`}
+        style={{ ...style }}
+      >
+        {renderList.map(viewId => {
         const isVisible = visibleView === viewId;
         const isExiting = exitingView === viewId;
         const isEntering = isVisible && exitingView !== null;
@@ -108,6 +113,7 @@ export function SharedNavigationContainer({
           </div>
         );
       })}
-    </div>
+      </div>
+    </PerformanceProfiler>
   );
 }

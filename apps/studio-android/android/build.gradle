@@ -22,7 +22,7 @@ allprojects {
         google()
         mavenCentral()
     }
-    tasks.whenTaskAdded { task ->
+    tasks.configureEach { task ->
         if (task.name.startsWith("lintVital")) {
             task.enabled = false
         }

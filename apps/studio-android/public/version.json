@@ -1,18 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.27",
-  "versionName": "4.0.27",
-  "versionCode": 40027,
-  "version_code": 40027,
-  "commit": "570e9d0a",
-  "releasedAt": "7/11/2026, 6:06:12 PM CST",
-  "buildTimestamp": "7/11/2026, 6:06:12 PM CST",
+  "version": "4.0.28",
+  "versionName": "4.0.28",
+  "versionCode": 40028,
+  "version_code": 40028,
+  "commit": "4dee1ff3",
+  "releasedAt": "7/11/2026, 7:41:01 PM CST",
+  "buildTimestamp": "7/11/2026, 7:41:01 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Test release validation build with no functional code changes.",
-  "whatsNew": "• Test release validation build with no functional code changes.",
+  "changelog": "• Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.\n• Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.\n• Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.\n• Cleaned up background version check timeout resource leaks.",
+  "whatsNew": "• Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.\n• Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.\n• Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.\n• Cleaned up background version check timeout resource leaks.",
   "releaseNotes": {
     "added": [
-      "Test release validation build with no functional code changes."
+      "Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.",
+      "Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.",
+      "Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.",
+      "Cleaned up background version check timeout resource leaks."
     ]
   },
   "mandatory": false

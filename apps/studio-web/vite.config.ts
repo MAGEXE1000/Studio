@@ -92,8 +92,9 @@ export default defineConfig(async ({ command, mode }) => {
       emptyOutDir: true,
       target: "es2020",
       minify: "esbuild",
-      sourcemap: true,
+      sourcemap: false,
       assetsInlineLimit: 4096,
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -107,6 +108,8 @@ export default defineConfig(async ({ command, mode }) => {
               if (id.includes("/zustand/")) return "zustand";
               if (id.includes("/jspdf/")) return "jspdf";
               if (id.includes("/@fontsource/")) return "fonts";
+              if (id.includes("/lottie-web/")) return "lottie";
+              if (id.includes("/@supabase/")) return "supabase";
               if (
                 id.includes("/firebase/") ||
                 id.includes("/@firebase/")

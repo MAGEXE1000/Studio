@@ -1,2 +1,2 @@
-### Fixed
-- Fixed Android startup black screen by running updater initialization asynchronously.
+### Added
+- Forensic build for startup black screen investigation.

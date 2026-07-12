@@ -60,9 +60,9 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed Android startup black screen by running updater initialization asynchronously.",
+      "Forensic build for startup black screen investigation.",
     ],
   },
 ];

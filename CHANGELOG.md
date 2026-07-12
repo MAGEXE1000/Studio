@@ -12,6 +12,11 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.51
+
+### Added
+- Forensic build for startup black screen investigation.
+
 ## 4.0.50
 
 ### Fixed

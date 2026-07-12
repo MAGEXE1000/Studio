@@ -14,7 +14,8 @@ import {
   NavigationDispatcher,
   useNavigationStore,
   type ActivePanel,
-  navDiagnosticsRegistry
+  navDiagnosticsRegistry,
+  useRenderProfiler
 } from '@workspace/studio-core';
 
 import {
@@ -76,17 +77,24 @@ const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
 const ALL_PANELS = ['library', 'chord', 'songs', 'settings'] as const;
 
 export default function App() {
+  const settings = useChordStore(s => s.settings);
+  const activePresetId = useChordStore(s => s.activePresetId);
+  const updateSettings = useChordStore(s => s.updateSettings);
+
+  const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
+
+  // We temporarily removed activePanel from being evaluated first to allow useRenderProfiler
+  useRenderProfiler('App', {}, { settings, routeApp });
+
   const activePanel = useNavigationStore(s => {
+
     const last = s.history[s.history.length - 1];
     return (last?.app === 'chords' && last.page ? last.page as ActivePanel : 'library');
   });
   const setActivePanel = (panel: ActivePanel) => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   };
-  const { settings, activePresetId, updateSettings } = useChordStore();
   const { preferences } = useStudioPreferences();
-
-  const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
 
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);

@@ -65,7 +65,6 @@ import { useRenderProfiler } from '@workspace/studio-core';
 import { PerformanceProfiler } from '../../profiling/PerformanceProfiler';
 
 export default function StudioHub() {
-  useRenderProfiler('StudioHub');
   UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_RENDER', caller: 'StudioHub', reason: '<StudioHub /> rendered' });
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
@@ -98,12 +97,17 @@ export default function StudioHub() {
     const current = history[history.length - 1];
     return (current?.tab ?? 'home') as HubTab;
   });
+
+  useRenderProfiler('StudioHub', {}, { settings, tab, isWebDesktop, lang, hubAccentKey, isHubLight });
+
  
   const setTab = useCallback((action: React.SetStateAction<HubTab>) => {
     const currentTab = useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]?.tab ?? 'home';
     const nextTab = typeof action === 'function' ? action(currentTab as HubTab) : action;
     NavigationDispatcher.push({ app: 'hub', tab: nextTab, page: 'main' });
   }, []) as React.Dispatch<React.SetStateAction<HubTab>>;
+
+  const goBackToSettings = useCallback(() => setTab('settings'), [setTab]);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('studio:hub-tab-active', { detail: tab }));
@@ -548,14 +552,14 @@ export default function StudioHub() {
                 {tabId === 'profile' && (
                   <>
                     <style>{HUB_SETTINGS_CSS}</style>
-                    <ProfileHeaderBack onBack={() => { setTab('settings'); }} />
+                    <ProfileHeaderBack onBack={goBackToSettings} />
                     <Suspense fallback={<SmartLoading fallbackSkeleton={<div style={{ padding: '0 20px 80px' }}><StudioSkeletonProfile /></div>} />}>
                       {authUser ? (
                         <div data-hub-tab-content style={{ padding: '0 0 100px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
                         <AccountSettingsPage
                           accent={accent}
                           cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
-                          onBack={() => { setTab('settings'); }}
+                          onBack={goBackToSettings}
                         />
                         </div>
                       ) : (

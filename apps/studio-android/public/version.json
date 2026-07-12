@@ -1,21 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.33",
-  "versionName": "4.0.33",
-  "versionCode": 40033,
-  "version_code": 40033,
-  "commit": "5104b1d0",
-  "releasedAt": "7/12/2026, 12:21:55 AM CST",
-  "buildTimestamp": "7/12/2026, 12:21:55 AM CST",
+  "version": "4.0.50",
+  "versionName": "4.0.50",
+  "versionCode": 40050,
+  "version_code": 40050,
+  "commit": "e53cdcda",
+  "releasedAt": "7/12/2026, 11:26:34 AM CST",
+  "buildTimestamp": "7/12/2026, 11:26:34 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Architecture and tech debt reduction pass.\n• Removed dead code and unused exports.\n• Resolved circular dependencies.\n• Extracted constants from massive UI components.",
-  "whatsNew": "• Architecture and tech debt reduction pass.\n• Removed dead code and unused exports.\n• Resolved circular dependencies.\n• Extracted constants from massive UI components.",
+  "changelog": "• Fixed Android startup black screen by running updater initialization asynchronously.",
+  "whatsNew": "• Fixed Android startup black screen by running updater initialization asynchronously.",
   "releaseNotes": {
-    "added": [
-      "Architecture and tech debt reduction pass.",
-      "Removed dead code and unused exports.",
-      "Resolved circular dependencies.",
-      "Extracted constants from massive UI components."
+    "fixed": [
+      "Fixed Android startup black screen by running updater initialization asynchronously."
     ]
   },
   "mandatory": false

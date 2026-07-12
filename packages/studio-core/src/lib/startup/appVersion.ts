@@ -60,12 +60,9 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Architecture and tech debt reduction pass.",
-      "Removed dead code and unused exports.",
-      "Resolved circular dependencies.",
-      "Extracted constants from massive UI components.",
+      "Fixed Android startup black screen by running updater initialization asynchronously.",
     ],
   },
 ];

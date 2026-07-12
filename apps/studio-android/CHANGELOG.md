@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.56
+
+### Fixed
+- Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.
+- Eliminated BackDispatcher handler churn (unregister/register loops).
+- Hardened performance diagnostics to accurately report render, paint, and layout counts.
+
 ## 4.0.55
 
 ### Performance

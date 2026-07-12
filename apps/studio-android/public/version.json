@@ -1,15 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.55",
-  "versionName": "4.0.55",
-  "versionCode": 40055,
-  "version_code": 40055,
-  "commit": "95451bab",
-  "releasedAt": "7/12/2026, 2:02:23 PM CST",
-  "buildTimestamp": "7/12/2026, 2:02:23 PM CST",
+  "version": "4.0.56",
+  "versionName": "4.0.56",
+  "versionCode": 40056,
+  "version_code": 40056,
+  "commit": "26c6f5a0",
+  "releasedAt": "7/12/2026, 2:52:24 PM CST",
+  "buildTimestamp": "7/12/2026, 2:52:24 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Instrumented React Profiler and Performance Observer to detect Long Tasks.\n• Optimized NavigationStore to prevent global app re-renders on back handler registrations.\n• Eliminated continuous register/unregister cycles in BackDispatcher.",
-  "whatsNew": "• Instrumented React Profiler and Performance Observer to detect Long Tasks.\n• Optimized NavigationStore to prevent global app re-renders on back handler registrations.\n• Eliminated continuous register/unregister cycles in BackDispatcher.",
-  "releaseNotes": {},
+  "changelog": "• Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.\n• Eliminated BackDispatcher handler churn (unregister/register loops).\n• Hardened performance diagnostics to accurately report render, paint, and layout counts.",
+  "whatsNew": "• Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.\n• Eliminated BackDispatcher handler churn (unregister/register loops).\n• Hardened performance diagnostics to accurately report render, paint, and layout counts.",
+  "releaseNotes": {
+    "fixed": [
+      "Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.",
+      "Eliminated BackDispatcher handler churn (unregister/register loops).",
+      "Hardened performance diagnostics to accurately report render, paint, and layout counts."
+    ]
+  },
   "mandatory": false
 }

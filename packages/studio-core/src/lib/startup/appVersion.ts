@@ -59,6 +59,14 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
+  {
+    heading: "Fixed",
+    items: [
+      "Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking.",
+      "Eliminated BackDispatcher handler churn (unregister/register loops).",
+      "Hardened performance diagnostics to accurately report render, paint, and layout counts.",
+    ],
+  },
 ];
 
 /** Native English version of the current changelog for Android. */

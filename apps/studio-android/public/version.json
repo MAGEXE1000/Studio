@@ -1,21 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.28",
-  "versionName": "4.0.28",
-  "versionCode": 40028,
-  "version_code": 40028,
-  "commit": "4dee1ff3",
-  "releasedAt": "7/11/2026, 7:41:01 PM CST",
-  "buildTimestamp": "7/11/2026, 7:41:01 PM CST",
+  "version": "4.0.29",
+  "versionName": "4.0.29",
+  "versionCode": 40029,
+  "version_code": 40029,
+  "commit": "98f060e9",
+  "releasedAt": "7/11/2026, 8:03:36 PM CST",
+  "buildTimestamp": "7/11/2026, 8:03:36 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.\n• Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.\n• Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.\n• Cleaned up background version check timeout resource leaks.",
-  "whatsNew": "• Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.\n• Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.\n• Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.\n• Cleaned up background version check timeout resource leaks.",
+  "changelog": "• Test release validation build with no functional code changes to verify the complete release pipeline.",
+  "whatsNew": "• Test release validation build with no functional code changes to verify the complete release pipeline.",
   "releaseNotes": {
     "added": [
-      "Concurrent update check resolver querying both Firebase Hosting and GitHub Releases concurrently.",
-      "Strict fallback version check logic to prevent stale CDN cache or metadata replication lag from bypassing updates.",
-      "Resolved diagnostics FSM transition count inconsistency by aligning it with persisted Flight Recorder state.",
-      "Cleaned up background version check timeout resource leaks."
+      "Test release validation build with no functional code changes to verify the complete release pipeline."
     ]
   },
   "mandatory": false

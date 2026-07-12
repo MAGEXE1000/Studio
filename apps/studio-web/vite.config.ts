@@ -92,7 +92,7 @@ export default defineConfig(async ({ command, mode }) => {
       emptyOutDir: true,
       target: "es2020",
       minify: "esbuild",
-      sourcemap: false,
+      sourcemap: true,
       assetsInlineLimit: 4096,
       chunkSizeWarningLimit: 1000,
       rollupOptions: {

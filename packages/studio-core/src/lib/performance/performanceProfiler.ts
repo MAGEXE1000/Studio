@@ -1,4 +1,6 @@
 // performanceProfiler.ts
+import { RootCauseAnalyzer } from '../diagnostics/RootCauseAnalyzer';
+import { ReactRootCauseProfiler } from '../diagnostics/reactProfiler';
 
 export interface ProfilerMetrics {
   currentFps: number;
@@ -242,6 +244,12 @@ export class PerformanceProfiler {
         console.warn('[Profiler] PerformanceObserver longtask not supported:', e);
       }
     }
+
+    // Start RootCauseAnalyzer
+    RootCauseAnalyzer.start();
+
+    // Start React Profiler
+    ReactRootCauseProfiler.init();
   }
 
   public stop() {
@@ -261,6 +269,7 @@ export class PerformanceProfiler {
       this.observer.disconnect();
       this.observer = null;
     }
+    RootCauseAnalyzer.stop();
   }
 
   public subscribe(listener: (metrics: ProfilerMetrics) => void) {
@@ -463,23 +472,37 @@ export class PerformanceProfiler {
   public getScore(metrics: ProfilerMetrics): number {
     let score = 100;
 
+    // 1. Long Tasks (20%)
+    if (metrics.longestBlockingTask > 150) score -= 20;
+    else if (metrics.longestBlockingTask > 100) score -= 15;
+    else if (metrics.longestBlockingTask > 50) score -= 5;
+    
+    // 2. Dropped Frames & Pacing (25%)
     const fpsDeficit = metrics.refreshRate - metrics.averageFps;
-    if (fpsDeficit > 0) score -= fpsDeficit * 2.5;
+    if (fpsDeficit > 10) score -= 15;
+    else if (fpsDeficit > 5) score -= 5;
+    
+    if (metrics.frameVariance > 5.0) score -= 10;
+    score -= Math.min(10, (metrics.droppedFrames / 10));
 
-    score -= Math.min(15, metrics.droppedFrames * 0.1);
-    score -= Math.min(15, metrics.longFrames * 0.5);
-
-    if (metrics.longestBlockingTask > 50) score -= 10;
-    if (metrics.longestBlockingTask > 150) score -= 15;
-
-    if (metrics.frameVariance > 3.0) score -= 10;
-    if (metrics.frameVariance > 8.0) score -= 10;
-
+    // 3. Memory Growth (15%)
     const mem = (performance as any).memory;
     if (mem) {
       const ratio = mem.usedJSHeapSize / mem.jsHeapSizeLimit;
-      if (ratio > 0.75) score -= 15;
+      if (ratio > 0.85) score -= 15;
+      else if (ratio > 0.70) score -= 10;
+      else if (ratio > 0.50) score -= 5;
     }
+
+    // 4. React Render Stability & Event Loop (20%)
+    if (metrics.eventLoopDelay > 25) score -= 10;
+    if (metrics.eventLoopDelay > 50) score -= 20;
+
+    // 5. Store & Navigation Efficiency (20%)
+    // (Implicitly tracked via long tasks and event loop delay right now, 
+    // but we can deduct based on JS Thread Average)
+    if (metrics.jsThreadAverage > 16.0) score -= 10;
+    if (metrics.jsThreadAverage > 32.0) score -= 20;
 
     return Math.max(0, Math.min(100, Math.round(score)));
   }

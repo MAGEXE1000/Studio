@@ -2,7 +2,6 @@ import { cn } from '@workspace/studio-core';
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "motion/react";
 
 type EncryptedTextProps = {
   text: string;
@@ -66,8 +65,6 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
   
-  // Standard IntersectionObserver visibility hook from Framer Motion
-  const inViewSignal = useInView(ref, { once: true });
   const [isInView, setIsInView] = useState(false);
 
   // Checks if this specific text has already completed decryption during this launch session
@@ -88,12 +85,21 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
     text ? generateGibberishPreservingSpaces(text, charset).split("") : [],
   );
 
-  // Sync state if IntersectionObserver reports visible
   useEffect(() => {
-    if (inViewSignal) {
-      setIsInView(true);
-    }
-  }, [inViewSignal]);
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Robust Visibility Fallback:
   // If IntersectionObserver is blocked, delayed, or disabled due to styling/zoom transitions,
@@ -187,7 +193,7 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
   if (!text) return null;
 
   return (
-    <motion.span
+    <span
       ref={ref}
       className={cn(className)}
       aria-label={text}
@@ -211,6 +217,6 @@ export const EncryptedText: React.FC<EncryptedTextProps> = ({
           </span>
         );
       })}
-    </motion.span>
+    </span>
   );
 };

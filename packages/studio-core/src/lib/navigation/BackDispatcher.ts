@@ -30,20 +30,35 @@ export class BackDispatcher {
   /**
    * Registers a callback with a priority. Returns a cleanup unregister function.
    */
-  public static register(priority: BackPriority, fn: () => boolean): () => void {
+  public static register(priority: BackPriority, fn: () => boolean, owner?: string): () => void {
     this.initialize();
     const id = Math.random().toString(36).substring(2, 9);
-    console.log(`[BackDispatcher] [${new Date().toISOString()}] Register handler | id: ${id}, priority: ${priority}`);
     
-    const existingIndex = activeBackHandlers.findIndex(h => h.id === id);
+    let caller = owner;
+    if (!caller) {
+      const err = new Error();
+      if (err.stack) {
+        const lines = err.stack.split('\\n');
+        for (let i = 2; i < lines.length; i++) {
+          if (!lines[i].includes('BackDispatcher')) {
+            caller = lines[i].trim();
+            break;
+          }
+        }
+      }
+    }
+    
+    console.log(`[BackDispatcher] [${new Date().toISOString()}] Register handler | id: ${id}, priority: ${priority}, owner: ${caller || 'Unknown'}`);
+    
+    const existingIndex = activeBackHandlers.findIndex((h: any) => h.id === id);
     if (existingIndex !== -1) {
       activeBackHandlers.splice(existingIndex, 1);
     }
-    activeBackHandlers.push({ id, priority, fn });
+    activeBackHandlers.push({ id, priority, fn, owner: caller });
 
     return () => {
-      console.log(`[BackDispatcher] [${new Date().toISOString()}] Unregister handler | id: ${id}, priority: ${priority}`);
-      const idx = activeBackHandlers.findIndex(h => h.id === id);
+      console.log(`[BackDispatcher] [${new Date().toISOString()}] Unregister handler | id: ${id}, priority: ${priority}, owner: ${caller || 'Unknown'}`);
+      const idx = activeBackHandlers.findIndex((h: any) => h.id === id);
       if (idx !== -1) {
         activeBackHandlers.splice(idx, 1);
       }

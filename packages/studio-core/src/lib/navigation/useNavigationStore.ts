@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { diagnosticsMiddleware } from '../diagnostics/storeProfiler';
 import { secureReadLocal, secureWriteLocal } from '../security.js';
 import {
   type NavigationRoute,
@@ -12,6 +13,7 @@ export interface BackHandlerInfo {
   id: string;
   priority: string;
   fn: () => boolean;
+  owner?: string;
 }
 
 export interface NavigationStore {
@@ -30,8 +32,9 @@ export interface NavigationStore {
 export const activeBackHandlers: BackHandlerInfo[] = [];
 
 export const useNavigationStore = create<NavigationStore>()(
-  persist(
-    (set) => ({
+  diagnosticsMiddleware(
+    persist(
+      (set) => ({
       history: [{ app: 'hub', tab: 'home' }],
       transitionType: null,
       isTransitioning: false,
@@ -79,5 +82,5 @@ export const useNavigationStore = create<NavigationStore>()(
         },
       })),
     }
-  )
+  ), 'NavigationStore')
 );

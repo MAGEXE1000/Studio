@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UpdaterFlightRecorder } from '@workspace/studio-core';
 
@@ -17,16 +17,13 @@ interface StudioUpdateScreenProps {
   changelog?: React.ReactNode;
   isRequired?: boolean;
   onClose?: () => void;
-  downloadSpeedMBs?: number;
-  downloadRemainingSeconds?: number;
-  downloadedMB?: number;
-  totalMB?: number;
+  progressComponent?: React.ReactNode;
   isLight?: boolean;
   fromVersion?: string;
   toVersion?: string;
 }
 
-export default function StudioUpdateScreen({
+export default memo(function StudioUpdateScreen({
   state,
   progress,
   accentFrom,
@@ -41,10 +38,7 @@ export default function StudioUpdateScreen({
   changelog,
   isRequired,
   onClose,
-  downloadSpeedMBs,
-  downloadRemainingSeconds,
-  downloadedMB,
-  totalMB,
+  progressComponent,
   isLight = false,
   fromVersion,
   toVersion,
@@ -337,59 +331,7 @@ export default function StudioUpdateScreen({
         </AnimatePresence>
 
         {/* Linear Progress Section with download speed and time metrics */}
-        <AnimatePresence>
-          {showProgress && (
-            <motion.div
-              key="progress-bar-container"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={emphasizedTransition}
-              style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8 }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
-                <span>Downloading update</span>
-                <span>{pct}%</span>
-              </div>
-              
-              <div style={{ width: '100%', height: 6, borderRadius: 3, background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${pct}%` }}
-                  transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-                  style={{
-                    height: '100%',
-                    background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
-                  }} 
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, fontFamily: 'Inter, monospace', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)' }}>
-                <span>
-                  {downloadedMB && totalMB 
-                    ? `${downloadedMB.toFixed(1)} MB / ${totalMB.toFixed(1)} MB` 
-                    : 'Calculating size...'}
-                </span>
-                <span style={{ display: 'flex', gap: 8 }}>
-                  {downloadSpeedMBs !== undefined && downloadSpeedMBs > 0 && (
-                    <span>
-                      {downloadSpeedMBs >= 1 
-                        ? `${downloadSpeedMBs.toFixed(1)} MB/s` 
-                        : `${(downloadSpeedMBs * 1024).toFixed(0)} KB/s`}
-                    </span>
-                  )}
-                  {downloadRemainingSeconds !== undefined && downloadRemainingSeconds > 0 && (
-                    <span>
-                      • {downloadRemainingSeconds < 60 
-                        ? `${Math.round(downloadRemainingSeconds)}s remaining` 
-                        : `${Math.floor(downloadRemainingSeconds / 60)}m ${Math.round(downloadRemainingSeconds % 60)}s remaining`}
-                    </span>
-                  )}
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {progressComponent}
 
         {/* Indeterminate Installing Progress Bar */}
         <AnimatePresence>
@@ -470,4 +412,4 @@ export default function StudioUpdateScreen({
       </motion.div>
     </motion.div>
   );
-}
+});

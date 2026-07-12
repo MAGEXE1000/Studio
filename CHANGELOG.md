@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.34
+
+### Improved
+- Performance and UX optimization pass.
+- Fixed layout thrashing in the updater modal.
+- Cleaned up detached memory references for background tasks.
+- Improved startup time by deferring heavy module preloading.
+
 ## 4.0.33
 
 ### Added

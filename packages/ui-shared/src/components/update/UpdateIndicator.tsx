@@ -929,6 +929,121 @@ function ActionButton({
   );
 }
 
+const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, accentTo, isLight }: any) => {
+  const [downloadMetrics, setDownloadMetrics] = useState({
+    downloadedMB: 0,
+    totalMB: 0,
+    speedMBs: 0,
+    remainingSeconds: 0,
+  });
+
+  const lastProgressRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const smoothedSpeedRef = useRef(0);
+
+  useEffect(() => {
+    const isDownloading = ota.updateState === 'DOWNLOAD_APK' || ota.updateState === 'FETCH_APK_INFORMATION';
+    if (isDownloading) {
+      const totalBytes = ota.apkSizeBytes || 56194057;
+      const downloadedBytes = totalBytes * ota.progress;
+      
+      const now = Date.now();
+      const lastTime = lastTimeRef.current;
+      const lastProgress = lastProgressRef.current;
+      
+      let speed = 0;
+      let remaining = 0;
+      
+      if (lastTime > 0 && now > lastTime && ota.progress > lastProgress) {
+        const timeDiffSec = (now - lastTime) / 1000;
+        const bytesDiff = totalBytes * (ota.progress - lastProgress);
+        const currentSpeed = bytesDiff / timeDiffSec;
+        
+        if (smoothedSpeedRef.current === 0) {
+          smoothedSpeedRef.current = currentSpeed;
+        } else {
+          smoothedSpeedRef.current = 0.3 * currentSpeed + 0.7 * smoothedSpeedRef.current;
+        }
+        
+        speed = smoothedSpeedRef.current;
+      }
+      
+      lastTimeRef.current = now;
+      lastProgressRef.current = ota.progress;
+      
+      if (speed > 0) {
+        const remainingBytes = totalBytes - downloadedBytes;
+        remaining = remainingBytes / speed;
+      }
+      
+      setDownloadMetrics({
+        downloadedMB: downloadedBytes / (1024 * 1024),
+        totalMB: totalBytes / (1024 * 1024),
+        speedMBs: speed / (1024 * 1024),
+        remainingSeconds: remaining,
+      });
+    } else {
+      lastProgressRef.current = 0;
+      lastTimeRef.current = 0;
+      smoothedSpeedRef.current = 0;
+    }
+
+    return () => {
+      lastProgressRef.current = 0;
+      lastTimeRef.current = 0;
+      smoothedSpeedRef.current = 0;
+    };
+  }, [ota.progress, ota.updateState, ota.apkSizeBytes]);
+
+  const pct = Math.round(ota.progress * 100);
+
+  return (
+    <div style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
+        <span>Downloading update</span>
+        <span>{pct}%</span>
+      </div>
+      
+      <div style={{ width: '100%', height: 6, borderRadius: 3, background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
+        <div 
+          style={{
+            height: '100%',
+            width: `${pct}%`,
+            background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
+            transition: 'width 200ms ease-out',
+          }} 
+        />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, fontFamily: 'Inter, monospace', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)' }}>
+        <span>
+          {downloadMetrics.downloadedMB > 0 && downloadMetrics.totalMB > 0 
+            ? `${downloadMetrics.downloadedMB.toFixed(1)} MB / ${downloadMetrics.totalMB.toFixed(1)} MB` 
+            : 'Calculating size...'}
+        </span>
+        <span style={{ display: 'flex', gap: 8 }}>
+          {downloadMetrics.speedMBs > 0 && (
+            <span>
+              {downloadMetrics.speedMBs >= 1 
+                ? `${downloadMetrics.speedMBs.toFixed(1)} MB/s` 
+                : `${(downloadMetrics.speedMBs * 1024).toFixed(0)} KB/s`}
+            </span>
+          )}
+          {downloadMetrics.remainingSeconds > 0 && (
+            <span>
+              • {downloadMetrics.remainingSeconds < 60 
+                ? `${Math.round(downloadMetrics.remainingSeconds)}s remaining` 
+                : `${Math.floor(downloadMetrics.remainingSeconds / 60)}m ${Math.round(downloadMetrics.remainingSeconds % 60)}s remaining`}
+            </span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+}, (prev: any, next: any) => {
+  return prev.ota.progress === next.ota.progress && prev.ota.updateState === next.ota.updateState && prev.isLight === next.isLight;
+});
+
 function UpdateModal({
   fromLabel,
   toVersion,
@@ -973,66 +1088,6 @@ function UpdateModal({
     }
     return false;
   })();
-
-  const [downloadMetrics, setDownloadMetrics] = useState({
-    downloadedMB: 0,
-    totalMB: 0,
-    speedMBs: 0,
-    remainingSeconds: 0,
-  });
-
-  const lastProgressRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const smoothedSpeedRef = useRef(0);
-
-  useEffect(() => {
-    const isDownloading = ota.updateState === 'DOWNLOAD_APK' || ota.updateState === 'FETCH_APK_INFORMATION';
-    if (isDownloading) {
-      const totalBytes = ota.apkSizeBytes || 56194057; // Default fallback to 56.2 MB if not present
-      const downloadedBytes = totalBytes * ota.progress;
-      
-      const now = Date.now();
-      const lastTime = lastTimeRef.current;
-      const lastProgress = lastProgressRef.current;
-      
-      let speed = 0;
-      let remaining = 0;
-      
-      if (lastTime > 0 && now > lastTime && ota.progress > lastProgress) {
-        const timeDiffSec = (now - lastTime) / 1000;
-        const bytesDiff = totalBytes * (ota.progress - lastProgress);
-        const currentSpeed = bytesDiff / timeDiffSec; // bytes per second
-        
-        // EMA smoothing (alpha = 0.3)
-        if (smoothedSpeedRef.current === 0) {
-          smoothedSpeedRef.current = currentSpeed;
-        } else {
-          smoothedSpeedRef.current = 0.3 * currentSpeed + 0.7 * smoothedSpeedRef.current;
-        }
-        
-        speed = smoothedSpeedRef.current;
-      }
-      
-      lastTimeRef.current = now;
-      lastProgressRef.current = ota.progress;
-      
-      if (speed > 0) {
-        const remainingBytes = totalBytes - downloadedBytes;
-        remaining = remainingBytes / speed;
-      }
-      
-      setDownloadMetrics({
-        downloadedMB: downloadedBytes / (1024 * 1024),
-        totalMB: totalBytes / (1024 * 1024),
-        speedMBs: speed / (1024 * 1024),
-        remainingSeconds: remaining,
-      });
-    } else {
-      lastProgressRef.current = 0;
-      lastTimeRef.current = 0;
-      smoothedSpeedRef.current = 0;
-    }
-  }, [ota.progress, ota.updateState, ota.apkSizeBytes]);
 
   useEffect(() => {
     const isCompleted = ota.updateState === 'INSTALL_SUCCESS';
@@ -1389,7 +1444,6 @@ function UpdateModal({
       showSpinner = true;
       const isSuccess = ota.updateState === 'INSTALL_SUCCESS';
       title = isSuccess ? 'Finalizing...' : 'Installing...';
-      const hasRealProgress = ota.progress > 0 && ota.progress < 1;
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
           <div>{isSuccess ? 'Finalizing installation...' : (ota.statusText || 'Android is installing the update.')}</div>
@@ -1397,7 +1451,7 @@ function UpdateModal({
         </div>
       );
       showButtons = false;
-      showProgress = hasRealProgress;
+      showProgress = false;
       break;
 
     case 'installedOrReady':
@@ -2427,26 +2481,31 @@ function UpdateModal({
     );
   }
 
+  const progressComponent = showProgress ? (
+    <DownloadProgressIndicator
+      ota={ota}
+      toVersion={toVersion}
+      accentFrom={accentFrom}
+      accentTo={accentTo}
+      isLight={isLight}
+    />
+  ) : undefined;
+
   return (
     <StudioUpdateScreen
       state={state}
-      progress={progressVal}
-      accentFrom={purpleFrom}
-      accentTo={purpleTo}
+      accentFrom={accentFrom}
+      accentTo={accentTo}
       title={title}
       description={description}
       iconName={iconName}
       iconColor={iconColor}
       showSpinner={showSpinner}
-      showProgress={showProgress}
       actionButtons={actionButtons}
       changelog={renderChangelog()}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
-      downloadSpeedMBs={downloadMetrics.speedMBs}
-      downloadRemainingSeconds={downloadMetrics.remainingSeconds}
-      downloadedMB={downloadMetrics.downloadedMB}
-      totalMB={downloadMetrics.totalMB}
+      progressComponent={progressComponent}
       isLight={isLight}
       fromVersion={fromLabel}
       toVersion={toVersion}

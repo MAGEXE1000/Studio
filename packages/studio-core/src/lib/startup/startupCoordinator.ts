@@ -245,10 +245,19 @@ class StartupCoordinatorClass {
         recoveredViaFailsafe: false
       });
 
-      // Eagerly preload heavy UI modules to eliminate delayed Hub visibility
+      // Eagerly preload heavy UI modules after main thread is idle
       if (typeof window !== 'undefined' && typeof (window as any).__preloadUIModules === 'function') {
-        console.log('[StartupCoordinator] Triggering eager preloading of UI packages...');
-        (window as any).__preloadUIModules();
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => {
+            console.log('[StartupCoordinator] Triggering eager preloading of UI packages (idle)...');
+            (window as any).__preloadUIModules();
+          });
+        } else {
+          setTimeout(() => {
+            console.log('[StartupCoordinator] Triggering eager preloading of UI packages (deferred)...');
+            (window as any).__preloadUIModules();
+          }, 500);
+        }
       }
     });
     if (!p3Success || this.currentRunId !== runId) return;
@@ -335,8 +344,12 @@ class StartupCoordinatorClass {
           if (idx !== -1) this.activeTimers.splice(idx, 1);
           clearTimeout(doneTimer);
           window.removeEventListener('studio-intro-done', handleIntro);
-          // Small debounce to allow intro DOM fade out transition to execute
-          this.setTimeout(resolve, 100);
+          
+          if (typeof requestAnimationFrame !== 'undefined') {
+            requestAnimationFrame(() => resolve());
+          } else {
+            resolve();
+          }
         }
       };
 
@@ -500,9 +513,11 @@ class StartupCoordinatorClass {
         if (settings.highRefreshRate) {
           this.startHiFpsTick();
         }
+        this.startPeriodicUpdatePolling();
         this.handleLifecycleEvent('visibilitychange', 'lifecycle_visibility', 'visibilitychange visible');
       } else {
         this.stopHiFpsTick();
+        this.stopPeriodicUpdatePolling();
       }
     });
 
@@ -803,6 +818,9 @@ class StartupCoordinatorClass {
       if (!hubDom) {
         console.warn('[Watchdog] Startup marked completed but Hub DOM is missing. Stalled!');
         this.triggerRecovery('HUB_DOM_MISSING_AFTER_COMPLETION');
+      } else {
+        // Clear watchdog once successfully booted and DOM is verified
+        this.stopWatchdog();
       }
       return;
     }

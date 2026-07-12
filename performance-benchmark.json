@@ -1,41 +1,19 @@
 {
   "startup": {
-    "coldDomInteractive": 822.5,
-    "firstPaint": 916.0,
-    "firstContentfulPaint": 916.0,
-    "timeToHubInteractive": 1250.0,
-    "warmStartup": 450.0
+    "coldDomInteractive": 472.29999999998836,
+    "firstPaint": 516,
+    "firstContentfulPaint": 0
   },
   "memory": {
-    "initialHeapMB": 10.51,
-    "finalHeapMB": 10.64,
-    "growthMB": 0.12,
-    "detachedObjects": 0,
-    "listenerLeaks": 0
+    "initialHeapMB": 77.38882064819336,
+    "finalHeapMB": 77.52783107757568,
+    "growthMB": 0.13901042938232422
   },
   "fps": {
-    "average": 55.1,
-    "minimum": 32,
-    "drops": 1
+    "average": 60.625,
+    "minimum": 60,
+    "drops": 0
   },
-  "navigation": {
-    "Chordex": 125.0,
-    "Stagex": 105.0,
-    "Drumex": 180.0,
-    "Groovex": 140.0,
-    "Vocalex": 110.0
-  },
-  "android": {
-    "activityStartup": 220.0,
-    "webViewStartup": 450.0,
-    "capacitorInit": 80.0,
-    "pluginInit": 45.0,
-    "nativeBridgeLatency": 12.5
-  },
-  "network": {
-    "startupRequests": 24,
-    "duplicateRequests": 0,
-    "parallelRequests": 8,
-    "slowEndpoints": []
-  }
+  "navigation": {},
+  "reactProfiler": []
 }

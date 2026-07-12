@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.28';
-export const WEB_VERSION = '4.0.28';
+export const NATIVE_VERSION = '4.0.29';
+export const WEB_VERSION = '4.0.29';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -39,7 +39,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-11'; // 4.0.28
+export const APP_VERSION_DATE = '2026-07-12'; // 4.0.29
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';

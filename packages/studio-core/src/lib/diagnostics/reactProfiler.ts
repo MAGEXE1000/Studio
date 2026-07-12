@@ -89,8 +89,9 @@ export class ReactRootCauseProfiler {
 
   private static getDiff(oldObj: any, newObj: any): string[] {
     const changes: string[] = [];
-    if (!oldObj || !newObj) return changes;
-    if (typeof oldObj !== 'object' || typeof newObj !== 'object') return changes;
+    if (oldObj === newObj) return changes;
+    if (!oldObj || !newObj) return ['(object initialized or destroyed)'];
+    if (typeof oldObj !== 'object' || typeof newObj !== 'object') return ['(type changed)'];
 
     for (const key in newObj) {
       if (oldObj[key] !== newObj[key]) {
@@ -108,16 +109,31 @@ export class ReactRootCauseProfiler {
 
     while (oldCurrent && newCurrent) {
       if (oldCurrent.memoizedState !== newCurrent.memoizedState) {
-        // Very basic diffing. Zustand state shows up here as well.
         if (typeof newCurrent.memoizedState === 'object' && newCurrent.memoizedState !== null) {
-          const subDiff = this.getDiff(oldCurrent.memoizedState, newCurrent.memoizedState);
-          if (subDiff.length > 0) {
-            changes.push(`Hook[${hookIndex}] (Keys: ${subDiff.join(', ')})`);
+          if (Array.isArray(newCurrent.memoizedState) && Array.isArray(oldCurrent.memoizedState)) {
+             // Basic dependency array diffing
+             if (newCurrent.memoizedState.length !== oldCurrent.memoizedState.length) {
+               changes.push(`Hook[${hookIndex}] (Dep Array length changed)`);
+             } else {
+               let arrayChanged = false;
+               for (let i = 0; i < newCurrent.memoizedState.length; i++) {
+                 if (newCurrent.memoizedState[i] !== oldCurrent.memoizedState[i]) {
+                   arrayChanged = true;
+                   break;
+                 }
+               }
+               if (arrayChanged) changes.push(`Hook[${hookIndex}] (Deps changed)`);
+             }
           } else {
-             changes.push(`Hook[${hookIndex}] (Object reference changed)`);
+             const subDiff = this.getDiff(oldCurrent.memoizedState, newCurrent.memoizedState);
+             if (subDiff.length > 0) {
+               changes.push(`Hook[${hookIndex}] (Keys: ${subDiff.join(', ')})`);
+             } else {
+               changes.push(`Hook[${hookIndex}] (Object reference changed)`);
+             }
           }
         } else {
-          changes.push(`Hook[${hookIndex}]`);
+          changes.push(`Hook[${hookIndex}] (Primitive value changed)`);
         }
       }
       oldCurrent = oldCurrent.next;

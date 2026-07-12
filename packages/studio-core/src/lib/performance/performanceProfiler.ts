@@ -1,6 +1,7 @@
 // performanceProfiler.ts
 import { RootCauseAnalyzer } from '../diagnostics/RootCauseAnalyzer';
 import { ReactRootCauseProfiler } from '../diagnostics/reactProfiler';
+import { LayoutProfiler } from '../diagnostics/layoutProfiler';
 
 export interface ProfilerMetrics {
   currentFps: number;
@@ -250,6 +251,9 @@ export class PerformanceProfiler {
 
     // Start React Profiler
     ReactRootCauseProfiler.init();
+
+    // Start Layout Profiler
+    LayoutProfiler.init();
   }
 
   public stop() {

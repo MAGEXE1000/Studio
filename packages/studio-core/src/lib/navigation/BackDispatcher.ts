@@ -1,5 +1,6 @@
 import { useNavigationStore, activeBackHandlers } from '../../store/useNavigationStore.js';
 import { NavigationDispatcher } from './NavigationDispatcher.js';
+import { SourceMapResolver } from '../diagnostics/SourceMapResolver.js';
 
 export type BackPriority = 'modal' | 'sheet' | 'overlay' | 'nested' | 'panel';
 
@@ -30,34 +31,55 @@ export class BackDispatcher {
   /**
    * Registers a callback with a priority. Returns a cleanup unregister function.
    */
-  public static register(priority: BackPriority, fn: () => boolean, owner?: string): () => void {
+  public static register(priority: BackPriority, fn: () => boolean, owner?: string, reason: string = 'Mount', dependencies: string = '[]'): () => void {
     this.initialize();
     const id = Math.random().toString(36).substring(2, 9);
     
     let caller = owner;
-    if (!caller) {
-      const err = new Error();
-      if (err.stack) {
-        const lines = err.stack.split('\\n');
+    let stackTrace = '';
+    const err = new Error();
+    if (err.stack) {
+      stackTrace = err.stack;
+      if (!caller) {
+        // Fix the literal backslash-n bug
+        const lines = err.stack.split('\n');
         for (let i = 2; i < lines.length; i++) {
-          if (!lines[i].includes('BackDispatcher')) {
-            caller = lines[i].trim();
+          if (!lines[i].includes('BackDispatcher') && !lines[i].includes('useBackHandler')) {
+            const parsed = SourceMapResolver.parseStackTrace(lines.slice(i).join('\n'));
+            if (parsed.length > 0) {
+              caller = `${parsed[0].func} (${parsed[0].file}:${parsed[0].line})`;
+            } else {
+              caller = lines[i].trim();
+            }
             break;
           }
         }
       }
     }
     
-    console.log(`[BackDispatcher] [${new Date().toISOString()}] Register handler | id: ${id}, priority: ${priority}, owner: ${caller || 'Unknown'}`);
+    const displayOwner = caller || 'Unknown';
+    const parsedStack = SourceMapResolver.parseStackTrace(stackTrace);
+    const topStack = parsedStack.length > 0 ? `${parsedStack[0].file}:${parsedStack[0].line}` : 'N/A';
+
+    console.log(`
+--------------------------------------------------
+[BackDispatcher] Register
+Owner: ${displayOwner}
+Priority: ${priority}
+Reason: ${reason}
+Dependencies: ${dependencies}
+File: ${topStack}
+ID: ${id}
+--------------------------------------------------`);
     
     const existingIndex = activeBackHandlers.findIndex((h: any) => h.id === id);
     if (existingIndex !== -1) {
       activeBackHandlers.splice(existingIndex, 1);
     }
-    activeBackHandlers.push({ id, priority, fn, owner: caller });
+    activeBackHandlers.push({ id, priority, fn, owner: displayOwner });
 
     return () => {
-      console.log(`[BackDispatcher] [${new Date().toISOString()}] Unregister handler | id: ${id}, priority: ${priority}, owner: ${caller || 'Unknown'}`);
+      console.log(`[BackDispatcher] Unregister | id: ${id}, owner: ${displayOwner}`);
       const idx = activeBackHandlers.findIndex((h: any) => h.id === id);
       if (idx !== -1) {
         activeBackHandlers.splice(idx, 1);

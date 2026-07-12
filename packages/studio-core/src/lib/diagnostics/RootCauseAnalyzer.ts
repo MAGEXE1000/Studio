@@ -1,4 +1,5 @@
 // RootCauseAnalyzer.ts
+import { SourceMapResolver } from './SourceMapResolver';
 
 export interface RootCauseReport {
   severity: 'Critical' | 'Warning' | 'Info';
@@ -31,15 +32,17 @@ export class RootCauseAnalyzer {
   private static observer: PerformanceObserver | null = null;
   private static reports: RootCauseReport[] = [];
 
-  public static start() {
+  public static async start() {
     if (typeof window === 'undefined' || !(window as any).__ENABLE_DIAGNOSTICS__) return;
     
+    await SourceMapResolver.init();
+
     // Try to use the modern Long Animation Frames (LoAF) API (Chrome 123+)
     if (typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes && PerformanceObserver.supportedEntryTypes.includes('long-animation-frame')) {
       try {
-        this.observer = new PerformanceObserver((list) => {
+        this.observer = new PerformanceObserver(async (list) => {
           for (const entry of list.getEntries() as any[]) {
-            this.analyzeLoAFEntry(entry);
+            await this.analyzeLoAFEntry(entry);
           }
         });
         this.observer.observe({ type: 'long-animation-frame', buffered: true });
@@ -67,12 +70,12 @@ export class RootCauseAnalyzer {
     }
   }
 
-  private static analyzeLoAFEntry(entry: any) {
+  private static async analyzeLoAFEntry(entry: any) {
     // A long animation frame might have multiple scripts that contributed to the delay
     if (entry.scripts && entry.scripts.length > 0) {
       for (const script of entry.scripts) {
         if (script.duration > 50) {
-          const report = this.buildReportFromScript(script, entry);
+          const report = await this.buildReportFromScript(script, entry);
           this.logReport(report);
         }
       }
@@ -111,17 +114,25 @@ export class RootCauseAnalyzer {
     this.logReport(report);
   }
 
-  private static buildScriptTrace(script: any): { file: string, func: string, line: string, stack: string[] } {
+  private static async buildScriptTrace(script: any): Promise<{ file: string, func: string, line: string, stack: string[] }> {
     let file = script.sourceURL || 'UNKNOWN_FILE';
-    const func = script.sourceFunctionName || 'anonymous';
-    const line = script.sourceCharPosition ? `char ${script.sourceCharPosition}` : 'UNKNOWN_LINE';
+    let func = script.sourceFunctionName || 'anonymous';
+    let line = script.sourceCharPosition ? `char ${script.sourceCharPosition}` : 'UNKNOWN_LINE';
     
-    if (file.includes('node_modules')) {
-      const parts = file.split('node_modules/');
-      file = `node_modules/${parts[parts.length - 1]}`;
-    } else if (file.includes('src/')) {
-      const parts = file.split('src/');
-      file = `src/${parts[parts.length - 1]}`;
+    // Attempt source map resolution
+    const resolved = await SourceMapResolver.resolve(file, script.sourceCharPosition || 0, 0, func);
+    if (resolved.file !== file) {
+      file = resolved.file;
+      func = resolved.func;
+      line = `Line ${resolved.line}`;
+    } else {
+      if (file.includes('node_modules')) {
+        const parts = file.split('node_modules/');
+        file = `node_modules/${parts[parts.length - 1]}`;
+      } else if (file.includes('src/')) {
+        const parts = file.split('src/');
+        file = `src/${parts[parts.length - 1]}`;
+      }
     }
 
     const stack = [func];
@@ -132,8 +143,8 @@ export class RootCauseAnalyzer {
     return { file, func, line, stack };
   }
 
-  private static buildReportFromScript(script: any, entry: any): RootCauseReport {
-    const trace = this.buildScriptTrace(script);
+  private static async buildReportFromScript(script: any, entry: any): Promise<RootCauseReport> {
+    const trace = await this.buildScriptTrace(script);
     
     // Attempt to figure out the React component if it's a React render script
     let component = 'UNKNOWN';

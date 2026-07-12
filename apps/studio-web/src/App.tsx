@@ -1,5 +1,5 @@
 import { type AppKey } from '@workspace/studio-core';
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -57,6 +57,11 @@ import { SharedNavigationContainer } from '@workspace/ui-shared/src/navigation/S
 import "./index.css";
 
 const StudioHub = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.StudioHub })));
+
+const MemoLibraryPanel = memo(LibraryPanel);
+const MemoChordPanel = memo(ChordPanel);
+const MemoSongsPanel = memo(SongsPanel);
+const MemoSettingsPanel = memo(SettingsPanel);
 
 function SidebarHoverSync({ hoverShowSidebar }: { hoverShowSidebar: boolean }) {
   const { setOpen } = useSidebar();
@@ -456,21 +461,23 @@ export default function App() {
             />
           )}
 
-          <div
-            className="app-main-layout"
-            style={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: 1,
-              height: '100dvh',
-              overflow: 'hidden',
-              pointerEvents: isSubAppActive ? 'none' : 'auto',
-            }}
-          >
-            <Suspense fallback={<SmartLoading fallbackSkeleton={<StudioHubSkeleton />} />}>
-              <StudioHub />
-            </Suspense>
-          </div>
+          {useMemo(() => (
+            <div
+              className="app-main-layout"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 1,
+                height: '100dvh',
+                overflow: 'hidden',
+                pointerEvents: isSubAppActive ? 'none' : 'auto',
+              }}
+            >
+              <Suspense fallback={<SmartLoading fallbackSkeleton={<StudioHubSkeleton />} />}>
+                <StudioHub />
+              </Suspense>
+            </div>
+          ), [isSubAppActive])}
 
           <AnimatePresence mode="wait">
             {isSubAppActive && (
@@ -553,10 +560,10 @@ export default function App() {
                                 >
                                   {(panel) => (
                                     <>
-                                      {panel === 'library'  && <LibraryPanel />}
-                                      {panel === 'chord'    && <ChordPanel />}
-                                      {panel === 'songs'    && <SongsPanel />}
-                                      {panel === 'settings' && <SettingsPanel />}
+                                      {panel === 'library'  && <MemoLibraryPanel />}
+                                      {panel === 'chord'    && <MemoChordPanel />}
+                                      {panel === 'songs'    && <MemoSongsPanel />}
+                                      {panel === 'settings' && <MemoSettingsPanel />}
                                     </>
                                   )}
                                 </SharedNavigationContainer>

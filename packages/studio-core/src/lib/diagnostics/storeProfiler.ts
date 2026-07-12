@@ -1,5 +1,5 @@
-// storeProfiler.ts
 import { StateCreator, StoreMutatorIdentifier } from 'zustand';
+import { SourceMapResolver } from './SourceMapResolver';
 
 type Profiler = <
   T,
@@ -60,12 +60,20 @@ function logStoreChange(storeName: string, changes: string[], prevState: any, ne
   // Try to capture stack trace to see who called set()
   const err = new Error();
   let caller = 'Unknown';
+  let fileLocation = 'N/A';
   if (err.stack) {
-    const lines = err.stack.split('\\n');
+    // Fix literal string match
+    const lines = err.stack.split('\n');
     // Find the first line outside of zustand/storeProfiler
     for (let i = 2; i < lines.length; i++) {
       if (!lines[i].includes('zustand') && !lines[i].includes('storeProfiler')) {
-        caller = lines[i].trim();
+        const parsed = SourceMapResolver.parseStackTrace(lines.slice(i).join('\n'));
+        if (parsed.length > 0) {
+          caller = parsed[0].func;
+          fileLocation = `${parsed[0].file}:${parsed[0].line}`;
+        } else {
+          caller = lines[i].trim();
+        }
         break;
       }
     }
@@ -76,6 +84,7 @@ function logStoreChange(storeName: string, changes: string[], prevState: any, ne
 Store Update: ${storeName}
 Duration: ${duration.toFixed(2)} ms
 Caller: ${caller}
+File: ${fileLocation}
 Keys Changed: ${changes.join(', ')}
 ================================`;
 

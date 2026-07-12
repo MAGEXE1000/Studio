@@ -7,7 +7,8 @@ import {
   ensureNotificationPermission,
   seedAudioAssets,
   NATIVE_VERSION,
-  initDevToolsFramework
+  initDevToolsFramework,
+  UpdaterFlightRecorder
 } from "@workspace/studio-core";
 import { Capacitor } from "@capacitor/core";
 import "./index.css";
@@ -79,6 +80,7 @@ function GlobalOverlays() {
 }
 
 function RootAppContainer() {
+  UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_ROOTAPP_RENDER', caller: 'main', reason: '<RootAppContainer /> rendered' });
   const [appKey, setAppKey] = useState(0);
 
   useEffect(() => {
@@ -117,7 +119,17 @@ if (typeof window !== 'undefined' && (window as any).__bootTimings) {
   console.log("[LivexBoot] React bootstrap started: " + (window as any).__bootTimings.reactBootstrapStart.toFixed(2) + "ms");
 }
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_UNCAUGHT_ERROR', caller: 'main', reason: 'Uncaught error event', error: event.error?.stack || event.message });
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_UNHANDLED_REJECTION', caller: 'main', reason: 'Unhandled promise rejection', error: event.reason?.stack || String(event.reason) });
+  });
+}
+
 // Mount React immediately (native splash screen takes care of hiding visual load transitions)
+UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_REACT_MOUNT', caller: 'main', reason: 'createRoot.render called' });
 createRoot(document.getElementById("root")!).render(
   <>
     <RootAppContainer />

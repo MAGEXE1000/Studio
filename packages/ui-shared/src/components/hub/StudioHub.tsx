@@ -1,5 +1,5 @@
 import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
-import { getUpdateHistory, triggerDowngrade, StartupCoordinator, startDiagnosticsSession, resetOtaTimeline, getTimelineReport } from '@workspace/studio-core';
+import { getUpdateHistory, triggerDowngrade, StartupCoordinator, startDiagnosticsSession, resetOtaTimeline, getTimelineReport, UpdaterFlightRecorder } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -62,6 +62,7 @@ function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): Gree
 let _sessionIntroFinished = false;
 
 export default function StudioHub() {
+  UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_RENDER', caller: 'StudioHub', reason: '<StudioHub /> rendered' });
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
   const isWebDesktop = useIsWebDesktop();
@@ -105,6 +106,7 @@ export default function StudioHub() {
   }, [tab]);
 
   useEffect(() => {
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_EFFECT', caller: 'StudioHub', reason: '<StudioHub /> useEffect fired' });
     StartupCoordinator.notifyHubMounted();
     (window as any).__studioHubReady = true;
     window.dispatchEvent(new CustomEvent('studio:hub-ready'));

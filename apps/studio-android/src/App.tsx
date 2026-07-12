@@ -23,7 +23,8 @@ import {
   useNavigationStore,
   NavigationDispatcher,
   type ActivePanel,
-  navDiagnosticsRegistry
+  navDiagnosticsRegistry,
+  UpdaterFlightRecorder
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -720,6 +721,7 @@ function TolgeeSuspenseFallback() {
   );
 }
 export default function App() {
+  UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_APP_RENDER', caller: 'App', reason: '<App /> rendered' });
   const activePanel = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];
     return (last?.app === 'chords' && last.page ? last.page as ActivePanel : 'library');
@@ -1643,6 +1645,7 @@ export default function App() {
     });
 
     void StartupCoordinator.run(() => {
+      UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_SHOW_CB', caller: 'App', reason: 'onHubShow() called, setting startupComplete = true' });
       setStartupComplete(true);
     });
 

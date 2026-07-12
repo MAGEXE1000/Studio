@@ -54,6 +54,7 @@ class StartupCoordinatorClass {
   });
 
   notifyHubMounted() {
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_MOUNTED', caller: 'StartupCoordinator', reason: 'notifyHubMounted called' });
     console.log('[StartupCoordinator] Hub DOM mounted notification received.');
     if (this.hubMountedResolver) {
       this.hubMountedResolver();
@@ -136,6 +137,7 @@ class StartupCoordinatorClass {
     maxRetries = 1
   ): Promise<boolean> {
     const phase = this.phases[phaseId];
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_PHASE_START', caller: 'StartupCoordinator', reason: `Phase ${phaseId}: ${phase.name}` });
     const runId = this.currentRunId;
     phase.status = 'executing';
     phase.startTime = performance.now();
@@ -152,6 +154,7 @@ class StartupCoordinatorClass {
       try {
         await this.withTimeout(fn(), timeoutMs, phase.name);
         if (this.currentRunId !== runId) return false;
+        UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_PHASE_COMPLETE', caller: 'StartupCoordinator', reason: `Phase ${phaseId}: ${phase.name} completed in ${performance.now() - (phase.startTime || 0)}ms` });
         phase.status = 'completed';
         phase.result = 'success';
         phase.endTime = performance.now();
@@ -159,6 +162,7 @@ class StartupCoordinatorClass {
         this.notify();
         return true;
       } catch (err: any) {
+        UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_PHASE_ERROR', caller: 'StartupCoordinator', reason: `Phase ${phaseId} failed (attempt ${attempt})`, error: err?.stack || err?.message || String(err) });
         attempt++;
         phase.retryCount = attempt;
         console.warn(`[StartupCoordinator] Phase ${phaseId} failed (attempt ${attempt}):`, err);
@@ -308,6 +312,7 @@ class StartupCoordinatorClass {
   }
 
   private waitForIntroDone(): Promise<void> {
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_WAIT_INTRO_START', caller: 'StartupCoordinator', reason: 'Waiting for intro done' });
     return new Promise<void>((resolve) => {
       if (typeof window === 'undefined') {
         resolve();
@@ -315,6 +320,7 @@ class StartupCoordinatorClass {
       }
 
       if ((window as any).__introDone || sessionStorage.getItem('studio-intro-shown') === 'true') {
+        UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_WAIT_INTRO_IMMEDIATE', caller: 'StartupCoordinator', reason: 'Intro already done' });
         resolve();
         return;
       }
@@ -324,6 +330,7 @@ class StartupCoordinatorClass {
         if (!resolved) {
           resolved = true;
           window.removeEventListener('studio-intro-done', handleIntro);
+          UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_WAIT_INTRO_TIMEOUT', caller: 'StartupCoordinator', reason: 'Timed out waiting for intro' });
           console.warn('[StartupCoordinator] Safety timeout reached waiting for studio-intro-done event.');
           resolve();
         }
@@ -336,6 +343,7 @@ class StartupCoordinatorClass {
           if (idx !== -1) this.activeTimers.splice(idx, 1);
           clearTimeout(doneTimer);
           window.removeEventListener('studio-intro-done', handleIntro);
+          UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_WAIT_INTRO_EVENT', caller: 'StartupCoordinator', reason: 'Intro done event received' });
           // Small debounce to allow intro DOM fade out transition to execute
           this.setTimeout(resolve, 100);
         }

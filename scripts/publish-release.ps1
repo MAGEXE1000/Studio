@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.50"
-$VersionCode = "40050"
-$ReleaseNote = "v4.0.50 - Production release with startup black screen fix."
+$VersionName = "4.0.51"
+$VersionCode = "40051"
+$ReleaseNote = "v4.0.51 - Forensic build for startup black screen investigation."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

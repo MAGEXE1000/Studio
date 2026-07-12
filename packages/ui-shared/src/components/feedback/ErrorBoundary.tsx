@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { useChordStore, globalOtaState } from '@workspace/studio-core';
+import { useChordStore, globalOtaState, UpdaterFlightRecorder } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -486,6 +486,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.errorTimestamp = Date.now();
 
     // Log safe diagnostics to console
+    UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_ERROR_BOUNDARY', caller: `ErrorBoundary[${this.props.moduleName || 'Global'}]`, reason: 'Uncaught error inside boundary', error: error?.stack || error?.message });
     console.error(`Uncaught error inside boundary [${this.props.moduleName || 'Global'}]:`, {
       message: error?.message,
       name: error?.name,

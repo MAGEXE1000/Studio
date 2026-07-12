@@ -13,10 +13,8 @@ ext {
     androidxJunitVersion = '1.1.5'
     androidxEspressoCoreVersion = '3.5.1'
     cordovaAndroidVersion = '10.1.1'
-    // Pinned to match @capacitor-firebase/authentication v6.3.1's
-    // internal strict constraints (the plugin's debugRuntimeClasspath
-    // pins these exact versions, so any override has to match — bumps
-    // come with a plugin upgrade).
-    firebaseAuthVersion = '22.3.1'
+    // Removed firebaseAuthVersion and playServicesAuthVersion overrides to allow
+    // @capacitor-firebase/authentication v8 to use its required newer versions.
+    firebaseAuthVersion = '24.0.1'
     playServicesAuthVersion = '20.7.0'
 }

@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.30
+
+### Added
+- Complete SDK modernization verification release.
+- Validated compatibility of Capacitor 8, Android SDK 35, AGP 8.8.0, and Gradle 8.12.
+- Verified zero native compilation warnings under JDK 21.
+
 ## 4.0.29
 
 ### Added

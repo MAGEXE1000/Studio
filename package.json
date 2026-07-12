@@ -22,13 +22,13 @@
   },
   "private": true,
   "devDependencies": {
-    "prettier": "^3.8.1",
-    "typescript": "~5.9.2"
+    "prettier": "^3.9.5",
+    "typescript": "~5.7.2"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1025.0",
+    "@aws-sdk/client-s3": "^3.1085.0",
     "@octokit/rest": "^22.0.1",
-    "adm-zip": "^0.5.16"
+    "adm-zip": "^0.6.0"
   },
   "pnpm": {
     "overrides": {

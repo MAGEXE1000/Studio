@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.29';
-export const WEB_VERSION = '4.0.29';
+export const NATIVE_VERSION = '4.0.30';
+export const WEB_VERSION = '4.0.30';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,7 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Test release validation build with no functional code changes to verify the complete release pipeline.",
+      "Complete SDK modernization verification release.",
+      "Validated compatibility of Capacitor 8, Android SDK 35, AGP 8.8.0, and Gradle 8.12.",
+      "Verified zero native compilation warnings under JDK 21.",
     ],
   },
 ];

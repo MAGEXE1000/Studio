@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.65",
-  "versionName": "4.0.65",
-  "versionCode": 40065,
-  "version_code": 40065,
-  "commit": "ffb2d4cc",
-  "releasedAt": "7/12/2026, 11:58:41 PM CST",
-  "buildTimestamp": "7/12/2026, 11:58:41 PM CST",
+  "version": "4.0.66",
+  "versionName": "4.0.66",
+  "versionCode": 40066,
+  "version_code": 40066,
+  "commit": "a230bb78",
+  "releasedAt": "7/13/2026, 12:22:05 AM CST",
+  "buildTimestamp": "7/13/2026, 12:22:05 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.\n• Debounced obfuscated storage writes to eliminate JS event loop blocks.\n• Refactored StudioHub broad store selectors using Zustand shallow selectors.\n• Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.",
-  "whatsNew": "• Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.\n• Debounced obfuscated storage writes to eliminate JS event loop blocks.\n• Refactored StudioHub broad store selectors using Zustand shallow selectors.\n• Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.",
+  "changelog": "• Added background bundle preloading to prevent sub-app launch ready timeouts.\n• Isolated search typing states in Chordex to completely prevent parent re-renders.\n• Optimized updater integrity checks and transitions from 300ms to 10ms.",
+  "whatsNew": "• Added background bundle preloading to prevent sub-app launch ready timeouts.\n• Isolated search typing states in Chordex to completely prevent parent re-renders.\n• Optimized updater integrity checks and transitions from 300ms to 10ms.",
   "releaseNotes": {
     "improved": [
-      "Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.",
-      "Debounced obfuscated storage writes to eliminate JS event loop blocks.",
-      "Refactored StudioHub broad store selectors using Zustand shallow selectors.",
-      "Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive."
+      "Added background bundle preloading to prevent sub-app launch ready timeouts.",
+      "Isolated search typing states in Chordex to completely prevent parent re-renders.",
+      "Optimized updater integrity checks and transitions from 300ms to 10ms."
     ]
   },
   "mandatory": false

@@ -1267,7 +1267,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       if (shouldSimulate) {
         await delayForSim(10);
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
 
       otaDebugLogs.downloadStatus += `\nRunning pre-install eligibility check...`;

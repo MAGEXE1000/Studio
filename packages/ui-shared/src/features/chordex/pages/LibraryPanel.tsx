@@ -11,6 +11,64 @@ import PianoDiagram from '../../../components/diagrams/PianoDiagram';
 import FourStringDiagram from '../../../components/diagrams/FourStringDiagram';
 import { WebEmptyState } from '../../../components/design-system/WebDesignSystem';
 
+interface DebouncedSearchInputProps {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onFocus?: React.FocusEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  testId?: string;
+}
+
+const DebouncedSearchInput = React.memo(function DebouncedSearchInput({
+  value,
+  onChange,
+  placeholder,
+  className,
+  style,
+  onFocus,
+  onBlur,
+  testId,
+}: DebouncedSearchInputProps) {
+  const [localVal, setLocalVal] = useState(value);
+
+  useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  const debouncedOnChange = useMemo(() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (val: string) => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        onChange(val);
+      }, 150);
+    };
+  }, [onChange]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalVal(val);
+    debouncedOnChange(val);
+  };
+
+  return (
+    <input
+      data-testid={testId}
+      type="search"
+      value={localVal}
+      onChange={handleChange}
+      placeholder={placeholder}
+      className={className}
+      style={style}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    />
+  );
+});
+
 const RelatedPlayBtn = React.memo(function RelatedPlayBtn({ guitar, accent, isLight }: {
   guitar: GuitarChordData;
   accent: { from: string; to: string; mid: string };
@@ -523,18 +581,7 @@ export default function LibraryPanel() {
 
   // Library tab state
   const [mainTab, setMainTab]     = useState<'explore' | 'discover'>('explore');
-  const [queryVal, setQueryVal] = useState('');
   const [query, setQuery] = useState('');
-  useEffect(() => {
-    const timer = setTimeout(() => setQuery(queryVal), 150);
-    return () => clearTimeout(timer);
-  }, [queryVal]);
-
-  useEffect(() => {
-    if (query === '') {
-      setQueryVal('');
-    }
-  }, [query]);
 
   // Discover state
   const [activeGenre, setActiveGenre]   = useState<Genre | null>(null);
@@ -881,10 +928,9 @@ export default function LibraryPanel() {
                 <div style={{ padding: '0 4px 4px' }}>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" style={{ fontSize: '15px' }}>search</span>
-                    <input
-                      type="search"
-                      value={queryVal}
-                      onChange={e => setQueryVal(e.target.value)}
+                    <DebouncedSearchInput
+                      value={query}
+                      onChange={setQuery}
                       placeholder={t.library.searchPlaceholder}
                       className={`w-full py-1.5 pl-8 pr-3 text-xs outline-none rounded-lg border ${
                         isLight 
@@ -1295,8 +1341,11 @@ export default function LibraryPanel() {
           {mainTab === 'explore' && (
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}>search</span>
-              <input data-testid="search-input" type="search" value={queryVal}
-                onChange={e => setQueryVal(e.target.value)} placeholder={t.library.searchPlaceholder}
+              <DebouncedSearchInput
+                testId="search-input"
+                value={query}
+                onChange={setQuery}
+                placeholder={t.library.searchPlaceholder}
                 className="w-full py-2.5 pl-10 pr-4 text-sm outline-none"
                 style={{
                   background: 'var(--app-surface-low)',

@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.65';
-export const WEB_VERSION = '4.0.65';
+export const NATIVE_VERSION = '4.0.66';
+export const WEB_VERSION = '4.0.66';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.",
-      "Debounced obfuscated storage writes to eliminate JS event loop blocks.",
-      "Refactored StudioHub broad store selectors using Zustand shallow selectors.",
-      "Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.",
+      "Added background bundle preloading to prevent sub-app launch ready timeouts.",
+      "Isolated search typing states in Chordex to completely prevent parent re-renders.",
+      "Optimized updater integrity checks and transitions from 300ms to 10ms.",
     ],
   },
 ];

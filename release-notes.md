@@ -1,5 +1,4 @@
 ### Improved
-- Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.
-- Debounced obfuscated storage writes to eliminate JS event loop blocks.
-- Refactored StudioHub broad store selectors using Zustand shallow selectors.
-- Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.
+- Added background bundle preloading to prevent sub-app launch ready timeouts.
+- Isolated search typing states in Chordex to completely prevent parent re-renders.
+- Optimized updater integrity checks and transitions from 300ms to 10ms.

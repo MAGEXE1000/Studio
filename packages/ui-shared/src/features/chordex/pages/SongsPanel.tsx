@@ -12,6 +12,64 @@ import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnima
 import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../../../components/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input } from '../../../components/design-system/StudioDesignSystem';
 
+interface DebouncedSearchInputProps {
+  value: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onFocus?: React.FocusEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  testId?: string;
+}
+
+const DebouncedSearchInput = memo(function DebouncedSearchInput({
+  value,
+  onChange,
+  placeholder,
+  className,
+  style,
+  onFocus,
+  onBlur,
+  testId,
+}: DebouncedSearchInputProps) {
+  const [localVal, setLocalVal] = useState(value);
+
+  useEffect(() => {
+    setLocalVal(value);
+  }, [value]);
+
+  const debouncedOnChange = useMemo(() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (val: string) => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        onChange(val);
+      }, 150);
+    };
+  }, [onChange]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalVal(val);
+    debouncedOnChange(val);
+  };
+
+  return (
+    <input
+      data-testid={testId}
+      type="search"
+      value={localVal}
+      onChange={handleChange}
+      placeholder={placeholder}
+      className={className}
+      style={style}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    />
+  );
+});
+
 
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PDF EXPORT CONFIG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export interface ExportConfig {
@@ -2195,12 +2253,7 @@ function ChordPicker({ onAdd, onClose, accent, onCreateCustom, customChords }: {
     const cats = t.library.cats as Record<string, { label: string }>;
     return cats[type]?.label ?? type;
   };
-  const [searchVal, setSearchVal] = useState('');
   const [search, setSearch] = useState('');
-  useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchVal), 150);
-    return () => clearTimeout(timer);
-  }, [searchVal]);
   const [cat, setCat] = useState<PickerTab>('all');
   const [selected, setSelected] = useState<string[]>([]);
   const allChords = useMemo(() => getAllChords(), []);
@@ -2255,9 +2308,9 @@ function ChordPicker({ onAdd, onClose, accent, onCreateCustom, customChords }: {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ position: 'relative', width: '100%' }}>
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-text-secondary)', fontSize: '16px', pointerEvents: 'none' }}>search</span>
-          <input
-            value={searchVal}
-            onChange={e => setSearchVal(e.target.value)}
+          <DebouncedSearchInput
+            value={search}
+            onChange={setSearch}
             placeholder={t.songs.searchChords}
             style={{ width: '100%', boxSizing: 'border-box', background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', padding: '9px 14px 9px 36px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-body)', fontSize: '14px', outline: 'none' }}
           />

@@ -1,25 +1,25 @@
 {
   "startup": {
-    "coldDomInteractive": 700.7000000029802,
-    "firstPaint": 956,
-    "firstContentfulPaint": 0
+    "coldDomInteractive": 1009.5,
+    "firstPaint": 1040,
+    "firstContentfulPaint": 4508
   },
   "memory": {
-    "initialHeapMB": 92.22449588775635,
-    "finalHeapMB": 97.69884777069092,
-    "growthMB": 5.47435188293457
+    "initialHeapMB": 95.1385726928711,
+    "finalHeapMB": 97.77004909515381,
+    "growthMB": 2.631476402282715
   },
   "fps": {
-    "average": 9.11111111111111,
-    "minimum": 6,
-    "drops": 9
+    "average": 49.72727272727273,
+    "minimum": 17,
+    "drops": 5
   },
   "navigation": {
-    "Chordex": 1016.2000000029802,
-    "Drumex": 1014.8999999910593,
-    "Stagex": 1011.1999999880791,
-    "Groovex": 1014.7999999970198,
-    "Vocalex": 1013.0999999940395
+    "Chordex": 1013,
+    "Drumex": 1003.7999999970198,
+    "Stagex": 1011.8000000119209,
+    "Groovex": 1003.7999999970198,
+    "Vocalex": 1012.2999999970198
   },
   "reactProfiler": []
 }

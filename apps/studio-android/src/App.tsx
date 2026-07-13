@@ -1657,6 +1657,17 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (startupComplete) {
+      const idleCallback = (window as any).requestIdleCallback || ((cb: any) => setTimeout(cb, 1500));
+      idleCallback(() => {
+        console.log('[Launch] Preloading sub-app bundles in background...');
+        import('@workspace/ui-shared').catch(() => {});
+        import('@workspace/ui-android').catch(() => {});
+      });
+    }
+  }, [startupComplete]);
+
   const isSubAppActive = appMode !== 'hub';
 
   const lastActiveAppRef = useRef<AppKey>('chords');

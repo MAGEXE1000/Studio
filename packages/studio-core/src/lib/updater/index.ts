@@ -101,7 +101,16 @@ export { runSignatureMismatchRecovery, isRecovering, setIsRecovering } from './r
 export { validateLocalApk, deleteLocalApk, getLocalApkPath, recordDismissal, shouldShowRecoveryReminder } from './cacheManager';
 
 // Simulation
-
+export {
+  updaterSimulation,
+  setSimulateStatusCallback,
+  simulateStatusCallback,
+  addJsLog,
+  triggerSimulatedStatus,
+  isSimulationActive,
+  getTransitionHistory,
+  getRejectedTransitions,
+} from './updaterSimulation';
 // Flight Recorder
 export { UpdaterFlightRecorder } from './flightRecorder';
 export type { FlightRecorderEvent } from './flightRecorder';

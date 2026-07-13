@@ -154,9 +154,9 @@ globalThis.fetch = async (url, options) => {
 };
 
 // Import compiled modules (require build to be completed first)
-const otaModulePath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/otaUpdate.js');
+const otaModulePath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/index.js');
 if (!fs.existsSync(otaModulePath)) {
-  console.error(`Error: Compiled otaUpdate.js not found at ${otaModulePath}. Run pnpm build first.`);
+  console.error(`Error: Compiled updater index not found at ${otaModulePath}. Run pnpm build first.`);
   process.exit(1);
 }
 
@@ -165,13 +165,13 @@ const {
   checkForUpdate,
   downloadUpdate,
   applyUpdate,
-  globalOtaState,
+  globalUpdateState,
   transitionToState,
-  otaDebugLogs,
-  otaDiagnostics,
+  updateDebugLogs,
+  updateDiagnostics,
   resetLastCheckedTime,
   isAppInstallerAvailable,
-  resetOtaUpdateState
+  resetAppUpdateState
 } = await import(otaModuleUrl);
 
 // Re-apply Capacitor mocks after the module imports have finished loading
@@ -219,7 +219,7 @@ async function runRegressionTests() {
       mockLocalStorage.clear();
       mockSessionStorage.clear();
       resetLastCheckedTime();
-      resetOtaUpdateState();
+      resetAppUpdateState();
       
       await fn();
       results.push({ name, status: 'PASS', details: 'Completed successfully.' });

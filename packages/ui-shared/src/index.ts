@@ -70,6 +70,5 @@ export { default as DevToolsDashboard } from './components/DevToolsDashboard';
 
 export { default as BottomNav } from './navigation/BottomNav';
 export { default as UpdateIndicator } from './components/UpdateIndicator';
-export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';export { copyToClipboard } from './components/updater-diagnostics/centralizedClipboard';
+export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';
 export * from './components/StudioLayoutSystem';
-export { default as NavDiagnosticsWidget } from './components/updater-diagnostics/NavDiagnosticsWidget';

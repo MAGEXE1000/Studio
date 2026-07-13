@@ -63,10 +63,27 @@ let _sessionIntroFinished = false;
 
 import { useRenderProfiler } from '@workspace/studio-core';
 import { PerformanceProfiler } from '../../profiling/PerformanceProfiler';
+import { useShallow } from 'zustand/react/shallow';
 
 export default function StudioHub() {
   UpdaterFlightRecorder.record({ thread: 'js', sessionId: null, workflowId: null, eventType: 'FORENSIC_HUB_RENDER', caller: 'StudioHub', reason: '<StudioHub /> rendered' });
-  const settings = useChordStore(state => state.settings);
+  const settings = useChordStore(useShallow(state => ({
+    language: state.settings.language,
+    accentColor: state.settings.accentColor,
+    theme: state.settings.theme,
+    customAccentHue: state.settings.customAccentHue,
+    dynamicLightStart: state.settings.dynamicLightStart,
+    dynamicLightEnd: state.settings.dynamicLightEnd,
+    hubUserName: state.settings.hubUserName,
+    developerMode: state.settings.developerMode,
+    startupApp: state.settings.startupApp,
+    swipeBackBehavior: state.settings.swipeBackBehavior,
+    otaAutoCheck: state.settings.otaAutoCheck,
+    otaNotifications: state.settings.otaNotifications,
+    perApp: state.settings.perApp,
+    amoledMode: state.settings.amoledMode,
+    appMode: state.settings.appMode,
+  })));
   const updateSettings = useChordStore(state => state.updateSettings);
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
@@ -1453,7 +1470,12 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
 }) {
   const ota = useOtaUpdate();
   const isWebDesktop = useIsWebDesktop();
-  const settings = useChordStore(state => state.settings);
+  const settings = useChordStore(useShallow(state => ({
+    language: state.settings.language,
+    otaAutoCheck: state.settings.otaAutoCheck,
+    otaNotifications: state.settings.otaNotifications,
+    otaShowChangelog: state.settings.otaShowChangelog,
+  })));
   const updateSettings = useChordStore(state => state.updateSettings);
   const lang = settings.language ?? 'en';
   const changelogSections = getChangelogSections(lang);
@@ -5037,7 +5059,13 @@ function HubNav({ tab, setTab, accent, introFinished = true }: {
   accent: { from: string; to: string; mid: string };
   introFinished?: boolean;
 }) {
-  const settings = useChordStore(state => state.settings);
+  const settings = useChordStore(useShallow(state => ({
+    theme: state.settings.theme,
+    amoledMode: state.settings.amoledMode,
+    dynamicLightStart: state.settings.dynamicLightStart,
+    dynamicLightEnd: state.settings.dynamicLightEnd,
+    perApp: state.settings.perApp,
+  })));
   const HUB_NAV_ITEMS = useHubNavItems();
   const navRef   = useRef<HTMLElement | null>(null);
   useLiquidGlassNav(navRef);
@@ -5239,7 +5267,9 @@ function HubHelp({
   tab: HubTab;
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
 }) {
-  const settings = useChordStore(state => state.settings);
+  const settings = useChordStore(useShallow(state => ({
+    language: state.settings.language,
+  })));
   const historyLength = useNavigationStore(s => s.history.length);
   const t = useT();
   const lang = settings.language ?? 'en';

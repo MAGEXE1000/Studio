@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.64",
-  "versionName": "4.0.64",
-  "versionCode": 40064,
-  "version_code": 40064,
-  "commit": "c1f664a7",
-  "releasedAt": "7/12/2026, 11:17:55 PM CST",
-  "buildTimestamp": "7/12/2026, 11:17:55 PM CST",
+  "version": "4.0.65",
+  "versionName": "4.0.65",
+  "versionCode": 40065,
+  "version_code": 40065,
+  "commit": "ae094878",
+  "releasedAt": "7/12/2026, 11:56:53 PM CST",
+  "buildTimestamp": "7/12/2026, 11:56:53 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented lazy visited Keep-Alive app state caching to speed up sub-app loading.\n• Optimized Chordex panel selectors and static store action extraction.\n• Consolidated Stagex mobile layout viewports to a single iframe.",
-  "whatsNew": "• Implemented lazy visited Keep-Alive app state caching to speed up sub-app loading.\n• Optimized Chordex panel selectors and static store action extraction.\n• Consolidated Stagex mobile layout viewports to a single iframe.",
+  "changelog": "• Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.\n• Debounced obfuscated storage writes to eliminate JS event loop blocks.\n• Refactored StudioHub broad store selectors using Zustand shallow selectors.\n• Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.",
+  "whatsNew": "• Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.\n• Debounced obfuscated storage writes to eliminate JS event loop blocks.\n• Refactored StudioHub broad store selectors using Zustand shallow selectors.\n• Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.",
   "releaseNotes": {
-    "fixed": [
-      "Implemented lazy visited Keep-Alive app state caching to speed up sub-app loading.",
-      "Optimized Chordex panel selectors and static store action extraction.",
-      "Consolidated Stagex mobile layout viewports to a single iframe."
+    "improved": [
+      "Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.",
+      "Debounced obfuscated storage writes to eliminate JS event loop blocks.",
+      "Refactored StudioHub broad store selectors using Zustand shallow selectors.",
+      "Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive."
     ]
   },
   "mandatory": false

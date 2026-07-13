@@ -295,10 +295,13 @@ class StartupCoordinatorClass {
     });
     if (!p5Success || this.currentRunId !== runId) return;
 
-    // Run Phases 4, 6 & 7 asynchronously after the Hub is visible and interactive
-    void this.runPhase4(runId);
-    void this.runPhase6(runId);
-    void this.runPhase7(runId);
+    // Defer Phase 4, 6 & 7 asynchronously to allow the app to settle and remain responsive (2s delay)
+    this.setTimeout(() => {
+      if (this.currentRunId !== runId) return;
+      void this.runPhase4(runId);
+      void this.runPhase6(runId);
+      void this.runPhase7(runId);
+    }, 2000);
   }
 
   private async runPhase4(runId: number) {

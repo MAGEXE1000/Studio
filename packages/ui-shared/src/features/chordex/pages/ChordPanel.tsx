@@ -11,7 +11,7 @@ import ProgressionGenerator from '../../../components/feature/ProgressionGenerat
 import MusicNotesLottie from '../../../components/lottie/MusicNotesLottie';
 import { useScrollFade } from '../../../components/typography/ScrollFade';
 
-function RelatedPlayBtn({ guitar, accent, isLight }: {
+const RelatedPlayBtn = React.memo(function RelatedPlayBtn({ guitar, accent, isLight }: {
   guitar: GuitarChordData;
   accent: { from: string; to: string; mid: string };
   isLight?: boolean;
@@ -46,7 +46,7 @@ function RelatedPlayBtn({ guitar, accent, isLight }: {
       }}>{playing ? 'stop' : 'play_arrow'}</span>
     </button>
   );
-}
+});
 
 export default function ChordPanel() {
   const isWebDesktop = useIsWebDesktop();

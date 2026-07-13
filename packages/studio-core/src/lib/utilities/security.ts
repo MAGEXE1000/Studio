@@ -10,6 +10,8 @@
  * and internal static salts.
  */
 
+import { Capacitor } from '@capacitor/core';
+
 const DEVICE_ID_KEY = 'chordex_device_id';
 
 function getDeviceId(): string {
@@ -126,7 +128,64 @@ export function deriveUserKey(uid = 'guest_user'): string {
  * Transparent helper: decrypts a local storage value if it was encrypted,
  * otherwise returns the plaintext (for backward compatibility).
  */
+const pendingWrites = new Map<string, { value: string; userUid: string }>();
+const pendingTimeouts = new Map<string, any>();
+
+function performWrite(key: string, value: string, userUid: string): void {
+  try {
+    const cryptoKey = deriveUserKey(userUid);
+    const encrypted = encryptSync(value, cryptoKey);
+    localStorage.setItem(key, encrypted);
+  } catch {
+    try {
+      localStorage.setItem(key, value);
+    } catch {}
+  }
+}
+
+export function flushPendingWrites(): void {
+  for (const [key, timeout] of pendingTimeouts.entries()) {
+    clearTimeout(timeout);
+  }
+  pendingTimeouts.clear();
+
+  for (const [key, pending] of pendingWrites.entries()) {
+    performWrite(key, pending.value, pending.userUid);
+  }
+  pendingWrites.clear();
+}
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('beforeunload', () => {
+    flushPendingWrites();
+  });
+  window.addEventListener('visibilitychange', () => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      flushPendingWrites();
+    }
+  });
+  if (typeof Capacitor !== 'undefined' && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+    import('@capacitor/app').then(({ App }) => {
+      App.addListener('appStateChange', (s) => {
+        if (!s.isActive) {
+          flushPendingWrites();
+        }
+      });
+    }).catch(err => {
+      console.warn('Failed to load Capacitor App plugin in security.ts:', err);
+    });
+  }
+}
+
+/**
+ * Transparent helper: decrypts a local storage value if it was encrypted,
+ * otherwise returns the plaintext (for backward compatibility).
+ */
 export function secureReadLocal(key: string, userUid = 'guest_user'): string | null {
+  const pending = pendingWrites.get(key);
+  if (pending) {
+    return pending.value;
+  }
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
@@ -147,18 +206,35 @@ export function secureReadLocal(key: string, userUid = 'guest_user'): string | n
  * Transparent helper: encrypts and saves a value securely to local storage.
  */
 export function secureWriteLocal(key: string, value: string, userUid = 'guest_user'): void {
-  try {
-    if (value == null) {
-      localStorage.removeItem(key);
-      return;
+  if (value == null) {
+    pendingWrites.delete(key);
+    const existingTimeout = pendingTimeouts.get(key);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      pendingTimeouts.delete(key);
     }
-    const cryptoKey = deriveUserKey(userUid);
-    const encrypted = encryptSync(value, cryptoKey);
-    localStorage.setItem(key, encrypted);
-  } catch {
-    // Fail-safe: write plaintext if quota or browser restricts crypto
     try {
-      localStorage.setItem(key, value);
+      localStorage.removeItem(key);
     } catch {}
+    return;
   }
+
+  // Cache in memory immediately
+  pendingWrites.set(key, { value, userUid });
+
+  const existingTimeout = pendingTimeouts.get(key);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+
+  const timeout = setTimeout(() => {
+    pendingTimeouts.delete(key);
+    const pending = pendingWrites.get(key);
+    if (pending) {
+      performWrite(key, pending.value, pending.userUid);
+      pendingWrites.delete(key);
+    }
+  }, 300); // 300ms debounce to prevent layout/slider/typing blocks
+
+  pendingTimeouts.set(key, timeout);
 }

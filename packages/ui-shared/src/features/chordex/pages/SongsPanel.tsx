@@ -2195,7 +2195,12 @@ function ChordPicker({ onAdd, onClose, accent, onCreateCustom, customChords }: {
     const cats = t.library.cats as Record<string, { label: string }>;
     return cats[type]?.label ?? type;
   };
+  const [searchVal, setSearchVal] = useState('');
   const [search, setSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchVal), 150);
+    return () => clearTimeout(timer);
+  }, [searchVal]);
   const [cat, setCat] = useState<PickerTab>('all');
   const [selected, setSelected] = useState<string[]>([]);
   const allChords = useMemo(() => getAllChords(), []);
@@ -2251,8 +2256,8 @@ function ChordPicker({ onAdd, onClose, accent, onCreateCustom, customChords }: {
         <div style={{ position: 'relative', width: '100%' }}>
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-text-secondary)', fontSize: '16px', pointerEvents: 'none' }}>search</span>
           <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            value={searchVal}
+            onChange={e => setSearchVal(e.target.value)}
             placeholder={t.songs.searchChords}
             style={{ width: '100%', boxSizing: 'border-box', background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', padding: '9px 14px 9px 36px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-body)', fontSize: '14px', outline: 'none' }}
           />
@@ -2510,6 +2515,17 @@ const PresetCard = memo(function PresetCard({
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  return prevProps.preset.id === nextProps.preset.id &&
+         prevProps.preset.updatedAt === nextProps.preset.updatedAt &&
+         prevProps.preset.name === nextProps.preset.name &&
+         prevProps.preset.artist === nextProps.preset.artist &&
+         prevProps.preset.key === nextProps.preset.key &&
+         prevProps.preset.bpm === nextProps.preset.bpm &&
+         prevProps.preset.chords?.length === nextProps.preset.chords?.length &&
+         prevProps.accent.from === nextProps.accent.from &&
+         prevProps.accent.to === nextProps.accent.to &&
+         prevProps.accent.mid === nextProps.accent.mid;
 });
 
 export default function SongsPanel() {

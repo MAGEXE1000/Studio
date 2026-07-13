@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.64';
-export const WEB_VERSION = '4.0.64';
+export const NATIVE_VERSION = '4.0.65';
+export const WEB_VERSION = '4.0.65';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,11 +60,12 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Improved",
     items: [
-      "Implemented lazy visited Keep-Alive app state caching to speed up sub-app loading.",
-      "Optimized Chordex panel selectors and static store action extraction.",
-      "Consolidated Stagex mobile layout viewports to a single iframe.",
+      "Optimized React render pipeline with custom props comparison memoization across Chordex PresetCard and ChordCard lists.",
+      "Debounced obfuscated storage writes to eliminate JS event loop blocks.",
+      "Refactored StudioHub broad store selectors using Zustand shallow selectors.",
+      "Deferred non-critical startup tasks to significantly reduce initial Time-to-Interactive.",
     ],
   },
 ];

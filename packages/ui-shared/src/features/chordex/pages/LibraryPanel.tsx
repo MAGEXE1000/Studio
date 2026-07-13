@@ -428,6 +428,12 @@ const ChordCard = React.memo(function ChordCard({
       }}>{chord.notes.join(' Â· ')}</p>
     </div>
   );
+}, (prevProps, nextProps) => {
+  return prevProps.chord.id === nextProps.chord.id &&
+         prevProps.isSelected === nextProps.isSelected &&
+         prevProps.accent.from === nextProps.accent.from &&
+         prevProps.accent.to === nextProps.accent.to &&
+         prevProps.accent.mid === nextProps.accent.mid;
 });
 
 // â”€â”€ Main panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -517,7 +523,18 @@ export default function LibraryPanel() {
 
   // Library tab state
   const [mainTab, setMainTab]     = useState<'explore' | 'discover'>('explore');
-  const [query, setQuery]         = useState('');
+  const [queryVal, setQueryVal] = useState('');
+  const [query, setQuery] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(queryVal), 150);
+    return () => clearTimeout(timer);
+  }, [queryVal]);
+
+  useEffect(() => {
+    if (query === '') {
+      setQueryVal('');
+    }
+  }, [query]);
 
   // Discover state
   const [activeGenre, setActiveGenre]   = useState<Genre | null>(null);
@@ -866,8 +883,8 @@ export default function LibraryPanel() {
                     <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500" style={{ fontSize: '15px' }}>search</span>
                     <input
                       type="search"
-                      value={query}
-                      onChange={e => setQuery(e.target.value)}
+                      value={queryVal}
+                      onChange={e => setQueryVal(e.target.value)}
                       placeholder={t.library.searchPlaceholder}
                       className={`w-full py-1.5 pl-8 pr-3 text-xs outline-none rounded-lg border ${
                         isLight 
@@ -1278,8 +1295,8 @@ export default function LibraryPanel() {
           {mainTab === 'explore' && (
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}>search</span>
-              <input data-testid="search-input" type="search" value={query}
-                onChange={e => setQuery(e.target.value)} placeholder={t.library.searchPlaceholder}
+              <input data-testid="search-input" type="search" value={queryVal}
+                onChange={e => setQueryVal(e.target.value)} placeholder={t.library.searchPlaceholder}
                 className="w-full py-2.5 pl-10 pr-4 text-sm outline-none"
                 style={{
                   background: 'var(--app-surface-low)',

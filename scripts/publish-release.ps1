@@ -20,8 +20,10 @@ git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/package.json
 git add apps/studio-android/src/App.tsx
 git add apps/studio-android/public/version.json
+git add apps/studio-android/CHANGELOG.md
 git add apps/studio-web/package.json
 git add apps/studio-web/src/App.tsx
+git add apps/studio-web/CHANGELOG.md
 git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/ui-android/src/components/StageCorePanel.tsx
 git add packages/ui-shared/src/features/chordex/pages/ChordPanel.tsx
@@ -29,6 +31,8 @@ git add packages/ui-shared/src/features/chordex/pages/LibraryPanel.tsx
 git add packages/ui-shared/src/features/chordex/pages/SongsPanel.tsx
 git add packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx
 git add scripts/publish-release.ps1
+git add CHANGELOG.md
+git add release-notes.md
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {

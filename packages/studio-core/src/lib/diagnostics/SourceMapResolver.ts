@@ -92,7 +92,7 @@ export class SourceMapResolver {
    */
   public static parseStackTrace(stack: string): { file: string, line: string, func: string }[] {
     const lines = stack.split('\n');
-    const result = [];
+    const result: { file: string, line: string, func: string }[] = [];
     for (const line of lines) {
       if (line.includes('BackDispatcher') || line.includes('Error')) continue;
       

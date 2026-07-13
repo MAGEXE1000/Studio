@@ -15,7 +15,6 @@ export default function LandingContainerScroll({
   mockupName = 'stage' 
 }: LandingContainerScrollProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  console.warn('!!! LandingContainerScroll mounted !!!');
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start end', 'end start']

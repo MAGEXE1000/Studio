@@ -20,14 +20,14 @@ const storeProfilerImpl: ProfilerImpl = (f, name) => (set, get, api) => {
 
   const profiledSet: typeof set = (...args) => {
     if (typeof window === 'undefined' || !(window as any).__ENABLE_DIAGNOSTICS__) {
-      return set(...args);
+      return (set as any)(...args as any);
     }
 
     const prevState = get() as any;
     const start = performance.now();
     
     // Call the original set
-    set(...args);
+    (set as any)(...args as any);
     
     const end = performance.now();
     const duration = end - start;

@@ -77,12 +77,69 @@ export class LayoutProfiler {
       }
     }
 
-    console.warn(`
---------------------------------------------------
-[LayoutProfiler] FORCED SYNCHRONOUS LAYOUT
-API: ${apiName}
-Caller: ${caller}
-Warning: DOM read occurred in the same frame as a DOM write. This causes Layout Thrashing!
---------------------------------------------------`);
+    let component = 'Unknown';
+    let fileLocation = 'Unknown';
+    if (caller !== 'Unknown') {
+      const parts = caller.split(' (');
+      component = parts[0];
+      if (parts[1]) {
+        fileLocation = parts[1].replace(')', '');
+      }
+    }
+
+    console.warn(`------------------------------------------
+Title
+Forced Synchronous Layout
+Severity
+BUG
+Classification
+BUG
+Studio subsystem
+LayoutProfiler
+React component
+${component}
+Component hierarchy
+Unknown
+Source file
+${fileLocation.split(':')[0]}
+Source line
+${fileLocation.split(':')[1] || 'Unknown'}
+Hook
+N/A
+Function
+${component}
+Store involved
+N/A
+Store mutation
+N/A
+Navigation route
+N/A
+Trigger
+DOM read immediately following DOM write
+Previous value
+N/A
+Current value
+N/A
+Render count
+N/A
+Layout count
+1
+Paint count
+N/A
+JS execution time
+Unknown
+Layout time
+Unknown
+Paint time
+Unknown
+Total duration
+Unknown
+Expected?
+NO
+Root cause
+DOM read (${apiName}) occurred in the same frame as a DOM write. This causes Layout Thrashing!
+Recommendation
+Batch DOM reads and writes, or avoid reading layout properties like offsetHeight/clientWidth immediately after state changes.
+------------------------------------------`);
   }
 }

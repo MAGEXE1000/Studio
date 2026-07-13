@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher, setNavCollapsed } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher, setNavCollapsed, isRouteEqual } from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
 
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
@@ -117,7 +117,7 @@ export default function BottomNav() {
   const isWebDesktop = useIsWebDesktop();
   const settings       = useChordStore(s => s.settings);
 
-  const activeRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub', tab: 'home' };
+  const activeRoute = useNavigationStore((s) => s.history[s.history.length - 1] || { app: 'hub', tab: 'home' }) as any;
   let activePanel: ActivePanel = 'library';
   if (activeRoute.app === 'chords') {
     activePanel = (activeRoute.page as ActivePanel) || 'library';

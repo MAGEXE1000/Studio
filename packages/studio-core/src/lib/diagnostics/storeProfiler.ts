@@ -26,9 +26,17 @@ const storeProfilerImpl: ProfilerImpl = (f, name) => (set, get, api) => {
     const prevState = get() as any;
     const start = performance.now();
     
+    // Inject diagnostic context so LongTasks blame this store
+    const activeComps = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
+    const contextName = `Store Update (${storeName})`;
+    (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ = [...activeComps, contextName];
+
     // Call the original set
     (set as any)(...args as any);
     
+    // Restore diagnostic context
+    (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ = activeComps;
+
     const end = performance.now();
     const duration = end - start;
     const nextState = get() as any;
@@ -84,14 +92,60 @@ function logStoreChange(storeName: string, changes: string[], prevState: any, ne
         }
       }
 
-      const msg = `
---------------------------------
-Store Update: ${storeName}
-Duration: ${duration.toFixed(2)} ms
-Caller: ${caller}
-File: ${fileLocation}
-Keys Changed: ${changes.join(', ')}
-================================`;
+      const msg = `------------------------------------------
+Title
+Store Mutation
+Severity
+${duration > 16 ? 'OPTIMIZATION OPPORTUNITY' : 'INFO'}
+Classification
+${duration > 16 ? 'OPTIMIZATION OPPORTUNITY' : 'INFO'}
+Studio subsystem
+StoreProfiler
+React component
+Unknown
+Component hierarchy
+Unknown
+Source file
+${fileLocation.split(':')[0]}
+Source line
+${fileLocation.split(':')[1] || 'Unknown'}
+Hook
+${caller.startsWith('use') ? caller : 'N/A'}
+Function
+${caller}
+Store involved
+${storeName}
+Store mutation
+${changes.join(', ')}
+Navigation route
+N/A
+Trigger
+${caller}
+Previous value
+N/A
+Current value
+N/A
+Render count
+Unknown
+Layout count
+N/A
+Paint count
+N/A
+JS execution time
+${duration.toFixed(2)}ms
+Layout time
+N/A
+Paint time
+N/A
+Total duration
+${duration.toFixed(2)}ms
+Expected?
+YES
+Root cause
+Store mutation triggered by ${caller}.
+Recommendation
+N/A
+------------------------------------------`;
       console.warn(msg);
     }).catch(e => {
        console.debug(`[storeProfiler] Error parsing stack trace:`, e);

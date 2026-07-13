@@ -41,7 +41,7 @@ export interface ProfilerMetrics {
 }
 
 export interface PerformanceWarning {
-  severity: 'Critical' | 'Warning' | 'Info';
+  severity: 'TRACE' | 'INFO' | 'OPTIMIZATION OPPORTUNITY' | 'RECOVERABLE ISSUE' | 'BUG' | 'CRITICAL';
   title: string;
   description: string;
   measured: string;
@@ -516,7 +516,7 @@ export class PerformanceProfiler {
 
     if (metrics.longestBlockingTask > 100) {
       list.push({
-        severity: 'Critical',
+        severity: 'CRITICAL',
         title: 'Long Main-Thread Blocking Task',
         description: 'A heavy JavaScript execution blocked the main UI thread, interrupting interactions and animations.',
         measured: `${metrics.longestBlockingTask.toFixed(1)} ms`,
@@ -528,7 +528,7 @@ export class PerformanceProfiler {
 
     if (metrics.droppedFrames > 50) {
       list.push({
-        severity: 'Warning',
+        severity: 'BUG',
         title: 'High Jitter / Dropped Frames',
         description: 'Frequent frame time variations detected. UI animations may feel visually stuttered.',
         measured: `${metrics.droppedFrames} dropped`,
@@ -540,7 +540,7 @@ export class PerformanceProfiler {
 
     if (metrics.eventLoopDelay > 25) {
       list.push({
-        severity: 'Warning',
+        severity: 'OPTIMIZATION OPPORTUNITY',
         title: 'Event Loop Delay Spike',
         description: 'The JavaScript event loop is overloaded, lagging asynchronous task execution.',
         measured: `${metrics.eventLoopDelay.toFixed(1)} ms`,
@@ -553,7 +553,7 @@ export class PerformanceProfiler {
     const mem = (performance as any).memory;
     if (mem && mem.usedJSHeapSize > mem.jsHeapSizeLimit * 0.75) {
       list.push({
-        severity: 'Critical',
+        severity: 'CRITICAL',
         title: 'High Memory Pressure',
         description: 'Used JS heap is dangerously close to the browser memory allocation limit.',
         measured: `${(mem.usedJSHeapSize / (1024 * 1024)).toFixed(1)} MB`,

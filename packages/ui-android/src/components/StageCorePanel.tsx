@@ -1,4 +1,4 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, isRouteEqual } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -460,7 +460,7 @@ export default function StagexPanel() {
     return results;
   }, [searchQuery, customElements]);
 
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1] || { app: 'hub', tab: 'home' }) as any;
   const curView = useMemo(() => {
     if (currentRoute.app === 'stage' && currentRoute.page) {
       return currentRoute.page;

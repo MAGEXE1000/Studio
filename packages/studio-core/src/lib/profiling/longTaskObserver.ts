@@ -1,5 +1,5 @@
 export function initLongTaskObserver() {
-  if (typeof window === 'undefined' || !('PerformanceObserver' in window)) return;
+  return; // Disabled: replaced by forensic RootCauseAnalyzer.ts
 
   try {
     const observer = new PerformanceObserver((list) => {

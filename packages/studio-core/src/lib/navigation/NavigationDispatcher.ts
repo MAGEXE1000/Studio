@@ -8,6 +8,7 @@ import {
   isTransitionLocked,
   isRootRouteOnly,
 } from './validation.js';
+import { SourceMapResolver } from '../diagnostics/SourceMapResolver.js';
 
 export class NavigationDispatcher {
   private static transitionTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -17,20 +18,12 @@ export class NavigationDispatcher {
    */
   public static push(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    const rawStack = new Error().stack;
-    
     Promise.resolve().then(() => {
-       let caller = 'Unknown';
-       if (rawStack) {
-         const lines = rawStack.split('\n');
-         for (let i = 2; i < lines.length; i++) {
-            if (!lines[i].includes('NavigationDispatcher')) {
-              caller = lines[i].trim();
-              break;
-            }
-         }
+       if (typeof window !== 'undefined' && (window as any).__ENABLE_DIAGNOSTICS__) {
+         NavigationDispatcher.logDiagnostic('push', route);
+       } else {
+         console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)}`);
        }
-       console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)} | caller: ${caller}`);
     });
     // Transition is allowed to interrupt immediately (lock check removed)
 
@@ -39,12 +32,12 @@ export class NavigationDispatcher {
     const current = store.history[store.history.length - 1];
 
     if (current && isRouteEqual(current, nextRoute)) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Duplicate route detected. Current: ${JSON.stringify(current)} | Next: ${JSON.stringify(nextRoute)}`);
+      console.info(`[NavigationDispatcher] [${timestamp}] Push ignored: Duplicate route detected. Current: ${JSON.stringify(current)} | Next: ${JSON.stringify(nextRoute)}`);
       return;
     }
 
     if (detectRecursion(store.history, nextRoute)) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Recursive cycle detected. Stack: ${JSON.stringify(store.history)} | Next: ${JSON.stringify(nextRoute)}`);
+      console.info(`[NavigationDispatcher] [${timestamp}] Push ignored: Recursive cycle detected. Stack: ${JSON.stringify(store.history)} | Next: ${JSON.stringify(nextRoute)}`);
       return;
     }
 
@@ -64,20 +57,12 @@ export class NavigationDispatcher {
    */
   public static replace(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    const rawStack = new Error().stack;
-
     Promise.resolve().then(() => {
-       let caller = 'Unknown';
-       if (rawStack) {
-         const lines = rawStack.split('\n');
-         for (let i = 2; i < lines.length; i++) {
-            if (!lines[i].includes('NavigationDispatcher')) {
-              caller = lines[i].trim();
-              break;
-            }
-         }
+       if (typeof window !== 'undefined' && (window as any).__ENABLE_DIAGNOSTICS__) {
+         NavigationDispatcher.logDiagnostic('replace', route);
+       } else {
+         console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`);
        }
-       console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)} | caller: ${caller}`);
     });
     // Transition is allowed to interrupt immediately (lock check removed)
 
@@ -95,26 +80,18 @@ export class NavigationDispatcher {
    */
   public static pop(): void {
     const timestamp = new Date().toISOString();
-    const rawStack = new Error().stack;
-
     Promise.resolve().then(() => {
-       let caller = 'Unknown';
-       if (rawStack) {
-         const lines = rawStack.split('\n');
-         for (let i = 2; i < lines.length; i++) {
-            if (!lines[i].includes('NavigationDispatcher')) {
-              caller = lines[i].trim();
-              break;
-            }
-         }
+       if (typeof window !== 'undefined' && (window as any).__ENABLE_DIAGNOSTICS__) {
+         NavigationDispatcher.logDiagnostic('pop', {});
+       } else {
+         console.log(`[NavigationDispatcher] [${timestamp}] pop`);
        }
-       console.log(`[NavigationDispatcher] [${timestamp}] pop | caller: ${caller}`);
     });
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();
     if (isRootRouteOnly(store.history)) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Pop ignored: Cannot pop past root route. Stack: ${JSON.stringify(store.history)}`);
+      console.info(`[NavigationDispatcher] [${timestamp}] Pop ignored: Cannot pop past root route. Stack: ${JSON.stringify(store.history)}`);
       return;
     }
 
@@ -135,20 +112,12 @@ export class NavigationDispatcher {
    */
   public static popTo(predicate: (route: NavigationRoute) => boolean): void {
     const timestamp = new Date().toISOString();
-    const rawStack = new Error().stack;
-
     Promise.resolve().then(() => {
-       let caller = 'Unknown';
-       if (rawStack) {
-         const lines = rawStack.split('\n');
-         for (let i = 2; i < lines.length; i++) {
-            if (!lines[i].includes('NavigationDispatcher')) {
-              caller = lines[i].trim();
-              break;
-            }
-         }
+       if (typeof window !== 'undefined' && (window as any).__ENABLE_DIAGNOSTICS__) {
+         NavigationDispatcher.logDiagnostic('popTo', {});
+       } else {
+         console.log(`[NavigationDispatcher] [${timestamp}] popTo`);
        }
-       console.log(`[NavigationDispatcher] [${timestamp}] popTo | caller: ${caller}`);
     });
     // Transition is allowed to interrupt immediately (lock check removed)
 
@@ -156,7 +125,7 @@ export class NavigationDispatcher {
     const index = store.history.findIndex(predicate);
 
     if (index === -1) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] popTo ignored: Target route not found in stack. Stack: ${JSON.stringify(store.history)}`);
+      console.info(`[NavigationDispatcher] [${timestamp}] popTo ignored: Target route not found in stack. Stack: ${JSON.stringify(store.history)}`);
       return;
     }
 
@@ -240,5 +209,87 @@ export class NavigationDispatcher {
       useNavigationStore.getState().setTransition(null, false);
       this.transitionTimeout = null;
     }, 300); // 300ms matches visual transition timing
+  }
+
+  private static logDiagnostic(action: string, route: any) {
+    const rawStack = new Error().stack;
+    let caller = 'Unknown';
+    let fileLocation = 'N/A';
+    
+    if (rawStack) {
+      const lines = rawStack.split('\\n');
+      for (let i = 3; i < lines.length; i++) {
+        if (!lines[i].includes('NavigationDispatcher')) {
+          const parsed = SourceMapResolver.parseStackTrace(lines.slice(i).join('\\n'));
+          if (parsed.length > 0) {
+            caller = parsed[0].func;
+            fileLocation = `${parsed[0].file}:${parsed[0].line}`;
+          } else {
+            caller = lines[i].trim();
+          }
+          break;
+        }
+      }
+    }
+
+    const store = useNavigationStore.getState();
+    const sourcePage = store.history.length > 1 ? store.history[store.history.length - 2]?.app : 'root';
+    const destPage = store.history[store.history.length - 1]?.app || 'unknown';
+
+    const msg = `------------------------------------------
+Title
+Navigation Transition
+Severity
+INFO
+Classification
+INFO
+Studio subsystem
+NavigationDispatcher
+React component
+${caller.startsWith('use') || caller.match(/^[A-Z]/) ? caller : 'Unknown'}
+Component hierarchy
+Unknown
+Source file
+${fileLocation.split(':')[0]}
+Source line
+${fileLocation.split(':')[1] || 'Unknown'}
+Hook
+N/A
+Function
+${caller}
+Store involved
+NavigationStore
+Store mutation
+history
+Navigation route
+${action}
+Trigger
+${action}()
+Previous value
+${sourcePage}
+Current value
+${destPage}
+Render count
+Unknown
+Layout count
+Unknown
+Paint count
+Unknown
+JS execution time
+Unknown
+Layout time
+Unknown
+Paint time
+Unknown
+Total duration
+300ms
+Expected?
+YES
+Root cause
+Navigation transition triggered by ${caller}.
+Recommendation
+N/A
+------------------------------------------`;
+    console.log(msg);
   }
 }

@@ -56,7 +56,61 @@ export class BackDispatcher {
            handlerObj.owner = 'Unknown (Stack omitted by V8/Capacitor)';
         }
         
-        console.warn(`[BackDispatcher] Registered [${priority}] Owner: ${handlerObj.owner} | Reason: ${reason} | Deps: ${dependencies} | File: ${handlerObj.file}:${handlerObj.line}`);
+        const msg = `------------------------------------------
+Title
+BackHandler Registration
+Severity
+INFO
+Classification
+INFO
+Studio subsystem
+BackDispatcher
+React component
+${handlerObj.owner.startsWith('use') || handlerObj.owner.match(/^[A-Z]/) ? handlerObj.owner : 'Unknown'}
+Component hierarchy
+Unknown
+Source file
+${handlerObj.file || 'Unknown'}
+Source line
+${handlerObj.line || 'Unknown'}
+Hook
+useBackHandler
+Function
+${handlerObj.owner}
+Store involved
+N/A
+Store mutation
+N/A
+Navigation route
+N/A
+Trigger
+Mount
+Previous value
+N/A
+Current value
+${dependencies}
+Render count
+Unknown
+Layout count
+N/A
+Paint count
+N/A
+JS execution time
+0ms
+Layout time
+N/A
+Paint time
+N/A
+Total duration
+0ms
+Expected?
+YES
+Root cause
+${reason}
+Recommendation
+N/A
+------------------------------------------`;
+        console.info(msg);
       }).catch(e => {
         handlerObj.owner = 'Unknown (Parse Error)';
       });
@@ -72,7 +126,61 @@ export class BackDispatcher {
 
     return () => {
       const lifetime = (performance.now() - handlerObj.registerTime).toFixed(1);
-      console.warn(`[BackDispatcher] Unregistered [${priority}] Owner: ${handlerObj.owner} | Lifetime: ${lifetime}ms | Unregister Reason: Unmount or Deps Changed`);
+      const msg = `------------------------------------------
+Title
+BackHandler Unregistration
+Severity
+INFO
+Classification
+INFO
+Studio subsystem
+BackDispatcher
+React component
+${handlerObj.owner.startsWith('use') || handlerObj.owner.match(/^[A-Z]/) ? handlerObj.owner : 'Unknown'}
+Component hierarchy
+Unknown
+Source file
+${handlerObj.file || 'Unknown'}
+Source line
+${handlerObj.line || 'Unknown'}
+Hook
+useBackHandler
+Function
+${handlerObj.owner}
+Store involved
+N/A
+Store mutation
+N/A
+Navigation route
+N/A
+Trigger
+Unmount
+Previous value
+${handlerObj.dependencies}
+Current value
+N/A
+Render count
+Unknown
+Layout count
+N/A
+Paint count
+N/A
+JS execution time
+${lifetime}ms
+Layout time
+N/A
+Paint time
+N/A
+Total duration
+${lifetime}ms
+Expected?
+YES
+Root cause
+Unmount or Deps Changed
+Recommendation
+N/A
+------------------------------------------`;
+      console.info(msg);
       const idx = activeBackHandlers.findIndex((h: any) => h.id === id);
       if (idx !== -1) {
         activeBackHandlers.splice(idx, 1);
@@ -99,11 +207,19 @@ export class BackDispatcher {
     // Execute handlers in priority order
     for (const handler of handlers) {
       try {
+        const activeComps = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
+        const contextName = `BackHandler (${handler.priority}): ${handler.owner || 'Unknown'}`;
+        (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ = [...activeComps, contextName];
+
         const consumed = handler.fn();
+        
+        (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ = activeComps;
+
         if (consumed) {
           return true;
         }
       } catch (err) {
+        (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__?.slice(0, -1);
         console.error(`[BackDispatcher] Error executing registered back handler:`, err);
       }
     }

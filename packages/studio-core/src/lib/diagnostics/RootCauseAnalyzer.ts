@@ -2,7 +2,7 @@
 import { SourceMapResolver } from './SourceMapResolver';
 
 export interface RootCauseReport {
-  severity: 'Critical' | 'Warning' | 'Info';
+  severity: 'TRACE' | 'INFO' | 'OPTIMIZATION OPPORTUNITY' | 'RECOVERABLE ISSUE' | 'BUG' | 'CRITICAL';
   title: string;
   durationMs: number;
   sourceComponent: string;
@@ -101,17 +101,20 @@ export class RootCauseAnalyzer {
        reason = 'Long task outside of React render cycle. Potentially a bridge call, timeout, or layout thrashing. Check Performance Timeline.';
     }
 
+    const severity: RootCauseReport['severity'] = entry.duration > 150 ? 'CRITICAL' : 'BUG';
+
     const report: RootCauseReport = {
-      severity: entry.duration > 150 ? 'Critical' : 'Warning',
+      severity,
       title: 'Long Task',
       durationMs: Math.round(entry.duration),
       sourceComponent: topComponent,
       sourceFunction: topComponent !== 'Unknown' ? 'Render/Commit' : 'Unknown',
-      sourceFile: 'N/A',
+      sourceFile: 'Unknown',
       sourceLine: 'N/A',
       callStack: topComponent !== 'Unknown' ? activeComponents : [],
       metrics: {
         jsExecution: Math.round(entry.duration),
+        uiThread: Math.round(entry.duration),
       },
       trigger,
       dependencies: [],
@@ -167,8 +170,13 @@ export class RootCauseAnalyzer {
       }
     }
 
+    let severity: RootCauseReport['severity'] = 'INFO';
+    if (script.duration > 150) severity = 'CRITICAL';
+    else if (script.duration > 50) severity = 'BUG';
+    else if (script.duration > 16) severity = 'OPTIMIZATION OPPORTUNITY';
+
     return {
-      severity: script.duration > 150 ? 'Critical' : 'Warning',
+      severity,
       title: 'Long Task',
       durationMs: Math.round(script.duration),
       sourceComponent: component,
@@ -194,20 +202,25 @@ export class RootCauseAnalyzer {
     const activeComponents = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
     const topComponent = activeComponents.length > 0 ? activeComponents[activeComponents.length - 1] : 'Unknown';
 
+    let severity: RootCauseReport['severity'] = 'INFO';
+    if (duration > 150) severity = 'CRITICAL';
+    else if (duration > 50) severity = 'BUG';
+    else if (duration > 16) severity = 'OPTIMIZATION OPPORTUNITY';
+
     return {
-      severity: duration > 150 ? 'Critical' : 'Warning',
+      severity,
       title,
       durationMs: Math.round(duration),
       sourceComponent: topComponent,
-      sourceFunction: 'Unknown',
-      sourceFile: 'Unknown',
+      sourceFunction: 'Deferred Async Paint/Layout',
+      sourceFile: 'Attribution impossible (Browser engine batches Layout asynchronously)',
       sourceLine: 'Unknown',
       callStack: [],
       metrics: {
         uiThread: Math.round(duration),
-        layoutDuration: entry.renderStart ? (entry.duration - entry.renderStart) : undefined
+        layoutDuration: entry.renderStart ? Math.round(Math.max(0, (entry.startTime + entry.duration) - entry.renderStart)) : undefined
       },
-      trigger: 'Unknown',
+      trigger: 'Browser Render Pipeline',
       dependencies: [],
       stateChanged: 'N/A',
       repeated: false,
@@ -236,43 +249,60 @@ export class RootCauseAnalyzer {
     this.reports.push(report);
     if (this.reports.length > 100) this.reports.shift(); // Keep buffer small
 
-    const stackStr = report.callStack.join('\n↓\n');
-    const msg = `
---------------------------------
-Warning
+    const msg = `------------------------------------------
+Title
 ${report.title}
-Duration
-${report.durationMs} ms
 Severity
 ${report.severity}
-Root Cause
+Classification
+${report.severity}
+Studio subsystem
+RootCauseAnalyzer
+React component
 ${report.sourceComponent}
-File
+Component hierarchy
+${report.callStack.join(' > ') || 'Unknown'}
+Source file
 ${report.sourceFile}
+Source line
+${report.sourceLine}
+Hook
+N/A
 Function
 ${report.sourceFunction}
-Line
-${report.sourceLine}
-
-Call Stack
-${stackStr}
-
-Component Render Count
-${report.metrics.componentRenderCount || 'N/A'}
-Render Duration
-${report.metrics.renderDuration !== undefined ? report.metrics.renderDuration + ' ms' : 'N/A'}
-Layout Duration
-${report.metrics.layoutDuration !== undefined ? report.metrics.layoutDuration + ' ms' : 'N/A'}
-JS Execution
-${report.metrics.jsExecution || 0} ms
-UI Thread
-${report.metrics.uiThread || 0} ms
-
+Store involved
+N/A
+Store mutation
+N/A
+Navigation route
+N/A
 Trigger
 ${report.trigger}
+Previous value
+N/A
+Current value
+N/A
+Render count
+${report.metrics.componentRenderCount || 'N/A'}
+Layout count
+${report.metrics.layoutDuration !== undefined ? 1 : 'N/A'}
+Paint count
+1
+JS execution time
+${report.metrics.jsExecution || report.durationMs}ms
+Layout time
+${report.metrics.layoutDuration !== undefined ? report.metrics.layoutDuration + 'ms' : 'N/A'}
+Paint time
+Unknown
+Total duration
+${report.durationMs}ms
+Expected?
+NO
+Root cause
+${report.recommendation}
 Recommendation
 ${report.recommendation}
-===========================================`;
+------------------------------------------`;
 
     console.warn(msg);
   }

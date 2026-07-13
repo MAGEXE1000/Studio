@@ -1,9 +1,9 @@
-import { tolgee, initDevToolsFramework, initLongTaskObserver } from '@workspace/studio-core';
+import { tolgee, initDevToolsFramework, PerformanceProfiler as CoreProfiler } from '@workspace/studio-core';
 import { PerformanceProfiler } from '@workspace/ui-shared';
 
 // Initialize DevTools
 initDevToolsFramework();
-initLongTaskObserver();
+CoreProfiler.getInstance().start();
 import { createRoot } from "react-dom/client";
 import { TolgeeProvider } from "@tolgee/react";
 import App from "./App";

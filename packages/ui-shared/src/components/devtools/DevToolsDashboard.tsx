@@ -2293,7 +2293,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 <div key={idx} style={{
                   padding: '16px',
                   background: 'rgba(255, 255, 255, 0.02)',
-                  borderLeft: `4px solid ${w.severity === 'Critical' ? '#ef4444' : '#fbbf24'}`,
+                  borderLeft: `4px solid ${w.severity === 'CRITICAL' ? '#ef4444' : '#fbbf24'}`,
                   borderRadius: '4px 12px 12px 4px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -2304,8 +2304,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     <span style={{
                       fontSize: '9px',
                       fontWeight: 800,
-                      background: w.severity === 'Critical' ? 'rgba(239,68,68,0.15)' : 'rgba(251,191,36,0.15)',
-                      color: w.severity === 'Critical' ? '#ef4444' : '#fbbf24',
+                      background: w.severity === 'CRITICAL' ? 'rgba(239,68,68,0.15)' : 'rgba(251,191,36,0.15)',
+                      color: w.severity === 'CRITICAL' ? '#ef4444' : '#fbbf24',
                       padding: '2px 6px',
                       borderRadius: '4px',
                       textTransform: 'uppercase'

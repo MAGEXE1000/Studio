@@ -405,6 +405,24 @@ export default function App() {
     };
   }, [appMode, cachedPanel]);
 
+  const mainLayoutContent = useMemo(() => (
+    <div
+      className="app-main-layout"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 1,
+        height: '100dvh',
+        overflow: 'hidden',
+        pointerEvents: isSubAppActive ? 'none' : 'auto',
+      }}
+    >
+      <Suspense fallback={<SmartLoading fallbackSkeleton={<StudioHubSkeleton />} />}>
+        <StudioHub />
+      </Suspense>
+    </div>
+  ), [isSubAppActive]);
+
   useEffect(() => {
     const timestamp = new Date().toISOString();
     console.log(`[SubApp] [${timestamp}] State Update | appMode: ${appMode}, isSubAppActive: ${isSubAppActive}, stableKey: ${stableKey}`);
@@ -461,23 +479,7 @@ export default function App() {
             />
           )}
 
-          {useMemo(() => (
-            <div
-              className="app-main-layout"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 1,
-                height: '100dvh',
-                overflow: 'hidden',
-                pointerEvents: isSubAppActive ? 'none' : 'auto',
-              }}
-            >
-              <Suspense fallback={<SmartLoading fallbackSkeleton={<StudioHubSkeleton />} />}>
-                <StudioHub />
-              </Suspense>
-            </div>
-          ), [isSubAppActive])}
+          {mainLayoutContent}
 
           <AnimatePresence mode="wait">
             {isSubAppActive && (

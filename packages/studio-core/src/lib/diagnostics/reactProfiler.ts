@@ -55,7 +55,15 @@ export class ReactRootCauseProfiler {
   private static traverseFiberTree(fiber: Fiber) {
     // tag 0: FunctionComponent, tag 1: ClassComponent, tag 15: MemoComponent, tag 11: ForwardRef
     const isComponent = fiber.tag === 0 || fiber.tag === 1 || fiber.tag === 15 || fiber.tag === 11;
+    const isRoot = fiber.tag === 3; // HostRoot
     
+    if (isRoot && fiber.actualDuration && fiber.actualDuration > 50) {
+      const activeComps = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
+      activeComps.push(`React Render Cascade (${fiber.actualDuration.toFixed(0)}ms)`);
+      if (activeComps.length > 5) activeComps.shift();
+      (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ = activeComps;
+    }
+
     if (isComponent && fiber.alternate) {
       this.analyzeComponentRender(fiber);
     }
@@ -159,14 +167,70 @@ export class ReactRootCauseProfiler {
   }
 
   private static logRenderCause(name: string, duration: number, propChanges: string[], stateChanges: string[]) {
-    const msg = `
---------------------------------
-Warning: Expensive React Render
-Component: ${name}
-Duration: ${duration.toFixed(1)} ms
-Props Changed: ${propChanges.length > 0 ? propChanges.join(', ') : 'None'}
-State/Hooks Changed: ${stateChanges.length > 0 ? stateChanges.join(', ') : 'None'}
-================================`;
+    // Determine if memoization would have helped
+    const memoizationHelp = propChanges.length === 0 && stateChanges.length > 0 ? 
+      'State/Hook changes forced a render. Check if dependencies in hooks are unstable.' :
+      (propChanges.length > 0 ? 'Props changed. If the parent passed unstable references (e.g. inline functions or object literals), memoization (useCallback/useMemo) in the parent will prevent this.' : 'Memoization (React.memo) could prevent this if the parent re-rendered unnecessarily.');
+
+    let severity = 'INFO';
+    if (duration > 100) severity = 'CRITICAL';
+    else if (duration > 32) severity = 'BUG';
+    else if (duration > 16) severity = 'OPTIMIZATION OPPORTUNITY';
+
+    const msg = `------------------------------------------
+Title
+React Render
+Severity
+${severity}
+Classification
+${severity}
+Studio subsystem
+ReactProfiler
+React component
+${name}
+Component hierarchy
+Unknown
+Source file
+Unknown (React Internal)
+Source line
+Unknown
+Hook
+${stateChanges.filter(s => s.startsWith('Hook')).join(', ') || 'N/A'}
+Function
+Render
+Store involved
+N/A
+Store mutation
+N/A
+Navigation route
+N/A
+Trigger
+${propChanges.length > 0 ? 'Prop changes' : (stateChanges.length > 0 ? 'State/Hook changes' : 'Parent Re-render')}
+Previous value
+N/A
+Current value
+N/A
+Render count
+1
+Layout count
+N/A
+Paint count
+N/A
+JS execution time
+${duration.toFixed(1)}ms
+Layout time
+N/A
+Paint time
+N/A
+Total duration
+${duration.toFixed(1)}ms
+Expected?
+${duration > 16 ? 'NO' : 'YES'}
+Root cause
+React re-rendered ${name} due to ${propChanges.length > 0 ? 'Props: ' + propChanges.join(', ') : ''} ${stateChanges.length > 0 ? 'State/Hooks: ' + stateChanges.join(', ') : ''}.
+Recommendation
+${memoizationHelp}
+------------------------------------------`;
     
     // Update active diagnostics tracking so RootCauseAnalyzer LongTask knows what's rendering
     const activeComps = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.59"
-$VersionCode = "40059"
-$ReleaseNote = "v4.0.59 - Diagnostic Forensics Engine Upgrade"
+$VersionName = "4.0.61"
+$VersionCode = "40061"
+$ReleaseNote = "v4.0.61 - Diagnostics Forensic Overhaul"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -16,20 +16,29 @@ node apps/studio-android/scripts/sync-version.mjs
 node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
-git add packages/studio-core/src/lib/startup/startupCoordinator.ts
-git add packages/studio-core/src/lib/updater/flightRecorder.ts
-git add apps/studio-android/src/EmergencyDebugOverlay.tsx
+git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/package.json
-git add apps/studio-android/android/app/src/main/java/com/chordex/app/ForensicLogger.java
-git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainApplication.java
-git add apps/studio-android/android/app/src/main/AndroidManifest.xml
-git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainActivity.java
-git add apps/studio-android/src/main.tsx
-git add apps/studio-android/public/version.json
 git add apps/studio-web/package.json
-git add CHANGELOG.md
+git add apps/studio-web/src/App.tsx
+git add apps/studio-web/src/main.tsx
+git add packages/studio-core/src/lib/diagnostics/RootCauseAnalyzer.ts
+git add packages/studio-core/src/lib/diagnostics/layoutProfiler.ts
+git add packages/studio-core/src/lib/diagnostics/reactProfiler.ts
+git add packages/studio-core/src/lib/diagnostics/storeProfiler.ts
+git add packages/studio-core/src/lib/navigation/BackDispatcher.ts
+git add packages/studio-core/src/lib/navigation/NavigationDispatcher.ts
+git add packages/studio-core/src/lib/navigation/useBackHandler.ts
+git add packages/studio-core/src/lib/performance/performanceProfiler.ts
+git add packages/studio-core/src/lib/profiling/longTaskObserver.ts
+git add packages/studio-core/src/lib/startup/appVersion.ts
+git add packages/ui-android/src/components/StageCorePanel.tsx
+git add packages/ui-shared/src/components/devtools/DevToolsDashboard.tsx
+git add packages/ui-shared/src/navigation/BottomNav.tsx
 git add scripts/publish-release.ps1
-git add -u
+git add docs/large_file_report.md
+git add docs/repository_health_report.md
+git add docs/testing.md
+git add CHANGELOG.md
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {

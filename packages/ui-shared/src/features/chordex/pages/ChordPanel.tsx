@@ -1,4 +1,5 @@
 import { useScrollHide, getChordById, getAllChords, getRelatedChords, suggestNextChord, useChordStore, ACCENT_COLORS, useT, useBackHandler, setBackHandler, playChord, stopChordPlayback, type GuitarChordData, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import GuitarDiagram from '../../../components/diagrams/GuitarDiagram';

@@ -1,5 +1,6 @@
 import { getAllChords, getChordById, type Chord, type ChordType, type GuitarChordData, useChordStore, ACCENT_COLORS, type SongPreset, type SongSection, type CustomChord, transposeChordId, transposeKeyString, formatOffset, isChordOutOfKey, useScrollHide, setNavHidden, useT, useBackHandler, useIsWebDesktop, logActivity, useNavigationStore } from '@workspace/studio-core';
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useShallow } from 'zustand/react/shallow';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../components/lottie/SuccessLottie';

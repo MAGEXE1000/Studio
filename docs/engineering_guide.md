@@ -113,20 +113,19 @@ This repository integrates documentation directly into the development cycle. Ad
 
 * **Onboarding & Contribution**: Refer to [contributing.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/contributing.md) for onboarding procedures.
 * **AI Protocols**: Refer to [ai_workflow.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ai_workflow.md) for mandatory checklist prompts and validation steps.
-* **Standard Checklists**: Refer to [engineering_checklists.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_checklists.md) for reusable testing, release, and code review lists.
+* **Standard Checklists**: Refer to  for reusable testing, release, and code review lists.
 * **Doc Validation**: Refer to [documentation_validation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/documentation_validation.md) to verify that links, references, and configurations remain synced on changes.
 * **Automation Tooling**: The repository includes validation and health reporting automation scripts:
   - **Document Linter**: Run `pnpm docs:validate` (runs [validate-documentation.mjs](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/scripts/validate-documentation.mjs))
   - **Session Brief Generator**: Run `node scripts/generate-session-summary.mjs` (runs [generate-session-summary.mjs](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/scripts/generate-session-summary.mjs))
-  - **Health Audit**: Run `node scripts/repository-health.mjs` to generate [repository_health_report.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_report.md)
+  - **Health Audit**: Run `node scripts/repository-health.mjs` to generate 
   - **Context Map Generator**: Run `node scripts/context-map-generator.mjs` to generate [context_map.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/context_map.md)
-  - **Large File Analysis**: Run `node scripts/large-file-report.mjs` to generate [large_file_report.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/large_file_report.md)
-  - **Dead Code Detector**: Run `node scripts/dead-code-report.mjs` to generate [dead_code_report.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/dead_code_report.md)
+  - **Large File Analysis**: Run `node scripts/large-file-report.mjs` to generate 
+  - **Dead Code Detector**: Run `node scripts/dead-code-report.mjs` to generate 
 
 Source:
 * `docs/contributing.md`
 * `docs/ai_workflow.md`
-* `docs/engineering_checklists.md`
 * `docs/documentation_validation.md`
 * `scripts/`
 
@@ -163,7 +162,7 @@ Refer to these targeted subsystem and architecture guides for implementation det
     - [Design System Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/design_system.md)
     - [Performance Optimization Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/performance.md)
     - [Debugging & Diagnostics Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/debugging.md)
-    - [Testing & Verification Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/testing.md)
+    - 
     - [Release Process Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/release_process.md)
     - [Architectural Decision Records (ADR)](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture_decisions.md)
     - [Report Templates Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/report_templates.md)
@@ -171,16 +170,16 @@ Refer to these targeted subsystem and architecture guides for implementation det
     - [AI Context Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ai-context-map.md)
     - [Project Structure Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/project-structure.md)
     - [Codebase Size & Context Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/codebase-size-report.md)
-    - [Roadmap & Milestone Tracker](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/roadmap.md)
+    - 
     - [Known Issues Log](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/known_issues.md)
     - [Environment Setup Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/environment_setup.md)
     - [Legacy Migration Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/migration_map.md)
-    - [Troubleshooting Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md)
-    - [Repository Health & Architecture Audit Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_audit.md)
-    - [Generated Repository Health Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_report.md)
+    - 
+    - 
+    - 
     - [Generated Context Minimization Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/context_map.md)
-    - [Generated Large File Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/large_file_report.md)
-    - [Generated Dead Code Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/dead_code_report.md)
+    - 
+    - 
     - [Legacy Backups Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/backups/v3.6.81-stable-before-cleanup.md)
 *   **Knowledge Repository**:
     - [Android Gradle Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/android/gradle.md)
@@ -194,8 +193,8 @@ Refer to these targeted subsystem and architecture guides for implementation det
     - [Firebase Security rules](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/firebase/security.md)
     - [React Hooks Standards](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/react/hooks.md)
     - [React Component Splitting](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/react/components.md)
-    - [OTA State-Machine Transitions](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/ota/state-machine.md)
-    - [OTA Rollback Fallbacks](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/ota/rollback.md)
+    - 
+    - 
     - [Multitrack Audio Caching](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/performance/audio.md)
     - [Selective Rendering Performance](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/performance/rendering.md)
     - [Monorepo Package boundaries](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/architecture/monorepo.md)

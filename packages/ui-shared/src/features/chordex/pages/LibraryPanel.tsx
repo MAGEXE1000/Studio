@@ -1,4 +1,5 @@
 import { getAllChords, searchChords, getChordById, getRelatedChords, type ChordType, useChordStore, ACCENT_COLORS, SONGS, GENRE_META, type Genre, SPANISH_DESCRIPTIONS, useScrollHide, useT, useIsWebDesktop, useBackHandler, playChord, stopChordPlayback, type GuitarChordData, type SongChart, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { SongPracticeView } from '../../../components/feature/SongPracticeView';
 import EmptyStateLottie from '../../../components/lottie/EmptyStateLottie';

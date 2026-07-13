@@ -36,13 +36,13 @@ const FETCH_TIMEOUT_MS = 6000;
 
 export function versionJsonUrls(): string[] {
   const t = Date.now();
-  const override = (import.meta.env.VITE_OTA_VERSION_URL as string | undefined)?.trim();
+  const override = (import.meta.env.VITE_APK_VERSION_URL as string | undefined)?.trim();
   if (override) {
     const sep = override.includes('?') ? '&' : '?';
     return [`${override}${sep}t=${t}`];
   }
 
-  const remoteBase = (import.meta.env.VITE_OTA_BASE_URL as string | undefined)?.replace(/\/$/, '') || 'https://studio-30f44.web.app';
+  const remoteBase = (import.meta.env.VITE_APK_BASE_URL as string | undefined)?.replace(/\/$/, '') || 'https://studio-30f44.web.app';
   const urls: string[] = [];
 
   if (Capacitor.isNativePlatform()) {
@@ -117,7 +117,7 @@ async function fetchOne(
     }
 
     const changelog = typeof obj.description === 'string' ? obj.description : (typeof obj.changelog === 'string' ? obj.changelog : undefined);
-    const downloadUrl = typeof obj.downloadUrl === 'string' ? obj.downloadUrl : (typeof obj.ota_download_url === 'string' ? obj.ota_download_url : undefined);
+    const downloadUrl = typeof obj.downloadUrl === 'string' ? obj.downloadUrl : (typeof obj.apk_download_url === 'string' ? obj.apk_download_url : undefined);
     const updateType = (obj.update_type === 'updater' || obj.update_type === 'apk' || obj.update_type === 'both' || obj.update_type === 'none') 
       ? obj.update_type 
       : ((obj.updateType === 'updater' || obj.updateType === 'apk' || obj.updateType === 'both' || obj.updateType === 'none') ? obj.updateType : undefined);

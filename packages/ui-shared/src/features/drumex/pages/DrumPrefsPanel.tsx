@@ -1,4 +1,5 @@
 import { useDrumStore, useChordStore, ACCENT_COLORS, useT, useScrollHide, useIsWebDesktop, resetNav } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useRef, useState, useEffect } from 'react';
 import { Toggle, SectionHeader, SettingRow } from '../../../components/typography/SettingControls';
 

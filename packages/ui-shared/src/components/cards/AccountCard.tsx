@@ -1000,7 +1000,7 @@ function prettyErr(e: unknown, lang: string): string {
   return msg;
 }
 
-function pillBtn(accent: { from: string; to: string }, danger: boolean): React.CSSProperties {
+function pillBtn(accent: { from: string; to: string }, danger?: boolean): React.CSSProperties {
   return {
     padding: '7px 14px', borderRadius: 9999, fontSize: 12, fontWeight: 700,
     background: danger ? 'rgba(255,107,107,0.12)' : `${accent.from}1f`,

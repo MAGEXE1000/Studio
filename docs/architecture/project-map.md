@@ -61,7 +61,7 @@ Studio
     -   Handling OTA update checking, mirror resolution, downloading triggers, and eligibility checks.
     -   Interacting with native preferences and native file providers.
 *   **Main Files**:
-    -   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
+    -   
     -   [apkDownloader.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/apkDownloader.ts)
 *   **Public APIs**: `useOtaUpdate`, `applyUpdate`, `applyUpdateDirect`, `runUpdaterHealthCheck`, `getDiagnosticsReport`, `shareDownloadedApk`.
 *   **Dependencies**: Capacitor Core plugins, Zustand.

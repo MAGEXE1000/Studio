@@ -19,14 +19,15 @@ The Android application compiles React web assets into a native APK shell via Ca
 
 * **Helper Native Classes**:
   * **`InstallReceiver.java`**: Receives broadcast intents from the Android OS PackageInstaller indicating status updates (Success, Failure, User Action Pending).
-  * **`OtaCheckWorker.java`**: Implements Android WorkManager background schedules to query release channels and trigger local notification alerts for available updates.
   * **`MainActivity.java`**: Bootstraps the Capacitor WebView and registers `AppInstallerPlugin` on launch.
+
+* **Background Service Workers**:
+  * (No background workers currently active)
 
 Source:
 * `apps/studio-android/android/app/src/main/java/com/chordex/app/MainActivity.java`
 * `apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java`
 * `apps/studio-android/android/app/src/main/java/com/chordex/app/InstallReceiver.java`
-* `apps/studio-android/android/app/src/main/java/com/chordex/app/OtaCheckWorker.java`
 
 ---
 
@@ -89,4 +90,3 @@ Production release signatures utilize standard Android Keystore files configured
 
 Source:
 * `apps/studio-android/android/app/build.gradle`
-* `.github/workflows/android-release.yml`

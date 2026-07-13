@@ -17,13 +17,13 @@
 
 ### 1. Version Management & In-App Updater
 Documents describing update checking, resume-capable downloads, OS session commits, and failsafe Recovery Modes.
--   [Updater Architecture](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/updater-architecture.md)
--   [Updater State Machine](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/updater-state-machine.md)
--   [Troubleshooting Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/updater-troubleshooting.md)
--   [Release & Deployment Pipeline](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/release-pipeline.md)
--   [Version Manager](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/version-manager.md)
--   [Diagnostics Engine](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/diagnostics.md)
--   [Engineering Implementation History](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/implementation-history.md)
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 ### 2. Workspace & Core Systems
 Index of repository boundaries, package dependencies, and platform separations.

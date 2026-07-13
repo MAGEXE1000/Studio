@@ -36,9 +36,9 @@ import java.net.URL;
  * {@code @capacitor/preferences}. The JS side writes the same keys via
  * {@code nativePrefs.ts}.
  */
-public class OtaCheckWorker extends Worker {
+public class UpdateCheckWorker extends Worker {
 
-    private static final String TAG = "OtaCheckWorker";
+    private static final String TAG = "UpdateCheckWorker";
 
     /** URLs of the self-hosted version manifest on Firebase Hosting, in priority order.
      *  The app checks app-release.json and version.json from Firebase Hosting to check
@@ -53,18 +53,18 @@ public class OtaCheckWorker extends Worker {
     private static final String PREFS_FILE = "CapacitorStorage";
 
     /** Keys mirrored from {@code src/lib/nativePrefs.ts → NATIVE_PREFS}. */
-    private static final String KEY_REMOTE_SEEN          = "studio_ota.remote_seen";
-    private static final String KEY_INSTALLED            = "studio_ota.installed_version";
+    private static final String KEY_REMOTE_SEEN          = "studio_update.remote_seen";
+    private static final String KEY_INSTALLED            = "studio_update.installed_version";
     /** "true" / "false" — when "false", the user has explicitly
      *  silenced update notifications via Settings → Updater. We must
      *  NEVER post a system notification in that case, even with the
      *  app fully closed. JS mirrors this on every toggle change. */
-    private static final String KEY_NOTIFICATIONS_ENABLED = "studio_ota.notifications_enabled";
+    private static final String KEY_NOTIFICATIONS_ENABLED = "studio_update.notifications_enabled";
 
-    private static final String CHANNEL_ID   = "studio_ota_updates";
+    private static final String CHANNEL_ID   = "studio_update_updates";
     private static final String CHANNEL_NAME = "Studio updates";
 
-    public OtaCheckWorker(@NonNull Context context, @NonNull WorkerParameters params) {
+    public UpdateCheckWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
     }
 
@@ -199,16 +199,11 @@ public class OtaCheckWorker extends Worker {
 
         String title;
         String body;
-        if (isNativeUpgrade) {
+        if (true) {
             title = isEs ? "Actualización de Sistema Studio (APK)" : "Studio Native System Update (APK)";
             body = isEs 
                 ? "La versión " + version + " requiere reinstalar la APK para aplicar cambios de permisos y seguridad."
                 : "Version " + version + " requires reinstalling the APK for native system and permission fixes.";
-        } else {
-            title = isEs ? "Actualización de Interfaz Studio (OTA)" : "Studio Interface Update (OTA)";
-            body = isEs
-                ? "La versión " + version + " está lista. ¡Cambios visuales aplicados al instante en segundo plano!"
-                : "Version " + version + " UI improvements are ready. Applied instantly in the background!";
         }
 
         // v3.0.57: Use a dedicated info-style notification icon ("i" in

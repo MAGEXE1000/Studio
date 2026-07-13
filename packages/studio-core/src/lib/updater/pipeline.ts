@@ -44,12 +44,9 @@ import {
   type CentralizedUpdateState,
   type AppUpdateState,
   isUpdateSessionActive,
-  isInstallationLocked,
+  verifyAndCleanCaches,
   isPostInstallSessionActive,
   getPostInstallSessionInfo,
-  startUpdateSession,
-  activeUpdateSession,
-  verifyAndCleanCaches,
 } from './stateMachine';
 
 import {
@@ -85,8 +82,6 @@ import {
   logTimelineEvent,
   interceptIllegalCall,
   startDiagnosticsSession,
-  resetOtaTimeline,
-  otaTimeline,
   getTimelineReport,
   recordCloseEvent,
   recordUpToDatePopup,
@@ -301,7 +296,6 @@ let isApplying = false;
 let lastCheckedTime = 0;
 let activeInstallPromiseResolver: (() => void) | null = null;
 let activeInstallPromiseRejecter: ((err: Error) => void) | null = null;
-let isOtaInitialized = false;
 let lastInstallProgressTime = 0;
 
 /**
@@ -371,133 +365,14 @@ export function enforceStartupRecovery(): Promise<void> {
 
   startupRecoveryPromise = (async () => {
     console.log('[Updater DEBUG] enforceStartupRecovery starting...');
-
-    const session = activeUpdateSession;
-    if (!session) {
-      console.log('[Updater Startup] No active session. Cleaning up storage.');
-      try {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('studio:is_simulation_active');
-          localStorage.removeItem('studio:install_in_progress');
-        }
-      } catch (_) {}
-
-      // P3: On cold start, always check native SharedPreferences for a
-      // pending install result — even without an active session. This covers
-      // the case where the old process was killed during installation and
-      // the session was lost, but the install actually completed.
-      if (isPostInstallSessionActive()) {
-        console.log('[Updater Startup] Post-install session is active (version matched). Checking native install result...');
-        try {
-          const { AppInstaller: NativeInstaller } = await import('../apkDownloader');
-
-          // First check if an installation is still actively running
-          const activeCheck = await NativeInstaller.isInstallActive();
-          if (activeCheck.active) {
-            console.log('[Updater Startup] Active PackageInstaller session detected on cold start. Setting state to INSTALLING.');
-            updateGlobalState({
-              statusText: 'Installing update...',
-              sessionId: typeof activeCheck.sessionId === 'number' ? activeCheck.sessionId : null,
-            });
-            transitionToState('INSTALLING', 'Active PackageInstaller session detected on cold start (no session)');
-            return;
-          }
-
-          // No active session — check SharedPreferences for a completed result
-          const result = await NativeInstaller.getLastInstallResult();
-          console.log('[Updater Startup] Cold start install result:', result);
-
-          if (result.statusCode === 0) {
-            console.log('[Updater Startup] SUCCESS result detected on cold start (no session). Showing completion screen.');
-            transitionToState('INSTALL_SUCCESS', 'Native install completed (cold start, no session)');
-            await NativeInstaller.clearInstallerLogHistory().catch(() => {});
-            return;
-          } else if (result.statusCode > 0 && result.statusCode !== -999) {
-            console.log(`[Updater Startup] FAILURE result detected on cold start (no session): ${result.statusMessage}`);
-            const processed = processLastInstallResult(result);
-            updateGlobalState({ error: processed?.errMsg || 'Install failed' });
-            transitionToState('INSTALL_FAILED', 'Native install failed on cold start (no session)');
-            return;
-          } else if (result.statusCode === -999) {
-            // Installation may still be in progress (committed but not completed)
-            console.log('[Updater Startup] Install in progress on cold start (no session). Setting state to INSTALLING.');
-            transitionToState('INSTALLING', 'Installation in progress on cold start (no session)');
-            updateGlobalState({ statusText: 'Installing update...' });
-            return;
-          }
-        } catch (err) {
-          console.warn('[Updater Startup] Error checking native install result on cold start:', err);
-        }
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('studio:is_simulation_active');
+        localStorage.removeItem('studio:install_in_progress');
       }
+    } catch (_) {}
 
-      // Never reset Updater state if an installation just completed — the
-      // PackageInstaller callback may have already transitioned to INSTALL_SUCCESS
-      // and the UI needs to show the completion screen before we clear state.
-      if (isInstallationLocked()) {
-        console.log('[Updater Startup] enforceStartupRecovery: skipping resetAppUpdateState — installation is locked.');
-        logInstallLockEvent('RECOVERY_SKIPPED', 'enforceStartupRecovery: resetAppUpdateState skipped — installation is locked');
-        return;
-      }
-      resetAppUpdateState();
-      return;
-    }
-
-    console.log(`[Updater Startup] Active session found: ${session.sessionId} (state: ${session.currentState})`);
-    const shouldSimulate = !Capacitor.isNativePlatform() || !isAppInstallerAvailable() ;
-
-    if (session.currentState === 'DOWNLOAD_APK') {
-      console.log('[Updater Startup] Resuming interrupted download session...');
-      void downloadUpdate('recovery_on_startup');
-      return;
-    }
-
-    if (['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(session.currentState)) {
-      console.log('[Updater Startup] Resuming active install session...');
-      if (shouldSimulate) {
-        transitionToState('WAITING_USER_CONFIRMATION', 'Resuming simulated install session');
-        updateGlobalState({ statusText: 'Ready to install (Simulated)' });
-        return;
-      }
-
-      try {
-        const { AppInstaller } = await import('../apkDownloader');
-        const check = await AppInstaller.isInstallActive();
-
-        if (check.active) {
-          console.log('[Updater Startup] Active PackageInstaller session detected. Setting state to INSTALLING.');
-          updateGlobalState({
-            statusText: 'Installing update...',
-            sessionId: typeof check.sessionId === 'number' ? check.sessionId : null,
-          });
-          transitionToState('INSTALLING', 'Active PackageInstaller session detected on startup');
-          return;
-        }
-
-        const result = await AppInstaller.getLastInstallResult();
-        if (result.statusCode !== -999) {
-          const isStale = (result.timestamp && result.timestamp < session.creationTimestamp) ||
-                          (session.targetVersion && result.expectedVersionName !== session.targetVersion);
-
-          if (!isStale) {
-            if (result.statusCode === 0) {
-              console.log('[Updater Startup] Success result detected on resume.');
-              transitionToState('INSTALL_SUCCESS', 'Native install completed');
-              await AppInstaller.clearInstallerLogHistory().catch(() => {});
-            } else {
-              console.log('[Updater Startup] Failure result detected on resume:', result.statusMessage);
-              const processed = processLastInstallResult(result);
-              updateGlobalState({ error: processed?.errMsg || 'Install failed' });
-              transitionToState('INSTALL_FAILED', 'Native install failed on resume');
-            }
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn('[Updater Startup] Error checking active session:', err);
-      }
-
-      transitionToState('WAITING_USER_CONFIRMATION', 'Install session lost, ready for retry');
-    }
+    resetAppUpdateState();
   })();
 
   return startupRecoveryPromise;
@@ -688,10 +563,10 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
       }
     }
 
-    const mockOta = getSessionItem('studio:mockOtaResponse');
-    if (mockOta && !updaterSimulation.forceUpdateAvailable && !updaterSimulation.forceNoUpdate && !updaterSimulation.forceDowngrade) {
+    const mockResponse = getSessionItem('studio:mockUpdateResponse');
+    if (mockResponse && !updaterSimulation.forceUpdateAvailable && !updaterSimulation.forceNoUpdate && !updaterSimulation.forceDowngrade) {
       try {
-        remote = JSON.parse(mockOta);
+        remote = JSON.parse(mockResponse);
         console.log('[Updater DEBUG] Using mock remote response:', remote);
       } catch (e) {
         console.warn('[Updater] Failed to parse mock response:', e);
@@ -709,15 +584,12 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
     updateDebugLogs.appVersion = APP_VERSION;
     updateDebugLogs.nativeApkVersion = natVer || 'N/A';
     (updateDebugLogs as any).nativeApkVersionCode = natVerCode !== null ? natVerCode.toString() : 'N/A';
-    updateDebugLogs.pendingOtaBundleId = localStorage.getItem('studio:downloadedBundleId') || 'None';
 
-    updateDebugLogs.staleOtaCleared = false;
     updateDebugLogs.UpdaterSetBlocked = false;
     updateDebugLogs.triggerComponent = isManual ? 'Developer Options (Manual Check)' : 'Auto Poll / System';
     updateDebugLogs.finalPathExecuted = 'N/A';
 
     if (Capacitor.isNativePlatform()) {
-      updateDebugLogs.currentOtaVersion = 'disabled';
       try {
         const cap = (window as any).Capacitor;
         const isNativePlat = cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
@@ -930,46 +802,6 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     'PACKAGEINSTALLER_VISIBLE', 'INSTALLING', 'INSTALL_SUCCESS',
   ].includes(current);
 
-  // Post-install session guard — blocks ALL update checks (even manual) while
-  // the post-install session is active.
-  if (isPostInstallSessionActive()) {
-    const info = getPostInstallSessionInfo();
-    console.log(`[Updater] Rejecting checkForUpdate (trigger=${trigger}): post-install session is active. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
-    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_POST_INSTALL_SESSION', `trigger=${trigger}, storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
-    logInstallLockEvent('CHECK_BLOCKED', `checkForUpdate rejected: post-install session active`, { trigger, caller: `storedVersion=${info.storedVersion}` });
-    
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: null,
-      workflowId: null,
-      eventType: 'checkForUpdateRejected',
-      caller: callerInfo,
-      reason: `Blocked check (post-install session active). Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
-      warning: 'CHECK_BLOCKED_POST_INSTALL_SESSION',
-      stack: stackTrace
-    });
-    return Promise.resolve(globalUpdateState);
-  }
-
-  // isInstallationLocked() is the authoritative guard
-  if (!isManual && isInstallationLocked()) {
-    console.log(`[Updater] Rejecting automatic checkForUpdate (trigger=${trigger}): installation is locked (state: ${current}, installationJustCompleted may be true)`);
-    logTimelineEvent('UpdateCore', 'CHECK_REJECTED_INSTALLATION_LOCKED', `state: ${current}`);
-    logInstallLockEvent('CHECK_BLOCKED', `Automatic checkForUpdate rejected: state=${current}`, { trigger });
-    
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: null,
-      workflowId: null,
-      eventType: 'checkForUpdateRejected',
-      caller: callerInfo,
-      reason: `Blocked automatic check (installation locked in state ${current}). Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
-      warning: 'CHECK_BLOCKED_INSTALLATION_LOCKED',
-      stack: stackTrace
-    });
-    return Promise.resolve(globalUpdateState);
-  }
-
   if (isUpdateSessionActive() || current !== 'IDLE') {
     if (!isManual) {
       console.log(`[Updater] Rejecting automatic/background checkForUpdate (trigger=${trigger}): Update session or state is active (state: ${current})`);
@@ -1016,7 +848,6 @@ export function checkForUpdate(isManual = false, trigger = 'unknown', reason = '
     stack: stackTrace
   });
 
-  startUpdateSession(isManual ? 'manual' : 'automatic', trigger);
   return UpdatePipelineCoordinator.dispatch(isManual, trigger, reason);
 }
 
@@ -1321,8 +1152,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       updateGlobalState({ statusText: 'Ready to install' });
       localStorage.setItem('studio:downloadedApkPath', filePath);
       localStorage.setItem('studio:downloadedApkVersion', ver);
-      localStorage.removeItem('studio:downloadedBundleId');
-      addToStoredList('studio:downloadedVersions', ver);
+            addToStoredList('studio:downloadedVersions', ver);
 
       logDetailedJsTrace('downloadUpdate', 'pipeline.ts', 797, `Exiting downloadUpdate Call #${callId} successfully (ready_to_install)`, { prevState: 'PREPARING_INSTALL', nextState: globalUpdateState.updateState });
     } catch (err) {
@@ -1372,58 +1202,20 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
   logTimelineEvent('UpdateCore', 'INSTALL_REQUESTED', `Trigger: ${trigger}`);
   logDetailedJsTrace('applyUpdate', 'pipeline.ts', 867, `Entering applyUpdate Call #${callId}`, { prevState: globalUpdateState.updateState, reason: `Trigger: ${trigger}` });
 
-  UpdaterFlightRecorder.record({
-    thread: 'js',
-    sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-    workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-    eventType: 'applyUpdateRequested',
-    caller: 'applyUpdate',
-    reason: `applyUpdate called. Trigger: ${trigger}, State: ${globalUpdateState.updateState}`
-  });
-
   if (activeApplyPromise) {
     logDetailedJsTrace('applyUpdate', 'pipeline.ts', 872, `Exiting applyUpdate Call #${callId} early (activeApplyPromise running)`, { prevState: globalUpdateState.updateState });
-    
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-      eventType: 'applyUpdateRejected',
-      caller: 'applyUpdate',
-      reason: `applyUpdate rejected because activeApplyPromise is already running`,
-      warning: 'APPLY_REJECTED_ALREADY_RUNNING'
-    });
     return activeApplyPromise;
   }
 
   const remoteVersion = globalUpdateState.remoteVersion;
   if (!remoteVersion) {
     logDetailedJsTrace('applyUpdate', 'pipeline.ts', 879, `Exiting applyUpdate Call #${callId} early (missing remoteVersion)`, { prevState: globalUpdateState.updateState });
-    
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: null,
-      workflowId: null,
-      eventType: 'applyUpdateRejected',
-      caller: 'applyUpdate',
-      reason: `applyUpdate rejected because remoteVersion is missing`,
-      warning: 'APPLY_REJECTED_MISSING_VERSION'
-    });
     return Promise.resolve();
   }
 
   logDiagnosticEvent('INSTALL_REQUESTED', { version: remoteVersion });
 
   if ((!Capacitor.isNativePlatform() || !isAppInstallerAvailable()) ) {
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: null,
-      workflowId: null,
-      eventType: 'applyUpdateWebReload',
-      caller: 'applyUpdate',
-      reason: `Applying update in non-native / simulated environment. Triggering web reload.`
-    });
-
     (async () => {
       try {
         const { Filesystem } = await import('@capacitor/filesystem');
@@ -1449,34 +1241,12 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
     console.warn(`[Updater] Rejecting applyUpdate. State is ${globalUpdateState.updateState}, expected 'WAITING_USER_CONFIRMATION'.`);
     const err = new Error(`Cannot apply update. State is ${globalUpdateState.updateState}, expected 'WAITING_USER_CONFIRMATION'.`);
     void logProgressStage('[INSTRUMENTATION] applyUpdate EXIT', `Call #${callId} rejected (invalid state)`);
-    
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-      eventType: 'applyUpdateRejected',
-      caller: 'applyUpdate',
-      reason: `applyUpdate rejected because state is not WAITING_USER_CONFIRMATION (State: ${globalUpdateState.updateState})`,
-      warning: 'APPLY_REJECTED_INVALID_STATE',
-      error: err.message
-    });
     return Promise.reject(err);
   }
 
   if (!safeTransition('WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'applyUpdate start')) {
     const err = new Error(`Cannot apply update. Expected WAITING_USER_CONFIRMATION, found ${globalUpdateState.updateState}.`);
     void logProgressStage('[INSTRUMENTATION] applyUpdate EXIT', `Call #${callId} rejected (invalid state)`);
-    
-    UpdaterFlightRecorder.record({
-      thread: 'js',
-      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-      eventType: 'applyUpdateRejected',
-      caller: 'applyUpdate',
-      reason: `applyUpdate rejected because safeTransition to PACKAGEINSTALLER_VISIBLE failed`,
-      warning: 'APPLY_REJECTED_TRANSITION_FAILED',
-      error: err.message
-    });
     return Promise.reject(err);
   }
   logActivity('apk_install', `Installing APK system update (v${remoteVersion})`, 'Studio');
@@ -1494,15 +1264,6 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       UpdatePipelineCoordinator.setStage('AWAIT_ELIGIBILITY_VERIFICATION');
       updateGlobalState({ statusText: 'Preparing package...' });
       
-      UpdaterFlightRecorder.record({
-        thread: 'js',
-        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-        eventType: 'eligibilityCheckStarted',
-        caller: 'applyUpdate',
-        reason: `Verifying APK file eligibility: ${filePath}`
-      });
-
       const isEligible = await (async () => {
         if (shouldSimulateInstall) {
           return true;
@@ -1511,41 +1272,12 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       })();
       if (!isEligible) {
         if (updateDebugLogs.eligibilityReason === 'signature_mismatch' && !isRecovering) {
-          UpdaterFlightRecorder.record({
-            thread: 'js',
-            sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-            workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-            eventType: 'eligibilityCheckSignatureMismatch',
-            caller: 'applyUpdate',
-            reason: `Signature mismatch eligibility failure detected. Triggering recovery...`,
-            warning: 'SIGNATURE_MISMATCH_RECOVERY_TRIGGERED'
-          });
-
           const recovered = await runSignatureMismatchRecovery(applyUpdate, downloadUpdate);
           if (recovered) return;
         }
         const err = new Error('[Eligibility Check] Validation failed: ' + (updateDebugLogs.eligibilityReason || 'unknown'));
-        
-        UpdaterFlightRecorder.record({
-          thread: 'js',
-          sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-          workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-          eventType: 'eligibilityCheckFailed',
-          caller: 'applyUpdate',
-          reason: `Eligibility check validation failed`,
-          error: err.message
-        });
         throw err;
       }
-
-      UpdaterFlightRecorder.record({
-        thread: 'js',
-        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-        eventType: 'eligibilityCheckSuccess',
-        caller: 'applyUpdate',
-        reason: `APK is eligible for installation`
-      });
 
       const statusPromise = new Promise<void>((resolvePromise, rejectPromise) => {
         activeInstallPromiseResolver = resolvePromise;
@@ -1562,27 +1294,12 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
           }
         } catch (_) {}
         
-        UpdaterFlightRecorder.record({
-          thread: 'js',
-          sessionId: null,
-          workflowId: null,
-          eventType: 'simulatedInstallLaunch',
-          caller: 'applyUpdate',
-          reason: `Launching simulated install sequence`
-        });
-
         addJsLog('[Simulate Install] Simulation active. Setting simulation handler.');
         setSimulateStatusCallback((eventData: any) => {
-          if (typeof (window as any).triggerOtaInstallStatus === 'function') {
-            (window as any).triggerOtaInstallStatus(eventData);
-          }
+          
         });
 
         (async () => {
-          const mockSessionId = 9999;
-          updateGlobalState({ sessionId: mockSessionId });
-          logDiagnosticEvent('SESSION_CREATED', { sessionId: mockSessionId, simulated: true });
-
           await delayForSim(10);
           triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
 
@@ -1590,12 +1307,8 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
             addJsLog('[Simulate Install] runWorkflowActive is true. Simulating user action delay (1.5s)...');
             await new Promise((resolve) => setTimeout(resolve, 1500));
           } else if (updaterSimulation.forcePendingUserAction) {
-            // S1: Instead of returning early and leaving statusPromise unresolved
-            // forever, add a 30-second timeout. This prevents infinite hangs while
-            // still allowing developers to observe the PACKAGEINSTALLER_VISIBLE state.
             addJsLog('[Simulate Install] forcePendingUserAction active. Pausing for 30s before auto-continuing...');
             await new Promise((resolve) => setTimeout(resolve, 30000));
-            // After timeout, check if state was changed externally (e.g., by dismiss)
             if (globalUpdateState.updateState !== 'PACKAGEINSTALLER_VISIBLE') {
               addJsLog(`[Simulate Install] State changed during forcePendingUserAction pause (now: ${globalUpdateState.updateState}). Stopping simulation.`);
               return;
@@ -1619,7 +1332,10 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
 
           for (let p = 0.1; p <= 1.0; p += 0.1) {
             await delayForSim(5);
-            triggerSimulatedStatus(-3, p > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', p);
+            const clamped = Math.round(p * 100) / 100;
+            const eventData = { progress: clamped, state: 'INSTALLING' };
+            logProgressStage(clamped.toString());
+            triggerSimulatedStatus(-3, p > 0.9 ? 'Finalizing installation...' : 'Optimizing application...', clamped);
           }
 
           await delayForSim(5);
@@ -1629,30 +1345,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
         void logProgressStage('Session committed', 'Handing over to PackageInstaller');
         UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
         
-        UpdaterFlightRecorder.record({
-          thread: 'js',
-          sessionId: null,
-          workflowId: null,
-          eventType: 'nativeInstallLaunch',
-          caller: 'applyUpdate',
-          reason: `Triggering native APK installer intent: ${filePath}`
-        });
-
         const res = await triggerNativeInstall(filePath);
-        if (res && typeof res.sessionId === 'number') {
-          updateGlobalState({ sessionId: res.sessionId });
-          logDiagnosticEvent('SESSION_CREATED', { sessionId: res.sessionId });
-          logTimelineEvent('UpdateCore', 'SESSION_CREATED', `SessionID: ${res.sessionId}`);
-          
-          UpdaterFlightRecorder.record({
-            thread: 'js',
-            sessionId: res.sessionId,
-            workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-            eventType: 'nativeSessionCreated',
-            caller: 'applyUpdate',
-            reason: `Native PackageInstaller session created successfully. SessionID: ${res.sessionId}`
-          });
-        }
         updateGlobalState({ statusText: 'Waiting for installer...' });
         logTimelineEvent('UpdateCore', 'NATIVE_INSTALLER_LAUNCHED', 'System PackageInstaller intent triggered');
         void logProgressStage('Waiting for Android confirmation', 'Waiting for system confirmation dialog to overlay');
@@ -1667,15 +1360,6 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       await statusPromise;
 
       logDetailedJsTrace('applyUpdate', 'pipeline.ts', 987, `Exiting applyUpdate Call #${callId} successfully (Installer completed)`, { prevState: globalUpdateState.updateState });
-      
-      UpdaterFlightRecorder.record({
-        thread: 'js',
-        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-        eventType: 'applyUpdateSuccess',
-        caller: 'applyUpdate',
-        reason: `applyUpdate finished successfully (state: ${globalUpdateState.updateState})`
-      });
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const errStack = (err instanceof Error && err.stack ? err.stack : null);
@@ -1684,17 +1368,6 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       updateDebugLogs.lastExceptionStackTrace = errStack;
       updateDebugLogs.installerLaunchStatus = 'FAILED';
       await populateDiagnostics(err, 'APK installation failed');
-
-      UpdaterFlightRecorder.record({
-        thread: 'js',
-        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-        eventType: 'applyUpdateError',
-        caller: 'applyUpdate',
-        reason: `applyUpdate failed with exception`,
-        error: errMsg,
-        warning: 'INSTALL_FAILED'
-      });
 
       if (globalUpdateState.updateState !== 'RECOVERY') {
         transitionToState('INSTALL_FAILED', 'PackageInstaller exception', errMsg);
@@ -1756,10 +1429,8 @@ async function checkAndRecoverInstallState() {
     console.log('[Updater Recovery] checkAndRecoverInstallState getLastInstallResult:', result);
 
     if (result.statusCode !== -999) {
-      const sessionTime = activeUpdateSession ? activeUpdateSession.creationTimestamp : 0;
-      const targetVersion = activeUpdateSession ? activeUpdateSession.targetVersion : globalUpdateState.remoteVersion;
-      const isStale = (result.timestamp && result.timestamp < sessionTime) ||
-                      (targetVersion && result.expectedVersionName !== targetVersion);
+      const targetVersion = globalUpdateState.remoteVersion;
+      const isStale = (result.expectedVersionName && targetVersion && result.expectedVersionName !== targetVersion);
       if (isStale) {
         console.log('[Updater Recovery] Ignoring stale or mismatching install result on resume:', result);
         return;
@@ -1804,26 +1475,8 @@ async function checkAndRecoverInstallState() {
 // ─── Global Listeners ─────────────────────────────────────────────────────
 
 export function initializeGlobalUpdateListeners() {
-  if (isOtaInitialized) return;
-  isOtaInitialized = true;
+  if (typeof window === 'undefined') return;
   console.log('[Updater] Initializing global PackageInstaller listeners...');
-
-  if (Capacitor.isNativePlatform()) {
-    (AppInstaller as any).addListener('onNativeInstrumentation', (ev: any) => {
-      // The event from Java should already have timestamp, thread, caller, action, details, stack, category.
-      UpdaterFlightRecorder.record({
-        category: ev.category || 'NATIVE',
-        thread: 'native',
-        sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-        workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-        eventType: ev.action || 'NativeEvent',
-        caller: ev.caller || 'AppInstallerPlugin',
-        details: ev.details,
-        stack: ev.stack,
-        timestamp: ev.timestamp
-      });
-    }).catch((e: any) => console.warn('[Updater] Failed to add onNativeInstrumentation listener', e));
-  }
 
   const handleInstallStatusChange = (eventData: any) => {
     const { status, message, progress, timestamp } = eventData;
@@ -1833,20 +1486,6 @@ export function initializeGlobalUpdateListeners() {
     }
     console.log(`[Updater Global Listener] Received status ${status}: ${message} (progress ${progress}%)`);
     addJsLog(`[Global Listener Event] Received status ${status}: ${message} (progress ${progress}%)`);
-
-    const statusName = getPackageInstallerStatusName(status);
-    UpdaterFlightRecorder.record({
-      category: 'NATIVE',
-      thread: 'native',
-      sessionId: activeUpdateSession ? activeUpdateSession.sessionId : null,
-      workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
-      eventType: 'PackageInstallerCallback',
-      caller: 'PackageInstallerReceiver',
-      reason: `Status: ${status} (${statusName}) | Msg: ${message || 'none'} | Progress: ${progress || 0}`,
-      warning: (status > 0 || status === 3) ? (status === 3 ? 'INSTALL_CANCELLED' : 'INSTALL_FAILED') : null,
-      error: status > 0 ? (message || `PackageInstaller error code ${status}`) : null,
-      details: JSON.stringify(eventData)
-    });
 
     (window as any).__studioInstallerStatus = String(status);
     logDiagnosticEvent('PACKAGEINSTALLER_CALLBACK', { status, message, progress });
@@ -1861,11 +1500,7 @@ export function initializeGlobalUpdateListeners() {
       logDiagnosticEvent('INSTALL_FAILED', { status, message });
     }
 
-    if (Capacitor.isNativePlatform() && typeof (AppInstaller as any).logInstallerEvent === 'function') {
-      void (AppInstaller as any).logInstallerEvent({ stage: `Status ${status}`, status: String(status), message: message || '' });
-    }
-
-    logTimelineEvent('NativeInstaller', 'NATIVE_CALLBACK_RECEIVED', `Status: ${status} (${statusName}) | Msg: ${message || 'none'} | Progress: ${progress || 0}`);
+    logTimelineEvent('NativeInstaller', 'NATIVE_CALLBACK_RECEIVED', `Status: ${status} | Msg: ${message || 'none'} | Progress: ${progress || 0}`);
 
     const allowedStates = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'];
     if (!allowedStates.includes(globalUpdateState.updateState)) {
@@ -1911,20 +1546,6 @@ export function initializeGlobalUpdateListeners() {
         activeInstallPromiseResolver = null;
         activeInstallPromiseRejecter = null;
       }
-      
-      if (isSimulationActive()) {
-        setTimeout(() => {
-          transitionToState('IDLE', 'Simulation completed successfully');
-          updateGlobalState({
-            statusText: 'Pipeline completed',
-            remoteVersion: APP_VERSION,
-            updateAvailable: false
-          });
-          try {
-            localStorage.removeItem('studio:is_simulation_active');
-          } catch (_) {}
-        }, 2000);
-      }
     } else if (status === 3) {
       logTimelineEvent('NativeInstaller', 'INSTALL_CANCELLED', 'User cancelled installation');
       transitionToState('INSTALL_CANCELLED', 'User cancelled installation');
@@ -1960,9 +1581,7 @@ export function initializeGlobalUpdateListeners() {
     void (async () => {
       try {
         await (AppInstaller as any).addListener('onInstallStatusChanged', (eventData: any) => {
-          if (typeof (window as any).triggerOtaInstallStatus === 'function') {
-            (window as any).triggerOtaInstallStatus(eventData);
-          }
+          
         });
       } catch (e) {
         console.warn('[Updater] Failed to register global native status listener:', e);

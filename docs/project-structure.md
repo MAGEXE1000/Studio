@@ -28,10 +28,8 @@ This document defines the codebase layout, module entry points, component struct
 * **Vocalex (Vocal Tuning & Takes)**:
   * **App Shell**: `packages/ui-shared/src/vocalex/VocalexApp.tsx`
   * **Tuner Lab**: `packages/ui-shared/src/vocalex/LabPanel.tsx`
-* **OTA & Native Update System**:
-  * **OTA Concurrency Engine**: [otaUpdate.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
-  * **Native Bridge Watchdog**: [capgoUpdater.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/capgoUpdater.ts)
-  * **Update UI Indicator overlay**: [UpdateIndicator.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)
+* **Update System**:
+  * **Update UI Indicator overlay**: [UpdateIndicator.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/update/UpdateIndicator.tsx)
 * **Release Metadata Locations**:
   * **Vite Companion Manifest**: `apps/studio-android/public/version.json`
   * **Android build configurations**: `apps/studio-android/android/app/build.gradle` (versionCode & versionName)

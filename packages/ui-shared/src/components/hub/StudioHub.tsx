@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
-import { getUpdateHistory, triggerDowngrade, StartupCoordinator, startDiagnosticsSession, resetOtaTimeline, getTimelineReport } from '@workspace/studio-core';
+import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { getUpdateHistory, triggerDowngrade, StartupCoordinator, startDiagnosticsSession, resetUpdateTimeline, getTimelineReport } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,10 +30,10 @@ const AccountDangerZone = lazy(() =>
 const AccountSettingsPage = lazy(() =>
   import('../cards/AccountCard').then(m => ({ default: m.AccountSettingsPage }))
 );
-const DevToolsDashboard = lazy(() => import('../DevToolsDashboard'));
+const DevToolsDashboard = lazy(() => import('../devtools/DevToolsDashboard'));
 
-import { HubTab, HelpPageId, TargetApp, THEME_OPTIONS, TimeWord, TIME_GREETING_ES, GreetingPair, _NAMED_PAIRS_EN, _NAMED_PAIRS_ES, _ANON_PAIRS_EN, _ANON_PAIRS_ES, Theme } from './hubConstants';
-import { FAQ_ITEMS } from './faqConstants';
+import { HubTab, HelpPageId, TargetApp, THEME_OPTIONS, TimeWord, TIME_GREETING_ES, GreetingPair, _NAMED_PAIRS_EN, _NAMED_PAIRS_ES, _ANON_PAIRS_EN, _ANON_PAIRS_ES, Theme, getSessionIndex } from './hubConstants';
+import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
 
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
   const h = new Date().getHours();
@@ -2025,23 +2025,6 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         </div>
       </div>
 
-      {/* ── CONTROLS SECTION (native-only: notification/auto-check/changelog toggles) ── */}
-      {Capacitor.isNativePlatform() && (
-        <>
-          <p className="updater-section-title spring-in" style={{ animationDelay: '80ms' }}>{L.controls}</p>
-          <div className="spring-in" style={{ ...cardStyle, margin: 0, animationDelay: '100ms' }}>
-            <SettingRow label={L.notifTitle} desc={L.notifDesc}>
-              <Toggle value={settings.otaNotifications ?? true} onChange={v => updateSettings({ otaNotifications: v })} accentFrom={accent.from} accentTo={accent.to} />
-            </SettingRow>
-            <SettingRow label={L.autoTitle} desc={L.autoDesc}>
-              <Toggle value={settings.autoCheckUpdates ?? true} onChange={v => updateSettings({ autoCheckUpdates: v })} accentFrom={accent.from} accentTo={accent.to} />
-            </SettingRow>
-            <SettingRow label={L.changelogTitle} desc={L.changelogDesc}>
-              <Toggle value={settings.showUpdateChangelog ?? true} onChange={v => updateSettings({ showUpdateChangelog: v })} accentFrom={accent.from} accentTo={accent.to} />
-            </SettingRow>
-          </div>
-        </>
-      )}
 
       {/* ── VERSION MANAGER SECTION (native-only) ── */}
       {Capacitor.isNativePlatform() && (

@@ -80,7 +80,7 @@
 ## 3. Code Files Over 1000 Lines
 
 * **[UpdateIndicator.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)**: 65.2 KB / 1,841 lines — OTA UI mapping.
-* **[otaUpdate.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)**: 69.1 KB / 1,812 lines — OTA client downloader logic.
+* ****: 69.1 KB / 1,812 lines — OTA client downloader logic.
 * **[LibraryPanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/panels/LibraryPanel.tsx)**: 86.2 KB / 1,683 lines — Chords selector.
 * **[supabaseRealtime.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/supabaseRealtime.ts)**: 45.0 KB / 1,354 lines — Realtime sync backend.
 * **[firebaseLegacy.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/firebaseLegacy.ts)**: 42.7 KB / 1,332 lines — Legacy firebase sync.

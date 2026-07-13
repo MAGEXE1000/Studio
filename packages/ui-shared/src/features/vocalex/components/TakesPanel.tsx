@@ -1,4 +1,5 @@
 import { useT, createAudioContext, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   saveTake, getAllTakes, deleteTake as dbDeleteTake,

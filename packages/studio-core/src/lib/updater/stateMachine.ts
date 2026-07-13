@@ -815,9 +815,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     /* ignore */
   }
 
-  if (typeof window !== 'undefined') {
-    (window as any).__lastOtaTransition = `${current} -> ${state} (${reason})`;
-  }
   console.log(`[INSTRUMENTATION] [JS_STATE] Transition: ${current} -> ${state} | Reason: ${reason} | Caller: ${caller} | Thread: Main JS Thread`);
 
   // Calculate duration of previous state

@@ -31,7 +31,7 @@ import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpTo
  *   download is also a single shot to the newest manifest.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import StudioSpinner from '../animata/progress/spinner';
 import AnimatedActionButton from '../animata/container/animated-border-trail';
@@ -47,7 +47,7 @@ import {
 } from '@workspace/studio-core';
 
 const isUpdateInProgress = (state: string) => {
-  const isSim = false();
+  const isSim = false;
   return [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
@@ -1284,7 +1284,7 @@ function UpdateModal({
     if (s === 'PACKAGEINSTALLER_VISIBLE') return 'packageinstaller_visible';
     if (s === 'INSTALLING') return 'installing';
     if (s === 'INSTALL_SUCCESS') {
-      const isSim = false();
+      const isSim = false;
       return isSim ? 'completed' : 'installing';
     }
     if (s === 'INSTALL_CANCELLED') return 'cancelled';

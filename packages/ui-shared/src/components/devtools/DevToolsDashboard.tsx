@@ -35,7 +35,8 @@ import {
   simulateStatusCallback,
   globalUpdateState,
   resetAppUpdateState,
-  resetOtaDiagnostics,
+  resetUpdateDiagnostics,
+  getTimelineReport,
   checkForUpdate,
   downloadUpdate,
   applyUpdate,
@@ -450,7 +451,7 @@ export const CopyDropdown = ({
   const triggerCopy = async (type: 'all' | 'section' | 'summary' | 'tech') => {
     setIsOpen(false);
     
-    const fullReport = await getDiagnosticsReport();
+    const fullReport = await getTimelineReport();
 
     let textToCopy = fullReport;
     let label = 'Report';
@@ -1474,9 +1475,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           accentColor: settings.accentColor,
           customAccentHue: settings.customAccentHue,
           language: settings.language,
-          syncAcrossDevices: settings.syncAcrossDevices,
-          otaNotifications: settings.otaNotifications,
-          autoCheckUpdates: settings.autoCheckUpdates
+          syncAcrossDevices: settings.syncAcrossDevices
         };
         // LocalStorage (masked)
         {
@@ -2407,8 +2406,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       { key: 'Custom Accent Hue', value: settings.customAccentHue != null ? `${settings.customAccentHue}°` : 'Default', icon: 'settings_brightness' },
       { key: 'Language', value: settings.language || 'en', icon: 'language' },
       { key: 'Sync Across Devices', value: settings.syncAcrossDevices ? 'Enabled' : 'Disabled', icon: 'sync', isBoolean: true, boolVal: settings.syncAcrossDevices },
-      { key: 'Updater Notifications', value: settings.otaNotifications ? 'Enabled' : 'Disabled', icon: 'notifications', isBoolean: true, boolVal: settings.otaNotifications },
-      { key: 'Updater Auto Check', value: settings.autoCheckUpdates ? 'Enabled' : 'Disabled', icon: 'autorenew', isBoolean: true, boolVal: settings.autoCheckUpdates },
     ];
 
     return (

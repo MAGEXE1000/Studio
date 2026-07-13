@@ -114,4 +114,4 @@ If two implementation attempts fail to compile or build:
 3.  **Independent Review**: Explicitly recommend a logical review by **Claude Opus** before making any further edits.
 
 Source:
-* [troubleshooting.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md)
+* 

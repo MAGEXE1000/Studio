@@ -1,4 +1,11 @@
 import { Capacitor } from '@capacitor/core';
+import React, { useState, useEffect } from 'react';
+import { useT, startDiagnosticsSession, getTimelineReport, resetUpdateTimeline, subscribeSyncStatus, syncNow, deviceId, type SyncStatus } from '@workspace/studio-core';
+
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
 export const FAQ_ITEMS: Record<string, FAQItem[]> = {
   en: [
     {
@@ -116,7 +123,7 @@ export const FAQ_ITEMS: Record<string, FAQItem[]> = {
   ]
 };
 
-function HelpAccordion({ accent, lang }: { accent: { from: string; to: string }; lang: string }) {
+export function HelpAccordion({ accent, lang }: { accent: { from: string; to: string }; lang: string }) {
   const t = useT();
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -151,7 +158,7 @@ function HelpAccordion({ accent, lang }: { accent: { from: string; to: string };
 
   const handleToggleDiagnostics = () => {
     if (diagActive) {
-      resetOtaTimeline();
+      resetUpdateTimeline();
       setDiagActive(false);
       try {
         localStorage.setItem('studio:diagnostics_session_active', 'false');

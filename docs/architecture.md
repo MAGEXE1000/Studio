@@ -115,12 +115,10 @@ Source:
 System configurations and parameters use Zustand stores. Active stores are:
 * **`useChordStore`**: Core states for songs catalog, selected tabs, layout preferences, and active subview tags.
 * **`useDrumStore`**: Drum sequencer parameters, track channels, instruments sound maps, step selections, and BPM values.
-* **`globalOtaState`**: Mutable state machine state tracking updates (`idle`, `checking`, `update_available`, `downloading`, `verifying_sha`, `ready_to_install`, `installing`, `installed`, `failed`).
 
 Source:
 * `packages/studio-core/src/store/useChordStore.ts`
 * `packages/studio-core/src/store/useDrumStore.ts`
-* `packages/studio-core/src/lib/otaUpdate.ts`
 
 ### Offline Synchronization Flow
 The offline database synchronization flow relies on Drizzle schema engines, queue listeners, and Supabase / Firestore backend endpoints.

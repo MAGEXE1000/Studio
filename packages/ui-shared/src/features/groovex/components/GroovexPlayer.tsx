@@ -1,4 +1,5 @@
 import { useChordStore, useScrollHide, useIsWebDesktop, useT, NavigationDispatcher } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import VinylLottie from '../../../components/lottie/VinylLottie';
 import LoadingLottie from '../../../components/lottie/LoadingLottie';

@@ -114,12 +114,6 @@ export interface AppSettings {
    * and each sub-app's pinned default tab/view.
    */
   restoreLastSession: boolean;
-  /** Show OS-level notification when a new Updater bundle is available. */
-  otaNotifications: boolean;
-  /** Periodically auto-check for Updater updates while the app is open. */
-  autoCheckUpdates: boolean;
-  /** Show the "What's new" changelog sheet on the first launch after an update. */
-  showUpdateChangelog: boolean;
   autoHideSidebarInApps: boolean;
   swipeBackBehavior: 'exit-to-hub' | 'manual-only';
   perApp: Record<AppKey, PerAppVisuals>;
@@ -304,9 +298,6 @@ export const useChordStore = create<ChordStore>()(
         assistantConflictDetection: true,
         assistantLearning: true,
         restoreLastSession: false,
-        otaNotifications: true,
-        autoCheckUpdates: true,
-        showUpdateChangelog: true,
         autoHideSidebarInApps: true,
         swipeBackBehavior: 'exit-to-hub',
         customAccentHue: 220,

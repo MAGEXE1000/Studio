@@ -70,7 +70,6 @@ Deployments are manually triggered via the GitHub Actions user interface using t
 4. **Hosting Distribution Stage**: Deploys the latest metadata files (`version.json` and `app-release.json`) directly to Firebase Hosting.
 
 Source:
-* `.github/workflows/android-release.yml`
 * `.github/workflows/release.yml`
 
 ---
@@ -86,8 +85,7 @@ Before finalizing a release, complete the following verification steps:
 * [ ] **Regression Verification**: Ensure that offline database synchronization and backing tracks work correctly post-install.
 
 Source:
-* `.github/workflows/android-release.yml`
-* `packages/studio-core/src/lib/otaUpdate.ts`
+* `packages/studio-core/src/lib/updater/index.ts`
 
 ---
 
@@ -121,7 +119,7 @@ When a critical bug is discovered in production:
 5.  **Trigger Release**: Manually trigger the release workflow on GitHub Actions. Incremented `versionCode` (+1) is mandatory.
 
 Source:
-* [engineering_checklists.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_checklists.md#L26-L36)
+* 
 
 ---
 
@@ -135,16 +133,15 @@ If a web deployment introduces breaking regressions:
 2.  Select the last stable deploy from the history list.
 3.  Click **Preview** to verify, then click **Publish Deploy** to lock the production build to that previous stable revision.
 
-### B. Android OTA Rollback
-If a published APK update is broken, the OTA state machine will trigger rollback fallback recovery mechanisms:
+### B. Android Rollback
+If a published APK update is broken, the update state machine will trigger rollback fallback recovery mechanisms:
 1.  **Client-Side Auto-Recovery**: If the app fails to boot or update successfully, the client registers `consecutiveFailures: 5` and transitions to Recovery Mode. This deletes the cached broken APK, resets providers, and prompts the user with diagnostics options.
 2.  **Server-Side Revocation**: To stop the rollout of a broken update immediately:
     - Update `app-release.json` on Firebase Hosting to point to the previous stable `versionCode`, `versionName`, and `apkUrl` hash.
     - Android clients fetching the metadata will see that their active version is equal to or greater than the target, aborting the download prompt.
 
 Source:
-* [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts#L88-L90)
-* [troubleshooting.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md#L65-L77)
+* 
 
 ---
 

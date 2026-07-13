@@ -1,4 +1,5 @@
 // Export everything from studio-core
+export { useShallow } from 'zustand/react/shallow';
 export * from './store/useChordStore';
 export * from './store/useDrumStore';
 export * from './hooks/useIsWebDesktop';
@@ -78,3 +79,5 @@ export * from './lib/updater/pipeline';
 export * from './lib/updater/installActions';
 
 export * from './lib/updater/updateHistory';
+export * from './lib/nativePlatform';
+export * from './lib/utilities/visualEffects';

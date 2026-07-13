@@ -571,7 +571,7 @@ class StartupCoordinatorClass {
     
     const POLL_INTERVAL = 15 * 60 * 1000; // 15 minutes
     this.pollingTimer = setInterval(() => {
-      const autoCheck = useChordStore.getState().settings.autoCheckUpdates ?? true;
+      const autoCheck = true;
       if (autoCheck && (typeof document === 'undefined' || document.visibilityState === 'visible')) {
         console.log('[StartupCoordinator] Triggering periodic update check...');
         void this.triggerUpdateCheck('polling', 'periodic foreground poll');
@@ -594,7 +594,7 @@ class StartupCoordinatorClass {
       return;
     }
 
-    const autoCheck = useChordStore.getState().settings.autoCheckUpdates ?? true;
+    const autoCheck = true;
     if (!autoCheck) return;
 
     // ==================================================

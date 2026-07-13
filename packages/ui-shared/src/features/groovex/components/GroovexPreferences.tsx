@@ -1,4 +1,5 @@
 import { useT, APP_VERSION_LABEL, useScrollHide, useIsWebDesktop, useChordStore } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ElasticSlider from '../../../components/progress/ElasticSlider';
 import { useGroovexStore } from '../state/useGroovexStore';

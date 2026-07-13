@@ -10,13 +10,13 @@ Before making any changes to this repository, you must read the documentation in
 
 1.  **[engineering_guide.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_guide.md)**: Master outline of repository folders, dependencies, and application visions.
 2.  **[ai_workflow.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ai_workflow.md)**: Mandatory rules, checklists, and model roles definitions.
-3.  **[engineering_checklists.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/engineering_checklists.md)**: Standard checklist library for feature additions, refactoring, and releases.
+3.  ****: Standard checklist library for feature additions, refactoring, and releases.
 4.  **[architecture.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture.md)**: Package structures, communication patterns, and sync engine design.
 5.  **Platform-Specific Guides**:
     *   **[android.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/android.md)**: Android compilation and native capacitor plugins.
     *   **[web.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/web.md)**: Netlify rules and web layouts.
     *   **[firebase.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/firebase.md)**: Security rules and deployment configurations.
-    *   **[ota_updater.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ota_updater.md)**: State machine updates and recovery handlers.
+    *   ****: State machine updates and recovery handlers.
 
 Source:
 * `docs/ai_workflow.md`
@@ -34,7 +34,6 @@ All development sessions must conform to the following checkpoints:
 
 Source:
 * `docs/ai_workflow.md`
-* `docs/engineering_checklists.md`
 
 ---
 
@@ -75,8 +74,6 @@ Source:
 * **Offline Preservation**: Bumping versions or installing updates must not reset local cache storage metrics or log out auth profiles.
 * **Double-Target Check**: Fixing a bug on Android must not break Web client renders, and vice versa. Always test changes across both environments.
 
-Source:
-* `docs/testing.md`
 
 ---
 

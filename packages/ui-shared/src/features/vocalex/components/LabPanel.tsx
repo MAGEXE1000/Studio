@@ -1,4 +1,5 @@
 import { getAllSessions, saveSession, deleteSession, createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, getAllTakes, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ElasticSlider from '../../../components/progress/ElasticSlider';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';

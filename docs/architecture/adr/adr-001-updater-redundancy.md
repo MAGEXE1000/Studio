@@ -39,7 +39,7 @@ Several failure modes compromised updater reliability:
 
 ## Files Affected
 -   [AppInstallerPlugin.java](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java)
--   [otaUpdate.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/otaUpdate.ts)
+-   
 -   [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)
 
 ## Rollback & Future Considerations

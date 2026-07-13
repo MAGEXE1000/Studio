@@ -4,7 +4,7 @@ import { UpdaterFlightRecorder } from '@workspace/studio-core';
 
 interface StudioUpdateScreenProps {
   state: string;
-  progress: number;
+  progress?: number;
   accentFrom: string;
   accentTo: string;
   title: string;
@@ -12,7 +12,7 @@ interface StudioUpdateScreenProps {
   iconName: string;
   iconColor: string;
   showSpinner: boolean;
-  showProgress: boolean;
+  showProgress?: boolean;
   actionButtons?: React.ReactNode;
   changelog?: React.ReactNode;
   isRequired?: boolean;
@@ -25,7 +25,7 @@ interface StudioUpdateScreenProps {
 
 export default memo(function StudioUpdateScreen({
   state,
-  progress,
+  progress = 0,
   accentFrom,
   accentTo,
   title,
@@ -33,7 +33,7 @@ export default memo(function StudioUpdateScreen({
   iconName,
   iconColor,
   showSpinner,
-  showProgress,
+  showProgress = false,
   actionButtons,
   changelog,
   isRequired,

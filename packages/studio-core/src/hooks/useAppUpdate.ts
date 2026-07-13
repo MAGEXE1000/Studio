@@ -113,7 +113,7 @@ export function usePostUpdateChangelog(): {
 } {
   const [show, setShow] = useState(false);
   const [fromVersion, setFromVersion] = useState<string | null>(null);
-  const showChangelog = useChordStore((s) => s.settings.otaShowChangelog ?? true);
+  const showChangelog = true;
 
   useEffect(() => {
     const { justUpdated, from } = detectJustUpdated();

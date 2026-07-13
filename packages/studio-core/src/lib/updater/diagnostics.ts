@@ -3,7 +3,7 @@ import { APP_VERSION } from '../appVersion';
 import { globalUpdateState, activePipelineContext, startUpdateSession, activeUpdateSession } from './stateMachine';
 import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 
-export interface OtaDiagnostics {
+export interface UpdateDiagnostics {
   exceptionMessage: string | null;
   failureReason: string | null;
   downloadUrl: string | null;
@@ -35,7 +35,7 @@ export interface OtaDiagnostics {
   pipelineDuration?: number | null;
 }
 
-export let updateDiagnostics: OtaDiagnostics = {
+export let updateDiagnostics: UpdateDiagnostics = {
   exceptionMessage: null,
   failureReason: null,
   downloadUrl: null,
@@ -69,13 +69,13 @@ export let updateDiagnostics: OtaDiagnostics = {
 export const updateDebugLogs: {
   appVersion: string;
   nativeApkVersion: string | null;
-  currentOtaVersion: string | null;
+  
   fetchedVersionJson: string | null;
   fetchedAppReleaseJson: string | null;
   compareResult: number | null;
   updateType: string | null;
   remoteUpdateType: string | null;
-  otaBlockedBecauseApkRequired: boolean;
+  
   apkEligibilityResult: string;
   finalDecision: string | null;
   downloadStatus: string | null;
@@ -97,8 +97,8 @@ export const updateDebugLogs: {
   requiredVersionCode: number | null;
   nativeApkBehind: boolean;
   apkUpdateRequired: boolean;
-  pendingOtaBundleId: string | null;
-  staleOtaCleared: boolean;
+  
+  
   UpdaterSetBlocked: boolean;
   triggerComponent: string | null;
   finalPathExecuted: 'Updater applied' | 'APK installer launched' | 'blocked due to APK required' | 'N/A';
@@ -154,13 +154,13 @@ export const updateDebugLogs: {
 } = {
   appVersion: APP_VERSION,
   nativeApkVersion: null,
-  currentOtaVersion: null,
+  
   fetchedVersionJson: null,
   fetchedAppReleaseJson: null,
   compareResult: null,
   updateType: null,
   remoteUpdateType: null,
-  otaBlockedBecauseApkRequired: false,
+  
   apkEligibilityResult: 'N/A',
   finalDecision: null,
   downloadStatus: null,
@@ -182,8 +182,8 @@ export const updateDebugLogs: {
   requiredVersionCode: null,
   nativeApkBehind: false,
   apkUpdateRequired: false,
-  pendingOtaBundleId: null,
-  staleOtaCleared: false,
+  
+  
   UpdaterSetBlocked: false,
   triggerComponent: null,
   finalPathExecuted: 'N/A',
@@ -474,7 +474,7 @@ ${health.details.join('\n')}
 ==================================================`;
 }
 
-export function resetOtaDiagnostics() {
+export function resetUpdateDiagnostics() {
   // Reset all keys in updateDiagnostics
   Object.keys(updateDiagnostics).forEach(key => {
     (updateDiagnostics as any)[key] = null;
@@ -499,7 +499,7 @@ export function resetOtaDiagnostics() {
     }
   });
 
-  resetOtaTimeline();
+  resetUpdateTimeline();
 }
 
 export interface TimelineEvent {
@@ -1372,11 +1372,11 @@ export function interceptIllegalCall(functionName: string, reason: string) {
 }
 
 // Keep legacy interfaces for compatibility if needed
-export let otaTimeline: TimelineEvent[] = [];
+export let updateTimeline: TimelineEvent[] = [];
 export function startDiagnosticsSession() {
   startUpdateSession('manual', 'Manual diagnostics session trigger');
 }
-export function resetOtaTimeline() {
+export function resetUpdateTimeline() {
   deleteAllUpdateSessions();
 }
 export function getTimelineReport(): string {

@@ -8,9 +8,9 @@ This map defines the absolute minimal context targets for future AI sessions. To
 
 ### If working on OTA Updates:
 - **Read only**:
-  - [ota_updater.md](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ota_updater.md)
-  - [knowledge/ota/state-machine.md](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/ota/state-machine.md)
-  - [knowledge/ota/rollback.md](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/ota/rollback.md)
+  - 
+  - 
+  - 
   - [knowledge/updater/packageinstaller.md](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/updater/packageinstaller.md)
 - **Inspect directory**:
   - `packages/studio-core/src/lib/updater/`

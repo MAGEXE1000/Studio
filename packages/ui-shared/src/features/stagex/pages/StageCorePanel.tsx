@@ -1,4 +1,5 @@
 import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from '../../../navigation/navStyles';
@@ -650,7 +651,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       });
     };
 
-    attach(document);
+    attach(document, false);
 
     let iframeDoc: Document | null = null;
     try {
@@ -659,7 +660,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     } catch {}
 
     return () => {
-      detach(document);
+      detach(document, false);
       if (iframeDoc) {
         try { detach(iframeDoc, true); } catch {}
       }

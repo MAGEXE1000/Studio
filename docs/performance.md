@@ -89,5 +89,3 @@ To prevent memory leaks:
   ```
 * **Periodic Timers**: Clear all active `setInterval` or `setTimeout` processes in component unmount functions.
 
-Source:
-* `packages/studio-core/src/lib/capgoUpdater.ts`

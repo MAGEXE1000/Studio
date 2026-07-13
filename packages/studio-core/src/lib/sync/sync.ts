@@ -442,9 +442,6 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
     // 2. Write preference settings
     await provider.updatePreferences({
       syncEnabled: settings.syncAcrossDevices,
-      updateNotifications: settings.otaNotifications,
-      automaticChecks: settings.autoCheckUpdates,
-      showWhatsNewAfterUpdate: settings.showUpdateChangelog,
     });
     localStorage.setItem(`sync_last_local_update_preferences`, now.toString());
     
@@ -552,9 +549,9 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
 
         useChordStore.getState().updateSettings({
           syncAcrossDevices: syncEnabled,
-          otaNotifications: updateNotifications,
-          autoCheckUpdates: automaticChecks,
-          showUpdateChangelog: showWhatsNewAfterUpdate,
+          
+          
+          
         });
       } finally {
         isApplyingRemoteUpdate = false;
@@ -2460,10 +2457,7 @@ export function attachSyncEngine(): void {
     }
     
     const preferencesChanged =
-      settings.syncAcrossDevices !== lastSettings.syncAcrossDevices ||
-      settings.otaNotifications !== lastSettings.otaNotifications ||
-      settings.autoCheckUpdates !== lastSettings.autoCheckUpdates ||
-      settings.showUpdateChangelog !== lastSettings.showUpdateChangelog;
+      settings.syncAcrossDevices !== lastSettings.syncAcrossDevices;
       
     if (preferencesChanged) {
       const now = Date.now();
@@ -2473,9 +2467,9 @@ export function attachSyncEngine(): void {
         notifyDiagnostics();
         provider.updatePreferences({
           syncAcrossDevices: settings.syncAcrossDevices,
-          otaNotifications: settings.otaNotifications,
-          autoCheckUpdates: settings.autoCheckUpdates,
-          showUpdateChangelog: settings.showUpdateChangelog,
+          
+          
+          
         }).then(() => {
           lastPreferencesWriteSuccess = new Date().toLocaleString();
           lastPreferencesWriteError = 'None';
@@ -2705,9 +2699,9 @@ export function attachSyncEngine(): void {
               try {
                 useChordStore.getState().updateSettings({
                   syncAcrossDevices: data.studioPreferences?.syncAcrossDevices ?? data.studioPreferences?.syncEnabled ?? true,
-                  otaNotifications: data.studioPreferences?.otaNotifications ?? data.studioPreferences?.updateNotifications ?? true,
-                  autoCheckUpdates: data.studioPreferences?.autoCheckUpdates ?? data.studioPreferences?.automaticChecks ?? true,
-                  showUpdateChangelog: data.studioPreferences?.showUpdateChangelog ?? data.studioPreferences?.showWhatsNewAfterUpdate ?? true,
+                  
+                  
+                  
                 });
               } finally {
                 isApplyingRemoteUpdate = false;
@@ -2719,9 +2713,6 @@ export function attachSyncEngine(): void {
               const settings = useChordStore.getState().settings;
               provider.updatePreferences({
                 syncAcrossDevices: settings.syncAcrossDevices,
-                otaNotifications: settings.otaNotifications,
-                autoCheckUpdates: settings.autoCheckUpdates,
-                showUpdateChangelog: settings.showUpdateChangelog,
               }).catch(console.warn);
             }
           } else {
@@ -2734,9 +2725,6 @@ export function attachSyncEngine(): void {
           const settings = useChordStore.getState().settings;
           provider.updatePreferences({
             syncAcrossDevices: settings.syncAcrossDevices,
-            otaNotifications: settings.otaNotifications,
-            autoCheckUpdates: settings.autoCheckUpdates,
-            showUpdateChangelog: settings.showUpdateChangelog,
           }).catch(console.warn);
         }
       });

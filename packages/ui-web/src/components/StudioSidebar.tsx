@@ -53,7 +53,7 @@ export function SidebarProvider({
     });
   }, []);
 
-  const state = open ? 'expanded' : 'collapsed';
+  const state: 'expanded' | 'collapsed' = open ? 'expanded' : 'collapsed';
   const width = open ? '240px' : '0px';
 
   const contextValue = useMemo(() => ({ state, open, setOpen, isMobile, toggleSidebar }), [state, open, isMobile, toggleSidebar]);

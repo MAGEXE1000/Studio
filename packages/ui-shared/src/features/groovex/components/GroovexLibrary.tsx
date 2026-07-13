@@ -1,4 +1,5 @@
 ﻿import { useT, useScrollHide, useIsWebDesktop, useChordStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useShallow } from 'zustand/react/shallow';
 import { useState, useMemo, useRef } from 'react';
 import NoResultsLottie from '../../../components/lottie/NoResultsLottie';
 import { SONG_CATALOG, getArtists, getGenres } from '../services/songCatalog';

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends BridgeActivity {
 
-    private static final String OTA_WORK_NAME = "studio_ota_check";
+    private static final String UPDATE_WORK_NAME = "studio_update_check";
     
     // Cached shared file payload for cold starts
     public static JSObject lastSharedFile = null;
@@ -60,7 +60,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AppInstallerPlugin.class);
         super.onCreate(savedInstanceState);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        scheduleOtaBackgroundCheck();
+        scheduleUpdateBackgroundCheck();
 
         // Custom WebChromeClient to automatically grant WebView permission requests (e.g. getUserMedia microphone)
         // This bypasses any site-level permission blocks inside WebView once OS permission is granted.
@@ -273,22 +273,22 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    private void scheduleOtaBackgroundCheck() {
+    private void scheduleUpdateBackgroundCheck() {
         try {
             Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
             PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(
-                    OtaCheckWorker.class, 15, TimeUnit.MINUTES)
+                    UpdateCheckWorker.class, 15, TimeUnit.MINUTES)
                 .setConstraints(constraints)
                 .build();
             WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                OTA_WORK_NAME,
+                UPDATE_WORK_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
                 request
             );
         } catch (Exception e) {
-            android.util.Log.w("MainActivity", "OTA background work failed to schedule: " + e.getMessage());
+            android.util.Log.w("MainActivity", "Update background work failed to schedule: " + e.getMessage());
         }
     }
 

@@ -1,4 +1,2 @@
 ### Fixed
-- Complete redesign of the Release Pipeline for determinism.
-- Prevent duplicate GitHub Actions workflows.
-- Dynamically resolve versions in CI pipeline.
+- Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation.

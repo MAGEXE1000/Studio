@@ -311,7 +311,7 @@ export default function SettingsPanel() {
         </div>
 
         {/* ── UPDATES ── */}
-        {Capacitor.isNativePlatform()() && (
+        {Capacitor.isNativePlatform() && (
           <div style={{ marginTop: '24px' }}>
             <SectionHeader icon="system_update" title="Updates" />
             <div style={{ ...cardStyle, padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>

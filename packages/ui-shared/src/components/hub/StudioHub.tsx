@@ -1597,7 +1597,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
   // Determine status state
   const isChecking = updater.loading;
   const hasUpdate = updater.updateAvailable;
-  const isReinstall = Capacitor.isNativePlatform()() && updater.reinstallRequired;
+  const isReinstall = Capacitor.isNativePlatform() && updater.reinstallRequired;
 
   // Status indicator config
   const statusConfig = isChecking
@@ -1807,7 +1807,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
             {hasUpdate ? L.latestRelease : L.upToDate}
           </div>
           {/* Build type badge for web */}
-          {!Capacitor.isNativePlatform()() && (
+          {!Capacitor.isNativePlatform() && (
             <div className="updater-badge" style={{
               background: 'rgba(147, 130, 220, 0.12)',
               color: '#9382dc',
@@ -1880,7 +1880,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
 
           {/* CTA Button */}
           {hasUpdate ? (
-            Capacitor.isNativePlatform()() ? (
+            Capacitor.isNativePlatform() ? (
               <button
                 className="updater-cta-btn"
                 onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
@@ -2026,7 +2026,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       </div>
 
       {/* ── CONTROLS SECTION (native-only: notification/auto-check/changelog toggles) ── */}
-      {Capacitor.isNativePlatform()() && (
+      {Capacitor.isNativePlatform() && (
         <>
           <p className="updater-section-title spring-in" style={{ animationDelay: '80ms' }}>{L.controls}</p>
           <div className="spring-in" style={{ ...cardStyle, margin: 0, animationDelay: '100ms' }}>
@@ -2044,7 +2044,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       )}
 
       {/* ── VERSION MANAGER SECTION (native-only) ── */}
-      {Capacitor.isNativePlatform()() && (
+      {Capacitor.isNativePlatform() && (
         <>
           <p className="updater-section-title spring-in" style={{ animationDelay: '110ms' }}>
             {lang === 'es' ? 'Gestor de Versiones' : 'Version Manager'}
@@ -2217,7 +2217,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       )}
 
       {/* ── UPDATE HISTORY LOG (native-only) ── */}
-      {Capacitor.isNativePlatform()() && (
+      {Capacitor.isNativePlatform() && (
         <>
           {(() => {
             const history = getUpdateHistory();
@@ -2274,7 +2274,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         <div>
           <p style={{ margin: 0, fontFamily: 'Manrope', fontWeight: 700, fontSize: 12.5, color: 'var(--c-text-primary)' }}>{L.howItWorks}</p>
           <p style={{ margin: '4px 0 0', fontFamily: 'Inter', fontSize: 11.5, color: 'var(--c-text-secondary)', lineHeight: 1.55 }}>
-            {Capacitor.isNativePlatform()()
+            {Capacitor.isNativePlatform()
               ? L.howItWorksBody
               : (lang === 'es'
                 ? 'Studio en la web se actualiza automáticamente. Cuando hay una nueva versión, simplemente recarga la página.'
@@ -2665,7 +2665,7 @@ function HubSettings({
 
     const loadInfo = async () => {
       try {
-        if (Capacitor.isNativePlatform()()) {
+        if (Capacitor.isNativePlatform()) {
           const { App } = await import('@capacitor/app');
           const info = await App.getInfo();
           setDevNativeVersion(info.version);
@@ -2683,7 +2683,7 @@ function HubSettings({
       }
 
       try {
-        if (Capacitor.isNativePlatform()()) {
+        if (Capacitor.isNativePlatform()) {
           setDevOtaVersion('disabled');
         } else {
           setDevOtaVersion('N/A — Web build');
@@ -2720,7 +2720,7 @@ function HubSettings({
         setPreferencesDump(`Error loading Preferences: ${e?.message || String(e)}`);
       }
 
-      if (Capacitor.isNativePlatform()()) {
+      if (Capacitor.isNativePlatform()) {
         try {
           const { AppInstaller, checkApkEligibility } = await import('@workspace/studio-core');
           const installed = await AppInstaller.getInstalledAppInfo();
@@ -2799,7 +2799,7 @@ function HubSettings({
   const handleClearUpdateCache = async () => {
     try {
       const filePath = localStorage.getItem('studio:downloadedApkPath');
-      if (filePath && Capacitor.isNativePlatform()()) {
+      if (filePath && Capacitor.isNativePlatform()) {
         const { Filesystem } = await import('@capacitor/filesystem');
         await Filesystem.deleteFile({ path: filePath }).catch(() => {});
       }
@@ -2822,7 +2822,7 @@ function HubSettings({
   const handleClearApplied = () => {
     localStorage.removeItem('studio:appliedVersions');
     localStorage.removeItem('studio:appliedUpdateVersion');
-    if (Capacitor.isNativePlatform()()) {
+    if (Capacitor.isNativePlatform()) {
       import('@workspace/studio-core').then(({ AppInstaller }) => {
         AppInstaller.clearInstallerLogHistory();
       }).catch(err => console.error(err));
@@ -2905,7 +2905,7 @@ function HubSettings({
   };
 
   const getDiagnosticsText = () => {
-    const isNativePlat = Capacitor.isNativePlatform()();
+    const isNativePlat = Capacitor.isNativePlatform();
     const wrapperVersion = updateDebugLogs.nativeApkVersion || 'Unknown';
     const hasMismatch = isNativePlat && wrapperVersion !== 'Unknown' && wrapperVersion !== 'N/A' && APP_VERSION !== wrapperVersion;
 
@@ -2913,7 +2913,7 @@ function HubSettings({
       '=== STUDIO DIAGNOSTICS REPORT ===',
       `Timestamp: ${new Date().toISOString()}`,
       `App Version: ${APP_VERSION}`,
-      `Device Model: ${Capacitor.isNativePlatform()() ? 'Native Device' : 'Web Browser'}`,
+      `Device Model: ${Capacitor.isNativePlatform() ? 'Native Device' : 'Web Browser'}`,
       ...(hasMismatch ? ['', 'VERSION_MISMATCH_DETECTED', `App Version (${APP_VERSION}) does not match APK Wrapper Version (${wrapperVersion})`, ''] : []),
       '',
       '=== APK UPDATE DIAGNOSTICS ===',
@@ -2958,7 +2958,7 @@ function HubSettings({
   const handleExportDiagnostics = async () => {
     const content = getDiagnosticsText();
     const filename = `studio-diagnostics-${Date.now()}.txt`;
-    if (Capacitor.isNativePlatform()()) {
+    if (Capacitor.isNativePlatform()) {
       try {
         const { Filesystem, Directory } = await import('@capacitor/filesystem');
         await Filesystem.writeFile({
@@ -3351,7 +3351,7 @@ Date: ${new Date().toISOString()}
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {Capacitor.isNativePlatform()()
+          {Capacitor.isNativePlatform()
             ? "If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information."
             : "If you encounter an issue or unexpected behavior in Studio, please report it! Copy the template below and submit it on our GitHub repository."
           }
@@ -3392,7 +3392,7 @@ Date: ${new Date().toISOString()}
           lineHeight: 1.5,
         }}>
           {`[STUDIO BUG REPORT]
-App Version: v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android' : 'Web'})
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
 User Agent: [Automatically Generated]
 ...`}
         </div>
@@ -3403,7 +3403,7 @@ User Agent: [Automatically Generated]
           <a
             href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent("Bug: [Enter short title]")}&body=${encodeURIComponent(
               `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
-              `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android/Native' : 'Web'})\n\n` +
+              `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android/Native' : 'Web'})\n\n` +
               `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
               `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
               `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
@@ -4065,7 +4065,7 @@ User Agent: [Automatically Generated]
           localStorage.removeItem('studio:downloadedApkPath');
           localStorage.removeItem('studio:downloadedBundleId');
           localStorage.removeItem('studio:downloadedVersions');
-          if (Capacitor.isNativePlatform()()) {
+          if (Capacitor.isNativePlatform()) {
             import('@workspace/studio-core').then(({ AppInstaller }) => {
               AppInstaller.clearInstallerLogHistory();
             }).catch(err => console.error(err));
@@ -4158,14 +4158,14 @@ User Agent: [Automatically Generated]
             <DevInfoRow label="App Version" desc="Hardcoded version in app bundle (APP_VERSION)" value={APP_VERSION} />
             <DevInfoRow label="APK Version" desc="Android native APK binary version wrapper" value={devNativeVersion} />
             <DevInfoRow label="Updater Version" desc="Active dynamically applied bundle version" value={devOtaVersion} />
-            <DevInfoRow label="Build Type" desc="Execution platform compilation target" value={Capacitor.isNativePlatform()() ? 'Native Release' : 'Web'} />
+            <DevInfoRow label="Build Type" desc="Execution platform compilation target" value={Capacitor.isNativePlatform() ? 'Native Release' : 'Web'} />
             <DevInfoRow label="Package Name" desc="Unique application package identifier" value={devBundleId} />
             <DevInfoRow label="versionCode" desc="Android manifest build increment number" value={devVersionCode} />
             <DevInfoRow label="Firebase App ID" desc="Firebase application reference ID" value={devBundleId} />
             <DevInfoRow label="Signing Fingerprint" desc="Public SHA-256 production certificate key" value="90:0C:F2:59:18:5C:81:10:0C:DA:8B:B0:85:71:FA:23:55:2E:97:89:13:1C:F0:7A:8F:40:56:E4:D4:12:92:06" canCopy />
             <DevInfoRow label="Signature SHA-256" desc="Active loaded certificate hash key" value={installedPackageDetails?.signingSha256 || 'N/A'} canCopy />
-            <DevInfoRow label="Debuggable Status" desc="Security debugging compiled state" value={Capacitor.isNativePlatform()() ? 'false (Release Build)' : 'true (Web Dev Mode)'} />
-            {!Capacitor.isNativePlatform()() && (
+            <DevInfoRow label="Debuggable Status" desc="Security debugging compiled state" value={Capacitor.isNativePlatform() ? 'false (Release Build)' : 'true (Web Dev Mode)'} />
+            {!Capacitor.isNativePlatform() && (
               <>
                 <DevInfoRow label="Web App Version" desc="Hardcoded web application version" value={APP_VERSION} />
                 <DevInfoRow label="Web Sync Supported" desc="Is cloud sync supported on web platforms" value={diag.webSyncSupported ? 'true' : 'false'} />
@@ -4204,7 +4204,7 @@ User Agent: [Automatically Generated]
             <DevInfoRow label="Registered Capacitor Plugins" value={updateDebugLogs.registeredPlugins} />
             <DevButtonRow label="Validate Installer Capability" desc="Perform active registration assertions" actionLabel="Validate" actionId="validate-installer" onPress={handleValidateInstallerAction} />
 
-            {Capacitor.isNativePlatform()() && installedPackageDetails && (
+            {Capacitor.isNativePlatform() && installedPackageDetails && (
               <>
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '4px 0', opacity: 0.75, color: 'var(--c-text-primary)' }}>Installed Package Details</div>
@@ -4215,7 +4215,7 @@ User Agent: [Automatically Generated]
               </>
             )}
 
-            {Capacitor.isNativePlatform()() && downloadedApkDetails && (
+            {Capacitor.isNativePlatform() && downloadedApkDetails && (
               <>
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '4px 0', opacity: 0.75, color: 'var(--c-text-primary)' }}>Downloaded APK Details</div>
@@ -4228,7 +4228,7 @@ User Agent: [Automatically Generated]
               </>
             )}
 
-            {Capacitor.isNativePlatform()() && apkEligibility && (
+            {Capacitor.isNativePlatform() && apkEligibility && (
               <>
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '4px 0', opacity: 0.75, color: 'var(--c-text-primary)' }}>APK Install Eligibility</div>
@@ -4783,12 +4783,12 @@ User Agent: [Automatically Generated]
 
                   <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <BentoSettingCard icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
                     )}
                     <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
                     <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <BentoSettingCard icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} delay={90} />
                     )}
                   </div>
@@ -4796,13 +4796,13 @@ User Agent: [Automatically Generated]
                   <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <BentoSettingCard icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentation, FAQ & diagnostics' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} delay={110} />
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <BentoSettingCard icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
                     )}
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <BentoSettingCard icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
                     )}
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <BentoSettingCard icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} delay={140} />
                     )}
                   </div>
@@ -4819,7 +4819,7 @@ User Agent: [Automatically Generated]
                     flexDirection: 'column',
                     gap: '1px',
                   }}>
-                    {Capacitor.isNativePlatform()() && (
+                    {Capacitor.isNativePlatform() && (
                       <BentoSettingRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
                     )}
 
@@ -5654,7 +5654,7 @@ function HubHelp({
     const handleCopyTemplate = () => {
       const template = `[STUDIO BUG REPORT]
 ------------------------------------
-App Version: v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android' : 'Web'})
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
 User Agent: ${navigator.userAgent}
 Date: ${new Date().toISOString()}
 
@@ -5679,7 +5679,7 @@ Date: ${new Date().toISOString()}
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {Capacitor.isNativePlatform()()
+          {Capacitor.isNativePlatform()
             ? t.help.bugReport.nativeDesc
             : t.help.bugReport.webDesc
           }
@@ -5720,7 +5720,7 @@ Date: ${new Date().toISOString()}
           lineHeight: 1.5,
         }}>
           {`[STUDIO BUG REPORT]
-App Version: v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android' : 'Web'})
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
 User Agent: [Automatically Generated]
 ...`}
         </div>
@@ -5731,7 +5731,7 @@ User Agent: [Automatically Generated]
           <a
             href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent("Bug: [Enter short title]")}&body=${encodeURIComponent(
               `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
-              `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android/Native' : 'Web'})\n\n` +
+              `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android/Native' : 'Web'})\n\n` +
               `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
               `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
               `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
@@ -5862,14 +5862,14 @@ User Agent: [Automatically Generated]
 
                   <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
                   <div style={cardStyle}>
-                    <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={Capacitor.isNativePlatform()()} delay={75} />
-                    {!Capacitor.isNativePlatform()() && (
+                    <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={Capacitor.isNativePlatform()} delay={75} />
+                    {!Capacitor.isNativePlatform() && (
                       <SettingsNavRow icon="article" iconColor={accent.from} title="Release Notes" desc="View version history" onPress={() => navigate('release-notes')} delay={80} />
                     )}
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <SettingsNavRow icon="install_desktop" iconColor={accent.from} title="Download Apps" desc="Get native mobile and desktop clients" onPress={() => navigate('download-apps')} delay={85} />
                     )}
-                    {!Capacitor.isNativePlatform()() && (
+                    {!Capacitor.isNativePlatform() && (
                       <SettingsNavRow icon="keyboard" iconColor={accent.from} title="Keyboard Shortcuts" desc="View quick key bindings" onPress={() => navigate('keyboard-shortcuts')} last delay={90} />
                     )}
                   </div>

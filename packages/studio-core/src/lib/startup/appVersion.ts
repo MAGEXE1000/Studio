@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.68';
-export const WEB_VERSION = '4.0.68';
+export const NATIVE_VERSION = '4.0.69';
+export const WEB_VERSION = '4.0.69';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Complete redesign of the Release Pipeline for determinism.",
-      "Prevent duplicate GitHub Actions workflows.",
-      "Dynamically resolve versions in CI pipeline.",
+      "Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation.",
     ],
   },
 ];

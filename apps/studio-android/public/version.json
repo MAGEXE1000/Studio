@@ -1,20 +1,18 @@
 {
   "platform": "android",
-  "version": "4.0.68",
-  "versionName": "4.0.68",
-  "versionCode": 40068,
-  "version_code": 40068,
-  "commit": "f2986f16",
-  "releasedAt": "7/13/2026, 10:35:03 AM CST",
-  "buildTimestamp": "7/13/2026, 10:35:03 AM CST",
+  "version": "4.0.69",
+  "versionName": "4.0.69",
+  "versionCode": 40069,
+  "version_code": 40069,
+  "commit": "e405abbc",
+  "releasedAt": "7/13/2026, 10:50:49 AM CST",
+  "buildTimestamp": "7/13/2026, 10:50:49 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Complete redesign of the Release Pipeline for determinism.\n• Prevent duplicate GitHub Actions workflows.\n• Dynamically resolve versions in CI pipeline.",
-  "whatsNew": "• Complete redesign of the Release Pipeline for determinism.\n• Prevent duplicate GitHub Actions workflows.\n• Dynamically resolve versions in CI pipeline.",
+  "changelog": "• Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation.",
+  "whatsNew": "• Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation.",
   "releaseNotes": {
     "fixed": [
-      "Complete redesign of the Release Pipeline for determinism.",
-      "Prevent duplicate GitHub Actions workflows.",
-      "Dynamically resolve versions in CI pipeline."
+      "Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation."
     ]
   },
   "mandatory": false

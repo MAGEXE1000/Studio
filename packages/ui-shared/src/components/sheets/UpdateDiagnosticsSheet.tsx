@@ -456,7 +456,7 @@ export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
   const handleShareLogs = async () => {
     const text = getDiagnosticsText();
     try {
-      if (Capacitor.isNativePlatform()()) {
+      if (Capacitor.isNativePlatform()) {
         const { Share } = await import('@capacitor/share');
         await Share.share({
           title: 'Studio Update Diagnostics',

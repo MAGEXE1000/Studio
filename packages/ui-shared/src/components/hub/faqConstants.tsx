@@ -464,7 +464,7 @@ function HelpAccordion({ accent, lang }: { accent: { from: string; to: string };
             </div>
             <div>
               <span style={{ opacity: 0.6 }}>Platform: </span>
-              <span style={{ fontWeight: 600 }}>{Capacitor.isNativePlatform()() ? 'Android App' : 'Web Browser'}</span>
+              <span style={{ fontWeight: 600 }}>{Capacitor.isNativePlatform() ? 'Android App' : 'Web Browser'}</span>
             </div>
             <div>
               <span style={{ opacity: 0.6 }}>Audio: </span>

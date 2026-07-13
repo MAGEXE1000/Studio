@@ -1,196 +1,177 @@
-# Permanent Studio Platform-Scope Policy & Instructions
+# Permanent AI Coding Agent Engineering Contract
 
-This document is the authoritative platform-scope policy for all developers and AI agents working on Chordex Studio. Every task must be classified and validated before making any source code modifications.
-
----
-
-## 1. Task Classification System
-
-Every task must be classified into one of the following platform scopes:
-
-* **WEB**: Refers to the responsive browser-based application (for desktop, mobile, and tablet browsers). Deployed via Netlify.
-* **APK**: Refers to the native installed Android application built via Capacitor and Gradle.
-* **SHARED**: platform-neutral logic, sync backend engines, and common visual primitives.
-* **INFRASTRUCTURE**: GitHub Actions pipelines, Netlify configuration, Firebase Hosting config, workspace package configuration.
-* **DOCUMENTATION**: Manuals, changelogs, architecture diagrams, agent run instructions.
-* **RELEASE**: Version bumps, production APK signing, final artifact publishing.
-
-### Ambiguity Interpretation Rules
-* **"Web"** strictly means the responsive browser app.
-* **"APK"**, **"Android"**, **"móvil"**, **"app de teléfono"**, or **"aplicación instalada"** strictly means the Android native application.
-* **"Mobile"** without explicit "Web" or "browser" context defaults to **APK**.
-* **SHARED** is only allowed if genuinely platform-neutral or explicitly requested for both targets by the user.
-* If a request is genuinely ambiguous, ask the user only:
-  > “¿Este cambio es para WEB móvil en navegador o para la APK de Android?”
+This document is the authoritative, permanent, and legally binding engineering contract for all AI coding agents working on the Studio repository. This contract applies to Gemini, Claude, Codex, Jules, Antigravity, Cursor, Windsurf, Copilot, and every future AI coding assistant. Compliance is non-negotiable.
 
 ---
 
-## 2. Permanent Rules
+## 1. Architecture Precedence Invariant
 
-* **Scope Isolation**: A WEB task must not alter Android/APK-owned files unless strictly necessary and documented. An APK task must not alter Web-owned files unless strictly necessary and documented.
-* **Build Boundaries**: Android-only changes must not intentionally trigger Netlify builds.
-* **UI Purity**: Never copy complete Web layouts directly into Android. Never copy Android navigation (like BottomNav) directly into Web.
-* **No Silent Expansions**: Never silently expand a task to both platforms.
-* **Version Control**: Never silently bump versions. Maintain Web at `4.0.0` and Android at the latest release version (e.g. `3.7.8`, `versionCode 135`).
-* **Security & Tokens**: Never retrieve, print, or embed credentials, secrets, or GitHub tokens in Git URLs. Never commit keystore files.
-* **Fail-Closed Release Validation**: Never weaken production signing or metadata verification. Production release flows must enforce exactly the expected signer certificate fingerprint: `900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`.
-* **Testing Integrity**: Never describe untested behavior as verified. Never describe no-op tests as passing tests.
-* **No git add .**: Stage explicit file paths only.
+Repository specifications and documentation have absolute precedence over any other source of information.
+*   **Source of Truth**: The files [ARCHITECTURE_INDEX.md](file:///c:/Users/ayuda/Documents/Studio/chordex-app/ARCHITECTURE_INDEX.md), `AGENTS.md`, and all markdown specifications in `docs/` are the definitive source of truth.
+*   **Documentation Dominance**: If chat conversation history, user prompts, personal habits, or default framework configurations conflict with repository documentation, **repository documentation always wins**.
+*   **No Inventions**: Never invent new architectural patterns, abstractions, libraries, or state storage systems unless explicitly authorized in writing inside the repository documentation.
 
 ---
 
-## 3. Platform File Ownership Map
+## 2. Required Startup Workflow
 
-* **WEB**:
-  * `apps/studio-web/**`
-  * `packages/ui-web/**`
-* **APK**:
-  * `apps/studio-android/**`
-  * `packages/ui-android/**`
-* **SHARED**:
-  * `packages/studio-core/**`
-  * `packages/ui-shared/**`
+Every task in every new conversation session **must** automatically begin with the following workflow before any code is inspected or modified:
 
----
-
-## 4. Scope Validation Checks
-
-Validate your changes using the workspace scope validator:
-
-```bash
-pnpm scope:check --platform web
-pnpm scope:check --platform apk
-pnpm scope:check --platform shared
-```
+1.  **Read AGENTS.md**: Read this document completely.
+2.  **Read ARCHITECTURE_INDEX.md**: Read the index completely to identify module boundaries.
+3.  **Read Mandatory Documents**: Identify and read all documents marked as mandatory for the task category (mapped in `docs/ai_workflow.md`).
+4.  **Reconstruct Architecture Model**: Build an internal representation of:
+    *   System topology and packages
+    *   Store structures (Zustand) and selectors
+    *   Navigation dispatcher states
+    *   Platform separation boundaries
+    *   Diagnostics logs systems
+    *   CI/CD release workflows
+5.  **Audit for Conflicts**: Compare the requested task against this architectural model. If the task conflicts with the repository architecture, **STOP immediately**, explain the conflict, and do not write code until resolved.
 
 ---
 
-## 5. Detailed Operations & Reference Manuals
+## 3. Investigation Workflow
 
-### A. OTA Update Banner System & Dev Testing
-- **Trigger**: The application checks `public/version.json` on boot. An in-app update banner morphs (width/height/border-radius transition) into a small pulsing pill after ~6 seconds (or on user minimize). Tapping it launches the update modal.
-- **Single Source of Truth**: The coordinate constant `APP_VERSION` in `packages/studio-core/src/lib/appVersion.ts` is the single source of truth.
-- **Dev Banner Testing Override**: The `predev` workspace hook runs version synchronization with the `--preserve-newer` flag. This allows developers to manually edit `public/version.json` to a higher version (e.g. `3.0.1`) and add a custom changelog mock to demo banner morphs and animation behavior locally without the file being overwritten on package restarts.
-- **Production Builds**: The `prebuild` hook deliberately omits `--preserve-newer`, overwriting `public/version.json` to prevent local overrides from entering production release tracks.
+Before writing code or proposing a plan:
+*   **Search Knowledge First**: Search the `knowledge/` directory and `lessons_learned.md` for pre-existing debugging tips, configs, and parameters before reading raw source code.
+*   **Subsystem Mapping**: Identify and map:
+    *   All affected components, parent views, and child widgets.
+    *   Zustand store keys, actions, and active listeners.
+    *   Hooks called, dependencies tracked, and cleanup callbacks.
+    *   Callers, consumers, and potential asynchronous side effects.
+*   **Root-Cause Isolation**: Never apply band-aid conditional overrides. Isolate why a state out-of-order, listener leak, or layout freeze occurs.
 
-### B. Android APK Native Updater & Release Procedure
-- **Architecture**: The updater is modularized under `packages/studio-core/src/lib/updater/` with dedicated modules for `stateMachine`, `releaseMetadata`, `versionComparison`, `downloadManager`, `integrityVerification`, `eligibilityVerification`, `installer`, `recovery`, `diagnostics`, and `versionManager`.
-- **State Machine**: A single authoritative state machine manages transitions with strict validation guards and watchdog timeouts for transient states (`checking`, `downloading`, `verifying`).
-- **Check Priority**: Manual update checks always take priority and automatically obsolete active background checks using a `latestCheckId` sequence, discarding background results to prevent deadlock.
-- **OTA Base URL Config**: The APK build requires `VITE_OTA_BASE_URL` baked into the bundle pointing to the Firebase public tracking endpoint (e.g. `https://studio-30f44.web.app`). If empty, `versionJsonUrl()` fails closed and logs a Native Updater configuration error, disabling background update polling.
-- **APK Release Flow**:
-  1. Bump the coordinates `APP_VERSION` in `packages/studio-core/src/lib/appVersion.ts`.
-  2. Build and sign the production APK, upload it to Firebase Hosting and GitHub Releases, and update the `version.json` and `app-release.json` metadata manifests on Firebase.
+---
+
+## 4. Planning Workflow
+
+Before modifying any repository file:
+*   **Concise Implementation Plan**: Produce a maximum 1-page implementation plan (e.g. `implementation_plan.md`) describing:
+    1.  **Problem Statement**: Objective of the change.
+    2.  **Root Cause**: Specific files, lines, and behaviors.
+    3.  **Affected Files**: Target absolute filepaths on disk.
+    4.  **Implementation Strategy**: Precise code changes.
+    5.  **Regression Risks**: Potential platform leaks or state conflicts.
+    6.  **Validation Strategy**: Exact commands to execute.
+*   **Approval Gate**: Wait for explicit user confirmation before executing when in planning mode.
+
+---
+
+## 5. Implementation Workflow
+
+*   **Root-Cause Resolution**: Resolve the root issue. Do not silence compiler warnings or add conditional bypasses.
+*   **No Hacking**: Do not add temporary compatibility overrides or dirty hacks unless authorized by the specifications.
+*   **Reuse Over Creation**: Always search the repository before creating a new component, hook, utility, service, helper, or state store. Reuse and refactor; do not duplicate.
+*   **Refactor First, Implement Second**: If the implementation reveals pre-existing technical debt (e.g. monolithic files, circular deps), refactor the relevant boundaries first, verify, and then implement.
+
+---
+
+## 6. Validation Workflow
+
+Before committing any modifications:
+*   **Typecheck Validation**: Ensure all packages typecheck cleanly:
+    ```bash
+    pnpm run typecheck:libs
+    ```
+*   **Regression Smoke Tests**: Run the automated test runner:
+    ```bash
+    node scripts/run-smoke-tests.mjs
+    ```
+*   **Import Boundaries**: Run the import boundary check:
+    ```bash
+    pnpm lint:imports
+    ```
+*   **Platform Scope Check**: Run the platform separation linter:
+    ```bash
+    pnpm scope:check --platform web
+    pnpm scope:check --platform apk
+    pnpm scope:check --platform shared
+    ```
+*   **Doc Linter**: Validate documentation integrity:
+    ```bash
+    pnpm docs:validate
+    ```
+
+---
+
+## 7. Commit & Push Workflow
+
+*   **Explicit Staging**: Never run `git add .` or `git add -A`. Stage target files explicitly using their path:
+    ```bash
+    git add packages/studio-core/src/lib/navigation/BackDispatcher.ts
+    ```
+*   **Semantic Commit Messages**: Commit messages must use semantic prefixes in lowercase (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`).
+*   **No Pre-Validation Commits**: Never commit or push if any lint, compile, type, or smoke check fails.
+
+---
+
+## 8. Regression Prevention Invariant
+
+Updates must never break existing stable client features:
+*   **Auth Token Persistence**: Signing, building, or updating the app must never log users out or invalidate persistent session cache files.
+*   **Offline Cache Security**: Local IndexedDB, SharedPreferences, or localStorage items must persist across updates.
+*   **Cross-Platform Parity**: Implementing a fix for Android must not break the responsive Web app, and vice versa.
+
+---
+
+## 9. Performance Policy
+
+Performance is a functional requirement. All implementations must strive to minimize:
+*   Unnecessary React re-renders.
+*   Duplicate DOM or Window listeners.
+*   Component layout re-flow and forced style recalculations (layout thrashing).
+*   State synchronization locks and subscriber churn.
+*   Synchronous string/stack trace parsing during React render or layout effects phases.
+
+---
+
+## 10. Refactoring Policy
+
+*   **File Length**: Strive to keep code files under `1000` lines of code. Extract helpers, views, or hooks when this threshold is exceeded.
+*   **Component Separation**: Never define components inside render handlers or loops.
+*   **Coupling Reduction**: Decouple state mutations from rendering targets. Move actions inside Zustand stores.
+
+---
+
+## 11. Diagnostics Policy
+
+Diagnostics must be descriptive and explain root causes.
+*   **Attribution Rule**: Diagnostics must never report generic browser warnings like "Unknown", "Heavy JavaScript", "self", or "Possible Cause".
+*   **Studio Attribution**: Every warning, log event, or Long Task must resolve to a specific React Component, Hook, Store, Function, File, and Line.
+*   **Asynchronous Parsing**: Execute expensive stack parsing and source-map resolutions asynchronously to prevent blocks on the main UI thread.
+
+---
+
+## 12. Platform Separation Rules
+
+*   **WEB**: Deployed via Netlify. Located in `apps/studio-web/**` and `packages/ui-web/**`.
+*   **APK**: Installed native Android clients. Located in `apps/studio-android/**` and `packages/ui-android/**`.
+*   **SHARED**: Platform-neutral. Located in `packages/studio-core/**` and `packages/ui-shared/**`.
+*   **Cross-Scope Imports**: WEB must not import APK-owned files. APK must not import WEB-owned files. Conditional API calls must always check `isNative()`.
+
+---
+
+## 13. Forbidden Behaviors
+
+*   **Silencing Warnings**: Never use `@ts-ignore` or `any` to bypass TS compiler checks.
+*   **Metric Fabrication**: Never fake diagnostic metrics, frame rate counts, or timelines.
+*   **Token Exposure**: Never print, dump, or commit credentials, signing keystores, or Github tokens in source repositories or URL structures.
+*   **Redundant Loop Scans**: Avoid reopening identical files, running duplicate searches, or generating identical reports.
+
+---
+
+## 14. Operation & Reference Manuals
+
+### A. Android Signing Invariant (Authoritative Policy)
+*   The production Android signing identity is a **permanent project invariant**.
+*   Production certificate fingerprint **must** match: `900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`.
+*   If the signing configuration is invalid or missing, **STOP the release flow immediately**.
+
+### B. OTA Updater State Transitions
+*   Authoritative states cycle through: `INITIALIZING → FETCH_REMOTE_METADATA → VALIDATE_METADATA → COMPARE_VERSION → UPDATE_AVAILABLE → FETCH_APK_INFORMATION → DOWNLOAD_APK → VERIFY_SHA256 → PREPARING_INSTALL → WAITING_USER_CONFIRMATION → PACKAGEINSTALLER_VISIBLE → INSTALLING → INSTALL_SUCCESS | INSTALL_CANCELLED | INSTALL_FAILED → RECOVERY → IDLE`.
 
 ### C. Cloud Sync Engine Queue Architecture
-- **State Machine Rules**: Sync phases cycle strictly through: `'idle' | 'syncing' | 'success' | 'error'`.
-- **Lock Management**: Callers hook into `enqueueRun(reason, mode)`. This locks an in-flight `runPromise` wrapper. Concurrent sync triggers share the same in-flight execution promise, with a max queue depth of 1 pending followup run.
-- **Isolation boundaries**: Sub-app sync payloads execute concurrently via `Promise.allSettled()`. Each Firestore operation has a 6-second timeout, with an overall run limit of 10 seconds capped by an `AbortController`.
-- **Auth Swapping**: An `epoch` atomic counter is incremented on every `attachSyncEngine` / `detachSyncEngine` auth boundaries. This causes in-flight runs to discard write promises on mismatch, preventing cross-UID contamination on sign-out/sign-in swaps.
-
-
----
-
-## 6. Studio Engineering Protocol v1.0 (Permanent Project Rule)
-
-### Core Principle
-Stability is more important than feature velocity. A feature is not considered complete when it compiles; it is only complete when:
-- It works.
-- Existing functionality still works.
-- Platform boundaries remain intact.
-- Release validation passes.
-- Regressions are ruled out.
-Never trade reliability for speed.
-
-### Change Classification
-Before modifying code, classify the change into one of the following categories:
-- **Category A**: Android-only
-- **Category B**: Web-only
-- **Category C**: Shared cross-platform
-- **Category D**: Infrastructure / CI / Build pipeline
-Every task must explicitly identify its category before implementation. Do not modify unrelated categories.
-
-### Platform Isolation Rule
-Never assume a Web implementation can be copied directly into Android. When adapting Web functionality to Android, you must adapt:
-1. Web-specific dependencies
-2. Android-specific constraints
-3. Layout
-4. Safe areas
-5. Viewport behavior
-6. Gestures & touch interactions
-7. Keyboard behavior & safe areas
-8. Navigation & back button behavior
-9. Performance characteristics
-Android must feel native. Never force a desktop-oriented implementation into Android unchanged.
-
-### No Blind Reuse Rule
-Before reusing code, check if it depends on: mouse events, hover states, desktop viewport assumptions, browser-only APIs, iframe assumptions, keyboard shortcuts, or Web-only routing. If so, adapt it before integrating.
-
-### Regression Prevention Protocol
-Before changing any module, create a short impact map of:
-- Affected files
-- Affected modules
-- Affected platform(s)
-Verify these assumptions after implementation.
-
-### No Collateral Damage Rule
-Do not modify working systems unless absolutely required. If fixing one component (e.g. Stagex), do not casually modify unrelated components (e.g. Chordex, Drumex, Hub, Update system, Sync system, Themes, Authentication). Every unrelated modification requires justification.
-
-### Implementation Pipeline
-1. Understand existing architecture.
-2. Identify platform boundaries.
-3. Implement minimal required changes.
-4. Run targeted validation.
-5. Run regression validation.
-6. Prepare release candidate.
-
-### Android Adaptation Checklist
-Verify: touch interactions, pointer events, gestures, back button, swipe-back, safe areas, notch handling, keyboard behavior, scrolling, orientation changes, and performance.
-
-### UI Wiring Protocol
-For every visible control, verify: UI element → handler → action → state update → visible result. Do not mark a control functional merely because it renders, compiles, or a handler exists. Trace the full chain.
-
-### Stagex Rule
-Any redesign of Stagex must preserve: add button, save, export, setup, preferences, stage editor, element selection, element movement, element editing, and navigation. Visual redesigns must never disconnect functionality; functionality always wins.
-
-### Performance Rule
-Reduce: unnecessary rerenders, duplicate listeners, duplicate polling, duplicate effects, hidden background work, and excessive logging. Measure actual impact instead of optimization theater.
-
-### Loop Prevention Rule
-Do not repeatedly reopen identical files, rerun identical searches, reread unchanged plans, or regenerate identical reports. Checkpoint conclusions and move on.
-
-### Release Gate
-Before any publication, verify: version alignment, package ID, signing certificate, APK integrity, release manifest, update eligibility, and platform separation. If any check fails, STOP. Do not publish.
-
-### Post-Implementation Review
-Every completed task must answer:
-1. What changed?
-2. Why was it necessary?
-3. Which platforms were affected?
-4. What regressions were checked?
-5. What remains risky?
-
----
-
-### Architecture Index Rule
-
-**`ARCHITECTURE_INDEX.md` is the primary source of project structure.**
-
-Before reading any implementation file, consult `ARCHITECTURE_INDEX.md` first. It documents every module's purpose, main files, imports, exports, dependencies, consumers, and known technical debt.
-
-Rules:
-- Use `ARCHITECTURE_INDEX.md` to locate the relevant files for any task before opening them.
-- Only open implementation files that are **directly required** for the requested task — do not speculatively explore unrelated modules.
-- **Never re-index the repository** (i.e., do not re-survey directory trees or re-read all source files to rebuild structural understanding) unless the user explicitly requests it.
-- If `ARCHITECTURE_INDEX.md` is stale or missing an entry for a module you need, read only that module's files, then update the index entry before proceeding.
-
----
-
-### Direct-Fix-First Rule
-
-When diagnosing an error, **attempt the simplest direct fix first**.
-
-- Do not investigate build systems, tsconfig internals, package.json exports, caches, or TypeScript resolution mechanics before trying the obvious fix.
-- Use short **verify → fix → verify** loops. One hypothesis, one attempt, one check.
-- Escalate to deeper investigation only when the direct fix has been tried and failed.
-- Avoid multi-step hypothesis chains that delay the actual fix.
+*   Zustand queue locking handles concurrent runs via `enqueueRun`.
+*   DISCARD writes if `epoch` atomic check mismatches on auth changes.
+*   Firestore operations enforce a 6-second timeout; overall engine runs enforce a 10-second limit.

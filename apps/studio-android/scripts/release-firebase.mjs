@@ -111,26 +111,34 @@ if (!ghToken) {
 console.log('release-firebase: âœ“ GH_TOKEN presence validated.');
 
 // B. CHANGELOG entry check
-const changelogPath = path.join(pkgRoot, 'CHANGELOG.md');
+const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
 if (!existsSync(changelogPath)) {
   console.error(`release-firebase: âœ— Release blocked: CHANGELOG.md not found at ${changelogPath}`);
   process.exit(1);
 }
 
 const changelogText = readFileSync(changelogPath, 'utf8');
-const esc = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const re = new RegExp(
-  `^##\\s+${esc}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`,
-  'm'
-);
-const match = changelogText.match(re);
+const lines = changelogText.split(/\r?\n/);
+let sectionContent = '';
+let inSection = false;
 
-if (!match) {
+for (const line of lines) {
+  if (line.match(/^##\s+/)) {
+    if (inSection) break;
+    if (line.match(new RegExp(`^##\\s+${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`))) {
+      inSection = true;
+    }
+  } else if (inSection) {
+    sectionContent += line + '\n';
+  }
+}
+
+if (!inSection) {
   console.error(`\x1b[31mrelease-firebase: âœ— Release blocked: missing changelog entry for version ${version} in CHANGELOG.md. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
 }
 
-const sectionContent = match[1].trim();
+sectionContent = sectionContent.trim();
 if (!sectionContent) {
   console.error(`\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} is empty. Add real release notes before publishing.\x1b[0m`);
   process.exit(1);
@@ -597,6 +605,68 @@ if (!existsSync(localApkPath)) {
 }
 const localApkSha = computeSha256(localApkPath);
 console.log(`release-firebase: Local APK SHA-256 = ${localApkSha}`);
+
+// Step 6.5: Verify APK integrity via aapt and apksigner
+console.log('Step 6.5/15: Verify APK integrity (aapt & apksigner)...');
+const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
+if (androidHome && existsSync(path.join(androidHome, 'build-tools'))) {
+  const buildToolsDir = path.join(androidHome, 'build-tools');
+  const versions = readdirSync(buildToolsDir).filter(v => statSync(path.join(buildToolsDir, v)).isDirectory()).sort().reverse();
+  if (versions.length > 0) {
+    const latestBuildTools = path.join(buildToolsDir, versions[0]);
+    const aaptCmd = process.platform === 'win32' ? 'aapt.exe' : 'aapt';
+    const apksignerCmd = process.platform === 'win32' ? 'apksigner.bat' : 'apksigner';
+    const aaptPath = path.join(latestBuildTools, aaptCmd);
+    const apksignerPath = path.join(latestBuildTools, apksignerCmd);
+
+    if (existsSync(aaptPath)) {
+      const badgingRes = spawnSync(aaptPath, ['dump', 'badging', localApkPath], { encoding: 'utf8' });
+      const badgingOut = badgingRes.stdout || '';
+      if (!badgingOut.includes("package: name='com.chordex.app'")) {
+        console.error('release-firebase: âœ— Invalid package name in APK! Expected com.chordex.app');
+        process.exit(1);
+      }
+      if (!badgingOut.includes(`versionName='${version}'`)) {
+        console.error(`release-firebase: âœ— versionName mismatch in APK! Expected ${version}`);
+        process.exit(1);
+      }
+      if (!badgingOut.includes(`versionCode='${gradleVersionCode}'`)) {
+        console.error(`release-firebase: âœ— versionCode mismatch in APK! Expected ${gradleVersionCode}`);
+        process.exit(1);
+      }
+      if (badgingOut.includes("application-debuggable")) {
+        console.error('release-firebase: âœ— APK is debuggable! This is unsafe.');
+        process.exit(1);
+      }
+      console.log('release-firebase: âœ“ aapt badging verification passed.');
+    } else {
+      console.warn(`release-firebase: âš  aapt not found at ${aaptPath}, skipping badging check.`);
+    }
+
+    if (existsSync(apksignerPath)) {
+      const signRes = spawnSync(apksignerPath, ['verify', '--print-certs', localApkPath], { encoding: 'utf8' });
+      const signOut = signRes.stdout || '';
+      const sha256Match = signOut.match(/SHA-256 digest:\s*([A-Fa-f0-9]+)/i);
+      if (!sha256Match) {
+        console.error('release-firebase: âœ— Could not extract SHA-256 digest from apksigner output.');
+        process.exit(1);
+      }
+      const fingerprint = sha256Match[1].toLowerCase();
+      const expectedSig = process.env.EXPECTED_SIGNATURE_SHA256 || '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+      const targetSig = process.env.REINSTALL_REQUIRED === 'true' ? '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206' : expectedSig.replace(/:/g, '').toLowerCase();
+
+      if (fingerprint !== targetSig) {
+        console.error(`release-firebase: âœ— APK signature fingerprint mismatch! Expected ${targetSig}, got ${fingerprint}`);
+        process.exit(1);
+      }
+      console.log(`release-firebase: âœ“ apksigner verification passed. SHA-256 fingerprint: ${fingerprint}`);
+    } else {
+      console.warn(`release-firebase: âš  apksigner not found at ${apksignerPath}, skipping signature check.`);
+    }
+  }
+} else {
+  console.warn('release-firebase: âš  ANDROID_HOME not set or build-tools missing. Skipping APK integrity check.');
+}
 
 // Step 7: Create GitHub Release tag if missing
 console.log('Step 7/15: Create GitHub Release tag if missing...');

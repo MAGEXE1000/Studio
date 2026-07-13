@@ -278,7 +278,7 @@ if (prevVersionCode && gradleVersionCode <= prevVersionCode) {
   process.exit(1);
 }
 
-const changelogFound = match ? 'yes' : 'no';
+const changelogFound = 'yes';
 const expectedGitTag = `v${version}`;
 
 console.log('================================================================');

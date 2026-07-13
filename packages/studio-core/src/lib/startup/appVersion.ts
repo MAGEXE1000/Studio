@@ -60,11 +60,10 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking during local sub-app navigation.",
-      "Eliminated BackDispatcher handler churn by memoizing sheets.",
-      "Sub-panels are now memoized to prevent render cascade.",
+      "Upgraded Studio Diagnostics Engine to provide complete forensic attribution.",
+      "Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.",
     ],
   },
 ];

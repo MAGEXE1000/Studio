@@ -1,20 +1,19 @@
 {
   "platform": "android",
-  "version": "4.0.58",
-  "versionName": "4.0.58",
-  "versionCode": 40058,
-  "version_code": 40058,
-  "commit": "8a8d5f1e",
-  "releasedAt": "7/12/2026, 5:34:30 PM CST",
-  "buildTimestamp": "7/12/2026, 5:34:30 PM CST",
+  "version": "4.0.59",
+  "versionName": "4.0.59",
+  "versionCode": 40059,
+  "version_code": 40059,
+  "commit": "bfbee025",
+  "releasedAt": "7/12/2026, 7:24:33 PM CST",
+  "buildTimestamp": "7/12/2026, 7:24:33 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking during local sub-app navigation.\n• Eliminated BackDispatcher handler churn by memoizing sheets.\n• Sub-panels are now memoized to prevent render cascade.",
-  "whatsNew": "• Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking during local sub-app navigation.\n• Eliminated BackDispatcher handler churn by memoizing sheets.\n• Sub-panels are now memoized to prevent render cascade.",
+  "changelog": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.",
+  "whatsNew": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed continuous React component re-renders (App & StudioHub) that caused main-thread blocking during local sub-app navigation.",
-      "Eliminated BackDispatcher handler churn by memoizing sheets.",
-      "Sub-panels are now memoized to prevent render cascade."
+    "added": [
+      "Upgraded Studio Diagnostics Engine to provide complete forensic attribution.",
+      "Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components."
     ]
   },
   "mandatory": false

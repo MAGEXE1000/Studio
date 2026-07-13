@@ -1236,7 +1236,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       return true;
     }
     return false;
-  }, [pdfSheetOpen]);
+  }, [pdfSheetOpen], settings.appMode === 'stage');
 
   useBackHandler('nested', () => {
     // 1. If iframe has an open overlay/modal/sheet, let the iframe handle it
@@ -1262,7 +1262,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     } catch (e) {}
 
     return false;
-  }, [isStageExpanded]);
+  }, [isStageExpanded], settings.appMode === 'stage');
 
   const hasWebHeader = !isWebDesktop || (curView === 'Editor' || curView === 'Export' || showBack);
   const collapseHeader = (isLandscape && curView === 'Editor') || liveMode || !hasWebHeader || isStageExpanded;

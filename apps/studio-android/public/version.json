@@ -1,20 +1,15 @@
 {
   "platform": "android",
-  "version": "4.0.61",
-  "versionName": "4.0.61",
-  "versionCode": 40061,
-  "version_code": 40061,
-  "commit": "c65237ee",
-  "releasedAt": "7/12/2026, 9:22:11 PM CST",
-  "buildTimestamp": "7/12/2026, 9:22:11 PM CST",
+  "version": "4.0.62",
+  "versionName": "4.0.62",
+  "versionCode": 40062,
+  "version_code": 40062,
+  "commit": "22c9aacd",
+  "releasedAt": "7/12/2026, 10:11:46 PM CST",
+  "buildTimestamp": "7/12/2026, 10:11:46 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.",
-  "whatsNew": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.",
-  "releaseNotes": {
-    "added": [
-      "Upgraded Studio Diagnostics Engine to provide complete forensic attribution.",
-      "Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components."
-    ]
-  },
+  "changelog": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events.\n• One H2 heading per version: `## X.Y.Z` (no leading `v`).\n• Bullets start with `- ` and use plain English a non-technical user",
+  "whatsNew": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events.\n• One H2 heading per version: `## X.Y.Z` (no leading `v`).\n• Bullets start with `- ` and use plain English a non-technical user",
+  "releaseNotes": {},
   "mandatory": false
 }

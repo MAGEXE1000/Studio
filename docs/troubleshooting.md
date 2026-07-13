@@ -6,6 +6,8 @@ This guide details common engineering failures, build issues, OTA errors, and sy
 
 ## 1. Android & Gradle Build Issues
 
+This section provides comprehensive details and reference specifications.
+
 ### Gradle Task OutOfMemoryError
 * **Symptom**: Compiling native packages via Android Studio or GitHub Action runners fails with Java heap memory exhaustion.
 * **Resolution**: Edit `apps/studio-android/android/gradle.properties` to increase memory limits:
@@ -54,6 +56,8 @@ Source:
 ---
 
 ## 3. Firebase & Hosting Synchronization Blocks
+
+This section provides comprehensive details and reference specifications.
 
 ### Firebase Firestore Permission Errors
 * **Symptom**: Database calls fail with `FirebaseError: [code=permission-denied]: Missing or insufficient permissions`.

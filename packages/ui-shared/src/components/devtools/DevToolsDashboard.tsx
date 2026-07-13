@@ -714,7 +714,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       return true;
     }
     return false;
-  }, [subView, handleSubViewBack]);
+  }, [subView, handleSubViewBack], subView !== 'dashboard');
 
   const [showWarningBanner, setShowWarningBanner] = useState(true);
   const [perfMetrics, setPerfMetrics] = useState<ProfilerMetrics | null>(null);
@@ -946,17 +946,29 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   // Diagnostic Toast
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<any>(null);
 
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2500);
-  };
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMsg(null);
+    }, 2500);
+  }, []);
 
   // Subscribe to changes in DevTools core buffers
   useEffect(() => {
-    return subscribeToDevTools(() => {
+    const unsub = subscribeToDevTools(() => {
       setVersionUpdates(v => v + 1);
     });
+    return () => {
+      unsub();
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
   }, []);
 
   const logs = useMemo(() => getLogs(), [versionUpdates, simUpdateCount]);

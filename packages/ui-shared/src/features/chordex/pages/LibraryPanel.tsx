@@ -527,7 +527,7 @@ export default function LibraryPanel() {
       return true;
     }
     return false;
-  }, [activePanel, activePracticeSong, selectedChordId, query, activeType, activeGenre, mainTab, isWebDesktop]);
+  }, [activePanel, activePracticeSong, selectedChordId, query, activeType, activeGenre, mainTab, isWebDesktop], activePanel === 'library');
 
   const allChords = getAllChords();
   const chord = useMemo(() => selectedChordId ? getChordById(selectedChordId) : null, [selectedChordId]);

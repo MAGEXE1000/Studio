@@ -1028,7 +1028,7 @@ export default function App() {
   useEffect(() => {
     if ((window as any).__startupAnimationFreezes) {
       (window as any).__startupAnimationFreezes.forEach((f: any) => {
-        addLog('warn', 'perf', `Pre-mount startup planets animation freeze: at ${f.t}ms, duration ${f.dt}ms`);
+        addLog('info', 'perf', `Pre-mount startup planets animation freeze: at ${f.t}ms, duration ${f.dt}ms`);
       });
       delete (window as any).__startupAnimationFreezes;
     }

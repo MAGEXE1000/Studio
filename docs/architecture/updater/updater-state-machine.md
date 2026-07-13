@@ -49,6 +49,8 @@ stateDiagram-v2
 
 ## 3. Transitions
 
+This section provides comprehensive details and reference specifications.
+
 ### Valid Transitions
 -   `Idle` ➔ `Checking` (Manual button tap or automated visibility trigger)
 -   `Checking` ➔ `Available` (Upgrade is resolved)

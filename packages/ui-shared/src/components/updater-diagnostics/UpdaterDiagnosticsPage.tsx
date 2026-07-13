@@ -61,10 +61,24 @@ export default function UpdaterDiagnosticsPage({ onBack }: Props) {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
   const triggerRefresh = useCallback(() => setRefreshCount(prev => prev + 1), []);
+  const toastTimeoutRef = useRef<any>(null);
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 2500);
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMsg(null);
+    }, 2500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Persistent collapse states

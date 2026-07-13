@@ -182,7 +182,7 @@ export default function VocalexApp() {
   useBackHandler('nested', () => {
     if (headerBack) { headerBack(); return true; }
     return false;
-  }, [headerBack]);
+  }, [headerBack], settings.appMode === 'vocalex');
 
 
 

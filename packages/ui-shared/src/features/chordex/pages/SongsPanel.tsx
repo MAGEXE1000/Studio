@@ -2689,7 +2689,7 @@ export default function SongsPanel() {
     activePanel, showSectionPicker, showSectionSelector, showCustomBuilder,
     showPicker, showLive, showForm, exportModalPreset, jsonExportPreset,
     showImport, showDeleteId, activePresetId, setActivePreset
-  ]);
+  ], activePanel === 'songs');
 
   useEffect(() => {
     deduplicateAllPresets();

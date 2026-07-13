@@ -29,6 +29,8 @@ Source:
 
 ## 2. Platform-Specific Manual QA Checklist
 
+This section provides comprehensive details and reference specifications.
+
 ### Android Device Validation
 * [ ] **Notch & Status Spacing**: Verify the UI elements do not clip behind status bar notches or camera holes in portrait or landscape orientations.
 * [ ] **System Navigation Safe Zone**: Scroll to the bottom of all lists and panels and verify that every action button is fully visible above the system navigation bar.

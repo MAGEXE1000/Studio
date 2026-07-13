@@ -365,7 +365,7 @@
           if (dt > 50 && t > 100) {
             window.__startupAnimationFreezes = window.__startupAnimationFreezes || [];
             window.__startupAnimationFreezes.push({ t: t.toFixed(0), dt: dt.toFixed(0) });
-            console.warn("[Perf] Startup animation freeze point: t=" + t.toFixed(0) + "ms, duration=" + dt.toFixed(0) + "ms");
+            console.log("[Perf] Startup animation freeze point: t=" + t.toFixed(0) + "ms, duration=" + dt.toFixed(0) + "ms");
           }
 
           // Decide whether to start settling

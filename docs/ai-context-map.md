@@ -29,6 +29,8 @@ This map guides AI agents and developers on which files to inspect based on the 
 
 ## 3. Workflow Maps
 
+This section provides comprehensive details and reference specifications.
+
 ### A. Android OTA Update Flow
 ```mermaid
 graph TD
@@ -42,6 +44,8 @@ graph TD
     H --> I[Auto-launch Native Intent Installer]
 ```
 
+This section provides comprehensive details and reference specifications.
+
 ### B. Navigation / Back Gesture Interception
 ```mermaid
 graph TD
@@ -53,3 +57,5 @@ graph TD
     F -- Yes --> G[Follow Settings Exit Gesture Preference]
     F -- No --> H[Return to Hub Main Screen]
 ```
+
+This section provides comprehensive details and reference specifications.

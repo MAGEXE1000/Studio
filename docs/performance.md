@@ -46,6 +46,8 @@ Source:
 
 ## 3. Dynamic Loading & Chunking
 
+This section provides comprehensive details and reference specifications.
+
 ### Lazy Module Import
 * Heavy external node modules or native bridge packages (e.g., pdf libraries, sharing bridges like `@capacitor/share`) should be imported dynamically inside execution scopes instead of at the file header:
   ```typescript

@@ -6,6 +6,8 @@ This document reports the findings of the independent systems health, security, 
 
 ## 1. Critical Issues (Highest Risk / Immediate Action Required)
 
+This section provides comprehensive details and reference specifications.
+
 ### C-01: Supabase Realtime Sync Backend Bypasses Billing & Permissions Roles
 *   **Priority**: Critical
 *   **Category**: Authentication & Security Architecture
@@ -66,6 +68,8 @@ Source:
 
 ## 2. High Priority Issues (Major Architecture Weaknesses)
 
+This section provides comprehensive details and reference specifications.
+
 ### H-01: Monolithic Sync Engine in `sync.ts`
 *   **Priority**: High
 *   **Category**: Single Responsibility Principle (SRP) Violation
@@ -119,6 +123,8 @@ Source:
 
 ## 3. Medium Priority Issues (Styling & Performance Risks)
 
+This section provides comprehensive details and reference specifications.
+
 ### M-01: Synchronously Loaded Large Progression Maps Data
 *   **Priority**: Medium
 *   **Category**: Performance / Bundle Optimization
@@ -151,6 +157,8 @@ Source:
 
 ## 4. Low Priority Issues & Quick Wins
 
+This section provides comprehensive details and reference specifications.
+
 ### L-01: Legacy Firebase Sync Backend Preservation
 *   **Priority**: Low
 *   **Category**: Technical Debt
@@ -169,6 +177,8 @@ Source:
   - Resolve Supabase Roles    ───> - Split sync.ts Heartbeat ───> - Extract Stagex Bridge
   - Fix Dashboard Leaks            - JSON dynamic data            - Split StudioHub / AccountCard
 ```
+
+This section provides comprehensive details and reference specifications.
 
 ### Phase 1: Security & Lifecycle Protection (Target: Next Sprint)
 *   **Action**: Resolve Supabase user role query logic (C-01) and clear timer leaks in `DevToolsDashboard` (H-03).

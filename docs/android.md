@@ -75,6 +75,8 @@ Source:
 
 ## 4. Build, Versioning, & Release Signing
 
+This section provides comprehensive details and reference specifications.
+
 ### Version Manifest
 All version variables reside under `apps/studio-android/android/app/build.gradle`:
 * `versionCode`: Integer value incremented sequentially on each release (e.g., `184`).

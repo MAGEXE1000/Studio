@@ -88,6 +88,8 @@ Versions are managed via `scripts/version-manager.mjs` using separate CLI comman
 
 ## 5. CI/CD & Build Pipelines
 
+This section provides comprehensive details and reference specifications.
+
 ### CI Workflows
 - **Web CI (`web-ci.yml`)**: Triggered by changes in web app, shared packages, or root configs. Runs typechecking and building for web.
 - **Android CI (`android-ci.yml`)**: Triggered by changes in Android app, shared packages, or native directory. Runs typechecking, WebView compilation, and Capacitor syncing.

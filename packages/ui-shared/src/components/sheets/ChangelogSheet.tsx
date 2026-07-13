@@ -39,7 +39,7 @@ export default function ChangelogSheet({
       return true;
     }
     return false;
-  }, [open, onClose]);
+  }, [open, onClose], open);
 
   return (
     <DialogScaffold

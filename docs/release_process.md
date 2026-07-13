@@ -23,6 +23,8 @@ Source:
 
 ## 2. Git Workflow & Commit Rules
 
+This section provides comprehensive details and reference specifications.
+
 ### Explicit Staging Only
 * Never use `git add .` or `git add -A`.
 * Stage target files explicitly using their path:

@@ -1,5 +1,6 @@
 // RootCauseAnalyzer.ts
 import { SourceMapResolver } from './SourceMapResolver';
+import { StartupCoordinator } from '../startup/startupCoordinator.js';
 
 export interface RootCauseReport {
   severity: 'TRACE' | 'INFO' | 'OPTIMIZATION OPPORTUNITY' | 'RECOVERABLE ISSUE' | 'BUG' | 'CRITICAL';
@@ -31,6 +32,40 @@ export interface RootCauseReport {
 export class RootCauseAnalyzer {
   private static observer: PerformanceObserver | null = null;
   private static reports: RootCauseReport[] = [];
+
+  private static determineSeverity(
+    duration: number,
+    func: string,
+    file: string,
+    layoutDuration?: number,
+    entryTitle?: string
+  ): RootCauseReport['severity'] {
+    if (!StartupCoordinator.isStartupComplete()) {
+      return 'INFO';
+    }
+
+    if (layoutDuration && layoutDuration > 20) {
+      return 'OPTIMIZATION OPPORTUNITY';
+    }
+
+    if (file.includes('framer-motion') || file.includes('zustand')) {
+      return 'OPTIMIZATION OPPORTUNITY';
+    }
+
+    if (duration > 500) {
+      return 'CRITICAL';
+    }
+
+    if (duration > 150) {
+      return 'RECOVERABLE ISSUE';
+    }
+
+    if (duration > 50) {
+      return 'OPTIMIZATION OPPORTUNITY';
+    }
+
+    return 'INFO';
+  }
 
   public static async start() {
     if (typeof window === 'undefined' || !(window as any).__ENABLE_DIAGNOSTICS__) return;
@@ -101,7 +136,7 @@ export class RootCauseAnalyzer {
        reason = 'Long task outside of React render cycle. Potentially a bridge call, timeout, or layout thrashing. Check Performance Timeline.';
     }
 
-    const severity: RootCauseReport['severity'] = entry.duration > 150 ? 'CRITICAL' : 'BUG';
+    const severity = this.determineSeverity(entry.duration, 'Unknown', 'Unknown', undefined, entry.name);
 
     const report: RootCauseReport = {
       severity,
@@ -170,10 +205,7 @@ export class RootCauseAnalyzer {
       }
     }
 
-    let severity: RootCauseReport['severity'] = 'INFO';
-    if (script.duration > 150) severity = 'CRITICAL';
-    else if (script.duration > 50) severity = 'BUG';
-    else if (script.duration > 16) severity = 'OPTIMIZATION OPPORTUNITY';
+    const severity = this.determineSeverity(script.duration, trace.func, trace.file, script.forcedStyleAndLayoutDuration, 'Long Task');
 
     return {
       severity,
@@ -202,10 +234,7 @@ export class RootCauseAnalyzer {
     const activeComponents = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
     const topComponent = activeComponents.length > 0 ? activeComponents[activeComponents.length - 1] : 'Unknown';
 
-    let severity: RootCauseReport['severity'] = 'INFO';
-    if (duration > 150) severity = 'CRITICAL';
-    else if (duration > 50) severity = 'BUG';
-    else if (duration > 16) severity = 'OPTIMIZATION OPPORTUNITY';
+    const severity = this.determineSeverity(duration, 'Deferred Async Paint/Layout', 'Attribution impossible (Browser engine batches Layout asynchronously)', entry.renderStart ? Math.round(Math.max(0, (entry.startTime + entry.duration) - entry.renderStart)) : undefined, title);
 
     return {
       severity,

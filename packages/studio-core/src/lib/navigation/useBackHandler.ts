@@ -16,6 +16,7 @@ export function useBackHandler(
   priority: BackPriority,
   fn: () => boolean,
   deps: unknown[] = [],
+  active: boolean = true,
 ): void {
   const stackRef = useRef(new Error().stack);
   const fnRef = useRef(fn);
@@ -24,8 +25,9 @@ export function useBackHandler(
   fnRef.current = fn;
 
   useEffect(() => {
+    if (!active) return;
     const handler = () => fnRef.current();
     return BackDispatcher.register(priority, handler, stackRef.current, 'Mount', '[]');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [priority]);
+  }, [priority, active]);
 }

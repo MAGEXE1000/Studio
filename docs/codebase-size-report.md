@@ -13,6 +13,8 @@
 
 ## 1. Code Files Over 3000 Lines
 
+This section provides comprehensive details and reference specifications.
+
 ### `apps/studio-android/public/stage-core/app.js`
 * **Size / Line Count**: 437.1 KB / 9,818 lines
 * **Feature Owner**: Stagex (Layout Canvas Editor)

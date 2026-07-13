@@ -1458,7 +1458,7 @@ export function AccountSettingsPage({ accent, cardStyle, onBack }: {
       return true;
     }
     return false;
-  }, [sheet, pickerOpen]);
+  }, [sheet, pickerOpen], pickerOpen || sheet !== 'none');
 
   // When no active sheets/pickers are open, swiping back exits the profile page back to settings tab
   useBackHandler('nested', () => {

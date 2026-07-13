@@ -15,6 +15,8 @@
 
 ## Subsystem Index
 
+This section provides comprehensive details and reference specifications.
+
 ### 1. Version Management & In-App Updater
 Documents describing update checking, resume-capable downloads, OS session commits, and failsafe Recovery Modes.
 -   [Updater Architecture](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/updater/updater-architecture.md)

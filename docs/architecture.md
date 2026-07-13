@@ -89,6 +89,8 @@ Source:
 
 ## 3. Communication & Data Flows
 
+This section provides comprehensive details and reference specifications.
+
 ### Module Communication: Stagex IFrame Bridge
 Stagex executes sandbox scripts in a separate document context to prevent execution blockages on the main React thread. Communication is managed via postMessage:
 

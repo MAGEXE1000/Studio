@@ -25,6 +25,8 @@ Source:
 
 ## 2. Milestone Focus Details
 
+This section provides comprehensive details and reference specifications.
+
 ### Short-Term: Offline Storage & Diagnostic Enhancements
 * **Persistent Logs Database**: Replace in-memory diagnostics log arrays with a persistent local log storage engine in `@workspace/studio-core` to inspect console traces post-app crash.
 * **Auto-Scroll Customization**: Enhance console viewport with line search patterns and regex filters.

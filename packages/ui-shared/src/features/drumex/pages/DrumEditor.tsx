@@ -2860,7 +2860,7 @@ export default function DrumEditor() {
     inEditor, activeTab, showClearConfirm, showExportModal, showImportDrum, showSaveGroove,
     showCreateForm, showSaveForm, showMixerSheet, showFXSheet, showBpmPanel,
     showLoopPanel, showSoundCharacter, showHamburger
-  ]);
+  ], settings.appMode === 'drums');
 
   // â”€â”€ Create Beat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleCreateBeat = useCallback(() => {

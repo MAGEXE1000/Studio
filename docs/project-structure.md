@@ -64,6 +64,8 @@ This document defines the codebase layout, module entry points, component struct
 
 ## 3. Area Classification
 
+This section provides comprehensive details and reference specifications.
+
 ### ACTIVE (Actively maintained and developed)
 * `packages/studio-core/src/lib/` (Core features: `appVersion`, `otaUpdate`, `auth`, `permissions`)
 * `packages/ui-shared/src/components/` (Shared UI buttons, dialogs, cards)

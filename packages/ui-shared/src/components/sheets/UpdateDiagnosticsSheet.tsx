@@ -328,7 +328,7 @@ export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
       return true;
     }
     return false;
-  }, [open, onClose]);
+  }, [open, onClose], open);
 
   if (!mounted) return null;
 

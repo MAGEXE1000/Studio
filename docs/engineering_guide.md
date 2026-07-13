@@ -118,10 +118,10 @@ This repository integrates documentation directly into the development cycle. Ad
 * **Automation Tooling**: The repository includes validation and health reporting automation scripts:
   - **Document Linter**: Run `pnpm docs:validate` (runs [validate-documentation.mjs](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/scripts/validate-documentation.mjs))
   - **Session Brief Generator**: Run `node scripts/generate-session-summary.mjs` (runs [generate-session-summary.mjs](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/scripts/generate-session-summary.mjs))
-  - **Health Audit**: Run `node scripts/repository-health.mjs` to generate [repository_health_report.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_report.md)
+
   - **Context Map Generator**: Run `node scripts/context-map-generator.mjs` to generate [context_map.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/context_map.md)
-  - **Large File Analysis**: Run `node scripts/large-file-report.mjs` to generate [large_file_report.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/large_file_report.md)
-  - **Dead Code Detector**: Run `node scripts/dead-code-report.mjs` to generate [dead_code_report.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/dead_code_report.md)
+
+
 
 Source:
 * `docs/contributing.md`
@@ -177,10 +177,10 @@ Refer to these targeted subsystem and architecture guides for implementation det
     - [Legacy Migration Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/migration_map.md)
     - [Troubleshooting Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/troubleshooting.md)
     - [Repository Health & Architecture Audit Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_audit.md)
-    - [Generated Repository Health Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/repository_health_report.md)
+
     - [Generated Context Minimization Map](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/context_map.md)
-    - [Generated Large File Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/large_file_report.md)
-    - [Generated Dead Code Report](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/dead_code_report.md)
+
+
     - [Legacy Backups Inventory](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/backups/v3.6.81-stable-before-cleanup.md)
 *   **Knowledge Repository**:
     - [Android Gradle Guide](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/android/gradle.md)

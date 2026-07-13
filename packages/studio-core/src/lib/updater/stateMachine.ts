@@ -92,8 +92,13 @@ export function verifyAndCleanCaches() {
       try {
         const parsed = JSON.parse(sessionStr);
         const ver = parsed?.targetVersion;
+        const state = parsed?.currentState;
         const sem = ver ? parseSemver(ver) : null;
-        if (!sem || ver === 'V' || ver === 'v') {
+        if (!ver && ['INITIALIZING', 'FETCH_REMOTE_METADATA'].includes(state)) {
+          console.log(`[Cache Verification] Clearing aborted update check session (state: ${state}).`);
+          localStorage.removeItem('studio:active_update_session');
+          releaseMetadataInspector.cacheSource = 'aborted_check_session';
+        } else if (!sem || ver === 'V' || ver === 'v') {
           console.warn('[Cache Verification] Invalidation: Corrupted session version detected:', ver);
           localStorage.removeItem('studio:active_update_session');
           releaseMetadataInspector.cacheSource = 'invalidated_session';

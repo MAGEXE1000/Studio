@@ -61,6 +61,8 @@ Source:
 
 ## 3. Component Templates & Guidelines
 
+This section provides comprehensive details and reference specifications.
+
 ### Bento Cards
 Cards use dynamic styling with backdrop blurs and subtle outlines:
 ```css

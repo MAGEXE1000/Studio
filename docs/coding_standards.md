@@ -6,6 +6,8 @@ This document establishes the coding rules, directory ownership guidelines, and 
 
 ## 1. Core Engineering Principles
 
+This section provides comprehensive details and reference specifications.
+
 ### Root-Cause-First Resolution
 * Do not apply band-aids, conditional bypasses, or quick visual overrides.
 * Always isolate the underlying root cause of a defect (e.g., event listeners leaking memory, concurrent database access locks, out-of-order state updates).
@@ -22,6 +24,8 @@ Source:
 ---
 
 ## 2. Code Quality & Modularity
+
+This section provides comprehensive details and reference specifications.
 
 ### Modularization Guidelines (Aspirational Style Guidelines)
 * **File Length Recommendation**: Developers should strive to keep code files under `1000` lines of code. If a file grows beyond this threshold, consider splitting components, helpers, or hooks into separate module directories.

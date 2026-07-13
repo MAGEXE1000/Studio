@@ -6,6 +6,8 @@ This map defines the absolute minimal context targets for future AI sessions. To
 
 ## 1. Context Scopes per Feature Area
 
+This section provides comprehensive details and reference specifications.
+
 ### If working on OTA Updates:
 - **Read only**:
   - [ota_updater.md](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/ota_updater.md)

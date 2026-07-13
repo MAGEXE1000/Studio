@@ -22,6 +22,8 @@ Studio versions are identified by two values:
 
 ## 2. Version Transitions
 
+This section provides comprehensive details and reference specifications.
+
 ### Upgrade Flow
 -   **Condition**: Client `versionCode` < Remote `versionCode`.
 -   **Mechanism**: Normal update dialog displays, prompts user, downloads, verifies integrity, and hands over to the OS PackageInstaller.

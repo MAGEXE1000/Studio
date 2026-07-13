@@ -52,7 +52,7 @@ export function versionJsonUrls(): string[] {
     urls.push(`${localBase}version.json?t=${t}`);
   }
   
-  console.warn(`[OTA DIAGNOSTICS] Generated urls to fetch:`, urls);
+  console.log(`[OTA DIAGNOSTICS] Generated urls to fetch:`, urls);
 
   return urls;
 }
@@ -332,7 +332,16 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
           }
         }
       } catch (shaErr) {
-        console.warn('[AppUpdater] Failed to fetch SHA-256 asset from GitHub:', shaErr);
+        console.log('[AppUpdater] Failed to fetch SHA-256 asset from GitHub. Will rely on fallback metadata if available.', shaErr);
+        UpdaterFlightRecorder.record({
+          thread: 'js',
+          sessionId: null,
+          workflowId: null,
+          eventType: 'sha256AssetFetchFailure',
+          caller: 'fetchVersionFromGitHub',
+          reason: 'Network/Timeout/Missing asset when fetching .sha256',
+          details: String(shaErr)
+        });
       }
     }
 

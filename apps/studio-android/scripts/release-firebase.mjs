@@ -158,11 +158,11 @@ const categories = {
   changed: []
 };
 
-const lines = sectionContent.split('\n');
+const sectionLines = sectionContent.split('\n');
 let currentCategory = null;
 const flatBullets = [];
 
-for (const rawLine of lines) {
+for (const rawLine of sectionLines) {
   const line = rawLine.trim();
   if (!line) continue;
 

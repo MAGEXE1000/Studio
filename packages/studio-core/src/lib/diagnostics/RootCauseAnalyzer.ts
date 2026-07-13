@@ -89,26 +89,36 @@ export class RootCauseAnalyzer {
   private static analyzeLongTaskEntry(entry: PerformanceEntry) {
     // Basic longtask API doesn't give us much attribution. We use heuristics.
     const activeComponents = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
-    const topComponent = activeComponents.length > 0 ? activeComponents[activeComponents.length - 1] : 'UNKNOWN_COMPONENT';
+    const topComponent = activeComponents.length > 0 ? activeComponents[activeComponents.length - 1] : 'Unknown';
     
+    // Determine reason/trigger
+    let reason = 'Check application state';
+    let trigger = 'UNKNOWN';
+    if (topComponent !== 'Unknown') {
+       reason = `Long task occurred while rendering ${topComponent}. See React Profiler logs.`;
+       trigger = 'React Render/Commit Phase';
+    } else {
+       reason = 'Long task outside of React render cycle. Potentially a bridge call, timeout, or layout thrashing. Check Performance Timeline.';
+    }
+
     const report: RootCauseReport = {
       severity: entry.duration > 150 ? 'Critical' : 'Warning',
       title: 'Long Task',
       durationMs: Math.round(entry.duration),
       sourceComponent: topComponent,
-      sourceFunction: 'UNKNOWN_ROOT_CAUSE (Update WebView for LoAF support)',
+      sourceFunction: topComponent !== 'Unknown' ? 'Render/Commit' : 'Unknown',
       sourceFile: 'N/A',
       sourceLine: 'N/A',
-      callStack: ['UNKNOWN_ROOT_CAUSE', 'active_component: ' + topComponent],
+      callStack: topComponent !== 'Unknown' ? activeComponents : [],
       metrics: {
         jsExecution: Math.round(entry.duration),
       },
-      trigger: 'UNKNOWN',
+      trigger,
       dependencies: [],
       stateChanged: 'N/A',
       repeated: false,
       occurrences: 1,
-      recommendation: 'Update WebView to version 123+ for deep script tracing, or profile manually in Chrome DevTools.'
+      recommendation: reason
     };
     
     this.logReport(report);
@@ -147,9 +157,14 @@ export class RootCauseAnalyzer {
     const trace = await this.buildScriptTrace(script);
     
     // Attempt to figure out the React component if it's a React render script
-    let component = 'UNKNOWN';
-    if (trace.func.startsWith('renderWithHooks') || trace.func.startsWith('updateFunctionComponent')) {
-      component = 'React Internals (Check React Profiler report)';
+    let component = 'Unknown';
+    if (trace.func.startsWith('renderWithHooks') || trace.func.startsWith('updateFunctionComponent') || trace.func.startsWith('commitMutationEffects')) {
+      const activeComponents = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
+      if (activeComponents.length > 0) {
+        component = activeComponents[activeComponents.length - 1];
+      } else {
+        component = 'React Internals';
+      }
     }
 
     return {
@@ -176,25 +191,28 @@ export class RootCauseAnalyzer {
   }
 
   private static buildGenericReport(title: string, duration: number, entry: any): RootCauseReport {
+    const activeComponents = (window as any).__ACTIVE_DIAGNOSTICS_COMPONENTS__ || [];
+    const topComponent = activeComponents.length > 0 ? activeComponents[activeComponents.length - 1] : 'Unknown';
+
     return {
       severity: duration > 150 ? 'Critical' : 'Warning',
       title,
       durationMs: Math.round(duration),
-      sourceComponent: 'UNKNOWN',
-      sourceFunction: 'UNKNOWN',
-      sourceFile: 'UNKNOWN',
-      sourceLine: 'UNKNOWN',
+      sourceComponent: topComponent,
+      sourceFunction: 'Unknown',
+      sourceFile: 'Unknown',
+      sourceLine: 'Unknown',
       callStack: [],
       metrics: {
         uiThread: Math.round(duration),
         layoutDuration: entry.renderStart ? (entry.duration - entry.renderStart) : undefined
       },
-      trigger: 'UNKNOWN',
+      trigger: 'Unknown',
       dependencies: [],
       stateChanged: 'N/A',
       repeated: false,
       occurrences: 1,
-      recommendation: 'Check DOM size, CSS complexity, or unoptimized image rendering.'
+      recommendation: 'Check DOM size, CSS complexity, or unoptimized image rendering (possibly originating from ' + topComponent + ').'
     };
   }
 

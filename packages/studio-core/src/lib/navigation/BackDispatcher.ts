@@ -31,24 +31,48 @@ export class BackDispatcher {
   /**
    * Registers a callback with a priority. Returns a cleanup unregister function.
    */
-  public static register(priority: BackPriority, fn: () => boolean, owner?: string, reason: string = 'Mount', dependencies: string = '[]'): () => void {
+  public static register(priority: BackPriority, fn: () => boolean, ownerRawStack?: string, reason: string = 'Mount', dependencies: string = '[]'): () => void {
     this.initialize();
     const id = Math.random().toString(36).substring(2, 9);
+    const registerTime = performance.now();
     
-    const displayOwner = owner || 'Unknown';
-
-    // Debug logging disabled in production for performance
-
+    const handlerObj: any = { id, priority, fn, owner: 'Resolving...', file: '', func: '', reason, dependencies, registerTime };
     
+    if (ownerRawStack) {
+      Promise.resolve().then(() => {
+        const parsed = SourceMapResolver.parseStackTrace(ownerRawStack);
+        let found = false;
+        for (const frame of parsed) {
+          if (frame.func && !frame.func.includes('useBackHandler') && !frame.func.includes('BackDispatcher')) {
+            handlerObj.owner = frame.func;
+            handlerObj.file = frame.file;
+            handlerObj.func = frame.func;
+            handlerObj.line = frame.line;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+           handlerObj.owner = 'Unknown (Stack omitted by V8/Capacitor)';
+        }
+        
+        console.warn(`[BackDispatcher] Registered [${priority}] Owner: ${handlerObj.owner} | Reason: ${reason} | Deps: ${dependencies} | File: ${handlerObj.file}:${handlerObj.line}`);
+      }).catch(e => {
+        handlerObj.owner = 'Unknown (Parse Error)';
+      });
+    } else {
+      handlerObj.owner = 'Unknown (No stack provided)';
+    }
+
     const existingIndex = activeBackHandlers.findIndex((h: any) => h.id === id);
     if (existingIndex !== -1) {
       activeBackHandlers.splice(existingIndex, 1);
     }
-    activeBackHandlers.push({ id, priority, fn, owner: displayOwner });
+    activeBackHandlers.push(handlerObj);
 
     return () => {
-      // Debug logging disabled in production for performance
-
+      const lifetime = (performance.now() - handlerObj.registerTime).toFixed(1);
+      console.warn(`[BackDispatcher] Unregistered [${priority}] Owner: ${handlerObj.owner} | Lifetime: ${lifetime}ms | Unregister Reason: Unmount or Deps Changed`);
       const idx = activeBackHandlers.findIndex((h: any) => h.id === id);
       if (idx !== -1) {
         activeBackHandlers.splice(idx, 1);

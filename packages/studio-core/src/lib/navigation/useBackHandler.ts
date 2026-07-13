@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { BackDispatcher, type BackPriority } from './BackDispatcher';
 
 /**
@@ -17,13 +17,19 @@ export function useBackHandler(
   fn: () => boolean,
   deps: unknown[] = [],
 ): void {
+  const stackRef = useRef(new Error().stack);
+  const isFirstMount = useRef(true);
+
   useEffect(() => {
     let depsString = '[]';
     try {
       depsString = JSON.stringify(deps.map(d => typeof d === 'function' ? 'Function' : d));
     } catch(e) {}
     
-    return BackDispatcher.register(priority, fn, undefined, 'Mount/Deps Changed', depsString);
+    const reason = isFirstMount.current ? 'Mount' : 'Deps Changed';
+    isFirstMount.current = false;
+    
+    return BackDispatcher.register(priority, fn, stackRef.current, reason, depsString);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }

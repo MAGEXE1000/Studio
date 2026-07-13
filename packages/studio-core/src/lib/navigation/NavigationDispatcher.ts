@@ -17,7 +17,21 @@ export class NavigationDispatcher {
    */
   public static push(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)}`);
+    const rawStack = new Error().stack;
+    
+    Promise.resolve().then(() => {
+       let caller = 'Unknown';
+       if (rawStack) {
+         const lines = rawStack.split('\n');
+         for (let i = 2; i < lines.length; i++) {
+            if (!lines[i].includes('NavigationDispatcher')) {
+              caller = lines[i].trim();
+              break;
+            }
+         }
+       }
+       console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)} | caller: ${caller}`);
+    });
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
@@ -50,7 +64,21 @@ export class NavigationDispatcher {
    */
   public static replace(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`);
+    const rawStack = new Error().stack;
+
+    Promise.resolve().then(() => {
+       let caller = 'Unknown';
+       if (rawStack) {
+         const lines = rawStack.split('\n');
+         for (let i = 2; i < lines.length; i++) {
+            if (!lines[i].includes('NavigationDispatcher')) {
+              caller = lines[i].trim();
+              break;
+            }
+         }
+       }
+       console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)} | caller: ${caller}`);
+    });
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
@@ -67,7 +95,21 @@ export class NavigationDispatcher {
    */
   public static pop(): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] pop`);
+    const rawStack = new Error().stack;
+
+    Promise.resolve().then(() => {
+       let caller = 'Unknown';
+       if (rawStack) {
+         const lines = rawStack.split('\n');
+         for (let i = 2; i < lines.length; i++) {
+            if (!lines[i].includes('NavigationDispatcher')) {
+              caller = lines[i].trim();
+              break;
+            }
+         }
+       }
+       console.log(`[NavigationDispatcher] [${timestamp}] pop | caller: ${caller}`);
+    });
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();
@@ -93,7 +135,21 @@ export class NavigationDispatcher {
    */
   public static popTo(predicate: (route: NavigationRoute) => boolean): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] popTo`);
+    const rawStack = new Error().stack;
+
+    Promise.resolve().then(() => {
+       let caller = 'Unknown';
+       if (rawStack) {
+         const lines = rawStack.split('\n');
+         for (let i = 2; i < lines.length; i++) {
+            if (!lines[i].includes('NavigationDispatcher')) {
+              caller = lines[i].trim();
+              break;
+            }
+         }
+       }
+       console.log(`[NavigationDispatcher] [${timestamp}] popTo | caller: ${caller}`);
+    });
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();

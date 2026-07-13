@@ -58,28 +58,33 @@ function getStoreDiff(oldState: any, newState: any): string[] {
 
 function logStoreChange(storeName: string, changes: string[], prevState: any, nextState: any, duration: number) {
   // Try to capture stack trace to see who called set()
-  const err = new Error();
-  let caller = 'Unknown';
-  let fileLocation = 'N/A';
-  if (err.stack) {
-    // Fix literal string match
-    const lines = err.stack.split('\n');
-    // Find the first line outside of zustand/storeProfiler
-    for (let i = 2; i < lines.length; i++) {
-      if (!lines[i].includes('zustand') && !lines[i].includes('storeProfiler')) {
-        const parsed = SourceMapResolver.parseStackTrace(lines.slice(i).join('\n'));
-        if (parsed.length > 0) {
-          caller = parsed[0].func;
-          fileLocation = `${parsed[0].file}:${parsed[0].line}`;
-        } else {
-          caller = lines[i].trim();
-        }
-        break;
-      }
-    }
-  }
+  // Generate the raw stack synchronously (cheap), but defer parsing (expensive) to avoid blocking the main thread.
+  const rawStack = new Error().stack;
 
-  const msg = `
+  // We only log if it's taking a measurable amount of time to update subscribers (e.g. > 2ms)
+  // Or if it's a critical store we want to trace all changes on.
+  if (duration > 2.0) {
+    Promise.resolve().then(() => {
+      let caller = 'Unknown';
+      let fileLocation = 'N/A';
+      if (rawStack) {
+        const lines = rawStack.split('\n');
+        // Find the first line outside of zustand/storeProfiler
+        for (let i = 2; i < lines.length; i++) {
+          if (!lines[i].includes('zustand') && !lines[i].includes('storeProfiler')) {
+            const parsed = SourceMapResolver.parseStackTrace(lines.slice(i).join('\n'));
+            if (parsed.length > 0) {
+              caller = parsed[0].func;
+              fileLocation = `${parsed[0].file}:${parsed[0].line}`;
+            } else {
+              caller = lines[i].trim();
+            }
+            break;
+          }
+        }
+      }
+
+      const msg = `
 --------------------------------
 Store Update: ${storeName}
 Duration: ${duration.toFixed(2)} ms
@@ -87,12 +92,12 @@ Caller: ${caller}
 File: ${fileLocation}
 Keys Changed: ${changes.join(', ')}
 ================================`;
-
-  // We only log if it's taking a measurable amount of time to update subscribers (e.g. > 2ms)
-  // Or if it's a critical store we want to trace all changes on.
-  if (duration > 2.0) {
-    console.warn(msg);
+      console.warn(msg);
+    }).catch(e => {
+       console.debug(`[storeProfiler] Error parsing stack trace:`, e);
+    });
   } else {
-    console.debug(msg);
+    // Fast path debug logging for minor updates
+    console.debug(`[storeProfiler] Store Update: ${storeName} | Keys: ${changes.join(', ')}`);
   }
 }

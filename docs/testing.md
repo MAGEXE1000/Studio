@@ -51,8 +51,7 @@ To prevent system updates from breaking existing client states, verify:
 3. **Audio Playback Stability**: Validate that tuner analyzers, audio recording takes, and backing tracks operate consistently across update installations.
 
 Source:
-* `scripts/run-updater-regression-tests.mjs`
-* `scripts/run-startup-regression-tests.mjs`
+* `scripts/run-smoke-tests.mjs`
 
 ---
 

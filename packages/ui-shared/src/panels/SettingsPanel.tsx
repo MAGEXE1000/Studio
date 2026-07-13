@@ -1,4 +1,5 @@
-import { useChordStore, ACCENT_COLORS, type ActivePanel, useScrollHide, useT, useIsWebDesktop, isNative, useOtaUpdate, APP_VERSION_LABEL, resetNav } from '@workspace/studio-core';
+import { Capacitor } from '@capacitor/core';
+import { useChordStore, ACCENT_COLORS, type ActivePanel, useScrollHide, useT, useIsWebDesktop, useAppUpdate, APP_VERSION_LABEL, resetNav } from '@workspace/studio-core';
 import React, { useRef, useState, useEffect } from 'react';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import { Toggle, SectionHeader, SettingRow } from '../components/SettingControls';
@@ -19,7 +20,7 @@ export default function SettingsPanel() {
     resetNav();
   }, []);
 
-  const ota = useOtaUpdate();
+  const updater = useAppUpdate();
   const [showGitHubConfirm, setShowGitHubConfirm] = useState(false);
 
   const cardStyle: React.CSSProperties = {
@@ -310,7 +311,7 @@ export default function SettingsPanel() {
         </div>
 
         {/* ── UPDATES ── */}
-        {isNative() && (
+        {Capacitor.isNativePlatform()() && (
           <div style={{ marginTop: '24px' }}>
             <SectionHeader icon="system_update" title="Updates" />
             <div style={{ ...cardStyle, padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -331,7 +332,7 @@ export default function SettingsPanel() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   <span style={{ fontSize: '10px', color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Latest Available</span>
                   <span style={{ fontSize: '13px', color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>
-                    {ota.remoteVersion ? `v${ota.remoteVersion}` : 'Checking...'}
+                    {updater.remoteVersion ? `v${updater.remoteVersion}` : 'Checking...'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: '8px', marginTop: '4px' }}>
@@ -343,14 +344,14 @@ export default function SettingsPanel() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: '8px', marginTop: '4px' }}>
                   <span style={{ fontSize: '10px', color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Recovery Status</span>
-                  <span style={{ fontSize: '13px', color: ota.validApkExists ? '#eab308' : '#22c55e', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ota.validApkExists ? '#eab308' : '#22c55e' }}></span>
-                    {ota.validApkExists ? 'Pending installation detected.' : 'Everything is healthy.'}
+                  <span style={{ fontSize: '13px', color: updater.validApkExists ? '#eab308' : '#22c55e', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: updater.validApkExists ? '#eab308' : '#22c55e' }}></span>
+                    {updater.validApkExists ? 'Pending installation detected.' : 'Everything is healthy.'}
                   </span>
                 </div>
               </div>
 
-              {ota.validApkExists ? (
+              {updater.validApkExists ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <button
                     type="button"
@@ -358,7 +359,7 @@ export default function SettingsPanel() {
                       if (typeof window !== 'undefined') {
                         window.dispatchEvent(new CustomEvent('studio:open-update-dialog'));
                       }
-                      ota.applyUpdate('Settings: Continue Installation');
+                      updater.applyUpdate('Settings: Continue Installation');
                     }}
                     style={{
                       width: '100%', height: '44px', borderRadius: '12px',
@@ -428,7 +429,7 @@ export default function SettingsPanel() {
               onClick={async () => {
                 try {
                   const { resolveReleasePageUrl } = await import('@workspace/studio-core');
-                  const fallbackUrl = await resolveReleasePageUrl(ota.remoteVersion ?? undefined);
+                  const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
                   window.open(fallbackUrl, '_system');
                 } catch (err) {
                   window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');

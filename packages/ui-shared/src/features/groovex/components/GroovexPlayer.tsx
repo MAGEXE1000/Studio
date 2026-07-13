@@ -33,7 +33,7 @@ function transposeKey(key: string, semitones: number): string {
 }
 
 export default function GroovexPlayer() {
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore(useShallow(s => s.settings));
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
@@ -914,7 +914,7 @@ function ProgressBar({ pct, isPlaying, onSeek, onScrubStart, onScrubSeek, onScru
 }
 
 function DragSlider({ value, disabled, onChange }: { value: number; disabled?: boolean; onChange: (v: number) => void }) {
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore(useShallow(s => s.settings));
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
@@ -1015,7 +1015,7 @@ function MixerRow({
   onSolo: () => void;
   animDelay: number;
 }) {
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore(useShallow(s => s.settings));
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const volPct = Math.round(track.volume * 100);
  

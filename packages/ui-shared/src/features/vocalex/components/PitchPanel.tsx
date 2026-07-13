@@ -151,7 +151,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   const statusLabel = active ? centsToLabel(result!.cents, t.vocalex) : '';
 
   const barHeights = [40, 60, 85, 70, 95, 50, 30, 65, 80, 45, 20, 55];
-  const barColors  = [false, false, true, true, true, false, false, false, true, false, false, false];
+  const barColors  = [false, true, true, true, true];
 
   return (
     <div className="spring-in" style={{

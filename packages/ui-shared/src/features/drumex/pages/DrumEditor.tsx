@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, setNavCollapsed, useLiquidGlassNav, DRUM_LIBRARY, LIBRARY_CATEGORIES, LIBRARY_GENRES, type LibraryCategory, type LibraryGenre, type LibraryPattern, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import {
   memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
@@ -694,7 +695,7 @@ async function exportDrumSongJSON(patterns: DrumPattern[], song: DrumSong | null
   const fileName = `${song?.name ?? 'drumex'}.json`;
   const jsonStr  = JSON.stringify(payload, null, 2);
   const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
-  if (isNative) {
+  if (Capacitor.isNativePlatform()) {
     try {
       const { Filesystem, Directory } = await import('@capacitor/filesystem');
       const { Share }                 = await import('@capacitor/share');
@@ -947,7 +948,7 @@ async function exportDrumSongPDF(
 
   const fileName = `${pdfName || song?.name || 'drumex'}.pdf`;
   const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
-  if (isNative) {
+  if (Capacitor.isNativePlatform()) {
     try {
       const { Filesystem, Directory } = await import('@capacitor/filesystem');
       const { Share } = await import('@capacitor/share');
@@ -1395,7 +1396,7 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
                 {saveRes === 'ok' ? 'Saved to Downloads!' : 'Could not save â€” try Share instead'}
               </div>
             )}
-            {isNative ? (
+            {Capacitor.isNativePlatform() ? (
               <>
                 <Button
                   variant="primary"
@@ -1675,8 +1676,8 @@ const VISIBLE_BATCH = 20;
 
 // â”€â”€ DrumEditor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function DrumEditor() {
-  const settings = useChordStore(s => s.settings);
-  const updateSettings = useChordStore(s => s.updateSettings);
+  const settings = useChordStore(useShallow(s => s.settings));
+  const updateSettings = useChordStore(useShallow(s => s.updateSettings));
   const isWebDesktop = useIsWebDesktop();
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;

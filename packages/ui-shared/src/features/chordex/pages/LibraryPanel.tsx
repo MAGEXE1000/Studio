@@ -11,6 +11,15 @@ import PianoDiagram from '../../../components/diagrams/PianoDiagram';
 import FourStringDiagram from '../../../components/diagrams/FourStringDiagram';
 import { WebEmptyState } from '../../../components/design-system/WebDesignSystem';
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 const RelatedPlayBtn = React.memo(function RelatedPlayBtn({ guitar, accent, isLight }: {
   guitar: GuitarChordData;
   accent: { from: string; to: string; mid: string };
@@ -428,16 +437,22 @@ const ChordCard = React.memo(function ChordCard({
       }}>{chord.notes.join(' Â· ')}</p>
     </div>
   );
+}, (prev, next) => {
+  return (
+    prev.chord.id === next.chord.id &&
+    prev.isSelected === next.isSelected &&
+    prev.accent.from === next.accent.from
+  );
 });
 
 // â”€â”€ Main panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LibraryPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
   const selectedChordId = (currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '') ? currentRoute.id || null : null);
   const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
-  const recentChords = useChordStore(s => s.recentChords);
-  const favorites = useChordStore(s => s.favorites);
+  const recentChords = useChordStore(useShallow(s => s.recentChords));
+  const favorites = useChordStore(useShallow(s => s.favorites));
   
   const selectChord = useCallback((chordId: string | null) => {
     if (chordId === null) {
@@ -455,11 +470,11 @@ export default function LibraryPanel() {
     }
   }, [isWebDesktop]);
 
-  const settings = useChordStore(s => s.settings);
-  const toggleFavorite = useChordStore(s => s.toggleFavorite);
-  const addToProgression = useChordStore(s => s.addToProgression);
-  const activeType = useChordStore(s => s.libraryActiveType);
-  const setActiveType = useChordStore(s => s.setLibraryActiveType);
+  const settings = useChordStore(useShallow(s => s.settings));
+  const toggleFavorite = useChordStore(useShallow(s => s.toggleFavorite));
+  const addToProgression = useChordStore(useShallow(s => s.addToProgression));
+  const activeType = useChordStore(useShallow(s => s.libraryActiveType));
+  const setActiveType = useChordStore(useShallow(s => s.setLibraryActiveType));
   const [chordPlaying, setChordPlaying] = useState(false);
 
   const handleChordClick = useCallback((chordId: string) => {
@@ -483,10 +498,12 @@ export default function LibraryPanel() {
   // Library tab state
   const [mainTab, setMainTab]     = useState<'explore' | 'discover'>('explore');
   const [query, setQuery]         = useState('');
+  const debouncedQuery            = useDebounce(query, 250);
 
   // Discover state
   const [activeGenre, setActiveGenre]   = useState<Genre | null>(null);
   const [discoverQuery, setDiscoverQuery] = useState('');
+  const debouncedDiscoverQuery    = useDebounce(discoverQuery, 250);
   const DISCOVER_PAGE_SIZE = 20;
   const [discoverLimit, setDiscoverLimit] = useState(DISCOVER_PAGE_SIZE);
 
@@ -551,9 +568,9 @@ export default function LibraryPanel() {
   }, []);
 
   const searchResults = useMemo(() => {
-    if (!query) return [];
-    return searchChords(query).slice(0, 20);
-  }, [query]);
+    if (!debouncedQuery) return [];
+    return searchChords(debouncedQuery).slice(0, 20);
+  }, [debouncedQuery]);
 
   const filteredByType = useMemo(() => {
     if (!activeType || activeType === 'all') return [];
@@ -610,8 +627,8 @@ export default function LibraryPanel() {
 
   const discoverSongs = useMemo(() => {
     let songs = activeGenre ? SONGS.filter(s => s.genre === activeGenre) : SONGS;
-    if (discoverQuery.trim()) {
-      const q = discoverQuery.toLowerCase();
+    if (debouncedDiscoverQuery.trim()) {
+      const q = debouncedDiscoverQuery.toLowerCase();
       songs = songs.filter(s =>
         s.title.toLowerCase().includes(q) ||
         s.artist.toLowerCase().includes(q) ||
@@ -620,7 +637,7 @@ export default function LibraryPanel() {
       );
     }
     return songs;
-  }, [activeGenre, discoverQuery, describe]);
+  }, [activeGenre, debouncedDiscoverQuery, describe]);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
   useEffect(() => {

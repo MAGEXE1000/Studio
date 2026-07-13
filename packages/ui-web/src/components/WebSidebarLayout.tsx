@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useOtaUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from '@workspace/ui-shared';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -32,7 +32,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;
   const t = useT();
-  const ota = useOtaUpdate();
+  const updater = useAppUpdate();
 
   const handleToggleSidebar = () => {
     if (settings.appMode !== 'hub' && settings.autoHideSidebarInApps) {

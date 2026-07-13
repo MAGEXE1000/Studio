@@ -77,7 +77,7 @@ export default function VocalexApp() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isWebDesktop]);
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore(useShallow(s => s.settings));
   const t = useT();
   // Restore last-visited Vocalex tab so a refresh / app-switch lands the
   // user where they left off. Falls back to 'practice' for fresh installs

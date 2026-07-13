@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
+const KeepAliveView = React.memo(({ viewId, show, renderView }: { viewId: string, show: boolean, renderView: (id: string) => React.ReactNode }) => {
+  return <>{renderView(viewId)}</>;
+}, (prev, next) => {
+  // If the view was hidden and remains hidden, skip evaluating the render function entirely.
+  // This eliminates the O(N) render overhead for keep-alive views.
+  if (!prev.show && !next.show) return true;
+  return false;
+});
+
 interface SharedNavigationContainerProps {
   activeView: string;
   direction?: 'right' | 'left';
@@ -104,7 +113,7 @@ export function SharedNavigationContainer({
               backgroundColor: 'var(--app-bg, var(--c-bg-primary, #000))',
             }}
           >
-            {children(viewId)}
+            <KeepAliveView viewId={viewId} show={show} renderView={children} />
           </div>
         );
       })}

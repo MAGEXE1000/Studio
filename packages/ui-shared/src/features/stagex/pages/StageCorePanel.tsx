@@ -2,7 +2,6 @@ import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translati
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from '../../../navigation/navStyles';
-import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
@@ -385,7 +384,7 @@ export default function StagexPanel() {
   }, [isWebDesktop]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeReady = useRef(false);
-  const settings = useChordStore(state => state.settings);
+  const settings = useChordStore(useShallow(state => state.settings));
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<any[]>([]);
@@ -651,7 +650,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       });
     };
 
-    attach(document, false);
+    attach(document);
 
     let iframeDoc: Document | null = null;
     try {
@@ -660,7 +659,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     } catch {}
 
     return () => {
-      detach(document, false);
+      detach(document);
       if (iframeDoc) {
         try { detach(iframeDoc, true); } catch {}
       }
@@ -1792,7 +1791,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                             Manage Presets
                           </button>
                         </div>,
-                        false,
                         true
                       )}
 
@@ -2128,29 +2126,21 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           backgroundColor: stageBg
         }}
       >
-        <SharedNavigationContainer
-          activeView={getSimplifiedView(curView)}
-          viewOrder={['Editor', 'Setup', 'Preferences', 'Export']}
-        >
-          {(viewId) => (
-            <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
-              <iframe
-                ref={viewId === getSimplifiedView(curView) ? iframeRef : null}
-                src={iframeSrc}
-                data-view={viewId}
-                onLoad={handleLoad}
-                title={`Stagex ${viewId}`}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
-                allow="clipboard-write"
-              />
-              {iframeLoading && viewId === getSimplifiedView(curView) && (
-                <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
-                  <SmartLoading app="stage" />
-                </div>
-              )}
+        <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
+          <iframe
+            ref={iframeRef}
+            src={iframeSrc}
+            onLoad={handleLoad}
+            title="Stagex"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
+            allow="clipboard-write"
+          />
+          {iframeLoading && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
+              <SmartLoading app="stage" />
             </div>
           )}
-        </SharedNavigationContainer>
+        </div>
 
         {showDiagnostics && (
           <div style={{

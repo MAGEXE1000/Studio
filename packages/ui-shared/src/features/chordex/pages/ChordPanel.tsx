@@ -50,15 +50,15 @@ function RelatedPlayBtn({ guitar, accent, isLight }: {
 
 export default function ChordPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
   const selectedChordId = (currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '') ? currentRoute.id || null : null);
   const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
-  const settings = useChordStore(s => s.settings);
-  const toggleFavorite = useChordStore(s => s.toggleFavorite);
-  const isFavorite = useChordStore(s => s.isFavorite);
-  const addToProgression = useChordStore(s => s.addToProgression);
-  const currentProgressionChords = useChordStore(s => s.currentProgressionChords);
-  const recentChords = useChordStore(s => s.recentChords);
+  const settings = useChordStore(useShallow(s => s.settings));
+  const toggleFavorite = useChordStore(useShallow(s => s.toggleFavorite));
+  const isFavorite = useChordStore(useShallow(s => s.isFavorite));
+  const addToProgression = useChordStore(useShallow(s => s.addToProgression));
+  const currentProgressionChords = useChordStore(useShallow(s => s.currentProgressionChords));
+  const recentChords = useChordStore(useShallow(s => s.recentChords));
   
   const selectChord = useCallback((chordId: string | null) => {
     if (chordId === null) {
@@ -67,8 +67,8 @@ export default function ChordPanel() {
       NavigationDispatcher.push({ app: 'chords', page: 'chord', id: chordId });
     }
   }, []);
-  const trackChordUsage = useChordStore(s => s.trackChordUsage);
-  const setLibraryActiveType = useChordStore(s => s.setLibraryActiveType);
+  const trackChordUsage = useChordStore(useShallow(s => s.trackChordUsage));
+  const setLibraryActiveType = useChordStore(useShallow(s => s.setLibraryActiveType));
   const setActivePanel = useCallback((panel: ActivePanel) => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   }, []);
@@ -973,10 +973,10 @@ export default function ChordPanel() {
 
 function SavedProgressions({ accent }: { accent: { from: string; to: string; mid: string } }) {
   const isWebDesktop = useIsWebDesktop();
-  const settings = useChordStore(s => s.settings);
-  const progressions = useChordStore(s => s.progressions);
-  const loadProgression = useChordStore(s => s.loadProgression);
-  const deleteProgression = useChordStore(s => s.deleteProgression);
+  const settings = useChordStore(useShallow(s => s.settings));
+  const progressions = useChordStore(useShallow(s => s.progressions));
+  const loadProgression = useChordStore(useShallow(s => s.loadProgression));
+  const deleteProgression = useChordStore(useShallow(s => s.deleteProgression));
   const t = useT();
   if (progressions.length === 0) return null;
 

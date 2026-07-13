@@ -12,8 +12,16 @@ import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnima
 import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../../../components/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input } from '../../../components/design-system/StudioDesignSystem';
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PDF EXPORT CONFIG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── PDF EXPORT CONFIG ──────────────────── */
 export interface ExportConfig {
   includeTitle:   boolean;
   includeArtist:  boolean;
@@ -44,7 +52,7 @@ const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   exportStyle:   'elegant',
 };
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PDF EXPORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── PDF EXPORT ──────────────────── */
 function buildPrintSVG(data: GuitarChordData, dark = false, _accentColor = '#679cff', _scale = 1, noLabel = false): string {
   const numS = 6;
   const { frets, barres, baseFret } = data;
@@ -105,7 +113,7 @@ function buildPrintSVG(data: GuitarChordData, dark = false, _accentColor = '#679
   const aboveY = pT - 9;
   frets.forEach((f, si) => {
     const cx = pL + si * cW;
-    if (f === -1) s += `<text x="${cx}" y="${aboveY + 3}" font-family="Arial,sans-serif" font-size="10" fill="${muteColor}" text-anchor="middle" dominant-baseline="middle" font-weight="bold">Ã—</text>`;
+    if (f === -1) s += `<text x="${cx}" y="${aboveY + 3}" font-family="Arial,sans-serif" font-size="10" fill="${muteColor}" text-anchor="middle" dominant-baseline="middle" font-weight="bold">×</text>`;
     else if (f === 0) s += `<circle cx="${cx}" cy="${aboveY}" r="3.5" fill="none" stroke="${openStroke}" stroke-width="1.2"/>`;
   });
 
@@ -171,7 +179,7 @@ function buildPrintFretboardSVG(
   const aboveY = pT - 9;
   frets.forEach((f, si) => {
     const cx = pL + si * strSpacing;
-    if (f === -1) s += `<text x="${cx}" y="${aboveY + 3}" font-family="Arial,sans-serif" font-size="10" fill="${muteColor}" text-anchor="middle" dominant-baseline="middle" font-weight="bold">Ã—</text>`;
+    if (f === -1) s += `<text x="${cx}" y="${aboveY + 3}" font-family="Arial,sans-serif" font-size="10" fill="${muteColor}" text-anchor="middle" dominant-baseline="middle" font-weight="bold">×</text>`;
     else if (f === 0) s += `<circle cx="${cx}" cy="${aboveY}" r="3.5" fill="none" stroke="${openStroke}" stroke-width="1.2"/>`;
   });
   s += '</svg>';
@@ -250,7 +258,7 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
     ? pdfName.trim().replace(/[^a-zA-Z0-9 _-]/g, '').replace(/\s+/g, '_')
     : autoTitle;
 
-  /* Columns and SVG scale â€” auto-fit if not compact */
+  /* Columns and SVG scale — auto-fit if not compact */
   const totalChords = entries.length;
   const isLandscape = cfg.orientation === 'landscape';
 
@@ -261,7 +269,7 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
     cols     = isLandscape ? 4 : 3;
     svgScale = 0.78;
   } else {
-    // Page dimensions in px (at 96 dpi, letter = 816Ã—1056, a4 = 794Ã—1122)
+    // Page dimensions in px (at 96 dpi, letter = 816×1056, a4 = 794×1122)
     const paper    = cfg.paperSize ?? 'a4';
     const PW_PX    = isLandscape ? (paper === 'letter' ? 1056 : 1122) : (paper === 'letter' ? 816 : 794);
     const PH_PX    = isLandscape ? (paper === 'letter' ? 816  : 794 ) : (paper === 'letter' ? 1056 : 1122);
@@ -293,7 +301,7 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
     svgScale = chosenScale;
   }
 
-  /* â”€â”€ Palette â”€â”€ */
+  /* ── Palette ── */
   const bg       = dark ? '#0c0c0c'                 : (elegant ? '#f6f5f2' : '#ffffff');
   const text     = dark ? '#edeae4'                 : '#0d0d0d';
   const sub      = dark ? '#8a8a8a'                 : '#5a5f6e';
@@ -307,7 +315,7 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
   const typeTxt  = dark ? '#383838'                 : '#c8ccda';
   const numClr   = elegant ? accentColor            : (dark ? '#444' : '#c8ccda');
 
-  /* â”€â”€ Sizes & spacing â”€â”€ */
+  /* ── Sizes & spacing ── */
   const bodyPad   = compact ? '20px 28px'       : '40px 52px';
   const titleSz   = compact ? '28px'            : '46px';
   const artistSz  = compact ? '12px'            : '16px';
@@ -321,16 +329,16 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
   const gridGap   = compact ? '8px 6px'         : '20px 14px';
   const diagMb    = compact ? '5px'             : '14px';
 
-  /* â”€â”€ Accent hex helpers â”€â”€ */
+  /* ── Accent hex helpers ── */
   const accentA22 = accentColor + '22';
   const accentA44 = accentColor + '44';
 
-  /* â”€â”€ Badge style â”€â”€ */
+  /* ── Badge style ── */
   const badgeStyle = elegant
     ? `display:inline-flex;align-items:center;padding:4px 13px;border-radius:100px;border:1.5px solid ${accentA44};background:${accentA22};color:${sub};font-size:${compact ? '9px' : '10px'};font-weight:700;letter-spacing:0.07em;text-transform:uppercase;`
     : `display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;border:1.5px solid ${divider};color:${sub};font-size:${compact ? '9px' : '10px'};font-weight:700;letter-spacing:0.06em;text-transform:uppercase;`;
 
-  /* â”€â”€ Title block â”€â”€ */
+  /* ── Title block ── */
   const titleInner = [
     cfg.includeTitle  ? `<h1 class="song-name">${preset.name}</h1>` : '',
     cfg.includeArtist && preset.artist ? `<p class="artist">${preset.artist}</p>` : '',
@@ -349,12 +357,12 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
   const notesHtml = cfg.includeNotes && preset.notes
     ? `<p style="margin-top:10px;font-size:12px;color:${sub};font-style:italic;max-width:460px;line-height:1.55;">${preset.notes}</p>` : '';
 
-  /* â”€â”€ Section row â”€â”€ */
+  /* ── Section row ── */
   const pip = elegant
     ? `<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:${accentColor};margin-right:7px;flex-shrink:0;"></span>` : '';
   const chordCount = `${entries.length} acorde${entries.length !== 1 ? 's' : ''}`;
 
-  /* â”€â”€ Instrument badge helper â”€â”€ */
+  /* ── Instrument badge helper ── */
   const INSTR_COLORS: Record<string, string> = {
     guitar:  accentColor,
     bass:    '#fb923c',
@@ -365,7 +373,7 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
     return `<div class="chord-instr" style="background:${c}1a;color:${c};border:1px solid ${c}44;">${instr.toUpperCase()}</div>`;
   };
 
-  /* â”€â”€ Chord block builder â”€â”€ */
+  /* ── Chord block builder ── */
   const buildBlock = (entry: ChordEntry, i: number): string => {
     const numEl = cfg.showNumbering ? `<div class="chord-num">${i + 1}</div>` : '';
     if (entry.isCustom) {
@@ -388,16 +396,16 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
           }
         }
       }
-      return `<div class="chord-block">${numEl}${instrBadge(instr)}${nameEl}${diagEl}<div class="chord-notes">${cc.notes.slice(0, 6).join(' Â· ')}</div></div>`;
+      return `<div class="chord-block">${numEl}${instrBadge(instr)}${nameEl}${diagEl}<div class="chord-notes">${cc.notes.slice(0, 6).join(' · ')}</div></div>`;
     }
     const chord = entry.chord;
     const nameEl = cfg.chordDisplay !== 'diagram' ? `<div class="chord-name">${chord.name}</div>` : '';
     const diagEl = cfg.chordDisplay !== 'name'
       ? `<div class="chord-diagram">${buildPrintSVG(chord.guitar, dark, accentColor, svgScale)}</div>` : '';
-    return `<div class="chord-block">${numEl}${instrBadge('guitar')}${nameEl}${diagEl}<div class="chord-notes">${chord.notes.join(' Â· ')}</div><div class="chord-type">${chord.type.toUpperCase()}</div></div>`;
+    return `<div class="chord-block">${numEl}${instrBadge('guitar')}${nameEl}${diagEl}<div class="chord-notes">${chord.notes.join(' · ')}</div><div class="chord-type">${chord.type.toUpperCase()}</div></div>`;
   };
 
-  /* â”€â”€ Chord content (flat grid or section groups) â”€â”€ */
+  /* ── Chord content (flat grid or section groups) ── */
   const chordContent = hasSections
     ? preset.sections!.map(section => {
         const secEntries = buildEntries(section.chords);
@@ -410,7 +418,7 @@ async function exportPresetToPDF(preset: SongPreset, cfg: ExportConfig = DEFAULT
       }).join('')
     : `<div class="chord-grid">${entries.map((e, i) => buildBlock(e, i)).join('')}</div>`;
 
-  /* â”€â”€ Full HTML â”€â”€ */
+  /* ── Full HTML ── */
   const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8"><title>${docTitle}</title>
@@ -501,7 +509,7 @@ body{
   <div class="header-right">${chordCount}</div>
 </div>
 <div class="section-row">
-  <div class="section-label">${pip}${hasSections ? 'Secciones' : 'ProgresiÃ³n de acordes'}</div>
+  <div class="section-label">${pip}${hasSections ? 'Secciones' : 'Progresión de acordes'}</div>
   <div class="section-label">${chordCount}</div>
 </div>
 ${chordContent}
@@ -511,13 +519,13 @@ ${chordContent}
 </div>
 </body></html>`;
 
-  /* â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  // Draw PDF with jsPDF on both native and web â€” only the save step differs.
+  /* ── Export ──────────────────────────────────────────────────────────────────────── */
+  // Draw PDF with jsPDF on both native and web — only the save step differs.
   const isNative = Capacitor.isNativePlatform();
   try {
     const { jsPDF } = await import('jspdf');
 
-      /* â”€â”€ Page geometry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Page geometry ────────────────────────────────────────────────────────── */
       const paper   = cfg.paperSize ?? 'a4';
       const orientJ = cfg.orientation === 'landscape' ? 'l' : 'p';
       const isLand  = orientJ === 'l';
@@ -527,7 +535,7 @@ ${chordContent}
 
       const doc = new jsPDF({ unit: 'mm', format: paper, orientation: orientJ });
 
-      /* â”€â”€ Style theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Style theme ────────────────────────────────────────────────────────── */
       const dark    = cfg.theme === 'dark';
       const sty     = cfg.exportStyle ?? 'elegant';
       const compact = sty === 'compact';
@@ -548,14 +556,14 @@ ${chordContent}
       const C_ACCENT  = accentColor;
       const C_BADGE_BG = dark ? '#1e1e1e' : (elegant ? '#eceae5' : '#f0f0f0');
 
-      /* â”€â”€ Margins â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Margins ──────────────────────────────────────────────────────────────── */
       const ML  = compact ? 10 : 14;
       const MR  = compact ? 10 : 14;
       const MT  = compact ? 10 : 13;
       const MB  = 10;
       const CW  = PW - ML - MR;
 
-      /* â”€â”€ Card layout â€” auto-fit all chords â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Card layout — auto-fit all chords ────────────────────────────── */
       const CARD_GAP   = compact ? 3.5 : 5;
       const CARD_PAD_X = compact ? 2   : 3;
       const CARD_PAD_Y = compact ? 2.5 : 3.5;
@@ -594,7 +602,7 @@ ${chordContent}
       const DIAG_H = hasDiag ? DIAG_W * (160 / 160) : 0;
       const CARD_H = 2 * CARD_PAD_Y + NAME_H + DIAG_H + (compact ? 1.5 : 2);
 
-      /* â”€â”€ Pre-render SVG diagrams â†’ PNG data URLs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Pre-render SVG diagrams → PNG data URLs ───────────────────── */
       // Convert mm size to pixels for the SVG builder (96 dpi)
       const PX_PER_MM = 96 / 25.4;
       const diagWpx   = Math.round(DIAG_W * PX_PER_MM);
@@ -604,7 +612,7 @@ ${chordContent}
       const svgToPng = (svgStr: string): Promise<string> =>
         new Promise(resolve => {
           if (!svgStr) { resolve(''); return; }
-          const RES = 3; // render at 3Ã— for sharp PDF output
+          const RES = 3; // render at 3× for sharp PDF output
           const cv  = document.createElement('canvas');
           cv.width  = diagWpx * RES;
           cv.height = diagHpx * RES;
@@ -638,8 +646,8 @@ ${chordContent}
             showNut = baseFret === 1;
             const strings = (cc.instrument === 'bass') ? 4 : 4;
             svgStr = cc.instrument === 'guitar'
-              ? buildPrintSVG({ frets, fingers: [], barres: cc.barres ?? [], baseFret }, dark, C_ACCENT, svgSc, false)
-              : buildPrintFretboardSVG(frets, baseFret, cc.barres ?? [], strings, dark, C_ACCENT, svgSc, false);
+              ? buildPrintSVG({ frets, fingers: [], barres: cc.barres ?? [], baseFret }, dark, C_ACCENT, svgSc)
+              : buildPrintFretboardSVG(frets, baseFret, cc.barres ?? [], strings, dark, C_ACCENT, svgSc);
           }
         } else {
           const ch = entry.chord;
@@ -648,13 +656,13 @@ ${chordContent}
           type  = ch.type ?? '';
           baseFret = ch.guitar.baseFret ?? 1;
           showNut  = baseFret === 1;
-          svgStr = buildPrintSVG(ch.guitar, dark, C_ACCENT, svgSc, false);
+          svgStr = buildPrintSVG(ch.guitar, dark, C_ACCENT, svgSc);
         }
         const png = hasDiag ? await svgToPng(svgStr) : '';
         return { name, png, notes, type, baseFret, showNut };
       }));
 
-      /* â”€â”€ Draw helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Draw helpers ────────────────────────────────────────────────────────── */
       const fillPage = () => {
         doc.setFillColor(...hexRgb(C_BG));
         doc.rect(0, 0, PW, PH, 'F');
@@ -719,11 +727,11 @@ ${chordContent}
         } else if (compact) {
           doc.roundedRect(cx, cy, CARD_W, CARD_H, 1.5, 1.5, 'F');
         }
-        // minimal: no card background â€” just content on page bg
+        // minimal: no card background — just content on page bg
 
         let iy = cy + CARD_PAD_Y;
 
-        // Chord number â€” top-right to match preview
+        // Chord number — top-right to match preview
         if (cfg.showNumbering) {
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(compact ? 6.5 : 7.5);
@@ -768,7 +776,7 @@ ${chordContent}
         }
       };
 
-      /* â”€â”€ Section heading helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Section heading helper ────────────────────────────────────────────────── */
       const SECT_H = compact ? 6 : 8; // mm: heading + gap below
 
       const drawSectionHeading = (name: string, y: number) => {
@@ -780,7 +788,7 @@ ${chordContent}
         doc.text(name.toUpperCase(), ML + 3, y + (compact ? 3 : 3.8));
       };
 
-      /* â”€â”€ Build flat draw-item list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Build flat draw-item list ─────────────────────────────────────────── */
       type DrawItem =
         | { type: 'section-header'; name: string }
         | { type: 'card'; data: CardData; num: number };
@@ -803,7 +811,7 @@ ${chordContent}
         cards.forEach((card, i) => drawItems.push({ type: 'card', data: card, num: i + 1 }));
       }
 
-      /* â”€â”€ Simulate layout to count total pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Simulate layout to count total pages ────────────────────────────── */
       const AVAIL_BOTTOM = PH - MB - 8;
       const headerStartY = MT + HDR_H; // same Y that drawHeader() returns, without drawing
       const simTotalPages = (() => {
@@ -832,7 +840,7 @@ ${chordContent}
         return page;
       })();
 
-      /* â”€â”€ Paginate & draw (Y-cursor) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+      /* ── Paginate & draw (Y-cursor) ────────────────────────────────────────── */
       fillPage();
       let cy       = drawHeader();
       let colIdx   = 0;
@@ -869,8 +877,8 @@ ${chordContent}
 
       drawFooter(curPage, simTotalPages);
 
-      /* â”€â”€ Save & share â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-      if (isNative) {
+      /* ── Save & share ────────────────────────────────────────────────────────── */
+      if (Capacitor.isNativePlatform()) {
         const { Filesystem, Directory } = await import('@capacitor/filesystem');
         const pdfBase64 = doc.output('datauristring').split(',')[1];
         if (mode === 'save') {
@@ -911,7 +919,7 @@ ${chordContent}
               dialogTitle: 'Share your chord sheet PDF',
             });
           } catch {
-            // User cancelled â€” do nothing.
+            // User cancelled — do nothing.
           }
           return true;
         }
@@ -921,12 +929,12 @@ ${chordContent}
         return true;
       }
   } catch {
-    // PDF generation failed â€” do nothing.
+    // PDF generation failed — do nothing.
   }
   return false;
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Chord Picker Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── Chord Picker Sheet ──────────────────── */
 const PICKER_CATS: { type: ChordType | 'all'; label: string }[] = [
   { type: 'all',     label: 'All'    },
   { type: 'major',   label: 'Major'  },
@@ -944,7 +952,7 @@ const PICKER_CATS: { type: ChordType | 'all'; label: string }[] = [
   { type: 'add9',    label: 'Add9'   },
   { type: '6th',     label: '6th'    },
   { type: 'min6',    label: 'Min6'   },
-  { type: 'halfdim', label: 'Ã¸7'     },
+  { type: 'halfdim', label: 'ø7'     },
   { type: 'dim7',    label: 'Dim7'   },
   { type: '11th',    label: '11th'   },
   { type: '13th',    label: '13th'   },
@@ -960,7 +968,7 @@ const PICKER_CATS: { type: ChordType | 'all'; label: string }[] = [
   { type: '9sus4',   label: '9sus4'  },
 ];
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Preview Fretboard (inside paper card) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── Preview Fretboard (inside paper card) ──────────────────── */
 function PreviewFretboard({ data, dark }: { data: GuitarChordData; dark: boolean }) {
   const W = 86, H = 84, numS = 6, numF = 4;
   const pL = 10, pT = 14, pR = 10;
@@ -1008,7 +1016,7 @@ function PreviewFretboard({ data, dark }: { data: GuitarChordData; dark: boolean
       {frets.map((f, si) => {
         if (f === -1) return (
           <text key={si} x={pL + si * cW} y={pT - 9} fontFamily="Arial" fontSize={10}
-            fill={dark ? '#555' : '#ccc'} textAnchor="middle" dominantBaseline="middle" fontWeight="bold">Ã—</text>
+            fill={dark ? '#555' : '#ccc'} textAnchor="middle" dominantBaseline="middle" fontWeight="bold">×</text>
         );
         if (f === 0) return (
           <circle key={si} cx={pL + si * cW} cy={pT - 9} r={3.5}
@@ -1026,7 +1034,7 @@ function PreviewFretboard({ data, dark }: { data: GuitarChordData; dark: boolean
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Print-neutral custom chord diagram â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── Print-neutral custom chord diagram ──────────────────── */
 function PreviewCustomDiagram({ chord, dark }: { chord: CustomChord; dark: boolean }) {
   const dotFill  = dark ? '#e8e8e8' : '#191a1a';
   const lineFill = dark ? 'rgba(200,200,200,0.18)' : 'rgba(25,26,26,0.15)';
@@ -1103,7 +1111,7 @@ function PreviewCustomDiagram({ chord, dark }: { chord: CustomChord; dark: boole
       {frets.map((f, si) => {
         if (f === -1) return (
           <text key={si} x={pL + si * cW} y={pT - 9} fontFamily="Arial" fontSize={10}
-            fill={dark ? '#555' : '#ccc'} textAnchor="middle" dominantBaseline="middle" fontWeight="bold">Ã—</text>
+            fill={dark ? '#555' : '#ccc'} textAnchor="middle" dominantBaseline="middle" fontWeight="bold">×</text>
         );
         if (f === 0) return (
           <circle key={si} cx={pL + si * cW} cy={pT - 9} r={3.5}
@@ -1121,7 +1129,7 @@ function PreviewCustomDiagram({ chord, dark }: { chord: CustomChord; dark: boole
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Paper Document Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── Paper Document Preview ──────────────────── */
 function PaperPreview({ preset, cfg, accent, transposeOffset = 0, storedCustomChords = [] }: {
   preset: SongPreset;
   cfg: ExportConfig;
@@ -1138,7 +1146,7 @@ function PaperPreview({ preset, cfg, accent, transposeOffset = 0, storedCustomCh
   const isLand  = cfg.orientation === 'landscape';
   const paper   = cfg.paperSize ?? 'a4';
 
-  /* Build ALL chord entries â€“ handles both standard and custom chords */
+  /* Build ALL chord entries – handles both standard and custom chords */
   type PreviewEntry = { kind: 'standard'; chord: Chord } | { kind: 'custom'; cc: CustomChord };
   type PreviewSection = { name: string; entries: PreviewEntry[] };
 
@@ -1156,9 +1164,9 @@ function PaperPreview({ preset, cfg, accent, transposeOffset = 0, storedCustomCh
 
   const previewSections: PreviewSection[] = hasSections
     ? preset.sections!.map(sec => ({ name: sec.name, entries: buildPreviewEntries(sec.chords) }))
-    : [{ name: 'ProgresiÃ³n de acordes', entries: buildPreviewEntries(preset.chords) }];
+    : [{ name: 'Progresión de acordes', entries: buildPreviewEntries(preset.chords) }];
 
-  /* Auto-fit columns based on total chord count â€“ same thresholds as jsPDF engine */
+  /* Auto-fit columns based on total chord count – same thresholds as jsPDF engine */
   const totalChords = previewSections.reduce((n, s) => n + s.entries.length, 0);
   const cols = totalChords <= 6 ? 3 : totalChords <= 12 ? 4 : totalChords <= 18 ? 5 : 6;
 
@@ -1256,7 +1264,7 @@ function PaperPreview({ preset, cfg, accent, transposeOffset = 0, storedCustomCh
                   </div>
                 : <>
                     {elegant && <span style={{ display: 'inline-block', width: '4px', height: '4px', borderRadius: '50%', background: accentC, flexShrink: 0 }} />}
-                    <p style={{ fontSize: '6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.22em', color: muted }}>ProgresiÃ³n de acordes</p>
+                    <p style={{ fontSize: '6px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.22em', color: muted }}>Progresión de acordes</p>
                   </>
               }
             </div>
@@ -1311,7 +1319,7 @@ function PaperPreview({ preset, cfg, accent, transposeOffset = 0, storedCustomCh
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Export Config Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── Export Config Modal ──────────────────── */
 function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCustomChords = [] }: {
   preset: SongPreset;
   accent: { from: string; to: string };
@@ -1441,7 +1449,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
       display: 'flex', flexDirection: 'column',
     }}>
 
-      {/* â”€â”€ Header â”€â”€ */}
+      {/* ── Header ── */}
       <div style={{
         paddingTop: 'env(safe-area-inset-top)',
         background: '#191a1a',
@@ -1464,7 +1472,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
         </div>
       </div>
 
-      {/* â”€â”€ Scrollable body â”€â”€ */}
+      {/* ── Scrollable body ── */}
       <ScrollScaffold bottomSpacing={false} style={{ flex: 1, padding: 0 }}>
         {/* Paper stage */}
         <div style={{
@@ -1482,7 +1490,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginTop: '14px' }}>
             <span style={{ fontFamily: 'Inter', fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
-              PÃ¡gina 1 de 1
+              Página 1 de 1
             </span>
             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#3a3a3a', display: 'inline-block' }} />
             <span style={{ fontFamily: 'Inter', fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
@@ -1601,7 +1609,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
         </div>
       </ScrollScaffold>
 
-      {/* â”€â”€ Floating bottom bar â”€â”€ */}
+      {/* ── Floating bottom bar ── */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 300,
         transform: barVisible ? 'translateY(0)' : 'translateY(110%)',
@@ -1619,10 +1627,10 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
               {saveResult === 'ok' && (
                 <SuccessLottie size={20} isLight={false} style={{ flexShrink: 0 }} />
               )}
-              {saveResult === 'ok' ? 'Saved to Downloads!' : 'Could not save â€” try Share instead'}
+              {saveResult === 'ok' ? 'Saved to Downloads!' : 'Could not save — try Share instead'}
             </div>
           )}
-          {isNative ? (
+          {Capacitor.isNativePlatform() ? (
             <>
               <Button
                 variant="primary"
@@ -1662,7 +1670,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
   );
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ JSON Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── JSON Export ──────────────────── */
 export interface ChordexJsonFile {
   _app: 'Chordex';
   _version: 1;
@@ -1695,7 +1703,7 @@ async function exportPresetToJSON(preset: SongPreset, mode: 'save' | 'share' = '
 
   if (Capacitor.isNativePlatform()) {
     const { Filesystem, Directory } = await import('@capacitor/filesystem');
-    // Reliable UTF-8 â†’ base64 encoding
+    // Reliable UTF-8 → base64 encoding
     const bytes = new TextEncoder().encode(content);
     const binary = Array.from(bytes, b => String.fromCharCode(b)).join('');
     const base64 = btoa(binary);
@@ -1736,7 +1744,7 @@ async function exportPresetToJSON(preset: SongPreset, mode: 'save' | 'share' = '
   return true;
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ JSON Export Action Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── JSON Export Action Sheet ──────────────────── */
 function JsonExportSheet({ preset, accent, onClose }: {
   preset: SongPreset;
   accent: { from: string; to: string };
@@ -1783,7 +1791,7 @@ function JsonExportSheet({ preset, accent, onClose }: {
             textAlign: 'center', fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px',
             color: saveResult === 'ok' ? '#34d399' : '#f87171',
           }}>
-            {saveResult === 'ok' ? 'Saved to Downloads!' : 'Could not save â€” try Share instead'}
+            {saveResult === 'ok' ? 'Saved to Downloads!' : 'Could not save — try Share instead'}
           </div>
         )}
 
@@ -1821,7 +1829,7 @@ function resolveChordId(name: string): string | null {
   // Exact normalized match
   const exact = allChords.find(c => norm(c.name) === n);
   if (exact) return exact.id;
-  // Common aliases: "Am" â†’ "A-minor", "Bb" â†’ "Bb-major", "F#m" â†’ "F#-minor"
+  // Common aliases: "Am" → "A-minor", "Bb" → "Bb-major", "F#m" → "F#-minor"
   const aliases: Record<string, string> = {
     'maj': 'major', 'min': 'minor', 'm': 'minor',
     'dom': '7th', 'dom7': '7th',
@@ -1836,7 +1844,7 @@ function resolveChordId(name: string): string | null {
   return null;
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Import Song Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ──────────────────── Import Song Modal ──────────────────── */
 type ImportStage = 'idle' | 'preview' | 'conflict' | 'success' | 'error';
 
 interface ParsedImport {
@@ -1963,7 +1971,7 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
     setConflictId(null);
   };
 
-  /* â”€â”€ Shared header â”€â”€ */
+  /* ── Shared header ── */
   const ModalHeader = ({ title }: { title: string }) => (
     <div style={{
       display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 16px 12px', flexShrink: 0,
@@ -1976,7 +1984,7 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
     </div>
   );
 
-  /* â”€â”€ Pill badge â”€â”€ */
+  /* ── Pill badge ── */
   const Pill = ({ label, color }: { label: string; color: string }) => (
     <span style={{ padding: '3px 10px', borderRadius: '9999px', background: `${color}18`, color, fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', border: `1px solid ${color}33` }}>{label}</span>
   );
@@ -1997,7 +2005,7 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
       onClose={onClose}
       title={getTitle()}
     >
-      {/* â”€â”€ IDLE: file picker â”€â”€ */}
+      {/* ── IDLE: file picker ── */}
       {stage === 'idle' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Drop zone */}
@@ -2045,7 +2053,7 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
         </div>
       )}
 
-      {/* â”€â”€ PREVIEW â”€â”€ */}
+      {/* ── PREVIEW ── */}
       {stage === 'preview' && parsed && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Song card */}
@@ -2096,7 +2104,7 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
         </div>
       )}
 
-      {/* â”€â”€ CONFLICT â”€â”€ */}
+      {/* ── CONFLICT ── */}
       {stage === 'conflict' && parsed && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '12px', padding: '14px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
@@ -2118,7 +2126,7 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
               disabled={!renameVal.trim()}
               style={{ marginTop: '12px', width: '100%' }}
             >
-              {t.songs.importAs(renameVal.trim() || 'â€¦')}
+              {t.songs.importAs(renameVal.trim() || '…')}
             </Button>
           </div>
           {/* Option: Replace */}
@@ -2510,45 +2518,51 @@ const PresetCard = React.memo(function PresetCard({
       </div>
     </div>
   );
+}, (prev, next) => {
+  return (
+    prev.preset.id === next.preset.id &&
+    prev.preset.updatedAt === next.preset.updatedAt &&
+    prev.accent.from === next.accent.from
+  );
 });
 
 export default function SongsPanel() {
   const t = useT();
   const isWebDesktop = useIsWebDesktop();
-  const presets = useChordStore(s => s.presets);
-  const activePresetId = useChordStore(s => s.activePresetId);
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const presets = useChordStore(useShallow(s => s.presets));
+  const activePresetId = useChordStore(useShallow(s => s.activePresetId));
+  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
   const activePanel = currentRoute.app === 'chords' ? currentRoute.page || 'library' : 'library';
-  const settings = useChordStore(s => s.settings);
-  const transpositions = useChordStore(s => s.transpositions);
-  const customChords = useChordStore(s => s.customChords);
-  const setActivePreset = useChordStore(s => s.setActivePreset);
-  const createPreset = useChordStore(s => s.createPreset);
-  const updatePreset = useChordStore(s => s.updatePreset);
-  const deletePreset = useChordStore(s => s.deletePreset);
-  const addChordToPreset = useChordStore(s => s.addChordToPreset);
-  const removeChordFromPreset = useChordStore(s => s.removeChordFromPreset);
-  const reorderPresetChords = useChordStore(s => s.reorderPresetChords);
-  const duplicateChordInPreset = useChordStore(s => s.duplicateChordInPreset);
-  const setTranspose = useChordStore(s => s.setTranspose);
-  const resetTranspose = useChordStore(s => s.resetTranspose);
-  const updateSettings = useChordStore(s => s.updateSettings);
-  const saveCustomChord = useChordStore(s => s.saveCustomChord);
-  const updateCustomChord = useChordStore(s => s.updateCustomChord);
-  const deleteCustomChord = useChordStore(s => s.deleteCustomChord);
-  const addSection = useChordStore(s => s.addSection);
-  const updateSection = useChordStore(s => s.updateSection);
-  const deleteSection = useChordStore(s => s.deleteSection);
-  const addChordToSection = useChordStore(s => s.addChordToSection);
-  const removeChordFromSection = useChordStore(s => s.removeChordFromSection);
-  const reorderSectionChords = useChordStore(s => s.reorderSectionChords);
-  const duplicateChordInSection = useChordStore(s => s.duplicateChordInSection);
-  const reorderSection = useChordStore(s => s.reorderSection);
-  const convertToSections = useChordStore(s => s.convertToSections);
-  const deduplicateAllPresets = useChordStore(s => s.deduplicateAllPresets);
+  const settings = useChordStore(useShallow(s => s.settings));
+  const transpositions = useChordStore(useShallow(s => s.transpositions));
+  const customChords = useChordStore(useShallow(s => s.customChords));
+  const setActivePreset = useChordStore(useShallow(s => s.setActivePreset));
+  const createPreset = useChordStore(useShallow(s => s.createPreset));
+  const updatePreset = useChordStore(useShallow(s => s.updatePreset));
+  const deletePreset = useChordStore(useShallow(s => s.deletePreset));
+  const addChordToPreset = useChordStore(useShallow(s => s.addChordToPreset));
+  const removeChordFromPreset = useChordStore(useShallow(s => s.removeChordFromPreset));
+  const reorderPresetChords = useChordStore(useShallow(s => s.reorderPresetChords));
+  const duplicateChordInPreset = useChordStore(useShallow(s => s.duplicateChordInPreset));
+  const setTranspose = useChordStore(useShallow(s => s.setTranspose));
+  const resetTranspose = useChordStore(useShallow(s => s.resetTranspose));
+  const updateSettings = useChordStore(useShallow(s => s.updateSettings));
+  const saveCustomChord = useChordStore(useShallow(s => s.saveCustomChord));
+  const updateCustomChord = useChordStore(useShallow(s => s.updateCustomChord));
+  const deleteCustomChord = useChordStore(useShallow(s => s.deleteCustomChord));
+  const addSection = useChordStore(useShallow(s => s.addSection));
+  const updateSection = useChordStore(useShallow(s => s.updateSection));
+  const deleteSection = useChordStore(useShallow(s => s.deleteSection));
+  const addChordToSection = useChordStore(useShallow(s => s.addChordToSection));
+  const removeChordFromSection = useChordStore(useShallow(s => s.removeChordFromSection));
+  const reorderSectionChords = useChordStore(useShallow(s => s.reorderSectionChords));
+  const duplicateChordInSection = useChordStore(useShallow(s => s.duplicateChordInSection));
+  const reorderSection = useChordStore(useShallow(s => s.reorderSection));
+  const convertToSections = useChordStore(useShallow(s => s.convertToSections));
+  const deduplicateAllPresets = useChordStore(useShallow(s => s.deduplicateAllPresets));
   const accent      = ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ?? ACCENT_COLORS.blue;
   const preferFlats = settings.preferFlats ?? false;
-  const isNative    = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+  const isNative = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
 
   const [showForm, setShowForm]               = useState(false);
   const [editingId, setEditingId]             = useState<string | null>(null);
@@ -2670,7 +2684,7 @@ export default function SongsPanel() {
   }, [updatePreset]);
 
   // â”€â”€ Android back gesture / predictive back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Returns true if it handled something, false if we're at the root.
+  // Returns true if it handled something if we're at the root.
   useBackHandler('nested', () => {
     if (activePanel !== 'songs') return false;
     if (showSectionPicker)   { setShowSectionPicker(false);   return true; }
@@ -3044,7 +3058,7 @@ export default function SongsPanel() {
                 ) : null;
               })()}
               <button
-                onClick={() => isNative ? setJsonExportPreset(activePreset) : exportPresetToJSON(activePreset, 'share')}
+                onClick={() => Capacitor.isNativePlatform() ? setJsonExportPreset(activePreset) : exportPresetToJSON(activePreset, 'share')}
                 className="btn-smooth" title={t.songs.exportAsJson}
                 style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--app-surface-high)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}>data_object</span>

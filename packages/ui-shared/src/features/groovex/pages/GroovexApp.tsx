@@ -20,7 +20,7 @@ export default function GroovexApp() {
       ? (last.page as GroovexView)
       : 'library');
   });
-  const activeSongId = useGroovexStore(s => s.activeSongId);
+  const activeSongId = useGroovexStore(useShallow(s => s.activeSongId));
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
   });
@@ -152,7 +152,7 @@ function GroovexNav({ view, setView, hasActiveSong }: {
   setView: (v: GroovexView) => void;
   hasActiveSong: boolean;
 }) {
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore(useShallow(s => s.settings));
   const groovexVis = settings.perApp?.groovex ?? { theme: 'dark', accentColor: 'blue', amoledMode: false };
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const accent = ACCENT_COLORS[groovexVis.accentColor as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;

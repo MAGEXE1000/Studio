@@ -1,4 +1,5 @@
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useOtaUpdate, otaDebugLogs, otaDiagnostics, checkForUpdate, resetOtaUpdateState, isAppInstallerAvailable, applyUpdate, isNative, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { Capacitor } from '@capacitor/core';
+import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type Theme, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, notifyOtaAvailable, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { getUpdateHistory, triggerDowngrade, StartupCoordinator, startDiagnosticsSession, resetOtaTimeline, getTimelineReport } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -60,6 +61,87 @@ function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): Gree
 }
 
 let _sessionIntroFinished = false;
+
+function DebugSettingsContent({ accent, cardStyle, devNativeVersion, devVersionCode }: {
+  accent: { from: string; to: string; mid: string };
+  cardStyle: React.CSSProperties;
+  devNativeVersion: string;
+  devVersionCode: string;
+}) {
+  const updater = useAppUpdate();
+
+  const DebugRow = ({ label, desc, value, highlightColor }: { label: string; desc?: string; value: string | null; highlightColor?: string }) => (
+    <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 'var(--font-base)', fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Manrope', margin: 0 }}>{label}</p>
+          {desc && <p style={{ fontSize: 'var(--font-sm)', marginTop: '2px', lineHeight: 1.3, color: 'var(--c-text-secondary)', fontFamily: 'Inter', margin: '4px 0 0' }}>{desc}</p>}
+        </div>
+      </div>
+      <div style={{
+        marginTop: '8px',
+        padding: '8px 12px',
+        borderRadius: '6px',
+        background: 'rgba(128,128,128,0.06)',
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        color: highlightColor || 'var(--c-text-primary)',
+        wordBreak: 'break-word',
+        whiteSpace: 'pre-wrap'
+      }}>
+        {value || 'N/A'}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ width: '100%' }}>
+      <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12 }}>
+        <button
+          onClick={async () => {
+            try {
+              await checkForUpdate(true, 'settings_manual', 'user manual checkNow');
+            } catch (e) {
+              console.error(e);
+            }
+          }}
+          className="btn-smooth"
+          style={{
+            flex: 1,
+            padding: '12px',
+            borderRadius: '0.75rem',
+            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+            color: 'white',
+            fontFamily: 'Manrope',
+            fontWeight: 700,
+            fontSize: '13px',
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'center',
+          }}
+        >
+          {['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION'].includes(updater.updateState) ? 'Checking...' : 'Check For Updates Now'}
+        </button>
+      </div>
+
+      <div style={cardStyle}>
+        <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '16px 20px 8px', opacity: 0.75, color: 'var(--c-text-primary)', borderBottom: '1px solid rgba(128,128,128,0.08)', letterSpacing: '0.05em' }}>CURRENT APP</div>
+        <DebugRow label="App Version" desc="The hardcoded version in the app bundle" value={APP_VERSION} />
+        <DebugRow label="APK Version" desc="The native Android APK version wrapper" value={devNativeVersion} />
+        <DebugRow label="versionCode" desc="The version code of the installed native wrapper" value={devVersionCode} />
+        <DebugRow label="Update System" desc="The update delivery channel used by the app" value="APK only" />
+        <DebugRow label="Updater System" desc="State of the Updater bundle update system" value="Disabled" />
+
+        <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '16px 20px 8px', opacity: 0.75, color: 'var(--c-text-primary)', borderBottom: '1px solid rgba(128,128,128,0.08)', letterSpacing: '0.05em' }}>LATEST UPDATE</div>
+        <DebugRow label="Remote Version" desc="The latest version released on the remote server" value={updater.remoteVersion} />
+        <DebugRow label="Remote versionCode" desc="The required version code on the remote server" value={updater.requiredVersionCode ? String(updater.requiredVersionCode) : 'N/A'} />
+        <DebugRow label="updateType" desc="The remote update category type" value="apk" />
+        <DebugRow label="APK URL" desc="Resolved browser download URL for the update package" value={updater.apkUrl} />
+        <DebugRow label="SHA-256" desc="SHA-256 hash expected from the update manifest" value={updater.apkSha256} />
+      </div>
+    </div>
+  );
+}
 
 export default function StudioHub() {
   const settings = useChordStore(state => state.settings);
@@ -1441,7 +1523,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
   onBack: () => void;
   hideHeader?: boolean;
 }) {
-  const ota = useOtaUpdate();
+  const updater = useAppUpdate();
   const isWebDesktop = useIsWebDesktop();
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
@@ -1452,7 +1534,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
   const [showDowngradeConfirm, setShowDowngradeConfirm] = useState(false);
   const isChangelogTooLong = changelogSections.length > 2 || changelogSections.some(s => s.items.length > 3);
 
-  const isApkFlow = ota.updateType === 'apk' || ota.updateType === 'both';
+  const isApkFlow = updater.updateType === 'apk' || updater.updateType === 'both';
 
   const L = lang === 'es'
     ? {
@@ -1513,9 +1595,9 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       };
 
   // Determine status state
-  const isChecking = ota.loading;
-  const hasUpdate = ota.updateAvailable;
-  const isReinstall = isNative() && ota.reinstallRequired;
+  const isChecking = updater.loading;
+  const hasUpdate = updater.updateAvailable;
+  const isReinstall = Capacitor.isNativePlatform()() && updater.reinstallRequired;
 
   // Status indicator config
   const statusConfig = isChecking
@@ -1725,7 +1807,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
             {hasUpdate ? L.latestRelease : L.upToDate}
           </div>
           {/* Build type badge for web */}
-          {!isNative() && (
+          {!Capacitor.isNativePlatform()() && (
             <div className="updater-badge" style={{
               background: 'rgba(147, 130, 220, 0.12)',
               color: '#9382dc',
@@ -1742,7 +1824,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
           {/* Version Headline */}
           <h1 className="updater-version-headline">
             {hasUpdate ? (
-              <>v{ota.remoteVersion}</>
+              <>v{updater.remoteVersion}</>
             ) : (
               <>v{APP_VERSION}<span className="updater-version-tag">{APP_VERSION_TAG}</span></>
             )}
@@ -1798,7 +1880,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
 
           {/* CTA Button */}
           {hasUpdate ? (
-            isNative() ? (
+            Capacitor.isNativePlatform()() ? (
               <button
                 className="updater-cta-btn"
                 onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
@@ -1835,7 +1917,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
             <button
               className="updater-cta-btn"
               onClick={async () => {
-                await ota.checkNow();
+                await updater.checkNow();
               }}
               disabled={isChecking}
               style={{
@@ -1944,7 +2026,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       </div>
 
       {/* ── CONTROLS SECTION (native-only: notification/auto-check/changelog toggles) ── */}
-      {isNative() && (
+      {Capacitor.isNativePlatform()() && (
         <>
           <p className="updater-section-title spring-in" style={{ animationDelay: '80ms' }}>{L.controls}</p>
           <div className="spring-in" style={{ ...cardStyle, margin: 0, animationDelay: '100ms' }}>
@@ -1952,17 +2034,17 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
               <Toggle value={settings.otaNotifications ?? true} onChange={v => updateSettings({ otaNotifications: v })} accentFrom={accent.from} accentTo={accent.to} />
             </SettingRow>
             <SettingRow label={L.autoTitle} desc={L.autoDesc}>
-              <Toggle value={settings.otaAutoCheck ?? true} onChange={v => updateSettings({ otaAutoCheck: v })} accentFrom={accent.from} accentTo={accent.to} />
+              <Toggle value={settings.autoCheckUpdates ?? true} onChange={v => updateSettings({ autoCheckUpdates: v })} accentFrom={accent.from} accentTo={accent.to} />
             </SettingRow>
             <SettingRow label={L.changelogTitle} desc={L.changelogDesc}>
-              <Toggle value={settings.otaShowChangelog ?? true} onChange={v => updateSettings({ otaShowChangelog: v })} accentFrom={accent.from} accentTo={accent.to} />
+              <Toggle value={settings.showUpdateChangelog ?? true} onChange={v => updateSettings({ showUpdateChangelog: v })} accentFrom={accent.from} accentTo={accent.to} />
             </SettingRow>
           </div>
         </>
       )}
 
       {/* ── VERSION MANAGER SECTION (native-only) ── */}
-      {isNative() && (
+      {Capacitor.isNativePlatform()() && (
         <>
           <p className="updater-section-title spring-in" style={{ animationDelay: '110ms' }}>
             {lang === 'es' ? 'Gestor de Versiones' : 'Version Manager'}
@@ -1982,7 +2064,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
                     {lang === 'es' ? 'Instalado' : 'Installed'}
                   </span>
                   <strong style={{ fontSize: 12, fontFamily: 'monospace' }}>v{APP_VERSION}</strong>
-                  <span style={{ fontSize: 9, color: 'var(--c-text-tertiary)' }}>code {otaDebugLogs.installedVersionCode || '131'}</span>
+                  <span style={{ fontSize: 9, color: 'var(--c-text-tertiary)' }}>code {updateDebugLogs.installedVersionCode || '131'}</span>
                 </div>
                 
                 {/* Connector arrow */}
@@ -2005,7 +2087,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
                   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6, background: 'var(--accent-from, #7c3aed)20', color: 'var(--accent-from, #7c3aed)', textTransform: 'uppercase' }}>
                     {lang === 'es' ? 'Última' : 'Latest'}
                   </span>
-                  <strong style={{ fontSize: 12, fontFamily: 'monospace' }}>v{ota.remoteVersion || '3.7.4'}</strong>
+                  <strong style={{ fontSize: 12, fontFamily: 'monospace' }}>v{updater.remoteVersion || '3.7.4'}</strong>
                   <span style={{ fontSize: 9, color: 'var(--c-text-tertiary)' }}>{lang === 'es' ? 'Lanzamiento' : 'Release'}</span>
                 </div>
               </div>
@@ -2039,7 +2121,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
               </p>
               
               {(() => {
-                const currentCode = otaDebugLogs.installedVersionCode || 131;
+                const currentCode = updateDebugLogs.installedVersionCode || 131;
                 
                 const OFFICIAL_RELEASES = [
                   {
@@ -2135,7 +2217,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       )}
 
       {/* ── UPDATE HISTORY LOG (native-only) ── */}
-      {isNative() && (
+      {Capacitor.isNativePlatform()() && (
         <>
           {(() => {
             const history = getUpdateHistory();
@@ -2192,7 +2274,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         <div>
           <p style={{ margin: 0, fontFamily: 'Manrope', fontWeight: 700, fontSize: 12.5, color: 'var(--c-text-primary)' }}>{L.howItWorks}</p>
           <p style={{ margin: '4px 0 0', fontFamily: 'Inter', fontSize: 11.5, color: 'var(--c-text-secondary)', lineHeight: 1.55 }}>
-            {isNative()
+            {Capacitor.isNativePlatform()()
               ? L.howItWorksBody
               : (lang === 'es'
                 ? 'Studio en la web se actualiza automáticamente. Cuando hay una nueva versión, simplemente recarga la página.'
@@ -2344,7 +2426,6 @@ function HubSettings({
   const { preferences, setPreference } = useStudioPreferences();
   const t = useT();
   const lang = settings.language ?? 'en';
-  const ota = useOtaUpdate();
   const [copiedLogs, setCopiedLogs] = useState(false);
   const [copiedBugTemplate, setCopiedBugTemplate] = useState(false);
   const isWebDesktop = useIsWebDesktop();
@@ -2584,7 +2665,7 @@ function HubSettings({
 
     const loadInfo = async () => {
       try {
-        if (isNative()) {
+        if (Capacitor.isNativePlatform()()) {
           const { App } = await import('@capacitor/app');
           const info = await App.getInfo();
           setDevNativeVersion(info.version);
@@ -2602,13 +2683,13 @@ function HubSettings({
       }
 
       try {
-        if (isNative()) {
+        if (Capacitor.isNativePlatform()()) {
           setDevOtaVersion('disabled');
         } else {
           setDevOtaVersion('N/A — Web build');
         }
       } catch (e) {
-        setDevOtaVersion('Error loading OTA info');
+        setDevOtaVersion('Error loading Updater info');
       }
 
       // Load local storage status
@@ -2639,7 +2720,7 @@ function HubSettings({
         setPreferencesDump(`Error loading Preferences: ${e?.message || String(e)}`);
       }
 
-      if (isNative()) {
+      if (Capacitor.isNativePlatform()()) {
         try {
           const { AppInstaller, checkApkEligibility } = await import('@workspace/studio-core');
           const installed = await AppInstaller.getInstalledAppInfo();
@@ -2713,12 +2794,12 @@ function HubSettings({
 
     loadInfo();
     loadManifests();
-  }, [page, ota.updateState]);
+  }, [page]);
 
   const handleClearUpdateCache = async () => {
     try {
       const filePath = localStorage.getItem('studio:downloadedApkPath');
-      if (filePath && isNative()) {
+      if (filePath && Capacitor.isNativePlatform()()) {
         const { Filesystem } = await import('@capacitor/filesystem');
         await Filesystem.deleteFile({ path: filePath }).catch(() => {});
       }
@@ -2741,7 +2822,7 @@ function HubSettings({
   const handleClearApplied = () => {
     localStorage.removeItem('studio:appliedVersions');
     localStorage.removeItem('studio:appliedUpdateVersion');
-    if (isNative()) {
+    if (Capacitor.isNativePlatform()()) {
       import('@workspace/studio-core').then(({ AppInstaller }) => {
         AppInstaller.clearInstallerLogHistory();
       }).catch(err => console.error(err));
@@ -2750,11 +2831,11 @@ function HubSettings({
   };
 
   const handleResetOta = async () => {
-    showDevToast('OTA System: disabled.');
+    showDevToast('Updater System: disabled.');
   };
 
   const handleForceOtaRefresh = async () => {
-    showDevToast('OTA System: disabled.');
+    showDevToast('Updater System: disabled.');
   };
 
   const handleTestNotification = async () => {
@@ -2772,10 +2853,10 @@ function HubSettings({
       const mockVer = '3.3.1';
       const mockRemote = {
         version: mockVer,
-        updateType: 'ota',
-        downloadUrl: 'https://example.com/mock-ota.zip',
-        changelog: 'Simulated OTA Update Changelog for v3.3.1. Adds sleek developer features.',
-        releaseNotes: ['Simulated OTA item 1', 'Simulated OTA item 2']
+        updateType: 'updater',
+        downloadUrl: 'https://example.com/mock-updater.zip',
+        changelog: 'Simulated Updater Update Changelog for v3.3.1. Adds sleek developer features.',
+        releaseNotes: ['Simulated Updater item 1', 'Simulated Updater item 2']
       };
       sessionStorage.setItem('studio:mockOtaResponse', JSON.stringify(mockRemote));
 
@@ -2788,8 +2869,8 @@ function HubSettings({
       }
       sessionStorage.removeItem('studio:laterUpdateVersion');
 
-      showDevToast('OTA simulation configured. Checking update...');
-      await ota.checkNow();
+      showDevToast('Updater simulation configured. Checking update...');
+      await checkForUpdate(true, 'settings_manual', 'dev test check');
     } catch (err: any) {
       showDevToast(`Simulate failed: ${err.message || String(err)}`);
     }
@@ -2818,22 +2899,22 @@ function HubSettings({
       sessionStorage.removeItem('studio:laterUpdateVersion');
 
       showDevToast('APK simulation configured. Checking update...');
-      await ota.checkNow();
+      await checkForUpdate(true, 'settings_manual', 'dev test check');
     } catch (err: any) {
       showDevToast(`Simulate failed: ${err.message || String(err)}`);
     }
   };
 
   const getDiagnosticsText = () => {
-    const isNativePlat = isNative();
-    const wrapperVersion = otaDebugLogs.nativeApkVersion || 'Unknown';
+    const isNativePlat = Capacitor.isNativePlatform()();
+    const wrapperVersion = updateDebugLogs.nativeApkVersion || 'Unknown';
     const hasMismatch = isNativePlat && wrapperVersion !== 'Unknown' && wrapperVersion !== 'N/A' && APP_VERSION !== wrapperVersion;
 
     return [
       '=== STUDIO DIAGNOSTICS REPORT ===',
       `Timestamp: ${new Date().toISOString()}`,
       `App Version: ${APP_VERSION}`,
-      `Device Model: ${isNative() ? 'Native Device' : 'Web Browser'}`,
+      `Device Model: ${Capacitor.isNativePlatform()() ? 'Native Device' : 'Web Browser'}`,
       ...(hasMismatch ? ['', 'VERSION_MISMATCH_DETECTED', `App Version (${APP_VERSION}) does not match APK Wrapper Version (${wrapperVersion})`, ''] : []),
       '',
       '=== APK UPDATE DIAGNOSTICS ===',
@@ -2841,44 +2922,44 @@ function HubSettings({
       `APK Version: ${devNativeVersion}`,
       `versionCode: ${devVersionCode}`,
       `Update System: APK only`,
-      `OTA System: disabled`,
-      `AppInstaller Available: ${otaDebugLogs.appInstallerAvailable}`,
-      `downloadApk Available: ${otaDebugLogs.downloadApkAvailable}`,
-      `verifyApkSha256 Available: ${otaDebugLogs.verifyApkSha256Available}`,
-      `installApk Available: ${otaDebugLogs.installApkAvailable}`,
-      `openInstallPermissionSettings Available: ${otaDebugLogs.openInstallPermissionSettingsAvailable}`,
-      `Registered Capacitor Plugins: ${otaDebugLogs.registeredPlugins}`,
-      `Plugin Method Check: ${otaDebugLogs.pluginMethodCheck}`,
-      `Fetched version.json: ${otaDebugLogs.fetchedVersionJson}`,
-      `Fetched app-release.json: ${otaDebugLogs.fetchedAppReleaseJson}`,
-      `Update Type: ${otaDebugLogs.updateType}`,
-      `Download Status: ${otaDebugLogs.downloadStatus}`,
-      `SHA Verification: ${otaDebugLogs.shaVerification}`,
-      `File Details: ${otaDebugLogs.fileDetails}`,
-      `Install Error / Log: ${otaDebugLogs.installError}`,
-      `Installer Launch Status: ${otaDebugLogs.installerLaunchStatus}`,
-      `Last Exception Stack Trace: ${otaDebugLogs.lastExceptionStackTrace}`,
+      `Updater System: disabled`,
+      `AppInstaller Available: ${updateDebugLogs.appInstallerAvailable}`,
+      `downloadApk Available: ${updateDebugLogs.downloadApkAvailable}`,
+      `verifyApkSha256 Available: ${updateDebugLogs.verifyApkSha256Available}`,
+      `installApk Available: ${updateDebugLogs.installApkAvailable}`,
+      `openInstallPermissionSettings Available: ${updateDebugLogs.openInstallPermissionSettingsAvailable}`,
+      `Registered Capacitor Plugins: ${updateDebugLogs.registeredPlugins}`,
+      `Plugin Method Check: ${updateDebugLogs.pluginMethodCheck}`,
+      `Fetched version.json: ${updateDebugLogs.fetchedVersionJson}`,
+      `Fetched app-release.json: ${updateDebugLogs.fetchedAppReleaseJson}`,
+      `Update Type: ${updateDebugLogs.updateType}`,
+      `Download Status: ${updateDebugLogs.downloadStatus}`,
+      `SHA Verification: ${updateDebugLogs.shaVerification}`,
+      `File Details: ${updateDebugLogs.fileDetails}`,
+      `Install Error / Log: ${updateDebugLogs.installError}`,
+      `Installer Launch Status: ${updateDebugLogs.installerLaunchStatus}`,
+      `Last Exception Stack Trace: ${updateDebugLogs.lastExceptionStackTrace}`,
       '',
       '=== APK INSTALL DETAILS ===',
-      `Exception Message: ${otaDiagnostics.exceptionMessage}`,
-      `Failure Reason: ${otaDiagnostics.failureReason}`,
-      `Download URL: ${otaDiagnostics.downloadUrl}`,
-      `APK Path: ${otaDiagnostics.apkPath}`,
-      `File Size: ${otaDiagnostics.fileSize}`,
-      `SHA Expected: ${otaDiagnostics.shaExpected}`,
-      `SHA Calculated: ${otaDiagnostics.shaCalculated}`,
-      `Installer Result: ${otaDiagnostics.installerResult}`,
-      `Permission State: ${otaDiagnostics.permissionState}`,
-      `Android Version: ${otaDiagnostics.androidVersion}`,
-      `Device Model: ${otaDiagnostics.deviceModel}`,
-      `Diagnostics Timestamp: ${otaDiagnostics.timestamp}`,
+      `Exception Message: ${updateDiagnostics.exceptionMessage}`,
+      `Failure Reason: ${updateDiagnostics.failureReason}`,
+      `Download URL: ${updateDiagnostics.downloadUrl}`,
+      `APK Path: ${updateDiagnostics.apkPath}`,
+      `File Size: ${updateDiagnostics.fileSize}`,
+      `SHA Expected: ${updateDiagnostics.shaExpected}`,
+      `SHA Calculated: ${updateDiagnostics.shaCalculated}`,
+      `Installer Result: ${updateDiagnostics.installerResult}`,
+      `Permission State: ${updateDiagnostics.permissionState}`,
+      `Android Version: ${updateDiagnostics.androidVersion}`,
+      `Device Model: ${updateDiagnostics.deviceModel}`,
+      `Diagnostics Timestamp: ${updateDiagnostics.timestamp}`,
     ].join('\n');
   };
 
   const handleExportDiagnostics = async () => {
     const content = getDiagnosticsText();
     const filename = `studio-diagnostics-${Date.now()}.txt`;
-    if (isNative()) {
+    if (Capacitor.isNativePlatform()()) {
       try {
         const { Filesystem, Directory } = await import('@capacitor/filesystem');
         await Filesystem.writeFile({
@@ -3271,7 +3352,7 @@ Date: ${new Date().toISOString()}
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {isNative()
+          {Capacitor.isNativePlatform()()
             ? "If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information."
             : "If you encounter an issue or unexpected behavior in Studio, please report it! Copy the template below and submit it on our GitHub repository."
           }
@@ -3312,7 +3393,7 @@ Date: ${new Date().toISOString()}
           lineHeight: 1.5,
         }}>
           {`[STUDIO BUG REPORT]
-App Version: v${APP_VERSION} (${isNative() ? 'Android' : 'Web'})
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android' : 'Web'})
 User Agent: [Automatically Generated]
 ...`}
         </div>
@@ -3323,7 +3404,7 @@ User Agent: [Automatically Generated]
           <a
             href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent("Bug: [Enter short title]")}&body=${encodeURIComponent(
               `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
-              `**APP VERSION**\n- v${APP_VERSION} (${isNative() ? 'Android/Native' : 'Web'})\n\n` +
+              `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android/Native' : 'Web'})\n\n` +
               `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
               `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
               `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
@@ -3717,79 +3798,7 @@ User Agent: [Automatically Generated]
     );
   }
 
-  function renderDebugContent() {
-    const DebugRow = ({ label, desc, value, highlightColor }: { label: string; desc?: string; value: string | null; highlightColor?: string }) => (
-      <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 'var(--font-base)', fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Manrope', margin: 0 }}>{label}</p>
-            {desc && <p style={{ fontSize: 'var(--font-sm)', marginTop: '2px', lineHeight: 1.3, color: 'var(--c-text-secondary)', fontFamily: 'Inter', margin: '4px 0 0' }}>{desc}</p>}
-          </div>
-        </div>
-        <div style={{
-          marginTop: '8px',
-          padding: '8px 12px',
-          borderRadius: '6px',
-          background: 'rgba(128,128,128,0.06)',
-          fontFamily: 'monospace',
-          fontSize: '12px',
-          color: highlightColor || 'var(--c-text-primary)',
-          wordBreak: 'break-word',
-          whiteSpace: 'pre-wrap'
-        }}>
-          {value || 'N/A'}
-        </div>
-      </div>
-    );
 
-    return (
-      <div style={{ width: '100%' }}>
-        <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12 }}>
-          <button
-            onClick={async () => {
-              try {
-                await ota.checkNow();
-              } catch (e) {
-                console.error(e);
-              }
-            }}
-            className="btn-smooth"
-            style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '0.75rem',
-              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-              color: 'white',
-              fontFamily: 'Manrope',
-              fontWeight: 700,
-              fontSize: '13px',
-              border: 'none',
-              cursor: 'pointer',
-              textAlign: 'center',
-            }}
-          >
-            {['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION'].includes(ota.updateState) ? 'Checking...' : 'Check For Updates Now'}
-          </button>
-        </div>
-
-        <div style={cardStyle}>
-          <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '16px 20px 8px', opacity: 0.75, color: 'var(--c-text-primary)', borderBottom: '1px solid rgba(128,128,128,0.08)', letterSpacing: '0.05em' }}>CURRENT APP</div>
-          <DebugRow label="App Version" desc="The hardcoded version in the app bundle" value={APP_VERSION} />
-          <DebugRow label="APK Version" desc="The native Android APK version wrapper" value={devNativeVersion} />
-          <DebugRow label="versionCode" desc="The version code of the installed native wrapper" value={devVersionCode} />
-          <DebugRow label="Update System" desc="The update delivery channel used by the app" value="APK only" />
-          <DebugRow label="OTA System" desc="State of the Capgo bundle update system" value="Disabled" />
-
-          <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '16px 20px 8px', opacity: 0.75, color: 'var(--c-text-primary)', borderBottom: '1px solid rgba(128,128,128,0.08)', letterSpacing: '0.05em' }}>LATEST UPDATE</div>
-          <DebugRow label="Remote Version" desc="The latest version released on the remote server" value={ota.remoteVersion} />
-          <DebugRow label="Remote versionCode" desc="The required version code on the remote server" value={ota.requiredVersionCode ? String(ota.requiredVersionCode) : 'N/A'} />
-          <DebugRow label="updateType" desc="The remote update category type" value="apk" />
-          <DebugRow label="APK URL" desc="Resolved browser download URL for the update package" value={ota.apkUrl} />
-          <DebugRow label="SHA-256" desc="SHA-256 hash expected from the update manifest" value={ota.apkSha256} />
-        </div>
-      </div>
-    );
-  }
 
   function renderDeveloperContent() {
     try {
@@ -3947,21 +3956,21 @@ User Agent: [Automatically Generated]
       };
 
       const handleClearAppliedAction = () => {
-        if (!window.confirm('Clear list of installed OTA/APK updates?')) return;
+        if (!window.confirm('Clear list of installed Updater/APK updates?')) return;
         wrapAction('clear-applied', handleClearApplied);
       };
 
       const handleClearFailedUpdateAction = () => {
         if (!window.confirm('Clear update error codes and reset checking status?')) return;
         wrapAction('clear-failed', () => {
-          resetOtaUpdateState();
+          resetAppUpdateState();
           showDevToast('Failed update state cleared.');
         });
       };
 
       const handleResetOtaAction = () => {
-        if (!window.confirm('Revert OTA bundles back to built-in factory default? App will reload.')) return;
-        wrapAction('reset-ota', handleResetOta);
+        if (!window.confirm('Revert Updater bundles back to built-in factory default? App will reload.')) return;
+        wrapAction('reset-updater', handleResetOta);
       };
 
       const handleValidateInstallerAction = () => {
@@ -4038,18 +4047,18 @@ User Agent: [Automatically Generated]
       const handleClearDebugLogsAction = () => {
         if (!window.confirm('Clear diagnostic logs memory?')) return;
         wrapAction('clear-logs', () => {
-          otaDebugLogs.fetchedVersionJson = null;
-          otaDebugLogs.fetchedAppReleaseJson = null;
-          otaDebugLogs.installError = null;
-          otaDebugLogs.lastExceptionStackTrace = null;
+          updateDebugLogs.fetchedVersionJson = null;
+          updateDebugLogs.fetchedAppReleaseJson = null;
+          updateDebugLogs.installError = null;
+          updateDebugLogs.lastExceptionStackTrace = null;
           showDevToast('Logs memory reset.');
         });
       };
 
       const handleResetUpdateStateAction = () => {
-        if (!window.confirm('Reset all OTA and APK update logs and persistent history?')) return;
+        if (!window.confirm('Reset all Updater and APK update logs and persistent history?')) return;
         wrapAction('reset-update-state', () => {
-          resetOtaUpdateState();
+          resetAppUpdateState();
           localStorage.removeItem('studio:appliedVersions');
           localStorage.removeItem('studio:appliedUpdateVersion');
           localStorage.removeItem('studio:dismissedVersions');
@@ -4057,7 +4066,7 @@ User Agent: [Automatically Generated]
           localStorage.removeItem('studio:downloadedApkPath');
           localStorage.removeItem('studio:downloadedBundleId');
           localStorage.removeItem('studio:downloadedVersions');
-          if (isNative()) {
+          if (Capacitor.isNativePlatform()()) {
             import('@workspace/studio-core').then(({ AppInstaller }) => {
               AppInstaller.clearInstallerLogHistory();
             }).catch(err => console.error(err));
@@ -4149,15 +4158,15 @@ User Agent: [Automatically Generated]
           <div style={cardStyle}>
             <DevInfoRow label="App Version" desc="Hardcoded version in app bundle (APP_VERSION)" value={APP_VERSION} />
             <DevInfoRow label="APK Version" desc="Android native APK binary version wrapper" value={devNativeVersion} />
-            <DevInfoRow label="OTA Version" desc="Active dynamically applied bundle version" value={devOtaVersion} />
-            <DevInfoRow label="Build Type" desc="Execution platform compilation target" value={isNative() ? 'Native Release' : 'Web'} />
+            <DevInfoRow label="Updater Version" desc="Active dynamically applied bundle version" value={devOtaVersion} />
+            <DevInfoRow label="Build Type" desc="Execution platform compilation target" value={Capacitor.isNativePlatform()() ? 'Native Release' : 'Web'} />
             <DevInfoRow label="Package Name" desc="Unique application package identifier" value={devBundleId} />
             <DevInfoRow label="versionCode" desc="Android manifest build increment number" value={devVersionCode} />
             <DevInfoRow label="Firebase App ID" desc="Firebase application reference ID" value={devBundleId} />
             <DevInfoRow label="Signing Fingerprint" desc="Public SHA-256 production certificate key" value="90:0C:F2:59:18:5C:81:10:0C:DA:8B:B0:85:71:FA:23:55:2E:97:89:13:1C:F0:7A:8F:40:56:E4:D4:12:92:06" canCopy />
             <DevInfoRow label="Signature SHA-256" desc="Active loaded certificate hash key" value={installedPackageDetails?.signingSha256 || 'N/A'} canCopy />
-            <DevInfoRow label="Debuggable Status" desc="Security debugging compiled state" value={isNative() ? 'false (Release Build)' : 'true (Web Dev Mode)'} />
-            {!isNative() && (
+            <DevInfoRow label="Debuggable Status" desc="Security debugging compiled state" value={Capacitor.isNativePlatform()() ? 'false (Release Build)' : 'true (Web Dev Mode)'} />
+            {!Capacitor.isNativePlatform()() && (
               <>
                 <DevInfoRow label="Web App Version" desc="Hardcoded web application version" value={APP_VERSION} />
                 <DevInfoRow label="Web Sync Supported" desc="Is cloud sync supported on web platforms" value={diag.webSyncSupported ? 'true' : 'false'} />
@@ -4177,7 +4186,7 @@ User Agent: [Automatically Generated]
             <DevButtonRow label="Clear Dismissed Versions" desc="Reset choices for skipped versions" actionLabel="Clear" actionId="clear-dismissed" onPress={handleClearDismissedAction} />
             <DevButtonRow label="Clear Applied Versions" desc="Reset installed update database" actionLabel="Clear" actionId="clear-applied" onPress={handleClearAppliedAction} />
             <DevButtonRow label="Clear Failed Update State" desc="Clear error logs and update states" actionLabel="Reset" actionId="clear-failed" onPress={handleClearFailedUpdateAction} />
-            <DevButtonRow label="Reset OTA State" desc="Revert active bundle to standard build" actionLabel="Reset Bundle" actionId="reset-ota" onPress={handleResetOtaAction} isDestructive />
+            <DevButtonRow label="Reset Updater State" desc="Revert active bundle to standard build" actionLabel="Reset Bundle" actionId="reset-updater" onPress={handleResetOtaAction} isDestructive />
             <DevCollapsibleRow label="version.json Manifest" desc="Cached raw content of version.json metadata" value={firebaseVersionJson} canCopy />
             <DevCollapsibleRow label="app-release.json Manifest" desc="Cached raw content of app-release.json metadata" value={firebaseAppReleaseJson} canCopy />
             <DevButtonRow label="Copy Update Diagnostics" desc="Copy full updater debug reports" actionLabel="Copy" actionId="copy-diag" onPress={() => {
@@ -4188,15 +4197,15 @@ User Agent: [Automatically Generated]
 
           <SettingsSectionLabel>3. AppInstaller & Plugins</SettingsSectionLabel>
           <div style={cardStyle}>
-            <DevInfoRow label="AppInstaller Available" value={otaDebugLogs.appInstallerAvailable ? 'TRUE' : 'FALSE'} />
-            <DevInfoRow label="downloadApk Available" value={otaDebugLogs.downloadApkAvailable ? 'TRUE' : 'FALSE'} />
-            <DevInfoRow label="verifyApkSha256 Available" value={otaDebugLogs.verifyApkSha256Available ? 'TRUE' : 'FALSE'} />
-            <DevInfoRow label="installApk Available" value={otaDebugLogs.installApkAvailable ? 'TRUE' : 'FALSE'} />
-            <DevInfoRow label="openInstallPermissionSettings Available" value={otaDebugLogs.openInstallPermissionSettingsAvailable ? 'TRUE' : 'FALSE'} />
-            <DevInfoRow label="Registered Capacitor Plugins" value={otaDebugLogs.registeredPlugins} />
+            <DevInfoRow label="AppInstaller Available" value={updateDebugLogs.appInstallerAvailable ? 'TRUE' : 'FALSE'} />
+            <DevInfoRow label="downloadApk Available" value={updateDebugLogs.downloadApkAvailable ? 'TRUE' : 'FALSE'} />
+            <DevInfoRow label="verifyApkSha256 Available" value={updateDebugLogs.verifyApkSha256Available ? 'TRUE' : 'FALSE'} />
+            <DevInfoRow label="installApk Available" value={updateDebugLogs.installApkAvailable ? 'TRUE' : 'FALSE'} />
+            <DevInfoRow label="openInstallPermissionSettings Available" value={updateDebugLogs.openInstallPermissionSettingsAvailable ? 'TRUE' : 'FALSE'} />
+            <DevInfoRow label="Registered Capacitor Plugins" value={updateDebugLogs.registeredPlugins} />
             <DevButtonRow label="Validate Installer Capability" desc="Perform active registration assertions" actionLabel="Validate" actionId="validate-installer" onPress={handleValidateInstallerAction} />
 
-            {isNative() && installedPackageDetails && (
+            {Capacitor.isNativePlatform()() && installedPackageDetails && (
               <>
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '4px 0', opacity: 0.75, color: 'var(--c-text-primary)' }}>Installed Package Details</div>
@@ -4207,7 +4216,7 @@ User Agent: [Automatically Generated]
               </>
             )}
 
-            {isNative() && downloadedApkDetails && (
+            {Capacitor.isNativePlatform()() && downloadedApkDetails && (
               <>
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '4px 0', opacity: 0.75, color: 'var(--c-text-primary)' }}>Downloaded APK Details</div>
@@ -4220,7 +4229,7 @@ User Agent: [Automatically Generated]
               </>
             )}
 
-            {isNative() && apkEligibility && (
+            {Capacitor.isNativePlatform()() && apkEligibility && (
               <>
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 11, padding: '4px 0', opacity: 0.75, color: 'var(--c-text-primary)' }}>APK Install Eligibility</div>
@@ -4716,7 +4725,7 @@ User Agent: [Automatically Generated]
       case 'about':
         return renderAboutContent();
       case 'debug':
-        return renderDebugContent();
+        return <DebugSettingsContent accent={accent} cardStyle={cardStyle} devNativeVersion={devNativeVersion} devVersionCode={devVersionCode} />;
       case 'profile':
         return renderProfile();
       case 'release-notes':
@@ -4775,12 +4784,12 @@ User Agent: [Automatically Generated]
 
                   <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <BentoSettingCard icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
                     )}
                     <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
                     <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <BentoSettingCard icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} delay={90} />
                     )}
                   </div>
@@ -4788,13 +4797,13 @@ User Agent: [Automatically Generated]
                   <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <BentoSettingCard icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentation, FAQ & diagnostics' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} delay={110} />
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <BentoSettingCard icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
                     )}
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <BentoSettingCard icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
                     )}
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <BentoSettingCard icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} delay={140} />
                     )}
                   </div>
@@ -4811,7 +4820,7 @@ User Agent: [Automatically Generated]
                     flexDirection: 'column',
                     gap: '1px',
                   }}>
-                    {isNative() && (
+                    {Capacitor.isNativePlatform()() && (
                       <BentoSettingRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
                     )}
 
@@ -5646,7 +5655,7 @@ function HubHelp({
     const handleCopyTemplate = () => {
       const template = `[STUDIO BUG REPORT]
 ------------------------------------
-App Version: v${APP_VERSION} (${isNative() ? 'Android' : 'Web'})
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android' : 'Web'})
 User Agent: ${navigator.userAgent}
 Date: ${new Date().toISOString()}
 
@@ -5671,7 +5680,7 @@ Date: ${new Date().toISOString()}
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {isNative()
+          {Capacitor.isNativePlatform()()
             ? t.help.bugReport.nativeDesc
             : t.help.bugReport.webDesc
           }
@@ -5712,7 +5721,7 @@ Date: ${new Date().toISOString()}
           lineHeight: 1.5,
         }}>
           {`[STUDIO BUG REPORT]
-App Version: v${APP_VERSION} (${isNative() ? 'Android' : 'Web'})
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android' : 'Web'})
 User Agent: [Automatically Generated]
 ...`}
         </div>
@@ -5723,7 +5732,7 @@ User Agent: [Automatically Generated]
           <a
             href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent("Bug: [Enter short title]")}&body=${encodeURIComponent(
               `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
-              `**APP VERSION**\n- v${APP_VERSION} (${isNative() ? 'Android/Native' : 'Web'})\n\n` +
+              `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform()() ? 'Android/Native' : 'Web'})\n\n` +
               `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
               `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
               `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
@@ -5854,14 +5863,14 @@ User Agent: [Automatically Generated]
 
                   <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
                   <div style={cardStyle}>
-                    <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={isNative()} delay={75} />
-                    {!isNative() && (
+                    <SettingsNavRow icon="contact_support" iconColor={accent.from} title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'} desc={lang === 'es' ? 'Documentación, preguntas frecuentes y diagnósticos' : 'Documentation, FAQ & diagnostics'} onPress={() => navigate('help-center')} last={Capacitor.isNativePlatform()()} delay={75} />
+                    {!Capacitor.isNativePlatform()() && (
                       <SettingsNavRow icon="article" iconColor={accent.from} title="Release Notes" desc="View version history" onPress={() => navigate('release-notes')} delay={80} />
                     )}
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <SettingsNavRow icon="install_desktop" iconColor={accent.from} title="Download Apps" desc="Get native mobile and desktop clients" onPress={() => navigate('download-apps')} delay={85} />
                     )}
-                    {!isNative() && (
+                    {!Capacitor.isNativePlatform()() && (
                       <SettingsNavRow icon="keyboard" iconColor={accent.from} title="Keyboard Shortcuts" desc="View quick key bindings" onPress={() => navigate('keyboard-shortcuts')} last delay={90} />
                     )}
                   </div>

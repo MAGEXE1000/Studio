@@ -47,7 +47,7 @@ type ViewState =
 export default function TakesPanel() {
   const t = useT();
   const [takes, setTakes] = useState<TakeRecord[]>([]);
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
   const view = useMemo<ViewState>(() => {
     if (currentRoute.app === 'vocalex' && currentRoute.page === 'takes') {
       if (currentRoute.subView === 'recording') {

@@ -1132,7 +1132,7 @@ export default function LabPanel() {
   const t = useT();
   const [sessions, setSessions] = useState<LabSession[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
+  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
   const activeSession = useMemo(() => {
     if (currentRoute.app === 'vocalex' && currentRoute.page === 'lab' && currentRoute.subView === 'session' && currentRoute.id) {
       return sessions.find(s => s.id === currentRoute.id) || null;

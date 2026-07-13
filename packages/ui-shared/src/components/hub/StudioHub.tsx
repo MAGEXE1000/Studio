@@ -952,15 +952,26 @@ function StudioFamilyOrbit({
   const SIZE   = 240;
   const N      = items.length;
 
-  const keyframes = items.map((_, i) => {
-    const a = (i / N) * 360;
-    return `
-      @keyframes family-orbit-${i} {
-        from { transform: rotate(${a}deg) translateX(${RADIUS}px) rotate(${-a}deg); }
-        to   { transform: rotate(${a + 360}deg) translateX(${RADIUS}px) rotate(${-(a + 360)}deg); }
-      }
-    `;
-  }).join('\n');
+  const keyframesStyle = useMemo(() => {
+    const keyframes = items.map((_, i) => {
+      const a = (i / N) * 360;
+      return `
+        @keyframes family-orbit-${i} {
+          from { transform: rotate(${a}deg) translateX(${RADIUS}px) rotate(${-a}deg); }
+          to   { transform: rotate(${a + 360}deg) translateX(${RADIUS}px) rotate(${-(a + 360)}deg); }
+        }
+      `;
+    }).join('\n');
+    return (
+      <style>{`
+        ${keyframes}
+        @keyframes family-orbit-bob {
+          0%,100% { transform: translateY(0); }
+          50%     { transform: translateY(-3px); }
+        }
+      `}</style>
+    );
+  }, [N]);
 
   return (
     <div style={{
@@ -972,13 +983,7 @@ function StudioFamilyOrbit({
       justifyContent: 'center',
       overflow: 'hidden',
     }}>
-      <style>{`
-        ${keyframes}
-        @keyframes family-orbit-bob {
-          0%,100% { transform: translateY(0); }
-          50%     { transform: translateY(-3px); }
-        }
-      `}</style>
+      {keyframesStyle}
 
       {/* Subtle neutral glow */}
       <div style={{
@@ -2344,7 +2349,9 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
   );
 }
 
-
+let _cachedApkPath: string | null = null;
+let _cachedApkDetails: any = null;
+let _cachedApkEligibility: any = null;
 
 function HubSettings({
   accent,
@@ -2369,7 +2376,25 @@ function HubSettings({
   devToast?: string | null;
   renderDevToast?: () => React.ReactNode;
 }) {
-  const settings = useChordStore(state => state.settings);
+  const settings = useChordStore(useShallow(state => ({
+    language: state.settings.language,
+    developerMode: state.settings.developerMode,
+    appMode: state.settings.appMode,
+    perApp: state.settings.perApp,
+    theme: state.settings.theme,
+    accentColor: state.settings.accentColor,
+    amoledMode: state.settings.amoledMode,
+    customAccentHue: state.settings.customAccentHue,
+    dynamicLightStart: state.settings.dynamicLightStart,
+    dynamicLightEnd: state.settings.dynamicLightEnd,
+    hapticFeedback: state.settings.hapticFeedback,
+    highRefreshRate: state.settings.highRefreshRate,
+    lowLatencyMode: state.settings.lowLatencyMode,
+    performanceMode: state.settings.performanceMode,
+    displayDensity: state.settings.displayDensity,
+    fontSize: state.settings.fontSize,
+    swipeBackBehavior: state.settings.swipeBackBehavior,
+  })));
   const updateSettings = useChordStore(state => state.updateSettings);
   const updatePerApp = useChordStore(state => state.updatePerApp);
   const historyLength = useNavigationStore(s => s.history.length);
@@ -2614,33 +2639,41 @@ function HubSettings({
   useEffect(() => {
     if (page !== 'developer' && page !== 'debug' && page !== 'download-apps' && page !== 'release-notes') return;
 
+    let active = true;
+
     const loadInfo = async () => {
       try {
         if (isNative()) {
           const { App } = await import('@capacitor/app');
           const info = await App.getInfo();
-          setDevNativeVersion(info.version);
-          setDevBundleId(info.id);
-          setDevVersionCode(info.build);
+          if (active) {
+            setDevNativeVersion(info.version);
+            setDevBundleId(info.id);
+            setDevVersionCode(info.build);
+          }
         } else {
-          setDevNativeVersion('N/A — Web build');
-          setDevBundleId('N/A — Web build');
-          setDevVersionCode('N/A — Web build');
+          if (active) {
+            setDevNativeVersion('N/A — Web build');
+            setDevBundleId('N/A — Web build');
+            setDevVersionCode('N/A — Web build');
+          }
         }
       } catch (e) {
-        setDevNativeVersion('Error loading native info');
-        setDevBundleId('Error loading native info');
-        setDevVersionCode('Error');
+        if (active) {
+          setDevNativeVersion('Error loading native info');
+          setDevBundleId('Error loading native info');
+          setDevVersionCode('Error');
+        }
       }
 
       try {
         if (isNative()) {
-          setDevOtaVersion('disabled');
+          if (active) setDevOtaVersion('disabled');
         } else {
-          setDevOtaVersion('N/A — Web build');
+          if (active) setDevOtaVersion('N/A — Web build');
         }
       } catch (e) {
-        setDevOtaVersion('Error loading OTA info');
+        if (active) setDevOtaVersion('Error loading OTA info');
       }
 
       // Load local storage status
@@ -2652,62 +2685,83 @@ function HubSettings({
             size += key.length + (localStorage.getItem(key)?.length || 0);
           }
         }
-        setLocalStorageStatus(`${localStorage.length} keys (~${(size / 1024).toFixed(2)} KB)`);
+        if (active) setLocalStorageStatus(`${localStorage.length} keys (~${(size / 1024).toFixed(2)} KB)`);
       } catch (e) {
-        setLocalStorageStatus('Error loading storage info');
+        if (active) setLocalStorageStatus('Error loading storage info');
       }
 
-      // Load Capacitor Preferences dump
+      // Load Capacitor Preferences dump in parallel via Promise.all
       try {
         const { Preferences } = await import('@capacitor/preferences');
         const { keys } = await Preferences.keys();
         const dump: Record<string, string | null> = {};
-        for (const k of keys) {
-          const { value } = await Preferences.get({ key: k });
-          dump[k] = value;
-        }
-        setPreferencesDump(JSON.stringify(dump, null, 2));
+        await Promise.all(
+          keys.map(async (k) => {
+            const { value } = await Preferences.get({ key: k });
+            dump[k] = value;
+          })
+        );
+        if (active) setPreferencesDump(JSON.stringify(dump, null, 2));
       } catch (e: any) {
-        setPreferencesDump(`Error loading Preferences: ${e?.message || String(e)}`);
+        if (active) setPreferencesDump(`Error loading Preferences: ${e?.message || String(e)}`);
       }
 
       if (isNative()) {
         try {
           const { AppInstaller, checkApkEligibility } = await import('@workspace/studio-core');
           const installed = await AppInstaller.getInstalledAppInfo();
-          setInstalledPackageDetails({
-            ...installed,
-            signatures: installed.signingSha256
-          });
+          if (active) {
+            setInstalledPackageDetails({
+              ...installed,
+              signatures: installed.signingSha256
+            });
+          }
 
           const apkPath = localStorage.getItem('studio:downloadedApkPath');
           if (apkPath) {
-            try {
-              const inspected = await AppInstaller.inspectApk({ filePath: apkPath });
-
-              let sizeStr = 'N/A';
-              try {
-                const { Filesystem } = await import('@capacitor/filesystem');
-                const statInfo = await Filesystem.stat({ path: apkPath });
-                sizeStr = `${(statInfo.size / (1024 * 1024)).toFixed(2)} MB (${statInfo.size} bytes)`;
-              } catch (e) {
-                console.warn('Error reading APK size:', e);
+            if (_cachedApkPath === apkPath && _cachedApkDetails) {
+              if (active) {
+                setDownloadedApkDetails(_cachedApkDetails);
+                setApkEligibility(_cachedApkEligibility);
               }
+            } else {
+              try {
+                const inspected = await AppInstaller.inspectApk({ filePath: apkPath });
 
-              setDownloadedApkDetails({
-                ...inspected,
-                fileSize: sizeStr,
-                filePath: apkPath
-              });
+                let sizeStr = 'N/A';
+                try {
+                  const { Filesystem } = await import('@capacitor/filesystem');
+                  const statInfo = await Filesystem.stat({ path: apkPath });
+                  sizeStr = `${(statInfo.size / (1024 * 1024)).toFixed(2)} MB (${statInfo.size} bytes)`;
+                } catch (e) {
+                  console.warn('Error reading APK size:', e);
+                }
 
-              const eligibility = await checkApkEligibility(apkPath);
-              setApkEligibility(eligibility);
-            } catch (apkErr) {
-              console.warn('Error loading downloaded APK details:', apkErr);
+                const details = {
+                  ...inspected,
+                  fileSize: sizeStr,
+                  filePath: apkPath
+                };
+
+                const eligibility = await checkApkEligibility(apkPath);
+
+                _cachedApkPath = apkPath;
+                _cachedApkDetails = details;
+                _cachedApkEligibility = eligibility;
+
+                if (active) {
+                  setDownloadedApkDetails(details);
+                  setApkEligibility(eligibility);
+                }
+              } catch (apkErr) {
+                console.warn('Error loading downloaded APK details:', apkErr);
+              }
             }
           } else {
-            setDownloadedApkDetails(null);
-            setApkEligibility(null);
+            if (active) {
+              setDownloadedApkDetails(null);
+              setApkEligibility(null);
+            }
           }
         } catch (err) {
           console.warn('Error loading native package/APK details:', err);
@@ -2722,29 +2776,38 @@ function HubSettings({
         const r1 = await fetch(`${baseUrl}/version.json?t=${t}`);
         if (r1.ok) {
           const text = await r1.text();
-          setFirebaseVersionJson(text);
+          if (active) setFirebaseVersionJson(text);
         } else {
-          setFirebaseVersionJson(`Error: HTTP ${r1.status}`);
+          if (active) setFirebaseVersionJson(`Error: HTTP ${r1.status}`);
         }
       } catch (e: any) {
-        setFirebaseVersionJson(`Error: ${e.message || String(e)}`);
+        if (active) setFirebaseVersionJson(`Error: ${e.message || String(e)}`);
       }
 
       try {
         const r2 = await fetch(`${baseUrl}/app-release.json?t=${t}`);
         if (r2.ok) {
           const text = await r2.text();
-          setFirebaseAppReleaseJson(text);
+          if (active) setFirebaseAppReleaseJson(text);
         } else {
-          setFirebaseAppReleaseJson(`Error: HTTP ${r2.status}`);
+          if (active) setFirebaseAppReleaseJson(`Error: HTTP ${r2.status}`);
         }
       } catch (e: any) {
-        setFirebaseAppReleaseJson(`Error: ${e.message || String(e)}`);
+        if (active) setFirebaseAppReleaseJson(`Error: ${e.message || String(e)}`);
       }
     };
 
-    loadInfo();
-    loadManifests();
+    const delayTimer = setTimeout(() => {
+      if (active) {
+        loadInfo();
+        loadManifests();
+      }
+    }, 350);
+
+    return () => {
+      active = false;
+      clearTimeout(delayTimer);
+    };
   }, [page, ota.updateState]);
 
   const handleClearUpdateCache = async () => {
@@ -4770,6 +4833,7 @@ User Agent: [Automatically Generated]
         <SharedNavigationContainer
           activeView={page}
           viewOrder={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'debug', 'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report', 'developer', 'updater']}
+          keepAlive={false}
         >
           {(pageId) => {
             if (pageId === 'developer') {
@@ -5873,6 +5937,7 @@ User Agent: [Automatically Generated]
         <SharedNavigationContainer
           activeView={page}
           viewOrder={['main', 'help-center', 'faq', 'release-notes', 'download-apps', 'keyboard-shortcuts', 'terms', 'privacy-policy', 'bug-report']}
+          keepAlive={false}
         >
           {(pageId) => {
             if (standardScrollPages.includes(pageId as HelpPageActiveId)) {

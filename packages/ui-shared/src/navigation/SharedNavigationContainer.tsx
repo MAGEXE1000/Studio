@@ -9,6 +9,7 @@ interface SharedNavigationContainerProps {
   children: (viewId: string) => React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  keepAlive?: boolean;
 }
 
 export function SharedNavigationContainer({
@@ -18,6 +19,7 @@ export function SharedNavigationContainer({
   children,
   className = '',
   style,
+  keepAlive = false,
 }: SharedNavigationContainerProps) {
   const [visibleView, setVisibleView] = useState<string>(activeView);
   const [exitingView, setExitingView] = useState<string | null>(null);
@@ -63,8 +65,10 @@ export function SharedNavigationContainer({
 
   // Keep visited views in the DOM (keep-alive) to preserve their states/scroll positions,
   // falling back to active/exiting views if viewOrder is not supplied.
-  const renderList = viewOrder
-    ? viewOrder.filter(viewId => visitedViews.has(viewId))
+  const renderList = keepAlive
+    ? (viewOrder
+        ? viewOrder.filter(viewId => visitedViews.has(viewId))
+        : [visibleView].concat(exitingView !== null && exitingView !== visibleView ? [exitingView] : []))
     : [visibleView].concat(exitingView !== null && exitingView !== visibleView ? [exitingView] : []);
 
   return (

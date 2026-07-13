@@ -6,8 +6,28 @@ import { IconSongs, IconLibrary, IconChords, IconSettings } from '../components/
 import { WebSettingsSection, WebPreferenceRow } from '../components/WebDesignSystem';
 import { DialogScaffold } from '../components/StudioLayoutSystem';
 
+import { useShallow } from 'zustand/react/shallow';
+
 export default function SettingsPanel() {
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore(useShallow(s => ({
+    tuning: s.settings.tuning,
+    leftHanded: s.settings.leftHanded,
+    showFretNumbers: s.settings.showFretNumbers,
+    showFingerNumbers: s.settings.showFingerNumbers,
+    showNoteNames: s.settings.showNoteNames,
+    showIntervals: s.settings.showIntervals,
+    showOpenStrings: s.settings.showOpenStrings,
+    showChordQualityColors: s.settings.showChordQualityColors,
+    defaultTab: s.settings.defaultTab,
+    chordAssistant: s.settings.chordAssistant,
+    assistantSmartSuggestions: s.settings.assistantSmartSuggestions,
+    assistantProgressionTips: s.settings.assistantProgressionTips,
+    assistantConflictDetection: s.settings.assistantConflictDetection,
+    assistantLearning: s.settings.assistantLearning,
+    accentColor: s.settings.accentColor,
+    perApp: s.settings.perApp,
+    theme: s.settings.theme,
+  })));
   const updateSettings = useChordStore(s => s.updateSettings);
   const acc = ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ?? ACCENT_COLORS.blue;
 

@@ -12,6 +12,12 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.61
+
+### Added
+- Upgraded Studio Diagnostics Engine to provide complete forensic attribution.
+- Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.
+
 ## 4.0.59
 
 ### Added

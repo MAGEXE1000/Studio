@@ -1,22 +1,19 @@
 {
   "platform": "android",
-  "version": "4.0.35",
-  "versionName": "4.0.35",
-  "versionCode": 40035,
-  "version_code": 40035,
-  "commit": "47375ac4",
-  "releasedAt": "7/13/2026, 9:51:05 AM CST",
-  "buildTimestamp": "7/13/2026, 9:51:05 AM CST",
+  "version": "4.0.67",
+  "versionName": "4.0.67",
+  "versionCode": 40067,
+  "version_code": 40067,
+  "commit": "15eb4acd",
+  "releasedAt": "7/13/2026, 10:04:02 AM CST",
+  "buildTimestamp": "7/13/2026, 10:04:02 AM CST",
   "updateMode": "refresh",
-  "changelog": "• 120Hz Native Performance Sprint\n• Eliminated massive UI layout thrashing by implementing useShallow Zustand selectors.\n• Decoupled Updater subsystem from critical rendering path to stop background freeze.\n• Removed SharedNavigationContainer inside Stagex iframe to eliminate tab switching delays.\n• Implemented O(N) keep-alive rendering optimizations for the Settings subsystem.",
-  "whatsNew": "• 120Hz Native Performance Sprint\n• Eliminated massive UI layout thrashing by implementing useShallow Zustand selectors.\n• Decoupled Updater subsystem from critical rendering path to stop background freeze.\n• Removed SharedNavigationContainer inside Stagex iframe to eliminate tab switching delays.\n• Implemented O(N) keep-alive rendering optimizations for the Settings subsystem.",
+  "changelog": "• 120Hz Native Performance Sprint Continuation\n• Advanced optimization of the app updater and Settings panels.",
+  "whatsNew": "• 120Hz Native Performance Sprint Continuation\n• Advanced optimization of the app updater and Settings panels.",
   "releaseNotes": {
     "improved": [
-      "120Hz Native Performance Sprint",
-      "Eliminated massive UI layout thrashing by implementing useShallow Zustand selectors.",
-      "Decoupled Updater subsystem from critical rendering path to stop background freeze.",
-      "Removed SharedNavigationContainer inside Stagex iframe to eliminate tab switching delays.",
-      "Implemented O(N) keep-alive rendering optimizations for the Settings subsystem."
+      "120Hz Native Performance Sprint Continuation",
+      "Advanced optimization of the app updater and Settings panels."
     ]
   },
   "mandatory": false

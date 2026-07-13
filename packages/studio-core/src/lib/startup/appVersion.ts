@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.35';
-export const WEB_VERSION = '4.0.35';
+export const NATIVE_VERSION = '4.0.67';
+export const WEB_VERSION = '4.0.67';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,11 +62,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "120Hz Native Performance Sprint",
-      "Eliminated massive UI layout thrashing by implementing useShallow Zustand selectors.",
-      "Decoupled Updater subsystem from critical rendering path to stop background freeze.",
-      "Removed SharedNavigationContainer inside Stagex iframe to eliminate tab switching delays.",
-      "Implemented O(N) keep-alive rendering optimizations for the Settings subsystem.",
+      "120Hz Native Performance Sprint Continuation",
+      "Advanced optimization of the app updater and Settings panels.",
     ],
   },
 ];

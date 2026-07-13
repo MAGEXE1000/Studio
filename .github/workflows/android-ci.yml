@@ -128,16 +128,20 @@ jobs:
             exit 1
           fi
           
+          # Resolve version name & code dynamically
+          REQ_VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          REQ_CODE=$(node -e "const fs = require('fs'); const src = fs.readFileSync('apps/studio-android/android/app/build.gradle', 'utf8'); const m = src.match(/versionCode\s+(\d+)/); console.log(m ? m[1] : 'unknown');")
+          
           # Validate versionName
-          if ! echo "$BADGING" | grep -q "versionName='3.6.40'"; then
-            echo "::error::Invalid versionName! Expected 3.6.40"
+          if ! echo "$BADGING" | grep -q "versionName='$REQ_VERSION'"; then
+            echo "::error::Invalid versionName! Expected $REQ_VERSION"
             echo "Badging: $(echo "$BADGING" | grep 'package:')"
             exit 1
           fi
           
           # Validate versionCode
-          if ! echo "$BADGING" | grep -q "versionCode='67'"; then
-            echo "::error::Invalid versionCode! Expected 67"
+          if ! echo "$BADGING" | grep -q "versionCode='$REQ_CODE'"; then
+            echo "::error::Invalid versionCode! Expected $REQ_CODE"
             echo "Badging: $(echo "$BADGING" | grep 'package:')"
             exit 1
           fi

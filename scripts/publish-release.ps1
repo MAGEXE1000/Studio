@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.67"
-$VersionCode = "40067"
-$ReleaseNote = "v4.0.67 - Native Performance optimizations phase 2"
+$VersionName = "4.0.68"
+$VersionCode = "40068"
+$ReleaseNote = "v4.0.68 - Release Pipeline Redesign and CI Version Alignment"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -43,31 +43,23 @@ Write-Host "Waiting 15 seconds for the workflow run to initialize..."
 Start-Sleep -Seconds 15
 
 Write-Host "4. Finding the active workflow run..."
+$CommitSha = (git rev-parse HEAD).Trim()
 $RunId = $null
 $RunStatusLabel = "unknown"
 for ($attempt = 1; $attempt -le 12; $attempt++) {
-    $Runs = gh run list --workflow=release.yml --branch $BranchName --limit 5 --json databaseId,status,conclusion | ConvertFrom-Json
-    if ($Runs) {
-        foreach ($r in $Runs) {
-            if ($r.status -eq "queued" -or $r.status -eq "in_progress") {
-                $RunId = $r.databaseId
-                $RunStatusLabel = $r.status
-                break
-            }
-        }
-    }
-    if ($RunId) { break }
-    Write-Host "Waiting for new run to register (attempt $attempt/12)..."
-    Start-Sleep -Seconds 10
-}
-if (-not $RunId) {
-    if ($Runs) {
+    $Runs = gh run list --workflow=release.yml --commit $CommitSha --json databaseId,status,conclusion | ConvertFrom-Json
+    if ($Runs -and $Runs.Length -gt 0) {
         $RunId = $Runs[0].databaseId
         $RunStatusLabel = $Runs[0].status
-    } else {
-        Write-Error "Could not find any runs for release.yml on branch $BranchName"
-        exit 1
+        break
     }
+    Write-Host "Waiting for new run to register on commit $CommitSha (attempt $attempt/12)..."
+    Start-Sleep -Seconds 10
+}
+
+if (-not $RunId) {
+    Write-Error "Could not find any runs for release.yml on commit $CommitSha after waiting. Aborting safely to prevent duplicate executions."
+    exit 1
 }
 Write-Host "Found run ID: $RunId. Status: $RunStatusLabel"
 

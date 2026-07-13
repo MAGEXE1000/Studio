@@ -1,5 +1,9 @@
 name: Release Pipeline
+run-name: Studio Release - ${{ github.ref_name }}
 
+concurrency:
+  group: "production-release"
+  cancel-in-progress: false
 on:
   workflow_dispatch:
     inputs:
@@ -40,6 +44,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Verify Not Already Published
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          TAG="v$VERSION"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::error::Release $TAG already exists! Aborting duplicate release."
+            exit 1
+          fi
+          echo "Release $TAG not yet published. Proceeding..."
 
       - uses: pnpm/action-setup@v4
         with:

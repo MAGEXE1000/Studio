@@ -1,9 +1,9 @@
-import { globalOtaState, transitionToState, updateGlobalState, stateListeners } from '../../packages/studio-core/src/lib/updater/stateMachine';
+import { globalUpdateState, transitionToState, updateGlobalState, stateListeners } from '../../packages/studio-core/src/lib/updater/stateMachine';
 import { checkForUpdate } from '../../packages/studio-core/src/lib/updater/pipeline';
 
 async function runProof() {
   console.log("=== STEP 1: INITIAL STATE ===");
-  console.log(`Initial State: ${globalOtaState.updateState}`);
+  console.log(`Initial State: ${globalUpdateState.updateState}`);
   
   // Attach a listener to see all state changes
   stateListeners.add((state) => {
@@ -39,10 +39,10 @@ async function runProof() {
   console.log(`\nsafeTransition result: ${result}`);
   
   console.log("\n=== FINAL STATE ===");
-  console.log(`updateState: ${globalOtaState.updateState}`);
-  console.log(`updateAvailable: ${globalOtaState.updateAvailable}`);
+  console.log(`updateState: ${globalUpdateState.updateState}`);
+  console.log(`updateAvailable: ${globalUpdateState.updateAvailable}`);
   
-  if (globalOtaState.updateState === 'IDLE' && globalOtaState.updateAvailable === true) {
+  if (globalUpdateState.updateState === 'IDLE' && globalUpdateState.updateAvailable === true) {
     console.log("\n[!!!] BUG PROVED: State is IDLE but updateAvailable is true, which forces 'Studio is up to date' UI [!!!]");
   } else {
     console.log("\n[?] Bug not reproduced. Something else is happening.");

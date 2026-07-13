@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 /**
  * updater/installActions.ts
  *
@@ -8,9 +9,8 @@
  */
 
 import { APP_VERSION } from '../appVersion';
-import { isNative } from '../capgoUpdater';
 import { isAppInstallerAvailable } from './diagnostics';
-import { globalOtaState, updateGlobalState, transitionToState } from './stateMachine';
+import { globalUpdateState, updateGlobalState, transitionToState } from './stateMachine';
 import { addToStoredList } from './sessionStorage';
 import { recordCloseEvent } from './diagnostics';
 import { UpdaterFlightRecorder } from './flightRecorder';
@@ -43,7 +43,7 @@ export async function shareDownloadedApk(): Promise<void> {
   }
 }
 
-// Forward-declaration: resetOtaUpdateState is in pipeline.ts; imported lazily to avoid circular deps.
+// Forward-declaration: resetAppUpdateState is in pipeline.ts; imported lazily to avoid circular deps.
 // dismissUpdate calls it after updating state.
 export function dismissUpdate(): void {
   UpdaterFlightRecorder.record({
@@ -52,15 +52,15 @@ export function dismissUpdate(): void {
     workflowId: null,
     eventType: 'dismissUpdate',
     caller: 'installActions',
-    reason: `dismissUpdate called. Current state: ${globalOtaState.updateState}`
+    reason: `dismissUpdate called. Current state: ${globalUpdateState.updateState}`
   });
 
   // Hard guard: never reset state while the PackageInstaller is actively running.
   // This prevents any UI timer or accidental call from clearing installation locks
   // during an active install session.
-  const isBusy = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(globalOtaState.updateState);
+  const isBusy = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(globalUpdateState.updateState);
   if (isBusy) {
-    console.warn(`[OTA] Rejecting dismissUpdate: installer is active (state: ${globalOtaState.updateState}).`);
+    console.warn(`[Updater] Rejecting dismissUpdate: installer is active (state: ${globalUpdateState.updateState}).`);
     
     UpdaterFlightRecorder.record({
       thread: 'js',
@@ -68,17 +68,17 @@ export function dismissUpdate(): void {
       workflowId: null,
       eventType: 'dismissUpdateRejected',
       caller: 'installActions',
-      reason: `dismissUpdate rejected because installer is active (state: ${globalOtaState.updateState})`,
+      reason: `dismissUpdate rejected because installer is active (state: ${globalUpdateState.updateState})`,
       warning: 'DISMISS_REJECTED_ACTIVE_INSTALLER'
     });
     return;
   }
   recordCloseEvent('dismissUpdate called');
-  const ver = globalOtaState.remoteVersion;
+  const ver = globalUpdateState.remoteVersion;
   if (ver) {
     addToStoredList('studio:dismissedVersions', ver);
   }
-  if (globalOtaState.updateState === 'INSTALL_SUCCESS') {
+  if (globalUpdateState.updateState === 'INSTALL_SUCCESS') {
     localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION);
   }
   transitionToState('IDLE', 'Reset update state');
@@ -96,7 +96,7 @@ export function dismissUpdate(): void {
     releaseNotes: null,
     decisionExplanation: null,
   });
-  if (isNative() && isAppInstallerAvailable()) {
+  if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
     import('../apkDownloader').then(({ AppInstaller }) => {
       AppInstaller.clearInstallerLogHistory().catch(() => {});
     });
@@ -104,7 +104,7 @@ export function dismissUpdate(): void {
 }
 
 export function markUpdateSeen(): void {
-  const ver = globalOtaState.remoteVersion;
+  const ver = globalUpdateState.remoteVersion;
   if (ver) {
     addToStoredList('studio:notifiedVersions', ver);
   }

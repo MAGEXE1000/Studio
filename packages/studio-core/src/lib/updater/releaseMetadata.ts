@@ -1,7 +1,7 @@
+import { Capacitor } from '@capacitor/core';
 import { APP_VERSION, compareSemver, parseAndNormalizeVersion, parseSemver } from '../appVersion';
-import { shouldUseAndroidApkUpdater } from '../capgoUpdater';
-import { otaDebugLogs } from './diagnostics';
-import { StructuredReleaseNotes, globalOtaState, activeUpdateSession } from './stateMachine';
+import { updateDebugLogs } from './diagnostics';
+import { StructuredReleaseNotes, globalUpdateState, activeUpdateSession } from './stateMachine';
 import { logRawSource } from './versionLogger';
 import { UpdaterFlightRecorder } from './flightRecorder';
 
@@ -11,7 +11,7 @@ export interface RemoteVersionInfo {
   changelog?: string;
   mandatory?: boolean;
   downloadUrl?: string;
-  updateType?: 'ota' | 'apk' | 'both' | 'none';
+  updateType?: 'updater' | 'apk' | 'both' | 'none';
   apkUrl?: string;
   apkSha256?: string;
   manualApkUrl?: string;
@@ -45,14 +45,14 @@ export function versionJsonUrls(): string[] {
   const remoteBase = (import.meta.env.VITE_OTA_BASE_URL as string | undefined)?.replace(/\/$/, '') || 'https://studio-30f44.web.app';
   const urls: string[] = [];
 
-  if (shouldUseAndroidApkUpdater()) {
+  if (Capacitor.isNativePlatform()) {
     urls.push(`${remoteBase}/app-release.json?t=${t}`);
   } else {
     const localBase = import.meta.env.BASE_URL || '/';
     urls.push(`${localBase}version.json?t=${t}`);
   }
   
-  console.warn(`[OTA DIAGNOSTICS] Generated urls to fetch:`, urls);
+  console.warn(`[Updater DIAGNOSTICS] Generated urls to fetch:`, urls);
 
   return urls;
 }
@@ -69,8 +69,8 @@ async function fetchOne(
     });
     if (!res.ok) {
       const errStr = `HTTP Error ${res.status}`;
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = errStr;
       console.warn(`[AppUpdater] Metadata fetch failed for URL: ${url}. ${errStr}`);
       return null;
     }
@@ -88,15 +88,15 @@ async function fetchOne(
       json = JSON.parse(text);
     } catch (e) {
       const errStr = 'Malformed JSON response';
-      if (isVersionJson) otaDebugLogs.fetchedVersionJson = errStr;
-      if (isAppRelease) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      if (isVersionJson) updateDebugLogs.fetchedVersionJson = errStr;
+      if (isAppRelease) updateDebugLogs.fetchedAppReleaseJson = errStr;
       console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
     if (!json || typeof json !== 'object') {
       const errStr = 'Malformed JSON response';
-      if (isVersionJson) otaDebugLogs.fetchedVersionJson = errStr;
-      if (isAppRelease) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      if (isVersionJson) updateDebugLogs.fetchedVersionJson = errStr;
+      if (isAppRelease) updateDebugLogs.fetchedAppReleaseJson = errStr;
       console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
@@ -104,23 +104,23 @@ async function fetchOne(
     const normalizedVersion = parseAndNormalizeVersion(obj.version as string | null | undefined);
     if (!normalizedVersion) {
       const errStr = 'Missing or invalid version field in JSON';
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = errStr;
       console.warn(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
     
     if (url.includes('version.json')) {
-      otaDebugLogs.fetchedVersionJson = normalizedVersion;
+      updateDebugLogs.fetchedVersionJson = normalizedVersion;
     } else if (url.includes('app-release.json')) {
-      otaDebugLogs.fetchedAppReleaseJson = normalizedVersion;
+      updateDebugLogs.fetchedAppReleaseJson = normalizedVersion;
     }
 
     const changelog = typeof obj.description === 'string' ? obj.description : (typeof obj.changelog === 'string' ? obj.changelog : undefined);
     const downloadUrl = typeof obj.downloadUrl === 'string' ? obj.downloadUrl : (typeof obj.ota_download_url === 'string' ? obj.ota_download_url : undefined);
-    const updateType = (obj.update_type === 'ota' || obj.update_type === 'apk' || obj.update_type === 'both' || obj.update_type === 'none') 
+    const updateType = (obj.update_type === 'updater' || obj.update_type === 'apk' || obj.update_type === 'both' || obj.update_type === 'none') 
       ? obj.update_type 
-      : ((obj.updateType === 'ota' || obj.updateType === 'apk' || obj.updateType === 'both' || obj.updateType === 'none') ? obj.updateType : undefined);
+      : ((obj.updateType === 'updater' || obj.updateType === 'apk' || obj.updateType === 'both' || obj.updateType === 'none') ? obj.updateType : undefined);
     const apkUrl = typeof obj.download_url === 'string' ? obj.download_url : (typeof obj.apkUrl === 'string' ? obj.apkUrl : undefined);
     const apkSha256 = typeof obj.sha256 === 'string' ? obj.sha256 : (typeof obj.apkSha256 === 'string' ? obj.apkSha256 : undefined);
     const manualApkUrl = typeof obj.manual_download_url === 'string' ? obj.manual_download_url : (typeof obj.manualApkUrl === 'string' ? obj.manualApkUrl : undefined);
@@ -198,16 +198,16 @@ async function fetchOne(
 
     if (!validateRemoteMetadata(resultObj)) {
       const errStr = `Rejected remote metadata due to validation failure. version: ${normalizedVersion}`;
-      if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = errStr;
-      if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = errStr;
+      if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = errStr;
+      if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = errStr;
       return null;
     }
 
     return resultObj;
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    if (url.includes('version.json')) otaDebugLogs.fetchedVersionJson = `Error: ${errMsg}`;
-    if (url.includes('app-release.json')) otaDebugLogs.fetchedAppReleaseJson = `Error: ${errMsg}`;
+    if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = `Error: ${errMsg}`;
+    if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = `Error: ${errMsg}`;
     console.warn(`[AppUpdater] Metadata parsing exception for URL: ${url}. ${errMsg}`);
     return null;
   }
@@ -215,8 +215,8 @@ async function fetchOne(
 
 export function logPipelineTrace(caller: string, stage: string, input: any, output: any) {
   const timestamp = new Date().toISOString();
-  const state = globalOtaState?.updateState || 'UNKNOWN';
-  const sessionId = activeUpdateSession ? String(activeUpdateSession.sessionId) : (globalOtaState?.sessionId ? String(globalOtaState.sessionId) : 'N/A');
+  const state = globalUpdateState?.updateState || 'UNKNOWN';
+  const sessionId = activeUpdateSession ? String(activeUpdateSession.sessionId) : (globalUpdateState?.sessionId ? String(globalUpdateState.sessionId) : 'N/A');
   
   const logMsg = `[PIPELINE_TRACE] [${timestamp}] [Session:${sessionId}] [State:${state}] [Caller:${caller}] [Stage:${stage}] | Input: ${typeof input === 'object' ? JSON.stringify(input) : input} | Output: ${typeof output === 'object' ? JSON.stringify(output) : output}`;
   console.log(logMsg);
@@ -474,7 +474,7 @@ export function validateRemoteMetadata(remote: RemoteVersionInfo | null): boolea
   const tag = remote.platform === 'github' ? (remote as any).tag_name : (remote.version ? `v${remote.version}` : undefined);
   const releaseName = remote.platform === 'github' ? (remote as any).name : (remote.version ? `Studio v${remote.version}` : undefined);
 
-  const isNativeCheck = shouldUseAndroidApkUpdater();
+  const isNativeCheck = Capacitor.isNativePlatform();
   
   let isVerNameValid = false;
   let isVerCodeValid = false;

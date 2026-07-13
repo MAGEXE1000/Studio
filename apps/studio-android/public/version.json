@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.33",
-  "versionName": "4.0.33",
-  "versionCode": 40033,
-  "version_code": 40033,
-  "commit": "4ebf4fb5",
-  "releasedAt": "7/12/2026, 12:54:11 AM CST",
-  "buildTimestamp": "7/12/2026, 12:54:11 AM CST",
+  "version": "4.0.34",
+  "versionName": "4.0.34",
+  "versionCode": 40034,
+  "version_code": 40034,
+  "commit": "598dc407",
+  "releasedAt": "7/12/2026, 9:06:02 AM CST",
+  "buildTimestamp": "7/12/2026, 9:06:02 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Architecture and tech debt reduction pass.\n• Removed dead code and unused exports.\n• Resolved circular dependencies.\n• Extracted constants from massive UI components.",
-  "whatsNew": "• Architecture and tech debt reduction pass.\n• Removed dead code and unused exports.\n• Resolved circular dependencies.\n• Extracted constants from massive UI components.",
+  "changelog": "• Performance and UX optimization pass.\n• Fixed layout thrashing in the updater modal.\n• Cleaned up detached memory references for background tasks.\n• Improved startup time by deferring heavy module preloading.",
+  "whatsNew": "• Performance and UX optimization pass.\n• Fixed layout thrashing in the updater modal.\n• Cleaned up detached memory references for background tasks.\n• Improved startup time by deferring heavy module preloading.",
   "releaseNotes": {
-    "added": [
-      "Architecture and tech debt reduction pass.",
-      "Removed dead code and unused exports.",
-      "Resolved circular dependencies.",
-      "Extracted constants from massive UI components."
+    "improved": [
+      "Performance and UX optimization pass.",
+      "Fixed layout thrashing in the updater modal.",
+      "Cleaned up detached memory references for background tasks.",
+      "Improved startup time by deferring heavy module preloading."
     ]
   },
   "mandatory": false

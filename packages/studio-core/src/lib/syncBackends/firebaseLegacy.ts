@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { 
   SyncBackendProvider, 
   UserProfile, 
@@ -24,7 +25,6 @@ import { doc, getDoc, collection, onSnapshot, setDoc, deleteDoc, serverTimestamp
 import { getFirebaseDb, getFirebaseAuth, getFirebaseStorage, getFirebaseProjectId, getFirebaseConfigDetails, getFirebaseInitError, incrementFirestoreListeners, decrementFirestoreListeners, incrementFirestoreWrites, decrementFirestoreWrites, setFirestoreLastError } from '../firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useChordStore } from '../../store/useChordStore';
-import { isNative } from '../capgoUpdater';
 import { APP_VERSION, APP_COMMIT_SHA } from '../appVersion';
 import { subscribeAuth } from '../auth';
 
@@ -50,7 +50,7 @@ let engineStatus: SyncDiagnostics = {
   firebaseAuthUid: 'Not signed in',
   supabaseUserId: 'N/A',
   currentDeviceId: 'Unknown',
-  currentPlatform: isNative() ? 'android' : 'web',
+  currentPlatform: Capacitor.isNativePlatform() ? 'android' : 'web',
   directWriteProvider: 'firestore',
   directWriteResult: 'N/A',
   probeProvider: 'firestore',
@@ -358,16 +358,16 @@ async function engineRegisterCurrentDevice(reason: string): Promise<void> {
   const payload = sanitizeForFirestore({
     deviceId,
     ownerUid: uid,
-    platform: isNative() ? 'android' : 'web',
-    deviceType: isNative() ? 'phone' : 'desktop',
+    platform: Capacitor.isNativePlatform() ? 'android' : 'web',
+    deviceType: Capacitor.isNativePlatform() ? 'phone' : 'desktop',
     shortName: details.shortName,
     displayName: details.displayName,
     technicalName: details.technicalName,
     appVersion: APP_VERSION,
-    apkVersion: isNative() ? APP_VERSION : 'N/A (Web)',
+    apkVersion: Capacitor.isNativePlatform() ? APP_VERSION : 'N/A (Web)',
     otaVersion: 'N/A',
-    buildType: isNative() ? 'Native Release' : 'Web',
-    isNative: isNative(),
+    buildType: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
+    isNative: Capacitor.isNativePlatform(),
     browser: details.browser,
     os: details.os,
     model: details.model,
@@ -708,18 +708,18 @@ async function engineRunSyncProbe(): Promise<string> {
   const writePromise = setDoc(probeRef, sanitizeForFirestore({
     uid,
     deviceId,
-    platform: isNative() ? 'android' : 'web',
+    platform: Capacitor.isNativePlatform() ? 'android' : 'web',
     shortName: getDeviceDetails().shortName,
     appVersion: APP_VERSION,
-    buildType: isNative() ? 'Native Release' : 'Web',
+    buildType: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
     firebaseProjectId: getFirebaseProjectId(),
     commitSha: APP_COMMIT_SHA,
     nonce,
     writtenAt: Date.now(),
     updatedAt: Date.now(),
-    userAgent: !isNative() ? navigator.userAgent : null,
-    model: isNative() ? getDeviceDetails().model : null,
-    manufacturer: isNative() ? getDeviceDetails().manufacturer : null,
+    userAgent: !Capacitor.isNativePlatform() ? navigator.userAgent : null,
+    model: Capacitor.isNativePlatform() ? getDeviceDetails().model : null,
+    manufacturer: Capacitor.isNativePlatform() ? getDeviceDetails().manufacturer : null,
   }));
   
   const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Write timeout')), 10000));
@@ -850,9 +850,9 @@ async function engineRunDirectFirestoreWriteTest(): Promise<void> {
   const payload = sanitizeForFirestore({
     uid,
     deviceId,
-    platform: isNative() ? 'android' : 'web',
+    platform: Capacitor.isNativePlatform() ? 'android' : 'web',
     appVersion: APP_VERSION,
-    buildType: isNative() ? 'Native Release' : 'Web',
+    buildType: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
     commitSha: APP_COMMIT_SHA,
     testName: 'direct-firestore-write-test',
     nonce,

@@ -1,4 +1,4 @@
-export type OtaUpdateState =
+export type AppUpdateState =
   | 'INITIALIZING'
   | 'FETCH_REMOTE_METADATA'
   | 'VALIDATE_METADATA'
@@ -29,8 +29,8 @@ export interface StructuredReleaseNotes {
   changed?: string[];
 }
 
-export interface CentralizedOtaState {
-  updateState: OtaUpdateState;
+export interface CentralizedUpdateState {
+  updateState: AppUpdateState;
   loading: boolean;
   progress: number;
   error: string | null;
@@ -53,7 +53,7 @@ export interface CentralizedOtaState {
   activeFallback: string | null;
   recoveryMode: boolean;
   // Version comparison fields
-  updateType: 'ota' | 'apk' | 'both' | 'none';
+  updateType: 'updater' | 'apk' | 'both' | 'none';
   reinstallRequired: boolean;
   requiredVersionCode: number;
   apkUpdateRequired: boolean;
@@ -65,8 +65,8 @@ export interface ActiveUpdateSession {
   sessionId: string;
   creationTimestamp: number;
   pipelineId: number | null;
-  currentState: OtaUpdateState;
-  previousState: OtaUpdateState | null;
+  currentState: AppUpdateState;
+  previousState: AppUpdateState | null;
   startedBy: string;
   progress: number;
   packageInstallerState: string | null;
@@ -75,7 +75,7 @@ export interface ActiveUpdateSession {
   apkSha256: string | null;
   apkSizeBytes?: number | null;
   mandatory: boolean;
-  updateType: 'ota' | 'apk' | 'both' | 'none';
+  updateType: 'updater' | 'apk' | 'both' | 'none';
   changelog: string | null;
   releaseNotes: string[] | StructuredReleaseNotes | null;
 }
@@ -338,12 +338,12 @@ function activatePostInstallSession() {
   // Persist the version being installed so the NEW process can detect it
   // after Android kills this process and relaunches the app.
   try {
-    const targetVersion = globalOtaState.remoteVersion || APP_VERSION;
+    const targetVersion = globalUpdateState.remoteVersion || APP_VERSION;
     localStorage.setItem(POST_INSTALL_VERSION_KEY, targetVersion);
     localStorage.setItem(POST_INSTALL_TIMESTAMP_KEY, String(Date.now()));
   } catch (_) {}
 
-  console.log(`[PostInstallSession] ACTIVATED. targetVersion=${globalOtaState.remoteVersion}. All automatic checks blocked until session ends.`);
+  console.log(`[PostInstallSession] ACTIVATED. targetVersion=${globalUpdateState.remoteVersion}. All automatic checks blocked until session ends.`);
 }
 
 /**
@@ -435,7 +435,7 @@ export function isInstallationLocked(): boolean {
   if (activeUpdateSession !== null) return true;
   if (installationJustCompleted) return true;
   if (isPostInstallSessionActive()) return true;
-  const lockedStates: OtaUpdateState[] = [
+  const lockedStates: AppUpdateState[] = [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
     'VERIFY_SHA256',
@@ -445,7 +445,7 @@ export function isInstallationLocked(): boolean {
     'INSTALLING',
     'INSTALL_SUCCESS',
   ];
-  return lockedStates.includes(globalOtaState.updateState);
+  return lockedStates.includes(globalUpdateState.updateState);
 }
 
 export function isUpdateSessionActive(): boolean {
@@ -472,14 +472,14 @@ export function startUpdateSession(startedBy: string, trigger: string) {
     startedBy: `${startedBy} (${trigger})`,
     progress: 0,
     packageInstallerState: null,
-    targetVersion: globalOtaState.remoteVersion,
-    apkUrl: globalOtaState.apkUrl,
-    apkSha256: globalOtaState.apkSha256,
-    apkSizeBytes: globalOtaState.apkSizeBytes,
-    mandatory: globalOtaState.mandatory,
-    updateType: globalOtaState.updateType,
-    changelog: globalOtaState.changelog,
-    releaseNotes: globalOtaState.releaseNotes,
+    targetVersion: globalUpdateState.remoteVersion,
+    apkUrl: globalUpdateState.apkUrl,
+    apkSha256: globalUpdateState.apkSha256,
+    apkSizeBytes: globalUpdateState.apkSizeBytes,
+    mandatory: globalUpdateState.mandatory,
+    updateType: globalUpdateState.updateType,
+    changelog: globalUpdateState.changelog,
+    releaseNotes: globalUpdateState.releaseNotes,
   };
   
   saveSession();
@@ -487,7 +487,7 @@ export function startUpdateSession(startedBy: string, trigger: string) {
   return activeUpdateSession;
 }
 
-const getInitialState = (): OtaUpdateState => {
+const getInitialState = (): AppUpdateState => {
   try {
     if (typeof localStorage !== 'undefined') {
       const session = loadPersistedSession();
@@ -516,7 +516,7 @@ const initialUpdateState = getInitialState();
 
 const savedSession = loadPersistedSession();
 
-export let globalOtaState: CentralizedOtaState = {
+export let globalUpdateState: CentralizedUpdateState = {
   updateState: initialUpdateState,
   loading: false,
   progress: savedSession ? savedSession.progress : 0,
@@ -546,7 +546,7 @@ export let globalOtaState: CentralizedOtaState = {
   sessionId: null,
 };
 
-export const stateListeners = new Set<(state: CentralizedOtaState) => void>();
+export const stateListeners = new Set<(state: CentralizedUpdateState) => void>();
 
 /**
  * Maximum consecutive recovery failures before the updater gives up
@@ -555,15 +555,15 @@ export const stateListeners = new Set<(state: CentralizedOtaState) => void>();
 export const MAX_CONSECUTIVE_FAILURES = 5;
 
 /**
- * Update non-state fields of the global OTA state.
+ * Update non-state fields of the global Updater state.
  *
  * IMPORTANT: This function intentionally strips `updateState` from the patch.
  * All state transitions MUST go through `transitionToState()` to ensure
  * transition validation, watchdog management, and history recording.
  */
-export function updateGlobalState(patch: Partial<CentralizedOtaState>) {
-  if (patch.progress !== undefined && globalOtaState.updateState === 'DOWNLOAD_APK') {
-    const prevPct = Math.round(globalOtaState.progress * 20);
+export function updateGlobalState(patch: Partial<CentralizedUpdateState>) {
+  if (patch.progress !== undefined && globalUpdateState.updateState === 'DOWNLOAD_APK') {
+    const prevPct = Math.round(globalUpdateState.progress * 20);
     const currPct = Math.round(patch.progress * 20);
     if (prevPct !== currPct) {
       if (typeof (window as any).logDiagnosticEvent === 'function') {
@@ -584,11 +584,11 @@ export function updateGlobalState(patch: Partial<CentralizedOtaState>) {
   if ('updateState' in patch) {
     const { updateState: _stripped, ...safePatch } = patch;
     if (Object.keys(safePatch).length === 0) return;
-    globalOtaState = { ...globalOtaState, ...safePatch };
+    globalUpdateState = { ...globalUpdateState, ...safePatch };
   } else {
-    globalOtaState = { ...globalOtaState, ...patch };
+    globalUpdateState = { ...globalUpdateState, ...patch };
   }
-  stateListeners.forEach((l) => l(globalOtaState));
+  stateListeners.forEach((l) => l(globalUpdateState));
 }
 
 let watchdogTimer: ReturnType<typeof setTimeout> | null = null;
@@ -600,7 +600,6 @@ export function stopWatchdog() {
   }
 }
 
-import { addJsLog, transitionHistory, rejectedTransitions } from './updaterSimulation';
 import { recordStateTransition } from './diagnostics';
 
 /**
@@ -625,12 +624,7 @@ export function setActivePipelineContext(ctx: typeof activePipelineContext) {
 
 function recordRejectedTransition(from: string, attempted: string, reason: string) {
   const now = Date.now();
-  rejectedTransitions.push({
-    from,
-    attempted,
-    reason,
-    timestamp: now
-  });
+  
 
   UpdaterFlightRecorder.record({
     thread: 'js',
@@ -647,10 +641,10 @@ function recordRejectedTransition(from: string, attempted: string, reason: strin
   });
 }
 
-export function transitionToState(state: OtaUpdateState, reason: string, failureReason?: string) {
+export function transitionToState(state: AppUpdateState, reason: string, failureReason?: string) {
   // Never allow transitioning to INSTALL_FAILED from IDLE or INSTALL_SUCCESS
   if (state === 'INSTALL_FAILED') {
-    const current = globalOtaState.updateState;
+    const current = globalUpdateState.updateState;
     if (current === 'IDLE' || current === 'INSTALL_SUCCESS') {
       console.warn(`[UPDATE STATE WARNING] Blocking invalid transition: ${current} -> INSTALL_FAILED (Reason: ${reason})`);
       return;
@@ -659,8 +653,8 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
 
   // Prevent recursive transitions
   if (transitionLock) {
-    console.warn(`[UPDATE STATE WARNING] Recursive transition blocked: attempted ${globalOtaState.updateState} -> ${state} (Reason: ${reason}) while another transition is committing.`);
-    recordRejectedTransition(globalOtaState.updateState, state, `RECURSIVE_BLOCKED: ${reason}`);
+    console.warn(`[UPDATE STATE WARNING] Recursive transition blocked: attempted ${globalUpdateState.updateState} -> ${state} (Reason: ${reason}) while another transition is committing.`);
+    recordRejectedTransition(globalUpdateState.updateState, state, `RECURSIVE_BLOCKED: ${reason}`);
     return;
   }
 
@@ -672,8 +666,8 @@ export function transitionToState(state: OtaUpdateState, reason: string, failure
   }
 }
 
-function commitTransition(state: OtaUpdateState, reason: string, failureReason?: string) {
-  const current = globalOtaState.updateState;
+function commitTransition(state: AppUpdateState, reason: string, failureReason?: string) {
+  const current = globalUpdateState.updateState;
   
   UpdaterFlightRecorder.record({
     eventType: 'fsmTransition',
@@ -688,7 +682,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     details: JSON.stringify({ reason, failureReason })
   });
 
-  addJsLog(`Transition Trigger: ${current} -> ${state}. Reason: ${reason}`);
+  
   recordStateTransition(current, state, reason);
   stopWatchdog();
 
@@ -827,10 +821,6 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   console.log(`[INSTRUMENTATION] [JS_STATE] Transition: ${current} -> ${state} | Reason: ${reason} | Caller: ${caller} | Thread: Main JS Thread`);
 
   // Calculate duration of previous state
-  const prevEntry = transitionHistory[transitionHistory.length - 1];
-  if (prevEntry) {
-    prevEntry.durationMs = now - prevEntry.timestamp;
-  }
 
   const isUnexpectedResetToIdle = state === 'IDLE' && [
     'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256',
@@ -838,7 +828,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'
   ].includes(current);
 
-  const durationVal = prevEntry ? now - prevEntry.timestamp : 0;
+  const durationVal = 0;
 
   UpdaterFlightRecorder.record({
     thread: 'js',
@@ -856,25 +846,12 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     details: `Transition from ${current} to ${state}. isUnexpectedResetToIdle=${isUnexpectedResetToIdle}, isValid=${isValid}`
   });
 
-  transitionHistory.push({
-    from: current,
-    to: state,
-    reason: reason,
-    timestamp: now,
-    durationMs: durationVal,
-    invalid: !isValid,
-    caller: caller,
-    stackTrace: stackTrace,
-    thread: 'Main JS Thread',
-    checkId: activePipelineContext?.checkId ?? null,
-    trigger: activePipelineContext?.trigger ?? null,
-    elapsedMs: activePipelineContext ? now - activePipelineContext.pipelineStartTime : null,
-  });
+  
 
   // Setup watchdog timers for transient states
   if (state === 'INITIALIZING' || state === 'FETCH_REMOTE_METADATA' || state === 'VALIDATE_METADATA') {
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === state) {
+      if (globalUpdateState.updateState === state) {
         handleWatchdogTimeout(`App Update initialization/fetch timed out (15s) at state ${state}.`);
       }
     }, 15000);
@@ -882,7 +859,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     resetDownloadWatchdog();
   } else if (['VERIFY_SHA256', 'PREPARING_INSTALL'].includes(state)) {
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === state) {
+      if (globalUpdateState.updateState === state) {
         handleWatchdogTimeout(`Update package verification timed out (20s) at state ${state}.`);
       }
     }, 20000);
@@ -890,7 +867,7 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     // P4: 5-minute watchdog for user confirmation screen.
     // If the user never taps Update/Install, recover after 5 minutes.
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === 'WAITING_USER_CONFIRMATION') {
+      if (globalUpdateState.updateState === 'WAITING_USER_CONFIRMATION') {
         console.warn('[Watchdog] User confirmation timeout (5min) reached.');
         handleWatchdogTimeout('User did not confirm update within 5 minutes.');
       }
@@ -899,14 +876,14 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     // P4: 3-minute watchdog for native PackageInstaller dialog.
     // Checks native state before timing out to prevent false positives.
     watchdogTimer = setTimeout(async () => {
-      if (globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+      if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
         try {
           const { AppInstaller } = await import('../apkDownloader');
           const check = await AppInstaller.isInstallActive();
           if (check.active) {
             console.log('[Watchdog] PackageInstaller session is active in PACKAGEINSTALLER_VISIBLE. Extending watchdog by 2min...');
             watchdogTimer = setTimeout(() => {
-              if (globalOtaState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+              if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
                 handleWatchdogTimeout('PackageInstaller dialog timed out (5min total).');
               }
             }, 2 * 60 * 1000);
@@ -931,14 +908,14 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     }, 3 * 60 * 1000);
   } else if (state === 'INSTALLING') {
     watchdogTimer = setTimeout(async () => {
-      if (globalOtaState.updateState === 'INSTALLING') {
+      if (globalUpdateState.updateState === 'INSTALLING') {
         try {
           const { AppInstaller } = await import('../apkDownloader');
           const check = await AppInstaller.isInstallActive();
           if (check.active) {
             console.log('[Watchdog] PackageInstaller session is still active. Extending watchdog timer...');
             watchdogTimer = setTimeout(() => {
-              if (globalOtaState.updateState === 'INSTALLING') {
+              if (globalUpdateState.updateState === 'INSTALLING') {
                 handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
               }
             }, 120000);
@@ -974,8 +951,8 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     setInstallationJustCompleted();
     activatePostInstallSession(); // Persists target version to localStorage for cold-start detection
     try {
-      if (globalOtaState.releaseNotes) {
-        localStorage.setItem('studio:last_installed_release_notes', JSON.stringify(globalOtaState.releaseNotes));
+      if (globalUpdateState.releaseNotes) {
+        localStorage.setItem('studio:last_installed_release_notes', JSON.stringify(globalUpdateState.releaseNotes));
       }
     } catch (_) {}
   }
@@ -995,15 +972,15 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
   }
 
   // Apply the state change — this is the ONLY place updateState is written
-  globalOtaState = {
-    ...globalOtaState,
+  globalUpdateState = {
+    ...globalUpdateState,
     updateState: state,
     loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'INSTALLING'].includes(state),
     error: ['INSTALL_FAILED', 'RECOVERY'].includes(state)
-      ? (failureReason || globalOtaState.error)
+      ? (failureReason || globalUpdateState.error)
       : (state === 'IDLE'
           ? (failureReason || null)
-          : (failureReason || globalOtaState.error)),
+          : (failureReason || globalUpdateState.error)),
   };
 
   try {
@@ -1017,14 +994,14 @@ function commitTransition(state: OtaUpdateState, reason: string, failureReason?:
     }
   } catch (_) {}
 
-  stateListeners.forEach((l) => l(globalOtaState));
+  stateListeners.forEach((l) => l(globalUpdateState));
 }
 
 export function resetDownloadWatchdog() {
   stopWatchdog();
-  if (globalOtaState.updateState === 'DOWNLOAD_APK') {
+  if (globalUpdateState.updateState === 'DOWNLOAD_APK') {
     watchdogTimer = setTimeout(() => {
-      if (globalOtaState.updateState === 'DOWNLOAD_APK') {
+      if (globalUpdateState.updateState === 'DOWNLOAD_APK') {
         handleWatchdogTimeout('Download stalled. No progress received for 30 seconds.');
       }
     }, 30000);
@@ -1035,7 +1012,7 @@ export function handleWatchdogTimeout(errorMsg: string) {
   console.warn(`[Watchdog Timeout] ${errorMsg}. Resetting to RECOVERY.`);
   stopWatchdog();
 
-  const newFailureCount = globalOtaState.consecutiveFailures + 1;
+  const newFailureCount = globalUpdateState.consecutiveFailures + 1;
 
   // Bound recovery loops: after MAX_CONSECUTIVE_FAILURES, stop retrying
   if (newFailureCount >= MAX_CONSECUTIVE_FAILURES) {

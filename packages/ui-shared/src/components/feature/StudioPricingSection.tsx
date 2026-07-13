@@ -49,7 +49,7 @@ const PLANS: PricingPlan[] = [
     features: [
       'Expanded project cloud storage',
       'Advanced chord and progression tools',
-      'Priority OTA update channel access',
+      'Priority Updater update channel access',
       'Unlimited high-fidelity exports',
     ],
     featuresEs: [

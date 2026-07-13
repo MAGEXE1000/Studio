@@ -1,15 +1,15 @@
+import { Capacitor } from '@capacitor/core';
 /**
  * updater/sessionStorage.ts
  *
  * localStorage / sessionStorage utilities and native version queries
- * used throughout the OTA updater pipeline.
+ * used throughout the Updater updater pipeline.
  *
  * Exports: getStoredList, addToStoredList, removeFromStoredList,
  *          getSessionItem, setSessionItem, removeSessionItem,
  *          getNativeVersion, getNativeVersionCode
  */
 
-import { isNative } from '../capgoUpdater';
 import { releaseMetadataInspector } from './versionLogger';
 
 export function getStoredList(key: string): string[] {
@@ -68,26 +68,26 @@ export function removeSessionItem(key: string): void {
 }
 
 export async function getNativeVersion(): Promise<string | null> {
-  if (!isNative()) return null;
+  if (!Capacitor.isNativePlatform()) return null;
   try {
     const { AppInstaller } = await import('../apkDownloader');
     const info = await AppInstaller.getInstalledAppInfo();
     releaseMetadataInspector.rawVersionName = info.versionName;
     return info.versionName;
   } catch (e) {
-    console.warn('[OTA] Failed to query native app version:', e);
+    console.warn('[Updater] Failed to query native app version:', e);
     return null;
   }
 }
 
 export async function getNativeVersionCode(): Promise<number | null> {
-  if (!isNative()) return null;
+  if (!Capacitor.isNativePlatform()) return null;
   try {
     const { AppInstaller } = await import('../apkDownloader');
     const info = await AppInstaller.getInstalledAppInfo();
     return info.versionCode;
   } catch (e) {
-    console.warn('[OTA] Failed to query native app version code:', e);
+    console.warn('[Updater] Failed to query native app version code:', e);
     return null;
   }
 }

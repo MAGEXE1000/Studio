@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { 
   SyncBackendProvider, 
   UserProfile, 
@@ -19,7 +20,6 @@ import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage, getFirebaseProjectI
 import { subscribeAuth } from '../auth';
 import { getStableDeviceId, getDeviceDetails, classifyDeviceSession } from '../syncEngine';
 import { APP_VERSION, APP_COMMIT_SHA } from '../appVersion';
-import { isNative } from '../capgoUpdater';
 
 export class SupabaseRealtimeProvider implements SyncBackendProvider {
   providerName = 'supabase-realtime';
@@ -47,7 +47,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     firebaseAuthUid: 'Not signed in',
     supabaseUserId: 'N/A',
     currentDeviceId: 'Unknown',
-    currentPlatform: isNative() ? 'android' : 'web',
+    currentPlatform: Capacitor.isNativePlatform() ? 'android' : 'web',
     directWriteProvider: 'supabase',
     directWriteResult: 'idle',
     probeProvider: 'supabase',
@@ -236,7 +236,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     this.deviceId = getStableDeviceId();
     this.diagState.currentDeviceId = this.deviceId;
 
-    if (isNative()) {
+    if (Capacitor.isNativePlatform()) {
       try {
         const { AppInstaller } = await import('../apkDownloader');
         const installedDetails = await AppInstaller.getInstalledAppDetails();
@@ -634,10 +634,10 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       id: `${uid}:${deviceId}`,
       user_id: uid,
       device_id: deviceId,
-      platform: isNative() ? 'android' : 'web',
+      platform: Capacitor.isNativePlatform() ? 'android' : 'web',
       app_version: APP_VERSION,
       version_code: this.versionCode,
-      build_type: isNative() ? 'Native Release' : 'Web',
+      build_type: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
       nonce,
       test_name: 'direct-supabase-write-test',
       created_at: new Date().toISOString(),
@@ -711,11 +711,11 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       id: `${uid}:${deviceId}`,
       user_id: uid,
       device_id: deviceId,
-      platform: isNative() ? 'android' : 'web',
+      platform: Capacitor.isNativePlatform() ? 'android' : 'web',
       short_name: getDeviceDetails().shortName,
       app_version: APP_VERSION,
       version_code: this.versionCode,
-      build_type: isNative() ? 'Native Release' : 'Web',
+      build_type: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
       nonce,
       written_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -817,14 +817,14 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       id: `${uid}:${deviceId}`,
       user_id: uid,
       device_id: deviceId,
-      platform: isNative() ? 'android' : 'web',
-      device_type: isNative() ? 'phone' : 'desktop',
+      platform: Capacitor.isNativePlatform() ? 'android' : 'web',
+      device_type: Capacitor.isNativePlatform() ? 'phone' : 'desktop',
       short_name: details.shortName,
       display_name: details.displayName,
       technical_name: details.technicalName,
       app_version: APP_VERSION,
       version_code: this.versionCode,
-      build_type: isNative() ? 'Native Release' : 'Web',
+      build_type: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
       browser: details.browser,
       os: details.os,
       model: details.model,

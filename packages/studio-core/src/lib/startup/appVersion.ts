@@ -1,10 +1,10 @@
 /**
  * Single source of truth for the Studio app version.
  *
- * Every consumer (Settings UI, OTA checker, debug tools, analytics)
+ * Every consumer (Settings UI, Updater checker, debug tools, analytics)
  * MUST import from this module. Never hardcode a version string
  * elsewhere — duplication leads to settings showing one version while
- * the OTA system compares against another, which silently breaks
+ * the Updater system compares against another, which silently breaks
  * update notifications.
  *
  * The `public/version.json` file shipped alongside the bundle is
@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.34';
-export const WEB_VERSION = '4.0.34';
+export const NATIVE_VERSION = '4.0.35';
+export const WEB_VERSION = '4.0.35';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,12 +60,12 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Improved",
     items: [
-      "Architecture and tech debt reduction pass.",
-      "Removed dead code and unused exports.",
-      "Resolved circular dependencies.",
-      "Extracted constants from massive UI components.",
+      "Performance and UX optimization pass.",
+      "Fixed layout thrashing in the updater modal.",
+      "Cleaned up detached memory references for background tasks.",
+      "Improved startup time by deferring heavy module preloading.",
     ],
   },
 ];

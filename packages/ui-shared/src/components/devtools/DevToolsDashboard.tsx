@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   useChordStore,
@@ -15,11 +16,10 @@ import {
   getDebugProviders,
   maskSensitiveValue,
   APP_VERSION,
-  isNative,
   getStagexDiagnostics,
   resetStagexDiagnostics,
-  otaDiagnostics,
-  otaDebugLogs,
+  updateDiagnostics,
+  updateDebugLogs,
   getStageIframe,
   getNavigationEntries,
   clearNavigationEntries,
@@ -33,8 +33,8 @@ import {
   activityLifecycleTimeline,
   recordActivityLifecycle,
   simulateStatusCallback,
-  globalOtaState,
-  resetOtaUpdateState,
+  globalUpdateState,
+  resetAppUpdateState,
   resetOtaDiagnostics,
   checkForUpdate,
   downloadUpdate,
@@ -58,8 +58,6 @@ import {
 
 import { decodeReactError } from '../feedback/ErrorBoundary';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
-import UpdaterDiagnosticsPage from '../updater-diagnostics/UpdaterDiagnosticsPage';
-import { generateUnifiedReport } from '../updater-diagnostics/diagnosticsGenerator';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -452,13 +450,7 @@ export const CopyDropdown = ({
   const triggerCopy = async (type: 'all' | 'section' | 'summary' | 'tech') => {
     setIsOpen(false);
     
-    const fullReport = generateUnifiedReport(
-      moduleName,
-      nativeDeviceInfo,
-      nativeInstallerDetails,
-      localApkDetails,
-      nativeLogsList
-    );
+    const fullReport = await getDiagnosticsReport();
 
     let textToCopy = fullReport;
     let label = 'Report';
@@ -780,7 +772,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   }, []);
   const refreshData = async () => {
     try {
-      if (isNative() && typeof AppInstaller !== 'undefined') {
+      if (Capacitor.isNativePlatform() && typeof AppInstaller !== 'undefined') {
         // 1. Get Device Info
         const dev = await AppInstaller.getDeviceInfo();
         if (isMountedRef.current) setNativeDeviceInfo(dev);
@@ -977,7 +969,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     return 'Initializing';
   }, [stagex]);
 
-  const otaStatus = otaDebugLogs.updateDecision || 'Idle';
+  const otaStatus = updateDebugLogs.updateDecision || 'Idle';
 
   const currentApp = settings.appMode || 'hub';
   useEffect(() => {
@@ -1074,7 +1066,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const [updaterCollapsed, setUpdaterCollapsed] = useState({
     device: false,
     decision: false,
-    ota: false,
+    updater: false,
     errors: false
   });
 
@@ -1465,16 +1457,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         dump.selfTestResults = selfTestResults;
         break;
       case 'Updater':
-        dump.otaDiagnostics = otaDiagnostics;
-        dump.otaDebugLogs = otaDebugLogs;
+        dump.updateDiagnostics = updateDiagnostics;
+        dump.updateDebugLogs = updateDebugLogs;
         break;
       case 'System':
         dump.device = {
           userAgent: navigator.userAgent,
           platform: navigator.platform,
-          isNative: isNative(),
-          androidVersion: otaDiagnostics.androidVersion || 'N/A',
-          deviceModel: otaDiagnostics.deviceModel || 'Browser'
+          isNative: Capacitor.isNativePlatform(),
+          androidVersion: updateDiagnostics.androidVersion || 'N/A',
+          deviceModel: updateDiagnostics.deviceModel || 'Browser'
         };
         dump.settings = {
           activeModule: settings.appMode,
@@ -1484,7 +1476,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           language: settings.language,
           syncAcrossDevices: settings.syncAcrossDevices,
           otaNotifications: settings.otaNotifications,
-          otaAutoCheck: settings.otaAutoCheck
+          autoCheckUpdates: settings.autoCheckUpdates
         };
         // LocalStorage (masked)
         {
@@ -1547,7 +1539,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
     const desc = title === 'Apps Diagnostics' ? 'Module Performance & Lifecycle' :
                  title === 'Stagex Diagnostics' ? 'Stagex Telemetry & Testing' :
-                 title === 'Updater Diagnostics' ? 'OTA Updates & Diagnostics' :
+                 title === 'Updater Diagnostics' ? 'Updater Updates & Diagnostics' :
                  title === 'System Diagnostics' ? 'App Store & Module State' :
                  title === 'Logs & Warnings' ? 'Runtime Events & Warnings' :
                  title === 'Performance Diagnostics' ? 'Real-time Metrics & Frame Data' :
@@ -2415,8 +2407,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       { key: 'Custom Accent Hue', value: settings.customAccentHue != null ? `${settings.customAccentHue}°` : 'Default', icon: 'settings_brightness' },
       { key: 'Language', value: settings.language || 'en', icon: 'language' },
       { key: 'Sync Across Devices', value: settings.syncAcrossDevices ? 'Enabled' : 'Disabled', icon: 'sync', isBoolean: true, boolVal: settings.syncAcrossDevices },
-      { key: 'OTA Notifications', value: settings.otaNotifications ? 'Enabled' : 'Disabled', icon: 'notifications', isBoolean: true, boolVal: settings.otaNotifications },
-      { key: 'OTA Auto Check', value: settings.otaAutoCheck ? 'Enabled' : 'Disabled', icon: 'autorenew', isBoolean: true, boolVal: settings.otaAutoCheck },
+      { key: 'Updater Notifications', value: settings.otaNotifications ? 'Enabled' : 'Disabled', icon: 'notifications', isBoolean: true, boolVal: settings.otaNotifications },
+      { key: 'Updater Auto Check', value: settings.autoCheckUpdates ? 'Enabled' : 'Disabled', icon: 'autorenew', isBoolean: true, boolVal: settings.autoCheckUpdates },
     ];
 
     return (
@@ -3485,7 +3477,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>android</span>
                     <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Android</span>
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)' }}>{otaDiagnostics.androidVersion || '14.0'}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)' }}>{updateDiagnostics.androidVersion || '14.0'}</div>
                 </div>
 
                 {/* Alerts */}
@@ -3674,7 +3666,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Environment: {isNative() ? 'ANDROID-NATIVE' : 'WEB-PORTAL'}
+                        Environment: {Capacitor.isNativePlatform() ? 'ANDROID-NATIVE' : 'WEB-PORTAL'}
                       </span>
                       <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
                     </div>
@@ -4134,7 +4126,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       )}
 
       {subView === 'updater' && (
-        <UpdaterDiagnosticsPage onBack={() => setSubView('dashboard')} />
+        <div>Updater Diagnostics removed</div>
       )}
 
       {subView === 'system' && (

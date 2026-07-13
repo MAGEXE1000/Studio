@@ -1,5 +1,5 @@
-### Added
-- Architecture and tech debt reduction pass.
-- Removed dead code and unused exports.
-- Resolved circular dependencies.
-- Extracted constants from massive UI components.
+### Improved
+- Performance and UX optimization pass.
+- Fixed layout thrashing in the updater modal.
+- Cleaned up detached memory references for background tasks.
+- Improved startup time by deferring heavy module preloading.

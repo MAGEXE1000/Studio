@@ -1,6 +1,6 @@
 import { downloadApk, resolveApkUrl, AppInstaller } from '../apkDownloader';
-import { updateGlobalState, resetDownloadWatchdog, globalOtaState, transitionToState } from './stateMachine';
-import { otaDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
+import { updateGlobalState, resetDownloadWatchdog, globalUpdateState, transitionToState } from './stateMachine';
+import { updateDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
 import { logPipelineTrace } from './releaseMetadata';
 
 export interface DownloadOptions {
@@ -27,19 +27,19 @@ export async function downloadUpdateApk(options: DownloadOptions): Promise<strin
   let lastDownloadError: Error | null = null;
   let filePath = '';
   
-  otaDebugLogs.downloadSourcesConfigured = uniqueSources.join(' | ');
+  updateDebugLogs.downloadSourcesConfigured = uniqueSources.join(' | ');
   
   for (let sIdx = 0; sIdx < uniqueSources.length; sIdx++) {
     const sourceUrl = uniqueSources[sIdx];
-    otaDebugLogs.currentDownloadSource = sourceUrl;
-    otaDebugLogs.downloadStatus += `\nTrying Source [${sIdx + 1}/${uniqueSources.length}]: ${sourceUrl}`;
+    updateDebugLogs.currentDownloadSource = sourceUrl;
+    updateDebugLogs.downloadStatus += `\nTrying Source [${sIdx + 1}/${uniqueSources.length}]: ${sourceUrl}`;
     
     let retryCount = 0;
     const maxRetries = 3;
     
     while (retryCount < maxRetries) {
       try {
-        console.log(`[OTA] Trying download from ${sourceUrl} (Attempt ${retryCount + 1}/${maxRetries})`);
+        console.log(`[Updater] Trying download from ${sourceUrl} (Attempt ${retryCount + 1}/${maxRetries})`);
         void logProgressStage('Download started', `Source: ${sourceUrl} (Attempt ${retryCount + 1})`);
         
         let lastUpdateTime = 0;
@@ -65,7 +65,7 @@ export async function downloadUpdateApk(options: DownloadOptions): Promise<strin
         retryCount++;
         lastDownloadError = err instanceof Error ? err : new Error(String(err));
         const delay = Math.pow(2, retryCount) * 1000;
-        console.warn(`[OTA] Download attempt ${retryCount} failed. Retrying in ${delay}ms...`, err);
+        console.warn(`[Updater] Download attempt ${retryCount} failed. Retrying in ${delay}ms...`, err);
         updateGlobalState({ statusText: `Retry ${retryCount}/${maxRetries} in ${delay / 1000}s...` });
         await new Promise(r => setTimeout(r, delay));
       }
@@ -91,29 +91,29 @@ export async function downloadAndInstallGitHubApk(): Promise<void> {
 
   updateGlobalState({ loading: true, progress: 0, statusText: 'Resolving latest GitHub Release...' });
   try {
-    const gitHubApkUrl = await resolveApkUrl(globalOtaState.remoteVersion ?? undefined);
+    const gitHubApkUrl = await resolveApkUrl(globalUpdateState.remoteVersion ?? undefined);
     
-    otaDebugLogs.currentDownloadSource = gitHubApkUrl;
-    otaDebugLogs.downloadStatus = `Downloading GitHub package: ${gitHubApkUrl}`;
+    updateDebugLogs.currentDownloadSource = gitHubApkUrl;
+    updateDebugLogs.downloadStatus = `Downloading GitHub package: ${gitHubApkUrl}`;
     updateGlobalState({ statusText: 'Downloading from GitHub...' });
     
-    const { filePath } = await AppInstaller.downloadApk({ url: gitHubApkUrl, fileName: `studio-github-${globalOtaState.remoteVersion || 'latest'}.apk` });
+    const { filePath } = await AppInstaller.downloadApk({ url: gitHubApkUrl, fileName: `studio-github-${globalUpdateState.remoteVersion || 'latest'}.apk` });
     
-    otaDebugLogs.downloadStatus += `\nDownload finished. Path: ${filePath}`;
+    updateDebugLogs.downloadStatus += `\nDownload finished. Path: ${filePath}`;
     updateGlobalState({ progress: 1.0, statusText: 'Verifying package signatures...' });
     
-    if (globalOtaState.apkSha256) {
+    if (globalUpdateState.apkSha256) {
       updateGlobalState({ statusText: 'Verifying SHA-256...' });
-      const shaMatches = (await AppInstaller.verifyApkSha256({ filePath, expectedHash: globalOtaState.apkSha256 })).matches;
-      otaDebugLogs.shaVerification = shaMatches ? 'SUCCESS' : 'FAILED';
+      const shaMatches = (await AppInstaller.verifyApkSha256({ filePath, expectedHash: globalUpdateState.apkSha256 })).matches;
+      updateDebugLogs.shaVerification = shaMatches ? 'SUCCESS' : 'FAILED';
       if (!shaMatches) {
         throw new Error('SHA-256 checksum verification failed.');
       }
     }
     
     const info = await AppInstaller.inspectApk({ filePath });
-    otaDebugLogs.downloadedIsValidApk = info.isValidApk;
-    otaDebugLogs.downloadedSigningSha256 = info.signingSha256;
+    updateDebugLogs.downloadedIsValidApk = info.isValidApk;
+    updateDebugLogs.downloadedSigningSha256 = info.signingSha256;
     if (!info.isValidApk) {
       throw new Error('The downloaded package is not a valid APK.');
     }

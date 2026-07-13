@@ -1,5 +1,5 @@
+import { Capacitor } from '@capacitor/core';
 import { subscribeAuth, type AuthUser, signOut } from '../services/auth';
-import { isNative } from '../platform/capgoUpdater';
 import { APP_VERSION } from '../startup/appVersion';
 import {
   getStableDeviceId,
@@ -378,7 +378,7 @@ let lastLegacyCleanupError = 'None';
 
 let authReady = false;
 let authUid = 'Not Configured';
-let currentPlatform = isNative() ? 'android' : 'web';
+let currentPlatform = Capacitor.isNativePlatform() ? 'android' : 'web';
 let currentDeviceDocExists = false;
 let listenerPath = 'N/A';
 let devicesLogicVersion = 'devices-v3.6.10-sync-probe';
@@ -443,8 +443,8 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
     await provider.updatePreferences({
       syncEnabled: settings.syncAcrossDevices,
       updateNotifications: settings.otaNotifications,
-      automaticChecks: settings.otaAutoCheck,
-      showWhatsNewAfterUpdate: settings.otaShowChangelog,
+      automaticChecks: settings.autoCheckUpdates,
+      showWhatsNewAfterUpdate: settings.showUpdateChangelog,
     });
     localStorage.setItem(`sync_last_local_update_preferences`, now.toString());
     
@@ -553,8 +553,8 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
         useChordStore.getState().updateSettings({
           syncAcrossDevices: syncEnabled,
           otaNotifications: updateNotifications,
-          otaAutoCheck: automaticChecks,
-          otaShowChangelog: showWhatsNewAfterUpdate,
+          autoCheckUpdates: automaticChecks,
+          showUpdateChangelog: showWhatsNewAfterUpdate,
         });
       } finally {
         isApplyingRemoteUpdate = false;
@@ -623,7 +623,7 @@ let status: SyncStatus = {
   otherDevicesCount: 0,
   hiddenDevicesCount: 0,
   hiddenDeviceReasons: 'None',
-  currentDevicePlatform: isNative() ? 'android' : 'web',
+  currentDevicePlatform: Capacitor.isNativePlatform() ? 'android' : 'web',
   shortName: '',
   displayName: '',
   technicalName: '',
@@ -643,7 +643,7 @@ let status: SyncStatus = {
   authReady: false,
   authUid: 'Not Configured',
   currentDeviceId: 'N/A',
-  currentPlatform: isNative() ? 'android' : 'web',
+  currentPlatform: Capacitor.isNativePlatform() ? 'android' : 'web',
   currentDeviceDocExists: false,
   listenerPath: 'N/A',
   devicesLogicVersion: 'devices-v3.6.10-sync-probe',
@@ -2462,8 +2462,8 @@ export function attachSyncEngine(): void {
     const preferencesChanged =
       settings.syncAcrossDevices !== lastSettings.syncAcrossDevices ||
       settings.otaNotifications !== lastSettings.otaNotifications ||
-      settings.otaAutoCheck !== lastSettings.otaAutoCheck ||
-      settings.otaShowChangelog !== lastSettings.otaShowChangelog;
+      settings.autoCheckUpdates !== lastSettings.autoCheckUpdates ||
+      settings.showUpdateChangelog !== lastSettings.showUpdateChangelog;
       
     if (preferencesChanged) {
       const now = Date.now();
@@ -2474,8 +2474,8 @@ export function attachSyncEngine(): void {
         provider.updatePreferences({
           syncAcrossDevices: settings.syncAcrossDevices,
           otaNotifications: settings.otaNotifications,
-          otaAutoCheck: settings.otaAutoCheck,
-          otaShowChangelog: settings.otaShowChangelog,
+          autoCheckUpdates: settings.autoCheckUpdates,
+          showUpdateChangelog: settings.showUpdateChangelog,
         }).then(() => {
           lastPreferencesWriteSuccess = new Date().toLocaleString();
           lastPreferencesWriteError = 'None';
@@ -2706,8 +2706,8 @@ export function attachSyncEngine(): void {
                 useChordStore.getState().updateSettings({
                   syncAcrossDevices: data.studioPreferences?.syncAcrossDevices ?? data.studioPreferences?.syncEnabled ?? true,
                   otaNotifications: data.studioPreferences?.otaNotifications ?? data.studioPreferences?.updateNotifications ?? true,
-                  otaAutoCheck: data.studioPreferences?.otaAutoCheck ?? data.studioPreferences?.automaticChecks ?? true,
-                  otaShowChangelog: data.studioPreferences?.otaShowChangelog ?? data.studioPreferences?.showWhatsNewAfterUpdate ?? true,
+                  autoCheckUpdates: data.studioPreferences?.autoCheckUpdates ?? data.studioPreferences?.automaticChecks ?? true,
+                  showUpdateChangelog: data.studioPreferences?.showUpdateChangelog ?? data.studioPreferences?.showWhatsNewAfterUpdate ?? true,
                 });
               } finally {
                 isApplyingRemoteUpdate = false;
@@ -2720,8 +2720,8 @@ export function attachSyncEngine(): void {
               provider.updatePreferences({
                 syncAcrossDevices: settings.syncAcrossDevices,
                 otaNotifications: settings.otaNotifications,
-                otaAutoCheck: settings.otaAutoCheck,
-                otaShowChangelog: settings.otaShowChangelog,
+                autoCheckUpdates: settings.autoCheckUpdates,
+                showUpdateChangelog: settings.showUpdateChangelog,
               }).catch(console.warn);
             }
           } else {
@@ -2735,8 +2735,8 @@ export function attachSyncEngine(): void {
           provider.updatePreferences({
             syncAcrossDevices: settings.syncAcrossDevices,
             otaNotifications: settings.otaNotifications,
-            otaAutoCheck: settings.otaAutoCheck,
-            otaShowChangelog: settings.otaShowChangelog,
+            autoCheckUpdates: settings.autoCheckUpdates,
+            showUpdateChangelog: settings.showUpdateChangelog,
           }).catch(console.warn);
         }
       });

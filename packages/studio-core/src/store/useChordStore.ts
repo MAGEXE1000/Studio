@@ -114,12 +114,12 @@ export interface AppSettings {
    * and each sub-app's pinned default tab/view.
    */
   restoreLastSession: boolean;
-  /** Show OS-level notification when a new OTA bundle is available. */
+  /** Show OS-level notification when a new Updater bundle is available. */
   otaNotifications: boolean;
-  /** Periodically auto-check for OTA updates while the app is open. */
-  otaAutoCheck: boolean;
+  /** Periodically auto-check for Updater updates while the app is open. */
+  autoCheckUpdates: boolean;
   /** Show the "What's new" changelog sheet on the first launch after an update. */
-  otaShowChangelog: boolean;
+  showUpdateChangelog: boolean;
   autoHideSidebarInApps: boolean;
   swipeBackBehavior: 'exit-to-hub' | 'manual-only';
   perApp: Record<AppKey, PerAppVisuals>;
@@ -305,8 +305,8 @@ export const useChordStore = create<ChordStore>()(
         assistantLearning: true,
         restoreLastSession: false,
         otaNotifications: true,
-        otaAutoCheck: true,
-        otaShowChangelog: true,
+        autoCheckUpdates: true,
+        showUpdateChangelog: true,
         autoHideSidebarInApps: true,
         swipeBackBehavior: 'exit-to-hub',
         customAccentHue: 220,
@@ -775,7 +775,7 @@ export const useChordStore = create<ChordStore>()(
         }
         // NOTE: a previous v5 migration unconditionally rewrote
         // `settings.language = 'es'`, which silently undid every user's
-        // language pick after each OTA update. Removed permanently —
+        // language pick after each Updater update. Removed permanently —
         // the language is now whatever the user last chose, period.
         if (fromVersion < 5) {
           // intentionally no-op; left as a marker so older builds with

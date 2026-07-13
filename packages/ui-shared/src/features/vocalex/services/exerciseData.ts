@@ -62,7 +62,7 @@ export const EXERCISES: Exercise[] = [
     durationMin: '3:00',
     level: 'Principiante',
     color: '#f59e0b',
-    description: 'Tararea suavemente con los labios cerrados en cada nota. Siente la vibración en la nariz, los labios y la frente. Esto despierta la voz sin forzar.',
+    description: 'Tararea suavemente con los labios cerrados en cada nupdater. Siente la vibración en la nariz, los labios y la frente. Esto despierta la voz sin forzar.',
     steps: [
       { instruction: 'Tararea en una nota grave cómoda', durationSec: 6, targetNote: 'C3', syllable: 'mmm', visualType: 'pitchLadder', listenForPitch: true },
       { instruction: 'Sube un paso', durationSec: 6, targetNote: 'D3', syllable: 'mmm', visualType: 'pitchLadder', listenForPitch: true },

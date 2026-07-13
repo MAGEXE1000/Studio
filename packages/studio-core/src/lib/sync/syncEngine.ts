@@ -1,4 +1,4 @@
-import { isNative } from '../platform/capgoUpdater';
+import { Capacitor } from '@capacitor/core';
 
 // ── Cached Device ID ──
 let cachedDeviceId: string | null = null;
@@ -21,7 +21,7 @@ export function getStableDeviceId(): string {
   }
 
   // Generate new stable ID
-  const platform = isNative() ? 'android' : 'web';
+  const platform = Capacitor.isNativePlatform() ? 'android' : 'web';
   const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
     : `gen-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
@@ -31,7 +31,7 @@ export function getStableDeviceId(): string {
     localStorage.setItem('studioDeviceId', cachedDeviceId);
   } catch {}
 
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     import('@capacitor/preferences').then(({ Preferences }) => {
       Preferences.set({ key: 'studioDeviceId', value: cachedDeviceId! }).catch(() => {});
     }).catch(() => {});
@@ -43,7 +43,7 @@ export function getStableDeviceId(): string {
 export async function initializeDeviceId(): Promise<string> {
   if (cachedDeviceId) return cachedDeviceId;
 
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     try {
       const { Preferences } = await import('@capacitor/preferences');
       const { value } = await Preferences.get({ key: 'studioDeviceId' });
@@ -99,7 +99,7 @@ export function getDeviceDetails() {
   else if (/firefox|fxios/i.test(ua)) browser = 'Firefox';
   else if (/edge|edg/i.test(ua)) browser = 'Edge';
 
-  const isNativeApp = isNative();
+  const isNativeApp = Capacitor.isNativePlatform();
   let modelClean = model;
   if (os === 'Android') {
     const buildIdx = modelClean.indexOf(' Build/');

@@ -1,7 +1,7 @@
 import { AppInstaller } from '../apkDownloader';
 import { runEligibilityCheck } from './eligibilityVerification';
 import { transitionToState } from './stateMachine';
-import { otaDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
+import { updateDebugLogs, logProgressStage, nextJsCallId } from './diagnostics';
 import { updateGlobalState } from './stateMachine';
 
 export let isRecovering = false;
@@ -16,7 +16,7 @@ export async function runSignatureMismatchRecovery(
 ): Promise<boolean> {
   // Hard guard: prevent re-entry while already recovering
   if (isRecovering) {
-    console.warn('[OTA Recovery] Recovery already in progress. Rejecting re-entry.');
+    console.warn('[Updater Recovery] Recovery already in progress. Rejecting re-entry.');
     return false;
   }
 
@@ -26,7 +26,7 @@ export async function runSignatureMismatchRecovery(
 
   isRecovering = true;
   const steps: string[] = [];
-  otaDebugLogs.recoveryAttemptsPerformed = steps;
+  updateDebugLogs.recoveryAttemptsPerformed = steps;
   updateGlobalState({ statusText: 'Running signature recovery...' });
 
   const filePath = localStorage.getItem('studio:downloadedApkPath');
@@ -53,7 +53,7 @@ export async function runSignatureMismatchRecovery(
       steps.push(`Retry Installation: Failed (${e.message || String(e)})`);
     }
   } else {
-    steps.push(`Revalidate APK: Failed (Reason: ${otaDebugLogs.eligibilityReason || 'unknown'})`);
+    steps.push(`Revalidate APK: Failed (Reason: ${updateDebugLogs.eligibilityReason || 'unknown'})`);
   }
 
   // Stage 2: Recreate PackageInstaller session
@@ -102,7 +102,7 @@ export async function runSignatureMismatchRecovery(
         isRecovering = false;
         return true;
       } else {
-        steps.push(`Post-download validation: Failed (Reason: ${otaDebugLogs.eligibilityReason || 'unknown'})`);
+        steps.push(`Post-download validation: Failed (Reason: ${updateDebugLogs.eligibilityReason || 'unknown'})`);
       }
     } else {
       steps.push('Post-download validation: Failed (No new file path)');

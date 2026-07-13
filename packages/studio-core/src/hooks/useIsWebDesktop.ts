@@ -1,13 +1,13 @@
+import { Capacitor } from '@capacitor/core';
 import { useState, useEffect } from 'react';
-import { isWebRuntime } from '../lib/capgoUpdater';
 
 export function useIsWebDesktop() {
   const [isDesktop, setIsDesktop] = useState(() => {
-    return isWebRuntime() && typeof window !== 'undefined' && window.innerWidth >= 768;
+    return (!Capacitor.isNativePlatform()) && typeof window !== 'undefined' && window.innerWidth >= 768;
   });
 
   useEffect(() => {
-    if (!isWebRuntime()) return;
+    if (!(!Capacitor.isNativePlatform())) return;
 
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 768);

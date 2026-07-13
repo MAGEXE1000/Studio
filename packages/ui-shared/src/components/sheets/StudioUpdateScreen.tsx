@@ -89,15 +89,15 @@ export default memo(function StudioUpdateScreen({
 
   // Premium, high-performance CSS animation styles
   const customKeyframes = `
-    @keyframes ota-shimmer-fast {
+    @keyframes updater-shimmer-fast {
       0% { transform: translateX(-150%); }
       50% { transform: translateX(100%); }
       100% { transform: translateX(100%); }
     }
-    @keyframes ota-spin-m3 {
+    @keyframes updater-spin-m3 {
       to { transform: rotate(360deg); }
     }
-    @keyframes ota-pulse-subtle {
+    @keyframes updater-pulse-subtle {
       0%, 100% { transform: scale(1) translateY(0); }
       50% { transform: scale(1.025) translateY(-3px); }
     }
@@ -183,7 +183,7 @@ export default memo(function StudioUpdateScreen({
       >
         {/* Unified Icon Header with layout morphing */}
         <motion.div
-          layoutId="ota-icon-container"
+          layoutId="updater-icon-container"
           transition={emphasizedTransition}
           style={{
             width: 72,
@@ -196,7 +196,7 @@ export default memo(function StudioUpdateScreen({
             justifyContent: 'center',
             boxShadow: showSpinner ? 'none' : `0 0 24px color-mix(in srgb, ${iconColor} 15%, transparent)`,
             position: 'relative',
-            animation: (isInstalling && !reducedMotion) ? 'ota-pulse-subtle 2.5s ease-in-out infinite' : 'none',
+            animation: (isInstalling && !reducedMotion) ? 'updater-pulse-subtle 2.5s ease-in-out infinite' : 'none',
             willChange: 'transform',
           }}
         >
@@ -219,15 +219,15 @@ export default memo(function StudioUpdateScreen({
                   strokeWidth={3}
                   strokeLinecap="round"
                   style={{
-                    animation: reducedMotion ? 'none' : 'ota-spin-m3 1.2s linear infinite',
+                    animation: reducedMotion ? 'none' : 'updater-spin-m3 1.2s linear infinite',
                     color: iconColor,
                     willChange: 'transform',
                   }}
                 >
                   <circle cx="12" cy="12" r="10" stroke={isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)'} strokeWidth={3} />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#ota-spinner-grad)" strokeWidth={3} />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#updater-spinner-grad)" strokeWidth={3} />
                   <defs>
-                    <linearGradient id="ota-spinner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="updater-spinner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor={accentFrom} />
                       <stop offset="100%" stopColor={accentTo} />
                     </linearGradient>
@@ -363,7 +363,7 @@ export default memo(function StudioUpdateScreen({
                   width: '45%',
                   background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
                   borderRadius: 3,
-                  animation: reducedMotion ? 'none' : 'ota-shimmer-fast 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1)',
+                  animation: reducedMotion ? 'none' : 'updater-shimmer-fast 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1)',
                   willChange: 'transform',
                 }} />
               </div>

@@ -1,4 +1,5 @@
-import { useOtaUpdate, type StructuredReleaseNotes, otaDiagnostics, otaDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, isNative, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder } from '@workspace/studio-core';
+import { Capacitor } from '@capacitor/core';
+import { useAppUpdate, type StructuredReleaseNotes, updateDiagnostics, updateDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder } from '@workspace/studio-core';
 import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent, clearInstallationJustCompleted, endPostInstallSession } from '@workspace/studio-core';
 /**
  * Floating "update available" indicator — top of the Hub.
@@ -24,9 +25,9 @@ import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpTo
  *   where the CSS vars haven't been written yet.
  *
  * Skip-version semantics:
- *   The OTA detector always reports the LATEST remote version. A user
+ *   The Updater detector always reports the LATEST remote version. A user
  *   on 3.0.21 with 3.0.24 published will be offered 3.0.24 directly —
- *   they never have to walk through 3.0.22 / 3.0.23. The Capgo bundle
+ *   they never have to walk through 3.0.22 / 3.0.23. The Updater bundle
  *   download is also a single shot to the newest manifest.
  */
 
@@ -43,11 +44,10 @@ import {
   enableLiquidGlass,
   tagLiquidTarget,
   untagLiquidTarget,
-  isSimulationActive,
 } from '@workspace/studio-core';
 
 const isUpdateInProgress = (state: string) => {
-  const isSim = isSimulationActive();
+  const isSim = false();
   return [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
@@ -217,23 +217,23 @@ export default function UpdateIndicator({
   /** Boot-frame fallback only — actual color comes from --accent-to. */
   accentTo: string;
 }) {
-  const ota = useOtaUpdate();
+  const updater = useAppUpdate();
 
   // Record render of UpdateIndicator during active install states
   const installStates = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING', 'INSTALL_SUCCESS'];
-  if (installStates.includes(ota.updateState)) {
+  if (installStates.includes(updater.updateState)) {
     UpdaterFlightRecorder.record({
       thread: 'ui',
       sessionId: null,
       workflowId: null,
       eventType: 'UpdateIndicatorRender',
       caller: 'UpdateIndicator',
-      reason: `Rendered UpdateIndicator in state: ${ota.updateState} with progress: ${Math.round(ota.progress * 100)}%`
+      reason: `Rendered UpdateIndicator in state: ${updater.updateState} with progress: ${Math.round(updater.progress * 100)}%`
     });
   }
 
   const [phase, setPhase] = useState<Phase>(readInitialPhase);
-  const [open, setOpen] = useState(() => isUpdateInProgress(ota.updateState));
+  const [open, setOpen] = useState(() => isUpdateInProgress(updater.updateState));
   const [installFailedReason, setInstallFailedReason] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
   const [laterVersion, setLaterVersion] = useState<string | null>(readLaterVersion);
@@ -273,7 +273,7 @@ export default function UpdateIndicator({
       };
     }
 
-    if (isNative() && isAppInstallerAvailable()) {
+    if (Capacitor.isNativePlatform()() && isAppInstallerAvailable()) {
       (async () => {
         try {
           const { AppInstaller } = await import('@workspace/studio-core');
@@ -287,7 +287,7 @@ export default function UpdateIndicator({
               if (lastShownDone !== currentAppVer) {
                 setShowChangelogSheet(true);
                 localStorage.setItem('studio:lastShownDoneVersion', currentAppVer);
-                ota.dismissUpdate();
+                updater.dismissUpdate();
               }
             }
           }
@@ -321,22 +321,22 @@ export default function UpdateIndicator({
   }, [open]);
 
   useEffect(() => {
-    if (isUpdateInProgress(ota.updateState)) {
-      console.log('[OTA UI] Active session. Keeping update modal open.');
+    if (isUpdateInProgress(updater.updateState)) {
+      console.log('[Updater UI] Active session. Keeping update modal open.');
       setOpen(true);
     }
-  }, [ota.updateState]);
+  }, [updater.updateState]);
 
   useEffect(() => {
-    if (ota.validApkExists && ota.remoteVersion) {
-      if (ota.shouldShowRecoveryReminder(ota.remoteVersion)) {
+    if (updater.validApkExists && updater.remoteVersion) {
+      if (updater.shouldShowRecoveryReminder(updater.remoteVersion)) {
         console.log('[Smart Recovery] Valid APK exists on startup and reminder policy allows it. Opening modal.');
         setOpen(true);
       } else {
         console.log('[Smart Recovery] Valid APK exists on startup, but suppressed by reminder policy.');
       }
     }
-  }, [ota.validApkExists, ota.remoteVersion]);
+  }, [updater.validApkExists, updater.remoteVersion]);
 
   useEffect(() => {
     console.log('[INSTRUMENTATION] [REACT] Add open-update-dialog event listener');
@@ -356,11 +356,11 @@ export default function UpdateIndicator({
 
 
   useEffect(() => {
-    const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
-    if (isFailed && ota.error) {
-      setInstallFailedReason(ota.error);
+    const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
+    if (isFailed && updater.error) {
+      setInstallFailedReason(updater.error);
     }
-  }, [ota.updateState, ota.error]);
+  }, [updater.updateState, updater.error]);
 
   // Auto-minimize disabled per user request so the banner remains fully visible.
 
@@ -369,17 +369,17 @@ export default function UpdateIndicator({
 
   // WEB-ONLY: track whether the user dismissed the web refresh banner this session
   const [webBannerDismissed, setWebBannerDismissed] = useState(() => {
-    if (isNative()) return false;
+    if (Capacitor.isNativePlatform()()) return false;
     try {
       const dismissed = sessionStorage.getItem('studio:web-update-dismissed');
-      return dismissed === ota.remoteVersion;
+      return dismissed === updater.remoteVersion;
     } catch { return false; }
   });
 
   // CHECK-STATUS PILL ─────────────────────────────────────────────────
   // When there's NO update available we still want the user to see that
   // the app actually checked. Phases:
-  //   'checking'  — spinner + "Checking…" while ota.loading is true
+  //   'checking'  — spinner + "Checking…" while updater.loading is true
   //   'ok'        — green check + "Up to date" for ~1.6 s
   //   'fading'    — spins 360° while shrinking + fading away (~700 ms)
   //   'gone'      — unmounted
@@ -389,17 +389,17 @@ export default function UpdateIndicator({
     'checking' | 'ok' | 'fading' | 'gone'
   >('checking');
   useEffect(() => {
-    if (ota.updateAvailable) {
+    if (updater.updateAvailable) {
       setCheckPhase('gone');
       return;
     }
-    if (ota.loading) {
+    if (updater.loading) {
       setCheckPhase('checking');
       return;
     }
     setCheckPhase('ok');
     try {
-      const isAuto = !otaDebugLogs.triggerComponent?.toLowerCase().includes('manual');
+      const isAuto = !updateDebugLogs.triggerComponent?.toLowerCase().includes('manual');
       recordUpToDatePopup('checkPhase transitioned to ok', isAuto);
     } catch (_) {}
     const tFade = window.setTimeout(() => setCheckPhase('fading'), 1600);
@@ -408,7 +408,7 @@ export default function UpdateIndicator({
       window.clearTimeout(tFade);
       window.clearTimeout(tGone);
     };
-  }, [ota.loading, ota.updateAvailable]);
+  }, [updater.loading, updater.updateAvailable]);
 
   // Tag "Up to date" check indicator with Liquid Glass
   useEffect(() => {
@@ -430,26 +430,26 @@ export default function UpdateIndicator({
     return () => {
       untagLiquidTarget(el);
     };
-  }, [phase, ota.updateAvailable]);
+  }, [phase, updater.updateAvailable]);
 
-  if (!ota.updateAvailable) {
+  if (!updater.updateAvailable) {
     if (!open) return null;
     // Only show the full update modal on native
-    if (!isNative()) return null;
+    if (!Capacitor.isNativePlatform()()) return null;
     return (
       <UpdateModal
         fromLabel={APP_VERSION_LABEL}
-        toVersion={ota.remoteVersion ?? '—'}
-        mandatory={ota.mandatory}
-        downloadUrl={ota.downloadUrl}
+        toVersion={updater.remoteVersion ?? '—'}
+        mandatory={updater.mandatory}
+        downloadUrl={updater.downloadUrl}
         accentFrom={`var(--accent-from, ${accentFrom})`}
         accentTo={`var(--accent-to, ${accentTo})`}
         onLater={() => setOpen(false)}
         onClose={() => {
           setOpen(false);
-          const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
+          const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
           if (isFailed) {
-            ota.dismissUpdate();
+            updater.dismissUpdate();
           }
         }}
         installFailedReason={installFailedReason}
@@ -459,7 +459,7 @@ export default function UpdateIndicator({
   }
 
   /* ── WEB-ONLY: slim non-blocking refresh banner ─────────────────────── */
-  if (!isNative()) {
+  if (!Capacitor.isNativePlatform()()) {
     if (webBannerDismissed) return null;
     return (
       <>
@@ -492,8 +492,8 @@ export default function UpdateIndicator({
             system_update
           </span>
           <span>
-            {ota.remoteVersion
-              ? `Studio v${ota.remoteVersion} available`
+            {updater.remoteVersion
+              ? `Studio v${updater.remoteVersion} available`
               : 'New version available'}
           </span>
           <button
@@ -521,8 +521,8 @@ export default function UpdateIndicator({
             onClick={() => {
               setWebBannerDismissed(true);
               try {
-                if (ota.remoteVersion) {
-                  sessionStorage.setItem('studio:web-update-dismissed', ota.remoteVersion);
+                if (updater.remoteVersion) {
+                  sessionStorage.setItem('studio:web-update-dismissed', updater.remoteVersion);
                 }
               } catch { /* ignore */ }
             }}
@@ -559,21 +559,21 @@ export default function UpdateIndicator({
     // pill visible in the corner so the user always has a one-tap
     // path back to update.
     setOpen(false);
-    ota.dismissUpdate();
-    if (ota.remoteVersion) {
-      writeLaterVersion(ota.remoteVersion);
-      setLaterVersion(ota.remoteVersion);
-      ota.recordDismissal(ota.remoteVersion);
+    updater.dismissUpdate();
+    if (updater.remoteVersion) {
+      writeLaterVersion(updater.remoteVersion);
+      setLaterVersion(updater.remoteVersion);
+      updater.recordDismissal(updater.remoteVersion);
       try {
         const key = 'studio:dismissedVersions';
         const val = localStorage.getItem(key);
         const list = val ? JSON.parse(val) : [];
-        if (!list.includes(ota.remoteVersion)) {
-          list.push(ota.remoteVersion);
+        if (!list.includes(updater.remoteVersion)) {
+          list.push(updater.remoteVersion);
           localStorage.setItem(key, JSON.stringify(list));
         }
       } catch (err) {
-        console.warn('[OTA] Failed to write dismissedVersion:', err);
+        console.warn('[Updater] Failed to write dismissedVersion:', err);
       }
     }
     setPhase('pill');
@@ -590,7 +590,7 @@ export default function UpdateIndicator({
   const cFrom = `var(--accent-from, ${accentFrom})`;
   const cTo   = `var(--accent-to, ${accentTo})`;
   // For tinted backgrounds we need an alpha-mixed version. color-mix
-  // is supported on every Android Chrome WebView ≥ 111 (we ship Capgo
+  // is supported on every Android Chrome WebView ≥ 111 (we ship Updater
   // on a far newer baseline) so we can mix the live CSS var directly.
   const tint  = (pct: number) => `color-mix(in srgb, ${cTo} ${pct}%, transparent)`;
   const tintFrom = (pct: number) => `color-mix(in srgb, ${cFrom} ${pct}%, transparent)`;
@@ -613,7 +613,7 @@ export default function UpdateIndicator({
         onClick={() => setOpen(true)}
         aria-label={
           isBanner
-            ? `New update available — version ${ota.remoteVersion ?? ''} — tap for details`
+            ? `New update available — version ${updater.remoteVersion ?? ''} — tap for details`
             : 'Update available'
         }
         style={{
@@ -695,7 +695,7 @@ export default function UpdateIndicator({
             pointerEvents: isBanner ? 'auto' : 'none',
           }}
         >
-          {ota.remoteVersion ? `Studio update v${ota.remoteVersion} available` : 'Studio update available'}
+          {updater.remoteVersion ? `Studio update v${updater.remoteVersion} available` : 'Studio update available'}
         </span>
 
         <span
@@ -738,24 +738,24 @@ export default function UpdateIndicator({
       {open && (
         <UpdateModal
           fromLabel={APP_VERSION_LABEL}
-          toVersion={ota.remoteVersion ?? '—'}
-          mandatory={ota.mandatory}
-          downloadUrl={ota.downloadUrl}
+          toVersion={updater.remoteVersion ?? '—'}
+          mandatory={updater.mandatory}
+          downloadUrl={updater.downloadUrl}
           accentFrom={cFrom}
           accentTo={cTo}
           onLater={handleLater}
           onClose={() => {
             setOpen(false);
-            const isFailed = ota.updateState === 'INSTALL_FAILED' || ota.updateState === 'RECOVERY';
+            const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
             if (isFailed) {
-              ota.dismissUpdate();
+              updater.dismissUpdate();
             }
             if (phase === 'banner') {
               setPhase('pill');
               markBannerShown();
             }
-            if (ota.remoteVersion) {
-              ota.recordDismissal(ota.remoteVersion);
+            if (updater.remoteVersion) {
+              updater.recordDismissal(updater.remoteVersion);
             }
           }}
           installFailedReason={installFailedReason}
@@ -819,7 +819,7 @@ export default function UpdateIndicator({
                 setShowChangelogSheet(true);
                 localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
                 setSuccessNotificationVersion(null);
-                ota.dismissUpdate();
+                updater.dismissUpdate();
               }}
               style={{
                 marginLeft: 'auto',
@@ -842,7 +842,7 @@ export default function UpdateIndicator({
               onClick={() => {
                 localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
                 setSuccessNotificationVersion(null);
-                ota.dismissUpdate();
+                updater.dismissUpdate();
               }}
               style={{
                 background: 'transparent',
@@ -929,7 +929,7 @@ function ActionButton({
   );
 }
 
-const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, accentTo, isLight }: any) => {
+const DownloadProgressIndicator = React.memo(({ updater, toVersion, accentFrom, accentTo, isLight }: any) => {
   const [downloadMetrics, setDownloadMetrics] = useState({
     downloadedMB: 0,
     totalMB: 0,
@@ -942,10 +942,10 @@ const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, acce
   const smoothedSpeedRef = useRef(0);
 
   useEffect(() => {
-    const isDownloading = ota.updateState === 'DOWNLOAD_APK' || ota.updateState === 'FETCH_APK_INFORMATION';
+    const isDownloading = updater.updateState === 'DOWNLOAD_APK' || updater.updateState === 'FETCH_APK_INFORMATION';
     if (isDownloading) {
-      const totalBytes = ota.apkSizeBytes || 56194057;
-      const downloadedBytes = totalBytes * ota.progress;
+      const totalBytes = updater.apkSizeBytes || 56194057;
+      const downloadedBytes = totalBytes * updater.progress;
       
       const now = Date.now();
       const lastTime = lastTimeRef.current;
@@ -954,9 +954,9 @@ const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, acce
       let speed = 0;
       let remaining = 0;
       
-      if (lastTime > 0 && now > lastTime && ota.progress > lastProgress) {
+      if (lastTime > 0 && now > lastTime && updater.progress > lastProgress) {
         const timeDiffSec = (now - lastTime) / 1000;
-        const bytesDiff = totalBytes * (ota.progress - lastProgress);
+        const bytesDiff = totalBytes * (updater.progress - lastProgress);
         const currentSpeed = bytesDiff / timeDiffSec;
         
         if (smoothedSpeedRef.current === 0) {
@@ -969,7 +969,7 @@ const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, acce
       }
       
       lastTimeRef.current = now;
-      lastProgressRef.current = ota.progress;
+      lastProgressRef.current = updater.progress;
       
       if (speed > 0) {
         const remainingBytes = totalBytes - downloadedBytes;
@@ -993,9 +993,9 @@ const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, acce
       lastTimeRef.current = 0;
       smoothedSpeedRef.current = 0;
     };
-  }, [ota.progress, ota.updateState, ota.apkSizeBytes]);
+  }, [updater.progress, updater.updateState, updater.apkSizeBytes]);
 
-  const pct = Math.round(ota.progress * 100);
+  const pct = Math.round(updater.progress * 100);
 
   return (
     <div style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
@@ -1041,7 +1041,7 @@ const DownloadProgressIndicator = React.memo(({ ota, toVersion, accentFrom, acce
     </div>
   );
 }, (prev: any, next: any) => {
-  return prev.ota.progress === next.ota.progress && prev.ota.updateState === next.ota.updateState && prev.isLight === next.isLight;
+  return prev.updater.progress === next.updater.progress && prev.updater.updateState === next.updater.updateState && prev.isLight === next.isLight;
 });
 
 function UpdateModal({
@@ -1067,7 +1067,7 @@ function UpdateModal({
   installFailedReason: string | null;
   setInstallFailedReason: (v: string | null) => void;
 }) {
-  const ota = useOtaUpdate();
+  const updater = useAppUpdate();
   const [permissionBlocked, setPermissionBlocked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -1090,7 +1090,7 @@ function UpdateModal({
   })();
 
   useEffect(() => {
-    const isCompleted = ota.updateState === 'INSTALL_SUCCESS';
+    const isCompleted = updater.updateState === 'INSTALL_SUCCESS';
     if (!isCompleted) return;
     // The success screen stays visible until one of:
     // 1. Android kills this process and relaunches the new version
@@ -1102,76 +1102,76 @@ function UpdateModal({
     // and state resets. This eliminates the premature "Studio is up to date"
     // message that occurred when the old process was still alive after APK
     // installation.
-    console.log('[OTA UI] Installation success detected. Success screen will remain visible until lifecycle transition.');
-  }, [ota.updateState, ota]);
+    console.log('[Updater UI] Installation success detected. Success screen will remain visible until lifecycle transition.');
+  }, [updater.updateState, updater]);
 
   const getDiagnosticsText = () => {
     return [
       '=== STUDIO UPDATE DIAGNOSTICS ===',
-      `Failure Timestamp: ${otaDiagnostics.timestamp || 'N/A'}`,
-      `Device Model/Manufacturer: ${otaDiagnostics.deviceModel || 'N/A'}`,
-      `Android Version: ${otaDiagnostics.androidVersion || 'N/A'}`,
-      `Permission State: ${otaDiagnostics.permissionState || 'N/A'}`,
-      `Exception Message: ${otaDiagnostics.exceptionMessage || 'N/A'}`,
+      `Failure Timestamp: ${updateDiagnostics.timestamp || 'N/A'}`,
+      `Device Model/Manufacturer: ${updateDiagnostics.deviceModel || 'N/A'}`,
+      `Android Version: ${updateDiagnostics.androidVersion || 'N/A'}`,
+      `Permission State: ${updateDiagnostics.permissionState || 'N/A'}`,
+      `Exception Message: ${updateDiagnostics.exceptionMessage || 'N/A'}`,
       `Failure Reason & Stack Trace:`,
-      otaDiagnostics.failureReason || 'N/A',
-      `Download URL Used: ${otaDiagnostics.downloadUrl || 'N/A'}`,
-      `APK Path: ${otaDiagnostics.apkPath || 'N/A'}`,
-      `File Size: ${otaDiagnostics.fileSize || 'N/A'}`,
-      `SHA-256 Expected: ${otaDiagnostics.shaExpected || 'N/A'}`,
-      `SHA-256 Calculated: ${otaDiagnostics.shaCalculated || 'N/A'}`,
-      `Installer Result: ${otaDiagnostics.installerResult || 'N/A'}`,
+      updateDiagnostics.failureReason || 'N/A',
+      `Download URL Used: ${updateDiagnostics.downloadUrl || 'N/A'}`,
+      `APK Path: ${updateDiagnostics.apkPath || 'N/A'}`,
+      `File Size: ${updateDiagnostics.fileSize || 'N/A'}`,
+      `SHA-256 Expected: ${updateDiagnostics.shaExpected || 'N/A'}`,
+      `SHA-256 Calculated: ${updateDiagnostics.shaCalculated || 'N/A'}`,
+      `Installer Result: ${updateDiagnostics.installerResult || 'N/A'}`,
       '',
       '=== COMPREHENSIVE DEBUG LOGS ===',
-      `App Version (APP_VERSION): ${otaDebugLogs.appVersion}`,
-      `APK Version (Wrapper): ${otaDebugLogs.nativeApkVersion || 'N/A'}`,
+      `App Version (APP_VERSION): ${updateDebugLogs.appVersion}`,
+      `APK Version (Wrapper): ${updateDebugLogs.nativeApkVersion || 'N/A'}`,
       `Update System: APK only`,
-      `OTA System: disabled`,
-      `AppInstaller Available: ${otaDebugLogs.appInstallerAvailable}`,
-      `downloadApk Available: ${otaDebugLogs.downloadApkAvailable}`,
-      `verifyApkSha256 Available: ${otaDebugLogs.verifyApkSha256Available}`,
-      `installApk Available: ${otaDebugLogs.installApkAvailable}`,
-      `openInstallPermissionSettings Available: ${otaDebugLogs.openInstallPermissionSettingsAvailable}`,
-      `Registered Capacitor Plugins: ${otaDebugLogs.registeredPlugins}`,
-      `Plugin Method Check: ${otaDebugLogs.pluginMethodCheck}`,
-      `Fetched version.json: ${otaDebugLogs.fetchedVersionJson || 'N/A'}`,
-      `Fetched app-release.json: ${otaDebugLogs.fetchedAppReleaseJson || 'N/A'}`,
-      `Update Type: ${otaDebugLogs.updateType || 'N/A'}`,
-      `Download Status: ${otaDebugLogs.downloadStatus || 'N/A'}`,
-      `SHA Verification Status: ${otaDebugLogs.shaVerification || 'N/A'}`,
-      `File Details: ${otaDebugLogs.fileDetails || 'N/A'}`,
-      `Install Error / Log: ${otaDebugLogs.installError || 'N/A'}`,
-      `Installer Launch Status: ${otaDebugLogs.installerLaunchStatus || 'N/A'}`,
+      `Updater System: disabled`,
+      `AppInstaller Available: ${updateDebugLogs.appInstallerAvailable}`,
+      `downloadApk Available: ${updateDebugLogs.downloadApkAvailable}`,
+      `verifyApkSha256 Available: ${updateDebugLogs.verifyApkSha256Available}`,
+      `installApk Available: ${updateDebugLogs.installApkAvailable}`,
+      `openInstallPermissionSettings Available: ${updateDebugLogs.openInstallPermissionSettingsAvailable}`,
+      `Registered Capacitor Plugins: ${updateDebugLogs.registeredPlugins}`,
+      `Plugin Method Check: ${updateDebugLogs.pluginMethodCheck}`,
+      `Fetched version.json: ${updateDebugLogs.fetchedVersionJson || 'N/A'}`,
+      `Fetched app-release.json: ${updateDebugLogs.fetchedAppReleaseJson || 'N/A'}`,
+      `Update Type: ${updateDebugLogs.updateType || 'N/A'}`,
+      `Download Status: ${updateDebugLogs.downloadStatus || 'N/A'}`,
+      `SHA Verification Status: ${updateDebugLogs.shaVerification || 'N/A'}`,
+      `File Details: ${updateDebugLogs.fileDetails || 'N/A'}`,
+      `Install Error / Log: ${updateDebugLogs.installError || 'N/A'}`,
+      `Installer Launch Status: ${updateDebugLogs.installerLaunchStatus || 'N/A'}`,
       `Last Exception Stack Trace:`,
-      otaDebugLogs.lastExceptionStackTrace || 'N/A',
+      updateDebugLogs.lastExceptionStackTrace || 'N/A',
       '',
       '=== ELIGIBILITY DETAILS ===',
-      `Installed package: ${otaDebugLogs.installedPackageName || 'N/A'}`,
-      `Installed versionName: ${otaDebugLogs.installedVersionName || 'N/A'}`,
-      `Installed versionCode: ${otaDebugLogs.installedVersionCode || 'N/A'}`,
-      `Installed signing SHA-256: ${otaDebugLogs.installedSigningSha256 || 'N/A'}`,
-      `Installed debuggable: ${otaDebugLogs.installedDebuggable !== null ? otaDebugLogs.installedDebuggable : 'N/A'}`,
+      `Installed package: ${updateDebugLogs.installedPackageName || 'N/A'}`,
+      `Installed versionName: ${updateDebugLogs.installedVersionName || 'N/A'}`,
+      `Installed versionCode: ${updateDebugLogs.installedVersionCode || 'N/A'}`,
+      `Installed signing SHA-256: ${updateDebugLogs.installedSigningSha256 || 'N/A'}`,
+      `Installed debuggable: ${updateDebugLogs.installedDebuggable !== null ? updateDebugLogs.installedDebuggable : 'N/A'}`,
       '',
-      `Downloaded package: ${otaDebugLogs.downloadedPackageName || 'N/A'}`,
-      `Downloaded versionName: ${otaDebugLogs.downloadedVersionName || 'N/A'}`,
-      `Downloaded versionCode: ${otaDebugLogs.downloadedVersionCode || 'N/A'}`,
-      `Downloaded signing SHA-256: ${otaDebugLogs.downloadedSigningSha256 || 'N/A'}`,
-      `Downloaded debuggable: ${otaDebugLogs.downloadedDebuggable !== null ? otaDebugLogs.downloadedDebuggable : 'N/A'}`,
-      `Downloaded isValidApk: ${otaDebugLogs.downloadedIsValidApk !== null ? otaDebugLogs.downloadedIsValidApk : 'N/A'}`,
-      `Downloaded isUniversalApk: ${otaDebugLogs.downloadedIsUniversalApk !== null ? otaDebugLogs.downloadedIsUniversalApk : 'N/A'}`,
-      `Downloaded size: ${otaDebugLogs.downloadedApkSize || 'N/A'}`,
+      `Downloaded package: ${updateDebugLogs.downloadedPackageName || 'N/A'}`,
+      `Downloaded versionName: ${updateDebugLogs.downloadedVersionName || 'N/A'}`,
+      `Downloaded versionCode: ${updateDebugLogs.downloadedVersionCode || 'N/A'}`,
+      `Downloaded signing SHA-256: ${updateDebugLogs.downloadedSigningSha256 || 'N/A'}`,
+      `Downloaded debuggable: ${updateDebugLogs.downloadedDebuggable !== null ? updateDebugLogs.downloadedDebuggable : 'N/A'}`,
+      `Downloaded isValidApk: ${updateDebugLogs.downloadedIsValidApk !== null ? updateDebugLogs.downloadedIsValidApk : 'N/A'}`,
+      `Downloaded isUniversalApk: ${updateDebugLogs.downloadedIsUniversalApk !== null ? updateDebugLogs.downloadedIsUniversalApk : 'N/A'}`,
+      `Downloaded size: ${updateDebugLogs.downloadedApkSize || 'N/A'}`,
       '',
-      `Eligibility package match: ${otaDebugLogs.eligibilityPackageNameMatch !== null ? otaDebugLogs.eligibilityPackageNameMatch : 'N/A'}`,
-      `Eligibility signing match: ${otaDebugLogs.eligibilitySigningMatch !== null ? otaDebugLogs.eligibilitySigningMatch : 'N/A'}`,
-      `Eligibility versionCode higher: ${otaDebugLogs.eligibilityVersionCodeHigher !== null ? otaDebugLogs.eligibilityVersionCodeHigher : 'N/A'}`,
-      `Eligibility release build: ${otaDebugLogs.eligibilityReleaseBuild !== null ? otaDebugLogs.eligibilityReleaseBuild : 'N/A'}`,
-      `Eligibility valid APK: ${otaDebugLogs.eligibilityValidApk !== null ? otaDebugLogs.eligibilityValidApk : 'N/A'}`,
-      `Eligibility final install: ${otaDebugLogs.eligibilityFinalInstall || 'N/A'}`,
-      `Eligibility reason: ${otaDebugLogs.eligibilityReason || 'N/A'}`
+      `Eligibility package match: ${updateDebugLogs.eligibilityPackageNameMatch !== null ? updateDebugLogs.eligibilityPackageNameMatch : 'N/A'}`,
+      `Eligibility signing match: ${updateDebugLogs.eligibilitySigningMatch !== null ? updateDebugLogs.eligibilitySigningMatch : 'N/A'}`,
+      `Eligibility versionCode higher: ${updateDebugLogs.eligibilityVersionCodeHigher !== null ? updateDebugLogs.eligibilityVersionCodeHigher : 'N/A'}`,
+      `Eligibility release build: ${updateDebugLogs.eligibilityReleaseBuild !== null ? updateDebugLogs.eligibilityReleaseBuild : 'N/A'}`,
+      `Eligibility valid APK: ${updateDebugLogs.eligibilityValidApk !== null ? updateDebugLogs.eligibilityValidApk : 'N/A'}`,
+      `Eligibility final install: ${updateDebugLogs.eligibilityFinalInstall || 'N/A'}`,
+      `Eligibility reason: ${updateDebugLogs.eligibilityReason || 'N/A'}`
     ].join('\n');
   };
 
-  const isApkFlow = ota.updateType === 'apk' || ota.updateType === 'both';
+  const isApkFlow = updater.updateType === 'apk' || updater.updateType === 'both';
 
   // Signature purple/pink colors override
   const purpleFrom = '#b57bee';
@@ -1179,12 +1179,12 @@ function UpdateModal({
 
   const handleStartUpdate = async () => {
     try {
-      if (isNative() && isAppInstallerAvailable()) {
+      if (Capacitor.isNativePlatform()() && isAppInstallerAvailable()) {
         const { AppInstaller } = await import('@workspace/studio-core');
         await AppInstaller.clearInstallerLogHistory();
       }
-      await ota.downloadUpdate('UpdateIndicator: UpdateModal');
-      await ota.applyUpdate('UpdateIndicator: UpdateModal');
+      await updater.downloadUpdate('UpdateIndicator: UpdateModal');
+      await updater.applyUpdate('UpdateIndicator: UpdateModal');
     } catch (err) {
       console.error('[UpdateIndicator] Start update failed:', err);
     }
@@ -1192,7 +1192,7 @@ function UpdateModal({
 
   const handleInstallApk = async () => {
     try {
-      if (isNative()) {
+      if (Capacitor.isNativePlatform()()) {
         const { AppInstaller } = await import('@workspace/studio-core');
         const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
         if (!hasPerm) {
@@ -1202,7 +1202,7 @@ function UpdateModal({
       }
       
       // Attempt to launch installer
-      await ota.applyUpdate('UpdateIndicator: UpdateModal');
+      await updater.applyUpdate('UpdateIndicator: UpdateModal');
     } catch (err) {
       console.error('[UpdateIndicator] APK Install failed:', err);
     }
@@ -1220,7 +1220,7 @@ function UpdateModal({
   const handleOpenGitHub = async () => {
     try {
       const { resolveReleasePageUrl } = await import('@workspace/studio-core');
-      const fallbackUrl = await resolveReleasePageUrl(ota.remoteVersion ?? undefined);
+      const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
       window.open(fallbackUrl, '_system');
     } catch (err) {
       window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
@@ -1238,7 +1238,7 @@ function UpdateModal({
         const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
         if (hasPerm && active) {
           setPermissionBlocked(false);
-          await ota.applyUpdate('UpdateIndicator: UpdateModal');
+          await updater.applyUpdate('UpdateIndicator: UpdateModal');
         }
       } catch (err) {
         console.warn('[Permissions] Failed to query status:', err);
@@ -1258,7 +1258,7 @@ function UpdateModal({
       window.removeEventListener('focus', checkPerm);
       nativeListener?.remove().catch(() => {});
     };
-  }, [permissionBlocked, ota]);
+  }, [permissionBlocked, updater]);
 
 
 
@@ -1268,12 +1268,12 @@ function UpdateModal({
   let title = 'Update available';
   let description: React.ReactNode = '';
   let showProgress = false;
-  let progressVal = ota.progress;
+  let progressVal = updater.progress;
   let showButtons = true;
   let showSpinner = false;
 
   const displayState = (() => {
-    let s = ota.updateState;
+    let s = updater.updateState;
     if (s === 'INITIALIZING' || s === 'FETCH_REMOTE_METADATA' || s === 'VALIDATE_METADATA' || s === 'COMPARE_VERSION') return 'checking';
     if (s === 'NO_UPDATE_AVAILABLE' || s === 'IDLE') return 'idle';
     if (s === 'UPDATE_AVAILABLE') return 'update_available';
@@ -1284,14 +1284,14 @@ function UpdateModal({
     if (s === 'PACKAGEINSTALLER_VISIBLE') return 'packageinstaller_visible';
     if (s === 'INSTALLING') return 'installing';
     if (s === 'INSTALL_SUCCESS') {
-      const isSim = isSimulationActive();
+      const isSim = false();
       return isSim ? 'completed' : 'installing';
     }
     if (s === 'INSTALL_CANCELLED') return 'cancelled';
     if (s === 'INSTALL_FAILED') return 'failed';
     if (s === 'RECOVERY') {
-      if (ota.error?.includes('Signature mismatch') || ota.error?.includes('Conflicting Package')) return 'signature_mismatch';
-      if (ota.error?.includes('versionCode_low')) return 'versionCode_low';
+      if (updater.error?.includes('Signature mismatch') || updater.error?.includes('Conflicting Package')) return 'signature_mismatch';
+      if (updater.error?.includes('versionCode_low')) return 'versionCode_low';
       return 'failed';
     }
     return s;
@@ -1301,9 +1301,9 @@ function UpdateModal({
     ? 'install_failed'
     : (permissionBlocked ? 'permission_blocked' : displayState);
   if (state === 'update_available') {
-    if (ota.reinstallRequired) {
+    if (updater.reinstallRequired) {
       state = 'reinstall_warning';
-    } else if (ota.apkUpdateRequired && !isAppInstallerAvailable()) {
+    } else if (updater.apkUpdateRequired && !isAppInstallerAvailable()) {
       state = 'manual_apk_required';
     } else {
       state = 'available';
@@ -1315,10 +1315,10 @@ function UpdateModal({
   } else if (displayState === 'completed') {
     state = 'installedOrReady';
   } else if (displayState === 'idle') {
-    if (ota.error) {
-      if (ota.error.includes('Signature mismatch') || ota.error.includes('Conflicting Package')) {
+    if (updater.error) {
+      if (updater.error.includes('Signature mismatch') || updater.error.includes('Conflicting Package')) {
         state = 'signature_mismatch';
-      } else if (ota.error.includes('versionCode_low')) {
+      } else if (updater.error.includes('versionCode_low')) {
         state = 'versionCode_low';
       } else {
         state = 'failed';
@@ -1417,7 +1417,7 @@ function UpdateModal({
       iconName = 'verified_user';
       iconColor = purpleFrom;
       title = 'Verifying update';
-      description = ota.statusText || 'Studio is checking the update package before installation.';
+      description = updater.statusText || 'Studio is checking the update package before installation.';
       showSpinner = true;
       showButtons = false;
       break;
@@ -1442,11 +1442,11 @@ function UpdateModal({
       iconName = 'sync';
       iconColor = purpleFrom;
       showSpinner = true;
-      const isSuccess = ota.updateState === 'INSTALL_SUCCESS';
+      const isSuccess = updater.updateState === 'INSTALL_SUCCESS';
       title = isSuccess ? 'Finalizing...' : 'Installing...';
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
-          <div>{isSuccess ? 'Finalizing installation...' : (ota.statusText || 'Android is installing the update.')}</div>
+          <div>{isSuccess ? 'Finalizing installation...' : (updater.statusText || 'Android is installing the update.')}</div>
           <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>Please wait... Do not close the application.</div>
         </div>
       );
@@ -1461,7 +1461,7 @@ function UpdateModal({
       iconName = 'check_circle';
       iconColor = '#22c55e';
       title = 'Installation complete';
-      description = `Version ${ota.remoteVersion || 'latest'} successfully installed.`;
+      description = `Version ${updater.remoteVersion || 'latest'} successfully installed.`;
       showButtons = false;
       showSpinner = false;
       break;
@@ -1494,7 +1494,7 @@ function UpdateModal({
       break;
 
     case 'failed':
-      if (ota.recoveryMode) {
+      if (updater.recoveryMode) {
         iconName = 'healing';
         iconColor = '#eab308';
         title = 'Update Recovery Mode';
@@ -1512,15 +1512,15 @@ function UpdateModal({
         iconName = 'error';
         iconColor = '#f87171';
         title = 'Update download failed';
-        if (ota.error && (ota.error.includes('404') || ota.error.includes('non-OK status: 404'))) {
+        if (updater.error && (updater.error.includes('404') || updater.error.includes('non-OK status: 404'))) {
           description = (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', fontSize: 13, marginTop: 4 }}>
               <p style={{ margin: 0, fontWeight: 700, color: '#f87171', lineHeight: 1.4 }}>
                 Studio update package was not found on the release server.
               </p>
               <div style={{ background: 'rgba(128,128,128,0.05)', padding: '10px 12px', borderRadius: 10, fontFamily: 'monospace', fontSize: 11, border: '1px solid rgba(128,128,128,0.1)', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div>Target Version: {ota.remoteVersion || 'N/A'}</div>
-                <div style={{ wordBreak: 'break-all' }}>APK URL: {ota.apkUrl || 'N/A'}</div>
+                <div>Target Version: {updater.remoteVersion || 'N/A'}</div>
+                <div style={{ wordBreak: 'break-all' }}>APK URL: {updater.apkUrl || 'N/A'}</div>
                 <div>HTTP Status: 404 (Not Found)</div>
                 <div>Metadata (app-release.json) fetched: Yes</div>
               </div>
@@ -1530,7 +1530,7 @@ function UpdateModal({
             </div>
           );
         } else {
-          description = ota.error || 'Studio could not complete the update. You can try again or copy diagnostics.';
+          description = updater.error || 'Studio could not complete the update. You can try again or copy diagnostics.';
         }
       }
       break;
@@ -1681,14 +1681,14 @@ function UpdateModal({
     if (state === 'available') {
       return (
         <div style={{ width: '100%' }}>
-          {ota.validApkExists ? (
+          {updater.validApkExists ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
               <ActionButton
                 type="button"
                 onClick={async () => {
                   try {
-                    await ota.downloadUpdate('Modal: Continue Installation');
-                    await ota.applyUpdate('Modal: Continue Installation');
+                    await updater.downloadUpdate('Modal: Continue Installation');
+                    await updater.applyUpdate('Modal: Continue Installation');
                   } catch (err) {
                     console.error('[UpdateIndicator] Continue installation failed:', err);
                   }
@@ -1732,7 +1732,7 @@ function UpdateModal({
     }
 
     if (state === 'manual_apk_required') {
-      const manualApkUrl = ota.manualApkUrl || `https://studio-30f44.web.app/apk/studio-${ota.remoteVersion}.bin`;
+      const manualApkUrl = updater.manualApkUrl || `https://studio-30f44.web.app/apk/studio-${updater.remoteVersion}.bin`;
 
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, width: '100%' }}>
@@ -1812,7 +1812,7 @@ function UpdateModal({
       
       const handleRetryRecovery = async () => {
         try {
-          await ota.runSignatureMismatchRecovery();
+          await updater.runSignatureMismatchRecovery();
         } catch (err: any) {
           alert(`Recovery failed: ${err.message || String(err)}`);
         }
@@ -1820,7 +1820,7 @@ function UpdateModal({
 
       const handleGitHubInstall = async () => {
         try {
-          await ota.downloadAndInstallGitHubApk();
+          await updater.downloadAndInstallGitHubApk();
         } catch (err: any) {
           alert(`GitHub install failed: ${err.message || String(err)}`);
         }
@@ -1948,22 +1948,22 @@ function UpdateModal({
         }
       };
 
-      if (ota.validApkExists) {
+      if (updater.validApkExists) {
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14, width: '100%' }}>
             <h4 style={{ margin: '4px 0 2px', fontSize: 13, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', alignSelf: 'flex-start' }}>
               Installation could not be started
             </h4>
             <p style={{ margin: '0 0 6px', fontSize: 11.5, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45, textAlign: 'left' }}>
-              {ota.error || 'Studio could not start the installation automatically. Please choose an option below to recover.'}
+              {updater.error || 'Studio could not start the installation automatically. Please choose an option below to recover.'}
             </p>
 
             <ActionButton
               type="button"
               onClick={async () => {
                 try {
-                  await ota.downloadUpdate('Recovery Center: Retry Installation');
-                  await ota.applyUpdate('Recovery Center: Retry Installation');
+                  await updater.downloadUpdate('Recovery Center: Retry Installation');
+                  await updater.applyUpdate('Recovery Center: Retry Installation');
                 } catch (err) {
                   console.error('[UpdateIndicator] Recovery retry failed:', err);
                 }
@@ -1978,8 +1978,8 @@ function UpdateModal({
               type="button"
               onClick={async () => {
                 try {
-                  await ota.downloadUpdate('Recovery Center: Continue Installation');
-                  await ota.applyUpdate('Recovery Center: Continue Installation');
+                  await updater.downloadUpdate('Recovery Center: Continue Installation');
+                  await updater.applyUpdate('Recovery Center: Continue Installation');
                 } catch (err) {
                   console.error('[UpdateIndicator] Recovery continue failed:', err);
                 }
@@ -2042,16 +2042,16 @@ function UpdateModal({
             Update Recovery Center
           </h4>
           <p style={{ margin: '0 0 6px', fontSize: 11.5, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45, textAlign: 'left' }}>
-            {ota.error || 'Studio could not complete the update automatically. Please choose a recovery action below.'}
+            {updater.error || 'Studio could not complete the update automatically. Please choose a recovery action below.'}
           </p>
 
           <ActionButton
             type="button"
             onClick={async () => {
-              if (ota.updateAvailable) {
+              if (updater.updateAvailable) {
                 await handleStartUpdate();
               } else {
-                await ota.checkNow();
+                await updater.checkNow();
               }
             }}
             style={primaryButtonStyle}
@@ -2119,8 +2119,8 @@ function UpdateModal({
                 endPostInstallSession('user_done_button');
                 clearInstallationJustCompleted();
                 onClose();
-                ota.dismissUpdate();
-                if (isNative()) {
+                updater.dismissUpdate();
+                if (Capacitor.isNativePlatform()()) {
                   await AppInstaller.clearInstallerLogHistory();
                   const { App: CapApp } = await import('@capacitor/app');
                   await CapApp.exitApp();
@@ -2157,7 +2157,7 @@ function UpdateModal({
           }} />
         </div>
         <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8, textAlign: 'left' }}>
-          {ota.statusText || 'Waiting for system confirmation...'}
+          {updater.statusText || 'Waiting for system confirmation...'}
         </div>
       </div>
     );
@@ -2187,8 +2187,8 @@ function UpdateModal({
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%', textAlign: 'left' }}>
             {fileName}
           </span>
-          {otaDebugLogs.downloadedApkSize && otaDebugLogs.downloadedApkSize !== 'N/A' && (
-            <span>{otaDebugLogs.downloadedApkSize}</span>
+          {updateDebugLogs.downloadedApkSize && updateDebugLogs.downloadedApkSize !== 'N/A' && (
+            <span>{updateDebugLogs.downloadedApkSize}</span>
           )}
         </div>
       </div>
@@ -2240,7 +2240,7 @@ function UpdateModal({
   };
 
   const renderChangelog = () => {
-    const releaseNotes = ota.releaseNotes;
+    const releaseNotes = updater.releaseNotes;
 
     // Check if we have structured release notes with at least one item
     const hasStructured = releaseNotes && typeof releaseNotes === 'object' && !Array.isArray(releaseNotes) && (
@@ -2350,7 +2350,7 @@ function UpdateModal({
     // Fallback to flat list or plain text splits
     const bullets = Array.isArray(releaseNotes)
       ? (releaseNotes as string[])
-      : (ota.changelog ? ota.changelog.split('\n').map(l => l.trim()).filter(Boolean) : []);
+      : (updater.changelog ? updater.changelog.split('\n').map(l => l.trim()).filter(Boolean) : []);
 
     if (bullets.length === 0) return null;
 
@@ -2483,7 +2483,7 @@ function UpdateModal({
 
   const progressComponent = showProgress ? (
     <DownloadProgressIndicator
-      ota={ota}
+      updater={updater}
       toVersion={toVersion}
       accentFrom={accentFrom}
       accentTo={accentTo}

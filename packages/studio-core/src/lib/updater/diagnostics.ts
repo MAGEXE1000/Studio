@@ -1,6 +1,6 @@
-import { isNative } from '../capgoUpdater';
+import { Capacitor } from '@capacitor/core';
 import { APP_VERSION } from '../appVersion';
-import { globalOtaState, activePipelineContext, startUpdateSession, activeUpdateSession } from './stateMachine';
+import { globalUpdateState, activePipelineContext, startUpdateSession, activeUpdateSession } from './stateMachine';
 import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 
 export interface OtaDiagnostics {
@@ -35,7 +35,7 @@ export interface OtaDiagnostics {
   pipelineDuration?: number | null;
 }
 
-export let otaDiagnostics: OtaDiagnostics = {
+export let updateDiagnostics: OtaDiagnostics = {
   exceptionMessage: null,
   failureReason: null,
   downloadUrl: null,
@@ -66,7 +66,7 @@ export let otaDiagnostics: OtaDiagnostics = {
   pipelineDuration: null,
 };
 
-export const otaDebugLogs: {
+export const updateDebugLogs: {
   appVersion: string;
   nativeApkVersion: string | null;
   currentOtaVersion: string | null;
@@ -99,9 +99,9 @@ export const otaDebugLogs: {
   apkUpdateRequired: boolean;
   pendingOtaBundleId: string | null;
   staleOtaCleared: boolean;
-  capgoSetBlocked: boolean;
+  UpdaterSetBlocked: boolean;
   triggerComponent: string | null;
-  finalPathExecuted: 'OTA applied' | 'APK installer launched' | 'blocked due to APK required' | 'N/A';
+  finalPathExecuted: 'Updater applied' | 'APK installer launched' | 'blocked due to APK required' | 'N/A';
   installedPackageName: string | null;
   installedVersionName: string | null;
   installedSigningSha256: string | null;
@@ -184,7 +184,7 @@ export const otaDebugLogs: {
   apkUpdateRequired: false,
   pendingOtaBundleId: null,
   staleOtaCleared: false,
-  capgoSetBlocked: false,
+  UpdaterSetBlocked: false,
   triggerComponent: null,
   finalPathExecuted: 'N/A',
   installedPackageName: null,
@@ -262,7 +262,7 @@ export function isAppInstallerAvailable(): boolean {
 }
 
 export async function logProgressStage(stage: string, message?: string, exceptionStack?: string) {
-  if (isNative() && isAppInstallerAvailable()) {
+  if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
     try {
       const { AppInstaller } = await import('../apkDownloader');
       await AppInstaller.appendLog({
@@ -270,10 +270,10 @@ export async function logProgressStage(stage: string, message?: string, exceptio
         status: 0,
         message: message || '',
         exceptionStack: exceptionStack || '',
-        packageName: globalOtaState.packageName || 'com.chordex.app'
+        packageName: globalUpdateState.packageName || 'com.chordex.app'
       });
     } catch (e) {
-      console.warn('[OTA] Failed to write progress stage log:', e);
+      console.warn('[Updater] Failed to write progress stage log:', e);
     }
   }
 }
@@ -286,7 +286,7 @@ export async function populateDiagnostics(err: any, reason: string) {
     let androidVersion = 'N/A';
     let permissionState = 'N/A';
 
-    if (isNative()) {
+    if (Capacitor.isNativePlatform()) {
       try {
         const { AppInstaller } = await import('../apkDownloader');
         const deviceInfo = await AppInstaller.getDeviceInfo();
@@ -295,21 +295,21 @@ export async function populateDiagnostics(err: any, reason: string) {
         androidVersion = `${deviceInfo.androidVersion} (API ${deviceInfo.sdkInt})`;
         permissionState = `canRequestPackageInstalls: ${deviceInfo.canRequestPackageInstalls}`;
         
-        otaDiagnostics.architecture = deviceInfo.architecture || 'N/A';
-        otaDiagnostics.deviceLocale = deviceInfo.deviceLocale || 'N/A';
-        otaDiagnostics.storageAvailable = deviceInfo.storageAvailable || 'N/A';
-        otaDiagnostics.networkState = deviceInfo.networkState || 'N/A';
+        updateDiagnostics.architecture = deviceInfo.architecture || 'N/A';
+        updateDiagnostics.deviceLocale = deviceInfo.deviceLocale || 'N/A';
+        updateDiagnostics.storageAvailable = deviceInfo.storageAvailable || 'N/A';
+        updateDiagnostics.networkState = deviceInfo.networkState || 'N/A';
       } catch (e) {
-        console.warn('[OTA] Failed to get native device info for diagnostics:', e);
+        console.warn('[Updater] Failed to get native device info for diagnostics:', e);
         permissionState = 'Error querying permission';
       }
     }
 
-    const apkPath = otaDebugLogs.downloadedApkPath || localStorage.getItem('studio:downloadedApkPath') || 'N/A';
+    const apkPath = updateDebugLogs.downloadedApkPath || localStorage.getItem('studio:downloadedApkPath') || 'N/A';
     let fileSize = 'N/A';
     let magicHeader = 'N/A';
 
-    if (isNative() && apkPath && apkPath !== 'N/A') {
+    if (Capacitor.isNativePlatform() && apkPath && apkPath !== 'N/A') {
       try {
         const { Filesystem } = await import('@capacitor/filesystem');
         const info = await Filesystem.stat({ path: apkPath });
@@ -320,33 +320,33 @@ export async function populateDiagnostics(err: any, reason: string) {
           const firstBytes = await AppInstaller.readFirstBytes({ filePath: apkPath, count: 4 });
           const matchesPK = firstBytes.hex.toLowerCase().startsWith('504b');
           magicHeader = `Hex: ${firstBytes.hex}, ASCII: ${firstBytes.ascii} (Matches PK/ZIP: ${matchesPK})`;
-          otaDebugLogs.magicHeaderCheck = magicHeader;
+          updateDebugLogs.magicHeaderCheck = magicHeader;
         } catch (hErr) {
-          console.warn('[OTA] Failed to read magic bytes:', hErr);
+          console.warn('[Updater] Failed to read magic bytes:', hErr);
           magicHeader = `Failed to read: ${hErr instanceof Error ? hErr.message : String(hErr)}`;
-          otaDebugLogs.magicHeaderCheck = magicHeader;
+          updateDebugLogs.magicHeaderCheck = magicHeader;
         }
       } catch (statErr) {
-        console.warn('[OTA] Failed to read file stats:', statErr);
+        console.warn('[Updater] Failed to read file stats:', statErr);
       }
     }
 
-    let shaCalculated = otaDebugLogs.shaVerification || 'N/A';
+    let shaCalculated = updateDebugLogs.shaVerification || 'N/A';
 
-    otaDiagnostics.exceptionMessage = err instanceof Error ? err.message : String(err);
-    otaDiagnostics.failureReason = reason + (err instanceof Error && err.stack ? `\nStack: ${err.stack}` : '');
-    otaDiagnostics.downloadUrl = globalOtaState.apkUrl || globalOtaState.downloadUrl || 'N/A';
-    otaDiagnostics.apkPath = apkPath;
-    otaDiagnostics.fileSize = fileSize;
-    otaDiagnostics.shaExpected = globalOtaState.apkSha256 || 'N/A';
-    otaDiagnostics.shaCalculated = shaCalculated;
-    otaDiagnostics.installerResult = otaDebugLogs.installError || 'N/A';
-    otaDiagnostics.permissionState = permissionState;
-    otaDiagnostics.androidVersion = androidVersion;
-    otaDiagnostics.deviceModel = `${manufacturer} ${model}`;
-    otaDiagnostics.timestamp = timestamp;
+    updateDiagnostics.exceptionMessage = err instanceof Error ? err.message : String(err);
+    updateDiagnostics.failureReason = reason + (err instanceof Error && err.stack ? `\nStack: ${err.stack}` : '');
+    updateDiagnostics.downloadUrl = globalUpdateState.apkUrl || globalUpdateState.downloadUrl || 'N/A';
+    updateDiagnostics.apkPath = apkPath;
+    updateDiagnostics.fileSize = fileSize;
+    updateDiagnostics.shaExpected = globalUpdateState.apkSha256 || 'N/A';
+    updateDiagnostics.shaCalculated = shaCalculated;
+    updateDiagnostics.installerResult = updateDebugLogs.installError || 'N/A';
+    updateDiagnostics.permissionState = permissionState;
+    updateDiagnostics.androidVersion = androidVersion;
+    updateDiagnostics.deviceModel = `${manufacturer} ${model}`;
+    updateDiagnostics.timestamp = timestamp;
   } catch (diagErr) {
-    console.error('[OTA] Failed to populate diagnostics:', diagErr);
+    console.error('[Updater] Failed to populate diagnostics:', diagErr);
   }
 }
 
@@ -387,7 +387,7 @@ export async function runUpdaterHealthCheck(): Promise<HealthStatus> {
     details.push(`GitHub API unreachable: ${err.message || String(err)}`);
   }
 
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     try {
       const { AppInstaller } = await import('../apkDownloader');
       installerAvailable = typeof AppInstaller.installApk === 'function';
@@ -432,7 +432,7 @@ export async function getDiagnosticsReport(): Promise<string> {
   const health = await runUpdaterHealthCheck();
   let info: any = null;
   let dev: any = null;
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     try {
       const { AppInstaller } = await import('../apkDownloader');
       info = await AppInstaller.getInstalledAppInfo();
@@ -442,14 +442,14 @@ export async function getDiagnosticsReport(): Promise<string> {
   
   return `=== STUDIO UPDATER HEALTH & DIAGNOSTICS REPORT ===
 Timestamp: ${new Date().toISOString()}
-Current State: ${globalOtaState.updateState}
-Update Available: ${globalOtaState.updateAvailable}
-Remote Version: ${globalOtaState.remoteVersion}
-Download Source: ${otaDebugLogs.currentDownloadSource || 'None'}
-SHA Status: ${otaDebugLogs.shaVerification || 'N/A'}
-Consecutive Failures: ${globalOtaState.consecutiveFailures}
-Active Fallback: ${globalOtaState.activeFallback || 'None'}
-Recovery Mode Active: ${globalOtaState.recoveryMode}
+Current State: ${globalUpdateState.updateState}
+Update Available: ${globalUpdateState.updateAvailable}
+Remote Version: ${globalUpdateState.remoteVersion}
+Download Source: ${updateDebugLogs.currentDownloadSource || 'None'}
+SHA Status: ${updateDebugLogs.shaVerification || 'N/A'}
+Consecutive Failures: ${globalUpdateState.consecutiveFailures}
+Active Fallback: ${globalUpdateState.activeFallback || 'None'}
+Recovery Mode Active: ${globalUpdateState.recoveryMode}
 
 --- Platform Health ---
 Overall Status: ${health.status.toUpperCase()}
@@ -475,27 +475,27 @@ ${health.details.join('\n')}
 }
 
 export function resetOtaDiagnostics() {
-  // Reset all keys in otaDiagnostics
-  Object.keys(otaDiagnostics).forEach(key => {
-    (otaDiagnostics as any)[key] = null;
+  // Reset all keys in updateDiagnostics
+  Object.keys(updateDiagnostics).forEach(key => {
+    (updateDiagnostics as any)[key] = null;
   });
 
-  // Reset keys in otaDebugLogs
-  Object.keys(otaDebugLogs).forEach(key => {
+  // Reset keys in updateDebugLogs
+  Object.keys(updateDebugLogs).forEach(key => {
     if (key === 'appVersion') {
-      otaDebugLogs.appVersion = APP_VERSION;
+      updateDebugLogs.appVersion = APP_VERSION;
     } else if (key === 'apkEligibilityResult' || key === 'pluginMethodCheck' || key === 'finalUpdatePath') {
-      (otaDebugLogs as any)[key] = 'N/A';
+      (updateDebugLogs as any)[key] = 'N/A';
     } else if (key === 'registeredPlugins') {
-      otaDebugLogs.registeredPlugins = '[]';
-    } else if (key === 'otaBlockedBecauseApkRequired' || key === 'nativeApkBehind' || key === 'apkUpdateRequired' || key === 'staleOtaCleared' || key === 'capgoSetBlocked') {
-      (otaDebugLogs as any)[key] = false;
+      updateDebugLogs.registeredPlugins = '[]';
+    } else if (key === 'otaBlockedBecauseApkRequired' || key === 'nativeApkBehind' || key === 'apkUpdateRequired' || key === 'staleOtaCleared' || key === 'UpdaterSetBlocked') {
+      (updateDebugLogs as any)[key] = false;
     } else if (key === 'appInstallerAvailable' || key === 'downloadApkAvailable' || key === 'verifyApkSha256Available' || key === 'installApkAvailable' || key === 'openInstallPermissionSettingsAvailable') {
-      (otaDebugLogs as any)[key] = false;
+      (updateDebugLogs as any)[key] = false;
     } else if (key === 'recoveryAttemptsPerformed') {
-      otaDebugLogs.recoveryAttemptsPerformed = [];
+      updateDebugLogs.recoveryAttemptsPerformed = [];
     } else {
-      (otaDebugLogs as any)[key] = null;
+      (updateDebugLogs as any)[key] = null;
     }
   });
 
@@ -712,7 +712,7 @@ export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'un
 
   let model = 'Web Browser';
   let osVer = 'N/A';
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     model = 'Android Device';
     osVer = 'Android OS';
   }
@@ -725,8 +725,8 @@ export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'un
     endTime: null,
     durationMs: null,
     result: 'IN_PROGRESS',
-    version: globalOtaState.remoteVersion,
-    buildType: isNative() ? 'Native Android' : 'Web',
+    version: globalUpdateState.remoteVersion,
+    buildType: Capacitor.isNativePlatform() ? 'Native Android' : 'Web',
     deviceModel: model,
     androidVersion: osVer,
     timeline: [],
@@ -780,20 +780,20 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
     offsetMs,
     module,
     event,
-    state: globalOtaState.updateState,
+    state: globalUpdateState.updateState,
     reason,
     durationMs
   };
 
   if (session) {
     session.timeline.push(ev);
-    if (globalOtaState.remoteVersion) {
-      session.version = globalOtaState.remoteVersion;
+    if (globalUpdateState.remoteVersion) {
+      session.version = globalUpdateState.remoteVersion;
     }
     saveSessions();
   }
 
-  console.log(`[OTA Diagnostics] [${formatOffset}] [${module}] ${event} (${globalOtaState.updateState}) - ${reason}`);
+  console.log(`[Updater Diagnostics] [${formatOffset}] [${module}] ${event} (${globalUpdateState.updateState}) - ${reason}`);
 }
 
 export function recordStateTransition(fromState: string, toState: string, reason: string) {
@@ -833,7 +833,7 @@ export function recordStateTransition(fromState: string, toState: string, reason
 
   const lifecycleState = typeof document !== 'undefined' ? (document.hidden ? 'background' : 'foreground') : 'unknown';
   const packageInstallerStatus = (window as any).__studioInstallerStatus || 'none';
-  const progress = globalOtaState.progress;
+  const progress = globalUpdateState.progress;
 
   const trans: WorkflowTransition = {
     timestamp: formatTime,
@@ -931,7 +931,7 @@ export function recordCloseEvent(reason: string) {
   }
 
   const caller = parseStackTrace();
-  const current = globalOtaState.updateState;
+  const current = globalUpdateState.updateState;
   
   let prev: string = current;
   if (session && session.transitions.length > 0) {
@@ -984,7 +984,7 @@ export function recordUpToDatePopup(reason: string, isAutomatic: boolean) {
   }
 
   const caller = parseStackTrace();
-  const current = globalOtaState.updateState;
+  const current = globalUpdateState.updateState;
   let prev: string = current;
   if (session && session.transitions.length > 0) {
     prev = session.transitions[session.transitions.length - 1].previousState;
@@ -1160,8 +1160,8 @@ export function getUpdateSessions(): UpdateSession[] {
       endTime,
       durationMs,
       result,
-      version: globalOtaState.remoteVersion,
-      buildType: isNative() ? 'Native Android' : 'Web',
+      version: globalUpdateState.remoteVersion,
+      buildType: Capacitor.isNativePlatform() ? 'Native Android' : 'Web',
       deviceModel: 'Android Device',
       androidVersion: 'Android OS',
       timeline,
@@ -1340,7 +1340,7 @@ export function exportSessionSubset(
 }
 
 export function interceptIllegalCall(functionName: string, reason: string) {
-  const current = globalOtaState.updateState;
+  const current = globalUpdateState.updateState;
   const isInstalling = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(current);
   if (!isInstalling) return;
 
@@ -1356,7 +1356,7 @@ export function interceptIllegalCall(functionName: string, reason: string) {
   } catch (_) {}
 
   const alertMsg = `ILLEGAL CALL DETECTED: ${functionName} called by ${caller.callerLine} in state ${current} on screen ${screen}. Reason: ${reason}`;
-  console.error(`[OTA SECURITY] [HIGH SEVERITY] ${alertMsg}\nStack: ${caller.stackTrace}`);
+  console.error(`[Updater SECURITY] [HIGH SEVERITY] ${alertMsg}\nStack: ${caller.stackTrace}`);
   
   logTimelineEvent('SecurityGuard', 'ILLEGAL_CALL_DETECTED', `${alertMsg} | Stack: ${caller.stackTrace.slice(0, 300)}`);
 
@@ -1402,12 +1402,12 @@ export interface InstallLockEvent {
     | 'LOCK_CLEARED'       // installationJustCompleted cleared by UI/caller
     | 'LOCK_AUTO_CLEARED'  // installationJustCompleted cleared by 60s safety timer
     | 'CHECK_BLOCKED'      // checkForUpdate() rejected due to lock
-    | 'STARTUP_BLOCKED'    // triggerOtaUpdateCheck rejected due to lock
+    | 'STARTUP_BLOCKED'    // triggerUpdateCheck rejected due to lock
     | 'CANCEL_BLOCKED'     // StartupCoordinator.cancel() suppressed due to lock
     | 'RECOVERY_SKIPPED'   // enforceStartupRecovery reset skipped due to lock
-    | 'RACE_BLOCKED';      // triggerOtaUpdateCheck awaited recovery promise to prevent race
+    | 'RACE_BLOCKED';      // triggerUpdateCheck awaited recovery promise to prevent race
   caller: string;          // function + file from stack trace
-  state: string;           // OTA state at time of event
+  state: string;           // Updater state at time of event
   reason: string;          // human-readable reason string
   trigger?: string;        // pipeline trigger if applicable
   locked: boolean;         // value of isInstallationLocked() at event time
@@ -1449,7 +1449,7 @@ export function logInstallLockEvent(
       timeStr,
       type,
       caller,
-      state: globalOtaState.updateState,
+      state: globalUpdateState.updateState,
       reason,
       trigger: extras?.trigger,
       locked: true, // always true at point of recording (it was locked to cause the event)
@@ -1463,7 +1463,7 @@ export function logInstallLockEvent(
     // Mirror to the active session timeline for cross-reference in diagnostics report
     logTimelineEvent('InstallationLock', type, `${reason}${extras?.trigger ? ` | trigger=${extras.trigger}` : ''} | caller=${caller}`);
 
-    console.log(`[InstallationLock] [${type}] ${reason} | State: ${globalOtaState.updateState} | Caller: ${caller}`);
+    console.log(`[InstallationLock] [${type}] ${reason} | State: ${globalUpdateState.updateState} | Caller: ${caller}`);
   } catch { /* never throw from diagnostics */ }
 }
 

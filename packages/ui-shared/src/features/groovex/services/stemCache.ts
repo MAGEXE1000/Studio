@@ -272,7 +272,7 @@ async function fetchStemOnce(
   onProgress?: (p: DownloadProgress) => void,
   bustCache = false,
 ): Promise<ArrayBuffer> {
-  const directUrl = getStemUrl(songId, stemName, false, bustCache);
+  const directUrl = getStemUrl(songId, stemName, bustCache);
   try {
     return await fetchFromUrl(directUrl, stemName, onProgress, bustCache);
   } catch {

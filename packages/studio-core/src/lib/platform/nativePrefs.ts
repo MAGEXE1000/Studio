@@ -52,11 +52,11 @@ export const NATIVE_PREFS = {
    *  in-app, fired an OS notification for, or actively installed. The
    *  background worker uses this to decide whether to post a system
    *  notification — it only posts when remote > this value. */
-  OTA_REMOTE_SEEN: 'studio_ota.remote_seen',
+  OTA_REMOTE_SEEN: 'studio_updater.remote_seen',
   /** The bundle version currently running on the user's device. JS
    *  writes this on every boot so the native worker has a baseline
-   *  even if the user hasn't opened the app since the last OTA. */
-  OTA_INSTALLED: 'studio_ota.installed_version',
-  /** Whether OTA notifications are enabled by the user. */
-  OTA_NOTIFICATIONS_ENABLED: 'studio_ota.notifications_enabled',
+   *  even if the user hasn't opened the app since the last Updater. */
+  OTA_INSTALLED: 'studio_updater.installed_version',
+  /** Whether Updater notifications are enabled by the user. */
+  OTA_NOTIFICATIONS_ENABLED: 'studio_updater.notifications_enabled',
 } as const;

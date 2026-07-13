@@ -1,20 +1,19 @@
 /**
  * updater/telemetry.ts
  *
- * Structured diagnostic + instrumentation logging for the OTA updater.
+ * Structured diagnostic + instrumentation logging for the Updater updater.
  * Exports: logDiagnosticEvent, logDetailedJsTrace
  */
 
 import { useNavigationStore } from '../../store/useNavigationStore';
 import { useChordStore } from '../../store/useChordStore';
-import { addJsLog } from './updaterSimulation';
 import { logProgressStage } from './diagnostics';
-import { globalOtaState } from './stateMachine';
+import { globalUpdateState } from './stateMachine';
 
 export function logDiagnosticEvent(event: string, details?: any) {
   const timestamp = new Date().toISOString();
-  const sessionId = globalOtaState.sessionId || 'N/A';
-  const installState = globalOtaState.updateState;
+  const sessionId = globalUpdateState.sessionId || 'N/A';
+  const installState = globalUpdateState.updateState;
 
   let navState = 'unknown';
   try {
@@ -39,7 +38,7 @@ export function logDiagnosticEvent(event: string, details?: any) {
 
   const logMsg = `[DIAGNOSTIC] [${timestamp}] Event: ${event} | SessionID: ${sessionId} | InstallState: ${installState} | NavState: ${navState} | ActivityState: ${activityState} | MountedScreen: ${currentScreen} | VisibleModal: ${visibleModal} | PackageInstallerStatus: ${installerStatus} | Details: ${details ? JSON.stringify(details) : ''}`;
   console.log(logMsg);
-  addJsLog(logMsg);
+  
 }
 
 if (typeof window !== 'undefined') {
@@ -83,13 +82,13 @@ export function logDetailedJsTrace(
     line,
     stackTrace,
     durationMs: extra?.durationMs ?? null,
-    sessionId: extra?.sessionId ?? globalOtaState.sessionId ?? localStorage.getItem('studio:installer_session_id') ?? 'N/A',
-    prevState: extra?.prevState ?? globalOtaState.updateState,
+    sessionId: extra?.sessionId ?? globalUpdateState.sessionId ?? localStorage.getItem('studio:installer_session_id') ?? 'N/A',
+    prevState: extra?.prevState ?? globalUpdateState.updateState,
     nextState: extra?.nextState ?? null,
     reason: extra?.reason ?? null,
     details
   };
 
   console.log(`[INSTRUMENTATION] [JS_TRACE] ${JSON.stringify(logObj, null, 2)}`);
-  void logProgressStage(`[JS_TRACE] ${functionName}`, `${details} | State: ${globalOtaState.updateState}`);
+  void logProgressStage(`[JS_TRACE] ${functionName}`, `${details} | State: ${globalUpdateState.updateState}`);
 }

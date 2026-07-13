@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -15,7 +16,6 @@ import {
   type User,
 } from 'firebase/auth';
 import { getFirebaseAuth, googleProvider, isFirebaseConfigured } from './firebase';
-import { isNative } from '../platform/capgoUpdater';
 import { syncProfileListener } from './permissions';
 import { logActivity } from '../diagnostics/activityLogger';
 
@@ -91,7 +91,7 @@ export async function signInGoogle(): Promise<void> {
   const auth = getFirebaseAuth();
   if (!auth) throw new Error('Firebase not configured');
 
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     // Lazy-import so the web bundle never tries to load native code.
     const { FirebaseAuthentication } = await import(
       '@capacitor-firebase/authentication'
@@ -196,7 +196,7 @@ export async function signOut(): Promise<void> {
   // On native, also sign out of the Capacitor plugin so the next
   // "Continue with Google" tap shows the account chooser instead of
   // silently picking the cached account.
-  if (isNative()) {
+  if (Capacitor.isNativePlatform()) {
     try {
       const { FirebaseAuthentication } = await import(
         '@capacitor-firebase/authentication'

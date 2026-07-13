@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { globalOtaState, transitionToState, updateGlobalState } from '../stateMachine';
+import { globalUpdateState, transitionToState, updateGlobalState } from '../stateMachine';
 import { StartupCoordinator } from '../../startup/startupCoordinator';
 import { useChordStore } from '../../chordStore';
 
@@ -7,7 +7,7 @@ import { useChordStore } from '../../chordStore';
 vi.mock('../../chordStore', () => ({
   useChordStore: {
     getState: () => ({
-      settings: { otaAutoCheck: true }
+      settings: { autoCheckUpdates: true }
     })
   }
 }));
@@ -27,7 +27,7 @@ describe('Updater Scheduler Proof', () => {
     const pendingEvents = (coordinator as any).pendingLifecycleEvents;
     
     console.log("=== STEP 1: INITIAL STATE (IDLE) ===");
-    console.log(`Initial State: ${globalOtaState.updateState}`);
+    console.log(`Initial State: ${globalUpdateState.updateState}`);
     
     // Simulate a visibilitychange event (e.g. user minimizing app)
     (coordinator as any).handleLifecycleEvent('visibilitychange', 'test_trigger', 'User minimized');
@@ -52,7 +52,7 @@ describe('Updater Scheduler Proof', () => {
     transitionToState('WAITING_USER_CONFIRMATION', 'Mock');
     transitionToState('PACKAGEINSTALLER_VISIBLE', 'Mock');
     
-    console.log(`State is now: ${globalOtaState.updateState}`);
+    console.log(`State is now: ${globalUpdateState.updateState}`);
     
     console.log("\n=== STEP 3: SIMULATING LIFECYCLE EVENT DURING INSTALL ===");
     // Simulate the appStateChange event that occurs when the PackageInstaller dialog appears

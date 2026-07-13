@@ -1,14 +1,14 @@
 /**
  * updater/index.ts
  *
- * Barrel re-exporting the entire OTA updater public API.
+ * Barrel re-exporting the entire Updater updater public API.
  * Consumers can import from '@workspace/studio-core' or 'lib/updater'
  * without knowing the internal sub-module structure.
  */
 
 // State machine (types + global state)
 export {
-  globalOtaState,
+  globalUpdateState,
   updateGlobalState,
   transitionToState,
   stopWatchdog,
@@ -30,8 +30,8 @@ export {
   verifyAndCleanCaches,
 } from './stateMachine';
 export type {
-  OtaUpdateState,
-  CentralizedOtaState,
+  AppUpdateState,
+  CentralizedUpdateState,
   StructuredReleaseNotes,
   ActiveUpdateSession,
 } from './stateMachine';
@@ -53,8 +53,8 @@ export {
 
 // Diagnostics
 export {
-  otaDebugLogs,
-  otaDiagnostics,
+  updateDebugLogs,
+  updateDiagnostics,
   logProgressStage,
   populateDiagnostics,
   nextJsCallId,
@@ -101,16 +101,6 @@ export { runSignatureMismatchRecovery, isRecovering, setIsRecovering } from './r
 export { validateLocalApk, deleteLocalApk, getLocalApkPath, recordDismissal, shouldShowRecoveryReminder } from './cacheManager';
 
 // Simulation
-export {
-  updaterSimulation,
-  setSimulateStatusCallback,
-  simulateStatusCallback,
-  addJsLog,
-  triggerSimulatedStatus,
-  isSimulationActive,
-  getTransitionHistory,
-  getRejectedTransitions,
-} from './updaterSimulation';
 
 // Flight Recorder
 export { UpdaterFlightRecorder } from './flightRecorder';
@@ -138,17 +128,15 @@ export {
   UpdatePipelineCoordinatorClass,
   UpdatePipelineCoordinator,
   resetLastCheckedTime,
-  resetOtaUpdateState,
+  resetAppUpdateState,
   enforceStartupRecovery,
   checkAndCleanCache,
   checkForUpdate,
   downloadUpdate,
   applyUpdate,
-  initializeGlobalOtaListeners,
+  initializeGlobalUpdateListeners,
   triggerDowngrade,
   getInstallRecoveryPromise,
 } from './pipeline';
 
 // React hooks
-export { useOtaUpdate, usePostUpdateChangelog } from './useOtaUpdate';
-export type { OtaUpdateHookResult } from './useOtaUpdate';

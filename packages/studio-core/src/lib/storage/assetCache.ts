@@ -1,14 +1,14 @@
 /**
  * Asset cache — keeps the large unchanging drum-sample tree (~38 MB)
- * out of every OTA bundle by storing it once in the device's Data
+ * out of every Updater bundle by storing it once in the device's Data
  * directory after the first launch.
  *
  * Why bother:
- *   The drum samples are 70%+ of every Capgo OTA bundle, but they
+ *   The drum samples are 70%+ of every Updater Updater bundle, but they
  *   change at most once or twice a year. Re-uploading 38 MB of WAV
  *   and OPUS files for a one-line code fix turned every release into
  *   a 5-minute upload over a residential connection. Splitting them
- *   into a one-time persistent cache shrinks normal OTA bundles to
+ *   into a one-time persistent cache shrinks normal Updater bundles to
  *   ~5 MB and brings publishing back to ~30 s.
  *
  * Lifecycle:
@@ -20,7 +20,7 @@
  *      `Filesystem.Directory.Data/audio-v1/`. A marker file records
  *      success so subsequent launches skip the work in O(1).
  *   3. Future OTAs can omit the drums tree (release-firebase.mjs has an
- *      `OTA_SLIM=1` switch). After the OTA reload, `/drums/...` 404s
+ *      `OTA_SLIM=1` switch). After the Updater reload, `/drums/...` 404s
  *      from the new bundle — but `drumAssetUrl()` now resolves to the
  *      Data-dir copy via `Capacitor.convertFileSrc()`, so playback
  *      keeps working.
@@ -30,11 +30,11 @@
  *
  * Failure modes:
  *   - Manifest missing: skip seed, leave audio loading from bundle.
- *   - Source file 404 (likely a "slim" OTA installed before any seed
+ *   - Source file 404 (likely a "slim" Updater installed before any seed
  *     ever ran, e.g. user wiped app data): we DON'T write the marker,
  *     so we'll retry on every launch. `drumAssetUrl` falls back to
  *     the original path, which 404s — audio is broken until the user
- *     reinstalls the APK or an OTA with the audio re-included rolls
+ *     reinstalls the APK or an Updater with the audio re-included rolls
  *     out. Logged loudly so the developer notices in `adb logcat`.
  */
 
@@ -203,7 +203,7 @@ async function doSeed(): Promise<void> {
   );
 
   if (copied === 0) {
-    // Source bundle had nothing — almost certainly a "slim" OTA was
+    // Source bundle had nothing — almost certainly a "slim" Updater was
     // installed before any seed ever ran. Don't stamp the marker, so
     // we retry next launch (when maybe the user has reinstalled the
     // APK with audio in it).

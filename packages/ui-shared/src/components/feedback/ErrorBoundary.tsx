@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { useChordStore, globalOtaState } from '@workspace/studio-core';
+import { useChordStore, globalUpdateState } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -421,7 +421,7 @@ Checkpoint Stage: ${logEntry.checkpointStage}
 Return In Progress: ${logEntry.returnInProgress}
 Watchdog Running: ${logEntry.watchdogRunning}
 Last Navigation Action: ${logEntry.lastNavigationAction}
-Last OTA Transition: ${logEntry.lastOtaTransition || 'N/A'}
+Last Updater Transition: ${logEntry.lastOtaTransition || 'N/A'}
 Current Updater State: ${logEntry.currentUpdaterState || 'N/A'}
 
 === EXPLICIT DIAGNOSTIC DETAILS ===
@@ -547,7 +547,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       let currentUpdaterState = 'unknown';
       try {
-        currentUpdaterState = globalOtaState.updateState;
+        currentUpdaterState = globalUpdateState.updateState;
       } catch (_) {}
 
       let lastOtaTransition = 'none';

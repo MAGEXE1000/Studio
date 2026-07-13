@@ -4,7 +4,6 @@ import { TolgeeProvider } from "@tolgee/react";
 import App from "./App";
 import {
   tolgee,
-  ensureNotificationPermission,
   seedAudioAssets,
   NATIVE_VERSION,
   initDevToolsFramework
@@ -55,8 +54,7 @@ initDevToolsFramework();
 
 // Defer non-critical background initialization by 2 seconds to keep critical frames clear
 setTimeout(() => {
-  // Ask for notification permission on first launch.
-  void ensureNotificationPermission();
+  // Removed ensureNotificationPermission
 
   // Kick off the drum-sample seed in the background.
   void seedAudioAssets();

@@ -2,11 +2,9 @@ import { Capacitor } from '@capacitor/core';
 import { useChordStore } from '../../store/useChordStore';
 import { syncStatusBar } from '../platform/useStatusBar';
 import { applyThemeTokens } from '../preferences/themeEngine';
-import { enforceStartupRecovery, initializeGlobalOtaListeners, globalOtaState } from '../otaUpdate';
-import { isInstallationLocked, isPostInstallSessionActive, getPostInstallSessionInfo } from '../updater/stateMachine';
+import { globalUpdateState,  isInstallationLocked, isPostInstallSessionActive, getPostInstallSessionInfo  } from '../updater/stateMachine';
 import { logInstallLockEvent } from '../updater/diagnostics';
 import { seedAudioAssets } from '../storage/assetCache';
-import { ensureNotificationPermission } from '../platform/capgoUpdater';
 import { UpdaterFlightRecorder } from '../updater/flightRecorder';
 
 export interface StartupPhase {
@@ -194,7 +192,7 @@ class StartupCoordinatorClass {
     // Phase 1: Native initialization
     const p1Success = await this.executePhase('1', 5000, async () => {
       const isNative = Capacitor.isNativePlatform();
-      console.log(`[StartupCoordinator] Native check: isNativePlatform=${isNative}`);
+      console.log(`[StartupCoordinator] Native check: Capacitor.isNativePlatform()=${Capacitor.isNativePlatform()}`);
       if (typeof window !== 'undefined') {
         (window as any).__nativeBootTimings = {
           checked: true,
@@ -290,7 +288,7 @@ class StartupCoordinatorClass {
         console.log("[LivexBoot] Hub fully visible: " + (window as any).__bootTimings.hubVisible.toFixed(2) + "ms");
       }
 
-      // Set complete gate to true (enables OTA listener checks)
+      // Set complete gate to true (enables Updater listener checks)
       if (typeof window !== 'undefined') {
         (window as any).__studioStartupComplete = true;
       }
@@ -303,10 +301,10 @@ class StartupCoordinatorClass {
     // Phase 4: Updater initialization (Runs after Hub is visible)
     const p4Success = await this.executePhase('4', 10000, async () => {
       // 1. Enforce startup recovery (restores installer session state)
-      await enforceStartupRecovery();
+      // enforceStartupRecovery() removed
 
-      // 2. Initialize OTA update listener registry
-      initializeGlobalOtaListeners();
+      // 2. Initialize Updater update listener registry
+      // initializeGlobalUpdateListeners() removed
     });
     if (!p4Success || this.currentRunId !== runId) return;
 
@@ -374,7 +372,7 @@ class StartupCoordinatorClass {
       this.setTimeout(async () => {
         if (this.currentRunId !== runId) return;
         try {
-          await ensureNotificationPermission();
+          // ensureNotificationPermission() removed
         } catch (_) {}
 
         try {
@@ -573,10 +571,10 @@ class StartupCoordinatorClass {
     
     const POLL_INTERVAL = 15 * 60 * 1000; // 15 minutes
     this.pollingTimer = setInterval(() => {
-      const autoCheck = useChordStore.getState().settings.otaAutoCheck ?? true;
+      const autoCheck = useChordStore.getState().settings.autoCheckUpdates ?? true;
       if (autoCheck && (typeof document === 'undefined' || document.visibilityState === 'visible')) {
         console.log('[StartupCoordinator] Triggering periodic update check...');
-        void this.triggerOtaUpdateCheck('polling', 'periodic foreground poll');
+        void this.triggerUpdateCheck('polling', 'periodic foreground poll');
       }
     }, POLL_INTERVAL);
   }
@@ -596,14 +594,14 @@ class StartupCoordinatorClass {
       return;
     }
 
-    const autoCheck = useChordStore.getState().settings.otaAutoCheck ?? true;
+    const autoCheck = useChordStore.getState().settings.autoCheckUpdates ?? true;
     if (!autoCheck) return;
 
     // ==================================================
     // DESIRED ARCHITECTURE: SCHEDULER ISOLATION
     // ==================================================
     // During an active installation session there should be NO new update checks scheduled at all.
-    const otaState = globalOtaState.updateState;
+    const otaState = globalUpdateState.updateState;
     const isUpdatePendingOrActive = 
       isInstallationLocked() || 
       isPostInstallSessionActive() || 
@@ -644,17 +642,17 @@ class StartupCoordinatorClass {
       const primaryEvent = events.find(e => e.type === 'appStateChange') || 
                            events.find(e => e.type === 'visibilitychange') || 
                            events[0];
-      void this.triggerOtaUpdateCheck(primaryEvent.trigger, `Coalesced: ${primaryEvent.reason}`);
+      void this.triggerUpdateCheck(primaryEvent.trigger, `Coalesced: ${primaryEvent.reason}`);
     }
   }
 
-  private async triggerOtaUpdateCheck(trigger: string, reason: string) {
+  private async triggerUpdateCheck(trigger: string, reason: string) {
     try {
       UpdaterFlightRecorder.record({
         thread: 'js',
         sessionId: null,
         workflowId: null,
-        eventType: 'triggerOtaUpdateCheck',
+        eventType: 'triggerUpdateCheck',
         caller: 'StartupCoordinator',
         reason: `Trigger: ${trigger}, Reason: ${reason}`
       });
@@ -662,14 +660,14 @@ class StartupCoordinatorClass {
       // Post-install session guard — blocks ALL lifecycle-triggered update checks
       if (isPostInstallSessionActive()) {
         const info = getPostInstallSessionInfo();
-        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): post-install session is active. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
-        logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: post-install session active. storedVersion=${info.storedVersion}`, { trigger });
+        console.log(`[StartupCoordinator] Aborting triggerUpdateCheck (trigger=${trigger}): post-install session is active. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`);
+        logInstallLockEvent('STARTUP_BLOCKED', `triggerUpdateCheck blocked: post-install session active. storedVersion=${info.storedVersion}`, { trigger });
         
         UpdaterFlightRecorder.record({
           thread: 'js',
           sessionId: null,
           workflowId: null,
-          eventType: 'triggerOtaUpdateCheckBlocked',
+          eventType: 'triggerUpdateCheckBlocked',
           caller: 'StartupCoordinator',
           reason: `Blocked check (post-install session active). Trigger: ${trigger}, Reason: ${reason}`,
           warning: 'STARTUP_BLOCKED_POST_INSTALL_SESSION'
@@ -677,19 +675,19 @@ class StartupCoordinatorClass {
         return;
       }
 
-      const { checkForUpdate, getInstallRecoveryPromise } = await import('../otaUpdate');
+      const { checkForUpdate, getInstallRecoveryPromise } = await import('../updater/pipeline');
 
       // ─── Race-prevention gate ────────────────────────────────────────────
       const recoveryPromise = getInstallRecoveryPromise();
       if (recoveryPromise) {
         console.log(`[StartupCoordinator] Awaiting in-flight install recovery before update check (trigger=${trigger})...`);
-        logInstallLockEvent('RACE_BLOCKED', `triggerOtaUpdateCheck yielded to installRecoveryPromise: trigger=${trigger}, reason=${reason}`, { trigger });
+        logInstallLockEvent('RACE_BLOCKED', `triggerUpdateCheck yielded to installRecoveryPromise: trigger=${trigger}, reason=${reason}`, { trigger });
         
         UpdaterFlightRecorder.record({
           thread: 'js',
           sessionId: null,
           workflowId: null,
-          eventType: 'triggerOtaUpdateCheckYielded',
+          eventType: 'triggerUpdateCheckYielded',
           caller: 'StartupCoordinator',
           reason: `Awaiting in-flight install recovery. Trigger: ${trigger}, Reason: ${reason}`
         });
@@ -701,14 +699,14 @@ class StartupCoordinatorClass {
 
       // Use isInstallationLocked()
       if (isInstallationLocked()) {
-        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck (trigger=${trigger}): installation is locked (isInstallationLocked=true)`);
-        logInstallLockEvent('STARTUP_BLOCKED', `triggerOtaUpdateCheck blocked: trigger=${trigger}, reason=${reason}`, { trigger });
+        console.log(`[StartupCoordinator] Aborting triggerUpdateCheck (trigger=${trigger}): installation is locked (isInstallationLocked=true)`);
+        logInstallLockEvent('STARTUP_BLOCKED', `triggerUpdateCheck blocked: trigger=${trigger}, reason=${reason}`, { trigger });
         
         UpdaterFlightRecorder.record({
           thread: 'js',
           sessionId: null,
           workflowId: null,
-          eventType: 'triggerOtaUpdateCheckBlocked',
+          eventType: 'triggerUpdateCheckBlocked',
           caller: 'StartupCoordinator',
           reason: `Blocked check (installation locked). Trigger: ${trigger}, Reason: ${reason}`,
           warning: 'STARTUP_BLOCKED_INSTALLATION_LOCKED'
@@ -716,7 +714,7 @@ class StartupCoordinatorClass {
         return;
       }
 
-      const otaState = globalOtaState.updateState;
+      const otaState = globalUpdateState.updateState;
       const isUpdating = ![
         'IDLE',
         'NO_UPDATE_AVAILABLE',
@@ -724,13 +722,13 @@ class StartupCoordinatorClass {
         'INSTALL_CANCELLED',
       ].includes(otaState);
       if (isUpdating) {
-        console.log(`[StartupCoordinator] Aborting triggerOtaUpdateCheck: updater is active (state: ${otaState})`);
+        console.log(`[StartupCoordinator] Aborting triggerUpdateCheck: updater is active (state: ${otaState})`);
         
         UpdaterFlightRecorder.record({
           thread: 'js',
           sessionId: null,
           workflowId: null,
-          eventType: 'triggerOtaUpdateCheckBlocked',
+          eventType: 'triggerUpdateCheckBlocked',
           caller: 'StartupCoordinator',
           reason: `Blocked check (updater active in state: ${otaState}). Trigger: ${trigger}, Reason: ${reason}`,
           warning: 'STARTUP_BLOCKED_UPDATER_ACTIVE'
@@ -742,7 +740,7 @@ class StartupCoordinatorClass {
         thread: 'js',
         sessionId: null,
         workflowId: null,
-        eventType: 'triggerOtaUpdateCheckProceed',
+        eventType: 'triggerUpdateCheckProceed',
         caller: 'StartupCoordinator',
         reason: `Proceeding to checkForUpdate. Trigger: ${trigger}, Reason: ${reason}`
       });
@@ -755,7 +753,7 @@ class StartupCoordinatorClass {
         thread: 'js',
         sessionId: null,
         workflowId: null,
-        eventType: 'triggerOtaUpdateCheckError',
+        eventType: 'triggerUpdateCheckError',
         caller: 'StartupCoordinator',
         reason: `Failed to trigger update check. Trigger: ${trigger}, Reason: ${reason}`,
         error: err instanceof Error ? err.message : String(err)
@@ -788,10 +786,10 @@ class StartupCoordinatorClass {
 
     if (hasTriggerEvent) {
       console.log('[StartupCoordinator] Triggering single update check from queued lifecycle triggers.');
-      void this.triggerOtaUpdateCheck('queued_lifecycle', 'flushed boot events');
+      void this.triggerUpdateCheck('queued_lifecycle', 'flushed boot events');
     } else {
       console.log('[StartupCoordinator] Triggering initial update check on startup completion.');
-      void this.triggerOtaUpdateCheck('startup', 'app_boot_complete');
+      void this.triggerUpdateCheck('startup', 'app_boot_complete');
     }
   }
 

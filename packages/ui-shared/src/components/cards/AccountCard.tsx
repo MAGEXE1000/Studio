@@ -636,7 +636,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
             <button
               onClick={doSyncNow}
               disabled={busy || isSyncing}
-              style={pillBtn(accent, false)}
+              style={pillBtn(accent)}
             >{t.syncNow}</button>
           )}
         </div>

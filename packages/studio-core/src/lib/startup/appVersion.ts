@@ -60,10 +60,11 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Improved",
+    heading: "Fixed",
     items: [
-      "120Hz Native Performance Sprint Continuation",
-      "Advanced optimization of the app updater and Settings panels.",
+      "Complete redesign of the Release Pipeline for determinism.",
+      "Prevent duplicate GitHub Actions workflows.",
+      "Dynamically resolve versions in CI pipeline.",
     ],
   },
 ];

@@ -12,8 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
-## 4.0.67
+## 4.0.68
 
+### Fixed
+- Complete redesign of the Release Pipeline for determinism.
+- Prevent duplicate GitHub Actions workflows.
+- Dynamically resolve versions in CI pipeline.
+
+## 4.0.67
 ### Improved
 - 120Hz Native Performance Sprint Continuation
 - Advanced optimization of the app updater and Settings panels.

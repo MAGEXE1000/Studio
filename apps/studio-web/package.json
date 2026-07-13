@@ -1,6 +1,6 @@
 {
   "name": "@workspace/studio-web",
-  "version": "4.0.58",
+  "version": "4.0.59",
   "private": true,
   "type": "module",
   "scripts": {

@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.58';
-export const WEB_VERSION = '4.0.58';
+export const NATIVE_VERSION = '4.0.59';
+export const WEB_VERSION = '4.0.59';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 

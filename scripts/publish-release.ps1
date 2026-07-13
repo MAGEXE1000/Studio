@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.63"
-$VersionCode = "40063"
-$ReleaseNote = "v4.0.63 - Performance and Diagnostics Stabilization Phase 3"
+$VersionName = "4.0.64"
+$VersionCode = "40064"
+$ReleaseNote = "v4.0.64 - Sub-App Keep-Alive, Chordex Selectors and Stagex Single Iframe Optimizations"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -18,30 +18,17 @@ node apps/studio-web/scripts/sync-version.mjs
 Write-Host "2. Committing and pushing version changes to Git..."
 git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/package.json
+git add apps/studio-android/src/App.tsx
+git add apps/studio-android/public/version.json
 git add apps/studio-web/package.json
 git add apps/studio-web/src/App.tsx
-git add apps/studio-web/src/main.tsx
-git add packages/studio-core/src/lib/diagnostics/RootCauseAnalyzer.ts
-git add packages/studio-core/src/lib/diagnostics/layoutProfiler.ts
-git add packages/studio-core/src/lib/diagnostics/reactProfiler.ts
-git add packages/studio-core/src/lib/diagnostics/storeProfiler.ts
-git add packages/studio-core/src/lib/navigation/BackDispatcher.ts
-git add packages/studio-core/src/lib/navigation/NavigationDispatcher.ts
-git add packages/studio-core/src/lib/navigation/useBackHandler.ts
-git add packages/studio-core/src/lib/performance/performanceProfiler.ts
-git add packages/studio-core/src/lib/profiling/longTaskObserver.ts
 git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/ui-android/src/components/StageCorePanel.tsx
-git add packages/ui-shared/src/components/devtools/DevToolsDashboard.tsx
-git add packages/ui-shared/src/navigation/BottomNav.tsx
+git add packages/ui-shared/src/features/chordex/pages/ChordPanel.tsx
+git add packages/ui-shared/src/features/chordex/pages/LibraryPanel.tsx
+git add packages/ui-shared/src/features/chordex/pages/SongsPanel.tsx
+git add packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx
 git add scripts/publish-release.ps1
-git add docs/large_file_report.md
-git add docs/repository_health_report.md
-git add docs/testing.md
-git add CHANGELOG.md
-git add apps/studio-android/CHANGELOG.md
-git add apps/studio-web/CHANGELOG.md
-git add release-notes.md
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {

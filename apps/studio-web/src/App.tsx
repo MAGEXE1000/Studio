@@ -370,6 +370,13 @@ export default function App() {
 
   // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
   const [cachedPanel, setCachedPanel] = useState<ActivePanel>(activePanel);
+  const [visitedApps, setVisitedApps] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (isSubAppActive && stableKey) {
+      setVisitedApps(prev => prev[stableKey] ? prev : { ...prev, [stableKey]: true });
+    }
+  }, [stableKey, isSubAppActive]);
 
   useEffect(() => {
     if (appMode === 'chords' && activePanel !== cachedPanel) {
@@ -481,22 +488,24 @@ export default function App() {
 
           {mainLayoutContent}
 
-          <AnimatePresence mode="wait">
-            {isSubAppActive && (
+          {Object.keys(visitedApps).map((appKey) => {
+            const isThisActive = isSubAppActive && stableKey === appKey;
+            return (
               <motion.div
-                key={stableKey}
+                key={appKey}
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                animate={{ opacity: isThisActive ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  zIndex: 2,
+                  zIndex: isThisActive ? 2 : 1,
                   background: 'var(--app-bg)',
-                  pointerEvents: isSubAppActive ? 'auto' : 'none',
+                  pointerEvents: isThisActive ? 'auto' : 'none',
+                  visibility: isThisActive ? 'visible' : 'hidden',
                 }}
               >
-                {stableKey === 'groovex' && (
+                {appKey === 'groovex' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Groovex">
                       <Suspense fallback={<SmartLoading fallbackSkeleton={<GroovexAppSkeleton />} />}><AppEntryTransition><GroovexApp /></AppEntryTransition></Suspense>
@@ -504,7 +513,7 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'vocalex' && (
+                {appKey === 'vocalex' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Vocalex">
                       <Suspense fallback={<SmartLoading fallbackSkeleton={<VocalexTakesSkeleton />} />}><AppEntryTransition><VocalexApp /></AppEntryTransition></Suspense>
@@ -512,7 +521,7 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'stage' && (
+                {appKey === 'stage' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Stagex">
                       <Suspense fallback={<SmartLoading fallbackSkeleton={<StagexPanelSkeleton />} />}><AppEntryTransition><StageCorePanel /></AppEntryTransition></Suspense>
@@ -520,13 +529,13 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'drums' && (
+                {appKey === 'drums' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Drumex"><Suspense fallback={<SmartLoading fallbackSkeleton={<DrumEditorSkeleton />} />}><AppEntryTransition><DrumEditor /></AppEntryTransition></Suspense></ErrorBoundary>
                   </div>
                 )}
 
-                {stableKey === 'chords' && (
+                {appKey === 'chords' && (
                   <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
                     <ScreenScaffold safeAreaTop={!isWebDesktop} safeAreaBottom={false} className="app-bg">
                       <AppEntryTransition
@@ -578,8 +587,8 @@ export default function App() {
                   </div>
                 )}
               </motion.div>
-            )}
-          </AnimatePresence>
+            );
+          })}
         </SidebarInset>
       </div>
     </SidebarProvider>

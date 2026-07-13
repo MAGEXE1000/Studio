@@ -1,15 +1,22 @@
 {
   "platform": "android",
-  "version": "4.0.62",
-  "versionName": "4.0.62",
-  "versionCode": 40062,
-  "version_code": 40062,
-  "commit": "22c9aacd",
-  "releasedAt": "7/12/2026, 10:11:46 PM CST",
-  "buildTimestamp": "7/12/2026, 10:11:46 PM CST",
+  "version": "4.0.63",
+  "versionName": "4.0.63",
+  "versionCode": 40063,
+  "version_code": 40063,
+  "commit": "c59d10be",
+  "releasedAt": "7/12/2026, 10:46:22 PM CST",
+  "buildTimestamp": "7/12/2026, 10:46:22 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events.\n• One H2 heading per version: `## X.Y.Z` (no leading `v`).\n• Bullets start with `- ` and use plain English a non-technical user",
-  "whatsNew": "• Upgraded Studio Diagnostics Engine to provide complete forensic attribution.\n• Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events.\n• One H2 heading per version: `## X.Y.Z` (no leading `v`).\n• Bullets start with `- ` and use plain English a non-technical user",
-  "releaseNotes": {},
+  "changelog": "• Fixed memory leaks in developer tools panel toast notifications.\n• Resolved diagnostics false warnings during boot and startup phases.\n• Restructured BackDispatcher lifecycle for improved system performance.\n• Validated all package type boundaries and documentation references.",
+  "whatsNew": "• Fixed memory leaks in developer tools panel toast notifications.\n• Resolved diagnostics false warnings during boot and startup phases.\n• Restructured BackDispatcher lifecycle for improved system performance.\n• Validated all package type boundaries and documentation references.",
+  "releaseNotes": {
+    "fixed": [
+      "Fixed memory leaks in developer tools panel toast notifications.",
+      "Resolved diagnostics false warnings during boot and startup phases.",
+      "Restructured BackDispatcher lifecycle for improved system performance.",
+      "Validated all package type boundaries and documentation references."
+    ]
+  },
   "mandatory": false
 }

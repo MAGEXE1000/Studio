@@ -1637,6 +1637,7 @@ export default function App() {
   }, []);
 
   const [startupComplete, setStartupComplete] = useState(false);
+  const [visitedApps, setVisitedApps] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const unsub = StartupCoordinator.subscribe((phases) => {
@@ -1666,6 +1667,12 @@ export default function App() {
 
   const stableKeyRef = useRef(stableKey);
   stableKeyRef.current = stableKey;
+
+  useEffect(() => {
+    if (isSubAppActive && stableKey) {
+      setVisitedApps(prev => prev[stableKey] ? prev : { ...prev, [stableKey]: true });
+    }
+  }, [stableKey, isSubAppActive]);
 
   const prevAppModeRef = useRef(appMode);
   const previousAppModeRef = useRef<string>('none');
@@ -2298,17 +2305,17 @@ export default function App() {
               )}
             </div>
 
-            <AnimatePresence mode="wait">
-              {isSubAppActive && (
+            {Object.keys(visitedApps).map((appKey) => {
+              const isThisActive = isSubAppActive && stableKey === appKey;
+              return (
                 <motion.div
-                  key={stableKey}
+                  key={appKey}
                   className="sc-subapp-wrapper"
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ 
-                    opacity: splashVisible ? 0 : 1, 
-                    scale: splashVisible ? 0.98 : 1 
+                    opacity: isThisActive && !splashVisible ? 1 : 0, 
+                    scale: isThisActive && !splashVisible ? 1 : 0.98,
                   }}
-                  exit={{ opacity: 0, scale: 0.98, pointerEvents: 'none' as any }}
                   transition={{
                     duration: 0.3 * speedScale,
                     ease: MOTION_EASINGS.standard
@@ -2316,21 +2323,22 @@ export default function App() {
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    zIndex: 2,
+                    zIndex: isThisActive ? 2 : 1,
                     background: 'var(--app-bg)',
-                    pointerEvents: isSubAppActive && !splashVisible ? 'auto' : 'none',
+                    pointerEvents: isThisActive && !splashVisible ? 'auto' : 'none',
+                    visibility: isThisActive ? 'visible' : 'hidden',
                   }}
                 >
-                  <LifecycleTracker name="SubAppWrapper" />
+                  <LifecycleTracker name={`SubAppWrapper-${appKey}`} />
                   <SubAppWrapper
-                    app={stableKey}
+                    app={appKey as AppKey}
                     activePanel={activePanel}
                     settings={settings}
                     onReady={handleAppPreloaded}
                   />
                 </motion.div>
-              )}
-            </AnimatePresence>
+              );
+            })}
 
             <AnimatePresence>
               {splashVisible && launchingApp && (

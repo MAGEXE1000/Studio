@@ -455,11 +455,46 @@ export default function LibraryPanel() {
     }
   }, [isWebDesktop]);
 
-  const settings = useChordStore(s => s.settings);
-  const toggleFavorite = useChordStore(s => s.toggleFavorite);
-  const addToProgression = useChordStore(s => s.addToProgression);
+  // Atomized settings to prevent unnecessary re-renders
+  const accentColorSetting = useChordStore(s => s.settings.perApp?.chords?.accentColor ?? s.settings.accentColor);
+  const chordsPerAppSetting = useChordStore(s => s.settings.perApp?.chords);
+  const themeSetting = useChordStore(s => s.settings.theme);
+  const showNoteNamesSetting = useChordStore(s => s.settings.showNoteNames);
+  const showIntervalsSetting = useChordStore(s => s.settings.showIntervals);
+  const instrumentSetting = useChordStore(s => s.settings.instrument);
+  const leftHandedSetting = useChordStore(s => s.settings.leftHanded);
+  const bassFiveStringSetting = useChordStore(s => s.settings.bassFiveString);
+  const chordAssistantSetting = useChordStore(s => s.settings.chordAssistant);
+  const assistantSmartSuggestionsSetting = useChordStore(s => s.settings.assistantSmartSuggestions);
+  const languageSetting = useChordStore(s => s.settings.language);
+
+  const settings = useMemo(() => ({
+    perApp: { chords: chordsPerAppSetting },
+    theme: themeSetting,
+    showNoteNames: showNoteNamesSetting,
+    showIntervals: showIntervalsSetting,
+    instrument: instrumentSetting,
+    leftHanded: leftHandedSetting,
+    bassFiveString: bassFiveStringSetting,
+    chordAssistant: chordAssistantSetting,
+    assistantSmartSuggestions: assistantSmartSuggestionsSetting,
+    language: languageSetting,
+    accentColor: accentColorSetting
+  }), [
+    chordsPerAppSetting, themeSetting, showNoteNamesSetting, showIntervalsSetting,
+    instrumentSetting, leftHandedSetting, bassFiveStringSetting, chordAssistantSetting,
+    assistantSmartSuggestionsSetting, languageSetting, accentColorSetting
+  ]);
+
   const activeType = useChordStore(s => s.libraryActiveType);
-  const setActiveType = useChordStore(s => s.setLibraryActiveType);
+
+  // Static actions
+  const {
+    toggleFavorite,
+    addToProgression,
+    setLibraryActiveType
+  } = useChordStore.getState();
+  const setActiveType = setLibraryActiveType;
   const [chordPlaying, setChordPlaying] = useState(false);
 
   const handleChordClick = useCallback((chordId: string) => {
@@ -595,7 +630,7 @@ export default function LibraryPanel() {
   // Spanish when applicable. Fallback chain: Spanish map â†’ English
   // description â†’ empty. Search also matches against the localized
   // description so es users can search using Spanish words.
-  const language = useChordStore(s => s.settings.language);
+  const language = languageSetting;
   const isSpanish = language === 'es';
   const describe = useCallback(
     (songId: string, fallback: string): string =>

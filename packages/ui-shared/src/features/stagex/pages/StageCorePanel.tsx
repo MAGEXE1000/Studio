@@ -2128,29 +2128,21 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           backgroundColor: stageBg
         }}
       >
-        <SharedNavigationContainer
-          activeView={getSimplifiedView(curView)}
-          viewOrder={['Editor', 'Setup', 'Preferences', 'Export']}
-        >
-          {(viewId) => (
-            <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
-              <iframe
-                ref={viewId === getSimplifiedView(curView) ? iframeRef : null}
-                src={iframeSrc}
-                data-view={viewId}
-                onLoad={handleLoad}
-                title={`Stagex ${viewId}`}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
-                allow="clipboard-write"
-              />
-              {iframeLoading && viewId === getSimplifiedView(curView) && (
-                <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
-                  <SmartLoading app="stage" />
-                </div>
-              )}
+        <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: stageBg }}>
+          <iframe
+            ref={iframeRef}
+            src={iframeSrc}
+            onLoad={handleLoad}
+            title="Stagex Content"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}
+            allow="clipboard-write"
+          />
+          {iframeLoading && (
+            <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
+              <SmartLoading app="stage" />
             </div>
           )}
-        </SharedNavigationContainer>
+        </div>
 
         {showDiagnostics && (
           <div style={{

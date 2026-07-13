@@ -53,12 +53,59 @@ export default function ChordPanel() {
   const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
   const selectedChordId = (currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '') ? currentRoute.id || null : null);
   const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
-  const settings = useChordStore(s => s.settings);
-  const toggleFavorite = useChordStore(s => s.toggleFavorite);
-  const isFavorite = useChordStore(s => s.isFavorite);
-  const addToProgression = useChordStore(s => s.addToProgression);
+
+  // Atomized settings to prevent unnecessary re-renders
+  const accentColorSetting = useChordStore(s => s.settings.perApp?.chords?.accentColor ?? s.settings.accentColor);
+  const chordsPerAppSetting = useChordStore(s => s.settings.perApp?.chords);
+  const themeSetting = useChordStore(s => s.settings.theme);
+  const showNoteNamesSetting = useChordStore(s => s.settings.showNoteNames);
+  const showIntervalsSetting = useChordStore(s => s.settings.showIntervals);
+  const instrumentSetting = useChordStore(s => s.settings.instrument);
+  const leftHandedSetting = useChordStore(s => s.settings.leftHanded);
+  const bassFiveStringSetting = useChordStore(s => s.settings.bassFiveString);
+  const chordAssistantSetting = useChordStore(s => s.settings.chordAssistant);
+  const assistantLearningSetting = useChordStore(s => s.settings.assistantLearning);
+  const assistantSmartSuggestionsSetting = useChordStore(s => s.settings.assistantSmartSuggestions);
+  const assistantProgressionTipsSetting = useChordStore(s => s.settings.assistantProgressionTips);
+  const languageSetting = useChordStore(s => s.settings.language);
+  const amoledModeSetting = useChordStore(s => s.settings.amoledMode);
+
+  const settings = useMemo(() => ({
+    perApp: { chords: chordsPerAppSetting },
+    theme: themeSetting,
+    showNoteNames: showNoteNamesSetting,
+    showIntervals: showIntervalsSetting,
+    instrument: instrumentSetting,
+    leftHanded: leftHandedSetting,
+    bassFiveString: bassFiveStringSetting,
+    chordAssistant: chordAssistantSetting,
+    assistantLearning: assistantLearningSetting,
+    assistantSmartSuggestions: assistantSmartSuggestionsSetting,
+    assistantProgressionTips: assistantProgressionTipsSetting,
+    language: languageSetting,
+    accentColor: accentColorSetting,
+    amoledMode: amoledModeSetting
+  }), [
+    chordsPerAppSetting, themeSetting, showNoteNamesSetting, showIntervalsSetting,
+    instrumentSetting, leftHandedSetting, bassFiveStringSetting, chordAssistantSetting,
+    assistantLearningSetting, assistantSmartSuggestionsSetting, assistantProgressionTipsSetting,
+    languageSetting, accentColorSetting, amoledModeSetting
+  ]);
+
   const currentProgressionChords = useChordStore(s => s.currentProgressionChords);
   const recentChords = useChordStore(s => s.recentChords);
+  const favorites = useChordStore(s => s.favorites);
+  const isFavorite = useCallback((chordId: string) => favorites.includes(chordId), [favorites]);
+
+  // Static actions
+  const {
+    toggleFavorite,
+    addToProgression,
+    trackChordUsage,
+    setLibraryActiveType,
+    loadProgression,
+    deleteProgression
+  } = useChordStore.getState();
   
   const selectChord = useCallback((chordId: string | null) => {
     if (chordId === null) {
@@ -67,8 +114,6 @@ export default function ChordPanel() {
       NavigationDispatcher.push({ app: 'chords', page: 'chord', id: chordId });
     }
   }, []);
-  const trackChordUsage = useChordStore(s => s.trackChordUsage);
-  const setLibraryActiveType = useChordStore(s => s.setLibraryActiveType);
   const setActivePanel = useCallback((panel: ActivePanel) => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   }, []);
@@ -973,14 +1018,13 @@ export default function ChordPanel() {
 
 function SavedProgressions({ accent }: { accent: { from: string; to: string; mid: string } }) {
   const isWebDesktop = useIsWebDesktop();
-  const settings = useChordStore(s => s.settings);
+  const theme = useChordStore(s => s.settings.theme);
   const progressions = useChordStore(s => s.progressions);
-  const loadProgression = useChordStore(s => s.loadProgression);
-  const deleteProgression = useChordStore(s => s.deleteProgression);
+  const { loadProgression, deleteProgression } = useChordStore.getState();
   const t = useT();
   if (progressions.length === 0) return null;
 
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const getPanelClass = (padding: string = 'p-6') => {
     return isWebDesktop
       ? `mx-4 mt-4 rounded-xl border ${padding} ${isLight ? 'bg-white/80 border-zinc-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)]' : 'border-zinc-900 bg-zinc-950/40'}`

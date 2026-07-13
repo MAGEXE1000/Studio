@@ -2519,35 +2519,52 @@ export default function SongsPanel() {
   const activePresetId = useChordStore(s => s.activePresetId);
   const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub' };
   const activePanel = currentRoute.app === 'chords' ? currentRoute.page || 'library' : 'library';
-  const settings = useChordStore(s => s.settings);
   const transpositions = useChordStore(s => s.transpositions);
   const customChords = useChordStore(s => s.customChords);
-  const setActivePreset = useChordStore(s => s.setActivePreset);
-  const createPreset = useChordStore(s => s.createPreset);
-  const updatePreset = useChordStore(s => s.updatePreset);
-  const deletePreset = useChordStore(s => s.deletePreset);
-  const addChordToPreset = useChordStore(s => s.addChordToPreset);
-  const removeChordFromPreset = useChordStore(s => s.removeChordFromPreset);
-  const reorderPresetChords = useChordStore(s => s.reorderPresetChords);
-  const duplicateChordInPreset = useChordStore(s => s.duplicateChordInPreset);
-  const setTranspose = useChordStore(s => s.setTranspose);
-  const resetTranspose = useChordStore(s => s.resetTranspose);
-  const updateSettings = useChordStore(s => s.updateSettings);
-  const saveCustomChord = useChordStore(s => s.saveCustomChord);
-  const updateCustomChord = useChordStore(s => s.updateCustomChord);
-  const deleteCustomChord = useChordStore(s => s.deleteCustomChord);
-  const addSection = useChordStore(s => s.addSection);
-  const updateSection = useChordStore(s => s.updateSection);
-  const deleteSection = useChordStore(s => s.deleteSection);
-  const addChordToSection = useChordStore(s => s.addChordToSection);
-  const removeChordFromSection = useChordStore(s => s.removeChordFromSection);
-  const reorderSectionChords = useChordStore(s => s.reorderSectionChords);
-  const duplicateChordInSection = useChordStore(s => s.duplicateChordInSection);
-  const reorderSection = useChordStore(s => s.reorderSection);
-  const convertToSections = useChordStore(s => s.convertToSections);
-  const deduplicateAllPresets = useChordStore(s => s.deduplicateAllPresets);
-  const accent      = ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ?? ACCENT_COLORS.blue;
-  const preferFlats = settings.preferFlats ?? false;
+
+  // Atomized Settings Selectors to minimize re-render triggers
+  const accentColorSetting = useChordStore(s => s.settings.perApp?.chords?.accentColor ?? s.settings.accentColor);
+  const preferFlatsSetting = useChordStore(s => s.settings.preferFlats);
+  const chordAssistantSetting = useChordStore(s => s.settings.chordAssistant);
+  const assistantConflictDetectionSetting = useChordStore(s => s.settings.assistantConflictDetection);
+
+  // Memoize stable settings object to prevent breaking existing references
+  const settings = useMemo(() => ({
+    preferFlats: preferFlatsSetting,
+    chordAssistant: chordAssistantSetting,
+    assistantConflictDetection: assistantConflictDetectionSetting,
+  }), [preferFlatsSetting, chordAssistantSetting, assistantConflictDetectionSetting]);
+
+  // Static actions retrieved directly from store instance (avoids sub loops)
+  const {
+    setActivePreset,
+    createPreset,
+    updatePreset,
+    deletePreset,
+    addChordToPreset,
+    removeChordFromPreset,
+    reorderPresetChords,
+    duplicateChordInPreset,
+    setTranspose,
+    resetTranspose,
+    updateSettings,
+    saveCustomChord,
+    updateCustomChord,
+    deleteCustomChord,
+    addSection,
+    updateSection,
+    deleteSection,
+    addChordToSection,
+    removeChordFromSection,
+    reorderSectionChords,
+    duplicateChordInSection,
+    reorderSection,
+    convertToSections,
+    deduplicateAllPresets
+  } = useChordStore.getState();
+
+  const accent      = ACCENT_COLORS[accentColorSetting] ?? ACCENT_COLORS.blue;
+  const preferFlats = preferFlatsSetting ?? false;
   const isNative    = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
 
   const [showForm, setShowForm]               = useState(false);

@@ -62,10 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Performance and UX optimization pass.",
-      "Fixed layout thrashing in the updater modal.",
-      "Cleaned up detached memory references for background tasks.",
-      "Improved startup time by deferring heavy module preloading.",
+      "120Hz Native Performance Sprint",
+      "Eliminated massive UI layout thrashing by implementing useShallow Zustand selectors.",
+      "Decoupled Updater subsystem from critical rendering path to stop background freeze.",
+      "Removed SharedNavigationContainer inside Stagex iframe to eliminate tab switching delays.",
+      "Implemented O(N) keep-alive rendering optimizations for the Settings subsystem.",
     ],
   },
 ];

@@ -1,3 +1,8 @@
+## 4.0.62
+
+- Upgraded Studio Diagnostics Engine to provide complete forensic attribution.
+- Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events.
+
 # Studio Changelog
 
 Each release on the OTA channel is described in its own section below.

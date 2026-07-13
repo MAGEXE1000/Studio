@@ -59,13 +59,6 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
-  {
-    heading: "Added",
-    items: [
-      "Upgraded Studio Diagnostics Engine to provide complete forensic attribution.",
-      "Integrated asynchronous stack tracing across BackDispatcher, Zustand stores, and Navigation events to pinpoint triggering components.",
-    ],
-  },
 ];
 
 /** Native English version of the current changelog for Android. */

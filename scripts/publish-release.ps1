@@ -39,6 +39,9 @@ git add docs/large_file_report.md
 git add docs/repository_health_report.md
 git add docs/testing.md
 git add CHANGELOG.md
+git add apps/studio-android/CHANGELOG.md
+git add apps/studio-web/CHANGELOG.md
+git add release-notes.md
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {

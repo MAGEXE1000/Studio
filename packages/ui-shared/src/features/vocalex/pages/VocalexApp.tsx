@@ -7,7 +7,7 @@ import { subscribeVocalexBack } from '../utilities/headerBack';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 
-import { IconSettings } from '../../../navigation/BottomNav';
+import { IconSettings } from '../../../components/icons/NavIcons';
 
 const CoachPanelLazy = lazy(() => import('../components/CoachPanel').then(m => ({ default: m.default || m })));
 const TakesPanelLazy = lazy(() => import('../components/TakesPanel').then(m => ({ default: m.default || m })));

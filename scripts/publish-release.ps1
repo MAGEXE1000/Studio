@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.72"
-$VersionCode = "40072"
-$ReleaseNote = "v4.0.72 - Fix Groovex ACCENT_COLORS and Vocalex React Error #306"
+$VersionName = "4.0.73"
+$VersionCode = "40073"
+$ReleaseNote = "v4.0.73 - Move Official Release Downloads to Settings; Fix Groovex Timeout"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

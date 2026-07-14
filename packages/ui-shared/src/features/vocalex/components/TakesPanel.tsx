@@ -17,6 +17,10 @@ import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
 
+
+import RecordingView from './RecordingView';
+import TakeDetailView from './TakeDetailView';
+
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
@@ -39,11 +43,6 @@ function formatDateI18n(ts: number, t: { today: string; yesterday: string; daysA
   }
   return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
 }
-
-type ViewState =
-  | { mode: 'list' }
-  | { mode: 'recording' }
-  | { mode: 'detail'; takeId: string };
 
 export default function TakesPanel() {
   const t = useT();

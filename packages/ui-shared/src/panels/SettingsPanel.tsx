@@ -191,6 +191,70 @@ export default function SettingsPanel() {
               </>
             )}
           </WebSettingsSection>
+
+          {/* ── UPDATER ── */}
+          {Capacitor.isNativePlatform() && (
+            <WebSettingsSection title="Updater">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '12px 16px', background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)', borderRadius: 12 }}>
+                <div style={{ textAlign: 'left' }}>
+                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+                    Official Release Downloads
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45 }}>
+                    Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository. This is the recommended recovery method whenever automatic installation cannot complete.
+                  </p>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: 'rgba(128,128,128,0.04)', padding: 12, borderRadius: 10, border: '1px solid rgba(128,128,128,0.08)', textAlign: 'left' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Installed Version</span>
+                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>v{APP_VERSION_LABEL}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Latest Available</span>
+                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>
+                      {updater.remoteVersion ? `v${updater.remoteVersion}` : 'Checking...'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Recovery Status</span>
+                    <span style={{ fontSize: 13, color: updater.validApkExists ? '#eab308' : '#22c55e', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: updater.validApkExists ? '#eab308' : '#22c55e' }}></span>
+                      {updater.validApkExists ? 'Pending installation detected.' : 'Everything is healthy.'}
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const { resolveReleasePageUrl } = await import('@workspace/studio-core');
+                      const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
+                      window.open(fallbackUrl, '_system');
+                    } catch (err) {
+                      window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
+                    }
+                  }}
+                  style={{
+                    width: '100%', height: 42, borderRadius: 10,
+                    background: 'transparent',
+                    border: '1px solid rgba(128, 128, 128, 0.25)',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'background-color 200ms ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(128,128,128,0.05)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <GithubIcon size={18} color="var(--c-text-secondary)" />
+                  Open Official GitHub Release
+                </button>
+              </div>
+            </WebSettingsSection>
+          )}
         </div>
       </div>
     );
@@ -379,6 +443,71 @@ export default function SettingsPanel() {
             </div>
           )}
         </div>
+
+        {/* ── UPDATER ── */}
+        {Capacitor.isNativePlatform() && (
+          <>
+            <SectionHeader icon="system_update" title="Updater" />
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 'var(--density-row-pad)' }}>
+                <div style={{ textAlign: 'left' }}>
+                  <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+                    Official Release Downloads
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45 }}>
+                    Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository. This is the recommended recovery method whenever automatic installation cannot complete.
+                  </p>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: 'rgba(128,128,128,0.04)', padding: 12, borderRadius: 10, border: '1px solid rgba(128,128,128,0.08)', textAlign: 'left' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Installed Version</span>
+                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>v{APP_VERSION_LABEL}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Latest Available</span>
+                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>
+                      {updater.remoteVersion ? `v${updater.remoteVersion}` : 'Checking...'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Recovery Status</span>
+                    <span style={{ fontSize: 13, color: updater.validApkExists ? '#eab308' : '#22c55e', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: updater.validApkExists ? '#eab308' : '#22c55e' }}></span>
+                      {updater.validApkExists ? 'Pending installation detected.' : 'Everything is healthy.'}
+                    </span>
+                  </div>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const { resolveReleasePageUrl } = await import('@workspace/studio-core');
+                      const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
+                      window.open(fallbackUrl, '_system');
+                    } catch (err) {
+                      window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
+                    }
+                  }}
+                  style={{
+                    width: '100%', height: 42, borderRadius: 10,
+                    background: 'transparent',
+                    border: '1px solid rgba(128, 128, 128, 0.25)',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'background-color 200ms ease',
+                  }}
+                >
+                  <GithubIcon size={18} color="var(--c-text-secondary)" />
+                  Open Official GitHub Release
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
       </div>
     </div>

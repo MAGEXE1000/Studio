@@ -1033,6 +1033,7 @@ export default function App() {
 
   const launchStartTimeRef = useRef<number>(0);
   const launchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longTasksRef = useRef<number[]>([]);
   const observerRef = useRef<PerformanceObserver | null>(null);
 
@@ -1053,6 +1054,10 @@ export default function App() {
 
     if (launchTimerRef.current) {
       clearTimeout(launchTimerRef.current);
+    }
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
     }
 
     launchTimerRef.current = setTimeout(() => {
@@ -1126,7 +1131,7 @@ export default function App() {
       // Lock transition until target app is preloaded
       (window as any).studioTransitionActive = true;
 
-      const safetyTimeout = setTimeout(() => {
+      safetyTimeoutRef.current = setTimeout(() => {
         console.error(`[Launch] Safety timeout fired. ${targetApp} did not report ready within 4000ms. Forcing recovery.`);
         addLog('error', 'perf', `App launch transition timed out for: ${targetApp}. Forcing splash recovery.`);
         
@@ -1169,11 +1174,11 @@ export default function App() {
         }, 350);
         cleanup = () => {
           clearTimeout(tid);
-          clearTimeout(safetyTimeout);
+          if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
         };
       } else {
         cleanup = () => {
-          clearTimeout(safetyTimeout);
+          if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
         };
         setSplashFullyOpaque(true);
       }

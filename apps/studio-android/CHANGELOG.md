@@ -11,6 +11,13 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 4.0.72
+
+### Fixed
+- Fixed Groovex module crash by restoring ACCENT_COLORS reference.
+- Fixed React Error #306 in Vocalex by unconditionally executing hooks in AppModeMenuLogo.
+- Removed legacy OTA updater subsystem and all obsolete references.
+
 ## 4.0.71
 
 ### Added

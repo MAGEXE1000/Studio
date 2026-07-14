@@ -37,7 +37,7 @@ Write-Host "Pushing HEAD to origin/$BranchName..."
 git push origin HEAD
 
 Write-Host "3. Triggering GitHub Actions Release Pipeline on branch $BranchName..."
-gh workflow run release.yml --ref $BranchName -f release_type=both -f note="$ReleaseNote"
+gh workflow run release.yml --ref $BranchName -f note="$ReleaseNote"
 
 Write-Host "Waiting 15 seconds for the workflow run to initialize..."
 Start-Sleep -Seconds 15

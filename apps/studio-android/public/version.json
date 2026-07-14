@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.70",
-  "versionName": "4.0.70",
-  "versionCode": 40070,
-  "version_code": 40070,
-  "commit": "811f3c1e",
-  "releasedAt": "7/13/2026, 7:01:55 PM CST",
-  "buildTimestamp": "7/13/2026, 7:01:55 PM CST",
+  "version": "4.0.72",
+  "versionName": "4.0.72",
+  "versionCode": 40072,
+  "version_code": 40072,
+  "commit": "a26bc70b",
+  "releasedAt": "7/13/2026, 11:15:27 PM CST",
+  "buildTimestamp": "7/13/2026, 11:15:27 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Complete performance optimizations across Settings, Navigation, Chordex, Stagex, and Updater.\n• Major diagnostics improvements.\n• Permanent removal of the OTA architecture and all its obsolete subsystems.\n• Roll-up of numerous bug fixes and stability improvements.",
-  "whatsNew": "• Complete performance optimizations across Settings, Navigation, Chordex, Stagex, and Updater.\n• Major diagnostics improvements.\n• Permanent removal of the OTA architecture and all its obsolete subsystems.\n• Roll-up of numerous bug fixes and stability improvements.",
+  "changelog": "• Fixed Groovex module crash by restoring ACCENT_COLORS reference.\n• Fixed React Error #306 in Vocalex by unconditionally executing hooks in AppModeMenuLogo.\n• Removed legacy OTA updater subsystem and all obsolete references.",
+  "whatsNew": "• Fixed Groovex module crash by restoring ACCENT_COLORS reference.\n• Fixed React Error #306 in Vocalex by unconditionally executing hooks in AppModeMenuLogo.\n• Removed legacy OTA updater subsystem and all obsolete references.",
   "releaseNotes": {
-    "changed": [
-      "Complete performance optimizations across Settings, Navigation, Chordex, Stagex, and Updater.",
-      "Major diagnostics improvements.",
-      "Permanent removal of the OTA architecture and all its obsolete subsystems.",
-      "Roll-up of numerous bug fixes and stability improvements."
+    "fixed": [
+      "Fixed Groovex module crash by restoring ACCENT_COLORS reference.",
+      "Fixed React Error #306 in Vocalex by unconditionally executing hooks in AppModeMenuLogo.",
+      "Removed legacy OTA updater subsystem and all obsolete references."
     ]
   },
   "mandatory": false

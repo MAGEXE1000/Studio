@@ -1071,7 +1071,6 @@ function UpdateModal({
   const [permissionBlocked, setPermissionBlocked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [showGitHubConfirm, setShowGitHubConfirm] = useState(false);
 
   const settings = useChordStore(s => s.settings);
   const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
@@ -1214,16 +1213,6 @@ function UpdateModal({
       await AppInstaller.openUnknownAppSourcesSettings();
     } catch (err) {
       console.error('[UpdateIndicator] Failed to open settings:', err);
-    }
-  };
-
-  const handleOpenGitHub = async () => {
-    try {
-      const { resolveReleasePageUrl } = await import('@workspace/studio-core');
-      const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
-      window.open(fallbackUrl, '_system');
-    } catch (err) {
-      window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
     }
   };
 
@@ -1641,14 +1630,7 @@ function UpdateModal({
 
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
-          <ActionButton
-            type="button"
-            onClick={() => setShowGitHubConfirm(true)}
-            style={primaryButtonStyle}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
-            Download Latest Release
-          </ActionButton>
+          
           
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
             <ActionButton
@@ -1818,14 +1800,6 @@ function UpdateModal({
         }
       };
 
-      const handleGitHubInstall = async () => {
-        try {
-          await updater.downloadAndInstallGitHubApk();
-        } catch (err: any) {
-          alert(`GitHub install failed: ${err.message || String(err)}`);
-        }
-      };
-
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
@@ -1845,14 +1819,7 @@ function UpdateModal({
             </ActionButton>
           </div>
 
-          <ActionButton
-            type="button"
-            onClick={handleGitHubInstall}
-            style={primaryButtonStyle}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>download</span>
-            Install Latest APK from GitHub
-          </ActionButton>
+          
           
           <div style={{ display: 'flex', gap: 6, width: '100%', marginTop: 4 }}>
             <ActionButton
@@ -1990,23 +1957,7 @@ function UpdateModal({
               Continue Installation
             </ActionButton>
 
-            <ActionButton
-              type="button"
-              onClick={() => setShowGitHubConfirm(true)}
-              style={{
-                width: '100%', height: 44, borderRadius: 12,
-                background: 'transparent',
-                border: '1px solid rgba(128, 128, 128, 0.25)',
-                color: 'var(--c-text-secondary)',
-                fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'background-color 200ms ease',
-              }}
-            >
-              <GithubIcon size={18} color="var(--c-text-secondary)" />
-              Download from GitHub
-            </ActionButton>
+            
 
             <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
               <ActionButton
@@ -2060,23 +2011,7 @@ function UpdateModal({
             Retry Update
           </ActionButton>
 
-          <ActionButton
-            type="button"
-            onClick={() => setShowGitHubConfirm(true)}
-            style={{
-              width: '100%', height: 44, borderRadius: 12,
-              background: 'transparent',
-              border: '1px solid rgba(128, 128, 128, 0.25)',
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              transition: 'background-color 200ms ease',
-            }}
-          >
-            <GithubIcon size={18} color="var(--c-text-secondary)" />
-            Download Latest Release
-          </ActionButton>
+          
 
           <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
             <ActionButton
@@ -2429,31 +2364,7 @@ function UpdateModal({
   // Render buttons
   const actionButtons = renderButtons();
 
-  if (showGitHubConfirm) {
-    const gitHubButtons = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: 14 }}>
-        <ActionButton
-          type="button"
-          onClick={async () => {
-            await handleOpenGitHub();
-            setShowGitHubConfirm(false);
-          }}
-          style={primaryButtonStyle}
-        >
-          Open GitHub
-        </ActionButton>
-        <ActionButton
-          type="button"
-          onClick={() => setShowGitHubConfirm(false)}
-          style={secondaryButtonStyle}
-        >
-          Cancel
-        </ActionButton>
-      </div>
-    );
 
-    return null;
-  }
 
   const progressComponent = showProgress ? (
     <DownloadProgressIndicator

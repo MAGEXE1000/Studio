@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.74
+
+### Fixed
+- Fixed React Error #306 crash inside Vocalex TakesPanel (Lottie dynamic import).
+- Fixed Microphone initialization crashes on unsupported devices.
+- Restored missing TakeDetailView component and cleaned up Vocalex components.
+
 ## 4.0.73
 
 ### Fixed

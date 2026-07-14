@@ -36,6 +36,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number>(0);
   const smoothedFreqRef = useRef<number>(0);
+  const activeRef = useRef<boolean>(panelActive);
 
   const detectLoop = useCallback(() => {
     const analyser = analyserRef.current;
@@ -86,6 +87,9 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
     if (audioCtxRef.current) return;
     try {
       setPermError(null);
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Microphone API is not supported in this browser context.');
+      }
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -94,6 +98,10 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       } catch (constraintsErr) {
         console.warn('[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+      if (!activeRef.current) {
+        stream.getTracks().forEach(t => t.stop());
+        return;
       }
       streamRef.current = stream;
       const ctx = createAudioContext();
@@ -125,6 +133,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   }, []);
 
   useEffect(() => {
+    activeRef.current = panelActive;
     if (panelActive) {
       startListening();
     } else {

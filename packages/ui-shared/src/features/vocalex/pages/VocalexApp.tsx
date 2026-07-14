@@ -7,10 +7,10 @@ import { subscribeVocalexBack } from '../utilities/headerBack';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 
-const PracticePanelLazy = lazy(() => import('../components/PracticePanel'));
-const PitchPanelLazy = lazy(() => import('../components/PitchPanel'));
-const TakesPanelLazy = lazy(() => import('../components/TakesPanel'));
-const LabPanelLazy = lazy(() => import('../components/LabPanel'));
+const PracticePanelLazy = lazy(() => import('../components/PracticePanel').then(m => ({ default: m.default || m })));
+const PitchPanelLazy = lazy(() => import('../components/PitchPanel').then(m => ({ default: m.default || m })));
+const TakesPanelLazy = lazy(() => import('../components/TakesPanel').then(m => ({ default: m.default || m })));
+const LabPanelLazy = lazy(() => import('../components/LabPanel').then(m => ({ default: m.default || m })));
 
 type VocalexPanel = 'practice' | 'pitch' | 'vocalLab' | 'takes';
 

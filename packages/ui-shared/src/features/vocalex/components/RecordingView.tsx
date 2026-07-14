@@ -81,6 +81,9 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
   }, []);
 
   const acquireMic = useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('Microphone API is not supported in this browser context.');
+    }
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({

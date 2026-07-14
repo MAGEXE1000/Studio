@@ -59,6 +59,7 @@ import {
 
 import { decodeReactError } from '../feedback/ErrorBoundary';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
+import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -4123,7 +4124,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       )}
 
       {subView === 'updater' && (
-        <div>Updater Diagnostics removed</div>
+        <UpdateDiagnosticsSheet open={true} onClose={handleSubViewBack} />
       )}
 
       {subView === 'system' && (

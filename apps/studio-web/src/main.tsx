@@ -1,11 +1,16 @@
-import { tolgee, initDevToolsFramework } from '@workspace/studio-core';
+import { tolgee, initDevToolsFramework, NavigationDispatcher } from '@workspace/studio-core';
 
 // Initialize DevTools
 initDevToolsFramework();
+
 import { createRoot } from "react-dom/client";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { TolgeeProvider } from "@tolgee/react";
 import App from "./App";
 import "./index.css";
+
+// @ts-ignore
+window.NavigationDispatcher = NavigationDispatcher;
 
 createRoot(document.getElementById("root")!).render(
   <TolgeeProvider tolgee={tolgee} fallback={null}>

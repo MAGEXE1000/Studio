@@ -1,4 +1,4 @@
-import { useT, APP_VERSION_LABEL, useScrollHide, useIsWebDesktop, useChordStore } from '@workspace/studio-core';
+import { useT, APP_VERSION_LABEL, useScrollHide, useIsWebDesktop, useChordStore, ACCENT_COLORS } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ElasticSlider from '../../../components/progress/ElasticSlider';
@@ -127,10 +127,10 @@ export default function GroovexPreferences() {
                 {t.settings.rows.defaultTabDesc}
               </p>
               <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                {(['library', 'player', 'preferences'] as const).map(value => {
+                {(['library', 'preferences'] as const).map(value => {
                   const active = (settings.defaultGroovexView || 'library') === value;
                   const acc = ACCENT_COLORS[settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
-                  const icons: Record<string, string> = { library: 'library_music', player: 'album', preferences: 'tune' };
+                  const icons: Record<string, string> = { library: 'library_music', preferences: 'tune' };
                   return (
                     <button
                       key={value}

@@ -17,7 +17,6 @@ type AppValue = 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
 
 export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: number }) {
   const isWebDesktop = useIsWebDesktop();
-  if (isWebDesktop) return null;
 
   const settings = useChordStore(s => s.settings);
   const updateSettings = useChordStore(s => s.updateSettings);
@@ -157,6 +156,8 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
   const collapseTransition = open
     ? `max-width 240ms ${SMOOTH}, opacity 160ms ${SMOOTH}, transform 220ms ${SMOOTH}`
     : `max-width 320ms ${SPRING} 80ms, opacity 220ms ${SMOOTH} 140ms, transform 320ms ${SPRING} 80ms`;
+
+  if (isWebDesktop) return null;
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', display: 'inline-flex', verticalAlign: 'middle' }}>

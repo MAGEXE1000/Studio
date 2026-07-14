@@ -1104,14 +1104,27 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   }, [accent.from, accent.to, stageVis.theme, isAmoled, curView]);
 
   useEffect(() => {
-    try {
-      const win = iframeRef.current?.contentWindow as (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
-      if (win && typeof win.switchView === 'function') {
-        win.switchView(curView);
-      } else {
-        callIframe('switchView', curView);
-      }
-    } catch {}
+    let retries = 0;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const attemptSwitch = () => {
+      try {
+        const win = iframeRef.current?.contentWindow as (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
+        if (win && typeof win.switchView === 'function') {
+          win.switchView(curView);
+        } else {
+          callIframe('switchView', curView);
+          if (retries < 15) { // Retry for up to ~3 seconds
+            retries++;
+            timeoutId = setTimeout(attemptSwitch, 200);
+          }
+        }
+      } catch {}
+    };
+
+    attemptSwitch();
+
+    return () => clearTimeout(timeoutId);
   }, [curView, callIframe]);
 
   useEffect(() => {

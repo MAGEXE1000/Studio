@@ -1,18 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.69",
-  "versionName": "4.0.69",
-  "versionCode": 40069,
-  "version_code": 40069,
-  "commit": "e405abbc",
-  "releasedAt": "7/13/2026, 10:50:49 AM CST",
-  "buildTimestamp": "7/13/2026, 10:50:49 AM CST",
+  "version": "4.0.70",
+  "versionName": "4.0.70",
+  "versionCode": 40070,
+  "version_code": 40070,
+  "commit": "811f3c1e",
+  "releasedAt": "7/13/2026, 7:01:55 PM CST",
+  "buildTimestamp": "7/13/2026, 7:01:55 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation.",
-  "whatsNew": "• Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation.",
+  "changelog": "• Complete performance optimizations across Settings, Navigation, Chordex, Stagex, and Updater.\n• Major diagnostics improvements.\n• Permanent removal of the OTA architecture and all its obsolete subsystems.\n• Roll-up of numerous bug fixes and stability improvements.",
+  "whatsNew": "• Complete performance optimizations across Settings, Navigation, Chordex, Stagex, and Updater.\n• Major diagnostics improvements.\n• Permanent removal of the OTA architecture and all its obsolete subsystems.\n• Roll-up of numerous bug fixes and stability improvements.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed critical startup regression causing a permanent black screen on native platforms due to incorrect Capacitor.isNativePlatform() double invocation."
+    "changed": [
+      "Complete performance optimizations across Settings, Navigation, Chordex, Stagex, and Updater.",
+      "Major diagnostics improvements.",
+      "Permanent removal of the OTA architecture and all its obsolete subsystems.",
+      "Roll-up of numerous bug fixes and stability improvements."
     ]
   },
   "mandatory": false

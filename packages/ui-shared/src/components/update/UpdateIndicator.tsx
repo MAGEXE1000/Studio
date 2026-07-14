@@ -2491,6 +2491,64 @@ function UpdateModal({
     />
   ) : undefined;
 
+  const bottomSection = (state === 'available' && Capacitor.isNativePlatform()) ? (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12, paddingTop: 16, borderTop: '1px solid rgba(128, 128, 128, 0.15)' }}>
+      <div style={{ textAlign: 'left' }}>
+        <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+          Official Release Downloads
+        </h3>
+        <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45 }}>
+          If the automatic updater cannot complete an installation, you can always download the latest official production release directly from GitHub.
+        </p>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, background: 'rgba(128,128,128,0.04)', padding: 10, borderRadius: 10, border: '1px solid rgba(128,128,128,0.08)', textAlign: 'left' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 9.5, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Installed Version</span>
+          <span style={{ fontSize: 12, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>v{APP_VERSION_LABEL}</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 9.5, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Latest Available</span>
+          <span style={{ fontSize: 12, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>
+            {updater.remoteVersion ? `v${updater.remoteVersion}` : 'Checking...'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: 6, marginTop: 2 }}>
+          <span style={{ fontSize: 9.5, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Release Channel</span>
+          <span style={{ fontSize: 12, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }}></span>
+            Official Production
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: 6, marginTop: 2 }}>
+          <span style={{ fontSize: 9.5, color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Recovery Status</span>
+          <span style={{ fontSize: 12, color: updater.validApkExists ? '#eab308' : '#22c55e', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: updater.validApkExists ? '#eab308' : '#22c55e' }}></span>
+            {updater.validApkExists ? 'Pending installation detected.' : 'Everything is healthy.'}
+          </span>
+        </div>
+      </div>
+      
+      <ActionButton
+        type="button"
+        onClick={() => setShowGitHubConfirm(true)}
+        style={{
+          width: '100%', height: 38, borderRadius: 10,
+          background: 'transparent',
+          border: '1px solid rgba(128, 128, 128, 0.25)',
+          color: 'var(--c-text-secondary)',
+          fontFamily: 'Manrope', fontWeight: 700, fontSize: 12,
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          transition: 'background-color 200ms ease',
+        }}
+      >
+        <GithubIcon size={16} color="var(--c-text-secondary)" />
+        Open Official GitHub Release
+      </ActionButton>
+    </div>
+  ) : undefined;
+
   return (
     <StudioUpdateScreen
       state={state}
@@ -2509,6 +2567,7 @@ function UpdateModal({
       isLight={isLight}
       fromVersion={fromLabel}
       toVersion={toVersion}
+      bottomSection={bottomSection}
     />
   );
 }

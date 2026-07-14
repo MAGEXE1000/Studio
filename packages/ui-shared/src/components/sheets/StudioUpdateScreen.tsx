@@ -21,6 +21,7 @@ interface StudioUpdateScreenProps {
   isLight?: boolean;
   fromVersion?: string;
   toVersion?: string;
+  bottomSection?: React.ReactNode;
 }
 
 export default memo(function StudioUpdateScreen({
@@ -42,6 +43,7 @@ export default memo(function StudioUpdateScreen({
   isLight = false,
   fromVersion,
   toVersion,
+  bottomSection,
 }: StudioUpdateScreenProps) {
   // Record render of StudioUpdateScreen
   UpdaterFlightRecorder.record({
@@ -406,6 +408,22 @@ export default memo(function StudioUpdateScreen({
               style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8, overflow: 'hidden' }}
             >
               {actionButtons}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Bottom Custom Section */}
+        <AnimatePresence>
+          {bottomSection && (
+            <motion.div
+              key="bottom-section-container"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={emphasizedTransition}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', marginTop: 12, overflow: 'hidden' }}
+            >
+              {bottomSection}
             </motion.div>
           )}
         </AnimatePresence>

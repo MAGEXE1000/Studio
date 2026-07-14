@@ -135,6 +135,38 @@ export default function SettingsPanel() {
                 );
               })()}
             </WebPreferenceRow>
+            <WebPreferenceRow label="Start On (Vocalex)" desc="Which tab opens when you launch Vocalex">
+              {(() => {
+                const cur = settings.defaultVocalexTab ?? 'practice';
+                const tabs: { value: 'practice' | 'pitch' | 'vocalLab' | 'takes'; icon: string }[] = [
+                  { value: 'practice', icon: 'mic' },
+                  { value: 'pitch', icon: 'graphic_eq' },
+                  { value: 'vocalLab', icon: 'science' },
+                  { value: 'takes', icon: 'list' },
+                ];
+                return (
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {tabs.map(({ value, icon }) => {
+                      const active = cur === value;
+                      return (
+                        <button
+                          key={value}
+                          onClick={() => updateSettings({ defaultVocalexTab: value })}
+                          className={`w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all ${
+                            active 
+                              ? (isLight ? 'bg-zinc-300 text-black border-zinc-400' : 'bg-zinc-800 text-white border-zinc-700')
+                              : (isLight ? 'bg-transparent text-zinc-500 border-zinc-200 hover:text-black hover:border-zinc-300' : 'bg-transparent text-zinc-500 border-zinc-900 hover:text-zinc-300')
+                          }`}
+                          title={value}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{icon}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </WebPreferenceRow>
           </WebSettingsSection>
 
           {/* ── INTELLIGENCE ── */}
@@ -284,6 +316,44 @@ export default function SettingsPanel() {
               );
             })()}
           </SettingRow>
+          <SettingRow label="Start On (Vocalex)" desc="Which tab opens when you launch Vocalex">
+            {(() => {
+              const cur = settings.defaultVocalexTab ?? 'practice';
+              const tabs: { value: 'practice' | 'pitch' | 'vocalLab' | 'takes'; icon: string }[] = [
+                { value: 'practice', icon: 'mic' },
+                { value: 'pitch', icon: 'graphic_eq' },
+                { value: 'vocalLab', icon: 'science' },
+                { value: 'takes', icon: 'list' },
+              ];
+              return (
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {tabs.map(({ value, icon }) => {
+                    const active = cur === value;
+                    return (
+                      <button
+                        key={value}
+                        onClick={() => updateSettings({ defaultVocalexTab: value })}
+                        style={{
+                          width: '40px', height: '40px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          borderRadius: '10px',
+                          border: active ? `2px solid ${acc.from}` : '2px solid transparent',
+                          background: active ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)` : 'var(--app-surface-low)',
+                          color: active ? acc.from : 'var(--c-text-secondary)',
+                          cursor: 'pointer',
+                          transition: 'all 150ms ease',
+                          flexShrink: 0,
+                        }}
+                        title={value}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{icon}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </SettingRow>
         </div>
 
         {/* ── INTELLIGENCE ── */}
@@ -310,179 +380,7 @@ export default function SettingsPanel() {
           )}
         </div>
 
-        {/* ── UPDATES ── */}
-        {Capacitor.isNativePlatform() && (
-          <div style={{ marginTop: '24px' }}>
-            <SectionHeader icon="system_update" title="Updates" />
-            <div style={{ ...cardStyle, padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
-                  Official Release Downloads
-                </h3>
-                <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5 }}>
-                  If the automatic updater cannot complete an installation, you can always download the latest official production release directly from GitHub.
-                </p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(128,128,128,0.04)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(128,128,128,0.08)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Installed Version</span>
-                  <span style={{ fontSize: '13px', color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>v{APP_VERSION_LABEL}</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Latest Available</span>
-                  <span style={{ fontSize: '13px', color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'monospace' }}>
-                    {updater.remoteVersion ? `v${updater.remoteVersion}` : 'Checking...'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: '8px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Release Channel</span>
-                  <span style={{ fontSize: '13px', color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e' }}></span>
-                    Official Production
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', gridColumn: 'span 2', borderTop: '1px solid rgba(128,128,128,0.08)', paddingTop: '8px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--c-text-tertiary)', textTransform: 'uppercase', fontWeight: 700, fontFamily: 'Inter' }}>Recovery Status</span>
-                  <span style={{ fontSize: '13px', color: updater.validApkExists ? '#eab308' : '#22c55e', fontWeight: 600, fontFamily: 'Inter', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: updater.validApkExists ? '#eab308' : '#22c55e' }}></span>
-                    {updater.validApkExists ? 'Pending installation detected.' : 'Everything is healthy.'}
-                  </span>
-                </div>
-              </div>
-
-              {updater.validApkExists ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (typeof window !== 'undefined') {
-                        window.dispatchEvent(new CustomEvent('studio:open-update-dialog'));
-                      }
-                      updater.applyUpdate('Settings: Continue Installation');
-                    }}
-                    style={{
-                      width: '100%', height: '44px', borderRadius: '12px',
-                      background: `linear-gradient(135deg, ${acc.from}, ${acc.to})`,
-                      border: 'none', color: 'white',
-                      fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px',
-                      cursor: 'pointer',
-                      boxShadow: `0 4px 14px color-mix(in srgb, ${acc.to} 25%, transparent)`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                      transition: 'opacity 200ms ease, transform 150ms ease',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>play_circle</span>
-                    Continue Installation
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowGitHubConfirm(true)}
-                    style={{
-                      width: '100%', height: '40px', borderRadius: '12px',
-                      background: 'transparent',
-                      border: '1px solid rgba(128, 128, 128, 0.25)',
-                      color: 'var(--c-text-secondary)',
-                      fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px',
-                      cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                      transition: 'background-color 200ms ease',
-                    }}
-                  >
-                    <GithubIcon size={18} color="var(--c-text-secondary)" />
-                    Open Official GitHub Release
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowGitHubConfirm(true)}
-                  style={{
-                    width: '100%', height: '42px', borderRadius: '12px',
-                    background: `linear-gradient(135deg, ${acc.from}, ${acc.to})`,
-                    border: 'none', color: 'white',
-                    fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px',
-                    cursor: 'pointer',
-                    boxShadow: `0 4px 14px color-mix(in srgb, ${acc.to} 25%, transparent)`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    transition: 'opacity 200ms ease, transform 150ms ease',
-                  }}
-                >
-                  <GithubIcon size={18} color="white" />
-                  Open Official GitHub Release
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
       </div>
-
-      <DialogScaffold
-        open={showGitHubConfirm}
-        onClose={() => setShowGitHubConfirm(false)}
-        title="Download Official Release"
-        footer={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  const { resolveReleasePageUrl } = await import('@workspace/studio-core');
-                  const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
-                  window.open(fallbackUrl, '_system');
-                } catch (err) {
-                  window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
-                }
-                setShowGitHubConfirm(false);
-              }}
-              style={{
-                width: '100%', height: '44px', borderRadius: '12px',
-                background: `linear-gradient(135deg, ${acc.from}, ${acc.to})`,
-                border: 'none', color: 'white',
-                fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              Open GitHub
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowGitHubConfirm(false)}
-              style={{
-                width: '100%', height: '40px', borderRadius: '12px',
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--c-text-secondary)',
-                fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        }
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
-          <div style={{
-            width: '58px', height: '58px', borderRadius: '50%',
-            background: 'rgba(128,128,128,0.06)',
-            border: '1.5px solid rgba(128,128,128,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '10px',
-          }}>
-            <GithubIcon size={28} color="var(--c-text-primary)" />
-          </div>
-          
-          <p style={{ margin: 0, fontSize: '13px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.5, textAlign: 'left' }}>
-            The automatic updater could not complete this installation.<br /><br />
-            Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository.<br /><br />
-            This is the recommended recovery method whenever automatic installation cannot complete.
-          </p>
-        </div>
-      </DialogScaffold>
     </div>
   );
 }

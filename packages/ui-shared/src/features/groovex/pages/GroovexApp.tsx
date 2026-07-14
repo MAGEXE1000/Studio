@@ -15,12 +15,26 @@ const VIEW_ORDER: GroovexView[] = ['library', 'player', 'preferences'];
 
 export default function GroovexApp() {
   const isWebDesktop = useIsWebDesktop();
+  const initialGroovexView: GroovexView = (() => {
+    const s = useChordStore.getState();
+    if (!s.settings.restoreLastSession) return s.settings.defaultGroovexView || 'library';
+    const saved = s.lastSession?.groovexView;
+    return saved === 'library' || saved === 'player' || saved === 'preferences'
+      ? saved
+      : s.settings.defaultGroovexView || 'library';
+  })();
+
   const view = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];
     return (last?.app === 'groovex' && last.page && VIEW_ORDER.includes(last.page as GroovexView)
       ? (last.page as GroovexView)
-      : 'library');
+      : initialGroovexView);
   });
+
+  // Persist the active tab on every change so cold-start can resume here.
+  useEffect(() => {
+    useChordStore.getState().setLastSession({ groovexView: view });
+  }, [view]);
   const activeSongId = useGroovexStore(useShallow(s => s.activeSongId));
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;

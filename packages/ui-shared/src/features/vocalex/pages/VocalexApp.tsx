@@ -89,7 +89,7 @@ export default function VocalexApp() {
     const saved = s.lastSession?.vocalexTab;
     return saved === 'practice' || saved === 'pitch' || saved === 'vocalLab' || saved === 'takes'
       ? saved
-      : 'practice';
+      : s.settings.defaultVocalexTab || 'practice';
   })();
   const activeTab = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];

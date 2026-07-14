@@ -96,6 +96,8 @@ export interface AppSettings {
   defaultTab: ActivePanel;
   defaultDrumTab: 'songs' | 'patterns' | 'prefs';
   defaultStageView: 'Editor' | 'Setup' | 'Preferences';
+  defaultVocalexTab?: 'practice' | 'pitch' | 'vocalLab' | 'takes';
+  defaultGroovexView?: 'library' | 'preferences';
   startupApp: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
   appMode: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
   hubUserName: string;
@@ -164,6 +166,7 @@ interface ChordStore {
     vocalexTab?: 'practice' | 'pitch' | 'vocalLab' | 'takes';
     stagexView?: string;
     drumexTab?: 'songs' | 'patterns' | 'prefs';
+    groovexView?: 'library' | 'player' | 'preferences';
   };
 
   selectChord: (chordId: string) => void;

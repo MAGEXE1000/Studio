@@ -498,6 +498,7 @@ export default function StagexPanel() {
   const [pdfSceneInfo, setPdfSceneInfo] = useState<{ count: number; currentIdx: number; names: string[] }>({ count: 1, currentIdx: 0, names: ['Scene 1'] });
   const [pdfSceneChoice, setPdfSceneChoice] = useState<'current' | 'all' | number>('current');
   const [isStageExpanded, setIsStageExpanded] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   // â”€â”€ Diagnostics & Safe Mode state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [showDiagnostics, setShowDiagnostics] = useState(() => {
@@ -1295,19 +1296,20 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     return false;
   };
 
+  const transitionToView = useCallback((targetView: string) => {
+    setIsExiting(true);
+    setTimeout(() => {
+      setCurView(targetView);
+      callIframe('switchView', targetView);
+      setIsExiting(false);
+    }, 150);
+  }, [callIframe, setCurView]);
+
   const handleNavTap = useCallback((view: string) => {
     setNavCollapsed(false);
-    // Optimistically update curView so the top toolbar swaps immediately â€”
-    // don't wait for the iframe's __onViewChange callback to round-trip,
-    // which can race on iframe reloads and leave the wrong toolbar showing.
-    if (view === 'Setup') {
-      setCurView('SetupHub');
-      callIframe('switchView', 'SetupHub');
-    } else {
-      setCurView(view);
-      callIframe('switchView', view);
-    }
-  }, [callIframe]);
+    const target = view === 'Setup' ? 'SetupHub' : view;
+    transitionToView(target);
+  }, [transitionToView]);
 
   const handleFabTap = useCallback(() => {
     callIframe('toggleSCDial');
@@ -1543,7 +1545,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   Save Preset
                 </WebButton>
                 <WebButton
-                  onClick={() => { setCurView('Export'); callIframe('switchView', 'Export'); }}
+                  onClick={() => transitionToView('Export')}
                   variant="secondary"
                   className="h-8 !px-2.5"
                 >
@@ -1556,7 +1558,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             {curView === 'Export' && (
               <div className="flex gap-1.5">
                 <WebButton
-                  onClick={() => { setCurView('Editor'); callIframe('switchView', 'Editor'); }}
+                  onClick={() => transitionToView('Editor')}
                   variant="secondary"
                   className="h-8 !px-2.5"
                 >
@@ -2065,8 +2067,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             </button>
 
             <button
-              onClick={() => { setCurView('Export'); callIframe('switchView', 'Export'); }}
-              onTouchEnd={(e) => { e.preventDefault(); setCurView('Export'); callIframe('switchView', 'Export'); }}
+              onClick={() => transitionToView('Export')}
+              onTouchEnd={(e) => { e.preventDefault(); transitionToView('Export'); }}
               title={tr.stagex.toolExport}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -2133,10 +2135,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         style={{
           position: 'relative',
           flex: 1,
-          opacity: rotationTransition ? 0.15 : 1,
-          transform: rotationTransition ? 'scale(0.97)' : 'scale(1)',
-          pointerEvents: rotationTransition ? 'none' : 'auto',
-          transition: 'opacity 280ms ease-in-out, transform 280ms ease-in-out',
+          opacity: rotationTransition ? 0.15 : (isExiting ? 0 : 1),
+          transform: rotationTransition ? 'scale(0.97)' : (isExiting ? 'scale(0.97) translateY(8px)' : 'scale(1) translateY(0px)'),
+          pointerEvents: (rotationTransition || isExiting) ? 'none' : 'auto',
+          transition: 'opacity 150ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1)',
           backgroundColor: stageBg
         }}
       >
@@ -2144,6 +2146,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           <iframe
             ref={iframeRef}
             src={iframeSrc}
+            data-view={getSimplifiedView(curView)}
             onLoad={handleLoad}
             title="Stagex"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', display: 'block', backgroundColor: stageBg }}

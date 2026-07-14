@@ -966,7 +966,8 @@
     "harmonize": "Harmonize",
     "navRecorder": "Recorder",
     "navPreferences": "Preferences",
-    "settingsTitle": "Vocalex Settings"
+    "settingsTitle": "Vocalex Settings",
+    "navCoach": "Coach"
   },
   "groovex": {
     "library": "Library",

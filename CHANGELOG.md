@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.77
+
+### Added
+- Merged Vocalex Pitch + Practice views into a unified Coach panel.
+- Implemented sequential, stutter-free transitions for Stagex tab changes.
+- Integrated SharedNavigationContainer transitions inside Developer Tools.
+- Redesigned and simplified the Updater UI.
+- Fixed Settings routing for Help Center, FAQ, Terms, and Privacy screens on Android.
+
 ## 4.0.76
 
 ### Added

@@ -820,7 +820,8 @@
     "tipHealth5Title": "何时咨询专业人士",
     "navRecorder": "Recorder",
     "navPreferences": "Preferences",
-    "settingsTitle": "Vocalex Settings"
+    "settingsTitle": "Vocalex Settings",
+    "navCoach": "教练"
   },
   "groovex": {
     "library": "曲库",

@@ -830,7 +830,8 @@
     "tipHealth5Title": "Wann zum Spezialisten gehen",
     "navRecorder": "Recorder",
     "navPreferences": "Preferences",
-    "settingsTitle": "Vocalex Settings"
+    "settingsTitle": "Vocalex Settings",
+    "navCoach": "Coach"
   },
   "groovex": {
     "library": "Bibliothek",

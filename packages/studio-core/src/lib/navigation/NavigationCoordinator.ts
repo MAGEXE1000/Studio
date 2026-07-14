@@ -24,7 +24,7 @@ export class NavigationCoordinator {
       nextRoute.page = settings.defaultGroovexView || 'library';
     } else if (nextRoute.app === 'vocalex' && !nextRoute.page) {
       const vTab = settings.defaultVocalexTab as any;
-      nextRoute.page = vTab === 'practice' ? 'recorder' : (vTab === 'vocalLab' ? 'pitch' : (vTab || 'pitch'));
+      nextRoute.page = vTab === 'practice' || vTab === 'vocalLab' || vTab === 'pitch' ? 'coach' : (vTab || 'coach');
     } else if (nextRoute.app === 'drums' && !nextRoute.page) {
       nextRoute.page = settings.defaultDrumTab || 'songs';
     } else if (nextRoute.app === 'stage' && !nextRoute.page) {

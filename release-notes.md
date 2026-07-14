@@ -1,5 +1,6 @@
 ### Added
-- Implemented per-app Start On settings for Vocalex under its own Preferences tab.
-- Removed deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.
-- Relocated the Official Release Downloads section into Settings -> Updater.
-- Stabilized Vocalex Pitch monitor microphone concurrency initialization and background resume behaviors.
+- Merged Vocalex Pitch + Practice views into a unified Coach panel.
+- Implemented sequential, stutter-free transitions for Stagex tab changes.
+- Integrated SharedNavigationContainer transitions inside Developer Tools.
+- Redesigned and simplified the Updater UI.
+- Fixed Settings routing for Help Center, FAQ, Terms, and Privacy screens on Android.

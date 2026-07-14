@@ -60,6 +60,7 @@ import {
 import { decodeReactError } from '../feedback/ErrorBoundary';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
 import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
+import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -3850,7 +3851,22 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           }
         }
       `}</style>
-      {subView === 'dashboard' && (
+      <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+        <SharedNavigationContainer
+          activeView={subView}
+          viewOrder={['dashboard', 'apps', 'stagex', 'updater', 'system', 'logs', 'performance', 'network']}
+        >
+          {(viewId) => (
+            <div style={{
+              position: 'absolute', inset: 0,
+              pointerEvents: subView === viewId ? 'auto' : 'none',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              background: 'var(--app-bg)'
+            }}>
+              {viewId === 'dashboard' && (
         <>
           {/* HEADER */}
           {isWebDesktop && (
@@ -4071,7 +4087,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         </>
       )}
       
-      {subView === 'apps' && (
+      {viewId === 'apps' && (
         !isWebDesktop ? (
           <SettingsScaffold
             title="Apps Diagnostics"
@@ -4097,7 +4113,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         )
       )}
 
-      {subView === 'stagex' && (
+      {viewId === 'stagex' && (
         !isWebDesktop ? (
           <SettingsScaffold
             title="Stagex Diagnostics"
@@ -4123,11 +4139,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         )
       )}
 
-      {subView === 'updater' && (
+      {viewId === 'updater' && (
         <UpdateDiagnosticsSheet open={true} onClose={handleSubViewBack} />
       )}
 
-      {subView === 'system' && (
+      {viewId === 'system' && (
         !isWebDesktop ? (
           <SettingsScaffold
             title="System Diagnostics"
@@ -4187,7 +4203,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         )
       )}
 
-      {subView === 'logs' && (
+      {viewId === 'logs' && (
         !isWebDesktop ? (
           <SettingsScaffold
             title="Logs & Warnings"
@@ -4204,7 +4220,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         )
       )}
 
-      {subView === 'performance' && (
+      {viewId === 'performance' && (
         !isWebDesktop ? (
           <SettingsScaffold
             title="Performance Diagnostics"
@@ -4232,7 +4248,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         )
       )}
 
-      {subView === 'network' && (
+      {viewId === 'network' && (
         !isWebDesktop ? (
           <SettingsScaffold
             title="Network Sniffer"
@@ -4259,6 +4275,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           </div>
         )
       )}
+            </div>
+          )}
+        </SharedNavigationContainer>
+      </div>
     </>
   );
 

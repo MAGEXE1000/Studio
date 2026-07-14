@@ -7,13 +7,15 @@ import { subscribeVocalexBack } from '../utilities/headerBack';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 
-const PitchPanelLazy = lazy(() => import('../components/PitchPanel').then(m => ({ default: m.default || m })));
+import { IconSettings } from '../../../navigation/BottomNav';
+
+const CoachPanelLazy = lazy(() => import('../components/CoachPanel').then(m => ({ default: m.default || m })));
 const TakesPanelLazy = lazy(() => import('../components/TakesPanel').then(m => ({ default: m.default || m })));
 const RecordingViewLazy = lazy(() => import('../components/RecordingView').then(m => ({ default: m.default || m })));
 
-type VocalexPanel = 'pitch' | 'recorder' | 'takes' | 'preferences';
+type VocalexPanel = 'coach' | 'recorder' | 'takes' | 'preferences';
 
-const NAV_ORDER: VocalexPanel[] = ['pitch', 'recorder', 'takes', 'preferences'];
+const NAV_ORDER: VocalexPanel[] = ['coach', 'recorder', 'takes', 'preferences'];
 
 function IconMic({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.6;
@@ -27,12 +29,14 @@ function IconMic({ active }: { active: boolean }) {
   );
 }
 
-function IconPitch({ active }: { active: boolean }) {
+function IconCoach({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.6;
   return (
     <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-      <polyline points="4,18 8,10 12,14 16,6 20,12" strokeWidth={sw} />
-      <circle cx="20" cy="12" r="1.5" fill={active ? 'currentColor' : 'none'} strokeWidth={sw * 0.7} />
+      <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" strokeWidth={sw} />
+      <path d="M12 14c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z" strokeWidth={sw} />
+      <path d="M18 6a3 3 0 0 1 0 4" strokeWidth={sw} />
+      <path d="M20.5 4.5a6 6 0 0 1 0 7" strokeWidth={sw} />
     </svg>
   );
 }
@@ -86,12 +90,12 @@ export default function VocalexApp() {
     const s = useChordStore.getState();
     if (!s.settings.restoreLastSession) {
       const def = s.settings.defaultVocalexTab as any;
-      return def === 'practice' ? 'recorder' : (def === 'vocalLab' ? 'pitch' : (def || 'pitch'));
+      return def === 'practice' || def === 'vocalLab' || def === 'pitch' ? 'coach' : (def || 'coach');
     }
     const saved = s.lastSession?.vocalexTab as any;
-    return saved === 'pitch' || saved === 'recorder' || saved === 'takes' || saved === 'preferences'
+    return saved === 'coach' || saved === 'recorder' || saved === 'takes' || saved === 'preferences'
       ? (saved as VocalexPanel)
-      : 'pitch';
+      : 'coach';
   })();
   const activeTab = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];
@@ -152,10 +156,10 @@ export default function VocalexApp() {
   }, []);
 
   const NAV_ITEMS: { panel: VocalexPanel; Icon: React.FC<{ active: boolean }>; label: string }[] = [
-    { panel: 'pitch',       Icon: IconPitch,       label: vt.navPitch },
+    { panel: 'coach',       Icon: IconCoach,       label: vt.navCoach || 'Coach' },
     { panel: 'recorder',    Icon: IconMic,         label: vt.navRecorder || 'Recorder' },
     { panel: 'takes',       Icon: IconTakes,       label: vt.navTakes },
-    { panel: 'preferences', Icon: IconPreferences, label: vt.navPreferences || 'Preferences' },
+    { panel: 'preferences', Icon: IconSettings,    label: vt.navPreferences || 'Preferences' },
   ];
 
   const navRef = useRef<HTMLElement | null>(null);
@@ -176,7 +180,7 @@ export default function VocalexApp() {
   const preferencesScrollRef = useRef<HTMLDivElement | null>(null);
 
   const activeScrollRef =
-    activeTab === 'pitch'       ? pitchScrollRef :
+    activeTab === 'coach'       ? pitchScrollRef :
     activeTab === 'recorder'    ? recorderScrollRef :
     activeTab === 'takes'       ? takesScrollRef :
                                   preferencesScrollRef;
@@ -349,7 +353,7 @@ export default function VocalexApp() {
           >
             {(viewId) => {
               const scrollRef =
-                viewId === 'pitch'       ? pitchScrollRef :
+                viewId === 'coach'       ? pitchScrollRef :
                 viewId === 'recorder'    ? recorderScrollRef :
                 viewId === 'takes'       ? takesScrollRef :
                                            preferencesScrollRef;
@@ -361,7 +365,7 @@ export default function VocalexApp() {
                   WebkitOverflowScrolling: 'touch',
                   paddingBottom: 'var(--content-bottom-pad)',
                 }}>
-                  {viewId === 'pitch' && <Suspense fallback={null}><PitchPanelLazy active={activeTab === 'pitch'} /></Suspense>}
+                  {viewId === 'coach' && <Suspense fallback={null}><CoachPanelLazy active={activeTab === 'coach'} /></Suspense>}
                   {viewId === 'recorder' && <Suspense fallback={null}><RecordingViewLazy onComplete={handleRecordingComplete} onCancel={() => NavigationDispatcher.push({ app: 'vocalex', page: 'takes' })} /></Suspense>}
                   {viewId === 'takes' && <Suspense fallback={null}><TakesPanelLazy /></Suspense>}
                   {viewId === 'preferences' && <VocalexPreferences />}
@@ -498,9 +502,9 @@ function VocalexPreferences() {
   const isLight = activeVis.theme === 'light' || 
     (activeVis.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
-  const cur = settings.defaultVocalexTab ?? 'pitch';
+  const cur = settings.defaultVocalexTab ?? 'coach';
   const tabs = [
-    { value: 'pitch' as const, label: 'Pitch', icon: 'query_stats' },
+    { value: 'coach' as const, label: 'Coach', icon: 'school' },
     { value: 'recorder' as const, label: 'Recorder', icon: 'mic' },
     { value: 'takes' as const, label: 'Takes', icon: 'history' },
     { value: 'preferences' as const, label: 'Preferences', icon: 'tune' },

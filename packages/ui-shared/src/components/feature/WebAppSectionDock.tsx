@@ -188,7 +188,7 @@ export default function WebAppSectionDock({
       case 'groovexLibrary': return t.groovex?.library || 'Library';
       case 'groovexPreferences': return t.groovex?.preferences || 'Preferences';
       
-      case 'vocalexPitch': return vt.navPitch || 'Pitch';
+      case 'vocalexCoach': return vt.navCoach || 'Coach';
       case 'vocalexRecorder': return vt.navRecorder || 'Recorder';
       case 'vocalexTakes': return vt.navTakes || 'Takes';
       case 'vocalexPreferences': return vt.navPreferences || 'Preferences';

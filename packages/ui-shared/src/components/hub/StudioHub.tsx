@@ -1526,21 +1526,16 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
   const updater = useAppUpdate();
   const isWebDesktop = useIsWebDesktop();
   const settings = useChordStore(state => state.settings);
-  const updateSettings = useChordStore(state => state.updateSettings);
   const lang = settings.language ?? 'en';
   const changelogSections = getChangelogSections(lang);
   const [changelogExpanded, setChangelogExpanded] = useState(false);
   const isChangelogTooLong = changelogSections.length > 2 || changelogSections.some(s => s.items.length > 3);
-
-  const isApkFlow = updater.updateType === 'apk' || updater.updateType === 'both';
 
   const L = lang === 'es'
     ? {
         title: 'Actualizaciones',
         latestRelease: 'Última versión',
         currentVersion: 'Versión actual',
-        releaseDate: 'Fecha de publicación',
-        status: 'Estado',
         checking: 'Buscando actualizaciones…',
         upToDate: 'Estás al día',
         upToDateDesc: 'Estás usando la versión más reciente de Studio.',
@@ -1551,15 +1546,6 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         whatsNew: 'Novedades en esta versión',
         showFullChangelog: 'Ver registro de cambios completo',
         hideChangelog: 'Ocultar registro de cambios',
-        controls: 'Preferencias de actualización',
-        notifTitle: 'Notificaciones de actualización',
-        notifDesc: 'Recibe un aviso del sistema cuando haya una actualización.',
-        autoTitle: 'Comprobación automática',
-        autoDesc: 'Busca actualizaciones mientras la app está abierta.',
-        changelogTitle: 'Mostrar novedades tras actualizar',
-        changelogDesc: 'Abre la hoja de cambios al iniciar tras una actualización.',
-        howItWorks: 'Cómo funcionan las actualizaciones',
-        howItWorksBody: 'Studio descarga e instala actualizaciones de la app directamente. No se requiere tienda de aplicaciones.',
         reinstallRequired: 'Requiere reinstalación',
         reinstallDesc: 'Esta versión requiere reinstalar Studio debido a un cambio de certificado de firma.',
       }
@@ -1567,11 +1553,9 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         title: 'Updates',
         latestRelease: 'Latest Release',
         currentVersion: 'Current version',
-        releaseDate: 'Release date',
-        status: 'Status',
         checking: 'Checking for updates…',
-        upToDate: 'You\'re up to date',
-        upToDateDesc: 'You\'re running the latest version of Studio.',
+        upToDate: "You're up to date",
+        upToDateDesc: "You're running the latest version of Studio.",
         updateAvailable: 'Update available',
         updateAvailableDesc: 'A new version of Studio is ready to install.',
         updateNow: 'Update Now',
@@ -1579,25 +1563,14 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         whatsNew: "What's new in this version",
         showFullChangelog: 'Show full changelog',
         hideChangelog: 'Hide changelog',
-        controls: 'Update preferences',
-        notifTitle: 'Update notifications',
-        notifDesc: 'Get a system notification when a new update is ready.',
-        autoTitle: 'Automatic checks',
-        autoDesc: 'Check for updates while the app is open.',
-        changelogTitle: "Show what's new after updating",
-        changelogDesc: 'Open the changelog sheet the first time you launch after installing a new version.',
-        howItWorks: 'How updates work',
-        howItWorksBody: 'Studio downloads and installs app updates directly. No app store required.',
         reinstallRequired: 'Reinstall required',
         reinstallDesc: 'This version requires reinstalling Studio due to a signing certificate change.',
       };
 
-  // Determine status state
   const isChecking = updater.loading;
   const hasUpdate = updater.updateAvailable;
   const isReinstall = Capacitor.isNativePlatform() && updater.reinstallRequired;
 
-  // Status indicator config
   const statusConfig = isChecking
     ? { color: accent.from, label: L.checking, icon: 'refresh' as const, pulse: true }
     : hasUpdate
@@ -1606,7 +1579,6 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
         : { color: '#f59e0b', label: L.updateAvailable, icon: 'system_update' as const, pulse: false }
       : { color: '#4ade80', label: L.upToDate, icon: 'check_circle' as const, pulse: false };
 
-  // Format date nicely
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr + 'T00:00:00');
@@ -1614,20 +1586,21 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
     } catch { return dateStr; }
   };
 
-  // Category badge colors
-  const categoryColors: Record<string, { bg: string; text: string }> = {
-    added: { bg: 'rgba(74, 222, 128, 0.12)', text: '#4ade80' },
-    improved: { bg: `color-mix(in srgb, ${accent.from} 12%, transparent)`, text: accent.from },
-    fixed: { bg: 'rgba(251, 191, 36, 0.12)', text: '#fbbf24' },
-    changed: { bg: 'rgba(147, 130, 220, 0.12)', text: '#9382dc' },
-    "what's new": { bg: `color-mix(in srgb, ${accent.from} 12%, transparent)`, text: accent.from },
-    whats_new: { bg: `color-mix(in srgb, ${accent.from} 12%, transparent)`, text: accent.from },
-  };
-
   const getCategoryStyle = (heading: string) => {
     const key = heading.toLowerCase();
-    return categoryColors[key] || { bg: 'rgba(128,128,128,0.1)', text: 'var(--c-text-secondary)' };
+    const colors = {
+      added: { bg: 'rgba(74, 222, 128, 0.12)', text: '#4ade80' },
+      improved: { bg: `color-mix(in srgb, ${accent.from} 12%, transparent)`, text: accent.from },
+      fixed: { bg: 'rgba(251, 191, 36, 0.12)', text: '#fbbf24' },
+      changed: { bg: 'rgba(147, 130, 220, 0.12)', text: '#9382dc' },
+    };
+    return colors[key] || { bg: 'rgba(128,128,128,0.1)', text: 'var(--c-text-secondary)' };
   };
+
+  const showRecoveryStatus = Capacitor.isNativePlatform();
+  const recoveryStatusText = updater.recoveryMode 
+    ? (lang === 'es' ? 'Recuperación Activa (Fallos consecutivos: ' + updater.consecutiveFailures + ')' : 'Recovery Mode Active (Consecutive failures: ' + updater.consecutiveFailures + ')')
+    : (lang === 'es' ? 'Estable (Normal)' : 'Stable (Normal)');
 
   return (
     <div className={className} style={style}>
@@ -1683,13 +1656,6 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
           color: var(--c-text-primary);
           margin: 0;
         }
-        .updater-version-tag {
-          font-size: 14px;
-          font-weight: 600;
-          opacity: 0.5;
-          margin-left: 6px;
-          letter-spacing: -0.01em;
-        }
         .updater-status-row {
           display: flex;
           align-items: center;
@@ -1716,27 +1682,13 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
           cursor: pointer;
           display: flex;
           align-items: center;
-          justify-content: center;
+          justifyContent: center;
           gap: 8px;
           transition: transform 120ms ease, box-shadow 200ms ease;
           -webkit-tap-highlight-color: transparent;
         }
         .updater-cta-btn:active {
           transform: scale(0.97);
-        }
-        .updater-section-title {
-          font-family: Manrope, sans-serif;
-          font-weight: 700;
-          font-size: 13px;
-          color: var(--c-text-secondary);
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          padding: 20px 4px 8px;
-          margin: 0;
-        }
-        .updater-changelog-card {
-          border-radius: 16px;
-          overflow: hidden;
         }
         .updater-changelog-section {
           padding: 14px 18px;
@@ -1772,20 +1724,71 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
           border-radius: 50%;
           margin-top: 7px;
         }
-        .updater-tip-card {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          margin: 16px 0 0;
-          padding: 14px 16px;
-          border-radius: 14px;
-          background: rgba(128,128,128,0.05);
-          border: 1px solid rgba(128,128,128,0.08);
-        }
       `}</style>
       {!isWebDesktop && !hideHeader && <SettingsSubHeader title={L.title} onBack={onBack} />}
 
-      {/* ── HERO CARD ── */}
+      {/* ── 1. OFFICIAL RELEASE DOWNLOADS (Primary Top Card) ── */}
+      <div className="spring-in" style={{ ...cardStyle, margin: 0, marginBottom: 16, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 24, color: accent.from }}>download</span>
+          <strong style={{ fontFamily: 'Manrope', fontSize: 16 }}>
+            {lang === 'es' ? 'Descargas Oficiales' : 'Official Release Downloads'}
+          </strong>
+        </div>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
+          {lang === 'es'
+            ? 'Studio publica cada versión oficial firmada directamente en GitHub. Puede descargar la última compilación si la actualización automática del sistema falla.'
+            : 'Studio publishes every official production release on GitHub. You can safely download and install the latest signed release directly from the repository if the automatic updater fails.'}
+        </p>
+
+        {showRecoveryStatus && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'rgba(128,128,128,0.04)',
+            padding: '10px 14px',
+            borderRadius: '12px',
+            border: '1px solid rgba(128,128,128,0.06)'
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-tertiary)' }}>
+              {lang === 'es' ? 'Estado de Recuperación' : 'Recovery Status'}
+            </span>
+            <span style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: updater.recoveryMode ? '#ef4444' : '#22c55e',
+              background: updater.recoveryMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
+              padding: '2px 8px',
+              borderRadius: '6px'
+            }}>
+              {recoveryStatusText}
+            </span>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
+          className="btn-smooth animate-click"
+          style={{
+            height: 42, borderRadius: 12,
+            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+            border: 'none', color: 'white',
+            fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
+            cursor: 'pointer',
+            boxShadow: `0 4px 14px color-mix(in srgb, ${accent.to} 25%, transparent)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}
+        >
+          <svg viewBox="0 0 24 24" width={18} height={18} fill="white" style={{ flexShrink: 0 }}>
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          {lang === 'es' ? 'Descargar de GitHub' : 'Download from GitHub'}
+        </button>
+      </div>
+
+      {/* ── 2. CURRENT INSTALLED VERSION & CHECKER ── */}
       <div className="updater-hero-card spring-in" style={{ ...cardStyle, margin: 0, marginBottom: 16 }}>
         <div className="updater-hero-bg" />
         <div className="updater-hero-inner">
@@ -1804,20 +1807,6 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
             }}>{statusConfig.icon}</span>
             {hasUpdate ? L.latestRelease : L.upToDate}
           </div>
-          {/* Build type badge for web */}
-          {!Capacitor.isNativePlatform() && (
-            <div className="updater-badge" style={{
-              background: 'rgba(147, 130, 220, 0.12)',
-              color: '#9382dc',
-              marginTop: -8,
-            }}>
-              <span className="material-symbols-outlined" style={{
-                fontSize: 12,
-                fontVariationSettings: "'FILL' 1",
-              }}>language</span>
-              Web Build
-            </div>
-          )}
 
           {/* Version Headline */}
           <h1 className="updater-version-headline">
@@ -1933,7 +1922,7 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
             </button>
           )}
 
-          {/* ── CHANGELOG SECTION (Inside Hero Card) ── */}
+          {/* ── 3. COLLAPSIBLE CHANGELOG ── */}
           {changelogSections.length > 0 && (
             <div style={{
               borderTop: '1px solid rgba(128, 128, 128, 0.12)',
@@ -2022,195 +2011,9 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
           )}
         </div>
       </div>
-
-
-      {/* ── VERSION MANAGER SECTION (native-only) ── */}
-      {Capacitor.isNativePlatform() && (
-        <>
-          <p className="updater-section-title spring-in" style={{ animationDelay: '110ms' }}>
-            {lang === 'es' ? 'Gestor de Versiones' : 'Version Manager'}
-          </p>
-          
-          <div className="spring-in" style={{ ...cardStyle, margin: 0, padding: '20px', display: 'flex', flexDirection: 'column', gap: 20, animationDelay: '120ms' }}>
-            {/* Visual Timeline Path */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p style={{ margin: 0, fontFamily: 'Manrope', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-tertiary)' }}>
-                {lang === 'es' ? 'Ruta de Actualización' : 'Upgrade Path'}
-              </p>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(128,128,128,0.03)', padding: '12px 14px', borderRadius: 16, border: '1px solid rgba(128,128,128,0.06)' }}>
-                {/* Installed node */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6, background: '#22c55e20', color: '#22c55e', textTransform: 'uppercase' }}>
-                    {lang === 'es' ? 'Instalado' : 'Installed'}
-                  </span>
-                  <strong style={{ fontSize: 12, fontFamily: 'monospace' }}>v{APP_VERSION}</strong>
-                  <span style={{ fontSize: 9, color: 'var(--c-text-tertiary)' }}>code {updateDebugLogs.installedVersionCode || '131'}</span>
-                </div>
-                
-                {/* Connector arrow */}
-                <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-tertiary)' }}>chevron_left</span>
-                
-                {/* Previous stable versions node */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6, background: 'rgba(128,128,128,0.15)', color: 'var(--c-text-secondary)', textTransform: 'uppercase' }}>
-                    {lang === 'es' ? 'Anteriores' : 'Previous'}
-                  </span>
-                  <strong style={{ fontSize: 12, fontFamily: 'monospace' }}>v3.7.3 - v3.7.0</strong>
-                  <span style={{ fontSize: 9, color: 'var(--c-text-tertiary)' }}>{lang === 'es' ? 'Estables' : 'Stable'}</span>
-                </div>
-                
-                {/* Connector arrow */}
-                <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-tertiary)' }}>chevron_left</span>
-                
-                {/* Latest node */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6, background: 'var(--accent-from, #7c3aed)20', color: 'var(--accent-from, #7c3aed)', textTransform: 'uppercase' }}>
-                    {lang === 'es' ? 'Última' : 'Latest'}
-                  </span>
-                  <strong style={{ fontSize: 12, fontFamily: 'monospace' }}>v{updater.remoteVersion || '3.7.4'}</strong>
-                  <span style={{ fontSize: 9, color: 'var(--c-text-tertiary)' }}>{lang === 'es' ? 'Lanzamiento' : 'Release'}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Version details card */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid rgba(128, 128, 128, 0.08)', paddingTop: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13, color: 'var(--c-text-secondary)' }}>
-                  {lang === 'es' ? 'Detalles de la versión' : 'Version Information'}
-                </span>
-                <span style={{ fontSize: 10, color: 'var(--c-text-tertiary)', fontFamily: 'Inter' }}>
-                  {lang === 'es' ? 'Fecha:' : 'Date:'} {APP_VERSION_DATE}
-                </span>
-              </div>
-              
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 8, background: 'rgba(128,128,128,0.06)', border: '1px solid rgba(128,128,128,0.1)', color: 'var(--c-text-secondary)' }}>
-                  {lang === 'es' ? 'Firma: Oficial' : 'Signature: Official'}
-                </span>
-                <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 8, background: 'rgba(128,128,128,0.06)', border: '1px solid rgba(128,128,128,0.1)', color: 'var(--c-text-secondary)' }}>
-                  {lang === 'es' ? 'Canal: Producción' : 'Channel: Production'}
-                </span>
-              </div>
-            </div>
-
-            {/* Official Release Downloads */}
-            <div style={{ borderTop: '1px solid rgba(128, 128, 128, 0.08)', paddingTop: 14 }}>
-              <p style={{ margin: '0 0 8px', fontFamily: 'Manrope', fontWeight: 700, fontSize: 13, color: 'var(--c-text-secondary)' }}>
-                {lang === 'es' ? 'Descargar Versión Oficial' : 'Official Release Downloads'}
-              </p>
-              <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--c-text-tertiary)', fontFamily: 'Inter', lineHeight: 1.45 }}>
-                {lang === 'es'
-                  ? 'Studio publica cada APK oficial de producción en GitHub. Puedes descargar la última versión firmada directamente desde el repositorio oficial si la actualización automática falla.'
-                  : 'Studio publishes every official production APK on GitHub. You can safely download the latest signed release directly from the official repository if the automatic updater fails.'}
-              </p>
-              
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    const { resolveReleasePageUrl } = await import('@workspace/studio-core');
-                    const fallbackUrl = await resolveReleasePageUrl(updater.remoteVersion ?? undefined);
-                    window.open(fallbackUrl, '_system');
-                  } catch (err) {
-                    window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
-                  }
-                }}
-                className="btn-smooth animate-click"
-                style={{
-                  width: '100%', height: 42, borderRadius: 12,
-                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  border: 'none', color: 'white',
-                  fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
-                  cursor: 'pointer',
-                  boxShadow: `0 4px 14px color-mix(in srgb, ${accent.to} 25%, transparent)`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                }}
-              >
-                <svg viewBox="0 0 24 24" width={18} height={18} fill="white" style={{ flexShrink: 0 }}>
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                {lang === 'es' ? 'Abrir GitHub de Studio' : 'Open Official GitHub Release'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── UPDATE HISTORY LOG (native-only) ── */}
-      {Capacitor.isNativePlatform() && (
-        <>
-          {(() => {
-            const history = getUpdateHistory();
-            if (history.length === 0) return null;
-            return (
-              <>
-                <p className="updater-section-title spring-in" style={{ animationDelay: '130ms' }}>
-                  {lang === 'es' ? 'Historial de Transiciones' : 'Transition History'}
-                </p>
-                <div className="spring-in" style={{ ...cardStyle, margin: 0, padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 10, animationDelay: '140ms', maxHeight: 200, overflowY: 'auto' }}>
-                  {history.map((entry, idx) => {
-                    const dateStr = new Date(entry.timestamp).toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', { hour: '2-digit', minute: '2-digit' } as any);
-                    const isSuccess = entry.status === 'success';
-                    return (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: 12, paddingBottom: idx < history.length - 1 ? 8 : 0, borderBottom: idx < history.length - 1 ? '1px solid rgba(128,128,128,0.05)' : 'none' }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-primary)' }}>
-                              {entry.fromVersion} → {entry.toVersion}
-                            </span>
-                            <span style={{
-                              fontSize: 9.5,
-                              padding: '2px 6px',
-                              borderRadius: 4,
-                              background: entry.type === 'upgrade' ? 'rgba(74,222,128,0.1)' : 'rgba(234,179,8,0.1)',
-                              color: entry.type === 'upgrade' ? '#4ade80' : '#eab308',
-                              fontWeight: 700,
-                              textTransform: 'uppercase'
-                            }}>
-                              {entry.type}
-                            </span>
-                          </div>
-                          <p style={{ margin: '2px 0 0', color: 'var(--c-text-tertiary)', fontSize: 11 }}>
-                            {dateStr} • {entry.trigger === 'auto' ? 'Auto' : 'User'}
-                            {entry.error && ` • ${entry.error}`}
-                          </p>
-                        </div>
-                        <span className="material-symbols-outlined" style={{ fontSize: 16, color: isSuccess ? '#4ade80' : '#f87171' }}>
-                          {isSuccess ? 'check_circle' : 'error'}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            );
-          })()}
-        </>
-      )}
-
-      {/* ── TIP CARD ── */}
-      <div className="updater-tip-card spring-in" style={{ animationDelay: '150ms' }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 16, color: accent.from, flexShrink: 0, marginTop: 1, fontVariationSettings: "'FILL' 1", opacity: 0.8 }}>info</span>
-        <div>
-          <p style={{ margin: 0, fontFamily: 'Manrope', fontWeight: 700, fontSize: 12.5, color: 'var(--c-text-primary)' }}>{L.howItWorks}</p>
-          <p style={{ margin: '4px 0 0', fontFamily: 'Inter', fontSize: 11.5, color: 'var(--c-text-secondary)', lineHeight: 1.55 }}>
-            {Capacitor.isNativePlatform()
-              ? L.howItWorksBody
-              : (lang === 'es'
-                ? 'Studio en la web se actualiza automáticamente. Cuando hay una nueva versión, simplemente recarga la página.'
-                : 'Studio on the web updates automatically. When a new version is deployed, simply refresh the page to get it.')}
-          </p>
-        </div>
-      </div>
-
-
     </div>
   );
 }
-
-
 
 function HubSettings({
   accent,
@@ -4520,7 +4323,7 @@ User Agent: [Automatically Generated]
   }
 
   function renderActivePageContent(activePageId: SettingsPageId) {
-    switch (activePageId) {
+    switch (activePageId as any) {
       case 'general':
         return renderGeneralContent();
       case 'appearance':
@@ -4545,6 +4348,16 @@ User Agent: [Automatically Generated]
         return renderProfile();
       case 'release-notes':
         return renderReleaseNotesContent();
+      case 'help-center':
+        return renderHelpCenterContent();
+      case 'faq':
+        return renderFaqContent();
+      case 'terms':
+        return renderTermsContent();
+      case 'privacy-policy':
+        return renderPrivacyPolicyContent();
+      case 'bug-report':
+        return renderBugReportContent();
       default:
         return renderGeneralContent();
     }

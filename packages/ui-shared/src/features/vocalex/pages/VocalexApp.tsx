@@ -504,10 +504,10 @@ function VocalexPreferences() {
 
   const cur = settings.defaultVocalexTab ?? 'coach';
   const tabs = [
-    { value: 'coach' as const, label: 'Coach', icon: 'school' },
-    { value: 'recorder' as const, label: 'Recorder', icon: 'mic' },
-    { value: 'takes' as const, label: 'Takes', icon: 'history' },
-    { value: 'preferences' as const, label: 'Preferences', icon: 'tune' },
+    { value: 'coach' as const, label: 'Coach', Icon: IconCoach },
+    { value: 'recorder' as const, label: 'Recorder', Icon: IconMic },
+    { value: 'takes' as const, label: 'Takes', Icon: IconTakes },
+    { value: 'preferences' as const, label: 'Preferences', Icon: IconSettings },
   ];
 
   return (
@@ -548,7 +548,7 @@ function VocalexPreferences() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
-            {tabs.map(({ value, label, icon }) => {
+            {tabs.map(({ value, label, Icon }) => {
               const active = cur === value;
               return (
                 <button
@@ -570,7 +570,7 @@ function VocalexPreferences() {
                     flexShrink: 0,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{icon}</span>
+                  <Icon active={active} />
                 </button>
               );
             })}

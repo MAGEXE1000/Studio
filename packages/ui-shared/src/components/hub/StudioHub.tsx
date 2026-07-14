@@ -517,7 +517,7 @@ export default function StudioHub() {
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative', width: '100%', height: '100%' }}>
         <SharedNavigationContainer
           activeView={tab}
-          viewOrder={['home', 'profile', 'settings', 'help']}
+          viewOrder={['home', 'settings', 'profile', 'help']}
         >
           {(tabId) => {
             const currentScrollRef =
@@ -1727,67 +1727,6 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
       `}</style>
       {!isWebDesktop && !hideHeader && <SettingsSubHeader title={L.title} onBack={onBack} />}
 
-      {/* ── 1. OFFICIAL RELEASE DOWNLOADS (Primary Top Card) ── */}
-      <div className="spring-in" style={{ ...cardStyle, margin: 0, marginBottom: 16, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 24, color: accent.from }}>download</span>
-          <strong style={{ fontFamily: 'Manrope', fontSize: 16 }}>
-            {lang === 'es' ? 'Descargas Oficiales' : 'Official Release Downloads'}
-          </strong>
-        </div>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {lang === 'es'
-            ? 'Studio publica cada versión oficial firmada directamente en GitHub. Puede descargar la última compilación si la actualización automática del sistema falla.'
-            : 'Studio publishes every official production release on GitHub. You can safely download and install the latest signed release directly from the repository if the automatic updater fails.'}
-        </p>
-
-        {showRecoveryStatus && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: 'rgba(128,128,128,0.04)',
-            padding: '10px 14px',
-            borderRadius: '12px',
-            border: '1px solid rgba(128,128,128,0.06)'
-          }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-tertiary)' }}>
-              {lang === 'es' ? 'Estado de Recuperación' : 'Recovery Status'}
-            </span>
-            <span style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: updater.recoveryMode ? '#ef4444' : '#22c55e',
-              background: updater.recoveryMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
-              padding: '2px 8px',
-              borderRadius: '6px'
-            }}>
-              {recoveryStatusText}
-            </span>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
-          className="btn-smooth animate-click"
-          style={{
-            height: 42, borderRadius: 12,
-            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-            border: 'none', color: 'white',
-            fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
-            cursor: 'pointer',
-            boxShadow: `0 4px 14px color-mix(in srgb, ${accent.to} 25%, transparent)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}
-        >
-          <svg viewBox="0 0 24 24" width={18} height={18} fill="white" style={{ flexShrink: 0 }}>
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
-          {lang === 'es' ? 'Descargar de GitHub' : 'Download from GitHub'}
-        </button>
-      </div>
-
       {/* ── 2. CURRENT INSTALLED VERSION & CHECKER ── */}
       <div className="updater-hero-card spring-in" style={{ ...cardStyle, margin: 0, marginBottom: 16 }}>
         <div className="updater-hero-bg" />
@@ -2010,6 +1949,67 @@ function HubUpdaterPage({ className, style, cardStyle, accent, onBack, hideHeade
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── 1. OFFICIAL RELEASE DOWNLOADS (Recovery Section) ── */}
+      <div className="spring-in" style={{ ...cardStyle, margin: 0, marginBottom: 16, padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 24, color: accent.from }}>download</span>
+          <strong style={{ fontFamily: 'Manrope', fontSize: 16 }}>
+            {lang === 'es' ? 'Descargas Oficiales' : 'Official Release Downloads'}
+          </strong>
+        </div>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
+          {lang === 'es'
+            ? 'Studio publica cada versión oficial firmada directamente en GitHub. Puede descargar la última compilación si la actualización automática del sistema falla.'
+            : 'Studio publishes every official production release on GitHub. You can safely download and install the latest signed release directly from the repository if the automatic updater fails.'}
+        </p>
+
+        {showRecoveryStatus && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'rgba(128,128,128,0.04)',
+            padding: '10px 14px',
+            borderRadius: '12px',
+            border: '1px solid rgba(128,128,128,0.06)'
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-tertiary)' }}>
+              {lang === 'es' ? 'Estado de Recuperación' : 'Recovery Status'}
+            </span>
+            <span style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: updater.recoveryMode ? '#ef4444' : '#22c55e',
+              background: updater.recoveryMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
+              padding: '2px 8px',
+              borderRadius: '6px'
+            }}>
+              {recoveryStatusText}
+            </span>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
+          className="btn-smooth animate-click"
+          style={{
+            height: 42, borderRadius: 12,
+            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+            border: 'none', color: 'white',
+            fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
+            cursor: 'pointer',
+            boxShadow: `0 4px 14px color-mix(in srgb, ${accent.to} 25%, transparent)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}
+        >
+          <svg viewBox="0 0 24 24" width={18} height={18} fill="white" style={{ flexShrink: 0 }}>
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          {lang === 'es' ? 'Descargar de GitHub' : 'Download from GitHub'}
+        </button>
       </div>
     </div>
   );

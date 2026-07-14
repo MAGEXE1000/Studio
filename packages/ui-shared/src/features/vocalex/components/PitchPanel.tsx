@@ -90,6 +90,19 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
     startingRef.current = true;
     try {
       setPermError(null);
+
+      // Check and request native permission if running on Capacitor (Android/iOS)
+      if (Capacitor.isNativePlatform()) {
+        const { AppInstaller } = await import('@workspace/studio-core');
+        const check = await AppInstaller.checkPermissions();
+        if (check.microphone !== 'granted') {
+          const req = await AppInstaller.requestPermissions({ aliases: ['microphone'] });
+          if (req.microphone !== 'granted') {
+            throw new Error('microphone_permission_denied');
+          }
+        }
+      }
+
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error('Microphone API is not supported in this browser context.');
       }
@@ -99,7 +112,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
         });
       } catch (constraintsErr) {
-        console.info('[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
+        console.debug('[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
       if (!activeRef.current) {
@@ -118,16 +131,17 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       smoothedFreqRef.current = 0;
       rafRef.current = requestAnimationFrame(detectLoop);
     } catch (err: unknown) {
-      if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
-        console.info('[PitchPanel] startListening: Microphone permission was denied by user.');
+      if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.message === 'microphone_permission_denied')) {
+        console.debug('[PitchPanel] startListening: Microphone permission was denied by user.');
+        setPermError('microphone_permission_denied');
       } else {
-        console.info('[PitchPanel] startListening failed:', err);
+        console.debug('[PitchPanel] startListening failed:', err);
+        setPermError(err instanceof Error ? err.message : String(err));
       }
-      setPermError(err instanceof Error ? err.message : t.vocalex.micDenied);
     } finally {
       startingRef.current = false;
     }
-  }, [detectLoop, t.vocalex.micDenied]);
+  }, [detectLoop]);
 
   const stopListening = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -476,22 +490,45 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
               ? t.vocalex.tunerMicRequired
               : permError}
           </span>
-          <button
-            onClick={() => {
-              setPermError(null);
-              startListening();
-            }}
-            style={{
-              padding: '8px 16px', borderRadius: 8,
-              background: '#ef4444', border: 'none',
-              color: '#fff', fontSize: 12, fontWeight: 700,
-              fontFamily: 'Inter, sans-serif', cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
-              transition: 'background 150ms ease',
-            }}
-          >
-            {t.vocalex.tunerGrantStart}
-          </button>
+          {Capacitor.isNativePlatform() ? (
+            <button
+              onClick={async () => {
+                try {
+                  const { AppInstaller } = await import('@workspace/studio-core');
+                  await AppInstaller.openAppSettings();
+                } catch (e) {
+                  console.error('Failed to open app settings:', e);
+                }
+              }}
+              style={{
+                padding: '8px 16px', borderRadius: 8,
+                background: '#ef4444', border: 'none',
+                color: '#fff', fontSize: 12, fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
+                transition: 'background 150ms ease',
+              }}
+            >
+              {language === 'es' ? 'Abrir Ajustes de la App' : 'Open App Settings'}
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setPermError(null);
+                startListening();
+              }}
+              style={{
+                padding: '8px 16px', borderRadius: 8,
+                background: '#ef4444', border: 'none',
+                color: '#fff', fontSize: 12, fontWeight: 700,
+                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
+                transition: 'background 150ms ease',
+              }}
+            >
+              {t.vocalex.tunerGrantStart}
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.77';
-export const WEB_VERSION = '4.0.77';
+export const NATIVE_VERSION = '4.0.78';
+export const WEB_VERSION = '4.0.78';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,11 +62,13 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Merged Vocalex Pitch + Practice views into a unified Coach panel.",
-      "Implemented sequential, stutter-free transitions for Stagex tab changes.",
-      "Integrated SharedNavigationContainer transitions inside Developer Tools.",
-      "Redesigned and simplified the Updater UI.",
-      "Fixed Settings routing for Help Center, FAQ, Terms, and Privacy screens on Android.",
+      "Reorganized Updater screen to display the update checker card above official downloads recovery.",
+      "Redesigned Vocalex Coach segmented control with a centered modern sliding pill indicator layout.",
+      "Implemented native Android microphone permissions request and Settings redirect recovery flow.",
+      "Synchronized Vocalex Preferences default tab selector icons to use bottom navigation React icon components.",
+      "Swapped Profile and Settings view order to resolve reversed page transition directions.",
+      "Moved heavy UI modules preloading to startup Phase 6 to resolve intro animation freezes.",
+      "Downgraded generated urls updater diagnostics expected warning to debug log level.",
     ],
   },
 ];

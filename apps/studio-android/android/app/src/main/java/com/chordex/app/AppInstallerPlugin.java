@@ -45,6 +45,12 @@ import android.util.Log;
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             }
+        ),
+        @Permission(
+            alias = "microphone",
+            strings = {
+                Manifest.permission.RECORD_AUDIO
+            }
         )
     }
 )
@@ -1729,6 +1735,21 @@ public class AppInstallerPlugin extends Plugin {
             call.resolve(result);
         } catch (Exception e) {
             call.reject("Failed to check active installer sessions: " + e.getMessage(), e);
+        }
+    }
+
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        try {
+            Context context = getContext();
+            Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", context.getPackageName(), null);
+            intent.setData(uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Failed to open application settings: " + e.getMessage(), e);
         }
     }
 }

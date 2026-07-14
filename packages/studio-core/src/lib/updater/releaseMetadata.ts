@@ -52,7 +52,7 @@ export function versionJsonUrls(): string[] {
     urls.push(`${localBase}version.json?t=${t}`);
   }
   
-  console.warn(`[Updater DIAGNOSTICS] Generated urls to fetch:`, urls);
+  console.debug(`[Updater DIAGNOSTICS] Generated urls to fetch:`, urls);
 
   return urls;
 }

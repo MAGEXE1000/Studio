@@ -243,20 +243,6 @@ class StartupCoordinatorClass {
         recoveredViaFailsafe: false
       });
 
-      // Eagerly preload heavy UI modules after main thread is idle
-      if (typeof window !== 'undefined' && typeof (window as any).__preloadUIModules === 'function') {
-        if ('requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(() => {
-            console.log('[StartupCoordinator] Triggering eager preloading of UI packages (idle)...');
-            (window as any).__preloadUIModules();
-          });
-        } else {
-          setTimeout(() => {
-            console.log('[StartupCoordinator] Triggering eager preloading of UI packages (deferred)...');
-            (window as any).__preloadUIModules();
-          }, 500);
-        }
-      }
     });
     if (!p3Success || this.currentRunId !== runId) return;
 
@@ -366,6 +352,21 @@ class StartupCoordinatorClass {
         }
       } catch (err) {
         console.error('[StartupCoordinator] Supabase session retrieval error:', err);
+      }
+
+      // Eagerly preload heavy UI modules after main thread is idle and Hub is visible
+      if (typeof window !== 'undefined' && typeof (window as any).__preloadUIModules === 'function') {
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => {
+            console.log('[StartupCoordinator] Triggering eager preloading of UI packages (idle)...');
+            (window as any).__preloadUIModules();
+          });
+        } else {
+          setTimeout(() => {
+            console.log('[StartupCoordinator] Triggering eager preloading of UI packages (deferred)...');
+            (window as any).__preloadUIModules();
+          }, 500);
+        }
       }
 
       // Defer non-critical background services

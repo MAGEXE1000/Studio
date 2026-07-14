@@ -87,6 +87,7 @@ export interface AppInstallerPlugin {
     hasInstallPermission: boolean;
   }>;
   copyToClipboard(options: { text: string }): Promise<void>;
+  openAppSettings(): Promise<void>;
 }
 
 const rawAppInstaller = registerPlugin<AppInstallerPlugin>('AppInstaller');

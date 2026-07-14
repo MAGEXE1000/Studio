@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.69"
-$VersionCode = "40069"
-$ReleaseNote = "v4.0.69 - Hotfix: Startup Regression (isNativePlatform error)"
+$VersionName = "4.0.71"
+$VersionCode = "40071"
+$ReleaseNote = "v4.0.71 - Feature: Finalize Phase 3-8 architecture updates and Start On persistence"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

@@ -671,7 +671,7 @@ if (androidHome && existsSync(path.join(androidHome, 'build-tools'))) {
 // Step 7: Create GitHub Release tag if missing
 console.log('Step 7/15: Create GitHub Release tag if missing...');
 const tag = `v${version}`;
-const titleText = `Studio v${version}`;
+const titleText = version;
 const releaseNotesFile = path.join(repoRoot, 'release-notes.md');
 
 const runGh = (args) => {

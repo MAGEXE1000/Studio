@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.74';
-export const WEB_VERSION = '4.0.74';
+export const NATIVE_VERSION = '4.0.73';
+export const WEB_VERSION = '4.0.73';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed Groovex module crash by restoring ACCENT_COLORS reference.",
-      "Fixed React Error #306 in Vocalex by unconditionally executing hooks in AppModeMenuLogo.",
-      "Removed legacy OTA updater subsystem and all obsolete references.",
+      "Fixed memory leak and 4-second delay during Groovex startup.",
+      "Resolved crash in Vocalex recording view.",
+      "Relocated Official Release Downloads to Updater Settings panel.",
     ],
   },
 ];

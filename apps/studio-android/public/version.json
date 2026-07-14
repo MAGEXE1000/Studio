@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.73",
-  "versionName": "4.0.73",
-  "versionCode": 40073,
-  "version_code": 40073,
-  "commit": "67c63e7a",
-  "releasedAt": "7/14/2026, 8:27:57 AM CST",
-  "buildTimestamp": "7/14/2026, 8:27:57 AM CST",
+  "version": "4.0.74",
+  "versionName": "4.0.74",
+  "versionCode": 40074,
+  "version_code": 40074,
+  "commit": "66a6c5c2",
+  "releasedAt": "7/14/2026, 8:29:17 AM CST",
+  "buildTimestamp": "7/14/2026, 8:29:17 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed memory leak and 4-second delay during Groovex startup.\n• Resolved crash in Vocalex recording view.\n• Relocated Official Release Downloads to Updater Settings panel.",
-  "whatsNew": "• Fixed memory leak and 4-second delay during Groovex startup.\n• Resolved crash in Vocalex recording view.\n• Relocated Official Release Downloads to Updater Settings panel.",
+  "changelog": "• Fixed React Error #306 crash inside Vocalex TakesPanel (Lottie dynamic import).\n• Fixed Microphone initialization crashes on unsupported devices.\n• Restored missing TakeDetailView component and cleaned up Vocalex components.",
+  "whatsNew": "• Fixed React Error #306 crash inside Vocalex TakesPanel (Lottie dynamic import).\n• Fixed Microphone initialization crashes on unsupported devices.\n• Restored missing TakeDetailView component and cleaned up Vocalex components.",
   "releaseNotes": {
     "fixed": [
-      "Fixed memory leak and 4-second delay during Groovex startup.",
-      "Resolved crash in Vocalex recording view.",
-      "Relocated Official Release Downloads to Updater Settings panel."
+      "Fixed React Error #306 crash inside Vocalex TakesPanel (Lottie dynamic import).",
+      "Fixed Microphone initialization crashes on unsupported devices.",
+      "Restored missing TakeDetailView component and cleaned up Vocalex components."
     ]
   },
   "mandatory": false

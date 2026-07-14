@@ -1,19 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.75",
-  "versionName": "4.0.75",
-  "versionCode": 40075,
-  "version_code": 40075,
-  "commit": "67ab42e0",
-  "releasedAt": "7/14/2026, 9:19:46 AM CST",
-  "buildTimestamp": "7/14/2026, 9:19:46 AM CST",
+  "version": "4.0.76",
+  "versionName": "4.0.76",
+  "versionCode": 40076,
+  "version_code": 40076,
+  "commit": "192fd63b",
+  "releasedAt": "7/14/2026, 10:07:52 AM CST",
+  "buildTimestamp": "7/14/2026, 10:07:52 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed CommonJS module dynamic import interop in AppLottie to resolve React Error #306.\n• Restored handleOpenGitHub and ViewState definitions to resolve compile-time warnings and errors.",
-  "whatsNew": "• Fixed CommonJS module dynamic import interop in AppLottie to resolve React Error #306.\n• Restored handleOpenGitHub and ViewState definitions to resolve compile-time warnings and errors.",
+  "changelog": "• Implemented per-app Start On settings for Vocalex under its own Preferences tab.\n• Removed deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.\n• Relocated the Official Release Downloads section into Settings -> Updater.\n• Stabilized Vocalex Pitch monitor microphone concurrency initialization and background resume behaviors.",
+  "whatsNew": "• Implemented per-app Start On settings for Vocalex under its own Preferences tab.\n• Removed deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.\n• Relocated the Official Release Downloads section into Settings -> Updater.\n• Stabilized Vocalex Pitch monitor microphone concurrency initialization and background resume behaviors.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed CommonJS module dynamic import interop in AppLottie to resolve React Error #306.",
-      "Restored handleOpenGitHub and ViewState definitions to resolve compile-time warnings and errors."
+    "added": [
+      "Implemented per-app Start On settings for Vocalex under its own Preferences tab.",
+      "Removed deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.",
+      "Relocated the Official Release Downloads section into Settings -> Updater.",
+      "Stabilized Vocalex Pitch monitor microphone concurrency initialization and background resume behaviors."
     ]
   },
   "mandatory": false

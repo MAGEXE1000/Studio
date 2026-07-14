@@ -60,10 +60,10 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "What's New",
+    heading: "Added",
     items: [
       "Implemented per-app Start On settings for Vocalex under its own Preferences tab.",
-      "Removed the deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.",
+      "Removed deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.",
       "Relocated the Official Release Downloads section into Settings -> Updater.",
       "Stabilized Vocalex Pitch monitor microphone concurrency initialization and background resume behaviors.",
     ],

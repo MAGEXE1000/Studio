@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.76
+
+### Added
+- Implemented per-app Start On settings for Vocalex under its own Preferences tab.
+- Removed deprecated Version Downgrade selection and confirmation overlays from Hub Updater page.
+- Relocated the Official Release Downloads section into Settings -> Updater.
+- Stabilized Vocalex Pitch monitor microphone concurrency initialization and background resume behaviors.
+
 ## 4.0.75
 
 ### Fixed

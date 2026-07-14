@@ -1,6 +1,14 @@
 import { lazy, Suspense } from 'react';
 
-const LottiePlayer = lazy(() => import('lottie-react').then(m => ({ default: m.default || (m as any) })));
+const LottiePlayer = lazy(() => (import('lottie-react').then(m => {
+  if (typeof m.default === 'function') {
+    return { default: m.default };
+  }
+  if (m.default && typeof (m.default as any).default === 'function') {
+    return { default: (m.default as any).default };
+  }
+  return { default: m.default || m };
+}) as any));
 
 export interface AppLottieProps {
   animationData: object;

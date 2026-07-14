@@ -1,4 +1,3 @@
 ### Fixed
-- Fixed React Error #306 crash inside Vocalex TakesPanel (Lottie dynamic import).
-- Fixed Microphone initialization crashes on unsupported devices.
-- Restored missing TakeDetailView component and cleaned up Vocalex components.
+- Fixed CommonJS module dynamic import interop in AppLottie to resolve React Error #306.
+- Restored handleOpenGitHub and ViewState definitions to resolve compile-time warnings and errors.

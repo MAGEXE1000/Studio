@@ -1072,6 +1072,10 @@ function UpdateModal({
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
+  const handleOpenGitHub = () => {
+    window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
+  };
+
   const settings = useChordStore(s => s.settings);
   const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
   const isLight = (() => {

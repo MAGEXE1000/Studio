@@ -43,6 +43,10 @@ function formatDateI18n(ts: number, t: { today: string; yesterday: string; daysA
   }
   return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
 }
+type ViewState =
+  | { mode: 'list' }
+  | { mode: 'recording' }
+  | { mode: 'detail'; takeId: string };
 
 export default function TakesPanel() {
   const t = useT();

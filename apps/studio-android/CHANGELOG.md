@@ -12,6 +12,12 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.75
+
+### Fixed
+- Fixed CommonJS module dynamic import interop in AppLottie to resolve React Error #306.
+- Restored handleOpenGitHub and ViewState definitions to resolve compile-time warnings and errors.
+
 ## 4.0.74
 
 ### Fixed

@@ -115,7 +115,11 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       smoothedFreqRef.current = 0;
       rafRef.current = requestAnimationFrame(detectLoop);
     } catch (err: unknown) {
-      console.error('[PitchPanel] startListening failed:', err);
+      if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+        console.warn('[PitchPanel] startListening: Microphone permission was denied by user.');
+      } else {
+        console.warn('[PitchPanel] startListening failed:', err);
+      }
       setPermError(err instanceof Error ? err.message : t.vocalex.micDenied);
     }
   }, [detectLoop, t.vocalex.micDenied]);

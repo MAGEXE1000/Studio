@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.74';
-export const WEB_VERSION = '4.0.74';
+export const NATIVE_VERSION = '4.0.75';
+export const WEB_VERSION = '4.0.75';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed React Error #306 crash inside Vocalex TakesPanel (Lottie dynamic import).",
-      "Fixed Microphone initialization crashes on unsupported devices.",
-      "Restored missing TakeDetailView component and cleaned up Vocalex components.",
+      "Fixed CommonJS module dynamic import interop in AppLottie to resolve React Error #306.",
+      "Restored handleOpenGitHub and ViewState definitions to resolve compile-time warnings and errors.",
     ],
   },
 ];

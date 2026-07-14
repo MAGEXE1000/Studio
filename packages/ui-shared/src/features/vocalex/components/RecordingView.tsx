@@ -96,7 +96,7 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
         },
       });
     } catch (constraintsErr) {
-      console.warn('[TakesPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
+      console.info('[TakesPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     }
     if (unmountedRef.current) {

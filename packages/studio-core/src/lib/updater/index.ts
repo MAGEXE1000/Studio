@@ -144,7 +144,6 @@ export {
   downloadUpdate,
   applyUpdate,
   initializeGlobalUpdateListeners,
-  triggerDowngrade,
   getInstallRecoveryPromise,
 } from './pipeline';
 

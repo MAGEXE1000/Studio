@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.75"
-$VersionCode = "40075"
-$ReleaseNote = "v4.0.75 - Fix CJS module dynamic import interop for LottiePlayer; Fix type check errors"
+$VersionName = "4.0.76"
+$VersionCode = "40076"
+$ReleaseNote = "v4.0.76 - Implement Vocalex Start On settings, remove updater downgrade system, and stabilize mic initialization"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

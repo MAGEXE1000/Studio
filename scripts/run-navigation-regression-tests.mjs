@@ -131,7 +131,7 @@ async function runNavigationTests() {
     const state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
     assert.strictEqual(state.history[1].app, 'vocalex');
-    assert.strictEqual(state.history[1].page, 'practice');
+    assert.strictEqual(state.history[1].page, 'pitch');
   });
 
   // Test 6: Nested path and sequential back traversal

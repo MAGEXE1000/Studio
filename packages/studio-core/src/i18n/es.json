@@ -22,37 +22,130 @@
     "allGenres": "Todos los géneros",
     "backToCategories": "Categorías",
     "cats": {
-      "major":   { "label": "Mayor",       "desc": "Brillante y alegre." },
-      "minor":   { "label": "Menor",       "desc": "Emotivo y profundo." },
-      "7th":     { "label": "Séptima",     "desc": "Esencia del jazz y blues." },
-      "maj7":    { "label": "Mayor 7",     "desc": "Suave y envolvente." },
-      "min7":    { "label": "Menor 7",     "desc": "Cálido e introspectivo." },
-      "dim":     { "label": "Disminuido",  "desc": "Tenso e inestable." },
-      "aug":     { "label": "Aumentado",   "desc": "Misterioso y etéreo." },
-      "sus2":    { "label": "Sus2",        "desc": "Abierto y ligero." },
-      "sus4":    { "label": "Sus4",        "desc": "Tensión sin resolver." },
-      "halfdim": { "label": "Semidism.",   "desc": "Disonancia jazz." },
-      "dim7":    { "label": "Dim7",        "desc": "Disminuido total." },
-      "11th":    { "label": "11ª",         "desc": "Voicing rico y extendido." },
-      "min11":   { "label": "m11",        "desc": "Armonía menor suave de 11ª." },
-      "13th":    { "label": "13ª",         "desc": "Armonía plena." },
-      "min13":   { "label": "m13",        "desc": "Armonía menor rica de 13ª." },
-      "7sus4":   { "label": "7sus4",       "desc": "Toque funk y soul." },
-      "7sus2":   { "label": "7sus2",       "desc": "Dominante abierto." },
-      "maj6":    { "label": "Mayor 6",     "desc": "Clásico y melódico." },
-      "9th":     { "label": "9ª",          "desc": "Rico y groovy." },
-      "maj9":    { "label": "Mayor 9",     "desc": "Romántico y complejo." },
-      "min9":    { "label": "Menor 9",     "desc": "Oscuro y jazzero." },
-      "add9":    { "label": "Add9",        "desc": "Mayor con brillo." },
-      "6th":     { "label": "6ª",          "desc": "Dulce y retro." },
-      "min6":    { "label": "Menor 6",     "desc": "Agridulce." },
-      "power":   { "label": "Power",       "desc": "Rock y metal puro." },
-      "minmaj7": { "label": "m/maj7",      "desc": "Jazz sofisticado." },
-      "aug7":    { "label": "Aug7",        "desc": "Transición tensa." },
-      "7b9":     { "label": "7b9",         "desc": "Tensión flamenca." },
-      "7s9":     { "label": "7#9",         "desc": "El acorde Hendrix." },
-      "69":      { "label": "6/9",         "desc": "Color jazz y bossa nova." },
-      "9sus4":   { "label": "9sus4",       "desc": "Soul con tensión." }
+      "69": {
+        "label": "6/9",
+        "desc": "Color jazz y bossa nova."
+      },
+      "major": {
+        "label": "Mayor",
+        "desc": "Brillante y alegre."
+      },
+      "minor": {
+        "label": "Menor",
+        "desc": "Emotivo y profundo."
+      },
+      "7th": {
+        "label": "Séptima",
+        "desc": "Esencia del jazz y blues."
+      },
+      "maj7": {
+        "label": "Mayor 7",
+        "desc": "Suave y envolvente."
+      },
+      "min7": {
+        "label": "Menor 7",
+        "desc": "Cálido e introspectivo."
+      },
+      "dim": {
+        "label": "Disminuido",
+        "desc": "Tenso e inestable."
+      },
+      "aug": {
+        "label": "Aumentado",
+        "desc": "Misterioso y etéreo."
+      },
+      "sus2": {
+        "label": "Sus2",
+        "desc": "Abierto y ligero."
+      },
+      "sus4": {
+        "label": "Sus4",
+        "desc": "Tensión sin resolver."
+      },
+      "halfdim": {
+        "label": "Semidism.",
+        "desc": "Disonancia jazz."
+      },
+      "dim7": {
+        "label": "Dim7",
+        "desc": "Disminuido total."
+      },
+      "11th": {
+        "label": "11ª",
+        "desc": "Voicing rico y extendido."
+      },
+      "min11": {
+        "label": "m11",
+        "desc": "Armonía menor suave de 11ª."
+      },
+      "13th": {
+        "label": "13ª",
+        "desc": "Armonía plena."
+      },
+      "min13": {
+        "label": "m13",
+        "desc": "Armonía menor rica de 13ª."
+      },
+      "7sus4": {
+        "label": "7sus4",
+        "desc": "Toque funk y soul."
+      },
+      "7sus2": {
+        "label": "7sus2",
+        "desc": "Dominante abierto."
+      },
+      "maj6": {
+        "label": "Mayor 6",
+        "desc": "Clásico y melódico."
+      },
+      "9th": {
+        "label": "9ª",
+        "desc": "Rico y groovy."
+      },
+      "maj9": {
+        "label": "Mayor 9",
+        "desc": "Romántico y complejo."
+      },
+      "min9": {
+        "label": "Menor 9",
+        "desc": "Oscuro y jazzero."
+      },
+      "add9": {
+        "label": "Add9",
+        "desc": "Mayor con brillo."
+      },
+      "6th": {
+        "label": "6ª",
+        "desc": "Dulce y retro."
+      },
+      "min6": {
+        "label": "Menor 6",
+        "desc": "Agridulce."
+      },
+      "power": {
+        "label": "Power",
+        "desc": "Rock y metal puro."
+      },
+      "minmaj7": {
+        "label": "m/maj7",
+        "desc": "Jazz sofisticado."
+      },
+      "aug7": {
+        "label": "Aug7",
+        "desc": "Transición tensa."
+      },
+      "7b9": {
+        "label": "7b9",
+        "desc": "Tensión flamenca."
+      },
+      "7s9": {
+        "label": "7#9",
+        "desc": "El acorde Hendrix."
+      },
+      "9sus4": {
+        "label": "9sus4",
+        "desc": "Soul con tensión."
+      }
     },
     "discoverSubtitle": "Canciones reales, progresiones icónicas, filtradas por género.",
     "discoverSearchPlaceholder": "Buscar canciones o artistas…",
@@ -68,14 +161,14 @@
     "genres": {
       "english-rock": "Rock Inglés",
       "spanish-rock": "Rock en Español",
-      "yacht-rock":   "Yacht Rock",
-      "blues":        "Blues",
-      "jazz":         "Jazz",
-      "pop":          "Pop",
-      "folk":         "Folk",
-      "latin":        "Latino",
-      "hard-rock":    "Hard Rock",
-      "r-and-b":      "R&B / Soul"
+      "yacht-rock": "Yacht Rock",
+      "blues": "Blues",
+      "jazz": "Jazz",
+      "pop": "Pop",
+      "folk": "Folk",
+      "latin": "Latino",
+      "hard-rock": "Hard Rock",
+      "r-and-b": "R&B / Soul"
     }
   },
   "chord": {
@@ -293,9 +386,18 @@
       "learningModeDesc": "Aprender de tus hábitos de ejecución"
     },
     "instruments": {
-      "guitar": { "label": "Guitarra", "desc": "6 cuerdas · EADGBE" },
-      "piano":  { "label": "Piano",    "desc": "Disposición de teclado" },
-      "bass":   { "label": "Bajo",     "desc": "4/5 cuerdas · EADG" }
+      "guitar": {
+        "label": "Guitarra",
+        "desc": "6 cuerdas · EADGBE"
+      },
+      "piano": {
+        "label": "Piano",
+        "desc": "Disposición de teclado"
+      },
+      "bass": {
+        "label": "Bajo",
+        "desc": "4/5 cuerdas · EADG"
+      }
     },
     "tunings": {
       "standard": "Estándar",
@@ -304,8 +406,12 @@
       "openD": "Open D"
     },
     "colors": {
-      "blue": "Azul", "purple": "Morado", "green": "Verde",
-      "orange": "Naranja", "pink": "Rosa", "teal": "Turquesa"
+      "blue": "Azul",
+      "purple": "Morado",
+      "green": "Verde",
+      "orange": "Naranja",
+      "pink": "Rosa",
+      "teal": "Turquesa"
     },
     "about": {
       "version": "Versión",
@@ -322,8 +428,15 @@
     "language": {
       "label": "Idioma",
       "desc": "Cambiar el idioma de la app",
-      "en": "English", "es": "Español", "de": "Deutsch", "fr": "Français",
-      "zh": "中文", "pt": "Português", "it": "Italiano", "ja": "日本語", "ko": "한국어"
+      "en": "English",
+      "es": "Español",
+      "de": "Deutsch",
+      "fr": "Français",
+      "zh": "中文",
+      "pt": "Português",
+      "it": "Italiano",
+      "ja": "日本語",
+      "ko": "한국어"
     }
   },
   "customBuilder": {
@@ -678,7 +791,20 @@
     "effectDrive": "Drive",
     "effectHighPass": "Paso alto",
     "effectLowPass": "Paso bajo",
-    "months": ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+    "months": [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic"
+    ],
     "sectionWarmup": "Calentamiento",
     "sectionBreath": "Control de respiración",
     "sectionPitch": "Afinación y oído",
@@ -792,7 +918,10 @@
     "unsolo": "Desactivar solo",
     "renameSession": "Renombrar sesión",
     "deleteSession": "Eliminar sesión",
-    "harmonize": "Armonizar"
+    "harmonize": "Armonizar",
+    "navRecorder": "Grabadora",
+    "navPreferences": "Preferencias",
+    "settingsTitle": "Ajustes de Vocalex"
   },
   "groovex": {
     "library": "Biblioteca",

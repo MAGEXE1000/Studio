@@ -24,7 +24,6 @@ import {
   applyUpdate,
   initializeGlobalUpdateListeners,
   checkAndCleanCache,
-  triggerDowngrade,
 } from '../lib/updater/pipeline';
 import { dismissUpdate, markUpdateSeen, applyUpdateDirect, shareDownloadedApk } from '../lib/updater/installActions';
 import { getUpdateHistory, logUpdateTransition } from '../lib/updater/updateHistory';
@@ -42,7 +41,6 @@ export interface AppUpdateHookResult extends CentralizedUpdateState {
   applyUpdateDirect: () => Promise<void>;
   shareDownloadedApk: () => Promise<void>;
   getUpdateHistory: () => any[];
-  triggerDowngrade: (targetVersion: string, apkUrl: string, sha256: string) => Promise<void>;
   checkAndCleanCache: () => Promise<boolean>;
   deleteLocalApk: (version: string) => Promise<void>;
   recordDismissal: (version: string) => void;
@@ -97,7 +95,6 @@ export function useAppUpdate(): AppUpdateHookResult {
     applyUpdateDirect,
     shareDownloadedApk,
     getUpdateHistory,
-    triggerDowngrade,
     checkAndCleanCache,
     deleteLocalApk,
     recordDismissal,

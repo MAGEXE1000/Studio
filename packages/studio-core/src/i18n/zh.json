@@ -20,35 +20,122 @@
     "allGenres": "所有风格",
     "backToCategories": "分类",
     "cats": {
-      "major":   { "label": "大调",     "desc": "明亮、欢快、基础。" },
-      "minor":   { "label": "小调",     "desc": "情感丰富、深沉。" },
-      "7th":     { "label": "七和弦",   "desc": "爵士与蓝调的核心。" },
-      "maj7":    { "label": "大七",     "desc": "丰富而梦幻。" },
-      "min7":    { "label": "小七",     "desc": "柔和而内省。" },
-      "dim":     { "label": "减和弦",   "desc": "紧张而不稳定。" },
-      "aug":     { "label": "增和弦",   "desc": "神秘而飘渺。" },
-      "sus2":    { "label": "挂二",     "desc": "开放而通透。" },
-      "sus4":    { "label": "挂四",     "desc": "悬挂解决感。" },
-      "halfdim": { "label": "半减",     "desc": "爵士不协和音。" },
-      "dim7":    { "label": "减七",     "desc": "完全减和弦。" },
-      "11th":    { "label": "十一",     "desc": "丰富的延伸和声。" },
-      "13th":    { "label": "十三",     "desc": "完整丰富的和声。" },
-      "7sus4":   { "label": "7sus4",   "desc": "放克与灵魂乐风味。" },
-      "7sus2":   { "label": "7sus2",   "desc": "开放属和弦。" },
-      "maj6":    { "label": "大六",     "desc": "复古而旋律性。" },
-      "9th":     { "label": "九和弦",   "desc": "丰富而有律动感。" },
-      "maj9":    { "label": "大九",     "desc": "浪漫而复杂。" },
-      "min9":    { "label": "小九",     "desc": "深沉而爵士。" },
-      "add9":    { "label": "加九",     "desc": "大调加色彩。" },
-      "6th":     { "label": "六和弦",   "desc": "甜美而复古。" },
-      "min6":    { "label": "小六",     "desc": "苦甜交织。" },
-      "power":   { "label": "强力和弦", "desc": "摇滚与金属必备。" },
-      "minmaj7": { "label": "小大七",   "desc": "爵士精巧感。" },
-      "aug7":    { "label": "增七",     "desc": "紧张的爵士过渡。" },
-      "7b9":     { "label": "7b9",      "desc": "暗色的西班牙爵士张力。" },
-      "7s9":     { "label": "7#9",      "desc": "亨德里克斯和弦。" },
-      "69":      { "label": "6/9",      "desc": "爵士与波萨诺瓦色彩。" },
-      "9sus4":   { "label": "9sus4",    "desc": "灵魂感与未解决感。" }
+      "69": {
+        "label": "6/9",
+        "desc": "爵士与波萨诺瓦色彩。"
+      },
+      "major": {
+        "label": "大调",
+        "desc": "明亮、欢快、基础。"
+      },
+      "minor": {
+        "label": "小调",
+        "desc": "情感丰富、深沉。"
+      },
+      "7th": {
+        "label": "七和弦",
+        "desc": "爵士与蓝调的核心。"
+      },
+      "maj7": {
+        "label": "大七",
+        "desc": "丰富而梦幻。"
+      },
+      "min7": {
+        "label": "小七",
+        "desc": "柔和而内省。"
+      },
+      "dim": {
+        "label": "减和弦",
+        "desc": "紧张而不稳定。"
+      },
+      "aug": {
+        "label": "增和弦",
+        "desc": "神秘而飘渺。"
+      },
+      "sus2": {
+        "label": "挂二",
+        "desc": "开放而通透。"
+      },
+      "sus4": {
+        "label": "挂四",
+        "desc": "悬挂解决感。"
+      },
+      "halfdim": {
+        "label": "半减",
+        "desc": "爵士不协和音。"
+      },
+      "dim7": {
+        "label": "减七",
+        "desc": "完全减和弦。"
+      },
+      "11th": {
+        "label": "十一",
+        "desc": "丰富的延伸和声。"
+      },
+      "13th": {
+        "label": "十三",
+        "desc": "完整丰富的和声。"
+      },
+      "7sus4": {
+        "label": "7sus4",
+        "desc": "放克与灵魂乐风味。"
+      },
+      "7sus2": {
+        "label": "7sus2",
+        "desc": "开放属和弦。"
+      },
+      "maj6": {
+        "label": "大六",
+        "desc": "复古而旋律性。"
+      },
+      "9th": {
+        "label": "九和弦",
+        "desc": "丰富而有律动感。"
+      },
+      "maj9": {
+        "label": "大九",
+        "desc": "浪漫而复杂。"
+      },
+      "min9": {
+        "label": "小九",
+        "desc": "深沉而爵士。"
+      },
+      "add9": {
+        "label": "加九",
+        "desc": "大调加色彩。"
+      },
+      "6th": {
+        "label": "六和弦",
+        "desc": "甜美而复古。"
+      },
+      "min6": {
+        "label": "小六",
+        "desc": "苦甜交织。"
+      },
+      "power": {
+        "label": "强力和弦",
+        "desc": "摇滚与金属必备。"
+      },
+      "minmaj7": {
+        "label": "小大七",
+        "desc": "爵士精巧感。"
+      },
+      "aug7": {
+        "label": "增七",
+        "desc": "紧张的爵士过渡。"
+      },
+      "7b9": {
+        "label": "7b9",
+        "desc": "暗色的西班牙爵士张力。"
+      },
+      "7s9": {
+        "label": "7#9",
+        "desc": "亨德里克斯和弦。"
+      },
+      "9sus4": {
+        "label": "9sus4",
+        "desc": "灵魂感与未解决感。"
+      }
     },
     "discoverSubtitle": "真实歌曲，经典进行，按风格筛选。",
     "discoverSearchPlaceholder": "搜索歌曲或艺术家…",
@@ -62,14 +149,14 @@
     "genres": {
       "english-rock": "英式摇滚",
       "spanish-rock": "西班牙摇滚",
-      "yacht-rock":   "游艇摇滚",
-      "blues":        "蓝调",
-      "jazz":         "爵士",
-      "pop":          "流行",
-      "folk":         "民谣",
-      "latin":        "拉丁",
-      "hard-rock":    "硬摇滚",
-      "r-and-b":      "R&B / 灵魂乐"
+      "yacht-rock": "游艇摇滚",
+      "blues": "蓝调",
+      "jazz": "爵士",
+      "pop": "流行",
+      "folk": "民谣",
+      "latin": "拉丁",
+      "hard-rock": "硬摇滚",
+      "r-and-b": "R&B / 灵魂乐"
     }
   },
   "chord": {
@@ -279,9 +366,18 @@
       "learningModeDesc": "从你的演奏习惯中学习"
     },
     "instruments": {
-      "guitar": { "label": "吉他", "desc": "6弦 · EADGBE" },
-      "piano":  { "label": "钢琴", "desc": "键盘布局" },
-      "bass":   { "label": "贝斯", "desc": "4/5弦 · EADG" }
+      "guitar": {
+        "label": "吉他",
+        "desc": "6弦 · EADGBE"
+      },
+      "piano": {
+        "label": "钢琴",
+        "desc": "键盘布局"
+      },
+      "bass": {
+        "label": "贝斯",
+        "desc": "4/5弦 · EADG"
+      }
     },
     "tunings": {
       "standard": "标准调音",
@@ -290,8 +386,12 @@
       "openD": "开放D调"
     },
     "colors": {
-      "blue": "蓝色", "purple": "紫色", "green": "绿色",
-      "orange": "橙色", "pink": "粉色", "teal": "青色"
+      "blue": "蓝色",
+      "purple": "紫色",
+      "green": "绿色",
+      "orange": "橙色",
+      "pink": "粉色",
+      "teal": "青色"
     },
     "about": {
       "version": "版本",
@@ -308,8 +408,15 @@
     "language": {
       "label": "语言",
       "desc": "更改应用显示语言",
-      "en": "English", "es": "Español", "de": "Deutsch", "fr": "Français",
-      "zh": "中文", "pt": "Português", "it": "Italiano", "ja": "日本語", "ko": "한국어"
+      "en": "English",
+      "es": "Español",
+      "de": "Deutsch",
+      "fr": "Français",
+      "zh": "中文",
+      "pt": "Português",
+      "it": "Italiano",
+      "ja": "日本語",
+      "ko": "한국어"
     }
   },
   "customBuilder": {
@@ -616,7 +723,20 @@
     "effectDrive": "驱动",
     "effectHighPass": "高通",
     "effectLowPass": "低通",
-    "months": ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+    "months": [
+      "1月",
+      "2月",
+      "3月",
+      "4月",
+      "5月",
+      "6月",
+      "7月",
+      "8月",
+      "9月",
+      "10月",
+      "11月",
+      "12月"
+    ],
     "sectionWarmup": "热身",
     "sectionBreath": "呼吸控制",
     "sectionPitch": "音高与听觉训练",
@@ -697,7 +817,10 @@
     "tipHealth2Title": "休息日很重要",
     "tipHealth3Title": "避免清嗓",
     "tipHealth4Title": "说话声音习惯",
-    "tipHealth5Title": "何时咨询专业人士"
+    "tipHealth5Title": "何时咨询专业人士",
+    "navRecorder": "Recorder",
+    "navPreferences": "Preferences",
+    "settingsTitle": "Vocalex Settings"
   },
   "groovex": {
     "library": "曲库",

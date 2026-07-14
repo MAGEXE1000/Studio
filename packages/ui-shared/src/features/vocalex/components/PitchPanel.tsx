@@ -1,4 +1,5 @@
 import { useT, createAudioContext, useChordStore } from '@workspace/studio-core';
+import { Capacitor } from '@capacitor/core';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { detectPitch, type PitchResult } from '../services/pitchYin';
 
@@ -37,6 +38,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   const rafRef = useRef<number>(0);
   const smoothedFreqRef = useRef<number>(0);
   const activeRef = useRef<boolean>(panelActive);
+  const startingRef = useRef<boolean>(false);
 
   const detectLoop = useCallback(() => {
     const analyser = analyserRef.current;
@@ -84,7 +86,8 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   }, []);
 
   const startListening = useCallback(async () => {
-    if (audioCtxRef.current) return;
+    if (audioCtxRef.current || startingRef.current) return;
+    startingRef.current = true;
     try {
       setPermError(null);
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -96,7 +99,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
         });
       } catch (constraintsErr) {
-        console.warn('[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
+        console.info('[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
       if (!activeRef.current) {
@@ -116,11 +119,13 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       rafRef.current = requestAnimationFrame(detectLoop);
     } catch (err: unknown) {
       if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
-        console.warn('[PitchPanel] startListening: Microphone permission was denied by user.');
+        console.info('[PitchPanel] startListening: Microphone permission was denied by user.');
       } else {
-        console.warn('[PitchPanel] startListening failed:', err);
+        console.info('[PitchPanel] startListening failed:', err);
       }
       setPermError(err instanceof Error ? err.message : t.vocalex.micDenied);
+    } finally {
+      startingRef.current = false;
     }
   }, [detectLoop, t.vocalex.micDenied]);
 
@@ -144,6 +149,32 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       stopListening();
     }
   }, [panelActive, startListening, stopListening]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    
+    let appStateListener: any;
+    import('@capacitor/app').then(({ App }) => {
+      appStateListener = App.addListener('appStateChange', ({ isActive }) => {
+        console.log(`[PitchPanel] App state changed. isActive: ${isActive}`);
+        if (!isActive) {
+          stopListening();
+        } else {
+          if (activeRef.current) {
+            startListening();
+          }
+        }
+      });
+    }).catch(err => {
+      console.info('[PitchPanel] Capacitor App plugin not available:', err);
+    });
+
+    return () => {
+      if (appStateListener) {
+        appStateListener.then((l: any) => l.remove()).catch(() => {});
+      }
+    };
+  }, [startListening, stopListening]);
 
   useEffect(() => {
     return () => {

@@ -1,4 +1,5 @@
 import { type NavigationRoute, type NavigationHistory } from './navigationTypes';
+import { useChordStore } from '../../store/useChordStore.js';
 
 export class NavigationCoordinator {
   /**
@@ -15,16 +16,19 @@ export class NavigationCoordinator {
       type: route.type,
     };
 
+    const settings = useChordStore.getState().settings;
+
     if (nextRoute.app === 'chords' && !nextRoute.page) {
-      nextRoute.page = 'library';
+      nextRoute.page = settings.defaultTab || 'library';
     } else if (nextRoute.app === 'groovex' && !nextRoute.page) {
-      nextRoute.page = 'library';
+      nextRoute.page = settings.defaultGroovexView || 'library';
     } else if (nextRoute.app === 'vocalex' && !nextRoute.page) {
-      nextRoute.page = 'practice';
+      const vTab = settings.defaultVocalexTab as any;
+      nextRoute.page = vTab === 'practice' ? 'recorder' : (vTab === 'vocalLab' ? 'pitch' : (vTab || 'pitch'));
     } else if (nextRoute.app === 'drums' && !nextRoute.page) {
-      nextRoute.page = 'songs';
+      nextRoute.page = settings.defaultDrumTab || 'songs';
     } else if (nextRoute.app === 'stage' && !nextRoute.page) {
-      nextRoute.page = 'Editor';
+      nextRoute.page = settings.defaultStageView || 'Editor';
     }
 
     console.log(`[NavigationCoordinator] [${timestamp}] resolveDefaultRoute | Input: ${JSON.stringify(route)} -> Resolved: ${JSON.stringify(nextRoute)}`);

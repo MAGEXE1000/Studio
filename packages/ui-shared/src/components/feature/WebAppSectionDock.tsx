@@ -157,6 +157,7 @@ export default function WebAppSectionDock({
   const settings = useChordStore(s => s.settings);
   const { preferences } = useStudioPreferences();
   const t = useT();
+  const vt = t.vocalex as any;
 
   const mouseX = useMotionValue(Infinity);
 
@@ -187,10 +188,10 @@ export default function WebAppSectionDock({
       case 'groovexLibrary': return t.groovex?.library || 'Library';
       case 'groovexPreferences': return t.groovex?.preferences || 'Preferences';
       
-      case 'vocalexPractice': return t.vocalex?.navTips || 'Practice';
-      case 'vocalexPitch': return t.vocalex?.navPitch || 'Pitch';
-      case 'vocalexLab': return t.vocalex?.navLab || 'Vocal Lab';
-      case 'vocalexTakes': return t.vocalex?.navTakes || 'Takes';
+      case 'vocalexPitch': return vt.navPitch || 'Pitch';
+      case 'vocalexRecorder': return vt.navRecorder || 'Recorder';
+      case 'vocalexTakes': return vt.navTakes || 'Takes';
+      case 'vocalexPreferences': return vt.navPreferences || 'Preferences';
       
       case 'stagexStage': return t.stagex?.navStage || 'Stage';
       case 'stagexSetup': return t.stagex?.navSetup || 'Setup';

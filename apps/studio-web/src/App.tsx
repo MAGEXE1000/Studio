@@ -150,7 +150,7 @@ export default function App() {
     if (!preferences.rememberLastAppSection) {
       const storeState = useChordStore.getState();
       storeState.setLastSession({
-        vocalexTab: 'practice',
+        vocalexTab: 'pitch',
         drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
         stagexView: storeState.settings.defaultStageView ?? 'Editor',
       });

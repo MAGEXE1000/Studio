@@ -20,35 +20,122 @@
     "allGenres": "全ジャンル",
     "backToCategories": "カテゴリ",
     "cats": {
-      "major":   { "label": "メジャー",   "desc": "明るく、楽しく、基礎的。" },
-      "minor":   { "label": "マイナー",   "desc": "情感豊かで感情的。" },
-      "7th":     { "label": "セブンス",   "desc": "ジャズとブルースの基盤。" },
-      "maj7":    { "label": "Maj7",       "desc": "豊かで夢のような。" },
-      "min7":    { "label": "Min7",       "desc": "柔らかく内省的。" },
-      "dim":     { "label": "ディミニッシュ", "desc": "緊張感と不安定さ。" },
-      "aug":     { "label": "オーギュメント", "desc": "神秘的で浮遊感。" },
-      "sus2":    { "label": "Sus2",       "desc": "開放的で軽やか。" },
-      "sus4":    { "label": "Sus4",       "desc": "浮遊した解決感。" },
-      "halfdim": { "label": "ハーフディム", "desc": "ジャズの不協和音。" },
-      "dim7":    { "label": "Dim7",       "desc": "完全に減少した。" },
-      "11th":    { "label": "11th",       "desc": "豊かな拡張ボイシング。" },
-      "13th":    { "label": "13th",       "desc": "充実した完全和声。" },
-      "7sus4":   { "label": "7sus4",      "desc": "ファンクとソウルのフレーバー。" },
-      "7sus2":   { "label": "7sus2",      "desc": "オープンドミナント。" },
-      "maj6":    { "label": "Maj6",       "desc": "ヴィンテージでメロディアス。" },
-      "9th":     { "label": "9th",        "desc": "豊かでファンキー。" },
-      "maj9":    { "label": "Maj9",       "desc": "ロマンチックで複雑。" },
-      "min9":    { "label": "Min9",       "desc": "暗くジャジー。" },
-      "add9":    { "label": "Add9",       "desc": "色彩を加えたメジャー。" },
-      "6th":     { "label": "6th",        "desc": "甘くヴィンテージ。" },
-      "min6":    { "label": "Min6",       "desc": "ほろ苦い。" },
-      "power":   { "label": "パワー",     "desc": "ロックとメタルの必需品。" },
-      "minmaj7": { "label": "m/maj7",     "desc": "ジャズの洗練。" },
-      "aug7":    { "label": "Aug7",       "desc": "緊張感のあるジャズ転換。" },
-      "7b9":     { "label": "7b9",        "desc": "暗いスペイン風ジャズテンション。" },
-      "7s9":     { "label": "7#9",        "desc": "ヘンドリックスコード。" },
-      "69":      { "label": "6/9",        "desc": "ジャズとボサノバのカラー。" },
-      "9sus4":   { "label": "9sus4",      "desc": "ソウルフルで未解決。" }
+      "69": {
+        "label": "6/9",
+        "desc": "ジャズとボサノバのカラー。"
+      },
+      "major": {
+        "label": "メジャー",
+        "desc": "明るく、楽しく、基礎的。"
+      },
+      "minor": {
+        "label": "マイナー",
+        "desc": "情感豊かで感情的。"
+      },
+      "7th": {
+        "label": "セブンス",
+        "desc": "ジャズとブルースの基盤。"
+      },
+      "maj7": {
+        "label": "Maj7",
+        "desc": "豊かで夢のような。"
+      },
+      "min7": {
+        "label": "Min7",
+        "desc": "柔らかく内省的。"
+      },
+      "dim": {
+        "label": "ディミニッシュ",
+        "desc": "緊張感と不安定さ。"
+      },
+      "aug": {
+        "label": "オーギュメント",
+        "desc": "神秘的で浮遊感。"
+      },
+      "sus2": {
+        "label": "Sus2",
+        "desc": "開放的で軽やか。"
+      },
+      "sus4": {
+        "label": "Sus4",
+        "desc": "浮遊した解決感。"
+      },
+      "halfdim": {
+        "label": "ハーフディム",
+        "desc": "ジャズの不協和音。"
+      },
+      "dim7": {
+        "label": "Dim7",
+        "desc": "完全に減少した。"
+      },
+      "11th": {
+        "label": "11th",
+        "desc": "豊かな拡張ボイシング。"
+      },
+      "13th": {
+        "label": "13th",
+        "desc": "充実した完全和声。"
+      },
+      "7sus4": {
+        "label": "7sus4",
+        "desc": "ファンクとソウルのフレーバー。"
+      },
+      "7sus2": {
+        "label": "7sus2",
+        "desc": "オープンドミナント。"
+      },
+      "maj6": {
+        "label": "Maj6",
+        "desc": "ヴィンテージでメロディアス。"
+      },
+      "9th": {
+        "label": "9th",
+        "desc": "豊かでファンキー。"
+      },
+      "maj9": {
+        "label": "Maj9",
+        "desc": "ロマンチックで複雑。"
+      },
+      "min9": {
+        "label": "Min9",
+        "desc": "暗くジャジー。"
+      },
+      "add9": {
+        "label": "Add9",
+        "desc": "色彩を加えたメジャー。"
+      },
+      "6th": {
+        "label": "6th",
+        "desc": "甘くヴィンテージ。"
+      },
+      "min6": {
+        "label": "Min6",
+        "desc": "ほろ苦い。"
+      },
+      "power": {
+        "label": "パワー",
+        "desc": "ロックとメタルの必需品。"
+      },
+      "minmaj7": {
+        "label": "m/maj7",
+        "desc": "ジャズの洗練。"
+      },
+      "aug7": {
+        "label": "Aug7",
+        "desc": "緊張感のあるジャズ転換。"
+      },
+      "7b9": {
+        "label": "7b9",
+        "desc": "暗いスペイン風ジャズテンション。"
+      },
+      "7s9": {
+        "label": "7#9",
+        "desc": "ヘンドリックスコード。"
+      },
+      "9sus4": {
+        "label": "9sus4",
+        "desc": "ソウルフルで未解決。"
+      }
     },
     "discoverSubtitle": "実際の曲、象徴的なコード進行をジャンルで絞り込み。",
     "discoverSearchPlaceholder": "曲またはアーティストを検索…",
@@ -62,14 +149,14 @@
     "genres": {
       "english-rock": "イングリッシュロック",
       "spanish-rock": "スパニッシュロック",
-      "yacht-rock":   "ヨットロック",
-      "blues":        "ブルース",
-      "jazz":         "ジャズ",
-      "pop":          "ポップ",
-      "folk":         "フォーク",
-      "latin":        "ラテン",
-      "hard-rock":    "ハードロック",
-      "r-and-b":      "R&B / ソウル"
+      "yacht-rock": "ヨットロック",
+      "blues": "ブルース",
+      "jazz": "ジャズ",
+      "pop": "ポップ",
+      "folk": "フォーク",
+      "latin": "ラテン",
+      "hard-rock": "ハードロック",
+      "r-and-b": "R&B / ソウル"
     }
   },
   "chord": {
@@ -279,9 +366,18 @@
       "learningModeDesc": "演奏習慣から学習"
     },
     "instruments": {
-      "guitar": { "label": "ギター", "desc": "6弦 · EADGBE" },
-      "piano":  { "label": "ピアノ", "desc": "キーボードレイアウト" },
-      "bass":   { "label": "ベース", "desc": "4/5弦 · EADG" }
+      "guitar": {
+        "label": "ギター",
+        "desc": "6弦 · EADGBE"
+      },
+      "piano": {
+        "label": "ピアノ",
+        "desc": "キーボードレイアウト"
+      },
+      "bass": {
+        "label": "ベース",
+        "desc": "4/5弦 · EADG"
+      }
     },
     "tunings": {
       "standard": "標準",
@@ -290,8 +386,12 @@
       "openD": "オープンD"
     },
     "colors": {
-      "blue": "ブルー", "purple": "パープル", "green": "グリーン",
-      "orange": "オレンジ", "pink": "ピンク", "teal": "ティール"
+      "blue": "ブルー",
+      "purple": "パープル",
+      "green": "グリーン",
+      "orange": "オレンジ",
+      "pink": "ピンク",
+      "teal": "ティール"
     },
     "about": {
       "version": "バージョン",
@@ -308,8 +408,15 @@
     "language": {
       "label": "言語",
       "desc": "アプリの表示言語を変更",
-      "en": "English", "es": "Español", "de": "Deutsch", "fr": "Français",
-      "zh": "中文", "pt": "Português", "it": "Italiano", "ja": "日本語", "ko": "한국어"
+      "en": "English",
+      "es": "Español",
+      "de": "Deutsch",
+      "fr": "Français",
+      "zh": "中文",
+      "pt": "Português",
+      "it": "Italiano",
+      "ja": "日本語",
+      "ko": "한국어"
     }
   },
   "customBuilder": {
@@ -616,7 +723,20 @@
     "effectDrive": "ドライブ",
     "effectHighPass": "ハイパス",
     "effectLowPass": "ローパス",
-    "months": ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+    "months": [
+      "1月",
+      "2月",
+      "3月",
+      "4月",
+      "5月",
+      "6月",
+      "7月",
+      "8月",
+      "9月",
+      "10月",
+      "11月",
+      "12月"
+    ],
     "sectionWarmup": "ウォームアップ",
     "sectionBreath": "呼吸コントロール",
     "sectionPitch": "ピッチと耳のトレーニング",
@@ -697,7 +817,10 @@
     "tipHealth2Title": "休息日が重要",
     "tipHealth3Title": "喉を清めることを避ける",
     "tipHealth4Title": "話し声の習慣",
-    "tipHealth5Title": "専門家に相談するタイミング"
+    "tipHealth5Title": "専門家に相談するタイミング",
+    "navRecorder": "Recorder",
+    "navPreferences": "Preferences",
+    "settingsTitle": "Vocalex Settings"
   },
   "groovex": {
     "library": "ライブラリ",

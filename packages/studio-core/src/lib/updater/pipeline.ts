@@ -1691,39 +1691,4 @@ export function initializeGlobalUpdateListeners() {
   }
 }
 
-// ─── Downgrade ────────────────────────────────────────────────────────────
 
-export async function triggerDowngrade(targetVersion: string, apkUrl: string, sha256: string): Promise<void> {
-  logUpdateTransition(APP_VERSION, targetVersion, 'downgrade', 'user', 'failed', 'Initiated downgrade download');
-
-  updateGlobalState({
-    remoteVersion: targetVersion,
-    apkUrl,
-    apkSha256: sha256,
-    updateType: 'apk',
-    updateAvailable: false,
-    progress: 0,
-    error: null,
-    statusText: 'Preparing downgrade...'
-  });
-  transitionToState('DOWNLOAD_APK', 'User-initiated downgrade');
-
-  if (Capacitor.isNativePlatform()) {
-    window.dispatchEvent(new CustomEvent('studio:open-update-dialog'));
-  }
-
-  try {
-    await downloadUpdate('user_downgrade');
-  } catch (err) {
-    console.error('[Downgrade] Downgrade download failed:', err);
-    logUpdateTransition(
-      APP_VERSION,
-      targetVersion,
-      'downgrade',
-      'user',
-      'failed',
-      err instanceof Error ? err.message : String(err)
-    );
-    throw err;
-  }
-}

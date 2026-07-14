@@ -20,10 +20,10 @@ export const APP_SECTIONS: Record<string, AppSection[]> = {
     { id: 'preferences', labelKey: 'groovexPreferences', icon: 'tune' },
   ],
   vocalex: [
-    { id: 'practice', labelKey: 'vocalexPractice', icon: 'mic' },
     { id: 'pitch', labelKey: 'vocalexPitch', icon: 'query_stats' },
-    { id: 'vocalLab', labelKey: 'vocalexLab', icon: 'science' },
+    { id: 'recorder', labelKey: 'vocalexRecorder', icon: 'mic' },
     { id: 'takes', labelKey: 'vocalexTakes', icon: 'history' },
+    { id: 'preferences', labelKey: 'vocalexPreferences', icon: 'tune' },
   ],
   stage: [
     { id: 'Editor', labelKey: 'stagexStage', icon: 'grid_view' },

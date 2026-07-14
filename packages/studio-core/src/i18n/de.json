@@ -22,35 +22,122 @@
     "allGenres": "Alle Genres",
     "backToCategories": "Kategorien",
     "cats": {
-      "major":   { "label": "Dur",          "desc": "Hell, fröhlich, grundlegend." },
-      "minor":   { "label": "Moll",         "desc": "Stimmungsvoll & emotional." },
-      "7th":     { "label": "Septime",      "desc": "Grundlage von Jazz & Blues." },
-      "maj7":    { "label": "Maj7",         "desc": "Satt & traumhaft." },
-      "min7":    { "label": "Min7",         "desc": "Weich & introspektiv." },
-      "dim":     { "label": "Vermindert",   "desc": "Angespannt & instabil." },
-      "aug":     { "label": "Übermäßig",    "desc": "Geheimnisvoll & schwebend." },
-      "sus2":    { "label": "Sus2",         "desc": "Offen & luftig." },
-      "sus4":    { "label": "Sus4",         "desc": "Schwebende Auflösung." },
-      "halfdim": { "label": "Halbverm.",    "desc": "Jazzdissonanz." },
-      "dim7":    { "label": "Dim7",         "desc": "Vollständig vermindert." },
-      "11th":    { "label": "Undezime",     "desc": "Reiche erweiterte Lage." },
-      "13th":    { "label": "Tredezime",    "desc": "Volle reiche Harmonie." },
-      "7sus4":   { "label": "7sus4",        "desc": "Funk & Soul." },
-      "7sus2":   { "label": "7sus2",        "desc": "Offene Dominante." },
-      "maj6":    { "label": "Maj6",         "desc": "Vintage & melodisch." },
-      "9th":     { "label": "None",         "desc": "Reich & funky." },
-      "maj9":    { "label": "Maj9",         "desc": "Romantisch & komplex." },
-      "min9":    { "label": "Min9",         "desc": "Dunkel & jazzig." },
-      "add9":    { "label": "Add9",         "desc": "Dur mit Farbe." },
-      "6th":     { "label": "Sexte",        "desc": "Süß & vintage." },
-      "min6":    { "label": "Min6",         "desc": "Bittersüß." },
-      "power":   { "label": "Power",        "desc": "Rock & Metal Basis." },
-      "minmaj7": { "label": "m/maj7",       "desc": "Jazzraffinesse." },
-      "aug7":    { "label": "Aug7",         "desc": "Angespannter Jazzübergang." },
-      "7b9":     { "label": "7b9",          "desc": "Dunkle spanische Spannung." },
-      "7s9":     { "label": "7#9",          "desc": "Der Hendrix-Akkord." },
-      "69":      { "label": "6/9",          "desc": "Jazz & Bossa-Nova-Farbe." },
-      "9sus4":   { "label": "9sus4",        "desc": "Seelenvoll & unaufgelöst." }
+      "69": {
+        "label": "6/9",
+        "desc": "Jazz & Bossa-Nova-Farbe."
+      },
+      "major": {
+        "label": "Dur",
+        "desc": "Hell, fröhlich, grundlegend."
+      },
+      "minor": {
+        "label": "Moll",
+        "desc": "Stimmungsvoll & emotional."
+      },
+      "7th": {
+        "label": "Septime",
+        "desc": "Grundlage von Jazz & Blues."
+      },
+      "maj7": {
+        "label": "Maj7",
+        "desc": "Satt & traumhaft."
+      },
+      "min7": {
+        "label": "Min7",
+        "desc": "Weich & introspektiv."
+      },
+      "dim": {
+        "label": "Vermindert",
+        "desc": "Angespannt & instabil."
+      },
+      "aug": {
+        "label": "Übermäßig",
+        "desc": "Geheimnisvoll & schwebend."
+      },
+      "sus2": {
+        "label": "Sus2",
+        "desc": "Offen & luftig."
+      },
+      "sus4": {
+        "label": "Sus4",
+        "desc": "Schwebende Auflösung."
+      },
+      "halfdim": {
+        "label": "Halbverm.",
+        "desc": "Jazzdissonanz."
+      },
+      "dim7": {
+        "label": "Dim7",
+        "desc": "Vollständig vermindert."
+      },
+      "11th": {
+        "label": "Undezime",
+        "desc": "Reiche erweiterte Lage."
+      },
+      "13th": {
+        "label": "Tredezime",
+        "desc": "Volle reiche Harmonie."
+      },
+      "7sus4": {
+        "label": "7sus4",
+        "desc": "Funk & Soul."
+      },
+      "7sus2": {
+        "label": "7sus2",
+        "desc": "Offene Dominante."
+      },
+      "maj6": {
+        "label": "Maj6",
+        "desc": "Vintage & melodisch."
+      },
+      "9th": {
+        "label": "None",
+        "desc": "Reich & funky."
+      },
+      "maj9": {
+        "label": "Maj9",
+        "desc": "Romantisch & komplex."
+      },
+      "min9": {
+        "label": "Min9",
+        "desc": "Dunkel & jazzig."
+      },
+      "add9": {
+        "label": "Add9",
+        "desc": "Dur mit Farbe."
+      },
+      "6th": {
+        "label": "Sexte",
+        "desc": "Süß & vintage."
+      },
+      "min6": {
+        "label": "Min6",
+        "desc": "Bittersüß."
+      },
+      "power": {
+        "label": "Power",
+        "desc": "Rock & Metal Basis."
+      },
+      "minmaj7": {
+        "label": "m/maj7",
+        "desc": "Jazzraffinesse."
+      },
+      "aug7": {
+        "label": "Aug7",
+        "desc": "Angespannter Jazzübergang."
+      },
+      "7b9": {
+        "label": "7b9",
+        "desc": "Dunkle spanische Spannung."
+      },
+      "7s9": {
+        "label": "7#9",
+        "desc": "Der Hendrix-Akkord."
+      },
+      "9sus4": {
+        "label": "9sus4",
+        "desc": "Seelenvoll & unaufgelöst."
+      }
     },
     "discoverSubtitle": "Echte Songs, ikonische Progressionen, nach Genre gefiltert.",
     "discoverSearchPlaceholder": "Songs oder Künstler suchen…",
@@ -65,14 +152,14 @@
     "genres": {
       "english-rock": "Englischer Rock",
       "spanish-rock": "Spanischer Rock",
-      "yacht-rock":   "Yacht Rock",
-      "blues":        "Blues",
-      "jazz":         "Jazz",
-      "pop":          "Pop",
-      "folk":         "Folk",
-      "latin":        "Latin",
-      "hard-rock":    "Hard Rock",
-      "r-and-b":      "R&B / Soul"
+      "yacht-rock": "Yacht Rock",
+      "blues": "Blues",
+      "jazz": "Jazz",
+      "pop": "Pop",
+      "folk": "Folk",
+      "latin": "Latin",
+      "hard-rock": "Hard Rock",
+      "r-and-b": "R&B / Soul"
     }
   },
   "chord": {
@@ -286,9 +373,18 @@
       "learningModeDesc": "Aus Spielgewohnheiten lernen"
     },
     "instruments": {
-      "guitar": { "label": "Gitarre", "desc": "6 Saiten · EADGBE" },
-      "piano":  { "label": "Klavier", "desc": "Tastaturlayout" },
-      "bass":   { "label": "Bass",    "desc": "4/5 Saiten · EADG" }
+      "guitar": {
+        "label": "Gitarre",
+        "desc": "6 Saiten · EADGBE"
+      },
+      "piano": {
+        "label": "Klavier",
+        "desc": "Tastaturlayout"
+      },
+      "bass": {
+        "label": "Bass",
+        "desc": "4/5 Saiten · EADG"
+      }
     },
     "tunings": {
       "standard": "Standard",
@@ -297,8 +393,12 @@
       "openD": "Open D"
     },
     "colors": {
-      "blue": "Blau", "purple": "Lila", "green": "Grün",
-      "orange": "Orange", "pink": "Rosa", "teal": "Türkis"
+      "blue": "Blau",
+      "purple": "Lila",
+      "green": "Grün",
+      "orange": "Orange",
+      "pink": "Rosa",
+      "teal": "Türkis"
     },
     "about": {
       "version": "Version",
@@ -315,8 +415,15 @@
     "language": {
       "label": "Sprache",
       "desc": "Anzeigesprache der App ändern",
-      "en": "English", "es": "Español", "de": "Deutsch", "fr": "Français",
-      "zh": "中文", "pt": "Português", "it": "Italiano", "ja": "日本語", "ko": "한국어"
+      "en": "English",
+      "es": "Español",
+      "de": "Deutsch",
+      "fr": "Français",
+      "zh": "中文",
+      "pt": "Português",
+      "it": "Italiano",
+      "ja": "日本語",
+      "ko": "한국어"
     }
   },
   "customBuilder": {
@@ -625,7 +732,20 @@
     "effectDrive": "Drive",
     "effectHighPass": "Hochpass",
     "effectLowPass": "Tiefpass",
-    "months": ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],
+    "months": [
+      "Jan",
+      "Feb",
+      "Mär",
+      "Apr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dez"
+    ],
     "sectionWarmup": "Aufwärmen",
     "sectionBreath": "Atemkontrolle",
     "sectionPitch": "Tonhöhe & Gehör",
@@ -707,7 +827,10 @@
     "tipHealth2Title": "Ruhetage sind wichtig",
     "tipHealth3Title": "Räuspern vermeiden",
     "tipHealth4Title": "Sprechgewohnheiten",
-    "tipHealth5Title": "Wann zum Spezialisten gehen"
+    "tipHealth5Title": "Wann zum Spezialisten gehen",
+    "navRecorder": "Recorder",
+    "navPreferences": "Preferences",
+    "settingsTitle": "Vocalex Settings"
   },
   "groovex": {
     "library": "Bibliothek",

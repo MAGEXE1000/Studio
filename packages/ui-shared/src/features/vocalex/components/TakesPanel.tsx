@@ -131,7 +131,7 @@ export default function TakesPanel() {
           {t.vocalex.recent}
         </button>
         <button
-          onClick={() => NavigationDispatcher.push({ app: 'vocalex', page: 'takes', subView: 'recording' })}
+          onClick={() => NavigationDispatcher.push({ app: 'vocalex', page: 'recorder' })}
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '10px 20px', borderRadius: 9999,

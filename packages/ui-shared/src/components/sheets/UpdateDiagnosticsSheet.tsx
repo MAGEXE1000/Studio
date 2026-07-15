@@ -513,7 +513,7 @@ export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
                 <span className="material-symbols-outlined text-lg text-[#e7e5e4]">arrow_back</span>
               </button>
               <div>
-                <h1 className="text-[17px] font-extrabold text-[#e7e5e4] tracking-tight m-0 leading-tight">Technical Rider</h1>
+                <h1 className="text-[17px] font-extrabold text-[#e7e5e4] tracking-tight m-0 leading-tight">Updater Diagnostics</h1>
                 <p className="text-[10px] text-[#acabaa] font-bold uppercase tracking-widest m-0 mt-0.5">OTA Diagnostics &amp; Debug Tools</p>
               </div>
             </div>

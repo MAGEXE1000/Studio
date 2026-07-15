@@ -59,7 +59,7 @@ import {
 
 import { decodeReactError } from '../feedback/ErrorBoundary';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
-import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
+import UpdaterDiagnosticsPage from '../updater-diagnostics/UpdaterDiagnosticsPage';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
 interface Props {
@@ -678,8 +678,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         return 'Apps Diagnostics';
       case 'stagex':
         return 'Stagex Diagnostics';
-      case 'updater':
-        return 'Update Diagnostics';
+      case 'updater_diagnostics':
+        return 'Updater Diagnostics';
       case 'system':
         return 'System Diagnostics';
       case 'logs':
@@ -3673,15 +3673,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
                   {/* Updater */}
                   <button
-                    onClick={() => setSubView('updater')}
+                    onClick={() => setSubView('updater_diagnostics')}
                     className="btn-smooth"
-                    style={cardContainerStyle('updater')}
+                    style={cardContainerStyle('updater_diagnostics')}
                   >
                     <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
                       <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--studio-accent-from, #679cff)', fontVariationSettings: "'FILL' 0" }}>system_update</span>
                         <div>
-                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Updater</h3>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Updater Diagnostics</h3>
                           <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>Inspect update and native APK diagnostics.</p>
                         </div>
                       </div>
@@ -3854,7 +3854,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
         <SharedNavigationContainer
           activeView={subView}
-          viewOrder={['dashboard', 'apps', 'stagex', 'updater', 'system', 'logs', 'performance', 'network']}
+          viewOrder={['dashboard', 'apps', 'stagex', 'updater_diagnostics', 'system', 'logs', 'performance', 'network']}
         >
           {(viewId) => (
             <div style={{
@@ -4139,8 +4139,39 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         )
       )}
 
-      {viewId === 'updater' && (
-        <UpdateDiagnosticsSheet open={true} onClose={handleSubViewBack} />
+      {viewId === 'updater_diagnostics' && (
+        !isWebDesktop ? (
+          <SettingsScaffold
+            title="Updater Diagnostics"
+            onBack={handleSubViewBack}
+            toolbarActions={renderCopyButton('Updater')}
+          >
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              <UpdaterDiagnosticsPage />
+            </div>
+          </SettingsScaffold>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
+            {renderSubViewHeader('Updater Diagnostics')}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 16,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'
+            }}>
+              <UpdaterDiagnosticsPage />
+            </div>
+          </div>
+        )
       )}
 
       {viewId === 'system' && (

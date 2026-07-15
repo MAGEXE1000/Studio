@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigationStore } from '@workspace/studio-core';
 
 const KeepAliveView = React.memo(({ viewId, show, renderView }: { viewId: string, show: boolean, renderView: (id: string) => React.ReactNode }) => {
   return <>{renderView(viewId)}</>;
@@ -31,6 +32,8 @@ export function SharedNavigationContainer({
   const [resolvedDir, setResolvedDir] = useState<'right' | 'left'>('right');
   const [visitedViews, setVisitedViews] = useState<Set<string>>(() => new Set([activeView]));
 
+  const transitionType = useNavigationStore(s => s.transitionType);
+
   useEffect(() => {
     setVisitedViews(prev => {
       if (prev.has(activeView)) return prev;
@@ -43,7 +46,11 @@ export function SharedNavigationContainer({
   useEffect(() => {
     if (activeView !== visibleView) {
       let dir: 'right' | 'left' = 'right';
-      if (direction) {
+      if (transitionType === 'backward') {
+        dir = 'left';
+      } else if (transitionType === 'forward') {
+        dir = 'right';
+      } else if (direction) {
         dir = direction;
       } else if (viewOrder) {
         const oldIdx = viewOrder.indexOf(visibleView);
@@ -56,7 +63,7 @@ export function SharedNavigationContainer({
       setExitingView(visibleView);
       setVisibleView(activeView);
     }
-  }, [activeView, visibleView, direction, viewOrder]);
+  }, [activeView, visibleView, direction, viewOrder, transitionType]);
 
   useEffect(() => {
     if (exitingView === null) return;

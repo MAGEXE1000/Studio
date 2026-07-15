@@ -624,14 +624,26 @@ export default function StudioHub() {
                 {tabId === 'profile' && (
                   <>
                     <style>{HUB_SETTINGS_CSS}</style>
-                    <ProfileHeaderBack onBack={() => { setTab('settings'); }} />
+                    <ProfileHeaderBack onBack={() => {
+                      if (NavigationDispatcher.canGoBack()) {
+                        NavigationDispatcher.pop();
+                      } else {
+                        setTab('home');
+                      }
+                    }} />
                     <Suspense fallback={<SmartLoading fallbackSkeleton={<div style={{ padding: '0 20px 80px' }}><StudioSkeletonProfile /></div>} />}>
                       {authUser ? (
                         <div data-hub-tab-content style={{ padding: '0 0 100px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
                         <AccountSettingsPage
                           accent={accent}
                           cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
-                          onBack={() => { setTab('settings'); }}
+                          onBack={() => {
+                            if (NavigationDispatcher.canGoBack()) {
+                              NavigationDispatcher.pop();
+                            } else {
+                              setTab('home');
+                            }
+                          }}
                         />
                         </div>
                       ) : (

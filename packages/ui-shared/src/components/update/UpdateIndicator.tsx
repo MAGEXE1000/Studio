@@ -362,10 +362,18 @@ export default function UpdateIndicator({
     }
   }, [updater.updateState, updater.error]);
 
-  // Auto-minimize disabled per user request so the banner remains fully visible.
-
-  // Auto-OPEN the update modal is disabled to protect the application startup sequence.
-  // The user will see a subtle pill in the corner, or they can click Check for Updates in settings.
+  // Auto-open update modal immediately when update is available, unless dismissed/later'ed.
+  useEffect(() => {
+    if (updater.updateAvailable && updater.remoteVersion) {
+      const wasLater = readLaterVersion() === updater.remoteVersion;
+      const wasAutoOpened = readAutoOpenedVersion() === updater.remoteVersion;
+      if (!wasLater && !wasAutoOpened) {
+        console.log('[Updater UI] New version detected, auto-opening update screen.');
+        writeAutoOpenedVersion(updater.remoteVersion);
+        setOpen(true);
+      }
+    }
+  }, [updater.updateAvailable, updater.remoteVersion]);
 
   // WEB-ONLY: track whether the user dismissed the web refresh banner this session
   const [webBannerDismissed, setWebBannerDismissed] = useState(() => {
@@ -605,271 +613,150 @@ export default function UpdateIndicator({
     ? (isLight ? '0 16px 40px rgba(0, 0, 0, 0.12), inset 0 1.5px 0 rgba(255, 255, 255, 0.70)' : '0 16px 40px rgba(0, 0, 0, 0.40), inset 0 1.5px 0 rgba(255, 255, 255, 0.08)')
     : (isLight ? '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1.5px 0 rgba(255, 255, 255, 0.70)' : '0 12px 48px rgba(0, 0, 0, 0.50), inset 0 1.5px 0 rgba(255, 255, 255, 0.08)');
 
-  return (
-    <>
-      <button
-        ref={pillRef}
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={
-          isBanner
-            ? `New update available — version ${updater.remoteVersion ?? ''} — tap for details`
-            : 'Update available'
-        }
-        style={{
-          position: 'fixed',
-          top: isBanner ? 'calc(env(safe-area-inset-top) + 14px)' : 'calc(env(safe-area-inset-top) + 28px)',
-          right: isBanner ? '50%' : '20px',
-          zIndex: 8900,
-          width: isBanner ? 'min(360px, calc(100vw - 28px))' : 36,
-          height: isBanner ? 52 : 36,
-          padding: isBanner ? '0 12px 0 14px' : 0,
-          borderRadius: isBanner ? 16 : 999,
-          display: 'flex',
-          alignItems: 'center',
-          gap: isBanner ? 10 : 0,
-          justifyContent: isBanner ? 'flex-start' : 'center',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          background: amoledBg,
-          border: fallbackBorder,
-          color: 'var(--c-text-primary)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: fallbackShadow,
-          fontFamily: 'Manrope, sans-serif',
-          fontSize: 13,
-          fontWeight: 700,
-          letterSpacing: '-0.005em',
-          textAlign: 'left',
-          cursor: 'pointer',
-          opacity: entered ? 1 : 0,
-          outline: 'none',
-          WebkitTapHighlightColor: 'transparent',
-          transform: [
-            isBanner ? 'translateX(50%)' : 'translateX(0)',
-            entered ? 'translateY(0)' : 'translateY(-16px)',
-          ].join(' '),
-          transition: [
-            'top 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'right 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'width 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'height 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'padding 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'border-radius 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'gap 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-            'background 380ms ease',
-            'border-color 380ms ease',
-            'box-shadow 620ms ease',
-            'opacity 380ms ease',
-            'transform 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-          ].join(', '),
-          willChange: 'right, width, height, transform, border-radius',
-        }}
-      >
-        <span
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: isBanner ? 18 : 20,
-            height: isBanner ? 18 : 20,
-            flexShrink: 0,
-            filter: isBanner ? undefined : 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25))',
-            animation: isBanner ? undefined : 'pill-download-bounce 1.6s ease-in-out infinite',
-            transition: 'width 620ms cubic-bezier(0.34, 1.12, 0.64, 1), height 620ms cubic-bezier(0.34, 1.12, 0.64, 1)',
-          }}
-        >
-          <DownloadIcon size={isBanner ? 18 : 20} color={isLight ? cTo : '#fff'} />
-        </span>
-
-        <span
-          style={{
-            position: isBanner ? 'static' : 'absolute',
-            flex: isBanner ? 1 : undefined,
-            opacity: isBanner ? 1 : 0,
-            transform: isBanner ? 'translateX(0)' : 'translateX(-8px)',
-            transition: isBanner
-              ? 'opacity 280ms 200ms ease, transform 280ms 200ms ease'
-              : 'opacity 200ms ease, transform 200ms ease',
-            pointerEvents: isBanner ? 'auto' : 'none',
-          }}
-        >
-          {updater.remoteVersion ? `Studio update v${updater.remoteVersion} available` : 'Studio update available'}
-        </span>
-
-        <span
-          role="button"
-          tabIndex={isBanner ? 0 : -1}
-          aria-label="Minimize"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (isBanner) minimize();
-          }}
-          onKeyDown={(e) => {
-            if (!isBanner) return;
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              e.stopPropagation();
-              minimize();
-            }
-          }}
-          className="material-symbols-outlined"
-          style={{
-            position: isBanner ? 'static' : 'absolute',
-            fontSize: 18,
-            color: 'var(--c-text-secondary)',
-            flexShrink: 0,
-            cursor: isBanner ? 'pointer' : 'default',
-            padding: 4,
-            borderRadius: 8,
-            opacity: isBanner ? 0.6 : 0,
-            transform: isBanner ? 'scale(1)' : 'scale(0.7)',
-            transition: isBanner
-              ? 'opacity 240ms 180ms ease, transform 240ms 180ms ease'
-              : 'opacity 160ms ease, transform 160ms ease',
-            pointerEvents: isBanner ? 'auto' : 'none',
-          }}
-        >
-          close
-        </span>
-      </button>
-
-      {open && (
-        <UpdateModal
-          fromLabel={APP_VERSION_LABEL}
-          toVersion={updater.remoteVersion ?? '—'}
-          mandatory={updater.mandatory}
-          downloadUrl={updater.downloadUrl}
-          accentFrom={cFrom}
-          accentTo={cTo}
-          onLater={handleLater}
-          onClose={() => {
-            setOpen(false);
-            const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
-            if (isFailed) {
-              updater.dismissUpdate();
-            }
-            if (phase === 'banner') {
-              setPhase('pill');
-              markBannerShown();
-            }
-            if (updater.remoteVersion) {
-              updater.recordDismissal(updater.remoteVersion);
-            }
-          }}
-          installFailedReason={installFailedReason}
-          setInstallFailedReason={setInstallFailedReason}
-        />
-      )}
-
-      {/* Lightweight boot-up update success toast */}
-      <AnimatePresence>
-        {successNotificationVersion && (
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            style={{
-              position: 'fixed',
-              top: 'calc(env(safe-area-inset-top) + 16px)',
-              left: '50%',
-              x: '-50%',
-              zIndex: 99999,
-              width: 'min(360px, calc(100vw - 32px))',
-              background: 'rgba(20, 20, 25, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: 16,
-              padding: '12px 16px',
-              boxSizing: 'border-box',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <div style={{
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              background: 'rgba(34, 197, 94, 0.12)',
-              border: '1px solid rgba(34, 197, 94, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <CheckIconSvg />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start', textAlign: 'left' }}>
-              <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 13, color: 'var(--c-text-primary)' }}>
-                Studio updated
-              </span>
-              <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)' }}>
-                Version v{successNotificationVersion} installed successfully
-              </span>
-            </div>
-            
-            <button
-              type="button"
-              onClick={() => {
-                setShowChangelogSheet(true);
-                localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
-                setSuccessNotificationVersion(null);
-                updater.dismissUpdate();
-              }}
+  if (!open) {
+    return (
+      <>
+        {/* Lightweight boot-up update success toast */}
+        <AnimatePresence>
+          {successNotificationVersion && (
+            <motion.div
+              initial={{ opacity: 0, y: -50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               style={{
-                marginLeft: 'auto',
-                background: 'transparent',
-                border: 'none',
-                color: `var(--accent-from, ${accentFrom})`,
-                fontFamily: 'Manrope',
-                fontWeight: 700,
-                fontSize: 11.5,
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: 6,
-              }}
-            >
-              View changelog
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
-                setSuccessNotificationVersion(null);
-                updater.dismissUpdate();
-              }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--c-text-secondary)',
-                cursor: 'pointer',
-                padding: 4,
+                position: 'fixed',
+                top: 'calc(env(safe-area-inset-top) + 16px)',
+                left: '50%',
+                x: '-50%',
+                zIndex: 99999,
+                width: 'min(360px, calc(100vw - 32px))',
+                background: 'rgba(20, 20, 25, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 16,
+                padding: '12px 16px',
+                boxSizing: 'border-box',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
                 display: 'flex',
                 alignItems: 'center',
+                gap: 12,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <div style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                background: 'rgba(34, 197, 94, 0.12)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <CheckIconSvg />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start', textAlign: 'left' }}>
+                <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 13, color: 'var(--c-text-primary)' }}>
+                  Studio updated
+                </span>
+                <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)' }}>
+                  Version v{successNotificationVersion} installed successfully
+                </span>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChangelogSheet(true);
+                  localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
+                  setSuccessNotificationVersion(null);
+                  updater.dismissUpdate();
+                }}
+                style={{
+                  marginLeft: 'auto',
+                  background: 'transparent',
+                  border: 'none',
+                  color: `var(--accent-from, ${accentFrom})`,
+                  fontFamily: 'Manrope',
+                  fontWeight: 700,
+                  fontSize: 11.5,
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                }}
+              >
+                View changelog
+              </button>
 
-      <ChangelogSheet
-        open={showChangelogSheet}
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION_LABEL);
+                  setSuccessNotificationVersion(null);
+                  updater.dismissUpdate();
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--c-text-secondary)',
+                  cursor: 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <ChangelogSheet
+          open={showChangelogSheet}
+          onClose={() => {
+            setShowChangelogSheet(false);
+            try {
+              localStorage.removeItem('studio:last_installed_release_notes');
+            } catch (_) {}
+          }}
+          version={successNotificationVersion || APP_VERSION_LABEL}
+          sections={getSavedReleaseNotesAsSections()}
+        />
+      </>
+    );
+  }
+
+  // Only show the full update modal on native
+  if (!Capacitor.isNativePlatform()) return null;
+
+  return (
+    <>
+      <UpdateModal
+        fromLabel={APP_VERSION_LABEL}
+        toVersion={updater.remoteVersion ?? '—'}
+        mandatory={updater.mandatory}
+        downloadUrl={updater.downloadUrl}
+        accentFrom={cFrom}
+        accentTo={cTo}
+        onLater={handleLater}
         onClose={() => {
-          setShowChangelogSheet(false);
-          try {
-            localStorage.removeItem('studio:last_installed_release_notes');
-          } catch (_) {}
+          setOpen(false);
+          const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
+          if (isFailed) {
+            updater.dismissUpdate();
+          }
+          if (phase === 'banner') {
+            setPhase('pill');
+            markBannerShown();
+          }
+          if (updater.remoteVersion) {
+            updater.recordDismissal(updater.remoteVersion);
+          }
         }}
-        version={successNotificationVersion || APP_VERSION_LABEL}
-        sections={getSavedReleaseNotesAsSections()}
+        installFailedReason={installFailedReason}
+        setInstallFailedReason={setInstallFailedReason}
       />
 
       <style>{`
@@ -930,77 +817,73 @@ function ActionButton({
 }
 
 const DownloadProgressIndicator = React.memo(({ updater, toVersion, accentFrom, accentTo, isLight }: any) => {
-  const [downloadMetrics, setDownloadMetrics] = useState({
-    downloadedMB: 0,
-    totalMB: 0,
-    speedMBs: 0,
-    remainingSeconds: 0,
-  });
-
-  const lastProgressRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const smoothedSpeedRef = useRef(0);
+  const [interpolatedProgress, setInterpolatedProgress] = useState(0);
 
   useEffect(() => {
-    const isDownloading = updater.updateState === 'DOWNLOAD_APK' || updater.updateState === 'FETCH_APK_INFORMATION';
-    if (isDownloading) {
-      const totalBytes = updater.apkSizeBytes || 56194057;
-      const downloadedBytes = totalBytes * updater.progress;
-      
-      const now = Date.now();
-      const lastTime = lastTimeRef.current;
-      const lastProgress = lastProgressRef.current;
-      
-      let speed = 0;
-      let remaining = 0;
-      
-      if (lastTime > 0 && now > lastTime && updater.progress > lastProgress) {
-        const timeDiffSec = (now - lastTime) / 1000;
-        const bytesDiff = totalBytes * (updater.progress - lastProgress);
-        const currentSpeed = bytesDiff / timeDiffSec;
-        
-        if (smoothedSpeedRef.current === 0) {
-          smoothedSpeedRef.current = currentSpeed;
-        } else {
-          smoothedSpeedRef.current = 0.3 * currentSpeed + 0.7 * smoothedSpeedRef.current;
-        }
-        
-        speed = smoothedSpeedRef.current;
-      }
-      
-      lastTimeRef.current = now;
-      lastProgressRef.current = updater.progress;
-      
-      if (speed > 0) {
-        const remainingBytes = totalBytes - downloadedBytes;
-        remaining = remainingBytes / speed;
-      }
-      
-      setDownloadMetrics({
-        downloadedMB: downloadedBytes / (1024 * 1024),
-        totalMB: totalBytes / (1024 * 1024),
-        speedMBs: speed / (1024 * 1024),
-        remainingSeconds: remaining,
-      });
-    } else {
-      lastProgressRef.current = 0;
-      lastTimeRef.current = 0;
-      smoothedSpeedRef.current = 0;
+    let target = 0;
+    const s = updater.updateState;
+    if (s === 'FETCH_APK_INFORMATION') {
+      target = 0.05;
+    } else if (s === 'DOWNLOAD_APK') {
+      target = 0.05 + updater.progress * 0.80; // 5% to 85%
+    } else if (s === 'VERIFY_SHA256') {
+      target = 0.88;
+    } else if (s === 'PREPARING_INSTALL') {
+      target = 0.92;
+    } else if (s === 'WAITING_USER_CONFIRMATION' || s === 'PACKAGEINSTALLER_VISIBLE') {
+      target = 0.96;
+    } else if (s === 'INSTALLING') {
+      target = 0.98;
+    } else if (s === 'INSTALL_SUCCESS') {
+      target = 1.0;
     }
 
-    return () => {
-      lastProgressRef.current = 0;
-      lastTimeRef.current = 0;
-      smoothedSpeedRef.current = 0;
+    let animationFrameId: number;
+    const step = () => {
+      setInterpolatedProgress(prev => {
+        const diff = target - prev;
+        if (Math.abs(diff) < 0.002) {
+          return target;
+        }
+        const next = prev + diff * 0.12;
+        animationFrameId = requestAnimationFrame(step);
+        return next;
+      });
     };
-  }, [updater.progress, updater.updateState, updater.apkSizeBytes]);
+    animationFrameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [updater.progress, updater.updateState]);
 
-  const pct = Math.round(updater.progress * 100);
+  const pct = Math.round(interpolatedProgress * 100);
+
+  let statusText = 'Preparing...';
+  let subText = 'Do not close the application.';
+
+  const s = updater.updateState;
+  if (s === 'DOWNLOAD_APK' || s === 'FETCH_APK_INFORMATION') {
+    statusText = `Downloading update (${pct}%)`;
+    subText = updater.statusText || 'Studio is downloading the latest app package.';
+  } else if (pct >= 95) {
+    statusText = 'Almost ready...';
+    subText = 'Finalizing installation before handing over to Android installer.';
+  } else if (s === 'VERIFY_SHA256') {
+    statusText = 'Verifying checksum...';
+    subText = 'Checking integrity of the download package.';
+  } else if (s === 'PREPARING_INSTALL') {
+    statusText = 'Preparing installation...';
+    subText = 'Configuring Android packages.';
+  } else if (s === 'INSTALLING' || s === 'PACKAGEINSTALLER_VISIBLE' || s === 'WAITING_USER_CONFIRMATION') {
+    statusText = 'Installing update...';
+    subText = 'Handing over to Android installer. Please follow system prompts.';
+  } else if (s === 'INSTALL_SUCCESS') {
+    statusText = 'Finalizing...';
+    subText = 'Update completed successfully.';
+  }
 
   return (
     <div style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
-        <span>Downloading update</span>
+        <span>{statusText}</span>
         <span>{pct}%</span>
       </div>
       
@@ -1010,33 +893,13 @@ const DownloadProgressIndicator = React.memo(({ updater, toVersion, accentFrom, 
             height: '100%',
             width: `${pct}%`,
             background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
-            transition: 'width 200ms ease-out',
+            transition: 'width 80ms ease-out',
           }} 
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, fontFamily: 'Inter, monospace', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)' }}>
-        <span>
-          {downloadMetrics.downloadedMB > 0 && downloadMetrics.totalMB > 0 
-            ? `${downloadMetrics.downloadedMB.toFixed(1)} MB / ${downloadMetrics.totalMB.toFixed(1)} MB` 
-            : 'Calculating size...'}
-        </span>
-        <span style={{ display: 'flex', gap: 8 }}>
-          {downloadMetrics.speedMBs > 0 && (
-            <span>
-              {downloadMetrics.speedMBs >= 1 
-                ? `${downloadMetrics.speedMBs.toFixed(1)} MB/s` 
-                : `${(downloadMetrics.speedMBs * 1024).toFixed(0)} KB/s`}
-            </span>
-          )}
-          {downloadMetrics.remainingSeconds > 0 && (
-            <span>
-              • {downloadMetrics.remainingSeconds < 60 
-                ? `${Math.round(downloadMetrics.remainingSeconds)}s remaining` 
-                : `${Math.floor(downloadMetrics.remainingSeconds / 60)}m ${Math.round(downloadMetrics.remainingSeconds % 60)}s remaining`}
-            </span>
-          )}
-        </span>
+      <div style={{ fontSize: 11.5, fontFamily: 'Inter', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)', textAlign: 'left', lineHeight: 1.45 }}>
+        {subText}
       </div>
     </div>
   );
@@ -1091,6 +954,46 @@ function UpdateModal({
     }
     return false;
   })();
+
+  const [interpolatedProgress, setInterpolatedProgress] = useState(0);
+
+  useEffect(() => {
+    let target = 0;
+    const s = updater.updateState;
+    if (s === 'FETCH_APK_INFORMATION') {
+      target = 0.05;
+    } else if (s === 'DOWNLOAD_APK') {
+      target = 0.05 + updater.progress * 0.80;
+    } else if (s === 'VERIFY_SHA256') {
+      target = 0.88;
+    } else if (s === 'PREPARING_INSTALL') {
+      target = 0.92;
+    } else if (s === 'WAITING_USER_CONFIRMATION' || s === 'PACKAGEINSTALLER_VISIBLE') {
+      target = 0.96;
+    } else if (s === 'INSTALLING') {
+      target = 0.98;
+    } else if (s === 'INSTALL_SUCCESS') {
+      target = 1.0;
+    }
+
+    let animationFrameId: number;
+    const step = () => {
+      setInterpolatedProgress(prev => {
+        const diff = target - prev;
+        if (Math.abs(diff) < 0.002) {
+          return target;
+        }
+        const next = prev + diff * 0.12;
+        animationFrameId = requestAnimationFrame(step);
+        return next;
+      });
+    };
+    animationFrameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [updater.progress, updater.updateState]);
+
+  const pct = Math.round(interpolatedProgress * 100);
+  const isNearCompletion = pct >= 95;
 
   useEffect(() => {
     const isCompleted = updater.updateState === 'INSTALL_SUCCESS';
@@ -1260,7 +1163,7 @@ function UpdateModal({
   let iconColor = purpleFrom;
   let title = 'Update available';
   let description: React.ReactNode = '';
-  let showProgress = false;
+  let showProgress = isUpdateInProgress(updater.updateState);
   let progressVal = updater.progress;
   let showButtons = true;
   let showSpinner = false;
@@ -1400,7 +1303,6 @@ function UpdateModal({
       iconColor = purpleFrom;
       title = 'Downloading update';
       description = 'Studio is downloading the latest app package.';
-      showProgress = true;
       showButtons = false;
       break;
 
@@ -1444,7 +1346,6 @@ function UpdateModal({
         </div>
       );
       showButtons = false;
-      showProgress = false;
       break;
 
     case 'installedOrReady':
@@ -1526,7 +1427,16 @@ function UpdateModal({
           description = updater.error || 'Studio could not complete the update. You can try again or copy diagnostics.';
         }
       }
-      break;
+  }
+
+  if (isNearCompletion) {
+    title = 'Almost ready...';
+    description = (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+        <div>Finalizing installation before handing over to Android installer.</div>
+        <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>Please wait... Do not close the application.</div>
+      </div>
+    );
   }
 
   // Visual custom styles overrides using HSL purple/pink colors

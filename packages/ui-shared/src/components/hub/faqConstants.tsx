@@ -366,6 +366,321 @@ export function HelpAccordion({ accent, lang }: { accent: { from: string; to: st
     return matchesSearch && matchesCategory;
   });
 
+  if (Capacitor.isNativePlatform()) {
+    return (
+      <div className="flex flex-col gap-6 pb-24 text-on-surface font-body-md bg-surface-container-lowest min-h-screen">
+        {/* Search Bar */}
+        <div className="relative mt-4">
+          <div className="flex items-center bg-surface-container-high h-14 rounded-full px-4 gap-3 focus-within:ring-2 focus-within:ring-primary/30 transition-all">
+            <span className="material-symbols-outlined text-on-surface-variant">search</span>
+            <input
+              className="bg-transparent border-none focus:ring-0 w-full text-body-lg text-on-surface placeholder:text-on-surface-variant"
+              placeholder={lang === 'es' ? "Buscar ayuda y preguntas..." : "Search help articles & FAQs..."}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-on-surface-variant hover:text-on-surface"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Help Categories */}
+        <section>
+          <h2 className="text-label-md uppercase tracking-wider text-on-surface-variant mb-3 px-1">
+            {lang === 'es' ? 'Categorías de Ayuda' : 'Help Categories'}
+          </h2>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+            {[
+              { id: 'getting-started', label: lang === 'es' ? 'Inicio' : 'Getting Started', icon: 'play_circle' },
+              { id: 'audio-midi', label: 'Audio & MIDI', icon: 'volume_up' },
+              { id: 'sync-storage', label: lang === 'es' ? 'Sincro y Almacén' : 'Sync & Storage', icon: 'cloud_sync' },
+              { id: 'troubleshooting', label: lang === 'es' ? 'Diagnóstico' : 'Diagnostics', icon: 'build' },
+            ].map((cat) => {
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(isActive ? null : cat.id)}
+                  className={`flex items-center gap-2 h-8 px-3 rounded-lg border transition-colors whitespace-nowrap ${
+                    isActive
+                      ? 'border-primary bg-primary-container/20 text-primary font-semibold'
+                      : 'border-outline-variant bg-surface-container-low hover:bg-surface-variant text-on-surface-variant'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
+                  <span className="text-label-lg">{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Device Diagnostics Card */}
+        {(!activeCategory || activeCategory === 'troubleshooting') && (
+          <section className="bg-surface-container rounded-3xl border border-outline-variant/30 p-4 space-y-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center">
+                <span className="material-symbols-outlined text-on-secondary-container">monitor_heart</span>
+              </div>
+              <div>
+                <h3 className="text-title-lg font-bold">{lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics'}</h3>
+                <p className="text-label-md text-on-surface-variant opacity-70">ID: {deviceId()?.slice(0, 12) || 'UNKNOWN'}...</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div className="bg-surface-container-low p-3 rounded-2xl">
+                <p className="text-label-md text-on-surface-variant mb-1">{lang === 'es' ? 'Estado' : 'Status'}</p>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${audioCtxState === 'running' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+                  <span className={`text-body-md font-medium ${audioCtxState === 'running' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {audioCtxState === 'running' ? (lang === 'es' ? 'Audio funcionando' : 'Audio running') : (lang === 'es' ? 'Audio detenido' : 'Audio stopped')}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-surface-container-low p-3 rounded-2xl">
+                <p className="text-label-md text-on-surface-variant mb-1">{lang === 'es' ? 'Almacenamiento' : 'Storage'}</p>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-primary">database</span>
+                  <span className="text-body-md font-medium">{localStorage?.length || 0} {lang === 'es' ? 'claves indexadas' : 'keys indexed'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button
+                onClick={runAudioTroubleshooter}
+                disabled={audioState === 'testing'}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${audioState === 'testing' ? 'animate-spin' : ''}`}>
+                  {audioState === 'testing' ? 'sync' : 'hearing'}
+                </span>
+                {audioState === 'testing' ? (lang === 'es' ? 'Probando...' : 'Testing...') : (lang === 'es' ? 'Probar Audio' : 'Test Audio')}
+              </button>
+
+              <button
+                onClick={runSyncTroubleshooter}
+                disabled={syncState === 'syncing'}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${syncState === 'syncing' ? 'animate-spin' : ''}`}>
+                  {syncState === 'syncing' ? 'sync' : 'sync'}
+                </span>
+                {syncState === 'syncing' ? (lang === 'es' ? 'Sincronizando...' : 'Syncing...') : (lang === 'es' ? 'Forzar Sincro' : 'Force Sync')}
+              </button>
+
+              <button
+                onClick={runCacheTroubleshooter}
+                disabled={cacheState === 'clearing'}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${cacheState === 'clearing' ? 'animate-spin' : ''}`}>
+                  {cacheState === 'clearing' ? 'sync' : 'mop'}
+                </span>
+                {cacheState === 'clearing' ? (lang === 'es' ? 'Limpiando...' : 'Clearing...') : (lang === 'es' ? 'Limpiar Caché' : 'Clear Cache')}
+              </button>
+
+              <button
+                onClick={runSecurityTroubleshooter}
+                disabled={securityState === 'auditing'}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${securityState === 'auditing' ? 'animate-spin' : ''}`}>
+                  {securityState === 'auditing' ? 'sync' : 'security'}
+                </span>
+                {securityState === 'auditing' ? (lang === 'es' ? 'Auditando...' : 'Auditing...') : (lang === 'es' ? 'Auditoría Seguridad' : 'Security Audit')}
+              </button>
+
+              <button
+                onClick={runResetTroubleshooter}
+                disabled={resetState === 'repairing'}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${resetState === 'repairing' ? 'animate-spin' : ''}`}>
+                  {resetState === 'repairing' ? 'sync' : 'restart_alt'}
+                </span>
+                {resetState === 'repairing' ? (lang === 'es' ? 'Restableciendo...' : 'Resetting...') : (lang === 'es' ? 'Reiniciar' : 'Reset & Reload')}
+              </button>
+
+              <button
+                onClick={toggleDiagOverlay}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-label-lg transition-all active:scale-95 font-semibold ${
+                  diagEnabled
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-surface-container-highest text-on-surface hover:bg-surface-bright'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">bug_report</span>
+                {diagEnabled ? (lang === 'es' ? 'Diag: ACTIVO' : 'Diagnostics: ON') : (lang === 'es' ? 'Superposición Diag' : 'Diagnostics Overlay')}
+              </button>
+            </div>
+
+            {auditReport && (
+              <div className="bg-black/40 rounded-xl p-4 font-mono text-label-md border border-outline-variant/20 overflow-hidden relative">
+                <div className="flex flex-col gap-1 text-emerald-400">
+                  {auditReport.split('\n').map((line, lIdx) => {
+                    const colonIdx = line.indexOf(':');
+                    if (colonIdx !== -1) {
+                      const prefix = line.slice(0, colonIdx + 1);
+                      const suffix = line.slice(colonIdx + 1);
+                      return (
+                        <p key={lIdx}>
+                          <span className="text-emerald-500/60">{prefix}</span>
+                          <span>{suffix}</span>
+                        </p>
+                      );
+                    }
+                    return <p key={lIdx}>{line}</p>;
+                  })}
+                </div>
+                <div className="absolute right-3 top-3 opacity-20 text-emerald-400">
+                  <span className="material-symbols-outlined text-[48px]">terminal</span>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Update Session Diagnostics Card */}
+        {(!activeCategory || activeCategory === 'troubleshooting') && (
+          <section className="bg-surface-container-low rounded-3xl border border-outline-variant/20 relative overflow-hidden group p-4">
+            <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors"></div>
+            <div className="flex items-start gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-primary-container flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-on-primary-container">system_update_alt</span>
+              </div>
+              <div className="flex-1 space-y-3">
+                <div>
+                  <h3 className="text-title-lg font-bold mb-1">{lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}</h3>
+                  <p className="text-body-md text-on-surface-variant">
+                    {lang === 'es'
+                      ? 'Activa el modo de diagnóstico para registrar y rastrear el historial de eventos del actualizador nativo en tiempo real.'
+                      : 'Enable diagnostics mode to capture, trace, and inspect native updater event history in real-time.'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleToggleDiagnostics}
+                    className={`h-10 px-6 rounded-full text-label-lg font-semibold flex items-center gap-2 transition-all ${
+                      diagActive
+                        ? 'bg-emerald-500 text-black hover:bg-emerald-400'
+                        : 'bg-primary text-on-primary hover:bg-primary-fixed-dim'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {diagActive ? 'pause' : 'play_arrow'}
+                    </span>
+                    {diagActive ? (lang === 'es' ? 'Modo Diagnóstico: ACTIVO' : 'Diagnostic Mode: ACTIVE') : (lang === 'es' ? 'Iniciar Diagnóstico' : 'Start Diagnostic Mode')}
+                  </button>
+                  {diagActive && (
+                    <>
+                      <button
+                        onClick={handleCopyTimeline}
+                        className="h-10 px-4 bg-surface-container-highest text-on-surface rounded-full text-label-lg font-semibold flex items-center gap-2 hover:bg-surface-bright transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                        {lang === 'es' ? 'Copiar' : 'Copy Trace'}
+                      </button>
+                      <button
+                        onClick={handleShareTimeline}
+                        className="h-10 px-4 bg-surface-container-highest text-on-surface rounded-full text-label-lg font-semibold flex items-center gap-2 hover:bg-surface-bright transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">share</span>
+                        {lang === 'es' ? 'Compartir' : 'Share Trace'}
+                      </button>
+                    </>
+                  )}
+                </div>
+                {diagActive && (
+                  <div className="bg-black/40 rounded-xl p-4 font-mono text-label-md border border-outline-variant/20 overflow-y-auto max-h-56 text-left text-sky-400 white-space-pre-wrap">
+                    {timelineText || (lang === 'es' ? 'Esperando eventos del actualizador...' : 'Waiting for update events...')}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* FAQs Section */}
+        <section>
+          <h2 className="text-label-md uppercase tracking-wider text-on-surface-variant mb-4 px-1">
+            {lang === 'es' ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'}
+          </h2>
+          <div className="space-y-3">
+            {filteredFaqs.length === 0 ? (
+              <div className="text-center py-6 text-on-surface-variant">
+                {lang === 'es' ? 'No se encontraron preguntas.' : 'No matching FAQs found.'}
+              </div>
+            ) : (
+              filteredFaqs.map((item) => {
+                const isOpen = openIdx === item.originalIdx;
+                return (
+                  <div key={item.originalIdx} className="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10">
+                    <button
+                      className="w-full flex items-center justify-between p-5 text-left hover:bg-surface-container-high transition-colors group"
+                      onClick={() => setOpenIdx(isOpen ? null : item.originalIdx)}
+                    >
+                      <span className="font-medium text-body-lg text-on-surface">{item.question}</span>
+                      <span
+                        className="material-symbols-outlined transition-transform duration-300 text-on-surface"
+                        style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                      >
+                        expand_more
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-5 text-body-md text-on-surface-variant border-t border-outline-variant/5 pt-4">
+                        {item.answer}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* Direct Assistance Card */}
+        <section className="bg-surface-container-highest/30 rounded-3xl p-8 text-center border-2 border-dashed border-outline-variant/30 mt-8">
+          <h3 className="text-headline-lg-mobile font-bold mb-2">
+            {lang === 'es' ? '¿Necesitas ayuda directa?' : 'Need direct assistance?'}
+          </h3>
+          <p className="text-body-md text-on-surface-variant mb-6 max-w-sm mx-auto">
+            {lang === 'es'
+              ? 'Para ayuda con tu cuenta, recuperación de proyectos o problemas complejos, visita nuestro repositorio oficial en GitHub.'
+              : 'For help with your account, project recovery, or complex technical issues, feel free to visit our official GitHub repository.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-surface-container-high text-on-surface border border-outline-variant hover:bg-surface-bright transition-all font-medium"
+              href="https://github.com/MAGEXE1000/Studio"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="material-symbols-outlined text-[20px]">code</span>
+              GitHub Repository
+            </a>
+            <a
+              className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-secondary-container text-on-secondary-container hover:brightness-110 transition-all font-medium"
+              href="mailto:support@chordex.app"
+            >
+              <span className="material-symbols-outlined text-[20px]">mail</span>
+              Contact Support
+            </a>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 24 }}>
       {/* Search Input */}

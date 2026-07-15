@@ -1,6 +1,7 @@
 import { useScrollHide, getChordById, getAllChords, getRelatedChords, suggestNextChord, useChordStore, ACCENT_COLORS, useT, useBackHandler, setBackHandler, playChord, stopChordPlayback, type GuitarChordData, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import GuitarDiagram from '../../../components/diagrams/GuitarDiagram';
 import PianoDiagram from '../../../components/diagrams/PianoDiagram';
@@ -308,6 +309,200 @@ export default function ChordPanel() {
 
   if (!chord) {
     if (!dailyChord) return null;
+    if (Capacitor.isNativePlatform()) {
+      return (
+        <div className="flex flex-col h-full bg-surface-container-lowest text-on-surface select-none" style={{ position: 'relative' }}>
+          {/* Top App Bar Header */}
+          <header className="w-full top-0 sticky z-50 bg-surface/80 backdrop-blur-md">
+            <div className="flex items-center justify-between px-4 h-16 w-full max-w-2xl mx-auto">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => NavigationDispatcher.pop()}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/20 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined text-primary">arrow_back</span>
+                </button>
+                <h1 className="font-headline font-bold text-on-surface text-title-lg">
+                  {isSpanish ? 'Acordes' : 'Chords'}
+                </h1>
+              </div>
+            </div>
+          </header>
+
+          {/* Scrollable content container */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32">
+            <main className="max-w-2xl mx-auto px-4 space-y-6 mt-2">
+              
+              {/* Hero: Chord of the Day */}
+              <section className="bg-surface-container rounded-xxl p-6 border border-white/5 shadow-xl relative overflow-hidden group mb-6">
+                <div className="relative z-10 flex flex-col items-center">
+                  {/* Chord Diagram Container */}
+                  <div className="bg-black/40 rounded-xl p-4 mb-6 backdrop-blur-sm border border-white/5">
+                    <div style={{ width: 140, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {renderChordDiagram(dailyChord, 'md')}
+                    </div>
+                  </div>
+
+                  {/* Info Text */}
+                  <div className="text-center space-y-1">
+                    <p className="text-primary font-label-lg tracking-[0.2em] uppercase">
+                      {isSpanish ? 'Acorde del Día' : 'Chord of the Day'}
+                    </p>
+                    <h2 className="font-headline font-extrabold text-display-lg text-on-surface leading-tight">
+                      {dailyChord.name}
+                    </h2>
+                    <p className="text-on-surface-variant font-body-lg">
+                      {dailyChord.notes.join(' — ')} • <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
+                    </p>
+                  </div>
+
+                  {/* Practice Tip */}
+                  <div className="mt-6 w-full bg-surface-container-high/50 rounded-xl p-4 border-l-4 border-secondary flex gap-3 items-start">
+                    <span className="material-symbols-outlined text-secondary text-[20px]">lightbulb</span>
+                    <p className="text-on-surface-variant font-body-md text-left">
+                      <span className="text-secondary font-bold">{isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}</span>
+                      {getPracticeTip(dailyChord, isSpanish)}
+                    </p>
+                  </div>
+
+                  {/* Action Buttons Row */}
+                  <div className="mt-6 flex flex-wrap justify-center gap-3 w-full">
+                    <button
+                      onClick={handlePlayDaily}
+                      className="flex-1 min-w-[100px] h-12 bg-primary text-on-primary rounded-full font-label-lg flex items-center justify-center gap-2 active:scale-95 transition-transform font-bold"
+                    >
+                      <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined }}>
+                        {dailyPlaying ? 'stop' : 'play_arrow'}
+                      </span>
+                      {dailyPlaying ? (isSpanish ? 'Detener' : 'Stop') : (isSpanish ? 'Escuchar' : 'Listen')}
+                    </button>
+
+                    <button
+                      onClick={() => addToProgression(dailyChord.id)}
+                      className="w-12 h-12 bg-surface-container-highest text-on-surface rounded-full flex items-center justify-center active:scale-95 transition-transform"
+                      title={isSpanish ? 'Agregar a la progresión' : 'Add to progression'}
+                    >
+                      <span className="material-symbols-outlined">add</span>
+                    </button>
+
+                    <button
+                      onClick={() => toggleFavorite(dailyChord.id)}
+                      className="w-12 h-12 bg-surface-container-highest text-on-surface rounded-full flex items-center justify-center active:scale-95 transition-transform"
+                      title={isSpanish ? 'Favorito' : 'Favorite'}
+                    >
+                      <span
+                        className={`material-symbols-outlined ${isFavorite(dailyChord.id) ? 'text-error' : ''}`}
+                        style={{ fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined }}
+                      >
+                        favorite
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => selectChord(dailyChord.id)}
+                      className="flex-1 min-w-[100px] h-12 bg-secondary-container text-on-secondary-container rounded-full font-label-lg flex items-center justify-center active:scale-95 transition-transform font-bold"
+                    >
+                      {isSpanish ? 'Detalles' : 'Details'}
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* Feature Cards Grid (Find a Chord & Generator) */}
+              <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Find a Chord */}
+                <div
+                  onClick={() => setShowFinder(true)}
+                  className="bento-card bg-gradient-to-br from-[#558dff] to-[#a100ff] rounded-xxl p-6 h-48 flex flex-col justify-end relative overflow-hidden cursor-pointer group"
+                >
+                  <div className="absolute top-4 right-4 bg-white/20 p-3 rounded-full backdrop-blur-md group-hover:scale-110 transition-transform">
+                    <span className="material-symbols-outlined text-white text-[28px]">search</span>
+                  </div>
+                  <div className="relative z-10 text-left">
+                    <h3 className="font-headline font-bold text-headline-lg-mobile text-white">{t.chordFinder.openFinder}</h3>
+                    <p className="text-white/80 font-body-md">
+                      {isSpanish ? 'Busca e identifica acordes por notas o en el diapasón.' : 'Search and identify chords by notes or on the fretboard.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Generator */}
+                <div
+                  onClick={() => setShowGenerator(true)}
+                  className="bento-card bg-surface-container-high rounded-xxl p-6 h-48 flex flex-col justify-end relative overflow-hidden cursor-pointer group text-left"
+                >
+                  <div className="absolute top-4 right-4 text-secondary group-hover:rotate-12 transition-transform">
+                    <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                  </div>
+                  <div className="relative z-10 text-left">
+                    <h3 className="font-headline font-bold text-headline-lg-mobile text-on-surface">{isSpanish ? 'Generador' : 'Generator'}</h3>
+                    <p className="text-on-surface-variant font-body-md">
+                      {isSpanish ? 'Genera progresiones armónicas en cualquier escala musical.' : 'Generate harmonic progressions in any musical scale.'}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Quick Categories Section */}
+              <div>
+                <h4 className="text-label-md uppercase tracking-wider text-on-surface-variant mb-4 px-1 text-left font-bold">
+                  {isSpanish ? 'Categorías Rápidas' : 'Quick Categories'}
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {QUICK_CATS.map((cat, idx) => {
+                    const isHovered = hoveredCatIndex === idx;
+                    return (
+                      <button
+                        key={cat.type}
+                        onMouseEnter={() => setHoveredCatIndex(idx)}
+                        onMouseLeave={() => setHoveredCatIndex(null)}
+                        onClick={() => {
+                          setLibraryActiveType(cat.type);
+                          setActivePanel('library');
+                        }}
+                        className="bg-surface-container-low hover:bg-surface-variant/40 border border-outline-variant/10 hover:border-outline-variant/30 rounded-xxl p-4 flex flex-col items-start text-left transition-all active:scale-[0.98]"
+                      >
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                          style={{ background: `${cat.color}15` }}
+                        >
+                          <span className="material-symbols-outlined text-[20px]" style={{ color: cat.color }}>
+                            {cat.icon || 'music_note'}
+                          </span>
+                        </div>
+                        <div className="font-headline font-bold text-body-lg text-on-surface leading-tight mb-1">
+                          {cat.label}
+                        </div>
+                        <div className="text-label-md text-on-surface-variant/80 line-clamp-2">
+                          {cat.desc}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </main>
+          </div>
+
+          {/* Modal sheets */}
+          {showFinder && (
+            <CustomChordBuilder
+              accent={accent}
+              mode="find"
+              onClose={() => setShowFinder(false)}
+            />
+          )}
+          {showGenerator && (
+            <ProgressionGenerator
+              accent={accent}
+              onClose={() => setShowGenerator(false)}
+            />
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col h-full app-bg" style={{ position: 'relative' }}>
         <style dangerouslySetInnerHTML={{ __html: `

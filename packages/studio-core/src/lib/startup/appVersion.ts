@@ -22,12 +22,12 @@
  * pure semver so comparisons are unambiguous.
  */
 
-import { useMemo } from 'react';
+import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.83';
-export const WEB_VERSION = '4.0.83';
+export const NATIVE_VERSION = '4.0.84';
+export const WEB_VERSION = '4.0.84';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.",
-      "Fixed layout overflows in portrait, landscape, and tablet screens.",
-      "Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.",
-      "Added full support for application theme coloring, light/dark modes, and custom accent styles.",
+      "Implemented the Stitch Material 3 redesign for Help & Support on Android.",
+      "Implemented the Stitch Material 3 redesign for Chords Home screen on Android.",
+      "Preserved existing diagnostics, search, and core features under Capacitor native isolation.",
     ],
   },
 ];
@@ -294,7 +293,7 @@ export function useAppVersion(): {
   changelog: string[];
   sections: ChangelogSection[];
 } {
-  return useMemo(
+  return React.useMemo(
     () => ({
       version: APP_VERSION,
       label: APP_VERSION_LABEL,

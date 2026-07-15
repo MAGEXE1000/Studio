@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.84
+
+### Added
+- Implemented the Stitch Material 3 redesign for Help & Support on Android.
+- Implemented the Stitch Material 3 redesign for Chords Home screen on Android.
+- Preserved existing diagnostics, search, and core features under Capacitor native isolation.
+
 ## 4.0.83
 
 ### Added

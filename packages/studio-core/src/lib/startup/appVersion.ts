@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.78';
-export const WEB_VERSION = '4.0.78';
+export const NATIVE_VERSION = '4.0.79';
+export const WEB_VERSION = '4.0.79';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,13 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Reorganized Updater screen to display the update checker card above official downloads recovery.",
-      "Redesigned Vocalex Coach segmented control with a centered modern sliding pill indicator layout.",
-      "Implemented native Android microphone permissions request and Settings redirect recovery flow.",
-      "Synchronized Vocalex Preferences default tab selector icons to use bottom navigation React icon components.",
-      "Swapped Profile and Settings view order to resolve reversed page transition directions.",
-      "Moved heavy UI modules preloading to startup Phase 6 to resolve intro animation freezes.",
-      "Downgraded generated urls updater diagnostics expected warning to debug log level.",
+      "Removed floating pill/banner notifications to immediately show full-screen update dialog.",
+      "Center-locked the update modal dialog and disabled vertical bouncing.",
+      "Added a unified, fluid progress bar that tracks the entire download and verification cycle.",
+      "Fixed back transition animations to slide out correctly when leaving Profile or Settings views.",
+      "Wired global transition state into the navigation container for consistent Android gesture transitions.",
     ],
   },
 ];
@@ -78,10 +76,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Overhauled diagnostics console into 4 collapsible sections matching Developer Options.",
-      "Added real-time timeline viewer with text search, custom category filters, and pause controls.",
-      "Implemented a secure JS Proxy wrapper around the Capacitor AppInstaller native plugin to strictly block native installations in simulator mode.",
-      "Redesigned the flight recorder with a 300 events ring buffer, log aggregation, and automated session pruning.",
+      "Immediate full-screen update modal presentation bypassing floating banners.",
+      "Locked scroll and centered layout container on the Check for Updates screen.",
+      "Unified, stable, and smooth progress bar during update download and verification.",
+      "Fixed transition slide directions for entering/leaving Profile tab.",
     ],
   },
 ];

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.76"
-$VersionCode = "40076"
-$ReleaseNote = "v4.0.76 - Implement Vocalex Start On settings, remove updater downgrade system, and stabilize mic initialization"
+$VersionName = "4.0.79"
+$VersionCode = "40079"
+$ReleaseNote = "4.0.79 - Redesigned updater progress bar and centered dialog modal layout; corrected profile slide transitions"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

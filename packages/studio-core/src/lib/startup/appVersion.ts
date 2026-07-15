@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.81';
-export const WEB_VERSION = '4.0.81';
+export const NATIVE_VERSION = '4.0.82';
+export const WEB_VERSION = '4.0.82';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.",
-      "Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.",
-      "Exposed real-time diagnostics, download progress trackers, and virtualized log history.",
-      "Added operational debugger actions (verify signatures, validate download url, simulation lab controls).",
+      "Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.",
+      "Fixed layout overflows in portrait, landscape, and tablet screens.",
+      "Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.",
+      "Added full support for application theme coloring, light/dark modes, and custom accent styles.",
     ],
   },
 ];

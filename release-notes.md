@@ -1,6 +1,5 @@
 ### Added
-- Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.
-- Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.
-- Resolved installer active-session rejections by gracefully recovering and returning the active session ID.
-- Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).
-- Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter.
+- Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.
+- Fixed layout overflows in portrait, landscape, and tablet screens.
+- Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.
+- Added full support for application theme coloring, light/dark modes, and custom accent styles.

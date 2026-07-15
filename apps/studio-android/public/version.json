@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.81",
-  "versionName": "4.0.81",
-  "versionCode": 40081,
-  "version_code": 40081,
-  "commit": "b7ee37fa",
-  "releasedAt": "7/14/2026, 9:42:19 PM CST",
-  "buildTimestamp": "7/14/2026, 9:42:19 PM CST",
+  "version": "4.0.82",
+  "versionName": "4.0.82",
+  "versionCode": 40082,
+  "version_code": 40082,
+  "commit": "c044f8c1",
+  "releasedAt": "7/15/2026, 12:43:03 AM CST",
+  "buildTimestamp": "7/15/2026, 12:43:03 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.\n• Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.\n• Exposed real-time diagnostics, download progress trackers, and virtualized log history.\n• Added operational debugger actions (verify signatures, validate download url, simulation lab controls).",
-  "whatsNew": "• Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.\n• Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.\n• Exposed real-time diagnostics, download progress trackers, and virtualized log history.\n• Added operational debugger actions (verify signatures, validate download url, simulation lab controls).",
+  "changelog": "• Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.\n• Fixed layout overflows in portrait, landscape, and tablet screens.\n• Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.\n• Added full support for application theme coloring, light/dark modes, and custom accent styles.",
+  "whatsNew": "• Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.\n• Fixed layout overflows in portrait, landscape, and tablet screens.\n• Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.\n• Added full support for application theme coloring, light/dark modes, and custom accent styles.",
   "releaseNotes": {
     "added": [
-      "Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.",
-      "Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.",
-      "Exposed real-time diagnostics, download progress trackers, and virtualized log history.",
-      "Added operational debugger actions (verify signatures, validate download url, simulation lab controls)."
+      "Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.",
+      "Fixed layout overflows in portrait, landscape, and tablet screens.",
+      "Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.",
+      "Added full support for application theme coloring, light/dark modes, and custom accent styles."
     ]
   },
   "mandatory": false

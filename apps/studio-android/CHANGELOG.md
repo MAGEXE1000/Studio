@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.82
+
+### Added
+- Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.
+- Fixed layout overflows in portrait, landscape, and tablet screens.
+- Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.
+- Added full support for application theme coloring, light/dark modes, and custom accent styles.
+
 ## 4.0.81
 
 ### Added

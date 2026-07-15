@@ -1,12 +1,12 @@
 {
   "platform": "android",
-  "version": "4.0.82",
+  "version": "4.0.83",
   "versionName": "4.0.82",
   "versionCode": 40082,
   "version_code": 40082,
-  "commit": "c044f8c1",
-  "releasedAt": "7/15/2026, 12:43:03 AM CST",
-  "buildTimestamp": "7/15/2026, 12:43:03 AM CST",
+  "commit": "374a6ae0",
+  "releasedAt": "7/15/2026, 9:36:36 AM CST",
+  "buildTimestamp": "7/15/2026, 9:36:36 AM CST",
   "updateMode": "refresh",
   "changelog": "• Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.\n• Fixed layout overflows in portrait, landscape, and tablet screens.\n• Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.\n• Added full support for application theme coloring, light/dark modes, and custom accent styles.",
   "whatsNew": "• Overhauled and renamed the Updater debug tool to Updater Diagnostics everywhere.\n• Fixed layout overflows in portrait, landscape, and tablet screens.\n• Integrated the diagnostics page inline with native settings scaffold, animations, and back button behaviors.\n• Added full support for application theme coloring, light/dark modes, and custom accent styles.",
@@ -18,5 +18,7 @@
       "Added full support for application theme coloring, light/dark modes, and custom accent styles."
     ]
   },
-  "mandatory": false
+  "mandatory": false,
+  "build": 40083,
+  "released": "2026-07-15"
 }

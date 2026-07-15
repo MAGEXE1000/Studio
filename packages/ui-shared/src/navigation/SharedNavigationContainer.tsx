@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigationStore } from '@workspace/studio-core';
 
 const KeepAliveView = React.memo(({ viewId, show, renderView }: { viewId: string, show: boolean, renderView: (id: string) => React.ReactNode }) => {
   return <>{renderView(viewId)}</>;
 }, (prev, next) => {
-  // If the view was hidden and remains hidden, skip evaluating the render function entirely.
-  // This eliminates the O(N) render overhead for keep-alive views.
+  // Skip rendering if the view was hidden and remains hidden
   if (!prev.show && !next.show) return true;
   return false;
 });
@@ -20,6 +19,21 @@ interface SharedNavigationContainerProps {
   variant?: 'slide' | 'fade-through';
 }
 
+const safeRaf = (cb: () => void) => {
+  if (typeof requestAnimationFrame === 'function') {
+    return requestAnimationFrame(cb);
+  }
+  return setTimeout(cb, 16) as any;
+};
+
+const safeCaf = (id: any) => {
+  if (typeof cancelAnimationFrame === 'function') {
+    cancelAnimationFrame(id);
+  } else {
+    clearTimeout(id);
+  }
+};
+
 export function SharedNavigationContainer({
   activeView,
   direction,
@@ -27,15 +41,40 @@ export function SharedNavigationContainer({
   children,
   className = '',
   style,
-  variant = 'slide',
+  variant = 'fade-through',
 }: SharedNavigationContainerProps) {
-  const [visibleView, setVisibleView] = useState<string>(activeView);
-  const [exitingView, setExitingView] = useState<string | null>(null);
-  const [resolvedDir, setResolvedDir] = useState<'right' | 'left'>('right');
   const [visitedViews, setVisitedViews] = useState<Set<string>>(() => new Set([activeView]));
+  
+  // Track transition states mapping: viewId -> state class
+  const [viewStates, setViewStates] = useState<Record<string, string>>(() => ({
+    [activeView]: 'm3-nav-active',
+  }));
 
   const transitionType = useNavigationStore(s => s.transitionType);
+  
+  const prevActiveViewRef = useRef<string>(activeView);
+  const transitionTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const animationFrameRef = useRef<any>(null);
 
+  // Temporary development-mode assertions for transition stability
+  if (process.env.NODE_ENV !== 'production') {
+    const states = Object.values(viewStates);
+    const activeCount = states.filter(s => s === 'm3-nav-active').length;
+    const exitingCount = states.filter(s => s.startsWith('m3-nav-exit')).length;
+    const enteringCount = states.filter(s => s.startsWith('m3-nav-enter')).length;
+
+    if (activeCount > 1) {
+      throw new Error(`[Assertion Failure] Multiple active views detected in SharedNavigationContainer: ${JSON.stringify(viewStates)}`);
+    }
+    if (exitingCount > 1) {
+      throw new Error(`[Assertion Failure] Multiple exiting views detected: ${JSON.stringify(viewStates)}`);
+    }
+    if (enteringCount > 1) {
+      throw new Error(`[Assertion Failure] Multiple entering views detected: ${JSON.stringify(viewStates)}`);
+    }
+  }
+
+  // Keep visited views in the DOM (keep-alive)
   useEffect(() => {
     setVisitedViews(prev => {
       if (prev.has(activeView)) return prev;
@@ -46,87 +85,171 @@ export function SharedNavigationContainer({
   }, [activeView]);
 
   useEffect(() => {
-    if (activeView !== visibleView) {
-      let dir: 'right' | 'left' = 'right';
-      if (transitionType === 'backward') {
-        dir = 'left';
-      } else if (transitionType === 'forward') {
-        dir = 'right';
-      } else if (direction) {
-        dir = direction;
-      } else if (viewOrder) {
-        const oldIdx = viewOrder.indexOf(visibleView);
-        const newIdx = viewOrder.indexOf(activeView);
-        if (oldIdx !== -1 && newIdx !== -1) {
-          dir = newIdx >= oldIdx ? 'right' : 'left';
-        }
+    const prevActive = prevActiveViewRef.current;
+    if (activeView === prevActive) return;
+    prevActiveViewRef.current = activeView;
+
+    // Determine motion direction
+    let dir: 'right' | 'left' = 'right';
+    if (transitionType === 'backward') {
+      dir = 'left';
+    } else if (transitionType === 'forward') {
+      dir = 'right';
+    } else if (direction) {
+      dir = direction;
+    } else if (viewOrder) {
+      const oldIdx = viewOrder.indexOf(prevActive);
+      const newIdx = viewOrder.indexOf(activeView);
+      if (oldIdx !== -1 && newIdx !== -1) {
+        dir = newIdx >= oldIdx ? 'right' : 'left';
       }
-      setResolvedDir(dir);
-      setExitingView(visibleView);
-      setVisibleView(activeView);
     }
-  }, [activeView, visibleView, direction, viewOrder, transitionType]);
+
+    // Cancel pending animation frames
+    if (animationFrameRef.current !== null) {
+      safeCaf(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // Cancel existing timers for clean state transition
+    if (transitionTimersRef.current[prevActive]) {
+      clearTimeout(transitionTimersRef.current[prevActive]);
+      delete transitionTimersRef.current[prevActive];
+    }
+    if (transitionTimersRef.current[activeView]) {
+      clearTimeout(transitionTimersRef.current[activeView]);
+      delete transitionTimersRef.current[activeView];
+    }
+
+    const nextStates: Record<string, string> = {};
+
+    // 1. Transition outgoing view to exit state
+    const exitState = dir === 'right' ? 'm3-nav-exit-left' : 'm3-nav-exit-right';
+    nextStates[prevActive] = exitState;
+
+    // 2. Prepare incoming view offscreen (instant placement, no transition)
+    const enterState = dir === 'right' ? 'm3-nav-enter-right' : 'm3-nav-enter-left';
+    nextStates[activeView] = enterState;
+
+    // 3. Immediately hide other views to avoid overlap or performance overhead
+    Object.keys(viewStates).forEach(vId => {
+      if (vId !== activeView && vId !== prevActive) {
+        nextStates[vId] = 'm3-nav-hidden';
+      }
+    });
+
+    setViewStates(prev => ({
+      ...prev,
+      ...nextStates,
+    }));
+
+    // 4. Force styles recalculation and animate entering view
+    animationFrameRef.current = safeRaf(() => {
+      animationFrameRef.current = safeRaf(() => {
+        setViewStates(prev => ({
+          ...prev,
+          [activeView]: 'm3-nav-active',
+        }));
+        animationFrameRef.current = null;
+      });
+    });
+
+    // 5. Hide exiting view after transition duration finishes
+    transitionTimersRef.current[prevActive] = setTimeout(() => {
+      setViewStates(prev => {
+        if (prev[prevActive] === exitState) {
+          return {
+            ...prev,
+            [prevActive]: 'm3-nav-hidden',
+          };
+        }
+        return prev;
+      });
+      delete transitionTimersRef.current[prevActive];
+    }, 300);
+
+  }, [activeView, direction, viewOrder, transitionType]);
 
   useEffect(() => {
-    if (exitingView === null) return;
-    const timer = setTimeout(() => {
-      setExitingView(null);
-    }, 320);
-    return () => clearTimeout(timer);
-  }, [exitingView]);
+    return () => {
+      if (animationFrameRef.current !== null) {
+        safeCaf(animationFrameRef.current);
+      }
+      Object.values(transitionTimersRef.current).forEach(t => clearTimeout(t));
+    };
+  }, []);
 
-  // Keep visited views in the DOM (keep-alive) to preserve their states/scroll positions,
-  // falling back to active/exiting views if viewOrder is not supplied.
   const renderList = viewOrder
     ? viewOrder.filter(viewId => visitedViews.has(viewId))
-    : [visibleView].concat(exitingView !== null && exitingView !== visibleView ? [exitingView] : []);
+    : Array.from(visitedViews);
 
   return (
-    <div
-      className={`relative w-full h-full overflow-hidden ${className}`}
-      style={{ ...style }}
-    >
-      {renderList.map(viewId => {
-        const isVisible = visibleView === viewId;
-        const isExiting = exitingView === viewId;
-        const isEntering = isVisible && exitingView !== null;
-
-        const show = isVisible || isExiting;
-
-        let animClass = '';
-        let zIndex = 1;
-        if (variant === 'fade-through') {
-          if (isEntering) {
-            animClass = resolvedDir === 'right' ? 'nav-enter-right' : 'nav-enter-left';
-            zIndex = 2;
-          } else if (isExiting) {
-            animClass = resolvedDir === 'right' ? 'nav-exit-left' : 'nav-exit-right';
-            zIndex = 1;
-          }
-        } else {
-          if (isEntering) {
-            animClass = resolvedDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
-            zIndex = resolvedDir === 'right' ? 2 : 1;
-          } else if (isExiting) {
-            animClass = resolvedDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
-            zIndex = resolvedDir === 'right' ? 1 : 2;
-          }
+    <div className={`m3-nav-container ${className}`} style={style}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .m3-nav-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
         }
+        .m3-nav-panel {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          background-color: var(--app-bg, var(--c-bg-primary, #000));
+          will-change: transform, opacity;
+          box-sizing: border-box;
+        }
+        
+        /* Material 3 Motion Fade-Through transition engine */
+        .m3-nav-active {
+          opacity: 1;
+          transform: scale(1) translate3d(0, 0, 0);
+          z-index: 2;
+          pointer-events: auto;
+          transition: opacity 280ms cubic-bezier(0.2, 0, 0, 1), transform 280ms cubic-bezier(0.2, 0, 0, 1);
+        }
+        .m3-nav-exit-left {
+          opacity: 0;
+          transform: scale(0.96) translate3d(-16px, 0, 0);
+          z-index: 1;
+          pointer-events: none;
+          transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
+        }
+        .m3-nav-exit-right {
+          opacity: 0;
+          transform: scale(0.96) translate3d(16px, 0, 0);
+          z-index: 1;
+          pointer-events: none;
+          transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1), transform 150ms cubic-bezier(0.2, 0, 0, 1);
+        }
+        .m3-nav-enter-left {
+          opacity: 0;
+          transform: scale(0.96) translate3d(-16px, 0, 0);
+          z-index: 2;
+          pointer-events: none;
+          transition: none !important;
+        }
+        .m3-nav-enter-right {
+          opacity: 0;
+          transform: scale(0.96) translate3d(16px, 0, 0);
+          z-index: 2;
+          pointer-events: none;
+          transition: none !important;
+        }
+        .m3-nav-hidden {
+          display: none !important;
+        }
+      ` }} />
+      {renderList.map(viewId => {
+        const stateClass = viewStates[viewId] || 'm3-nav-hidden';
+        const show = stateClass !== 'm3-nav-hidden';
 
         return (
           <div
             key={viewId}
-            className={animClass}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              pointerEvents: isVisible && !isExiting ? 'auto' : 'none',
-              width: '100%',
-              height: '100%',
-              display: show ? 'block' : 'none',
-              zIndex,
-              backgroundColor: 'var(--app-bg, var(--c-bg-primary, #000))',
-            }}
+            className={`m3-nav-panel ${stateClass}`}
           >
             <KeepAliveView viewId={viewId} show={show} renderView={children} />
           </div>

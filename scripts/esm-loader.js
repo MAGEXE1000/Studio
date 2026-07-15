@@ -3,6 +3,20 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export async function resolve(specifier, context, nextResolve) {
+  if (specifier === 'react') {
+    return {
+      format: 'module',
+      shortCircuit: true,
+      url: 'data:text/javascript,export%20const%20useState%20%3D%20(init)%20%3D%3E%20globalThis.mockReact.useState(init)%3B%20export%20const%20useEffect%20%3D%20(cb%2C%20deps)%20%3D%3E%20globalThis.mockReact.useEffect(cb%2C%20deps)%3B%20export%20const%20useRef%20%3D%20(init)%20%3D%3E%20globalThis.mockReact.useRef(init)%3B%20export%20const%20memo%20%3D%20(c)%20%3D%3E%20c%3B%20export%20default%20%7B%20useState%2C%20useEffect%2C%20useRef%2C%20memo%20%7D%3B'
+    };
+  }
+  if (specifier === '@workspace/studio-core') {
+    return {
+      format: 'module',
+      shortCircuit: true,
+      url: 'data:text/javascript,export%20const%20useNavigationStore%20%3D%20(fn)%20%3D%3E%20fn(globalThis.mockNavigationStoreState)%3B'
+    };
+  }
   if (specifier === '@capacitor/core') {
     return {
       format: 'module',

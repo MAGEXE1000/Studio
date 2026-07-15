@@ -310,103 +310,254 @@ export default function ChordPanel() {
     if (!dailyChord) return null;
     return (
       <div className="flex flex-col h-full app-bg" style={{ position: 'relative' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes m3-fade-in-up {
+            from {
+              opacity: 0;
+              transform: translate3d(0, 16px, 0) scale(0.98);
+            }
+            to {
+              opacity: 1;
+              transform: translate3d(0, 0, 0) scale(1);
+            }
+          }
+          .m3-animate-fade-up {
+            animation: m3-fade-in-up 450ms cubic-bezier(0.2, 0, 0, 1) both;
+          }
+          
+          /* Hero card layout */
+          .m3-hero-card {
+            background: ${isLight ? 'var(--c-surface-card, #f8f9fa)' : 'var(--c-surface-card, rgba(255, 255, 255, 0.03))'};
+            border: 1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'};
+            border-radius: 28px;
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: ${isLight ? '0 4px 16px rgba(0,0,0,0.03)' : '0 4px 24px rgba(0,0,0,0.2)'};
+            transition: transform 250ms ease, box-shadow 250ms ease;
+          }
+          .m3-hero-card:hover {
+            transform: scale(1.005);
+            box-shadow: ${isLight ? '0 8px 24px rgba(0,0,0,0.06)' : '0 8px 32px rgba(0,0,0,0.3)'};
+          }
+          
+          .m3-hero-body {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 20px;
+          }
+          @media (min-width: 768px) {
+            .m3-hero-body {
+              flex-direction: row;
+              align-items: center;
+              justify-content: space-between;
+              gap: 32px;
+            }
+          }
+          
+          .m3-hero-info {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+          }
+          
+          .m3-hero-diagram-outer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+            flex-shrink: 0;
+            transition: transform 280ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          }
+          .m3-hero-diagram-outer:hover {
+            transform: scale(1.06) rotate(1deg);
+          }
+          
+          .m3-hero-diagram-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: ${isLight ? 'rgba(0,0,0,0.025)' : 'rgba(255,255,255,0.035)'};
+            border-radius: 24px;
+            padding: 16px;
+            width: 140px;
+            height: 140px;
+            border: 1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)'};
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+          }
+          @media (min-width: 768px) {
+            .m3-hero-diagram-container {
+              width: 160px;
+              height: 160px;
+            }
+          }
+          
+          /* Primary Actions */
+          .m3-actions-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          @media (min-width: 600px) {
+            .m3-actions-layout {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          
+          .m3-action-card-primary {
+            background: linear-gradient(135deg, ${accent.from}, ${accent.to});
+            color: white;
+            border-radius: 24px;
+            padding: 24px;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 20px;
+            box-shadow: 0 6px 20px ${accent.to}25;
+            transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms ease;
+          }
+          .m3-action-card-primary:hover {
+            transform: translateY(-4px) scale(1.015);
+            box-shadow: 0 10px 28px ${accent.to}45;
+          }
+          .m3-action-card-primary:active {
+            transform: translateY(-1px) scale(0.995);
+          }
+          
+          .m3-action-card-secondary {
+            background: ${isLight ? 'var(--c-surface-card, #f8f9fa)' : 'var(--c-surface-card, rgba(255, 255, 255, 0.03))'};
+            border: 1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'};
+            border-radius: 24px;
+            padding: 24px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 20px;
+            transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 250ms ease, border-color 200ms ease;
+          }
+          .m3-action-card-secondary:hover {
+            transform: translateY(-4px) scale(1.015);
+            box-shadow: ${isLight ? '0 10px 24px rgba(0,0,0,0.05)' : '0 10px 28px rgba(0,0,0,0.25)'};
+            border-color: ${accent.from}60;
+          }
+          .m3-action-card-secondary:active {
+            transform: translateY(-1px) scale(0.995);
+          }
+          
+          /* Categories Layout */
+          .m3-categories-layout {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          @media (min-width: 768px) {
+            .m3-categories-layout {
+              grid-template-columns: repeat(3, 1fr);
+              gap: 16px;
+            }
+          }
+        ` }} />
+        
         {!isWebDesktop && (
-          <header className="flex-none px-6 pt-6 pb-1 app-bg spring-in">
+          <header className="flex-none px-6 pt-6 pb-1 app-bg m3-animate-fade-up" style={{ animationDelay: '0ms' }}>
             <h1 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '7px' }}>
               <AppModeMenuLogo />
             </h1>
           </header>
         )}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32 spring-in" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
-          <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Deterministic Chord of the Day Card */}
+
+        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
+          <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            
+            {/* Chord of the Day Premium Hero Card */}
             {dailyChord && (
-              <div style={{
-                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                border: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.05)',
-                borderRadius: '24px',
-                padding: '24px',
-                position: 'relative',
-                overflow: 'hidden',
-              }}>
-                {/* Subtle background glow */}
+              <div className="m3-hero-card m3-animate-fade-up" style={{ animationDelay: '60ms' }}>
+                {/* Accent Mesh Glow */}
                 <div style={{
                   position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '150px',
-                  height: '150px',
-                  background: `radial-gradient(circle, ${accent.from}15 0%, transparent 70%)`,
-                  pointerEvents: 'none'
+                  top: '-60px',
+                  right: '-60px',
+                  width: '200px',
+                  height: '200px',
+                  background: `radial-gradient(circle, ${accent.from}18 0%, transparent 70%)`,
+                  pointerEvents: 'none',
+                  zIndex: 0
                 }} />
-                
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
+
+                <div className="m3-hero-body" style={{ zIndex: 1 }}>
+                  <div className="m3-hero-info">
                     <span style={{
-                      fontSize: '10px',
-                      fontWeight: 800,
+                      fontSize: '9px',
+                      fontWeight: 900,
                       textTransform: 'uppercase',
-                      letterSpacing: '0.15em',
+                      letterSpacing: '0.18em',
                       color: accent.from,
                       background: `${accent.from}15`,
-                      padding: '4px 10px',
+                      padding: '5px 12px',
                       borderRadius: '99px',
+                      fontFamily: 'Manrope',
+                      display: 'inline-block'
                     }}>
                       {isSpanish ? 'Acorde del Día' : 'Chord of the Day'}
                     </span>
+                    
                     <h3 style={{
-                      fontSize: '32px',
+                      fontSize: '38px',
                       fontWeight: 900,
-                      margin: '12px 0 4px',
+                      margin: '16px 0 6px',
                       color: 'var(--c-text-primary)',
                       fontFamily: 'Manrope',
-                      letterSpacing: '-0.02em',
+                      letterSpacing: '-0.03em',
+                      lineHeight: '1.1'
                     }} className="truncate">
                       {dailyChord.name}
                     </h3>
+                    
                     <p style={{
-                      fontSize: '13px',
+                      fontSize: '14px',
                       color: 'var(--c-text-secondary)',
-                      margin: 0,
+                      margin: '0 0 16px 0',
                       fontFamily: 'Inter',
+                      fontWeight: 500
                     }} className="truncate">
-                      {dailyChord.notes.join(' - ')} ({dailyChord.type.charAt(0).toUpperCase() + dailyChord.type.slice(1)})
+                      {dailyChord.notes.join(' - ')} • <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
                     </p>
+
+                    <div style={{
+                      background: isLight ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.015)',
+                      borderRadius: '16px',
+                      padding: '12px 18px',
+                      fontSize: '12.5px',
+                      color: 'var(--c-text-secondary)',
+                      lineHeight: '1.6',
+                      borderLeft: `4px solid ${accent.from}`,
+                      fontFamily: 'Inter',
+                      textAlign: 'left'
+                    }}>
+                      <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800 }}>
+                        {isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}
+                      </strong>
+                      {getPracticeTip(dailyChord, isSpanish)}
+                    </div>
                   </div>
 
-                  <div style={{
-                    background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
-                    borderRadius: '16px',
-                    padding: '8px',
-                    width: '90px',
-                    height: '90px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '1px solid rgba(128,128,128,0.1)',
-                    flexShrink: 0
-                  }}>
-                    {renderChordDiagram(dailyChord, 'sm')}
+                  <div className="m3-hero-diagram-outer">
+                    <div className="m3-hero-diagram-container">
+                      {renderChordDiagram(dailyChord, 'md')}
+                    </div>
                   </div>
                 </div>
 
-                <div style={{
-                  background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-                  borderRadius: '14px',
-                  padding: '12px 16px',
-                  fontSize: '12px',
-                  color: 'var(--c-text-secondary)',
-                  lineHeight: '1.5',
-                  borderLeft: `3px solid ${accent.from}`,
-                  marginBottom: '20px',
-                  fontFamily: 'Inter',
-                  textAlign: 'left'
-                }}>
-                  <strong>{isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}</strong>
-                  {getPracticeTip(dailyChord, isSpanish)}
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* Hero Card Actions Row */}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', zIndex: 1, marginTop: '8px' }}>
                   <button
                     onClick={handlePlayDaily}
                     style={{
@@ -414,21 +565,22 @@ export default function ChordPanel() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '6px',
-                      height: '40px',
-                      borderRadius: '12px',
+                      gap: '8px',
+                      height: '46px',
+                      borderRadius: '16px',
                       background: dailyPlaying ? `${accent.from}25` : 'var(--app-surface-high)',
-                      border: 'none',
+                      border: dailyPlaying ? `1px solid ${accent.from}50` : `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
                       color: dailyPlaying ? accent.from : 'var(--c-text-primary)',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      fontSize: '13px',
+                      fontWeight: 800,
                       cursor: 'pointer',
                       fontFamily: 'Manrope',
-                      transition: 'all 200ms ease',
-                      minWidth: '80px'
+                      transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+                      minWidth: '100px'
                     }}
+                    className="btn-smooth"
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px', fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined }}>
                       {dailyPlaying ? 'stop' : 'play_arrow'}
                     </span>
                     {dailyPlaying ? (isSpanish ? 'Detener' : 'Stop') : (isSpanish ? 'Escuchar' : 'Listen')}
@@ -437,42 +589,41 @@ export default function ChordPanel() {
                   <button
                     onClick={() => addToProgression(dailyChord.id)}
                     style={{
-                      height: '40px',
-                      padding: '0 12px',
-                      borderRadius: '12px',
+                      height: '46px',
+                      width: '46px',
+                      borderRadius: '16px',
                       background: 'var(--app-surface-high)',
-                      border: 'none',
+                      border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
                       color: 'var(--c-text-primary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      transition: 'transform 150ms ease',
                     }}
                     className="btn-smooth"
                     title={isSpanish ? 'Agregar a la progresión' : 'Add to progression'}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
                   </button>
 
                   <button
                     onClick={() => toggleFavorite(dailyChord.id)}
                     style={{
-                      height: '40px',
-                      padding: '0 12px',
-                      borderRadius: '12px',
+                      height: '46px',
+                      width: '46px',
+                      borderRadius: '16px',
                       background: isFavorite(dailyChord.id) ? 'rgba(238,125,119,0.15)' : 'var(--app-surface-high)',
-                      border: 'none',
+                      border: isFavorite(dailyChord.id) ? '1px solid rgba(238,125,119,0.3)' : `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
                       color: isFavorite(dailyChord.id) ? '#ee7d77' : 'var(--c-text-primary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      transition: 'transform 150ms ease',
                     }}
                     className="btn-smooth"
+                    title={isSpanish ? 'Favorito' : 'Favorite'}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined }}>
                       favorite
                     </span>
                   </button>
@@ -480,19 +631,20 @@ export default function ChordPanel() {
                   <button
                     onClick={() => selectChord(dailyChord.id)}
                     style={{
-                      height: '40px',
-                      padding: '0 16px',
-                      borderRadius: '12px',
+                      height: '46px',
+                      padding: '0 20px',
+                      borderRadius: '16px',
                       background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                       border: 'none',
                       color: 'white',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      fontSize: '13px',
+                      fontWeight: 800,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      boxShadow: `0 4px 12px ${accent.to}30`,
+                      boxShadow: `0 4px 12px ${accent.to}35`,
+                      fontFamily: 'Manrope'
                     }}
                     className="btn-smooth"
                   >
@@ -502,13 +654,80 @@ export default function ChordPanel() {
               </div>
             )}
 
-            {/* Quick Categories Grid */}
-            <div>
+            {/* Primary Action Cards Section (Prioritized Actions) */}
+            <div className="m3-actions-layout m3-animate-fade-up" style={{ animationDelay: '120ms' }}>
+              <button
+                onClick={() => setShowFinder(true)}
+                className="m3-action-card-primary"
+              >
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '14px',
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#fff' }}>search</span>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'Manrope', color: '#fff', letterSpacing: '-0.01em' }}>
+                    {t.chordFinder.openFinder}
+                  </h4>
+                  <p style={{ fontSize: '11px', margin: 0, color: 'rgba(255,255,255,0.8)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                    {isSpanish ? 'Busca e identifica acordes por notas o en el diapasón.' : 'Search and identify chords by notes or on the fretboard.'}
+                  </p>
+                </div>
+              </button>
+
+              <AnimatedActionButton
+                data-testid="open-generator-empty"
+                onClick={() => setShowGenerator(true)}
+                trailColor={accent.from}
+                style={{
+                  flex: 1,
+                  display: 'block',
+                  background: isLight ? 'var(--c-surface-card, #f8f9fa)' : 'var(--c-surface-card, rgba(255, 255, 255, 0.03))',
+                  border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
+                  borderRadius: '24px',
+                  cursor: 'pointer',
+                  padding: 0,
+                  overflow: 'hidden',
+                  width: '100%',
+                }}
+              >
+                <div className="m3-action-card-secondary" style={{ border: 'none', height: '100%', padding: '24px', margin: 0 }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '14px',
+                    background: `${accent.from}15`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '22px', color: accent.from }}>auto_awesome</span>
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'Manrope', color: 'var(--c-text-primary)', letterSpacing: '-0.01em' }}>
+                      {isSpanish ? 'Generador' : 'Generator'}
+                    </h4>
+                    <p style={{ fontSize: '11px', margin: 0, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                      {isSpanish ? 'Genera progresiones armónicas en cualquier escala musical.' : 'Generate harmonic progressions in any musical scale.'}
+                    </p>
+                  </div>
+                </div>
+              </AnimatedActionButton>
+            </div>
+
+            {/* Quick Categories Section */}
+            <div className="m3-animate-fade-up" style={{ animationDelay: '180ms' }}>
               <h4 style={{
                 fontSize: '11px',
-                fontWeight: 800,
+                fontWeight: 900,
                 textTransform: 'uppercase',
-                letterSpacing: '0.12em',
+                letterSpacing: '0.15em',
                 color: 'var(--c-text-secondary)',
                 marginBottom: '16px',
                 fontFamily: 'Manrope',
@@ -516,11 +735,7 @@ export default function ChordPanel() {
               }}>
                 {isSpanish ? 'Categorías Rápidas' : 'Quick Categories'}
               </h4>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '12px',
-              }}>
+              <div className="m3-categories-layout">
                 {QUICK_CATS.map((cat, idx) => {
                   const isHovered = hoveredCatIndex === idx;
                   return (
@@ -532,47 +747,37 @@ export default function ChordPanel() {
                         setLibraryActiveType(cat.type);
                         setActivePanel('library');
                       }}
+                      className="m3-category-card btn-smooth"
                       style={{
                         background: isHovered 
-                          ? (isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)')
-                          : (isLight ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.025)'),
-                        border: isHovered
-                          ? `1px solid ${cat.color}50`
-                          : (isLight ? '1px solid rgba(0,0,0,0.07)' : '1px solid rgba(255,255,255,0.04)'),
-                        borderRadius: '20px',
-                        padding: '16px',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '6px',
-                        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                        boxShadow: isHovered ? `0 6px 20px ${cat.color}15` : 'none',
-                        transition: 'all 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+                          ? (isLight ? 'rgba(0,0,0,0.035)' : 'rgba(255,255,255,0.055)')
+                          : undefined,
+                        borderColor: isHovered ? `${cat.color}60` : undefined,
+                        boxShadow: isHovered ? `0 6px 20px ${cat.color}15` : undefined,
+                        animationDelay: `${200 + idx * 40}ms`
                       }}
-                      className="btn-smooth"
                     >
                       <div style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '12px',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '14px',
                         background: `${cat.color}15`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: '4px',
+                        marginBottom: '6px',
                       }}>
                         <span className="material-symbols-outlined" style={{
-                          fontSize: '18px',
+                          fontSize: '20px',
                           color: cat.color,
                         }}>
                           {cat.icon || 'music_note'}
                         </span>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.01em' }}>
+                      <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.01em' }}>
                         {cat.label}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                      <div style={{ fontSize: '11.5px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: '1.4' }}>
                         {cat.desc}
                       </div>
                     </button>
@@ -581,53 +786,9 @@ export default function ChordPanel() {
               </div>
             </div>
 
-            {/* Search & Progression Generator buttons */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-              gap: '12px',
-              marginTop: '8px'
-            }}>
-              <button
-                onClick={() => setShowFinder(true)}
-                className="btn-smooth flex items-center justify-center gap-2 px-5 py-3.5 font-bold"
-                style={{
-                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  color: 'white',
-                  borderRadius: '18px',
-                  fontFamily: 'Manrope',
-                  fontSize: '13px',
-                  boxShadow: `0 6px 20px ${accent.to}25`,
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>search</span>
-                {t.chordFinder.openFinder}
-              </button>
-              <AnimatedActionButton
-                data-testid="open-generator-empty"
-                onClick={() => setShowGenerator(true)}
-                className="btn-smooth flex items-center justify-center gap-2 px-5 py-3 font-bold"
-                trailColor={accent.from}
-                style={{
-                  background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
-                  color: 'var(--c-text-primary)',
-                  border: `1px solid ${accent.from}30`,
-                  borderRadius: '18px',
-                  fontFamily: 'Manrope',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>auto_awesome</span>
-                {isSpanish ? 'Generar Progresión' : 'Generate Progression'}
-              </AnimatedActionButton>
-            </div>
           </div>
         </div>
+        
         {showFinder && (
           <CustomChordBuilder
             accent={accent}

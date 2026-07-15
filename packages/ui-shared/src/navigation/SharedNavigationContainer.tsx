@@ -17,6 +17,7 @@ interface SharedNavigationContainerProps {
   children: (viewId: string) => React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  variant?: 'slide' | 'fade-through';
 }
 
 export function SharedNavigationContainer({
@@ -26,6 +27,7 @@ export function SharedNavigationContainer({
   children,
   className = '',
   style,
+  variant = 'slide',
 }: SharedNavigationContainerProps) {
   const [visibleView, setVisibleView] = useState<string>(activeView);
   const [exitingView, setExitingView] = useState<string | null>(null);
@@ -92,17 +94,23 @@ export function SharedNavigationContainer({
         const show = isVisible || isExiting;
 
         let animClass = '';
-        if (isEntering) {
-          animClass = resolvedDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
-        } else if (isExiting) {
-          animClass = resolvedDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
-        }
-
         let zIndex = 1;
-        if (isEntering) {
-          zIndex = resolvedDir === 'right' ? 2 : 1;
-        } else if (isExiting) {
-          zIndex = resolvedDir === 'right' ? 1 : 2;
+        if (variant === 'fade-through') {
+          if (isEntering) {
+            animClass = resolvedDir === 'right' ? 'nav-enter-right' : 'nav-enter-left';
+            zIndex = 2;
+          } else if (isExiting) {
+            animClass = resolvedDir === 'right' ? 'nav-exit-left' : 'nav-exit-right';
+            zIndex = 1;
+          }
+        } else {
+          if (isEntering) {
+            animClass = resolvedDir === 'right' ? 'panel-enter-right' : 'panel-enter-left';
+            zIndex = resolvedDir === 'right' ? 2 : 1;
+          } else if (isExiting) {
+            animClass = resolvedDir === 'right' ? 'panel-exit-left' : 'panel-exit-right';
+            zIndex = resolvedDir === 'right' ? 1 : 2;
+          }
         }
 
         return (

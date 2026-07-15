@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.79';
-export const WEB_VERSION = '4.0.79';
+export const NATIVE_VERSION = '4.0.80';
+export const WEB_VERSION = '4.0.80';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,11 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Removed floating pill/banner notifications to immediately show full-screen update dialog.",
-      "Center-locked the update modal dialog and disabled vertical bouncing.",
-      "Added a unified, fluid progress bar that tracks the entire download and verification cycle.",
-      "Fixed back transition animations to slide out correctly when leaving Profile or Settings views.",
-      "Wired global transition state into the navigation container for consistent Android gesture transitions.",
+      "Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.",
+      "Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.",
+      "Resolved installer active-session rejections by gracefully recovering and returning the active session ID.",
+      "Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).",
+      "Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter.",
     ],
   },
 ];
@@ -76,10 +76,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Immediate full-screen update modal presentation bypassing floating banners.",
-      "Locked scroll and centered layout container on the Check for Updates screen.",
-      "Unified, stable, and smooth progress bar during update download and verification.",
-      "Fixed transition slide directions for entering/leaving Profile tab.",
+      "Installer locking and session synchronization to block concurrent installer requests.",
+      "Native cleanup routine to force-abandon orphaned sessions on app load and update start.",
+      "Session-active grace recovery returning the active session ID instead of rejecting.",
+      "Material horizontal fade-through tab transition synchronized with bottom nav indicator.",
+      "Removed Profile tab clashing inline slide animations to avoid double transitions.",
     ],
   },
 ];

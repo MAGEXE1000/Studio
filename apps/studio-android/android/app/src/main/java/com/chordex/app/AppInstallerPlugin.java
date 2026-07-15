@@ -81,9 +81,14 @@ public class AppInstallerPlugin extends Plugin {
         }
     }
 
+    private static final Object installLock = new Object();
+
     @Override
     public void load() {
         instance = this;
+        try {
+            cleanupAllSessions();
+        } catch (Exception ignored) {}
     }
 
     public void emitInstallStatus(JSObject data) {
@@ -727,6 +732,31 @@ public class AppInstallerPlugin extends Plugin {
         }
     }
 
+    private void cleanupAllSessions() {
+        try {
+            Context context = getContext();
+            PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
+            SharedPreferences prefs = context.getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
+            
+            java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
+            if (sessions != null) {
+                for (PackageInstaller.SessionInfo info : sessions) {
+                    try {
+                        Log.d("AppInstallerPlugin", "Force abandoning session: " + info.getSessionId());
+                        packageInstaller.abandonSession(info.getSessionId());
+                    } catch (Exception ignored) {}
+                }
+            }
+            
+            prefs.edit()
+                .putBoolean("installation_active", false)
+                .putInt("active_session_id", -1)
+                .apply();
+        } catch (Exception e) {
+            Log.e("AppInstallerPlugin", "Error during cleanupAllSessions", e);
+        }
+    }
+
     private boolean isInstallSessionActive() {
         SharedPreferences prefs = getContext().getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
         boolean active = prefs.getBoolean("installation_active", false);
@@ -734,60 +764,85 @@ public class AppInstallerPlugin extends Plugin {
         try {
             PackageInstaller packageInstaller = getContext().getPackageManager().getPackageInstaller();
             java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
-            if (sessions != null && !sessions.isEmpty()) {
-                return true;
-            } else if (activeSessionId != -1) {
+            if (sessions != null) {
+                for (PackageInstaller.SessionInfo info : sessions) {
+                    if (info.isActive()) {
+                        return true;
+                    }
+                }
+            }
+            if (activeSessionId != -1) {
                 PackageInstaller.SessionInfo info = packageInstaller.getSessionInfo(activeSessionId);
                 if (info != null) {
                     return true;
+                } else {
+                    prefs.edit()
+                        .putBoolean("installation_active", false)
+                        .putInt("active_session_id", -1)
+                        .apply();
                 }
             }
         } catch (Exception ignored) {}
-        return active;
+        return false;
     }
 
     @PluginMethod
     public void installApk(PluginCall call) {
-        installApkCallCount++;
-        int callId = nextCallId();
-        
-        if (isInstallSessionActive()) {
-            logNativeInstrumentation(getContext(), "installApk", callId, "REJECTED", "Installation session already active");
-            call.reject("An installation session is already active.");
-            return;
-        }
-
-        String path = call.getString("filePath");
-        logNativeInstrumentation(getContext(), "installApk", callId, "ENTER", "filePath=" + path + " (total calls: " + installApkCallCount + ")");
-        if (path == null) {
-            logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Rejected: missing filePath");
-            call.reject("filePath is required");
-            return;
-        }
-
-        try {
-            File file;
-            if (path.startsWith("file://")) {
-                try {
-                    file = new File(new URI(path));
-                } catch (Exception e) {
-                    file = new File(path.substring(7));
+        synchronized (installLock) {
+            installApkCallCount++;
+            int callId = nextCallId();
+            
+            if (isInstallSessionActive()) {
+                SharedPreferences prefs = getContext().getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
+                int activeSessionId = prefs.getInt("active_session_id", -1);
+                if (activeSessionId == -1) {
+                    try {
+                        PackageInstaller packageInstaller = getContext().getPackageManager().getPackageInstaller();
+                        java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
+                        if (sessions != null && !sessions.isEmpty()) {
+                            activeSessionId = sessions.get(0).getSessionId();
+                        }
+                    } catch (Exception ignored) {}
                 }
-            } else {
-                file = new File(path);
-            }
-
-            if (!file.exists()) {
-                logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Rejected: file does not exist: " + file.getAbsolutePath());
-                call.reject("File does not exist: " + file.getAbsolutePath());
+                logNativeInstrumentation(getContext(), "installApk", callId, "RECOVERED", "Installation session already active, returning sessionId=" + activeSessionId);
+                JSObject result = new JSObject();
+                result.put("sessionId", activeSessionId);
+                call.resolve(result);
                 return;
             }
 
-            logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Launching triggerInstallation for file: " + file.getAbsolutePath());
-            triggerInstallation(file, call);
-        } catch (Exception e) {
-            logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Exception: " + e.getMessage());
-            call.reject("Failed to install APK: " + e.getMessage(), e);
+            String path = call.getString("filePath");
+            logNativeInstrumentation(getContext(), "installApk", callId, "ENTER", "filePath=" + path + " (total calls: " + installApkCallCount + ")");
+            if (path == null) {
+                logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Rejected: missing filePath");
+                call.reject("filePath is required");
+                return;
+            }
+
+            try {
+                File file;
+                if (path.startsWith("file://")) {
+                    try {
+                        file = new File(new URI(path));
+                    } catch (Exception e) {
+                        file = new File(path.substring(7));
+                    }
+                } else {
+                    file = new File(path);
+                }
+
+                if (!file.exists()) {
+                    logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Rejected: file does not exist: " + file.getAbsolutePath());
+                    call.reject("File does not exist: " + file.getAbsolutePath());
+                    return;
+                }
+
+                logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Launching triggerInstallation for file: " + file.getAbsolutePath());
+                triggerInstallation(file, call);
+            } catch (Exception e) {
+                logNativeInstrumentation(getContext(), "installApk", callId, "EXIT", "Exception: " + e.getMessage());
+                call.reject("Failed to install APK: " + e.getMessage(), e);
+            }
         }
     }
 
@@ -905,39 +960,54 @@ public class AppInstallerPlugin extends Plugin {
 
     @PluginMethod
     public void downloadAndInstallApk(PluginCall call) {
-        downloadAndInstallApkCallCount++;
-        int callId = nextCallId();
+        synchronized (installLock) {
+            downloadAndInstallApkCallCount++;
+            int callId = nextCallId();
 
-        if (isInstallSessionActive()) {
-            logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "REJECTED", "Installation session already active");
-            call.reject("An installation session is already active.");
-            return;
-        }
-
-        String urlString = call.getString("url");
-        logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "ENTER", "url=" + urlString + " (total calls: " + downloadAndInstallApkCallCount + ")");
-        if (urlString == null) {
-            logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "EXIT", "Rejected: missing url");
-            call.reject("url is required");
-            return;
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int threadCallId = callId;
-                logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "STEP", "Download/Install thread started");
-                try {
-                    String fileName = call.getString("fileName");
-                    File apkFile = downloadFileWithResume(urlString, fileName, threadCallId, "downloadAndInstallApk");
-                    logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "EXIT", "Success. Triggering installation for: " + apkFile.getAbsolutePath());
-                    triggerInstallation(apkFile, call);
-                } catch (Exception e) {
-                    logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "EXIT", "Exception: " + e.getMessage());
-                    call.reject("Download failed: " + e.getMessage(), e);
+            if (isInstallSessionActive()) {
+                SharedPreferences prefs = getContext().getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
+                int activeSessionId = prefs.getInt("active_session_id", -1);
+                if (activeSessionId == -1) {
+                    try {
+                        PackageInstaller packageInstaller = getContext().getPackageManager().getPackageInstaller();
+                        java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
+                        if (sessions != null && !sessions.isEmpty()) {
+                            activeSessionId = sessions.get(0).getSessionId();
+                        }
+                    } catch (Exception ignored) {}
                 }
+                logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "RECOVERED", "Installation session already active, returning sessionId=" + activeSessionId);
+                JSObject result = new JSObject();
+                result.put("sessionId", activeSessionId);
+                call.resolve(result);
+                return;
             }
-        }).start();
+
+            String urlString = call.getString("url");
+            logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "ENTER", "url=" + urlString + " (total calls: " + downloadAndInstallApkCallCount + ")");
+            if (urlString == null) {
+                logNativeInstrumentation(getContext(), "downloadAndInstallApk", callId, "EXIT", "Rejected: missing url");
+                call.reject("url is required");
+                return;
+            }
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int threadCallId = callId;
+                    logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "STEP", "Download/Install thread started");
+                    try {
+                        String fileName = call.getString("fileName");
+                        File apkFile = downloadFileWithResume(urlString, fileName, threadCallId, "downloadAndInstallApk");
+                        logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "EXIT", "Success. Triggering installation for: " + apkFile.getAbsolutePath());
+                        triggerInstallation(apkFile, call);
+                    } catch (Exception e) {
+                        logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "EXIT", "Exception: " + e.getMessage());
+                        call.reject("Download failed: " + e.getMessage(), e);
+                    }
+                }
+            }).start();
+        }
     }
 
     @PluginMethod
@@ -974,61 +1044,76 @@ public class AppInstallerPlugin extends Plugin {
 
     @PluginMethod
     public void installApkDirect(PluginCall call) {
-        int callId = nextCallId();
+        synchronized (installLock) {
+            int callId = nextCallId();
 
-        if (isInstallSessionActive()) {
-            logNativeInstrumentation(getContext(), "installApkDirect", callId, "REJECTED", "Installation session already active");
-            call.reject("An installation session is already active.");
-            return;
-        }
-
-        String filePath = call.getString("filePath");
-        logNativeInstrumentation(getContext(), "installApkDirect", callId, "ENTER", "filePath=" + filePath);
-        if (filePath == null) {
-            logNativeInstrumentation(getContext(), "installApkDirect", callId, "EXIT", "Rejected: missing filePath");
-            call.reject("filePath is required");
-            return;
-        }
-
-        try {
-            File file = new File(filePath);
-            if (!file.exists()) {
-                throw new Exception("APK file not found at path: " + filePath);
-            }
-
-            Context context = getContext();
-            Uri apkUri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                String authority = context.getPackageName() + ".fileprovider";
-                apkUri = androidx.core.content.FileProvider.getUriForFile(context, authority, file);
-            } else {
-                apkUri = Uri.fromFile(file);
-            }
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            
-            // On Android 8.0+ request unknown sources if we don't have it
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (!context.getPackageManager().canRequestPackageInstalls()) {
-                    Intent settingsIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
-                    settingsIntent.setData(Uri.parse("package:" + context.getPackageName()));
-                    settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(settingsIntent);
-                    logNativeInstrumentation(context, "installApkDirect", callId, "EXIT", "Redirected to unknown sources settings");
-                    call.reject("Please enable install permission for this app and try again.");
-                    return;
+            if (isInstallSessionActive()) {
+                SharedPreferences prefs = getContext().getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
+                int activeSessionId = prefs.getInt("active_session_id", -1);
+                if (activeSessionId == -1) {
+                    try {
+                        PackageInstaller packageInstaller = getContext().getPackageManager().getPackageInstaller();
+                        java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
+                        if (sessions != null && !sessions.isEmpty()) {
+                            activeSessionId = sessions.get(0).getSessionId();
+                        }
+                    } catch (Exception ignored) {}
                 }
+                logNativeInstrumentation(getContext(), "installApkDirect", callId, "RECOVERED", "Installation session already active, returning sessionId=" + activeSessionId);
+                JSObject result = new JSObject();
+                result.put("sessionId", activeSessionId);
+                call.resolve(result);
+                return;
             }
 
-            context.startActivity(intent);
-            logNativeInstrumentation(context, "installApkDirect", callId, "EXIT", "Direct install activity launched");
-            call.resolve();
-        } catch (Exception e) {
-            logNativeInstrumentation(getContext(), "installApkDirect", callId, "EXIT", "Exception: " + e.getMessage());
-            call.reject("Direct install failed: " + e.getMessage(), e);
+            String filePath = call.getString("filePath");
+            logNativeInstrumentation(getContext(), "installApkDirect", callId, "ENTER", "filePath=" + filePath);
+            if (filePath == null) {
+                logNativeInstrumentation(getContext(), "installApkDirect", callId, "EXIT", "Rejected: missing filePath");
+                call.reject("filePath is required");
+                return;
+            }
+
+            try {
+                File file = new File(filePath);
+                if (!file.exists()) {
+                    throw new Exception("APK file not found at path: " + filePath);
+                }
+
+                Context context = getContext();
+                Uri apkUri;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    String authority = context.getPackageName() + ".fileprovider";
+                    apkUri = androidx.core.content.FileProvider.getUriForFile(context, authority, file);
+                } else {
+                    apkUri = Uri.fromFile(file);
+                }
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                
+                // On Android 8.0+ request unknown sources if we don't have it
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (!context.getPackageManager().canRequestPackageInstalls()) {
+                        Intent settingsIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                        settingsIntent.setData(Uri.parse("package:" + context.getPackageName()));
+                        settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(settingsIntent);
+                        logNativeInstrumentation(context, "installApkDirect", callId, "EXIT", "Redirected to unknown sources settings");
+                        call.reject("Please enable install permission for this app and try again.");
+                        return;
+                    }
+                }
+
+                context.startActivity(intent);
+                logNativeInstrumentation(context, "installApkDirect", callId, "EXIT", "Direct install activity launched");
+                call.resolve();
+            } catch (Exception e) {
+                logNativeInstrumentation(getContext(), "installApkDirect", callId, "EXIT", "Exception: " + e.getMessage());
+                call.reject("Direct install failed: " + e.getMessage(), e);
+            }
         }
     }
 
@@ -1070,6 +1155,7 @@ public class AppInstallerPlugin extends Plugin {
         int callId = nextCallId();
         logNativeInstrumentation(context, "triggerInstallation", callId, "ENTER", "file=" + file.getAbsolutePath() + " (total calls: " + triggerInstallationCallCount + ")");
         try {
+            cleanupAllSessions();
             PackageManager pm = context.getPackageManager();
             PackageInfo archiveInfo = pm.getPackageArchiveInfo(file.getAbsolutePath(), 0);
             long expectedVersionCode = 0;
@@ -1719,14 +1805,20 @@ public class AppInstallerPlugin extends Plugin {
         try {
             Context context = getContext();
             SharedPreferences prefs = context.getSharedPreferences(InstallReceiver.PREFS_NAME, Context.MODE_PRIVATE);
-            boolean active = prefs.getBoolean("installation_active", false);
+            boolean active = isInstallSessionActive();
             int activeSessionId = prefs.getInt("active_session_id", -1);
             
-            PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
-            java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
-            if (sessions != null && !sessions.isEmpty()) {
-                active = true;
-                activeSessionId = sessions.get(0).getSessionId();
+            if (active && activeSessionId == -1) {
+                PackageInstaller packageInstaller = context.getPackageManager().getPackageInstaller();
+                java.util.List<PackageInstaller.SessionInfo> sessions = packageInstaller.getMySessions();
+                if (sessions != null) {
+                    for (PackageInstaller.SessionInfo info : sessions) {
+                        if (info.isActive()) {
+                            activeSessionId = info.getSessionId();
+                            break;
+                        }
+                    }
+                }
             }
             
             JSObject result = new JSObject();
@@ -1735,6 +1827,18 @@ public class AppInstallerPlugin extends Plugin {
             call.resolve(result);
         } catch (Exception e) {
             call.reject("Failed to check active installer sessions: " + e.getMessage(), e);
+        }
+    }
+
+    @PluginMethod
+    public void abandonActiveSession(PluginCall call) {
+        try {
+            cleanupAllSessions();
+            JSObject result = new JSObject();
+            result.put("success", true);
+            call.resolve(result);
+        } catch (Exception e) {
+            call.reject("Failed to abandon session: " + e.getMessage(), e);
         }
     }
 

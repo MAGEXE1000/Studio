@@ -997,6 +997,37 @@ html[data-nav-collapsed="true"] .glass-nav > div {
     animation: panel-exit-right var(--panel-exit-dur, 320ms) cubic-bezier(0.2, 0, 0, 1) both;
   }
 
+  /* Material horizontal fade-through for bottom nav tabs */
+  @keyframes nav-fade-in-right {
+    from { opacity: 0; transform: translate3d(24px, 0, 0) scale(0.97); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+  @keyframes nav-fade-out-left {
+    from { opacity: 1; transform: translate3d(0, 0, 0); }
+    to   { opacity: 0; transform: translate3d(-24px, 0, 0); }
+  }
+  @keyframes nav-fade-in-left {
+    from { opacity: 0; transform: translate3d(-24px, 0, 0) scale(0.97); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+  @keyframes nav-fade-out-right {
+    from { opacity: 1; transform: translate3d(0, 0, 0); }
+    to   { opacity: 0; transform: translate3d(24px, 0, 0); }
+  }
+
+  .nav-enter-right {
+    animation: nav-fade-in-right 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .nav-exit-left {
+    animation: nav-fade-out-left 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .nav-enter-left {
+    animation: nav-fade-in-left 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .nav-exit-right {
+    animation: nav-fade-out-right 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
   /* ===== Live Mode chord transitions ===== */
   @keyframes live-chord-in-right {
     from { opacity: 0; transform: translateX(18px); }

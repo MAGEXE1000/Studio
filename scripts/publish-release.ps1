@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.79"
-$VersionCode = "40079"
-$ReleaseNote = "4.0.79 - Redesigned updater progress bar and centered dialog modal layout; corrected profile slide transitions"
+$VersionName = "4.0.80"
+$VersionCode = "40080"
+$ReleaseNote = "4.0.80 - Fixed PackageInstaller active session conflicts, refined tab transition to native horizontal fade-through, and removed clashing Profile animations"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

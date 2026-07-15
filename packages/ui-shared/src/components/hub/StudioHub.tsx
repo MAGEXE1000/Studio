@@ -518,6 +518,7 @@ export default function StudioHub() {
         <SharedNavigationContainer
           activeView={tab}
           viewOrder={['home', 'settings', 'profile', 'help']}
+          variant="fade-through"
         >
           {(tabId) => {
             const currentScrollRef =
@@ -633,7 +634,7 @@ export default function StudioHub() {
                     }} />
                     <Suspense fallback={<SmartLoading fallbackSkeleton={<div style={{ padding: '0 20px 80px' }}><StudioSkeletonProfile /></div>} />}>
                       {authUser ? (
-                        <div data-hub-tab-content style={{ padding: '0 0 100px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
+                        <div data-hub-tab-content style={{ padding: '0 0 100px' }}>
                         <AccountSettingsPage
                           accent={accent}
                           cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
@@ -647,7 +648,7 @@ export default function StudioHub() {
                         />
                         </div>
                       ) : (
-                        <div data-hub-tab-content style={{ padding: '0 20px 80px', animation: 'hub-slide-in 300ms cubic-bezier(0.25,0.46,0.45,0.94) both' }}>
+                        <div data-hub-tab-content style={{ padding: '0 20px 80px' }}>
                           <div style={{ marginBottom: 16 }}>
                             <StudioFamilyOrbit
                               items={[

@@ -1,6 +1,6 @@
 ### Added
-- Removed floating pill/banner notifications to immediately show full-screen update dialog.
-- Center-locked the update modal dialog and disabled vertical bouncing.
-- Added a unified, fluid progress bar that tracks the entire download and verification cycle.
-- Fixed back transition animations to slide out correctly when leaving Profile or Settings views.
-- Wired global transition state into the navigation container for consistent Android gesture transitions.
+- Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.
+- Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.
+- Resolved installer active-session rejections by gracefully recovering and returning the active session ID.
+- Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).
+- Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter.

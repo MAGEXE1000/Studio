@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.80';
-export const WEB_VERSION = '4.0.80';
+export const NATIVE_VERSION = '4.0.81';
+export const WEB_VERSION = '4.0.81';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -39,7 +39,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-14';
+export const APP_VERSION_DATE = '2026-07-15';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
@@ -62,11 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.",
-      "Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.",
-      "Resolved installer active-session rejections by gracefully recovering and returning the active session ID.",
-      "Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).",
-      "Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter.",
+      "Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.",
+      "Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.",
+      "Exposed real-time diagnostics, download progress trackers, and virtualized log history.",
+      "Added operational debugger actions (verify signatures, validate download url, simulation lab controls).",
     ],
   },
 ];
@@ -76,11 +75,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Installer locking and session synchronization to block concurrent installer requests.",
-      "Native cleanup routine to force-abandon orphaned sessions on app load and update start.",
-      "Session-active grace recovery returning the active session ID instead of rejecting.",
-      "Material horizontal fade-through tab transition synchronized with bottom nav indicator.",
-      "Removed Profile tab clashing inline slide animations to avoid double transitions.",
+      "Prioritized Firebase manifest querying to prevent unnecessary GitHub API warnings.",
+      "Overhauled Updater view to a dark, premium engineering cockpit dashboard.",
+      "Connected real-time state machine tree, download progress, and virtualized logs.",
+      "Added interactive actions to verify signatures, validate URL, clear cache, and simulate states.",
     ],
   },
 ];

@@ -1,22 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.80",
-  "versionName": "4.0.80",
-  "versionCode": 40080,
-  "version_code": 40080,
-  "commit": "780b1aeb",
-  "releasedAt": "7/14/2026, 8:07:44 PM CST",
-  "buildTimestamp": "7/14/2026, 8:07:44 PM CST",
+  "version": "4.0.81",
+  "versionName": "4.0.81",
+  "versionCode": 40081,
+  "version_code": 40081,
+  "commit": "b7ee37fa",
+  "releasedAt": "7/14/2026, 9:42:19 PM CST",
+  "buildTimestamp": "7/14/2026, 9:42:19 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.\n• Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.\n• Resolved installer active-session rejections by gracefully recovering and returning the active session ID.\n• Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).\n• Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter.",
-  "whatsNew": "• Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.\n• Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.\n• Resolved installer active-session rejections by gracefully recovering and returning the active session ID.\n• Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).\n• Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter.",
+  "changelog": "• Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.\n• Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.\n• Exposed real-time diagnostics, download progress trackers, and virtualized log history.\n• Added operational debugger actions (verify signatures, validate download url, simulation lab controls).",
+  "whatsNew": "• Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.\n• Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.\n• Exposed real-time diagnostics, download progress trackers, and virtualized log history.\n• Added operational debugger actions (verify signatures, validate download url, simulation lab controls).",
   "releaseNotes": {
     "added": [
-      "Implemented static installer locking and session synchronization to block concurrent PackageInstaller requests.",
-      "Added automatic native cleanup to force-abandon orphaned/interrupted installer sessions on app load and update start.",
-      "Resolved installer active-session rejections by gracefully recovering and returning the active session ID.",
-      "Switched the bottom navigation tabs to a fluid Material horizontal fade-through transition (24px shift + scale + crossfade).",
-      "Removed clashing inline slide animations from the Profile tab to eliminate double transitions and layout stutter."
+      "Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.",
+      "Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.",
+      "Exposed real-time diagnostics, download progress trackers, and virtualized log history.",
+      "Added operational debugger actions (verify signatures, validate download url, simulation lab controls)."
     ]
   },
   "mandatory": false

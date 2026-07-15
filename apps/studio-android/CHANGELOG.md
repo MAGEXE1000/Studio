@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.81
+
+### Added
+- Prioritized Firebase update metadata manifest queries to eliminate CORS and network console warnings.
+- Overhauled the Engineering Tools Updater section into a dark, premium cockpit theme.
+- Exposed real-time diagnostics, download progress trackers, and virtualized log history.
+- Added operational debugger actions (verify signatures, validate download url, simulation lab controls).
+
 ## 4.0.80
 
 ### Added

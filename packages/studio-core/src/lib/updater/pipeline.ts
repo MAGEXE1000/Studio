@@ -502,7 +502,7 @@ async function executeCheckForUpdateInternal(pipelineId: number, isManual = fals
 
     UpdatePipelineCoordinator.setStage('AWAIT_FETCH_METADATA');
     const realRemote = await fetchRemoteVersion();
-    console.warn(`[Updater DIAGNOSTICS] fetchRemoteVersion returned:`, realRemote);
+    console.log(`[Updater DIAGNOSTICS] fetchRemoteVersion returned:`, realRemote);
       
     logTimelineEvent('UpdateCore', 'MANIFEST_FETCHED', realRemote ? `Version: ${realRemote.version} (Code: ${realRemote.versionCode})` : 'Failed');
     checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Capacitor } from '@capacitor/core';
+import { SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 import { 
   useChordStore, 
   ACCENT_COLORS, 
@@ -490,7 +491,7 @@ export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 30 }}
-          transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+          transition={SPRING_PRESETS.medium}
           style={{
             position: 'fixed',
             inset: 0,

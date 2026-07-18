@@ -1,6 +1,7 @@
 import { useChordStore, ACCENT_COLORS, type AppKey, useT, APP_SECTIONS, useStudioPreferences } from '@workspace/studio-core';
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, MotionValue } from 'motion/react';
+import { MOTION_DURATIONS, MOTION_EASINGS } from '@workspace/ui-shared';
 
 interface DockItemProps {
   id: string;
@@ -65,7 +66,7 @@ function DockItem({
             initial={{ opacity: 0, y: 10, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.9 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.decelerate }}
             style={{
               position: 'absolute',
               bottom: '100%',

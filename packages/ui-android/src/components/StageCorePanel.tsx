@@ -9,7 +9,9 @@ import {
   StagexPanelSkeleton,
   WebToolbar,
   WebButton,
-  SharedNavigationContainer
+  SharedNavigationContainer,
+  MOTION_DURATIONS,
+  MOTION_EASINGS
 } from '@workspace/ui-shared';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
@@ -1898,7 +1900,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   x: isRightPanelCollapsed ? 20 : 0,
                   width: isRightPanelCollapsed ? 0 : 260
                 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
                 style={{
                   borderLeft: isRightPanelCollapsed ? 'none' : (isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.06)'),
                   background: isLight ? 'var(--app-surface-low)' : '#080809',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
+import { MOTION_EASINGS, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 import { useScrollHide } from '@workspace/studio-core';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
@@ -284,7 +284,7 @@ export function DialogScaffold({
             initial={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
             animate={isLargeScreen ? { scale: 1, opacity: 1 } : { y: 0 }}
             exit={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
-            transition={MOTION_EASINGS.spring}
+            transition={isLargeScreen ? SPRING_PRESETS.expressive : SPRING_PRESETS.medium}
             style={{
               position: 'relative',
               width: '100%',

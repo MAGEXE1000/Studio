@@ -1,17 +1,18 @@
 {
   "platform": "web",
-  "version": "3.7.82",
-  "commit": "6b865108",
-  "releasedAt": "undefined",
-  "buildTimestamp": "undefined",
+  "version": "4.0.85",
+  "commit": "9a8d9759",
+  "releasedAt": "7/17/2026, 6:40:45 PM CST",
+  "buildTimestamp": "7/17/2026, 6:40:45 PM CST",
   "updateMode": "refresh",
-  "description": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
-  "whatsNew": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
-  "changelog": "• Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.\n• Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume.",
+  "changelog": "• Migrated Studio transitions to a centralized Material 3 Motion System.\n• Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.\n• Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.\n• Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
+  "whatsNew": "• Migrated Studio transitions to a centralized Material 3 Motion System.\n• Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.\n• Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.\n• Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
   "releaseNotes": {
-    "fixed": [
-      "Resolve native package installer UX bug where the updater screen would close or reset to \"up to date\" immediately after tapping UPDATE.",
-      "Prevent transient native installer status codes from corrupting Javascript state machine recovery on application resume."
+    "improved": [
+      "Migrated Studio transitions to a centralized Material 3 Motion System.",
+      "Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.",
+      "Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.",
+      "Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter."
     ]
   },
   "mandatory": false

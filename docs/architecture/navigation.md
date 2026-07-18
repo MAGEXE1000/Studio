@@ -124,16 +124,16 @@ On commit, triggers `NavigationDispatcher.pop()`.
 
 ### TransitionCoordinator (`lib/navigation/TransitionCoordinator.ts`)
 
-**Static class** — provides CSS transition parameters.
+**Static class** — provides CSS transition parameters for native and web navigation.
 
 | Transition Type | Easing | Duration |
 |----------------|--------|----------|
 | `modal` | `cubic-bezier(0.34, 1.56, 0.64, 1)` (elastic) | 300ms |
 | `sheet` | `cubic-bezier(0.22, 1, 0.36, 1)` (quintic) | 300ms |
-| `forward` / `backward` | `cubic-bezier(0.25, 1, 0.5, 1)` (ultra-smooth) | 300ms |
+| `forward` / `backward` | `cubic-bezier(0.16, 1, 0.3, 1)` (M3 Decelerate) | 300ms |
 | `replace` | instant | 0ms |
 
-Respects `prefers-reduced-motion` and user `animationSpeed` setting.
+Respects `prefers-reduced-motion` and user `animationSpeed` settings.
 
 ### Route Validation (`lib/navigation/validation.ts`)
 
@@ -187,9 +187,12 @@ Used by: Groovex, Drumex, Vocalex, and the main app shell.
 
 ### AppAnimationSystem (Framer Motion-based)
 
-Used for page-level and component-level animations:
+The core Framer Motion transition engine. See the detailed [Material 3 Motion System](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/motion-system.md) documentation for full implementation patterns.
 
-- `PageTransition` — Framer Motion wrapper (`slide`, `fade`, `scale` types)
+- `PageTransition` — Framer Motion page wrapper (`slide`, `fade`, `scale` types)
+- `FadeThroughTransition` — standard M3 peer-view fade-through helper
+- `SharedAxisTransition` — directional back/next wizard transition helper
+- `ContainerTransform` — card-to-page layout projection morphing component
 - `AppEntryTransition` — spring-based entry (opacity: 0→1, y: 16→0, scale: 0.972→1)
 - `StaggeredReveal` — staggered children entrance with per-item delays
 - `AnimatedAppHeader` — character-by-character title reveal

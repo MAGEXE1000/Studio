@@ -11,6 +11,7 @@ This directory contains the complete engineering architecture knowledge base for
 | [overview.md](overview.md) | Project structure, workspace layout, build flow, entry points |
 | [navigation.md](navigation.md) | Custom navigation system, route model, transitions, gestures |
 | [shared-ui.md](shared-ui.md) | Shared components, design system, animation framework |
+| [motion-system.md](motion-system.md) | Centralized Material 3 Motion System, durations, easings, helpers |
 | [android.md](android.md) | Capacitor integration, native plugins, permissions, lifecycle |
 | [firebase.md](firebase.md) | Authentication, Firestore, Storage, Hosting, security rules |
 | [updater.md](updater.md) | OTA update pipeline, state machine, APK installation flow |

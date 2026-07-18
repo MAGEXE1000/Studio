@@ -1,6 +1,7 @@
 import { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UpdaterFlightRecorder } from '@workspace/studio-core';
+import { MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -86,8 +87,8 @@ export default memo(function StudioUpdateScreen({
 
   const isInstalling = ['installing', 'packageinstaller_visible', 'waitingForUserInstallConfirmation'].includes(state);
 
-  // Material 3 Emphasized motion curve (deceleration ease)
-  const emphasizedTransition = { duration: 0.4, ease: [0.2, 0.8, 0.2, 1] as const };
+  // Material 3 Emphasized motion curve (deceleration ease) from central Motion Engine
+  const emphasizedTransition = { duration: MOTION_DURATIONS.slow, ease: MOTION_EASINGS.emphasized };
 
   // Premium, high-performance CSS animation styles
   const customKeyframes = `
@@ -110,7 +111,7 @@ export default memo(function StudioUpdateScreen({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+      transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.decelerate }}
       style={{
         position: 'fixed',
         inset: 0,

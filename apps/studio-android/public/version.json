@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.0.84",
-  "versionName": "4.0.84",
-  "versionCode": 40084,
-  "version_code": 40084,
-  "commit": "b9be03c3",
-  "releasedAt": "7/15/2026, 10:40:28 AM CST",
-  "buildTimestamp": "7/15/2026, 10:40:28 AM CST",
+  "version": "4.0.85",
+  "versionName": "4.0.85",
+  "versionCode": 40085,
+  "version_code": 40085,
+  "commit": "9a8d9759",
+  "releasedAt": "7/17/2026, 6:40:45 PM CST",
+  "buildTimestamp": "7/17/2026, 6:40:45 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented the Stitch Material 3 redesign for Help & Support on Android.\n• Implemented the Stitch Material 3 redesign for Chords Home screen on Android.\n• Preserved existing diagnostics, search, and core features under Capacitor native isolation.",
-  "whatsNew": "• Implemented the Stitch Material 3 redesign for Help & Support on Android.\n• Implemented the Stitch Material 3 redesign for Chords Home screen on Android.\n• Preserved existing diagnostics, search, and core features under Capacitor native isolation.",
+  "changelog": "• Migrated Studio transitions to a centralized Material 3 Motion System.\n• Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.\n• Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.\n• Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
+  "whatsNew": "• Migrated Studio transitions to a centralized Material 3 Motion System.\n• Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.\n• Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.\n• Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
   "releaseNotes": {
-    "added": [
-      "Implemented the Stitch Material 3 redesign for Help & Support on Android.",
-      "Implemented the Stitch Material 3 redesign for Chords Home screen on Android.",
-      "Preserved existing diagnostics, search, and core features under Capacitor native isolation."
+    "improved": [
+      "Migrated Studio transitions to a centralized Material 3 Motion System.",
+      "Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.",
+      "Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.",
+      "Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter."
     ]
   },
   "mandatory": false

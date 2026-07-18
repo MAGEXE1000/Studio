@@ -20,6 +20,7 @@ import {
 import ChordDiagram from '../diagrams/ChordDiagram';
 import { Button, Input } from '../design-system/StudioDesignSystem';
 import { DialogScaffold } from '../layout/StudioLayoutSystem';
+import { SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 
 interface SongPracticeViewProps {
   song: SongChart;
@@ -732,6 +733,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
           dragConstraints={containerRef}
           onDragEnd={handleDragEnd}
           animate={{ x: overlayPos.x, y: overlayPos.y }}
+          transition={SPRING_PRESETS.soft}
           style={{
             position: 'absolute', top: 80, right: 20, zIndex: 101000,
             width: chordSize === 'sm' ? 100 : (chordSize === 'lg' ? 140 : 120),

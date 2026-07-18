@@ -119,22 +119,27 @@ Full diagnostics UI suite:
 
 ## Animation Framework
 
-### AppAnimationSystem (`navigation/AppAnimationSystem.tsx`, 12 KB)
+The application implements a unified animation framework built on Material 3 motion tokens and Framer Motion (`motion/react`). See [Material 3 Motion System](file:///C:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/motion-system.md) for full token values and implementation details.
 
-7 modules providing the complete animation framework:
+### AppAnimationSystem (`navigation/AppAnimationSystem.tsx`, 16.8 KB)
+
+Core elements of the animation system:
 
 | Module | Purpose |
 |--------|---------|
-| `MOTION_DURATIONS` / `MOTION_EASINGS` | Duration presets (fast: 0.18s, normal: 0.32s, slow: 0.45s) and cubic-bezier curves |
-| `usePrefersReducedMotion()` | Respects system `prefers-reduced-motion` and `settings.animationSpeed` |
-| `useAnimationSpeed()` | Returns speed coefficient (0.6 for fast, 1.0 for normal) |
-| `AnimationCoordinator` | Singleton with `getDuration()`, `getTransition()`, `startTransition()` |
-| `PageTransition` | Framer Motion page wrapper (`slide`, `fade`, `scale` types) |
-| `AppEntryTransition` | Spring-based entry animation |
-| `StaggeredReveal` | Staggered children entrance animation |
-| `AnimatedAppHeader` | Character-by-character title animation |
+| `MOTION_DURATIONS` | Centralized duration presets (`veryFast`: 0.1s, `fast`: 0.2s, `normal`: 0.3s, `slow`: 0.4s) |
+| `MOTION_EASINGS` | Centralized M3 easing curves (`emphasized`, `standard`, `accelerate`, `decelerate`, `linear`) |
+| `SPRING_PRESETS` | Spring animations (`soft`, `medium`, `expressive`) |
+| `usePrefersReducedMotion()` | Checks device preferences and user-settings to toggle off animations |
+| `useAnimationSpeed()` | Returns speed multiplier (e.g. `0.6` for fast speed settings) |
+| `PageTransition` | Custom slide/fade/scale wrapper for top-level pages |
+| `FadeThroughTransition` | M3 fade-through transition helper component |
+| `SharedAxisTransition` | M3 shared-axis directional page-transition component |
+| `ContainerTransform` | M3 container-morphing transition component |
+| `AppEntryTransition` | Elastic spring panel entrance animation |
+| `StaggeredReveal` | Staggered entrance animation for lists and grid items |
+| `AnimatedAppHeader` | Title characters entry effect |
 
-All animations use `motion/react` (Framer Motion) and respect reduced-motion preferences.
 
 ### SharedNavigationContainer (`navigation/SharedNavigationContainer.tsx`, 8.4 KB)
 

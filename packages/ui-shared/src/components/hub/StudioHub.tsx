@@ -17,7 +17,7 @@ import ProfileDropdown from '../kokonutui/profile-dropdown';
 import SmartLoading from '../loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../loading/StudioSkeleton';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
-import { useNavigationCoordinator, PageTransition } from '../../navigation/AppAnimationSystem';
+import { useNavigationCoordinator, PageTransition, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
 
@@ -742,7 +742,7 @@ export default function StudioHub() {
                                     <motion.div
                                       key={idx}
                                       whileHover={{ y: -2, scale: 1.01 }}
-                                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                      transition={SPRING_PRESETS.medium}
                                       style={{
                                         background: isHubLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(20, 20, 24, 0.45)',
                                         border: isHubLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.05)',

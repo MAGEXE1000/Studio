@@ -1,7 +1,7 @@
 import { useChordStore, ACCENT_COLORS, type AppKey } from '@workspace/studio-core';
 import React, { lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AnimatedAppHeader, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
+import { AnimatedAppHeader, MOTION_EASINGS, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 import AppSpinner from '../loading/AppSpinner';
 
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
@@ -74,6 +74,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     <motion.button
       ref={ref}
       whileTap={disabled || loading ? undefined : { scale: 0.96 }}
+      transition={SPRING_PRESETS.soft}
       style={{
         padding: pad,
         fontSize,
@@ -91,6 +92,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         opacity: disabled ? 0.5 : 1,
         outline: 'none',
         transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
+        willChange: 'transform',
         ...style
       }}
       disabled={disabled || loading}
@@ -123,8 +125,15 @@ export function Card({
   className = '',
   ...props
 }: CardProps) {
+  const Component = (interactive ? motion.div : 'div') as any;
+  const motionProps = interactive ? {
+    whileHover: { scale: 1.015, y: -2, boxShadow: 'var(--elevation-mid)' },
+    whileTap: { scale: 0.985, y: 0 },
+    transition: SPRING_PRESETS.soft
+  } : {};
+
   return (
-    <div
+    <Component
       style={{
         borderRadius: 'var(--radius-xl)',
         padding: 'var(--spacing-md)',
@@ -133,15 +142,16 @@ export function Card({
           ? `1.5px solid var(--c-accent-from)`
           : `1px solid var(--c-border)`,
         boxShadow: 'var(--elevation-low)',
-        transition: 'transform 180ms ease, border-color 180ms ease, background-color 180ms ease',
         cursor: interactive ? 'pointer' : 'default',
+        willChange: interactive ? 'transform, box-shadow' : 'auto',
         ...style
       }}
       className={`studio-card ${className}`}
+      {...motionProps}
       {...props}
     >
       {children}
-    </div>
+    </Component>
   );
 }
 
@@ -222,7 +232,7 @@ export function Dialog({
             initial={{ scale: 0.94, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.94, opacity: 0 }}
-            transition={MOTION_EASINGS.spring}
+            transition={SPRING_PRESETS.expressive}
             style={{
               position: 'relative',
               width: '100%',
@@ -390,7 +400,7 @@ export function Sheet({
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={MOTION_EASINGS.spring}
+            transition={SPRING_PRESETS.medium}
             style={{
               position: 'relative',
               width: '100%',
@@ -582,7 +592,9 @@ export function FloatingButton({
 }: FloatingButtonProps) {
   return (
     <motion.button
-      whileTap={{ scale: 0.92 }}
+      whileHover={{ scale: 1.06, y: -2 }}
+      whileTap={{ scale: 0.94, y: 0 }}
+      transition={SPRING_PRESETS.medium}
       style={{
         width: '56px',
         height: '56px',
@@ -596,6 +608,7 @@ export function FloatingButton({
         boxShadow: 'var(--elevation-high)',
         cursor: 'pointer',
         outline: 'none',
+        willChange: 'transform',
         ...style
       }}
       className={`studio-fab ${className}`}

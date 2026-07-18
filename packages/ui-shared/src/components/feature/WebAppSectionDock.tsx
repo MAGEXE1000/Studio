@@ -1,6 +1,7 @@
 import { useChordStore, ACCENT_COLORS, type AppKey, useT, APP_SECTIONS, useStudioPreferences } from '@workspace/studio-core';
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, MotionValue } from 'motion/react';
+import { MOTION_DURATIONS, MOTION_EASINGS, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 
 interface DockItemProps {
   id: string;
@@ -65,7 +66,7 @@ function DockItem({
             initial={{ opacity: 0, y: 10, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.9 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.standard }}
             style={{
               position: 'absolute',
               bottom: '100%',
@@ -124,10 +125,12 @@ function DockItem({
             : 'none',
           transformOrigin: 'bottom center',
           transition: reduceMotion
+            // @ts-ignore
             ? 'none'
-            : 'background-color 200ms ease, color 200ms ease, transform 150ms ease',
+            : `background-color ${MOTION_DURATIONS.fast * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')}), color ${MOTION_DURATIONS.fast * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')}), transform ${MOTION_DURATIONS.fast * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')})`,
         }}
         whileHover={reduceMotion ? {} : { y: -6 }}
+        transition={SPRING_PRESETS.soft}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
       >
@@ -238,7 +241,7 @@ export default function WebAppSectionDock({
           ? '0 12px 36px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.02)'
           : '0 16px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.25)',
         height: '58px', // Constrain container height to prevent layout jump on scale
-        transition: reduceMotion ? 'none' : 'background-color 300ms ease, border-color 300ms ease',
+        transition: reduceMotion ? 'none' : `background-color ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')}), border-color ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')})`,
       }}
     >
       {sections.map((section) => (

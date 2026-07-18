@@ -40,6 +40,7 @@ import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
 import ChangelogSheet from '../sheets/ChangelogSheet';
 import { DialogScaffold } from '../layout/StudioLayoutSystem';
 import { DownloadIcon } from '../icons/DownloadIcon';
+import { SPRING_PRESETS, MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import {
   enableLiquidGlass,
   tagLiquidTarget,
@@ -623,7 +624,7 @@ export default function UpdateIndicator({
               initial={{ opacity: 0, y: -50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={SPRING_PRESETS.medium}
               style={{
                 position: 'fixed',
                 top: 'calc(env(safe-area-inset-top) + 16px)',
@@ -803,7 +804,7 @@ function ActionButton({
       disabled={disabled}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       whileHover={disabled ? undefined : { scale: 1.015 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
+      transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.decelerate }}
       style={{
         ...style,
         outline: 'none',
@@ -2159,7 +2160,7 @@ function UpdateModal({
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+                transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
                 style={{
                   maxHeight: 150,
                   overflowY: 'auto',
@@ -2254,7 +2255,7 @@ function UpdateModal({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+              transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
               style={{
                 maxHeight: 150,
                 overflowY: 'auto',

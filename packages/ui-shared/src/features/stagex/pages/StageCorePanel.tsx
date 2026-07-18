@@ -2,6 +2,7 @@ import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translati
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { MOTION_DURATIONS, MOTION_EASINGS } from '../../../navigation/AppAnimationSystem';
 import { getSharedNavTransform, getSharedNavOpacity, SHARED_NAV_TRANSITION } from '../../../navigation/navStyles';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
@@ -1617,7 +1618,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   opacity: isRightPanelCollapsed ? 0 : 1,
                   x: isRightPanelCollapsed ? 260 : 0
                 }}
-                transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+                transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
                 style={{
                   position: 'absolute',
                   top: 0,

@@ -3,17 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from './navStyles';
 import { BottomNavigation } from '../components/StudioDesignSystem';
+import { MOTION_DURATIONS, MOTION_EASINGS } from './AppAnimationSystem';
 
 
 /* â”€â”€ Crisp inline SVG icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export function IconSongs({ active }: { active: boolean }) {
   const sw = active ? 2.1 : 1.7;
   const ao = active ? 1 : 0;
-  const trans = 'fill-opacity 140ms cubic-bezier(0.34,1.56,0.64,1)';
+  const easeCurve = `cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`;
+  const trans = `fill-opacity ${MOTION_DURATIONS.fast * 1000}ms ${easeCurve}`;
   return (
     <svg viewBox="0 0 24 24" width={22} height={22} fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
       <path d="M9 18V7l10-2.5V16" stroke="currentColor" strokeWidth={sw}
-        style={{ transition: 'stroke-width 120ms ease' }} />
+        style={{ transition: `stroke-width ${MOTION_DURATIONS.veryFast * 1000}ms ${easeCurve}` }} />
       <circle cx="7" cy="18" r="2.5"
         fill="currentColor" fillOpacity={ao}
         stroke="currentColor" strokeWidth={sw - 0.2}
@@ -29,15 +31,16 @@ export function IconSongs({ active }: { active: boolean }) {
 export function IconLibrary({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.7;
   const ao = active ? 1 : 0;
-  const trans = 'fill-opacity 140ms cubic-bezier(0.34,1.56,0.64,1)';
+  const easeCurve = `cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`;
+  const trans = `fill-opacity ${MOTION_DURATIONS.fast * 1000}ms ${easeCurve}`;
   return (
     <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeLinejoin="round" style={{ display: 'block' }}>
       <rect x="3" y="4" width="5" height="16" rx="1.5" strokeWidth={sw}
         fill="currentColor" fillOpacity={ao} style={{ transition: trans }} />
       <rect x="10" y="7" width="4" height="13" rx="1.5" strokeWidth={sw}
-        fill="currentColor" fillOpacity={ao} style={{ transition: `${trans.replace('140ms', '120ms')}` }} />
+        fill="currentColor" fillOpacity={ao} style={{ transition: `fill-opacity ${MOTION_DURATIONS.veryFast * 1000}ms ${easeCurve}` }} />
       <rect x="16" y="9" width="5" height="11" rx="1.5" strokeWidth={sw}
-        fill="currentColor" fillOpacity={ao} style={{ transition: `${trans.replace('140ms', '100ms')}` }} />
+        fill="currentColor" fillOpacity={ao} style={{ transition: `fill-opacity ${MOTION_DURATIONS.veryFast * 1000}ms ${easeCurve}` }} />
     </svg>
   );
 }
@@ -46,8 +49,9 @@ export function IconLibrary({ active }: { active: boolean }) {
 export function IconChords({ active }: { active: boolean }) {
   const sw     = active ? 1.8 : 1.5;
   const dotAo  = active ? 1 : 0;
-  const dotTr  = 'fill-opacity 130ms cubic-bezier(0.34,1.56,0.64,1)';
-  const lineTr = 'stroke-opacity 130ms ease';
+  const easeCurve = `cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`;
+  const dotTr  = `fill-opacity ${MOTION_DURATIONS.fast * 1000}ms ${easeCurve}`;
+  const lineTr = `stroke-opacity ${MOTION_DURATIONS.fast * 1000}ms ${easeCurve}`;
 
   /* Grid: 3 strings (x = 6, 12, 18), 3 frets (y = 7, 12, 17) */
   const strings = [6, 12, 18];
@@ -257,7 +261,7 @@ export default function BottomNav() {
           pointerEvents: 'none',
           zIndex: 0,
           opacity: 1,
-          transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
+          transition: `left ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')}), width ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`,
         }}
       />
 
@@ -296,7 +300,7 @@ export default function BottomNav() {
               opacity: 1,
               /* No scale on active â€” avoids subpixel blur on non-retina screens */
               transform: isPressed ? 'scale(0.91)' : 'scale(1)',
-              transition: 'color 130ms ease, transform 120ms cubic-bezier(0.34,1.56,0.64,1)',
+              transition: `color ${MOTION_DURATIONS.veryFast * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')}), transform ${MOTION_DURATIONS.veryFast * 1000}ms cubic-bezier(${MOTION_EASINGS.standard.join(',')})`,
             }}
           >
             <Icon active={isActive} />

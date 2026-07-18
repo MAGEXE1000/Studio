@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.84';
-export const WEB_VERSION = '4.0.84';
+export const NATIVE_VERSION = '4.0.85';
+export const WEB_VERSION = '4.0.85';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -60,11 +60,12 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Improved",
     items: [
-      "Implemented the Stitch Material 3 redesign for Help & Support on Android.",
-      "Implemented the Stitch Material 3 redesign for Chords Home screen on Android.",
-      "Preserved existing diagnostics, search, and core features under Capacitor native isolation.",
+      "Migrated Studio transitions to a centralized Material 3 Motion System.",
+      "Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.",
+      "Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.",
+      "Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
     ],
   },
 ];

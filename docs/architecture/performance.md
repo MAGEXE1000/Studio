@@ -97,50 +97,41 @@ persist(stateCreator, {
 
 ## Animation Performance
 
+Animations are optimized to run smoothly on mobile WebViews by prioritizing GPU-accelerated properties, hardware layer promotion, and centralized scheduling.
+
+### Centralized Easing & Token Mapping
+By moving to centralized M3 tokens in the `AppAnimationSystem` (e.g., `MOTION_DURATIONS` and `MOTION_EASINGS`), we ensure the browser's style calculation cache is highly hit, avoiding layout recalculation during transitions.
+
+### Hardware Acceleration (GPU Layer Promotion)
+To prevent repaints on heavy page loads, animated components (such as buttons, cards, and floating action buttons) explicitly promote themselves to their own compositor layer:
+- Utilizes `willChange: 'transform'` or `willChange: 'transform, opacity'`.
+- Leverages hardware-accelerated CSS properties (`transform`, `opacity`, `scale`) rather than animating properties that trigger layout flow (`top`, `margin`, `width`, `height`).
+
 ### Reduced Motion Support
-
-All animation systems respect user preferences:
-
-```typescript
-function usePrefersReducedMotion(): boolean {
-  // Checks both system prefers-reduced-motion AND settings.animationSpeed
-  const systemPrefers = useMediaQuery('(prefers-reduced-motion: reduce)');
-  const { animationSpeed } = useChordStore(s => s.settings);
-  return systemPrefers || animationSpeed === 'reduced';
-}
-```
+All animated elements centrally respect accessibility flags via `usePrefersReducedMotion()`. When active:
+- Standard motion curves are disabled.
+- Transitions either execute instantly (0ms) or switch directly to simple opacity changes to prevent motion-induced discomfort.
 
 ### Animation Speed Scaling
-
+Dynamic speed scaling allows the user to accelerate UI transitions.
 ```typescript
 function useAnimationSpeed(): number {
-  // Returns multiplier: 0.6 for fast, 1.0 for normal
+  // Returns multiplier: 0.6 for fast (animates 40% faster), 1.0 for normal
   const { animationSpeed } = useChordStore(s => s.settings);
   return animationSpeed === 'fast' ? 0.6 : 1.0;
 }
 ```
+All duration tokens are dynamically multiplied by this coefficient before evaluation in Framer Motion wrappers.
 
 ### Transition Coordination
-
-`AnimationCoordinator` (singleton) dispatches custom events to prevent overlapping transitions:
-
+`AnimationCoordinator` (singleton) dispatches custom events to prevent overlapping transitions and thrashing:
 ```typescript
 AnimationCoordinator.startTransition('page-change');
 // → dispatches 'studio:transition-start' on window
 // → after duration, dispatches 'studio:transition-end'
 ```
+This is used to defer expensive audio engine actions until the current animation frame completes.
 
-### CSS Transition Curves
-
-All transition types use premium cubic-bezier curves:
-
-| Type | Curve | Character |
-|------|-------|-----------|
-| Modal | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Elastic overshoot |
-| Sheet | `cubic-bezier(0.22, 1, 0.36, 1)` | Quintic ease-out |
-| Forward/Backward | `cubic-bezier(0.25, 1, 0.5, 1)` | Ultra-smooth decelerate |
-
-Reduced motion: 0ms duration, instant transitions.
 
 ## Scroll-Hide Navigation
 

@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.88';
-export const WEB_VERSION = '4.0.88';
+export const NATIVE_VERSION = '4.0.89';
+export const WEB_VERSION = '4.0.89';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,24 +62,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Integrated full Material 3 Motion System and centralized Motion Engine.",
-      "Standardized bottom navigation bar sizing and radius across Chords, Vocalex, and Hub.",
-      "Implemented M3 Emphasized sliding pill transitions for active tab selection.",
-      "Added settings entrance keyframe animations (settings-content-fade-in) for settings panels.",
-    ],
-  },
-  {
-    heading: "Improved",
-    items: [
-      "Scoped interactive hover styles inside media-hover blocks to prevent sticky WebView touch states.",
-      "Polished Groovex library list rows and chip radii to match M3 curves.",
-      "Optimized performance by utilizing GPU-promoted will-change layer styles.",
-    ],
-  },
-  {
-    heading: "Fixed",
-    items: [
-      "Resolved touch interaction sticking state bugs on cards, buttons, and settings rows.",
+      "Major visual redesign of the Studio Hub with a center-aligned floating top app bar and warm greetings.",
+      "Integrated a premium quick actions horizontal shortcuts gallery and independent branded module cards.",
+      "Integrated the Settings tab directly into the Profile screen, streamlining main Hub navigation.",
+      "Upgraded the bottom navigation bar to a floating, premium M3 surface with progressive blur backgrounds and spring active indicators.",
+      "Implemented high-performance Progressive Blur across floating sheets, dialogs, and navigation panels.",
+      "Upgraded transitions to fluid, spring-driven Shared Axis, Container Transform, and Emphasized motion curves.",
     ],
   },
 ];

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.88"
-$VersionCode = "40088"
-$ReleaseNote = "4.0.88 - Consolidates M3 Motion System, touch hover WebView prevention, navigation bar unification, and Groovex list polish"
+$VersionName = "4.0.89"
+$VersionCode = "40089"
+$ReleaseNote = "4.0.89 - Studio Hub Redesign: Center-aligned app bar, quick actions horizontal gallery, floating bottom nav bar with progressive blur, and spring-driven transitions"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

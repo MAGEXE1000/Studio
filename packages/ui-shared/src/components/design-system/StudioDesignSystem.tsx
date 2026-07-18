@@ -662,7 +662,7 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
         height: '60px',
         borderRadius: '2rem',
         border: `1px solid var(--c-border)`,
-        background: 'var(--c-surface-glass-bg)',
+        background: 'transparent',
         boxShadow: 'var(--elevation-high)',
         zIndex: 50,
         overflow: 'hidden',
@@ -672,6 +672,10 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
       className={`studio-bottom-nav ${className}`}
       {...props}
     >
+      {/* Flagship progressive blur background layer */}
+      <div className="progressive-blur-bg-bottom" style={{ position: 'absolute', inset: 0, zIndex: -2, pointerEvents: 'none' }} />
+      {/* Semi-transparent color overlay for theme matching */}
+      <div style={{ position: 'absolute', inset: 0, background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.45))', zIndex: -1, pointerEvents: 'none' }} />
       {children}
     </nav>
   );

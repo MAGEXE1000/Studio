@@ -205,6 +205,26 @@ export default function StudioHub() {
   }, []);
   const [zooming, setZooming] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(null);
+  useEffect(() => {
+    if (!authUser?.uid) { setCustomPhoto(null); return; }
+    try {
+      const stored = localStorage.getItem('studio_custom_avatar_' + authUser.uid);
+      setCustomPhoto(stored || null);
+    } catch { setCustomPhoto(null); }
+    
+    const handleUpdate = () => {
+      if (!authUser?.uid) return;
+      try {
+        const stored = localStorage.getItem('studio_custom_avatar_' + authUser.uid);
+        setCustomPhoto(stored || null);
+      } catch {}
+    };
+    window.addEventListener('custom-photo-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('custom-photo-updated', handleUpdate);
+    };
+  }, [authUser]);
   const [successAnimationState, setSuccessAnimationState] = useState<'entering' | 'exiting' | 'hidden'>('hidden');
   const [successName, setSuccessName] = useState('');
   const homeScrollRef = useRef<HTMLDivElement>(null);
@@ -540,295 +560,323 @@ export default function StudioHub() {
                   transform: 'translate3d(0, 0, 0)',
                   WebkitOverflowScrolling: 'touch',
                 }}
-              >
-                {/* 🏠 HOME TAB */}
+              >                {/* 🏠 HOME TAB */}
                 {tabId === 'home' && (
                   <div data-hub-tab-content style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
 
+                    {/* Centered Floating Glass Top App Bar */}
+                    <div className="fixed top-0 left-0 w-full z-50 flex justify-center pt-4 px-4">
+                      <header 
+                        style={{
+                          width: '100%',
+                          maxWidth: '448px',
+                          background: 'transparent',
+                          border: `1px solid var(--c-border, rgba(128,128,128,0.12))`,
+                        }}
+                        className="flex justify-between items-center px-6 py-3 rounded-full shadow-lg relative overflow-hidden"
+                      >
+                        {/* Progressive blur inside header */}
+                        <div className="progressive-blur-bg-top" style={{ position: 'absolute', inset: 0, zIndex: -2, pointerEvents: 'none' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.4))', zIndex: -1, pointerEvents: 'none' }} />
 
-
-                    {/* Logo area */}
-                    <div className={introFinished ? 'spring-in' : ''} style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center',
-                      paddingTop: 'clamp(36px, 7vh, 56px)',
-                    }}>
-                      <div data-intro-target="studio" style={{ color: isHubLight ? '#18181b' : 'white', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <StudioLogo size={56} />
-                      </div>
-                      <p style={{ fontSize: 28, fontWeight: 800, margin: '10px 0 0', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                        <StudioTitleReveal text={String(t.hub.studio)} />
-                      </p>
+                        <div className="flex items-center gap-3">
+                          <h1 style={{ fontFamily: 'Manrope', fontWeight: 900, color: 'var(--c-text-primary)' }} className="text-xl tracking-tighter">
+                            Studio
+                          </h1>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => launchApp('chords')}
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '50%',
+                              backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+                              border: '1px solid rgba(128,128,128,0.08)',
+                            }}
+                            className="flex items-center justify-center hover:bg-surface-bright active:scale-90 transition-transform cursor-pointer outline-none text-on-surface-variant"
+                          >
+                            <span className="material-symbols-outlined text-xl">search</span>
+                          </button>
+                          
+                          {/* Avatar icon entry point for Profile/Settings */}
+                          <button 
+                            onClick={() => {
+                              setTab('profile');
+                              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' });
+                            }}
+                            style={{
+                              width: '36px', height: '36px', borderRadius: '50%',
+                              border: `2px solid ${accent.from}40`,
+                              backgroundColor: 'var(--app-surface-highest, rgba(128,128,128,0.12))',
+                              overflow: 'hidden',
+                              padding: 0,
+                            }}
+                            className="flex items-center justify-center hover:scale-105 active:scale-90 transition-all cursor-pointer outline-none"
+                          >
+                            {customPhoto || authUser?.photoURL ? (
+                              <img src={(customPhoto || authUser?.photoURL) ?? undefined} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                            ) : authUser ? (
+                              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}>
+                                {(authUser.displayName?.[0] ?? 'S').toUpperCase()}
+                              </span>
+                            ) : (
+                              <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
+                                account_circle
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                      </header>
                     </div>
 
-                    {/* Combined welcome + apps card */}
-                    <GradientBorderCard
-                      data-livex-hub-content="true"
-                      borderRadius={24}
-                      wrapStyle={{
-                        width: '100%', maxWidth: 380,
-                        marginTop: 'clamp(28px, 6vh, 48px)',
-                        animation: introFinished
-                          ? 'spring-in 400ms 80ms cubic-bezier(0.34,1.56,0.64,1) both, gb-spin 14s linear infinite'
-                          : 'gb-spin 14s linear infinite',
-                      }}
-                      innerStyle={{
-                        overflow: 'hidden',
-                        transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
-                      }}
-                    >
-                      {/* Welcome header */}
-                      <div style={{ padding: '22px 22px 18px' }}>
-                        <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-                          <EncryptedText
-                            text={greeting}
-                            onlyOnce={false}
-                            paused={!introFinished}
-                            revealDelayMs={35}
-                            flipDelayMs={45}
-                            encryptedClassName="text-[var(--accent-from)] opacity-60 font-mono"
-                          />
-                        </p>
-                        <p style={{
-                          fontSize: 14, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500,
-                          opacity: introFinished ? 1 : 0,
-                          transition: 'opacity 300ms ease'
-                        }}>
+                    {/* Dashboard Contents Scroll Area - spacing for header */}
+                    <div style={{ width: '100%', maxWidth: '380px', marginTop: '100px' }} className="flex flex-col gap-6 w-full">
+                      
+                      {/* Greetings Section */}
+                      <section className="space-y-1">
+                        <h2 style={{ fontFamily: 'Manrope', fontWeight: 800, color: 'var(--c-text-primary)' }} className="text-3xl leading-tight">
+                          {greeting}
+                        </h2>
+                        <p style={{ fontFamily: 'Inter', color: 'var(--c-text-secondary)', opacity: 0.85 }} className="text-sm">
                           {subtitle}
                         </p>
-                      </div>
+                      </section>
 
-                      {/* Divider */}
-                      <div style={{ height: 1, background: 'rgba(128,128,128,0.1)', margin: '0 16px' }} />
+                      {/* Quick Actions Shortcuts horizontal list */}
+                      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <h3 style={{
+                          fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
+                          fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
+                        }} className="px-1">
+                          {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
+                        </h3>
+                        <div style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '4px 0' }} className="hide-scrollbar">
+                          
+                          {/* Chord Builder Shortcut */}
+                          <button 
+                            onClick={() => {
+                              launchApp('chords');
+                              setTimeout(() => {
+                                NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+                              }, 150);
+                            }}
+                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
+                          >
+                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>music_note</span>
+                            </div>
+                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+                              {lang === 'es' ? 'Constructor' : 'Builder'}
+                            </span>
+                          </button>
 
-                      {/* App rows */}
-                      {([
-                        { app: 'chords' as TargetApp, Logo: ChordexLogo,       name: 'Chordex',    desc: t.hub.chordexDesc       },
-                        { app: 'drums'  as TargetApp, Logo: DrumexLogo,        name: 'Drumex',     desc: t.hub.drumexDesc        },
-                        { app: 'stage'  as TargetApp, Logo: StagexLogoIcon, name: 'Stagex',     desc: t.hub.stagexDesc        },
-                        { app: 'groovex' as TargetApp, Logo: GroovexLogo,     name: 'Groovex',    desc: t.hub.groovexDesc       },
-                        { app: 'vocalex' as TargetApp, Logo: VocalexLogo,    name: 'Vocalex',    desc: t.hub.vocalexDesc       },
-                      ]).map(({ app, Logo, name, desc }, i, arr) => (
-                        <AppRow
-                          key={app}
-                          app={app}
-                          Logo={Logo}
-                          name={name}
-                          desc={desc}
-                          last={i === arr.length - 1}
-                          onClick={() => launchApp(app)}
-                        />
-                      ))}
-                    </GradientBorderCard>
+                          {/* Songs Library Shortcut */}
+                          <button 
+                            onClick={() => {
+                              launchApp('chords');
+                              setTimeout(() => {
+                                NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+                              }, 150);
+                            }}
+                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
+                          >
+                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>library_music</span>
+                            </div>
+                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+                              {lang === 'es' ? 'Biblioteca' : 'Library'}
+                            </span>
+                          </button>
 
-                  </div>
-                )}
+                          {/* App Update Shortcut */}
+                          <button 
+                            onClick={() => {
+                              setTab('profile');
+                              setTimeout(() => {
+                                NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'updater' });
+                              }, 150);
+                            }}
+                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
+                          >
+                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>system_update_alt</span>
+                            </div>
+                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+                              {lang === 'es' ? 'Actualizar' : 'Update'}
+                            </span>
+                          </button>
 
-                {/* 👤 PROFILE TAB */}
-                {tabId === 'profile' && (
-                  <>
-                    <style>{HUB_SETTINGS_CSS}</style>
-                    <ProfileHeaderBack onBack={() => {
-                      if (NavigationDispatcher.canGoBack()) {
-                        NavigationDispatcher.pop();
-                      } else {
-                        setTab('home');
-                      }
-                    }} />
-                    <Suspense fallback={<SmartLoading fallbackSkeleton={<div style={{ padding: '0 20px 80px' }}><StudioSkeletonProfile /></div>} />}>
-                      {authUser ? (
-                        <div data-hub-tab-content style={{ padding: '0 0 100px' }}>
-                        <AccountSettingsPage
-                          accent={accent}
-                          cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
-                          onBack={() => {
-                            if (NavigationDispatcher.canGoBack()) {
-                              NavigationDispatcher.pop();
-                            } else {
-                              setTab('home');
-                            }
-                          }}
-                        />
+                          {/* Preferences Shortcut */}
+                          <button 
+                            onClick={() => {
+                              setTab('profile');
+                              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' });
+                            }}
+                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
+                          >
+                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>settings</span>
+                            </div>
+                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+                              {lang === 'es' ? 'Ajustes' : 'Settings'}
+                            </span>
+                          </button>
+
                         </div>
-                      ) : (
-                        <div data-hub-tab-content style={{ padding: '0 20px 80px' }}>
-                          <div style={{ marginBottom: 16 }}>
-                            <StudioFamilyOrbit
-                              items={[
-                                { key: 'chordex', label: 'Chordex', node: <ChordexLogo size={34} /> },
-                                { key: 'drumex',  label: 'Drumex',  node: <DrumexLogo size={34} /> },
-                                { key: 'stagex',  label: 'Stagex',  node: <StagexLogoIcon size={34} /> },
-                                { key: 'groovex', label: 'Groovex', node: <GroovexLogo size={34} /> },
-                                { key: 'vocalex', label: 'Vocalex', node: <VocalexLogo size={34} /> },
-                              ]}
-                            />
-                          </div>
+                      </section>
 
-                          <AccountCard
-                            accent={accent}
-                            cardStyle={{ background: 'var(--app-surface)', borderRadius: '1.25rem', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.07)', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', marginBottom: 20 }}
-                            rowStyle={{ padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 12 }}
-                          />
-
-                          {/* Polished Benefits Section */}
-                          {(() => {
-                            const benefitsList = [
-                              {
-                                icon: 'sync',
-                                title: lang === 'es' ? 'Sincronización en la Nube' : 'Cloud Sync',
-                                desc: lang === 'es' ? 'Sincroniza tus proyectos, canciones, setlists y configuraciones entre todos tus dispositivos de forma segura.' : 'Sync your workspace, projects, and transpositions across all devices securely.',
-                              },
-                              {
-                                icon: 'devices',
-                                title: lang === 'es' ? 'Acceso Multi-Dispositivo' : 'Multi-Device Access',
-                                desc: lang === 'es' ? 'Mantén tu progreso en tiempo real al cambiar entre tu teléfono, tablet o computadora.' : 'Keep your progress synced in real-time when switching between mobile, tablet, or web.',
-                              },
-                              {
-                                icon: 'backup',
-                                title: lang === 'es' ? 'Respaldo Seguro' : 'Secure Cloud Backup',
-                                desc: lang === 'es' ? 'Nunca pierdas tu trabajo. Tus datos locales se respaldan automáticamente en la nube.' : 'Never lose your progress. Your local creations are backed up automatically in the cloud.',
-                              },
-                              {
-                                icon: 'palette',
-                                title: lang === 'es' ? 'Espacio Personalizado' : 'Personalized Workspace',
-                                desc: lang === 'es' ? 'Guarda tus preferencias de color de acento, temas visuales y ajustes personalizados de cada sub-app.' : 'Save your custom accent colors, visual themes, and per-app settings to your profile.',
-                              },
-                              {
-                                icon: 'settings_backup_restore',
-                                title: lang === 'es' ? 'Recuperación Sencilla' : 'Instant Recovery',
-                                desc: lang === 'es' ? 'Restaura todo tu ecosistema de Studio al instante en caso de cambiar o reinstalar el dispositivo.' : 'Restore your entire Studio setup instantly when setting up a new device or browser.',
-                              },
-                              {
-                                icon: 'rocket_launch',
-                                title: lang === 'es' ? 'Herramientas Colaborativas' : 'Upcoming Collaborations',
-                                desc: lang === 'es' ? 'Prepárate para compartir setlists, colaborar en tiempo real y usar las nuevas herramientas en la nube.' : 'Prepare your account for real-time setlist sharing, jam tools, and cloud collaboration.',
-                                comingSoon: true
-                              }
-                            ];
-
-                            return (
-                              <div style={{ marginTop: 28, padding: '0 4px 20px', textAlign: 'center' }}>
-                                <h3 style={{
-                                  fontSize: 20,
-                                  fontWeight: 800,
-                                  fontFamily: 'Manrope, sans-serif',
-                                  color: 'var(--c-text-primary)',
-                                  margin: '0 0 6px',
-                                  letterSpacing: '-0.02em',
-                                }}>
-                                  {lang === 'es' ? 'Tu espacio de trabajo de Studio, en todas partes' : 'Unlock the Full Power of Studio'}
-                                </h3>
-                                <p style={{
-                                  fontSize: 12.5,
-                                  fontFamily: 'Inter, sans-serif',
-                                  color: 'var(--c-text-secondary)',
-                                  opacity: 0.75,
-                                  lineHeight: 1.45,
-                                  margin: '0 auto 24px',
-                                  maxWidth: 340,
-                                }}>
-                                  {lang === 'es'
-                                    ? 'Crea una cuenta gratuita para conectar tus dispositivos, habilitar respaldos y acceder a funciones premium.'
-                                    : 'Create a free account to back up your projects, enable seamless syncing, and unlock upcoming collaborative tools.'}
-                                </p>
-
+                      {/* Studio Modules grid columns */}
+                      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <h3 style={{
+                          fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
+                          fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
+                        }} className="px-1">
+                          {lang === 'es' ? 'Módulos del Ecosistema' : 'Studio Modules'}
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} className="w-full">
+                          {([
+                            { app: 'chords' as TargetApp, Logo: ChordexLogo, name: 'Chordex', desc: t.hub.chordexDesc, color: accent.from },
+                            { app: 'drums' as TargetApp, Logo: DrumexLogo, name: 'Drumex', desc: t.hub.drumexDesc, color: accent.from },
+                            { app: 'stage' as TargetApp, Logo: StagexLogoIcon, name: 'Stagex', desc: t.hub.stagexDesc, color: accent.from },
+                            { app: 'groovex' as TargetApp, Logo: GroovexLogo, name: 'Groovex', desc: t.hub.groovexDesc, color: accent.from, active: true },
+                            { app: 'vocalex' as TargetApp, Logo: VocalexLogo, name: 'Vocalex', desc: t.hub.vocalexDesc, color: accent.from }
+                          ]).map(({ app, Logo, name, desc, color, active }) => (
+                            <motion.button
+                              key={app}
+                              onClick={() => launchApp(app)}
+                              whileTap={{ scale: 0.96 }}
+                              transition={SPRING_PRESETS.soft}
+                              style={{
+                                display: 'flex', alignItems: 'center',
+                                width: '100%', padding: '14px 16px',
+                                background: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+                                border: active ? `1.5px solid ${color}` : '1px solid rgba(128,128,128,0.08)',
+                                borderRadius: '16px',
+                                cursor: 'pointer', textAlign: 'left',
+                                boxSizing: 'border-box',
+                                outline: 'none',
+                                position: 'relative',
+                                justifyContent: 'space-between'
+                              }}
+                              className="sc-module-card group"
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                                 <div style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 12,
-                                  textAlign: 'left',
-                                  width: '100%',
-                                  maxWidth: 380,
-                                  margin: '0 auto',
+                                  width: '40px', height: '40px', borderRadius: '12px',
+                                  backgroundColor: active ? `${color}15` : 'var(--app-surface-highest, rgba(128,128,128,0.12))',
+                                  display: 'flex', alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: color,
+                                  flexShrink: 0
                                 }}>
-                                  {benefitsList.map((item, idx) => (
-                                    <motion.div
-                                      key={idx}
-                                      whileHover={isHoverable ? { y: -2, scale: 1.01 } : undefined}
-                                      transition={SPRING_PRESETS.medium}
-                                      style={{
-                                        background: isHubLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(20, 20, 24, 0.45)',
-                                        border: isHubLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.05)',
-                                        borderRadius: 18,
-                                        padding: '14px 16px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 14,
-                                        backdropFilter: 'blur(16px)',
-                                        WebkitBackdropFilter: 'blur(16px)',
-                                        boxShadow: isHubLight ? '0 4px 16px rgba(0,0,0,0.03)' : '0 4px 20px rgba(0, 0, 0, 0.15)',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                      }}
-                                    >
-                                      {/* Left Glowing Icon Circle */}
-                                      <div style={{
-                                        width: 42,
-                                        height: 42,
-                                        borderRadius: 14,
-                                        background: `color-mix(in srgb, ${accent.from} 12%, transparent)`,
-                                        border: `1px solid color-mix(in srgb, ${accent.from} 20%, transparent)`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0,
+                                  <Logo size={20} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
+                                      {name}
+                                    </span>
+                                    {active && (
+                                      <span style={{
+                                        fontSize: '8px', padding: '2px 4px', borderRadius: '4px',
+                                        backgroundColor: `${color}20`, color: color, fontWeight: 'bold', fontFamily: 'Inter',
+                                        textTransform: 'uppercase'
                                       }}>
-                                        <span className="material-symbols-outlined" style={{
-                                          fontSize: 20,
-                                          color: accent.from,
-                                          fontVariationSettings: "'FILL' 1"
-                                        }}>
-                                          {item.icon}
-                                        </span>
-                                      </div>
-
-                                      {/* Right Content */}
-                                      <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                          <h4 style={{
-                                            fontSize: 13.5,
-                                            fontWeight: 700,
-                                            fontFamily: 'Manrope, sans-serif',
-                                            color: 'var(--c-text-primary)',
-                                            margin: 0,
-                                          }}>
-                                            {item.title}
-                                          </h4>
-                                          {item.comingSoon && (
-                                            <span style={{
-                                              fontSize: 8,
-                                              fontWeight: 800,
-                                              color: accent.from,
-                                              background: `color-mix(in srgb, ${accent.from} 14%, transparent)`,
-                                              padding: '1px 5px',
-                                              borderRadius: 99,
-                                              textTransform: 'uppercase',
-                                              letterSpacing: '0.03em',
-                                              fontFamily: 'Manrope, sans-serif',
-                                            }}>
-                                              {lang === 'es' ? 'Próximamente' : 'Coming soon'}
-                                            </span>
-                                          )}
-                                        </div>
-                                        <p style={{
-                                          fontSize: 11,
-                                          fontFamily: 'Inter, sans-serif',
-                                          color: 'var(--c-text-secondary)',
-                                          opacity: 0.8,
-                                          lineHeight: 1.4,
-                                          margin: '3px 0 0',
-                                        }}>
-                                          {item.desc}
-                                        </p>
-                                      </div>
-                                    </motion.div>
-                                  ))}
+                                        {lang === 'es' ? 'En Vivo' : 'Live'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', marginTop: '2px' }}>
+                                    {desc}
+                                  </span>
                                 </div>
                               </div>
-                            );
-                          })()}
+                              <span className="material-symbols-outlined text-on-surface-variant/40 text-lg group-hover:text-tertiary transition-colors flex items-center">
+                                chevron_right
+                              </span>
+                            </motion.button>
+                          ))}
                         </div>
-                      )}
-                    </Suspense>
+                      </section>
+
+                      {/* Recent Sessions list activity */}
+                      <section style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: '20px' }} className="w-full">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 4px' }}>
+                          <h3 style={{
+                            fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
+                            fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
+                          }}>
+                            {lang === 'es' ? 'Sesiones Recientes' : 'Recent Sessions'}
+                          </h3>
+                        </div>
+                        <div style={{
+                          backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          border: '1px solid rgba(128,128,128,0.08)'
+                        }} className="w-full">
+                          {/* Midnight Jam session */}
+                          <div 
+                            onClick={() => launchApp('chords')}
+                            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}
+                            className="hover:bg-surface-bright/20 transition-colors border-b border-outline-variant/5"
+                          >
+                            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--app-surface-highest)', overflow: 'hidden', opacity: 0.7 }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined" style={{ color: accent.from }}>music_video</span>
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>
+                                Neon Midnight Jam
+                              </h5>
+                              <p style={{ fontSize: '10px', color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
+                                3h ago • Chordex
+                              </p>
+                            </div>
+                            <span className="material-symbols-outlined text-on-surface-variant text-base">more_vert</span>
+                          </div>
+
+                          {/* Percussion Layer session */}
+                          <div 
+                            onClick={() => launchApp('drums')}
+                            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}
+                            className="hover:bg-surface-bright/20 transition-colors"
+                          >
+                            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--app-surface-highest)', overflow: 'hidden', opacity: 0.7 }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined" style={{ color: accent.from }}>drum</span>
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>
+                                Percussion Layer B
+                              </h5>
+                              <p style={{ fontSize: '10px', color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
+                                Yesterday • Drumex
+                              </p>
+                            </div>
+                            <span className="material-symbols-outlined text-on-surface-variant text-base">more_vert</span>
+                          </div>
+
+                        </div>
+                      </section>
+
+                    </div>
+                  </div>
+                )}
+                          {/* 👤 PROFILE & SETTINGS TAB */}
+                {tabId === 'profile' && (
+                  <>
+                    <HubSettings
+                      accent={accent}
+                      scrollRef={profileScrollRef}
+                      authUser={authUser}
+                      onProfile={() => {
+                        NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+                      }}
+                      tab={tab}
+                      setTab={setTab}
+                      showDevToast={showDevToast}
+                      handleLogoTap={handleLogoTap}
+                      devToast={devToast}
+                      renderDevToast={renderDevToast}
+                    />
 
                     {/* Premium Login Success Check Overlay */}
                     {successAnimationState !== 'hidden' && (
@@ -964,22 +1012,6 @@ export default function StudioHub() {
                       </div>
                     )}
                   </>
-                )}
-
-                {/* ⚙️ SETTINGS TAB */}
-                {tabId === 'settings' && (
-                  <HubSettings
-                    accent={accent}
-                    scrollRef={settingsScrollRef}
-                    authUser={authUser}
-                    onProfile={() => setTab('profile')}
-                    tab={tab}
-                    setTab={setTab}
-                    showDevToast={showDevToast}
-                    handleLogoTap={handleLogoTap}
-                    devToast={devToast}
-                    renderDevToast={renderDevToast}
-                  />
                 )}
 
                 {/* ❓ HELP TAB */}

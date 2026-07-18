@@ -1,6 +1,6 @@
 {
   "name": "@workspace/studio-core",
-  "version": "4.0.87",
+  "version": "4.0.89",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",

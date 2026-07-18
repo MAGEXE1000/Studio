@@ -61,6 +61,7 @@ import { decodeReactError } from '../feedback/ErrorBoundary';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
 import UpdaterDiagnosticsPage from '../updater-diagnostics/UpdaterDiagnosticsPage';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
+import MotionPlaygroundView from './MotionPlaygroundView';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -3692,6 +3693,28 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
                     </div>
                   </button>
+
+                  {/* Motion Playground */}
+                  <button
+                    onClick={() => setSubView('motion_playground')}
+                    className="btn-smooth"
+                    style={cardContainerStyle('motion_playground')}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#a78bfa', fontVariationSettings: "'FILL' 0" }}>motion_photos_on</span>
+                        <div>
+                          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>Motion Playground</h3>
+                          <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.3 }}>Prototype and compare different launch animations.</p>
+                        </div>
+                      </div>
+                      <span style={badgeStyle('experimental')}>Experimental</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 16 }}>
+                      <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>5 Flagship concepts loaded</span>
+                      <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}>arrow_forward</span>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -3854,7 +3877,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
         <SharedNavigationContainer
           activeView={subView}
-          viewOrder={['dashboard', 'apps', 'stagex', 'updater_diagnostics', 'system', 'logs', 'performance', 'network']}
+          viewOrder={['dashboard', 'apps', 'stagex', 'updater_diagnostics', 'system', 'logs', 'performance', 'network', 'motion_playground']}
         >
           {(viewId) => (
             <div style={{
@@ -4305,6 +4328,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             </div>
           </div>
         )
+      )}
+
+      {viewId === 'motion_playground' && (
+        <MotionPlaygroundView accent={accent} onBack={handleSubViewBack} />
       )}
             </div>
           )}

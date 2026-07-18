@@ -134,6 +134,7 @@ export interface AppSettings {
   activityHistoryEnabled: boolean;
   developerMode: boolean;
   syncBackendProvider: 'firebase-firestore-legacy' | 'supabase-realtime' | 'supabase-powersync';
+  launchAnimationPreset?: 'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
 }
 
 interface ChordStore {
@@ -318,6 +319,7 @@ export const useChordStore = create<ChordStore>()(
         activityHistoryEnabled: true,
         developerMode: false,
         syncBackendProvider: (import.meta.env.VITE_SYNC_BACKEND_PROVIDER as any) || 'supabase-realtime',
+        launchAnimationPreset: 'fluid_surface',
         perApp: {
           hub:    { theme: 'dark', accentColor: 'blue', amoledMode: false },
           chords: { theme: 'dark', accentColor: 'blue', amoledMode: false },

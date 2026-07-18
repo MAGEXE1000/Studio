@@ -31,7 +31,7 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer } from '@workspace/ui-shared';
+import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine } from '@workspace/ui-shared';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -729,6 +729,7 @@ export default function App() {
   const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
   const isWebDesktop = useIsWebDesktop();
+  const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
 
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);
@@ -1625,14 +1626,11 @@ export default function App() {
     document.documentElement.classList.add('app-route');
     document.documentElement.classList.remove('landing-route');
     
+    // Dismiss index.html vanilla splash instantly to let React LaunchAnimationEngine take over
     const intro = document.getElementById('intro');
-    if (intro && (window as any).__introReturnedEarly) {
-      intro.style.transition = 'opacity 500ms ease-out';
-      intro.style.opacity = '0';
-      setTimeout(() => {
-        intro.classList.add('dismissed');
-        if (intro.parentNode) intro.parentNode.removeChild(intro);
-      }, 550);
+    if (intro) {
+      intro.style.display = 'none';
+      if (intro.parentNode) intro.parentNode.removeChild(intro);
       (window as any).__introDone = true;
       window.dispatchEvent(new Event('studio-intro-done'));
     }
@@ -2403,6 +2401,15 @@ export default function App() {
       </ErrorBoundary>
 
       {exitToast && renderExitToast()}
+
+      {showLaunchOverlay && (
+        <LaunchAnimationEngine
+          preset={settings.launchAnimationPreset || 'fluid_surface'}
+          onComplete={() => setShowLaunchOverlay(false)}
+          isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+          isAmoled={settings.perApp?.hub?.amoledMode}
+        />
+      )}
     </div>
   );
 

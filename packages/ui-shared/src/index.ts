@@ -75,3 +75,4 @@ export * from './components/StudioLayoutSystem';
 export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';
 export { ActionButton } from './components/design-system/ActionButton';
 export { SharedNavigationBar } from './navigation/SharedNavigationBar';
+export { LaunchAnimationEngine, type LaunchPreset } from './components/launch/LaunchAnimationEngine';

@@ -1,6 +1,6 @@
 ### Added
-- Unified bottom navigation architecture across all applications using SharedNavigationBar.
-- Completely removed legacy BottomNav.tsx wrapper and all custom navigation bar containers.
-- Redesigned Hub layout to feature exactly three tabs: Notifications, Home, and Settings.
-- Integrated premium spring-driven gesture compression on tab pointer down and bounce-back.
-- Added smooth spring active scaling transitions to selected navigation icons.
+- Redesigned launch experience on Android with a premium, spring-driven logo reveal sequence.
+- Enforced clean branding by removing all text ("Livex", "by Mag") from the cold boot splash screen.
+- Unified five distinct motion concepts under a single, high-performance Launch Animation Engine.
+- Implemented an interactive Developer Options Motion Playground for looping, previewing, and comparing launch animations.
+- Integrated live telemetry telemetry (FPS, frame drop, frame time) to track performance in the playground.

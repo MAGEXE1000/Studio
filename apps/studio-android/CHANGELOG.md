@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.96
+
+### Added
+- Redesigned launch experience on Android with a premium, spring-driven logo reveal sequence.
+- Enforced clean branding by removing all text ("Livex", "by Mag") from the cold boot splash screen.
+- Unified five distinct motion concepts under a single, high-performance Launch Animation Engine.
+- Implemented an interactive Developer Options Motion Playground for looping, previewing, and comparing launch animations.
+- Integrated live telemetry telemetry (FPS, frame drop, frame time) to track performance in the playground.
+
 ## 4.0.95
 
 ### Added

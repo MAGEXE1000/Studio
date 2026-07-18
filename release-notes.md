@@ -1,6 +1,7 @@
 ### Added
-- Redesigned launch experience on Android with a premium, spring-driven logo reveal sequence.
-- Enforced clean branding by removing all text ("Livex", "by Mag") from the cold boot splash screen.
-- Unified five distinct motion concepts under a single, high-performance Launch Animation Engine.
-- Implemented an interactive Developer Options Motion Playground for looping, previewing, and comparing launch animations.
-- Integrated live telemetry telemetry (FPS, frame drop, frame time) to track performance in the playground.
+- Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.
+- Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.
+- Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.
+- Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.
+- Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).
+- Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes.

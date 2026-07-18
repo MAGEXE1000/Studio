@@ -274,31 +274,6 @@ export default function VocalexApp() {
       
       {!isWebDesktop && (
         <header className="flex-none px-6 pt-6 pb-1 spring-in" style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            overflow: 'hidden',
-            flexShrink: 0,
-            width: headerBack ? '40px' : '0px',
-            opacity: headerBack ? 1 : 0,
-            transition: 'width 300ms cubic-bezier(0.34,1.1,0.64,1), opacity 200ms ease',
-          }}>
-            <button
-              onClick={() => {
-                headerBack?.();
-              }}
-              data-testid="vocalex-back-button"
-              aria-label={t.vocalex.back}
-              style={{
-                width: '32px', height: '32px', borderRadius: '50%',
-                background: 'var(--app-surface-high)',
-                border: '1px solid rgba(128,128,128,0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', padding: 0,
-                transition: 'background 500ms cubic-bezier(0.4,0,0.2,1)',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ color: 'var(--c-text-primary)', fontSize: '18px' }}>arrow_back</span>
-            </button>
-          </div>
           <h1 style={{
             fontSize: '14px', fontWeight: 700,
             color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em',
@@ -307,27 +282,6 @@ export default function VocalexApp() {
           }}>
             <AppModeMenuLogo />
           </h1>
-        </header>
-      )}
-
-      {isWebDesktop && headerBack && (
-        <header className="flex-none px-6 pt-5 pb-1" style={{ display: 'flex', alignItems: 'center' }}>
-          <button
-            onClick={() => headerBack?.()}
-            data-testid="vocalex-back-button"
-            aria-label={t.vocalex.back}
-            className="btn-smooth"
-            style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              background: 'var(--app-surface-high)',
-              border: '1px solid rgba(128,128,128,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', padding: 0,
-              transition: 'background 500ms cubic-bezier(0.4,0,0.2,1)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-primary)', fontSize: '18px' }}>arrow_back</span>
-          </button>
         </header>
       )}
 

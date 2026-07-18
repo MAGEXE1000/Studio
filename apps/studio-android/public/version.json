@@ -1,22 +1,23 @@
 {
   "platform": "android",
-  "version": "4.0.96",
-  "versionName": "4.0.96",
-  "versionCode": 40096,
-  "version_code": 40096,
-  "commit": "64ce7ab3",
-  "releasedAt": "7/18/2026, 1:45:03 PM CST",
-  "buildTimestamp": "7/18/2026, 1:45:03 PM CST",
+  "version": "4.0.97",
+  "versionName": "4.0.97",
+  "versionCode": 40097,
+  "version_code": 40097,
+  "commit": "4d9fa931",
+  "releasedAt": "7/18/2026, 2:33:11 PM CST",
+  "buildTimestamp": "7/18/2026, 2:33:11 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Redesigned launch experience on Android with a premium, spring-driven logo reveal sequence.\n• Enforced clean branding by removing all text (\"Livex\", \"by Mag\") from the cold boot splash screen.\n• Unified five distinct motion concepts under a single, high-performance Launch Animation Engine.\n• Implemented an interactive Developer Options Motion Playground for looping, previewing, and comparing launch animations.\n• Integrated live telemetry telemetry (FPS, frame drop, frame time) to track performance in the playground.",
-  "whatsNew": "• Redesigned launch experience on Android with a premium, spring-driven logo reveal sequence.\n• Enforced clean branding by removing all text (\"Livex\", \"by Mag\") from the cold boot splash screen.\n• Unified five distinct motion concepts under a single, high-performance Launch Animation Engine.\n• Implemented an interactive Developer Options Motion Playground for looping, previewing, and comparing launch animations.\n• Integrated live telemetry telemetry (FPS, frame drop, frame time) to track performance in the playground.",
+  "changelog": "• Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.\n• Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.\n• Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.\n• Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.\n• Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).\n• Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes.",
+  "whatsNew": "• Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.\n• Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.\n• Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.\n• Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.\n• Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).\n• Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes.",
   "releaseNotes": {
     "added": [
-      "Redesigned launch experience on Android with a premium, spring-driven logo reveal sequence.",
-      "Enforced clean branding by removing all text (\"Livex\", \"by Mag\") from the cold boot splash screen.",
-      "Unified five distinct motion concepts under a single, high-performance Launch Animation Engine.",
-      "Implemented an interactive Developer Options Motion Playground for looping, previewing, and comparing launch animations.",
-      "Integrated live telemetry telemetry (FPS, frame drop, frame time) to track performance in the playground."
+      "Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.",
+      "Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.",
+      "Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.",
+      "Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.",
+      "Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).",
+      "Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes."
     ]
   },
   "mandatory": false

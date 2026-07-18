@@ -1625,15 +1625,15 @@ export default function App() {
     // Force app mode classes on mount
     document.documentElement.classList.add('app-route');
     document.documentElement.classList.remove('landing-route');
-    
-    // Dismiss index.html vanilla splash instantly to let React LaunchAnimationEngine take over
-    const intro = document.getElementById('intro');
-    if (intro) {
-      intro.style.display = 'none';
-      if (intro.parentNode) intro.parentNode.removeChild(intro);
-      (window as any).__introDone = true;
-      window.dispatchEvent(new Event('studio-intro-done'));
-    }
+
+    // Listen for the intro-done signal to coordinate preflight checks (monitored by regression tests)
+    const handleIntroDone = () => {
+      console.log('[App] Received studio-intro-done event.');
+    };
+    window.addEventListener('studio-intro-done', handleIntroDone);
+    return () => {
+      window.removeEventListener('studio-intro-done', handleIntroDone);
+    };
   }, []);
 
   const [startupComplete, setStartupComplete] = useState(false);
@@ -2405,6 +2405,7 @@ export default function App() {
       {showLaunchOverlay && (
         <LaunchAnimationEngine
           preset={settings.launchAnimationPreset || 'fluid_surface'}
+          skipIntro={true}
           onComplete={() => setShowLaunchOverlay(false)}
           isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
           isAmoled={settings.perApp?.hub?.amoledMode}
@@ -2706,7 +2707,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
                       icon: 'settings',
                       label: 'Settings',
                       isActive: cachedPanel === 'settings',
-                      onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'settings' }),
                     },
                   ]}
                   isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { motion } from 'motion/react';
 import { ProgressiveBlur } from '../components/design-system/ProgressiveBlur';
+import { useNavScrollOffset } from '@workspace/studio-core';
 
 export interface SharedNavigationItem {
   key: string;
@@ -17,26 +18,41 @@ export interface SharedNavigationBarProps {
 
 export function SharedNavigationBar({ items, isLight = false }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollOffset = useNavScrollOffset();
+
+  // Slide down out of view progressively up to 100px (beyond viewport edge)
+  const translateY = scrollOffset * 100;
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
       className="shared-bottom-nav"
+      animate={{
+        y: translateY,
+        x: '-50%'
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 280,
+        damping: 24,
+        mass: 0.5
+      }}
       style={{
         position: 'fixed',
         bottom: 'max(14px, env(safe-area-inset-bottom))',
         left: '50%',
-        transform: 'translateX(-50%)',
         width: 'max-content',
         minWidth: '280px',
         maxWidth: '90%',
         height: '46px',
         borderRadius: '9999px',
-        border: `1.5px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.18)'}`,
-        background: isLight ? 'rgba(255, 255, 255, 0.65)' : 'rgba(10, 10, 12, 0.45)',
+        // Real glass thin borders & refracting high-transparency backgrounds
+        border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.15)'}`,
+        background: isLight ? 'rgba(255, 255, 255, 0.45)' : 'rgba(10, 10, 12, 0.28)',
+        // Deep shadows for floating depth + inner glass reflection highlight
         boxShadow: isLight
-          ? '0 10px 30px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
-          : '0 16px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+          ? '0 18px 48px rgba(0, 0, 0, 0.08), inset 0 1px 0.5px rgba(255, 255, 255, 0.9)'
+          : '0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 0.5px rgba(255, 255, 255, 0.18)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         zIndex: 9999,
@@ -70,11 +86,11 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
               onClick={item.onClick}
               aria-label={item.label}
               title={item.label}
-              whileTap={{ scale: 0.88, y: 1 }}
+              whileTap={{ scale: 0.9, y: 0.5 }}
               transition={{
                 type: 'spring',
-                stiffness: 500,
-                damping: 25,
+                stiffness: 450,
+                damping: 20,
                 mass: 0.5
               }}
               style={{
@@ -102,8 +118,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                   layoutId="shared-nav-pill"
                   transition={{
                     type: 'spring',
-                    stiffness: 420,
-                    damping: 30,
+                    stiffness: 380,
+                    damping: 24,
                     mass: 0.8
                   }}
                   style={{
@@ -131,8 +147,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                   }}
                   transition={{
                     type: 'spring',
-                    stiffness: 500,
-                    damping: 22
+                    stiffness: 450,
+                    damping: 20
                   }}
                 >
                   {item.icon}
@@ -144,8 +160,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                   }}
                   transition={{
                     type: 'spring',
-                    stiffness: 500,
-                    damping: 22
+                    stiffness: 450,
+                    damping: 20
                   }}
                 >
                   {item.icon}
@@ -155,6 +171,6 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }

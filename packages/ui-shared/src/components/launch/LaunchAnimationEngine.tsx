@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 // Studio Sine Wave Logo SVG path
 export const StudioSinePath = "M 72 256 C 128 60 192 60 256 256 S 384 452 440 256";
@@ -13,6 +13,7 @@ interface LaunchAnimationEngineProps {
   isAmoled?: boolean;
   loopMode?: boolean;
   scaleFactor?: number; // for side-by-side comparison scaling
+  skipIntro?: boolean;  // skip drawing logo (directly start zoom-in reveal)
 }
 
 export function LaunchAnimationEngine({
@@ -22,8 +23,9 @@ export function LaunchAnimationEngine({
   isAmoled = false,
   loopMode = false,
   scaleFactor = 1,
+  skipIntro = false,
 }: LaunchAnimationEngineProps) {
-  const [stage, setStage] = useState<'logo' | 'reveal' | 'complete'>('logo');
+  const [stage, setStage] = useState<'logo' | 'reveal' | 'complete'>(skipIntro ? 'reveal' : 'logo');
   const [key, setKey] = useState(0); // to restart on loop
 
   // Telemetry frame tracking
@@ -31,7 +33,20 @@ export function LaunchAnimationEngine({
   const lastTime = useRef<number>(0);
   
   useEffect(() => {
-    setStage('logo');
+    // Dismiss the index.html vanilla splash only after React has mounted and drawn the initial overlay frame
+    const intro = document.getElementById('intro');
+    if (intro) {
+      intro.style.display = 'none';
+      if (intro.parentNode) intro.parentNode.removeChild(intro);
+      (window as any).__introDone = true;
+      window.dispatchEvent(new Event('studio-intro-done'));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!skipIntro) {
+      setStage('logo');
+    }
     lastTime.current = performance.now();
     let frameId: number;
     
@@ -49,7 +64,7 @@ export function LaunchAnimationEngine({
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [key, preset]);
+  }, [key, preset, skipIntro]);
 
   // Handle stage timers based on selected preset
   useEffect(() => {
@@ -62,17 +77,27 @@ export function LaunchAnimationEngine({
         setStage('reveal');
       }, 700);
     } else if (stage === 'reveal') {
-      // Step 2: Play full reveal expansion
-      const revealDuration = preset === 'layer_expansion' ? 800 : preset === 'aurora_reveal' ? 1000 : 750;
-      t2 = setTimeout(() => {
+      const checkReadyAndComplete = () => {
+        // Only block/extend for fluid_surface (the production launch preset)
+        if (preset === 'fluid_surface' && !loopMode) {
+          const isHubReady = (window as any).__studioHubReady;
+          if (!isHubReady) {
+            // Check again in 100ms
+            t2 = setTimeout(checkReadyAndComplete, 100);
+            return;
+          }
+        }
+        
         if (loopMode) {
-          // Restart animation loop
           setKey(prev => prev + 1);
         } else {
           setStage('complete');
           if (onComplete) onComplete();
         }
-      }, revealDuration);
+      };
+
+      const baseRevealDuration = preset === 'layer_expansion' ? 800 : preset === 'aurora_reveal' ? 1000 : 750;
+      t2 = setTimeout(checkReadyAndComplete, baseRevealDuration);
     }
 
     return () => {
@@ -104,7 +129,7 @@ export function LaunchAnimationEngine({
               <motion.div
                 initial={{ scale: 0.1, opacity: 0.8 }}
                 animate={{ scale: 28, opacity: 0 }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   width: 80,
@@ -120,8 +145,8 @@ export function LaunchAnimationEngine({
             
             <motion.div
               initial={{ opacity: 0, scale: 0.7 }}
-              animate={stage === 'logo' ? { opacity: 1, scale: 1 } : { scale: 1.15, opacity: 0 }}
-              transition={logoSpring}
+              animate={stage === 'logo' ? { opacity: 1, scale: 1 } : { scale: 45, opacity: 0 }}
+              transition={stage === 'logo' ? logoSpring : { duration: 0.8, ease: [0.6, 0.01, 0.05, 0.95] }}
               style={{ zIndex: 3 }}
             >
               <svg width={96 * scaleFactor} height={96 * scaleFactor} viewBox="0 0 512 512" fill="none">
@@ -131,9 +156,9 @@ export function LaunchAnimationEngine({
                   strokeWidth={44}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  initial={{ pathLength: 0 }}
+                  initial={{ pathLength: skipIntro ? 1 : 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  transition={{ duration: skipIntro ? 0 : 0.6, ease: 'easeOut' }}
                 />
               </svg>
             </motion.div>
@@ -372,16 +397,20 @@ export function LaunchAnimationEngine({
     }
   };
 
+  // Smoothly dissolve the background overlay when revealing the Hub
+  const containerAnimate = stage === 'logo'
+    ? { backgroundColor: bgColor, opacity: 1 }
+    : { backgroundColor: 'rgba(0,0,0,0)', opacity: 0 };
+
   return (
     <motion.div
       key={key}
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      animate={containerAnimate}
+      transition={{ duration: 0.8, ease: [0.6, 0.01, 0.05, 0.95] }}
       style={{
         position: 'absolute',
         inset: 0,
-        backgroundColor: bgColor,
         zIndex: 9999,
         overflow: 'hidden',
         pointerEvents: stage === 'complete' ? 'none' : 'auto',

@@ -198,6 +198,11 @@ export default function StudioHub() {
   }, [tab]);
 
   useEffect(() => {
+    (window as any).__studioHubReady = true;
+    window.dispatchEvent(new Event('studio-hub-ready'));
+  }, []);
+
+  useEffect(() => {
     StartupCoordinator.notifyHubMounted();
     (window as any).__studioHubReady = true;
     window.dispatchEvent(new CustomEvent('studio:hub-ready'));

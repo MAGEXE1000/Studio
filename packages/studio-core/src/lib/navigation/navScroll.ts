@@ -49,6 +49,7 @@ export function resetNav() {
   _locked = false;
   if (_hidden)    { _hidden    = false; emit(false); }
   if (_collapsed) { _collapsed = false; emitCollapsed(false); }
+  setNavScrollOffset(0);
   onStateChanged();
 }
 
@@ -91,6 +92,26 @@ export function useNavCollapsed(): boolean {
     return () => { _collapsedListeners.delete(setC); };
   }, []);
   return c;
+}
+
+let _scrollOffset = 0;
+const _scrollOffsetListeners = new Set<(o: number) => void>();
+
+export function setNavScrollOffset(offset: number) {
+  if (_locked) return;
+  const clamped = Math.max(0, Math.min(1, offset));
+  if (_scrollOffset === clamped) return;
+  _scrollOffset = clamped;
+  _scrollOffsetListeners.forEach(fn => fn(clamped));
+}
+
+export function useNavScrollOffset(): number {
+  const [offset, setOffset] = useState(_scrollOffset);
+  useEffect(() => {
+    _scrollOffsetListeners.add(setOffset);
+    return () => { _scrollOffsetListeners.delete(setOffset); };
+  }, []);
+  return offset;
 }
 
 // â”€â”€â”€ useScrollHide â€” attach to any scrollable container â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -137,6 +158,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 
           // Expand navigation immediately when near the top (within 40px)
           if (y < 40) {
+            setNavScrollOffset(0);
             if (_collapsed) {
               setNavCollapsed(false);
             }
@@ -147,10 +169,14 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
           const prevY = _elementLastY.get(el) ?? y;
           const dy = y - prevY;
 
-          // Jitter filter: ignore scroll updates smaller than 8px
-          if (Math.abs(dy) < 8) {
+          // Jitter filter: ignore scroll updates smaller than 4px for responsiveness
+          if (Math.abs(dy) < 4) {
             return;
           }
+
+          // Progressive translation: 90px total scroll delta triggers complete hide/show transition.
+          const deltaRatio = dy / 90;
+          setNavScrollOffset(_scrollOffset + deltaRatio);
 
           const shouldCollapse = dy > 0;
           if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {

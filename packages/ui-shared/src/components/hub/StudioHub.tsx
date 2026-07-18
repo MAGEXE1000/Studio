@@ -18,11 +18,12 @@ import SmartLoading from '../loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../loading/StudioSkeleton';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
+import { SharedBottomNavigation } from '../../navigation/SharedBottomNavigation';
 import { useNavigationCoordinator, PageTransition, SPRING_PRESETS, MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
-const GOOEY_SPRING = { type: 'spring', stiffness: 380, damping: 30, mass: 0.8 } as const;
+const GOOEY_SPRING = { type: 'spring', stiffness: 550, damping: 33, mass: 0.45 } as const;
 
 
 import AccountCard, { AccountDangerZone, AccountSettingsPage } from '../cards/AccountCard';
@@ -213,9 +214,21 @@ export default function StudioHub() {
   }, []);
   const [zooming, setZooming] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const activeRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub', tab: 'home' };
+  const page = activeRoute.app === 'hub' && activeRoute.tab === 'settings' ? (activeRoute.page ?? 'main') : 'main';
+  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const [langQuery, setLangQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<'all' | 'apps' | 'settings' | 'projects' | 'songs' | 'actions'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  useBackHandler('modal', () => {
+    if (searchOpen) {
+      setSearchOpen(false);
+      setSearchQuery('');
+      return true;
+    }
+    return false;
+  }, [searchOpen]);
   const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState<string[]>([]);
 
@@ -691,7 +704,7 @@ export default function StudioHub() {
 
   const handleSearchRowClick = (item: SearchableItem) => {
     addToSearchHistory(searchQuery);
-    setSearchOpen(false);
+    // Keep search open on row interaction
     setSearchQuery('');
 
     if (item.target.action) {
@@ -1080,13 +1093,15 @@ export default function StudioHub() {
                                   layoutId="search-icon-btn"
                                   onClick={() => setSearchOpen(true)}
                                   style={{
-                                    width: '36px', height: '36px', borderRadius: '50%',
-                                    backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-                                    border: '1px solid rgba(128,128,128,0.08)',
+                                    background: 'transparent',
+                                    border: 'none',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    padding: 4,
+                                    color: 'var(--c-text-secondary)',
+                                    opacity: 0.8,
                                   }}
-                                  className="hover:bg-surface-bright active:scale-90 transition-transform text-on-surface-variant"
+                                  className="hover:opacity-100 active:scale-90 transition-transform"
                                 >
                                   <motion.span layoutId="search-icon" className="material-symbols-outlined text-xl">search</motion.span>
                                 </motion.div>
@@ -1189,18 +1204,19 @@ export default function StudioHub() {
                                   setSearchQuery('');
                                 }}
                                 style={{
-                                  background: 'rgba(255, 255, 255, 0.04)',
-                                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                                  borderRadius: 12,
-                                  padding: '4px 10px',
+                                  background: 'transparent',
+                                  border: 'none',
                                   color: 'var(--c-text-secondary)',
-                                  fontSize: 13,
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
+                                  padding: 4,
+                                  opacity: 0.8,
+                                  transition: 'opacity 150ms ease'
                                 }}
+                                className="hover:opacity-100 active:scale-90 transition-transform"
                               >
-                                <span className="material-symbols-outlined text-lg leading-none">close</span>
+                                <span className="material-symbols-outlined text-xl leading-none">close</span>
                               </button>
                             </motion.div>
                           )}
@@ -1395,7 +1411,6 @@ export default function StudioHub() {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                       <button
                                         onClick={() => {
-                                          setSearchOpen(false);
                                           setSearchQuery('');
                                           syncNow?.();
                                         }}
@@ -1421,7 +1436,6 @@ export default function StudioHub() {
 
                                       <button
                                         onClick={() => {
-                                          setSearchOpen(false);
                                           setSearchQuery('');
                                           NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
                                         }}
@@ -1460,7 +1474,6 @@ export default function StudioHub() {
                                         <button
                                           key={pIdx}
                                           onClick={() => {
-                                            setSearchOpen(false);
                                             setSearchQuery('');
                                             launchApp(pinned.app as any);
                                           }}
@@ -2071,6 +2084,43 @@ export default function StudioHub() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Global Shared Bottom Navigation for mobile Hub */}
+      {!isWebDesktop && (
+        <SharedBottomNavigation
+          items={[
+            {
+              key: 'settings',
+              icon: 'settings',
+              label: 'Settings',
+              isActive: tab === 'settings' && page !== 'updater',
+              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+            },
+            {
+              key: 'home',
+              icon: 'home',
+              label: 'Home',
+              isActive: tab === 'home',
+              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
+            },
+            {
+              key: 'layers',
+              icon: 'layers',
+              label: 'Modules',
+              isActive: false,
+              onClick: () => { setSearchOpen(true); },
+            },
+            {
+              key: 'notifications',
+              icon: 'notifications',
+              label: 'Updates',
+              isActive: tab === 'settings' && page === 'updater',
+              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' }),
+            },
+          ]}
+          isLight={isLight}
+        />
+      )}
     </div>
   );
 }
@@ -3127,6 +3177,7 @@ function HubSettings({
   const updatePerApp = useChordStore(state => state.updatePerApp);
   const historyLength = useNavigationStore(s => s.history.length);
   const { preferences, setPreference } = useStudioPreferences();
+  const [langQuery, setLangQuery] = useState('');
   const t = useT();
   const lang = settings.language ?? 'en';
   const [copiedLogs, setCopiedLogs] = useState(false);
@@ -4300,131 +4351,219 @@ User Agent: [Automatically Generated]
   }
 
   function renderAppearanceContent() {
+    const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', paddingBottom: 24 }}>
-        <SettingsSectionLabel>{(t.hub as { studioSettings?: { themeSection?: string } }).studioSettings?.themeSection ?? 'Theme'}</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <div style={{ padding: isWebDesktop ? '16px 0px 12px' : '16px 16px 12px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
-            <StudioThemeToggler
-              currentTheme={hubVis.theme}
-              currentAmoled={hubVis.amoledMode ?? false}
-              accentFrom={accent.from}
-              onChange={(theme, amoledMode) => requestChange({ theme, amoledMode })}
-              labels={{
-                system: t.settings.rows.themeSystem,
-                light:  t.settings.rows.themeLight,
-                dark:   t.settings.rows.themeDark,
-                amoled: t.hub.amoled,
-              }}
-            />
-            {(() => {
-              const isDynActive = hubVis.theme === 'dynamic' && !hubVis.amoledMode;
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%', paddingBottom: 24, animation: 'hub-row-fade 320ms ease both' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Manrope', margin: '8px 0 0' }}>Theme Mode</h2>
+        
+        {/* 2x2 Grid of Theme Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[
+            { id: 'system', name: 'System', label: 'Auto', bg: 'rgba(128, 128, 128, 0.08)', isAmoled: false },
+            { id: 'light', name: 'Light', label: 'Editorial', bg: '#f5f5f5', isAmoled: false, textColor: '#000000' },
+            { id: 'dark', name: 'Dark', label: 'Tonal', bg: 'var(--app-surface-high, rgba(128,128,128,0.06))', isAmoled: false },
+            { id: 'amoled', name: 'AMOLED', label: 'Pure', bg: '#000000', isAmoled: true, border: '1px solid rgba(255,255,255,0.08)' }
+          ].map(tOpt => {
+            let isThemeActive = false;
+            if (tOpt.id === 'system') {
+              isThemeActive = settings.theme === 'system';
+            } else if (tOpt.id === 'light') {
+              isThemeActive = settings.theme === 'light';
+            } else if (tOpt.id === 'dark') {
+              isThemeActive = settings.theme === 'dark' && !settings.amoledMode;
+            } else if (tOpt.id === 'amoled') {
+              isThemeActive = settings.theme === 'dark' && settings.amoledMode;
+            }
+
+            return (
+              <motion.button
+                key={tOpt.id}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  if (tOpt.id === 'system') requestChange({ theme: 'system', amoledMode: false });
+                  else if (tOpt.id === 'light') requestChange({ theme: 'light', amoledMode: false });
+                  else if (tOpt.id === 'dark') requestChange({ theme: 'dark', amoledMode: false });
+                  else if (tOpt.id === 'amoled') requestChange({ theme: 'dark', amoledMode: true });
+                }}
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 12,
+                  borderRadius: 14,
+                  background: tOpt.bg,
+                  border: `1.5px solid ${isThemeActive ? accent.from : 'transparent'}`,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  boxShadow: isThemeActive ? `0 0 12px ${accent.from}15` : 'none',
+                  transition: 'border-color 200ms, box-shadow 200ms',
+                }}
+              >
+                <div style={{
+                  width: 44, height: 44,
+                  borderRadius: 8,
+                  background: tOpt.id === 'system' 
+                    ? 'linear-gradient(135deg, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 50%)' 
+                    : tOpt.id === 'light' ? '#ffffff' : tOpt.id === 'dark' ? 'rgba(255,255,255,0.05)' : '#000000',
+                  border: tOpt.border || 'none',
+                  flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: tOpt.textColor || 'var(--c-text-primary)', margin: 0, fontFamily: 'Inter' }}>{tOpt.name}</p>
+                  <p style={{ fontSize: 9, textTransform: 'uppercase', color: tOpt.textColor ? 'rgba(0,0,0,0.5)' : 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Manrope', opacity: 0.8 }}>{tOpt.label}</p>
+                </div>
+                {isThemeActive && (
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: accent.from, position: 'absolute', top: 8, right: 8, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Accent Color Section */}
+        <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Manrope', margin: '8px 0 0' }}>Accent Color</h2>
+        <div style={{ background: 'var(--app-surface-low, rgba(128,128,128,0.02))', padding: 20, borderRadius: 16, border: '1px solid rgba(128,128,128,0.06)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, marginBottom: 20 }}>
+            {[
+              { id: 'blue', hex: '#007AFF' },
+              { id: 'purple', hex: '#A855F7' },
+              { id: 'green', hex: '#22C55E' },
+              { id: 'orange', hex: '#F97316' },
+              { id: 'pink', hex: '#EC4899' },
+              { id: 'teal', hex: '#14B8A6' },
+              { id: 'yellow', hex: '#EAB308' },
+              { id: 'red', hex: '#EF4444' }
+            ].map(cOpt => {
+              const isColorActive = hubVis.accentColor === cOpt.id;
               return (
                 <button
-                  onClick={() => requestChange({ theme: 'dynamic' as Theme, amoledMode: false })}
-                  className="btn-smooth"
+                  key={cOpt.id}
+                  onClick={() => requestChange({ accentColor: cOpt.id as any })}
                   style={{
-                    width: '100%', marginTop: 8, padding: '11px 14px', borderRadius: 12,
-                    background: isDynActive ? `${accent.from}22` : 'var(--app-surface-high)',
-                    border: `1.5px solid ${isDynActive ? accent.from + '66' : 'transparent'}`,
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    transition: 'background 200ms ease, border-color 200ms ease, transform 160ms cubic-bezier(0.34,1.56,0.64,1)',
+                    width: 32, height: 32,
+                    borderRadius: '50%',
+                    background: cOpt.hex,
+                    border: isColorActive ? '3.5px solid #fff' : 'none',
+                    boxShadow: isColorActive ? `0 0 10px ${cOpt.hex}` : 'none',
+                    margin: '0 auto',
                     cursor: 'pointer',
-                    transform: isDynActive ? 'scale(1.02)' : 'scale(1)',
-                  }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: isDynActive ? accent.from : 'var(--c-text-secondary)', fontVariationSettings: isDynActive ? "'FILL' 1" : "'FILL' 0", transition: 'color 200ms ease', flexShrink: 0, filter: isDynActive ? `drop-shadow(0 0 6px ${accent.from}66)` : 'none' }}>schedule</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <p style={{ color: isDynActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: 'var(--font-xs)', margin: 0, transition: 'color 200ms ease' }}>{(t.hub as { studioSettings?: { dynamic?: string } }).studioSettings?.dynamic ?? 'Dynamic'}</p>
-                    <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: 10.5, margin: '2px 0 0', opacity: 0.75 }}>{
-                      (t.hub as { studioSettings?: { dynamicHelper?: (a: string, b: string) => string } }).studioSettings?.dynamicHelper?.(
-                        formatHour(settings.dynamicLightStart ?? 7),
-                        formatHour(settings.dynamicLightEnd ?? 20),
-                      ) ?? `Light ${formatHour(settings.dynamicLightStart ?? 7)} – ${formatHour(settings.dynamicLightEnd ?? 20)} · Dark at night`
-                    }</p>
-                  </div>
-                </button>
+                    outline: 'none',
+                    transition: 'transform 150ms ease',
+                  }}
+                  className="active:scale-90"
+                />
               );
-            })()}
-            {hubVis.theme === 'dynamic' && !hubVis.amoledMode && (() => {
-              const lStart = settings.dynamicLightStart ?? 7;
-              const lEnd   = settings.dynamicLightEnd   ?? 20;
-              return (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '8px 0 4px' }}>
-                  {([
-                    { label: (t.hub as { studioSettings?: { lightFrom?: string } }).studioSettings?.lightFrom ?? 'Light from', val: lStart, onDec: () => updateSettings({ dynamicLightStart: Math.max(0, lStart - 1) }), onInc: () => updateSettings({ dynamicLightStart: Math.min(lEnd - 1, lStart + 1) }) },
-                    { label: (t.hub as { studioSettings?: { darkFrom?: string } }).studioSettings?.darkFrom ?? 'Dark from',  val: lEnd,   onDec: () => updateSettings({ dynamicLightEnd: Math.max(lStart + 1, lEnd - 1) }), onInc: () => updateSettings({ dynamicLightEnd: Math.min(23, lEnd + 1) }) },
-                  ] as { label: string; val: number; onDec: () => void; onInc: () => void }[]).map(({ label, val, onDec, onInc }) => (
-                    <div key={label} style={{ background: `${accent.from}12`, borderRadius: 12, padding: '10px 12px' }}>
-                      <p style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 10, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 6px' }}>{label}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-                        <button onClick={onDec} className="btn-smooth" style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(128,128,128,0.12)', border: 'none', outline: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>remove</span>
-                        </button>
-                        <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 14, color: 'var(--c-text-primary)', minWidth: 40, textAlign: 'center' }}>{formatHour(val)}</span>
-                        <button onClick={onInc} className="btn-smooth" style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(128,128,128,0.12)', border: 'none', outline: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>add</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
+            })}
           </div>
-          <div style={{ padding: isWebDesktop ? '14px 0px 12px' : '14px 16px 12px' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-secondary)', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 10px', fontFamily: 'Manrope' }}>{t.settings.rows.accentColor}</p>
-            <div className="hub-accent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
-              {COLOR_OPTIONS.map(c => {
-                const isActive = hubVis.accentColor === c.id;
+
+          {/* Custom Accent Hue Slider */}
+          {(() => {
+            const isCustom = hubVis.accentColor === 'custom';
+            const hue = settings.customAccentHue ?? 220;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--c-text-primary)', margin: 0 }}>Custom Color</p>
+                    <p style={{ fontSize: 9, color: 'var(--c-text-secondary)', textTransform: 'uppercase', margin: '2px 0 0' }}>Custom Spectrum</p>
+                  </div>
+                  <div style={{ background: 'var(--app-surface-low, rgba(0,0,0,0.2))', padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(128,128,128,0.1)' }}>
+                    <span style={{ fontSize: 11, color: accent.from, fontFamily: 'monospace' }}>#007AFF</span>
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min={0} max={359} value={hue}
+                  onChange={e => {
+                    requestChange({ accentColor: 'custom' });
+                    updateSettings({ customAccentHue: Number(e.target.value) });
+                  }}
+                  style={{
+                    width: '100%',
+                    height: 8,
+                    borderRadius: 9999,
+                    outline: 'none',
+                    background: 'linear-gradient(to right, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000)',
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                  }}
+                />
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Visual Comfort Controls */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+          {/* Display Density */}
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Manrope', marginBottom: 8 }}>Display Density</h2>
+            <div style={{ display: 'flex', gap: 1, background: 'var(--app-surface-low, rgba(128,128,128,0.02))', padding: 3, borderRadius: 12, border: '1px solid rgba(128,128,128,0.06)' }}>
+              {[
+                { id: 'compact', label: 'Compact' },
+                { id: 'comfortable', label: 'Normal' },
+                { id: 'spacious', label: 'Airy' }
+              ].map(opt => {
+                const isActive = settings.displayDensity === opt.id;
                 return (
-                  <button key={c.id} onClick={() => requestChange({ accentColor: c.id as PerAppVisuals['accentColor'] })} className="btn-smooth"
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: isActive ? `${c.to}22` : 'var(--app-surface-high)', border: `1.5px solid ${isActive ? c.to + '66' : 'transparent'}`, transition: 'background-color 200ms ease, border-color 200ms ease' }}>
-                    <span style={{ width: 16, height: 16, borderRadius: '50%', background: `linear-gradient(135deg, ${c.from}, ${c.to})`, flexShrink: 0, boxShadow: isActive ? `0 0 8px ${c.to}55` : 'none', transition: 'box-shadow 200ms ease', display: 'block' }} />
-                    <span style={{ color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: 'var(--font-xs)', transition: 'color 200ms ease' }}>{(t.settings.colors as Record<string, string>)[c.id]}</span>
+                  <button
+                    key={opt.id}
+                    onClick={() => updateSettings({ displayDensity: opt.id as any })}
+                    style={{
+                      flex: 1,
+                      padding: '10px 4px',
+                      borderRadius: 10,
+                      background: isActive ? 'var(--app-surface-high, rgba(128,128,128,0.08))' : 'transparent',
+                      border: 'none',
+                      color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease',
+                    }}
+                  >
+                    {opt.label}
                   </button>
                 );
               })}
             </div>
-            {(() => {
-              const isCustom = hubVis.accentColor === 'custom';
-              const hue = settings.customAccentHue ?? 220;
-              return (
-                <>
-                  <button
-                    onClick={() => requestChange({ accentColor: 'custom' })}
-                    className="btn-smooth"
-                    style={{ marginTop: 8, width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 12, background: isCustom ? `hsla(${hue}, 75%, 65%, 0.13)` : 'var(--app-surface-high)', border: `1.5px solid ${isCustom ? `hsla(${hue}, 75%, 65%, 0.4)` : 'transparent'}`, transition: 'background-color 200ms ease, border-color 200ms ease', outline: 'none', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
-                    <span style={{ width: 16, height: 16, borderRadius: '50%', background: `linear-gradient(135deg, hsl(${hue}, 75%, 65%), hsl(${(hue + 25) % 360}, 85%, 42%))`, flexShrink: 0, display: 'block', boxShadow: isCustom ? `0 0 8px hsla(${hue}, 75%, 55%, 0.5)` : 'none', transition: 'box-shadow 200ms ease' }} />
-                    <span style={{ color: isCustom ? 'var(--c-text-primary)' : 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: 'var(--font-xs)', transition: 'color 200ms ease' }}>{(t.hub as { studioSettings?: { custom?: string } }).studioSettings?.custom ?? 'Custom'}</span>
-                  </button>
-                  {isCustom && (
-                    <div style={{ marginTop: 10 }}>
-                      <p style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 10, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>{(t.hub as { studioSettings?: { colorLabel?: string } }).studioSettings?.colorLabel ?? 'Color'}</p>
-                      <input
-                        type="range" className="hue-slider"
-                        min={0} max={359} value={hue}
-                        onChange={e => updateSettings({ customAccentHue: Number(e.target.value) })}
-                        style={{
-                          background: 'linear-gradient(to right, hsl(0,80%,55%), hsl(30,80%,55%), hsl(60,80%,55%), hsl(90,80%,55%), hsl(120,80%,55%), hsl(150,80%,55%), hsl(180,80%,55%), hsl(210,80%,55%), hsl(240,80%,55%), hsl(270,80%,55%), hsl(300,80%,55%), hsl(330,80%,55%), hsl(360,80%,55%))',
-                          '--slider-hue': String(hue)
-                        } as React.CSSProperties}
-                      />
-                    </div>
-                  )}
-                </>
-              );
-            })()}
           </div>
-        </div>
 
-        <SettingsSectionLabel>{t.settings.sections.display}</SettingsSectionLabel>
-        <div style={cardStyle}>
-          <SettingRow label={t.settings.rows.density} desc={t.settings.rows.densityDesc}>
-            <SegmentedControl<DisplayDensity> value={settings.displayDensity} options={[{ value: 'compact', label: t.settings.rows.compact }, { value: 'comfortable', label: t.settings.rows.normal }, { value: 'spacious', label: t.settings.rows.airy }]} onChange={v => updateSettings({ displayDensity: v })} accentFrom={accent.from} accentTo={accent.to} />
-          </SettingRow>
-          <SettingRow label={t.settings.rows.fontSize} desc={t.settings.rows.fontSizeDesc}>
-            <SegmentedControl<'small' | 'medium' | 'large'> value={settings.fontSize} options={[{ value: 'small', label: 'S' }, { value: 'medium', label: 'M' }, { value: 'large', label: 'L' }]} onChange={v => updateSettings({ fontSize: v })} accentFrom={accent.from} accentTo={accent.to} />
-          </SettingRow>
+          {/* Text Scale */}
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Manrope', marginBottom: 8 }}>Text Scale</h2>
+            <div style={{ display: 'flex', gap: 1, background: 'var(--app-surface-low, rgba(128,128,128,0.02))', padding: 3, borderRadius: 12, border: '1px solid rgba(128,128,128,0.06)' }}>
+              {[
+                { id: 'small', label: 'S' },
+                { id: 'medium', label: 'M' },
+                { id: 'large', label: 'L' }
+              ].map(opt => {
+                const isActive = settings.fontSize === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => updateSettings({ fontSize: opt.id as any })}
+                    style={{
+                      flex: 1,
+                      padding: '10px 4px',
+                      borderRadius: 10,
+                      background: isActive ? 'var(--app-surface-high, rgba(128,128,128,0.08))' : 'transparent',
+                      border: 'none',
+                      color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -4432,61 +4571,105 @@ User Agent: [Automatically Generated]
 
   function renderLanguageContent() {
     const LANG_OPTIONS: { code: string; flag: string; native: string; label: string }[] = [
-      { code: 'en', flag: '🇬🇧', native: 'English',    label: t.settings.language.en },
-      { code: 'es', flag: '🇪🇸', native: 'Español',    label: t.settings.language.es },
-      { code: 'de', flag: '🇩🇪', native: 'Deutsch',    label: t.settings.language.de },
-      { code: 'fr', flag: '🇫🇷', native: 'Français',   label: t.settings.language.fr },
-      { code: 'zh', flag: '🇨🇳', native: '中文',        label: t.settings.language.zh },
-      { code: 'pt', flag: '🇧🇷', native: 'Português',  label: t.settings.language.pt },
-      { code: 'it', flag: '🇮🇹', native: 'Italiano',   label: t.settings.language.it },
-      { code: 'ja', flag: '🇯🇵', native: '日本語',      label: t.settings.language.ja },
-      { code: 'ko', flag: '🇰🇷', native: '한국어',      label: t.settings.language.ko },
+      { code: 'en', flag: '🇬🇧', native: 'English',    label: t.settings.language.en || 'English (US)' },
+      { code: 'es', flag: '🇪🇸', native: 'Español',    label: t.settings.language.es || 'Spanish' },
+      { code: 'de', flag: '🇩🇪', native: 'Deutsch',    label: t.settings.language.de || 'German' },
+      { code: 'fr', flag: '🇫🇷', native: 'Français',   label: t.settings.language.fr || 'French' },
+      { code: 'zh', flag: '🇨🇳', native: '中文',        label: t.settings.language.zh || 'Chinese' },
+      { code: 'pt', flag: '🇧🇷', native: 'Português',  label: t.settings.language.pt || 'Portuguese' },
+      { code: 'it', flag: '🇮🇹', native: 'Italiano',   label: t.settings.language.it || 'Italian' },
+      { code: 'ja', flag: '🇯🇵', native: '日本語',      label: t.settings.language.ja || 'Japanese' },
+      { code: 'ko', flag: '🇰🇷', native: '한국어',      label: t.settings.language.ko || 'Korean' },
     ];
     const currentLang = settings.language ?? 'en';
+    const filteredLangs = LANG_OPTIONS.filter(opt => 
+      opt.native.toLowerCase().includes(langQuery.toLowerCase()) || 
+      opt.label.toLowerCase().includes(langQuery.toLowerCase())
+    );
+
     return (
-      <div style={{ ...cardStyle, animation: 'hub-row-fade 320ms ease both' }}>
-        {LANG_OPTIONS.map((opt, i) => {
-          const isSelected = currentLang === opt.code;
-          const isLast = i === LANG_OPTIONS.length - 1;
-          return (
-            <button
-              key={opt.code}
-              onClick={() => updateSettings({ language: opt.code as typeof settings.language })}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                width: '100%', padding: '13px 16px',
-                background: isSelected ? `${accent.from}12` : 'transparent',
-                border: 'none', outline: 'none',
-                borderBottom: isLast || isWebDesktop ? 'none' : '1px solid rgba(128,128,128,0.07)',
-                cursor: 'pointer', textAlign: 'left',
-                WebkitTapHighlightColor: 'transparent',
-                boxSizing: 'border-box',
-                borderRadius: isWebDesktop ? '8px' : '0px',
-                marginBottom: isWebDesktop ? '4px' : '0px',
-              }}
-            >
-              <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>{opt.flag}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{
-                  fontFamily: 'Manrope', fontWeight: 700, fontSize: 14,
-                  color: isSelected ? accent.from : 'var(--c-text-primary)',
-                  margin: 0, letterSpacing: '-0.01em',
-                }}>{opt.native}</p>
-                <p style={{
-                  fontFamily: 'Inter', fontSize: 11.5,
-                  color: 'var(--c-text-secondary)',
-                  margin: '2px 0 0',
-                }}>{opt.label}</p>
-              </div>
-              {isSelected && (
-                <span className="material-symbols-outlined" style={{
-                  fontSize: 20, color: accent.from,
-                  flexShrink: 0, fontVariationSettings: "'FILL' 1",
-                }}>check_circle</span>
-              )}
-            </button>
-          );
-        })}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', paddingBottom: 24, animation: 'hub-row-fade 320ms ease both' }}>
+        {/* Search bar matching design reference */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+          <span className="material-symbols-outlined" style={{ position: 'absolute', left: 16, color: 'var(--c-text-secondary)', opacity: 0.5, fontSize: 20 }}>search</span>
+          <input
+            type="text"
+            placeholder="Search languages..."
+            value={langQuery}
+            onChange={e => setLangQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px 12px 48px',
+              background: 'var(--app-surface-low, rgba(0,0,0,0.2))',
+              border: '1px solid rgba(128,128,128,0.12)',
+              borderRadius: 12,
+              color: 'var(--c-text-primary)',
+              fontSize: 14,
+              fontFamily: 'Inter, sans-serif',
+              outline: 'none',
+              transition: 'border-color 200ms ease',
+            }}
+            className="focus:border-accent"
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {filteredLangs.map((opt) => {
+            const isSelected = currentLang === opt.code;
+            return (
+              <motion.button
+                key={opt.code}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => updateSettings({ language: opt.code as any })}
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderRadius: 12,
+                  border: `1.5px solid ${isSelected ? accent.from + '40' : 'rgba(128,128,128,0.06)'}`,
+                  padding: '14px 20px',
+                  background: isSelected ? 'var(--app-surface-high, rgba(128,128,128,0.06))' : 'var(--app-surface-low, rgba(128,128,128,0.02))',
+                  textAlign: 'left',
+                  width: '100%',
+                  cursor: 'pointer',
+                  boxShadow: isSelected ? `0 0 12px ${accent.from}15` : 'none',
+                  transition: 'background-color 200ms, border-color 200ms, box-shadow 200ms',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>{opt.native}</h3>
+                  <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'Inter', opacity: 0.7 }}>{opt.label}</p>
+                </div>
+                <div
+                  style={{
+                    width: 22, height: 22,
+                    borderRadius: '50%',
+                    border: isSelected ? 'none' : '1.5px solid rgba(128,128,128,0.3)',
+                    background: isSelected ? accent.from : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 200ms ease',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: isSelected ? '#fff' : 'transparent', fontWeight: 'bold' }}>check</span>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Technical Note Section */}
+        <div style={{ display: 'flex', gap: 14, padding: 18, borderRadius: 12, background: 'var(--app-surface-low, rgba(128,128,128,0.02))', border: '1px solid rgba(128,128,128,0.06)' }}>
+          <div style={{ padding: 6, borderRadius: 8, background: `${accent.from}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'max-content' }}>
+            <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 18 }}>info</span>
+          </div>
+          <div>
+            <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)', margin: '0 0 4px', fontFamily: 'Manrope' }}>Technical Note</h4>
+            <p style={{ fontSize: 11, color: 'var(--c-text-secondary)', lineHeight: 1.5, margin: 0, fontFamily: 'Inter', opacity: 0.8 }}>
+              Changing the display language will affect all menus, labels, and notifications. Artist names and song titles will remain in their original metadata language to preserve technical rider accuracy.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -5500,61 +5683,148 @@ User Agent: [Automatically Generated]
             if (pageId === 'main') {
               return (
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <style>{HUB_SETTINGS_CSS}</style>
-                <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 16px)', willChange: 'transform', transform: 'translate3d(0, 0, 0)', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
-                  <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
-                    <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>{t.hub.settingsTitle}</p>
-                    <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
+                  <div ref={localScrollRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px', paddingBottom: 'calc(var(--content-bottom-pad) + 52px)', WebkitOverflowScrolling: 'touch' }} className="no-scrollbar">
+                    <div style={{ paddingTop: 32, paddingBottom: 16 }}>
+                      <p style={{ fontSize: 32, fontWeight: 800, color: 'var(--c-text-primary)', margin: 0, letterSpacing: '-0.03em', fontFamily: 'Manrope' }}>Settings</p>
+                      <p style={{ fontSize: 10, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Livex System</p>
+                    </div>
+
+                    {/* Preferences Group */}
+                    <div style={{ marginBottom: 24 }}>
+                      <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--c-text-secondary)', opacity: 0.8, paddingLeft: 4, marginBottom: 8, fontFamily: 'Manrope' }}>PREFERENCES</h3>
+                      <div style={{ background: 'var(--app-surface-low, rgba(128,128,128,0.02))', borderRadius: 16, padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2, border: '1px solid rgba(128,128,128,0.06)' }}>
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('appearance')}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>palette</span>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Appearance</span>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>Theme, dynamic colors, accent</span>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                        </motion.div>
+
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('language')}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>translate</span>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Language</span>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>{lang.toUpperCase()}</span>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* Help & Support Group */}
+                    <div style={{ marginBottom: 24 }}>
+                      <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--c-text-secondary)', opacity: 0.8, paddingLeft: 4, marginBottom: 8, fontFamily: 'Manrope' }}>HELP & SUPPORT</h3>
+                      <div style={{ background: 'var(--app-surface-low, rgba(128,128,128,0.02))', borderRadius: 16, padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2, border: '1px solid rgba(128,128,128,0.06)' }}>
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('help-center')}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>help_center</span>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Help & Support</span>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>Documentation and FAQ</span>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                        </motion.div>
+
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('bug-report')}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>bug_report</span>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Report a Bug</span>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>Help us improve the workspace</span>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* System & About Group */}
+                    <div style={{ marginBottom: 24 }}>
+                      <h3 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--c-text-secondary)', opacity: 0.8, paddingLeft: 4, marginBottom: 8, fontFamily: 'Manrope' }}>SYSTEM & ABOUT</h3>
+                      <div style={{ background: 'var(--app-surface-low, rgba(128,128,128,0.02))', borderRadius: 16, padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2, border: '1px solid rgba(128,128,128,0.06)' }}>
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('updater')}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>system_update</span>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Updater</span>
+                              <span style={{ fontSize: 9, background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{APP_VERSION_LABEL}</span>
+                            </div>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>System is up to date</span>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                        </motion.div>
+
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('about')}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>info</span>
+                          </div>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>About</span>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>Beta program info & legal</span>
+                          </div>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                        </motion.div>
+
+                        {settings.developerMode && (
+                          <motion.div
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('developer')}
+                            style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                              <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>code</span>
+                            </div>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Developer Options</span>
+                              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>Advanced configurations</span>
+                            </div>
+                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
+                          </motion.div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-
-                  <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {!Capacitor.isNativePlatform() && (
-                      <BentoSettingCard icon="settings" iconColor={accent.from} title={t.hub.studioSettings.generalTitle || 'General Preferences'} desc={t.hub.studioSettings.generalDesc || 'Configure workspace layout and app behaviors'} onPress={() => navigate('general')} delay={75} />
-                    )}
-                    <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
-                    <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
-                  </div>
-
-                  <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <BentoSettingCard icon="contact_support" iconColor={accent.from} title={t.hub.studioSettings.helpTitle || (lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support')} desc={t.hub.studioSettings.helpDesc || (lang === 'es' ? 'Documentation, FAQ & diagnostics' : 'Documentation, FAQ & diagnostics')} onPress={() => navigate('help-center')} delay={110} />
-                    {!Capacitor.isNativePlatform() && (
-                      <BentoSettingCard icon="article" iconColor={accent.from} title={t.hub.studioSettings.releaseTitle || 'Release Notes'} desc={t.hub.studioSettings.releaseDesc || 'View version history'} onPress={() => navigate('release-notes')} delay={120} />
-                    )}
-                    {!Capacitor.isNativePlatform() && (
-                      <BentoSettingCard icon="install_desktop" iconColor={accent.from} title={t.hub.studioSettings.downloadTitle || 'Download Apps'} desc={t.hub.studioSettings.downloadDesc || 'Get native mobile and desktop clients'} onPress={() => navigate('download-apps')} delay={130} />
-                    )}
-                    {!Capacitor.isNativePlatform() && (
-                      <BentoSettingCard icon="keyboard" iconColor={accent.from} title={t.hub.studioSettings.keyboardTitle || 'Keyboard Shortcuts'} desc={t.hub.studioSettings.keyboardDesc || 'View quick key bindings'} onPress={() => navigate('keyboard-shortcuts')} delay={140} />
-                    )}
-                  </div>
-
-
-
-                  <SettingsSectionLabel delay={240}>{(t.hub as { studioSettings?: { systemAbout?: string } }).studioSettings?.systemAbout ?? 'System & About'}</SettingsSectionLabel>
-                  <div style={{
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(128, 128, 128, 0.08)',
-                    background: 'var(--app-surface-high)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '1px',
-                  }}>
-                    {Capacitor.isNativePlatform() && (
-                      <BentoSettingRow icon="download" iconColor={accent.from} title={(t.hub as { studioSettings?: { updater?: string } }).studioSettings?.updater ?? 'Updater'} desc={(t.hub as { studioSettings?: { updaterDesc?: string } }).studioSettings?.updaterDesc ?? 'App updates and installation'} badge={(t.hub as { studioSettings?: { autoBadge?: string } }).studioSettings?.autoBadge ?? 'Auto'} onPress={() => navigate('updater')} delay={250} />
-                    )}
-
-                    <BentoSettingRow icon="info" iconColor={accent.from} title={t.settings.sections.about} desc={APP_VERSION_LABEL} onPress={() => navigate('about')} delay={260} />
-                    {settings.developerMode && (
-                      <BentoSettingRow icon="terminal" iconColor={accent.from} title={t.hub.studioSettings.developerTitle || 'Developer Options'} desc={t.hub.studioSettings.developerDesc || 'Update simulation, logs, and controls'} onPress={() => navigate('developer')} delay={270} />
-                    )}
-                  </div>
-
-                  <ChangelogSheet open={changelogOpen} onClose={() => setChangelogOpen(false)} />
                 </div>
-              </div>
               );
             }
             return null;

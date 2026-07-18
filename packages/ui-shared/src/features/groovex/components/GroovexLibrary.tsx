@@ -1,4 +1,4 @@
-﻿import { useT, useScrollHide, useIsWebDesktop, useChordStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useT, useScrollHide, useIsWebDesktop, useChordStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useMemo, useRef } from 'react';
 import NoResultsLottie from '../../../components/lottie/NoResultsLottie';
@@ -6,6 +6,8 @@ import { SONG_CATALOG, getArtists, getGenres } from '../services/songCatalog';
 import type { SongMeta } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
 import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
+import { SearchBar } from '../../../components/design-system/StudioDesignSystem';
+
 
 export default function GroovexLibrary() {
   const searchQuery = useGroovexStore(useShallow(s => s.searchQuery));
@@ -92,23 +94,12 @@ export default function GroovexLibrary() {
         </section>
 
         <section style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ position: 'relative' }}>
-            <span className="material-symbols-outlined" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--c-text-muted)', fontSize: 18 }}>search</span>
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder={t.groovex.searchPlaceholder}
-              style={{
-                width: '100%', boxSizing: 'border-box',
-                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 8,
-                padding: '10px 12px 10px 38px',
-                color: 'var(--c-text-primary)', fontSize: 13, fontFamily: 'Inter',
-                outline: 'none',
-              }}
-            />
-          </div>
+          <SearchBar
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery('')}
+            placeholder={t.groovex.searchPlaceholder}
+          />
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => {

@@ -6,6 +6,8 @@ import { useGroovexStore } from '../state/useGroovexStore';
 import { getCacheSize, clearAllCache, clearSongCache, getPerSongCacheInfo, type SongCacheInfo } from '../services/stemCache';
 import { SONG_CATALOG } from '../services/songCatalog';
 import { WebSettingsSection, WebPreferenceRow } from '../../../components/design-system/WebDesignSystem';
+import { Toggle } from '../../../components/typography/SettingControls';
+
 
 export default function GroovexPreferences() {
   const t = useT();
@@ -398,6 +400,7 @@ function ToggleRow({ label, value, onChange, isWebDesktop }: {
 }) {
   const settings = useChordStore(useShallow(s => s.settings));
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const acc = ACCENT_COLORS[settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
 
   if (isWebDesktop) {
     return (
@@ -422,24 +425,14 @@ function ToggleRow({ label, value, onChange, isWebDesktop }: {
     );
   }
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
       <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)' }}>{label}</span>
-      <button
-        onClick={() => onChange(!value)}
-        style={{
-          width: 44, height: 24, borderRadius: 9999, border: 'none', cursor: 'pointer',
-          background: value ? 'rgba(103,156,255,0.25)' : (isLight ? 'rgba(0,0,0,0.08)' : 'var(--gx-surface-high)'),
-          position: 'relative', padding: 2, transition: 'background 150ms ease',
-        }}
-      >
-        <div style={{
-          width: 18, height: 18, borderRadius: 9999,
-          background: value ? 'var(--gx-accent)' : 'var(--c-text-secondary)',
-          position: 'absolute', top: 3,
-          left: value ? 23 : 3,
-          transition: 'left 150ms ease, background 150ms ease',
-        }} />
-      </button>
+      <Toggle
+        value={value}
+        onChange={onChange}
+        accentFrom={acc.from}
+        accentTo={acc.to}
+      />
     </div>
   );
 }

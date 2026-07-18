@@ -54,6 +54,8 @@ import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnima
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../../../components/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input } from '../../../components/design-system/StudioDesignSystem';
+import { Toggle as ToggleComponent, SegmentedControl } from '../../../components/typography/SettingControls';
+
 
 // â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LABEL_W  = 72;
@@ -1237,14 +1239,12 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
   };
 
   const Toggle = ({ on, onChange }: { on: boolean; onChange: () => void }) => (
-    <button onClick={onChange} className="btn-smooth"
-      style={{ width: 44, height: 26, borderRadius: 13, flexShrink: 0, position: 'relative',
-        background: on ? `linear-gradient(135deg,${accent.from},${accent.to})` : 'rgba(72,72,72,0.25)',
-        transition: 'background 220ms' }}>
-      <div style={{ position: 'absolute', top: 3, left: on ? 21 : 3, width: 20, height: 20, borderRadius: 10,
-        background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
-        transition: 'left 220ms cubic-bezier(0.34,1.56,0.64,1)' }} />
-    </button>
+    <ToggleComponent
+      value={on}
+      onChange={onChange}
+      accentFrom={accent.from}
+      accentTo={accent.to}
+    />
   );
 
   const Segment = <T extends string>({ options, value, onChange }: {
@@ -1252,22 +1252,14 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
     value: T;
     onChange: (v: T) => void;
   }) => (
-    <div style={{ display: 'flex', background: 'var(--app-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
-      {options.map(opt => {
-        const active = value === opt.value;
-        return (
-          <button key={opt.value} onClick={() => onChange(opt.value)} className="btn-smooth"
-            style={{ flex: 1, padding: '6px 10px', borderRadius: 7, fontFamily: 'Manrope', fontWeight: 700,
-              fontSize: 11, whiteSpace: 'nowrap',
-              background: active ? 'var(--app-surface-highest)' : 'transparent',
-              color: active ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
-              boxShadow: active ? '0 1px 4px rgba(0,0,0,0.18)' : 'none',
-              transition: 'all 160ms' }}>
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedControl
+      options={options}
+      value={value}
+      onChange={onChange}
+      accentFrom={accent.from}
+      accentTo={accent.to}
+      layoutId="drum-editor-segment"
+    />
   );
 
   const Row = ({ label, sub, right }: { label: string; sub?: string; right: React.ReactNode }) => (

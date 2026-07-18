@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.86
+
+### Improved
+- Migrated remaining settings, controls, and search inputs to Material 3 design.
+- Integrated unified SearchBar component into SongsPanel and GroovexLibrary.
+- Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.
+- Verified layout projection and animated SVG switch transitions perform smoothly on Android.
+
 ## 4.0.85
 
 ### Improved

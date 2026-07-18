@@ -11,7 +11,8 @@ import ChordDiagram from '../../../components/diagrams/ChordDiagram';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../../../components/layout/StudioLayoutSystem';
-import { Button, EmptyState, Input } from '../../../components/design-system/StudioDesignSystem';
+import { Button, EmptyState, Input, SearchBar } from '../../../components/design-system/StudioDesignSystem';
+
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -2257,15 +2258,14 @@ function ChordPicker({ onAdd, onClose, accent, onCreateCustom, customChords }: {
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ position: 'relative', width: '100%' }}>
-          <span className="material-symbols-outlined" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--c-text-secondary)', fontSize: '16px', pointerEvents: 'none' }}>search</span>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t.songs.searchChords}
-            style={{ width: '100%', boxSizing: 'border-box', background: 'var(--c-surface-high)', border: '1px solid var(--c-border)', borderRadius: 'var(--radius-md)', padding: '9px 14px 9px 36px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-body)', fontSize: '14px', outline: 'none' }}
-          />
-        </div>
+        <SearchBar
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          placeholder={t.songs.searchChords}
+          accent={accent}
+          style={{ marginBottom: '12px' }}
+        />
 
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '4px', touchAction: 'pan-x' }} className="no-scrollbar">
           {PICKER_CATS.map(c => (

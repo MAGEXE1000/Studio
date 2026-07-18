@@ -107,6 +107,12 @@ To prevent repaints on heavy page loads, animated components (such as buttons, c
 - Utilizes `willChange: 'transform'` or `willChange: 'transform, opacity'`.
 - Leverages hardware-accelerated CSS properties (`transform`, `opacity`, `scale`) rather than animating properties that trigger layout flow (`top`, `margin`, `width`, `height`).
 
+### Layout Projection Optimization
+The `SegmentedControl` sliding background utilizes Framer Motion's `layoutId` layout projection:
+- Animating layout boundaries is typically expensive, but using `layoutId` ensures the browser runs FLIP calculations (First, Last, Invert, Play).
+- This calculates start/end states once, applying translation and scale adjustments on the GPU without triggering costly layout reflows for neighboring grid/flex elements.
+- Unique `layoutId` values are assigned per control instance to segment layout projection recalculations and avoid cross-contamination.
+
 ### Reduced Motion Support
 All animated elements centrally respect accessibility flags via `usePrefersReducedMotion()`. When active:
 - Standard motion curves are disabled.

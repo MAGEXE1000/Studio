@@ -76,6 +76,18 @@ Used for directional transitions (e.g., Wizard setups, next/back step flows).
 Used for transitioning a small element (like a card or FAB) into a full panel.
 - **Behavior**: Uses Framer Motion's `layoutId` layout-projection to smoothly morph bounds and content.
 
+### 4. Segmented Control Sliding Backgrounds
+Used for transitioning active selection tabs in segmented controls.
+- **Behavior**: Employs Framer Motion's `layoutId` layout projection within a shared layout group. A physical capsule background slides fluidly behind the active text label, rather than fading instantly, reinforcing directional movement.
+
+### 5. Animated SVG Toggle Crossfades
+Used for toggle controls and switches.
+- **Behavior**: Employs high-fidelity SVG paths that morph or crossfade dynamically (e.g. checkmark and cross symbols) in response to toggle state changes, paired with spring-driven thumb displacement.
+
+### 6. Interactive Press Springs (whileTap)
+Used for Bento setting cards, rows, auth inputs, and button components.
+- **Behavior**: Promotes tactile feedback via Framer Motion `whileTap={{ scale: 0.97 }}` or similar spring scaling. A micro-scale contraction provides immediate confirmation of user interaction prior to navigation or action dispatch.
+
 ---
 
 ## Accessibility & User Configuration

@@ -26,7 +26,7 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.85';
+export const NATIVE_VERSION = '4.0.86';
 export const WEB_VERSION = '4.0.85';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
@@ -62,10 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Migrated Studio transitions to a centralized Material 3 Motion System.",
-      "Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.",
-      "Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.",
-      "Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
+      "Migrated remaining settings, controls, and search inputs to Material 3 design.",
+      "Integrated unified SearchBar component into SongsPanel and GroovexLibrary.",
+      "Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.",
+      "Verified layout projection and animated SVG switch transitions perform smoothly on Android.",
     ],
   },
 ];

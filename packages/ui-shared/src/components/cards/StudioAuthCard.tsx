@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import AppSpinner from "../AppSpinner";
 import AnimatedActionButton from "../animata/container/animated-border-trail";
+import { motion } from "motion/react";
+import { Input } from "../design-system/StudioDesignSystem";
 
 interface StudioAuthCardProps {
   accent: { from: string; to: string; mid: string };
@@ -87,11 +89,12 @@ export default function StudioAuthCard({
         {mode === "idle" && (
           <div className="flex flex-col gap-3.5">
             {/* Continue with Google (Aceternity premium button) */}
-            <button
+            <motion.button
               onClick={doGoogle}
               disabled={busy}
               type="button"
-              className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: "rgba(128,128,128,0.06)",
                 border: "1px solid rgba(128,128,128,0.15)",
@@ -106,7 +109,7 @@ export default function StudioAuthCard({
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
               {t.continueGoogle}
-            </button>
+            </motion.button>
 
             {/* Divider with "or" */}
             <div className="flex items-center gap-3 my-1">
@@ -118,7 +121,7 @@ export default function StudioAuthCard({
             </div>
 
             {/* Continue with Email */}
-            <button
+            <motion.button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -126,7 +129,8 @@ export default function StudioAuthCard({
               }}
               disabled={busy}
               type="button"
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border active:scale-[0.98]"
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border"
               style={{
                 background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                 border: "none",
@@ -139,7 +143,8 @@ export default function StudioAuthCard({
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
               {t.continueEmail}
-            </button>
+            </motion.button>
+
 
             {/* Create One Toggle Link */}
             <button
@@ -186,71 +191,69 @@ export default function StudioAuthCard({
             <div className="flex flex-col gap-3">
               {/* Name Field (Sign-up only) */}
               {mode === "email-register" && (
-                <div className="relative w-full">
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={t.namePlaceholder}
-                    autoComplete="name"
-                    required
-                    disabled={busy}
-                    type="text"
-                    className="w-full py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200 outline-none"
-                    style={{
-                      background: "rgba(128,128,128,0.06)",
-                      border: "1px solid rgba(128,128,128,0.18)",
-                      color: "var(--c-text-primary)",
-                    }}
-                  />
-                </div>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t.namePlaceholder}
+                  autoComplete="name"
+                  required
+                  disabled={busy}
+                  type="text"
+                  style={{
+                    background: "rgba(128,128,128,0.06)",
+                    border: "1px solid rgba(128,128,128,0.18)",
+                    color: "var(--c-text-primary)",
+                    borderRadius: "12px",
+                    padding: "12px 16px",
+                  }}
+                />
               )}
 
               {/* Email Input */}
-              <div className="relative w-full">
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t.emailPlaceholder}
-                  autoComplete="email"
-                  required
-                  disabled={busy}
-                  type="email"
-                  className="w-full py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200 outline-none"
-                  style={{
-                    background: "rgba(128,128,128,0.06)",
-                    border: "1px solid rgba(128,128,128,0.18)",
-                    color: "var(--c-text-primary)",
-                  }}
-                />
-              </div>
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t.emailPlaceholder}
+                autoComplete="email"
+                required
+                disabled={busy}
+                type="email"
+                style={{
+                  background: "rgba(128,128,128,0.06)",
+                  border: "1px solid rgba(128,128,128,0.18)",
+                  color: "var(--c-text-primary)",
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                }}
+              />
 
               {/* Password Input */}
-              <div className="relative w-full">
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t.passwordPlaceholder}
-                  autoComplete={mode === "email-signin" ? "current-password" : "new-password"}
-                  required
-                  disabled={busy}
-                  type="password"
-                  className="w-full py-3 px-4 rounded-xl border font-semibold text-sm transition-all duration-200 outline-none"
-                  style={{
-                    background: "rgba(128,128,128,0.06)",
-                    border: "1px solid rgba(128,128,128,0.18)",
-                    color: "var(--c-text-primary)",
-                  }}
-                />
-              </div>
+              <Input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t.passwordPlaceholder}
+                autoComplete={mode === "email-signin" ? "current-password" : "new-password"}
+                required
+                disabled={busy}
+                type="password"
+                style={{
+                  background: "rgba(128,128,128,0.06)",
+                  border: "1px solid rgba(128,128,128,0.18)",
+                  color: "var(--c-text-primary)",
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                }}
+              />
             </div>
 
             {/* Buttons Row */}
             <div className="flex gap-3 mt-1.5">
-              <button
+              <motion.button
                 onClick={() => handleModeChange("idle")}
                 disabled={busy}
                 type="button"
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border active:scale-[0.98]"
+                whileTap={{ scale: 0.98 }}
+                className="flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border"
                 style={{
                   background: "rgba(128,128,128,0.08)",
                   border: "1px solid rgba(128,128,128,0.18)",
@@ -258,7 +261,7 @@ export default function StudioAuthCard({
                 }}
               >
                 {t.cancel}
-              </button>
+              </motion.button>
 
               <AnimatedActionButton
                 type="submit"

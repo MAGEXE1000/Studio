@@ -1,18 +1,18 @@
 {
   "platform": "web",
-  "version": "4.0.85",
-  "commit": "9a8d9759",
-  "releasedAt": "7/17/2026, 6:40:45 PM CST",
-  "buildTimestamp": "7/17/2026, 6:40:45 PM CST",
+  "version": "4.0.86",
+  "commit": "a5c5c867",
+  "releasedAt": "7/17/2026, 7:05:09 PM CST",
+  "buildTimestamp": "7/17/2026, 7:05:09 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Migrated Studio transitions to a centralized Material 3 Motion System.\n• Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.\n• Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.\n• Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
-  "whatsNew": "• Migrated Studio transitions to a centralized Material 3 Motion System.\n• Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.\n• Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.\n• Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter.",
+  "changelog": "• Migrated remaining settings, controls, and search inputs to Material 3 design.\n• Integrated unified SearchBar component into SongsPanel and GroovexLibrary.\n• Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.\n• Verified layout projection and animated SVG switch transitions perform smoothly on Android.",
+  "whatsNew": "• Migrated remaining settings, controls, and search inputs to Material 3 design.\n• Integrated unified SearchBar component into SongsPanel and GroovexLibrary.\n• Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.\n• Verified layout projection and animated SVG switch transitions perform smoothly on Android.",
   "releaseNotes": {
     "improved": [
-      "Migrated Studio transitions to a centralized Material 3 Motion System.",
-      "Refactored dialog, bottom sheet, and page animations to consume unified duration and curve tokens.",
-      "Ensured robust prefers-reduced-motion and user speed preferences scaling across native and web platforms.",
-      "Promoted animation layers to GPU via will-change styles to resolve WebView rendering stutter."
+      "Migrated remaining settings, controls, and search inputs to Material 3 design.",
+      "Integrated unified SearchBar component into SongsPanel and GroovexLibrary.",
+      "Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.",
+      "Verified layout projection and animated SVG switch transitions perform smoothly on Android."
     ]
   },
   "mandatory": false

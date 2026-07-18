@@ -11,6 +11,8 @@ import GuitarDiagram from '../../../components/diagrams/GuitarDiagram';
 import PianoDiagram from '../../../components/diagrams/PianoDiagram';
 import FourStringDiagram from '../../../components/diagrams/FourStringDiagram';
 import { WebEmptyState } from '../../../components/design-system/WebDesignSystem';
+import { SearchBar } from '../../../components/design-system/StudioDesignSystem';
+
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -1259,20 +1261,14 @@ export default function LibraryPanel() {
 
           {/* Search (Explore only) */}
           {mainTab === 'explore' && (
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}>search</span>
-              <input data-testid="search-input" type="search" value={query}
-                onChange={e => setQuery(e.target.value)} placeholder={t.library.searchPlaceholder}
-                className="w-full py-2.5 pl-10 pr-4 text-sm outline-none"
-                style={{
-                  background: 'var(--app-surface-low)',
-                  border: '1px solid rgba(72,72,72,0.15)',
-                  borderRadius: '0.5rem', color: 'var(--c-text-primary)', fontFamily: 'Inter',
-                  transition: 'border-color 200ms ease, background-color 700ms cubic-bezier(0.4,0,0.2,1)',
-                }}
-                onFocus={e => { e.currentTarget.style.borderColor = `${accent.to}66`; }}
-                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(72,72,72,0.15)'; }} />
-            </div>
+            <SearchBar
+              data-testid="search-input"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onClear={() => setQuery('')}
+              placeholder={t.library.searchPlaceholder}
+              accent={accent}
+            />
           )}
         </div>
       )}

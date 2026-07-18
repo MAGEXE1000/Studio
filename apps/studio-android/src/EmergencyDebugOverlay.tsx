@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useChordStore, NATIVE_VERSION } from '@workspace/studio-core';
+import { ActionButton } from '@workspace/ui-shared';
 
 interface BlockerInfo {
   tag: string;
@@ -2442,7 +2443,8 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
           borderRadius: '8px',
           padding: '12px'
         }}>
-          <button
+          <ActionButton
+            variant="copy"
             onClick={copyFullReport}
             style={{
               background: 'linear-gradient(135deg, rgb(168, 85, 247) 0%, rgb(147, 51, 234) 100%)',
@@ -2452,15 +2454,17 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
               borderRadius: '6px',
               fontSize: '12px',
               fontWeight: 'bold',
-              cursor: 'pointer',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
               boxShadow: '0 4px 12px rgba(168, 85, 247, 0.25)',
-              transition: 'transform 0.1s ease'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%'
             }}
           >
             COPY FULL FAILED TIMELINE REPORT
-          </button>
+          </ActionButton>
           
           <div style={{
             display: 'grid',
@@ -2468,7 +2472,8 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
             gap: '8px',
             marginTop: '4px'
           }}>
-            <button
+            <ActionButton
+              variant="copy"
               onClick={copyTimelineJson}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2478,12 +2483,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY TIMELINE JSON
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyTimelineSummary}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2493,12 +2501,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY TIMELINE SUMMARY
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyCheckpointsOnly}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2508,12 +2519,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY CHECKPOINTS ONLY
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyRecoveryLog}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2523,12 +2537,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY RECOVERY LOG
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyRootLifecycleLog}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2538,12 +2555,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY ROOT LIFECYCLE LOG
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyMountUnmountStackReport}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2553,12 +2573,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY MOUNT/UNMOUNT STACKS
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyRootAppErrorLog}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2568,12 +2591,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY ROOTAPP ERROR LOG
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copyLastRecoverableRootAppError}
               style={{
                 background: 'rgba(255,255,255,0.06)',
@@ -2583,12 +2609,15 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY LAST RECOVERABLE ERROR
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
+              variant="copy"
               onClick={copySymbolicatedReactErrorReport}
               style={{
                 background: 'rgba(244, 63, 94, 0.15)',
@@ -2598,11 +2627,14 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
                 borderRadius: '6px',
                 fontSize: '11px',
                 fontWeight: 'bold',
-                cursor: 'pointer'
+                gridColumn: 'span 2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               COPY SYMBOLICATED REACT ERROR REPORT
-            </button>
+            </ActionButton>
           </div>
         </div>
 
@@ -3499,16 +3531,16 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '8px' }}>
-            <button onClick={copyFullForensicsReport} style={{ ...panicMenuItemStyle, gridColumn: 'span 2', background: 'rgba(168, 85, 247, 0.25)', borderColor: 'rgb(168, 85, 247)' }}>📋 Copy Full Forensics</button>
-            <button onClick={copyFilteredDOM} style={{ ...panicMenuItemStyle, gridColumn: 'span 2' }}>🌳 Copy Filtered DOM</button>
-            <button onClick={copyEverything} style={panicMenuItemStyle}>📋 All</button>
-            <button onClick={copyShortSummary} style={panicMenuItemStyle}>📝 Brief</button>
-            <button onClick={copyDOMSnapshot} style={panicMenuItemStyle}>🌳 DOM</button>
-            <button onClick={copyTopmostElements} style={panicMenuItemStyle}>🔝 Top</button>
-            <button onClick={copyNavigationTimeline} style={panicMenuItemStyle}>🕒 Nav</button>
-            <button onClick={copyLogsWarnings} style={panicMenuItemStyle}>🗂️ Logs</button>
-            <button onClick={copyLastCapture} style={panicMenuItemStyle}>📸 Capture</button>
-            <button onClick={copyOverlayHealth} style={panicMenuItemStyle}>❤️ Health</button>
+            <ActionButton variant="copy" onClick={copyFullForensicsReport} style={{ ...panicMenuItemStyle, gridColumn: 'span 2', background: 'rgba(168, 85, 247, 0.25)', borderColor: 'rgb(168, 85, 247)' }}>Copy Full Forensics</ActionButton>
+            <ActionButton variant="copy" onClick={copyFilteredDOM} style={{ ...panicMenuItemStyle, gridColumn: 'span 2' }}>Copy Filtered DOM</ActionButton>
+            <ActionButton variant="copy" onClick={copyEverything} style={panicMenuItemStyle}>All</ActionButton>
+            <ActionButton variant="copy" onClick={copyShortSummary} style={panicMenuItemStyle}>Brief</ActionButton>
+            <ActionButton variant="copy" onClick={copyDOMSnapshot} style={panicMenuItemStyle}>DOM</ActionButton>
+            <ActionButton variant="copy" onClick={copyTopmostElements} style={panicMenuItemStyle}>Top</ActionButton>
+            <ActionButton variant="copy" onClick={copyNavigationTimeline} style={panicMenuItemStyle}>Nav</ActionButton>
+            <ActionButton variant="copy" onClick={copyLogsWarnings} style={panicMenuItemStyle}>Logs</ActionButton>
+            <ActionButton variant="copy" onClick={copyLastCapture} style={panicMenuItemStyle}>Capture</ActionButton>
+            <ActionButton variant="copy" onClick={copyOverlayHealth} style={panicMenuItemStyle}>Health</ActionButton>
           </div>
 
           <div style={{ fontSize: '9px', fontWeight: 'bold', color: '#9ca3af', marginTop: '6px', marginBottom: '4px', textAlign: 'center', borderTop: '1px solid #374151', paddingTop: '6px' }}>

@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.92';
-export const WEB_VERSION = '4.0.92';
+export const NATIVE_VERSION = '4.0.93';
+export const WEB_VERSION = '4.0.93';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,11 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Spotlight-style floating search bar morph interaction, preserving original pill dimensions.",
-      "Centered floating dropdown container for search results positioned directly below the top bar.",
-      "Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.",
-      "Compact result rows with custom brand icons, titles, subtitles, and destination tags.",
-      "Completely removed Recent Sessions section from the Hub tab layout.",
+      "Deferred search index scanning off the critical path to achieve stutter-free 60 FPS morph animations.",
+      "Designed and built a reusable ActionButton component with spring tap physics and haptic ripples.",
+      "Replaced multiple diagnostic copy buttons in the Emergency Debug Overlay with ActionButtons.",
+      "Integrated the interactive live-mode eye visibility toggle button in Stagex editor FAB.",
+      "Tuned progressive blur to render behind the floating search surface only, leaving result texts sharp.",
     ],
   },
 ];
@@ -76,11 +76,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Spotlight-style floating search bar morph interaction, preserving original pill dimensions.",
-      "Centered floating dropdown container for search results positioned directly below the top bar.",
-      "Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.",
-      "Compact result rows with custom brand icons, titles, subtitles, and destination tags.",
-      "Completely removed Recent Sessions section from the Hub tab layout.",
+      "Deferred search index parsing by 350ms to unblock initial morph animations for 60 FPS transitions.",
+      "Designed a reusable ActionButton system supporting micro-interactions, ripples, spring physics, and loading/success states.",
+      "Integrated the visibility morph transition FAB button inside the Stagex editor.",
+      "Replaced multiple raw copy buttons in the Emergency Debug Overlay with interactive copy-action buttons.",
+      "Optimized progressive blur dropdown backdrop to preserve text legibility and center background blur behind card surfaces only.",
     ],
   },
 ];
@@ -91,11 +91,11 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Transición de búsqueda tipo Spotlight integrada en la barra flotante original.",
-      "Dropdown flotante centrado de resultados ubicado directamente debajo de la barra.",
-      "Fondo sutil con difuminado progresivo a pantalla completa manteniendo el Hub visible.",
-      "Filas de resultados compactas con iconos de marca, títulos, subtítulos e indicadores.",
-      "Se ha eliminado por completo la sección de Sesiones Recientes del Hub.",
+      "Indexación diferida de la búsqueda por 350 ms para lograr animaciones iniciales fluidas a 60 FPS.",
+      "Diseño de un sistema reusable ActionButton compatible con microinteracciones y respuestas táctiles.",
+      "Integración del botón FAB con morphing de visibilidad en el editor Stagex.",
+      "Reemplazo de los botones de copia en la pantalla de depuración por ActionButtons interactivos.",
+      "Difuminado progresivo ajustado y restringido únicamente al fondo de la tarjeta para legibilidad perfecta.",
     ],
   },
 ];

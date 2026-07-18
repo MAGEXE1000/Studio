@@ -873,117 +873,124 @@ export default function StudioHub() {
   }, [formatTimeAgo, launchApp]);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
     if (searchOpen) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
 
-      // Dynamically register user projects, songs, and files on search activation
-      try {
-        const chordex = localStorage.getItem('chord-explorer-storage-v3');
-        if (chordex) {
-          const parsed = JSON.parse(chordex);
-          const state = parsed.state || {};
-          (state.presets || []).forEach((p: any) => {
-            searchIndex.register({
-              id: `chordex-preset-${p.id || p.name}`,
-              category: 'projects',
-              titleEn: p.name || 'Untitled Chordex Preset',
-              titleEs: p.name || 'Preajuste de Chordex sin título',
-              subtitleEn: 'Chordex Preset',
-              subtitleEs: 'Preajuste de Chordex',
-              keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
-              keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
-              target: {
-                app: 'chords',
-                action: () => {
-                  launchApp('chords');
-                  setTimeout(() => {
-                    NavigationDispatcher.push({ app: 'chords', page: 'library' });
-                  }, 150);
+      // Defer expensive scanning off the critical animation path to avoid stutters
+      timer = setTimeout(() => {
+        try {
+          const chordex = localStorage.getItem('chord-explorer-storage-v3');
+          if (chordex) {
+            const parsed = JSON.parse(chordex);
+            const state = parsed.state || {};
+            (state.presets || []).forEach((p: any) => {
+              searchIndex.register({
+                id: `chordex-preset-${p.id || p.name}`,
+                category: 'projects',
+                titleEn: p.name || 'Untitled Chordex Preset',
+                titleEs: p.name || 'Preajuste de Chordex sin título',
+                subtitleEn: 'Chordex Preset',
+                subtitleEs: 'Preajuste de Chordex',
+                keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
+                keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
+                target: {
+                  app: 'chords',
+                  action: () => {
+                    launchApp('chords');
+                    setTimeout(() => {
+                      NavigationDispatcher.push({ app: 'chords', page: 'library' });
+                    }, 150);
+                  }
                 }
-              }
+              });
             });
-          });
-          (state.progressions || []).forEach((p: any) => {
-            searchIndex.register({
-              id: `chordex-prog-${p.id || p.name}`,
-              category: 'projects',
-              titleEn: p.name || 'Untitled Progression',
-              titleEs: p.name || 'Progresión sin título',
-              subtitleEn: 'Chordex Progression',
-              subtitleEs: 'Progresión de Chordex',
-              keywordsEn: ['progression', 'chords', 'chordex'],
-              keywordsEs: ['progresión', 'acordes', 'chordex'],
-              target: {
-                app: 'chords',
-                action: () => {
-                  launchApp('chords');
-                  setTimeout(() => {
-                    NavigationDispatcher.push({ app: 'chords', page: 'songs' });
-                  }, 150);
+            (state.progressions || []).forEach((p: any) => {
+              searchIndex.register({
+                id: `chordex-prog-${p.id || p.name}`,
+                category: 'projects',
+                titleEn: p.name || 'Untitled Progression',
+                titleEs: p.name || 'Progresión sin título',
+                subtitleEn: 'Chordex Progression',
+                subtitleEs: 'Progresión de Chordex',
+                keywordsEn: ['progression', 'chords', 'chordex'],
+                keywordsEs: ['progresión', 'acordes', 'chordex'],
+                target: {
+                  app: 'chords',
+                  action: () => {
+                    launchApp('chords');
+                    setTimeout(() => {
+                      NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+                    }, 150);
+                  }
                 }
-              }
+              });
             });
-          });
-        }
-      } catch {}
+          }
+        } catch {}
 
-      try {
-        const drumex = localStorage.getItem('chordex-drums');
-        if (drumex) {
-          const parsed = JSON.parse(drumex);
-          const state = parsed.state || {};
-          (state.drumSongs || []).forEach((s: any) => {
-            searchIndex.register({
-              id: `drumex-song-${s.id || s.name}`,
-              category: 'songs',
-              titleEn: s.name || 'Untitled Drum Song',
-              titleEs: s.name || 'Canción de batería sin título',
-              subtitleEn: 'Drumex Song',
-              subtitleEs: 'Canción de Drumex',
-              keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
-              keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
-              target: {
-                app: 'drums',
-                action: () => {
-                  launchApp('drums');
-                  setTimeout(() => {
-                    NavigationDispatcher.push({ app: 'drums', page: 'songs' });
-                  }, 150);
+        try {
+          const drumex = localStorage.getItem('chordex-drums');
+          if (drumex) {
+            const parsed = JSON.parse(drumex);
+            const state = parsed.state || {};
+            (state.drumSongs || []).forEach((s: any) => {
+              searchIndex.register({
+                id: `drumex-song-${s.id || s.name}`,
+                category: 'songs',
+                titleEn: s.name || 'Untitled Drum Song',
+                titleEs: s.name || 'Canción de batería sin título',
+                subtitleEn: 'Drumex Song',
+                subtitleEs: 'Canción de Drumex',
+                keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
+                keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
+                target: {
+                  app: 'drums',
+                  action: () => {
+                    launchApp('drums');
+                    setTimeout(() => {
+                      NavigationDispatcher.push({ app: 'drums', page: 'songs' });
+                    }, 150);
+                  }
                 }
-              }
+              });
             });
-          });
-        }
-      } catch {}
+          }
+        } catch {}
 
-      try {
-        const groovex = localStorage.getItem('groovex-storage-v1');
-        if (groovex) {
-          const parsed = JSON.parse(groovex);
-          const state = parsed.state || {};
-          (state.recentSongs || []).forEach((s: any) => {
-            searchIndex.register({
-              id: `groovex-song-${s.id || s.name || s.title}`,
-              category: 'songs',
-              titleEn: s.name || s.title || s.artist || 'Untitled Groovex Song',
-              titleEs: s.name || s.title || s.artist || 'Canción de Groovex sin título',
-              subtitleEn: 'Groovex Recent Song',
-              subtitleEs: 'Canción reciente de Groovex',
-              keywordsEn: ['groove', 'song', 'recent', 'groovex'],
-              keywordsEs: ['groove', 'canción', 'reciente', 'groovex'],
-              target: {
-                app: 'groovex',
-                action: () => {
-                  launchApp('groovex');
+        try {
+          const groovex = localStorage.getItem('groovex-storage-v1');
+          if (groovex) {
+            const parsed = JSON.parse(groovex);
+            const state = parsed.state || {};
+            (state.recentSongs || []).forEach((s: any) => {
+              searchIndex.register({
+                id: `groovex-song-${s.id || s.name || s.title}`,
+                category: 'songs',
+                titleEn: s.name || s.title || s.artist || 'Untitled Groovex Song',
+                titleEs: s.name || s.title || s.artist || 'Canción de Groovex sin título',
+                subtitleEn: 'Groovex Recent Song',
+                subtitleEs: 'Canción reciente de Groovex',
+                keywordsEn: ['groove', 'song', 'recent', 'groovex'],
+                keywordsEs: ['groove', 'canción', 'reciente', 'groovex'],
+                target: {
+                  app: 'groovex',
+                  action: () => {
+                    launchApp('groovex');
+                  }
                 }
-              }
+              });
             });
-          });
-        }
-      } catch {}
+          }
+        } catch {}
+      }, 350);
     }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [searchOpen]);
 
   return (
@@ -1120,7 +1127,18 @@ export default function StudioHub() {
                               transition={{ duration: 0.15 }}
                               className="flex items-center gap-3 w-full"
                             >
-                              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 4 }}>
+                              <motion.div
+                                layoutId="search-icon-btn"
+                                style={{
+                                  width: '36px',
+                                  height: '36px',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
                                 <motion.span 
                                   layoutId="search-icon" 
                                   className="material-symbols-outlined text-xl"
@@ -1128,7 +1146,7 @@ export default function StudioHub() {
                                 >
                                   search
                                 </motion.span>
-                              </div>
+                              </motion.div>
 
                               <input
                                 ref={searchInputRef}
@@ -1203,15 +1221,29 @@ export default function StudioHub() {
                               marginTop: '8px',
                               pointerEvents: 'auto',
                               zIndex: 100,
-                              background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.85))',
+                              background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.55))',
                               border: `1px solid var(--c-border, rgba(128,128,128,0.12))`,
                               borderRadius: '24px',
                               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.35)',
                               overflow: 'hidden',
                               display: 'flex',
                               flexDirection: 'column',
+                              position: 'relative'
                             }}
                           >
+                            <ProgressiveBlur
+                              direction="bottom"
+                              blurLayers={6}
+                              maxBlur={8}
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                zIndex: -1,
+                                borderRadius: 'inherit',
+                                overflow: 'hidden',
+                                pointerEvents: 'none'
+                              }}
+                            />
                             <div
                               style={{
                                 padding: '16px',
@@ -2008,22 +2040,20 @@ export default function StudioHub() {
       <AnimatePresence>
         {searchOpen && (
           <>
-            {/* Fixed progressive blur layer */}
+            {/* Fixed subtle dim overlay behind dropdown */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.25 }}
               style={{
                 position: 'fixed',
                 inset: 0,
                 zIndex: 39,
+                background: 'rgba(10, 10, 12, 0.35)',
                 pointerEvents: 'none',
               }}
-            >
-              <ProgressiveBlur direction="bottom" blurLayers={5} maxBlur={12} />
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(10, 10, 12, 0.25)', pointerEvents: 'none' }} />
-            </motion.div>
+            />
 
             {/* Click-away overlay */}
             <div

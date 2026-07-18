@@ -1,22 +1,22 @@
 {
   "platform": "android",
-  "version": "4.0.92",
-  "versionName": "4.0.92",
-  "versionCode": 40092,
-  "version_code": 40092,
-  "commit": "0f90d4a8",
-  "releasedAt": "7/18/2026, 9:28:15 AM CST",
-  "buildTimestamp": "7/18/2026, 9:28:15 AM CST",
+  "version": "4.0.93",
+  "versionName": "4.0.93",
+  "versionCode": 40093,
+  "version_code": 40093,
+  "commit": "5b075a4a",
+  "releasedAt": "7/18/2026, 11:30:15 AM CST",
+  "buildTimestamp": "7/18/2026, 11:30:15 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Spotlight-style floating search bar morph interaction, preserving original pill dimensions.\n• Centered floating dropdown container for search results positioned directly below the top bar.\n• Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.\n• Compact result rows with custom brand icons, titles, subtitles, and destination tags.\n• Completely removed Recent Sessions section from the Hub tab layout.",
-  "whatsNew": "• Spotlight-style floating search bar morph interaction, preserving original pill dimensions.\n• Centered floating dropdown container for search results positioned directly below the top bar.\n• Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.\n• Compact result rows with custom brand icons, titles, subtitles, and destination tags.\n• Completely removed Recent Sessions section from the Hub tab layout.",
+  "changelog": "• Deferred search index scanning off the critical path to achieve stutter-free 60 FPS morph animations.\n• Designed and built a reusable ActionButton component with spring tap physics and haptic ripples.\n• Replaced multiple diagnostic copy buttons in the Emergency Debug Overlay with ActionButtons.\n• Integrated the interactive live-mode eye visibility toggle button in Stagex editor FAB.\n• Tuned progressive blur to render behind the floating search surface only, leaving result texts sharp.",
+  "whatsNew": "• Deferred search index scanning off the critical path to achieve stutter-free 60 FPS morph animations.\n• Designed and built a reusable ActionButton component with spring tap physics and haptic ripples.\n• Replaced multiple diagnostic copy buttons in the Emergency Debug Overlay with ActionButtons.\n• Integrated the interactive live-mode eye visibility toggle button in Stagex editor FAB.\n• Tuned progressive blur to render behind the floating search surface only, leaving result texts sharp.",
   "releaseNotes": {
     "added": [
-      "Spotlight-style floating search bar morph interaction, preserving original pill dimensions.",
-      "Centered floating dropdown container for search results positioned directly below the top bar.",
-      "Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.",
-      "Compact result rows with custom brand icons, titles, subtitles, and destination tags.",
-      "Completely removed Recent Sessions section from the Hub tab layout."
+      "Deferred search index scanning off the critical path to achieve stutter-free 60 FPS morph animations.",
+      "Designed and built a reusable ActionButton component with spring tap physics and haptic ripples.",
+      "Replaced multiple diagnostic copy buttons in the Emergency Debug Overlay with ActionButtons.",
+      "Integrated the interactive live-mode eye visibility toggle button in Stagex editor FAB.",
+      "Tuned progressive blur to render behind the floating search surface only, leaving result texts sharp."
     ]
   },
   "mandatory": false

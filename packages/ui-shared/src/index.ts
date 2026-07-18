@@ -73,3 +73,4 @@ export { default as UpdateIndicator } from './components/UpdateIndicator';
 export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';
 export * from './components/StudioLayoutSystem';
 export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';
+export { ActionButton } from './components/design-system/ActionButton';

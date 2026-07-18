@@ -11,6 +11,15 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+## 4.0.93
+
+### Added
+- Deferred search index scanning off the critical path to achieve stutter-free 60 FPS morph animations.
+- Designed and built a reusable ActionButton component with spring tap physics and haptic ripples.
+- Replaced multiple diagnostic copy buttons in the Emergency Debug Overlay with ActionButtons.
+- Integrated the interactive live-mode eye visibility toggle button in Stagex editor FAB.
+- Tuned progressive blur to render behind the floating search surface only, leaving result texts sharp.
+
 ## 4.0.92
 
 ### Added

@@ -14,6 +14,7 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
+import { ActionButton } from '../../../components/design-system/ActionButton';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -2259,12 +2260,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
         {/* â”€â”€ Live-mode toggle (eye) â€” stacked 8px above the FAB â”€â”€ */}
         {curView === 'Editor' && (
-          <button
+          <ActionButton
             id="stagex-eye-button"
             data-testid="stagex-eye-button"
+            variant="visibility"
+            isVisible={liveMode}
             onClick={() => callIframe('toggleGigMode')}
-            onTouchEnd={(e) => { e.preventDefault(); callIframe('toggleGigMode'); }}
-            aria-label={liveMode ? tr.stagex.exitLiveMode : tr.stagex.enterLiveMode}
+            iconSize={22}
             style={{
               position: 'absolute',
               bottom: (isLandscapeEditor ? 14 : 90) + 50 + 8,
@@ -2276,29 +2278,16 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
                 : (isLight ? 'rgba(255,255,255,0.82)' : 'rgba(28,28,32,0.80)'),
               border: liveMode ? 'none' : (isLight ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(255,255,255,0.12)'),
-              backdropFilter: liveMode ? 'none' : 'blur(12px)',
-              WebkitBackdropFilter: liveMode ? 'none' : 'blur(12px)',
               boxShadow: liveMode
                 ? `0 4px 20px ${accent.from}90`
                 : '0 4px 16px rgba(0,0,0,0.25)',
               zIndex: 20,
-              cursor: 'pointer',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 0,
               opacity: (isLandscapeEditor && propPanelOpen || fabOpen) ? 0 : 1,
               pointerEvents: (isLandscapeEditor && propPanelOpen || fabOpen) ? 'none' as const : 'auto' as const,
               visibility: (isLandscapeEditor && propPanelOpen || fabOpen) ? 'hidden' as const : 'visible' as const,
-              transition: 'background 300ms ease, box-shadow 300ms ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
+              padding: 0,
             }}
-          >
-            <span className="material-symbols-outlined" style={{ color: liveMode ? '#fff' : (isLight ? 'rgba(0,0,0,0.65)' : 'rgba(200,200,220,0.9)'), fontSize: 22, lineHeight: 1 }}>
-              {liveMode ? 'visibility' : 'visibility_off'}
-            </span>
-          </button>
+          />
         )}
 
         {/* â”€â”€ FAB: add instrument â”€â”€ */}

@@ -2273,9 +2273,8 @@ export default function App() {
         height: '100dvh',
         overflow: 'hidden',
         background: 'var(--app-bg)',
-        opacity: startupComplete ? 1 : 0,
-        transition: 'opacity 300ms cubic-bezier(0.2, 0, 0, 1)',
-        pointerEvents: startupComplete ? 'auto' : 'none'
+        opacity: 1,
+        pointerEvents: 'auto'
       }}
     >
       <LifecycleTracker name="App" />
@@ -2419,7 +2418,7 @@ export default function App() {
       {showLaunchOverlay && (
         <LaunchAnimationEngine
           preset={initialPresetRef.current}
-          skipIntro={true}
+          skipIntro={false}
           onComplete={() => setShowLaunchOverlay(false)}
           isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
           isAmoled={settings.perApp?.hub?.amoledMode}

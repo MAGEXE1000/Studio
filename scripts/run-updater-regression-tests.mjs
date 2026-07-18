@@ -196,7 +196,7 @@ const [major, minor, patch] = APP_VERSION.split('.').map(Number);
 const currentVersion = APP_VERSION;
 const nextVersion = `${major}.${minor}.${patch + 1}`;
 const nextNextVersion = `${major}.${minor}.${patch + 2}`;
-const prevVersion = `${major}.${minor}.${patch - 1}`;
+const prevVersion = patch > 0 ? `${major}.${minor}.${patch - 1}` : (minor > 0 ? `${major}.${minor - 1}.99` : `${major - 1}.99.99`);
 
 console.log(`[TESTS] Dynamic versioning: prev=${prevVersion}, current=${currentVersion}, next=${nextVersion}, nextNext=${nextNextVersion}`);
 

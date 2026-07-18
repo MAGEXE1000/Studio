@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.1"
-$VersionCode = "40101"
-$ReleaseNote = "4.1.1 - Unified Cold Boot Launch Engine, full logo drawing path animation sequence, and dynamic stacking context clearing for global search dropdowns"
+$VersionName = "4.1.2"
+$VersionCode = "40102"
+$ReleaseNote = "4.1.2 - Removed experimental presets, fixed first-frame skeleton leak, achieved single continuous transition, and implemented Bottom Navigation failsafe watchdog recovery on focus, visibility, and layout changes"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

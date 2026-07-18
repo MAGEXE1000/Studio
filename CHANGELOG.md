@@ -12,6 +12,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.91
+
+### Added
+- Implemented flagship morphing top bar and stack progressive blur for search experience on Android.
+- Added central search index registry and dynamic local storage scanning.
+- Integrated performance auto-scaling for backdrop filter layers.
+
 ## 4.0.90
 
 ### Added

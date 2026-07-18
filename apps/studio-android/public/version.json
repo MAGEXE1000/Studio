@@ -1,24 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.90",
-  "versionName": "4.0.90",
-  "versionCode": 40090,
-  "version_code": 40090,
-  "commit": "3bb5fbc5",
-  "releasedAt": "7/18/2026, 8:23:49 AM CST",
-  "buildTimestamp": "7/18/2026, 8:23:49 AM CST",
+  "version": "4.0.91",
+  "versionName": "4.0.91",
+  "versionCode": 40091,
+  "version_code": 40091,
+  "commit": "12c1ab31",
+  "releasedAt": "7/18/2026, 9:03:38 AM CST",
+  "buildTimestamp": "7/18/2026, 9:03:38 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Rebranded the Hub as Livex and aligned design elements for maximum premium appeal.\n• Centralized all user profile, sync, authentication, and logout options under the Profile avatar in the top-right app bar.\n• Reconstructed the Settings sub-pages to open instantly by removing heavy navigation re-renders.\n• Implemented a fuzzy-matched Global Search overlay to index all applications, settings options, and developer tools.\n• Replaced static action buttons with a premium Quick Actions sheet overlay containing a customizable shortcut picker.\n• Fixed Groovex highlight indicator persistence.\n• Removed fake session placeholders and introduced a premium empty state illustration for recent sessions.",
-  "whatsNew": "• Rebranded the Hub as Livex and aligned design elements for maximum premium appeal.\n• Centralized all user profile, sync, authentication, and logout options under the Profile avatar in the top-right app bar.\n• Reconstructed the Settings sub-pages to open instantly by removing heavy navigation re-renders.\n• Implemented a fuzzy-matched Global Search overlay to index all applications, settings options, and developer tools.\n• Replaced static action buttons with a premium Quick Actions sheet overlay containing a customizable shortcut picker.\n• Fixed Groovex highlight indicator persistence.\n• Removed fake session placeholders and introduced a premium empty state illustration for recent sessions.",
+  "changelog": "• Implemented flagship morphing top bar and stack progressive blur for search experience on Android.\n• Added central search index registry and dynamic local storage scanning.\n• Integrated performance auto-scaling for backdrop filter layers.",
+  "whatsNew": "• Implemented flagship morphing top bar and stack progressive blur for search experience on Android.\n• Added central search index registry and dynamic local storage scanning.\n• Integrated performance auto-scaling for backdrop filter layers.",
   "releaseNotes": {
     "added": [
-      "Rebranded the Hub as Livex and aligned design elements for maximum premium appeal.",
-      "Centralized all user profile, sync, authentication, and logout options under the Profile avatar in the top-right app bar.",
-      "Reconstructed the Settings sub-pages to open instantly by removing heavy navigation re-renders.",
-      "Implemented a fuzzy-matched Global Search overlay to index all applications, settings options, and developer tools.",
-      "Replaced static action buttons with a premium Quick Actions sheet overlay containing a customizable shortcut picker.",
-      "Fixed Groovex highlight indicator persistence.",
-      "Removed fake session placeholders and introduced a premium empty state illustration for recent sessions."
+      "Implemented flagship morphing top bar and stack progressive blur for search experience on Android.",
+      "Added central search index registry and dynamic local storage scanning.",
+      "Integrated performance auto-scaling for backdrop filter layers."
     ]
   },
   "mandatory": false

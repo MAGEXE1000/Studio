@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.90"
-$VersionCode = "40090"
-$ReleaseNote = "4.0.90 - Livex Redesign & Overhaul: Rebrand to Livex, centralized Profile avatar, instant instant-load Settings page, fuzzy global search indexing, and Quick Actions overlay"
+$VersionName = "4.0.91"
+$VersionCode = "40091"
+$ReleaseNote = "4.0.91 - Morphing search top app bar, progressive blur overlay, and centralized search indexing registry"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

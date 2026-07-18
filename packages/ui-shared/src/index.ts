@@ -72,3 +72,4 @@ export { default as BottomNav } from './navigation/BottomNav';
 export { default as UpdateIndicator } from './components/UpdateIndicator';
 export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';
 export * from './components/StudioLayoutSystem';
+export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';

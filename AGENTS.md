@@ -194,3 +194,12 @@ When diagnosing an error, **attempt the simplest direct fix first**.
 - Use short **verify → fix → verify** loops. One hypothesis, one attempt, one check.
 - Escalate to deeper investigation only when the direct fix has been tried and failed.
 - Avoid multi-step hypothesis chains that delay the actual fix.
+
+---
+
+### External References & Library Setup Rule
+
+Before using any third-party library or external reference (e.g. Framer Motion, Backdrop Filters, Canvas, Web APIs), verify:
+1. Compatibility: Ensure full support on Android WebView (specifically rendering performance under hardware acceleration).
+2. Optimization: Implement automatic scaling/fallback modes for low-performance environments (e.g. reducing blur layers or disabling high-cost animations when `studio_performance_mode === 'low'`).
+3. Single Source: Register any shared index/registry entries or global UI configurations in central modules (like `searchIndex` or `StudioDesignSystem`) rather than local component files to prevent structural drift.

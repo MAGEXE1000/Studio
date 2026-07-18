@@ -2,6 +2,7 @@ import { useChordStore, ACCENT_COLORS, type AppKey } from '@workspace/studio-cor
 import React, { lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AnimatedAppHeader, MOTION_EASINGS, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
+import { ProgressiveBlur } from './ProgressiveBlur';
 import AppSpinner from '../loading/AppSpinner';
 
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
@@ -673,7 +674,7 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
       {...props}
     >
       {/* Flagship progressive blur background layer */}
-      <div className="progressive-blur-bg-bottom" style={{ position: 'absolute', inset: 0, zIndex: -2, pointerEvents: 'none' }} />
+      <ProgressiveBlur direction="bottom" blurLayers={6} maxBlur={24} style={{ zIndex: -2 }} />
       {/* Semi-transparent color overlay for theme matching */}
       <div style={{ position: 'absolute', inset: 0, background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.45))', zIndex: -1, pointerEvents: 'none' }} />
       {children}

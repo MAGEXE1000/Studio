@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
-import { getUpdateHistory, StartupCoordinator, startDiagnosticsSession, resetUpdateTimeline, getTimelineReport } from '@workspace/studio-core';
+import { getUpdateHistory, StartupCoordinator, startDiagnosticsSession, resetUpdateTimeline, getTimelineReport, searchIndex, type SearchableItem } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -17,6 +17,7 @@ import ProfileDropdown from '../kokonutui/profile-dropdown';
 import SmartLoading from '../loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../loading/StudioSkeleton';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
+import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
 import { useNavigationCoordinator, PageTransition, SPRING_PRESETS, MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
@@ -211,6 +212,7 @@ export default function StudioHub() {
   }, []);
   const [zooming, setZooming] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchCategory, setSearchCategory] = useState<'all' | 'apps' | 'settings' | 'projects' | 'songs' | 'actions'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
@@ -597,96 +599,39 @@ export default function StudioHub() {
     [greetName, lang],
   );
 
-  interface SearchItem {
-    type: 'app' | 'setting' | 'project';
-    title: string;
-    subtitle: string;
-    target: {
-      app?: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
-      tab?: 'home' | 'settings' | 'profile' | 'help';
-      page?: string;
-      action?: () => void;
-    };
-  }
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
-  const apps: SearchItem[] = [
-    { type: 'app', title: 'Chordex', subtitle: 'Build chord progressions & study harmony', target: { app: 'chords' } },
-    { type: 'app', title: 'Drumex', subtitle: 'Program drum sequences & beat grids', target: { app: 'drums' } },
-    { type: 'app', title: 'Stagex', subtitle: 'Live performance console & midi routing', target: { app: 'stage' } },
-    { type: 'app', title: 'Groovex', subtitle: 'Audio groove player & tempo sync', target: { app: 'groovex' } },
-    { type: 'app', title: 'Vocalex', subtitle: 'Pitch tracker, vocal trainer & voice coach', target: { app: 'vocalex' } },
-  ];
+  useEffect(() => {
+    if (searchOpen) {
+      try {
+        const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
+        setRecentSearches(JSON.parse(historyStr));
+      } catch {}
+    }
+  }, [searchOpen]);
 
-  const settingsItems: SearchItem[] = [
-    { type: 'setting', title: 'General Preferences', subtitle: 'Configure app behaviors & docks', target: { app: 'hub', tab: 'settings', page: 'general' } },
-    { type: 'setting', title: 'Appearance Settings', subtitle: 'Themes, dark mode, colors & animations', target: { app: 'hub', tab: 'settings', page: 'appearance' } },
-    { type: 'setting', title: 'Language', subtitle: 'Change app language (English / Spanish)', target: { app: 'hub', tab: 'settings', page: 'language' } },
-    { type: 'setting', title: 'Privacy & Security', subtitle: 'Data sync options & encryption keys', target: { app: 'hub', tab: 'settings', page: 'privacy' } },
-    { type: 'setting', title: 'App Updater', subtitle: 'Check for OTA updates & release builds', target: { app: 'hub', tab: 'settings', page: 'updater' } },
-    { type: 'setting', title: 'Developer Options', subtitle: 'Diagnostics, console logs, system state', target: { app: 'hub', tab: 'settings', page: 'developer' } },
-    { type: 'setting', title: 'About Livex', subtitle: 'Version manifest, credentials & fingerprint', target: { app: 'hub', tab: 'settings', page: 'about' } },
-    { type: 'setting', title: 'Help Center & FAQ', subtitle: 'Frequently asked questions & documentation', target: { app: 'hub', tab: 'settings', page: 'help-center' } },
-  ];
-
-  const loadSearchableProjects = (): SearchItem[] => {
-    const list: SearchItem[] = [];
+  const addToSearchHistory = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
     try {
-      const chordex = localStorage.getItem('chord-explorer-storage-v3');
-      if (chordex) {
-        const parsed = JSON.parse(chordex);
-        const state = parsed.state || {};
-        (state.presets || []).forEach((p: any) => {
-          list.push({
-            type: 'project',
-            title: p.name || p.title || 'Untitled Chordex Preset',
-            subtitle: 'Chordex Preset',
-            target: { app: 'chords', action: () => { launchApp('chords'); setTimeout(() => { NavigationDispatcher.push({ app: 'chords', page: 'library' }); }, 150); } }
-          });
-        });
-        (state.progressions || []).forEach((p: any) => {
-          list.push({
-            type: 'project',
-            title: p.name || p.title || 'Untitled Progression',
-            subtitle: 'Chordex Progression',
-            target: { app: 'chords', action: () => { launchApp('chords'); setTimeout(() => { NavigationDispatcher.push({ app: 'chords', page: 'songs' }); }, 150); } }
-          });
-        });
-      }
+      const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
+      let history: string[] = JSON.parse(historyStr);
+      history = history.filter(x => x.toLowerCase() !== trimmed.toLowerCase());
+      history.unshift(trimmed);
+      history = history.slice(0, 5);
+      localStorage.setItem('studio:recent-searches', JSON.stringify(history));
+      setRecentSearches(history);
     } catch {}
+  };
 
+  const removeSearchHistory = (queryToRemove: string) => {
     try {
-      const drumex = localStorage.getItem('chordex-drums');
-      if (drumex) {
-        const parsed = JSON.parse(drumex);
-        const state = parsed.state || {};
-        (state.drumSongs || []).forEach((s: any) => {
-          list.push({
-            type: 'project',
-            title: s.name || s.title || 'Untitled Drum Song',
-            subtitle: 'Drumex Song',
-            target: { app: 'drums', action: () => { launchApp('drums'); setTimeout(() => { NavigationDispatcher.push({ app: 'drums', page: 'songs' }); }, 150); } }
-          });
-        });
-      }
+      const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
+      let history: string[] = JSON.parse(historyStr);
+      history = history.filter(x => x.toLowerCase() !== queryToRemove.toLowerCase());
+      localStorage.setItem('studio:recent-searches', JSON.stringify(history));
+      setRecentSearches(history);
     } catch {}
-
-    try {
-      const groovex = localStorage.getItem('groovex-storage-v1');
-      if (groovex) {
-        const parsed = JSON.parse(groovex);
-        const state = parsed.state || {};
-        (state.recentSongs || []).forEach((s: any) => {
-          list.push({
-            type: 'project',
-            title: s.name || s.title || s.artist || 'Untitled Groovex Song',
-            subtitle: 'Groovex Recent Song',
-            target: { app: 'groovex', action: () => { NavigationDispatcher.push({ app: 'groovex' }); } }
-          });
-        });
-      }
-    } catch {}
-
-    return list;
   };
 
   const scoreMatch = (query: string, text: string): number => {
@@ -715,41 +660,76 @@ export default function StudioHub() {
     return 0;
   };
 
-  const getSearchResults = (query: string): SearchItem[] => {
-    if (!query.trim()) return [];
-    const items = [...apps, ...settingsItems, ...loadSearchableProjects()];
-    const scored = items.map(item => {
-      const titleScore = scoreMatch(query, item.title);
-      const subtitleScore = scoreMatch(query, item.subtitle) * 0.5;
-      const finalScore = Math.max(titleScore, subtitleScore);
+  const getSearchResults = (query: string): SearchableItem[] => {
+    const q = query.trim();
+    if (!q) return [];
+    
+    const allItems = searchIndex.getItems();
+    const scored = allItems.map(item => {
+      const titleScore = Math.max(scoreMatch(q, item.titleEn), scoreMatch(q, item.titleEs));
+      const subtitleScore = Math.max(scoreMatch(q, item.subtitleEn), scoreMatch(q, item.subtitleEs)) * 0.5;
+      
+      const keywordsEnScore = (item.keywordsEn || []).some(k => k.toLowerCase().includes(q.toLowerCase())) ? 70 : 0;
+      const keywordsEsScore = (item.keywordsEs || []).some(k => k.toLowerCase().includes(q.toLowerCase())) ? 70 : 0;
+      
+      const finalScore = Math.max(titleScore, subtitleScore, keywordsEnScore, keywordsEsScore);
       return { item, score: finalScore };
     });
-    return scored
+
+    let results = scored
       .filter(x => x.score > 0)
       .sort((a, b) => b.score - a.score)
       .map(x => x.item);
+
+    if (searchCategory !== 'all') {
+      results = results.filter(x => x.category === searchCategory);
+    }
+
+    return results;
   };
 
-  const renderSearchRow = (item: SearchItem, idx: number) => {
-    const icon = item.type === 'app' ? 'widgets' : item.type === 'setting' ? 'settings' : 'library_music';
-    const iconColor = item.type === 'app' ? accent.from : item.type === 'setting' ? '#38bdf8' : '#a78bfa';
+  const handleSearchRowClick = (item: SearchableItem) => {
+    addToSearchHistory(searchQuery);
+    setSearchOpen(false);
+    setSearchQuery('');
+
+    if (item.target.action) {
+      item.target.action();
+    } else if (item.target.app) {
+      if (item.target.app === 'hub') {
+        NavigationDispatcher.push({ app: 'hub', tab: item.target.tab || 'home', page: item.target.page } as any);
+      } else {
+        launchApp(item.target.app);
+        if (item.target.page) {
+          setTimeout(() => {
+            NavigationDispatcher.push({ app: item.target.app as any, page: item.target.page } as any);
+          }, 150);
+        }
+      }
+    }
+  };
+
+  const renderSearchRow = (item: SearchableItem, idx: number) => {
+    const icon = {
+      apps: 'widgets',
+      settings: 'settings',
+      projects: 'folder',
+      songs: 'library_music',
+      actions: 'bolt',
+    }[item.category] || 'widgets';
+
+    const iconColor = {
+      apps: accent.from,
+      settings: '#38bdf8',
+      projects: '#fb7185',
+      songs: '#a78bfa',
+      actions: '#f59e0b',
+    }[item.category] || accent.from;
 
     return (
       <button
-        key={idx}
-        onClick={() => {
-          setSearchOpen(false);
-          setSearchQuery('');
-          if (item.target.action) {
-            item.target.action();
-          } else if (item.target.app) {
-            if (item.target.app === 'hub') {
-              NavigationDispatcher.push(item.target);
-            } else {
-              NavigationDispatcher.push({ app: item.target.app });
-            }
-          }
-        }}
+        key={item.id || idx}
+        onClick={() => handleSearchRowClick(item)}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -778,19 +758,230 @@ export default function StudioHub() {
           <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)' }}>{item.title}</div>
-          <div style={{ fontSize: 12, color: 'var(--c-text-secondary)', marginTop: 2 }}>{item.subtitle}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)' }}>
+            {lang === 'es' ? item.titleEs : item.titleEn}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--c-text-secondary)', marginTop: 2 }}>
+            {lang === 'es' ? item.subtitleEs : item.subtitleEn}
+          </div>
         </div>
         <span className="material-symbols-outlined" style={{ color: 'var(--c-text-muted)', fontSize: 18 }}>chevron_right</span>
       </button>
     );
   };
 
+  const formatTimeAgo = useCallback((timeInput: any): string => {
+    try {
+      const date = new Date(timeInput);
+      if (isNaN(date.getTime())) return 'Recent';
+      const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+      if (seconds < 60) return lang === 'es' ? 'ahora mismo' : 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return lang === 'es' ? `hace ${minutes} min` : `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return lang === 'es' ? `hace ${hours} h` : `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days === 1) return lang === 'es' ? 'ayer' : 'yesterday';
+      if (days < 7) return lang === 'es' ? `hace ${days} días` : `${days}d ago`;
+      return date.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
+    } catch {
+      return 'Recent';
+    }
+  }, [lang]);
+
+  const loadRecentSessions = useCallback(() => {
+    const list: { app: 'chords' | 'drums' | 'groovex'; title: string; appName: string; timestamp: string; action: () => void }[] = [];
+    try {
+      const chordex = localStorage.getItem('chord-explorer-storage-v3');
+      if (chordex) {
+        const parsed = JSON.parse(chordex);
+        const state = parsed.state || {};
+        (state.presets || []).forEach((p: any) => {
+          list.push({
+            app: 'chords',
+            title: p.name || p.title || 'Untitled Chordex Preset',
+            appName: 'Chordex',
+            timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
+            action: () => {
+              launchApp('chords');
+              setTimeout(() => {
+                NavigationDispatcher.push({ app: 'chords', page: 'library' });
+              }, 150);
+            }
+          });
+        });
+        (state.progressions || []).forEach((p: any) => {
+          list.push({
+            app: 'chords',
+            title: p.name || p.title || 'Untitled Progression',
+            appName: 'Chordex',
+            timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
+            action: () => {
+              launchApp('chords');
+              setTimeout(() => {
+                NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+              }, 150);
+            }
+          });
+        });
+      }
+    } catch {}
+
+    try {
+      const drumex = localStorage.getItem('chordex-drums');
+      if (drumex) {
+        const parsed = JSON.parse(drumex);
+        const state = parsed.state || {};
+        (state.drumSongs || []).forEach((s: any) => {
+          list.push({
+            app: 'drums',
+            title: s.name || s.title || 'Untitled Drum Song',
+            appName: 'Drumex',
+            timestamp: s.updatedAt ? formatTimeAgo(s.updatedAt) : 'Recent',
+            action: () => {
+              launchApp('drums');
+              setTimeout(() => {
+                NavigationDispatcher.push({ app: 'drums', page: 'songs' });
+              }, 150);
+            }
+          });
+        });
+      }
+    } catch {}
+
+    try {
+      const groovex = localStorage.getItem('groovex-storage-v1');
+      if (groovex) {
+        const parsed = JSON.parse(groovex);
+        const state = parsed.state || {};
+        (state.recentSongs || []).forEach((s: any) => {
+          list.push({
+            app: 'groovex',
+            title: s.name || s.title || s.artist || 'Untitled Groovex Song',
+            appName: 'Groovex',
+            timestamp: s.playedAt ? formatTimeAgo(s.playedAt) : 'Recent',
+            action: () => {
+              launchApp('groovex');
+            }
+          });
+        });
+      }
+    } catch {}
+
+    return list.slice(0, 3);
+  }, [formatTimeAgo, launchApp]);
+
   useEffect(() => {
     if (searchOpen) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
+
+      // Dynamically register user projects, songs, and files on search activation
+      try {
+        const chordex = localStorage.getItem('chord-explorer-storage-v3');
+        if (chordex) {
+          const parsed = JSON.parse(chordex);
+          const state = parsed.state || {};
+          (state.presets || []).forEach((p: any) => {
+            searchIndex.register({
+              id: `chordex-preset-${p.id || p.name}`,
+              category: 'projects',
+              titleEn: p.name || 'Untitled Chordex Preset',
+              titleEs: p.name || 'Preajuste de Chordex sin título',
+              subtitleEn: 'Chordex Preset',
+              subtitleEs: 'Preajuste de Chordex',
+              keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
+              keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
+              target: {
+                app: 'chords',
+                action: () => {
+                  launchApp('chords');
+                  setTimeout(() => {
+                    NavigationDispatcher.push({ app: 'chords', page: 'library' });
+                  }, 150);
+                }
+              }
+            });
+          });
+          (state.progressions || []).forEach((p: any) => {
+            searchIndex.register({
+              id: `chordex-prog-${p.id || p.name}`,
+              category: 'projects',
+              titleEn: p.name || 'Untitled Progression',
+              titleEs: p.name || 'Progresión sin título',
+              subtitleEn: 'Chordex Progression',
+              subtitleEs: 'Progresión de Chordex',
+              keywordsEn: ['progression', 'chords', 'chordex'],
+              keywordsEs: ['progresión', 'acordes', 'chordex'],
+              target: {
+                app: 'chords',
+                action: () => {
+                  launchApp('chords');
+                  setTimeout(() => {
+                    NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+                  }, 150);
+                }
+              }
+            });
+          });
+        }
+      } catch {}
+
+      try {
+        const drumex = localStorage.getItem('chordex-drums');
+        if (drumex) {
+          const parsed = JSON.parse(drumex);
+          const state = parsed.state || {};
+          (state.drumSongs || []).forEach((s: any) => {
+            searchIndex.register({
+              id: `drumex-song-${s.id || s.name}`,
+              category: 'songs',
+              titleEn: s.name || 'Untitled Drum Song',
+              titleEs: s.name || 'Canción de batería sin título',
+              subtitleEn: 'Drumex Song',
+              subtitleEs: 'Canción de Drumex',
+              keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
+              keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
+              target: {
+                app: 'drums',
+                action: () => {
+                  launchApp('drums');
+                  setTimeout(() => {
+                    NavigationDispatcher.push({ app: 'drums', page: 'songs' });
+                  }, 150);
+                }
+              }
+            });
+          });
+        }
+      } catch {}
+
+      try {
+        const groovex = localStorage.getItem('groovex-storage-v1');
+        if (groovex) {
+          const parsed = JSON.parse(groovex);
+          const state = parsed.state || {};
+          (state.recentSongs || []).forEach((s: any) => {
+            searchIndex.register({
+              id: `groovex-song-${s.id || s.name || s.title}`,
+              category: 'songs',
+              titleEn: s.name || s.title || s.artist || 'Untitled Groovex Song',
+              titleEs: s.name || s.title || s.artist || 'Canción de Groovex sin título',
+              subtitleEn: 'Groovex Recent Song',
+              subtitleEs: 'Canción reciente de Groovex',
+              keywordsEn: ['groove', 'song', 'recent', 'groovex'],
+              keywordsEs: ['groove', 'canción', 'reciente', 'groovex'],
+              target: {
+                app: 'groovex',
+                action: () => {
+                  launchApp('groovex');
+                }
+              }
+            });
+          });
+        }
+      } catch {}
     }
   }, [searchOpen]);
 
@@ -844,65 +1035,154 @@ export default function StudioHub() {
 
                     {/* Centered Floating Glass Top App Bar */}
                     <div className="fixed top-0 left-0 w-full z-50 flex justify-center pt-4 px-4">
-                      <header 
+                      <motion.header 
+                        layout
+                        transition={SPRING_PRESETS.soft}
                         style={{
                           width: '100%',
-                          maxWidth: '448px',
+                          maxWidth: searchOpen ? 'calc(100% - 32px)' : '448px',
                           background: 'transparent',
                           border: `1px solid var(--c-border, rgba(128,128,128,0.12))`,
+                          borderRadius: searchOpen ? '20px' : '9999px',
                         }}
-                        className="flex justify-between items-center px-6 py-3 rounded-full shadow-lg relative overflow-hidden"
+                        className="flex items-center px-5 py-2.5 shadow-lg relative overflow-hidden"
                       >
                         {/* Progressive blur inside header */}
-                        <div className="progressive-blur-bg-top" style={{ position: 'absolute', inset: 0, zIndex: -2, pointerEvents: 'none' }} />
+                        <ProgressiveBlur direction="top" blurLayers={6} maxBlur={24} style={{ zIndex: -2 }} />
                         <div style={{ position: 'absolute', inset: 0, background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.4))', zIndex: -1, pointerEvents: 'none' }} />
 
-                        <div className="flex items-center gap-3">
-                          <h1 style={{ fontFamily: 'Manrope', fontWeight: 900, color: 'var(--c-text-primary)' }} className="text-xl tracking-tighter">
-                            Livex
-                          </h1>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <button 
-                            onClick={() => setSearchOpen(true)}
-                            style={{
-                              width: '36px', height: '36px', borderRadius: '50%',
-                              backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-                              border: '1px solid rgba(128,128,128,0.08)',
-                            }}
-                            className="flex items-center justify-center hover:bg-surface-bright active:scale-90 transition-transform cursor-pointer outline-none text-on-surface-variant"
-                          >
-                            <span className="material-symbols-outlined text-xl">search</span>
-                          </button>
-                          
-                          {/* Avatar icon entry point for Profile/Settings */}
-                          <button 
-                            onClick={() => {
-                              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
-                            }}
-                            style={{
-                              width: '36px', height: '36px', borderRadius: '50%',
-                              border: `2px solid ${accent.from}40`,
-                              backgroundColor: 'var(--app-surface-highest, rgba(128,128,128,0.12))',
-                              overflow: 'hidden',
-                              padding: 0,
-                            }}
-                            className="flex items-center justify-center hover:scale-105 active:scale-90 transition-all cursor-pointer outline-none"
-                          >
-                            {customPhoto || authUser?.photoURL ? (
-                              <img src={(customPhoto || authUser?.photoURL) ?? undefined} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
-                            ) : authUser ? (
-                              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}>
-                                {(authUser.displayName?.[0] ?? 'S').toUpperCase()}
-                              </span>
-                            ) : (
-                              <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
-                                account_circle
-                              </span>
-                            )}
-                          </button>
-                        </div>
-                      </header>
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          {!searchOpen ? (
+                            <motion.div
+                              key="normal"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="flex justify-between items-center w-full"
+                            >
+                              <div className="flex items-center gap-3">
+                                <h1 style={{ fontFamily: 'Manrope', fontWeight: 900, color: 'var(--c-text-primary)' }} className="text-xl tracking-tighter">
+                                  Livex
+                                </h1>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <motion.button 
+                                  layoutId="search-icon-btn"
+                                  onClick={() => setSearchOpen(true)}
+                                  style={{
+                                    width: '36px', height: '36px', borderRadius: '50%',
+                                    backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+                                    border: '1px solid rgba(128,128,128,0.08)',
+                                  }}
+                                  className="flex items-center justify-center hover:bg-surface-bright active:scale-90 transition-transform cursor-pointer outline-none text-on-surface-variant"
+                                >
+                                  <span className="material-symbols-outlined text-xl">search</span>
+                                </motion.button>
+                                
+                                <button 
+                                  onClick={() => {
+                                    NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+                                  }}
+                                  style={{
+                                    width: '36px', height: '36px', borderRadius: '50%',
+                                    border: `2px solid ${accent.from}40`,
+                                    backgroundColor: 'var(--app-surface-highest, rgba(128,128,128,0.12))',
+                                    overflow: 'hidden',
+                                    padding: 0,
+                                  }}
+                                  className="flex items-center justify-center hover:scale-105 active:scale-90 transition-all cursor-pointer outline-none"
+                                >
+                                  {customPhoto || authUser?.photoURL ? (
+                                    <img src={(customPhoto || authUser?.photoURL) ?? undefined} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} referrerPolicy="no-referrer" />
+                                  ) : authUser ? (
+                                    <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}>
+                                      {(authUser.displayName?.[0] ?? 'S').toUpperCase()}
+                                    </span>
+                                  ) : (
+                                    <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
+                                      account_circle
+                                    </span>
+                                  )}
+                                </button>
+                              </div>
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="searching"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="flex items-center gap-3 w-full"
+                            >
+                              <motion.div
+                                layoutId="search-icon-btn"
+                                style={{
+                                  width: '36px', height: '36px',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  color: accent.from,
+                                }}
+                              >
+                                <span className="material-symbols-outlined text-xl">search</span>
+                              </motion.div>
+
+                              <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search apps, settings, sessions..."
+                                style={{
+                                  flex: 1,
+                                  background: 'transparent',
+                                  border: 'none',
+                                  outline: 'none',
+                                  color: 'var(--c-text-primary)',
+                                  fontSize: 15,
+                                  fontFamily: 'Inter, sans-serif'
+                                }}
+                              />
+
+                              {searchQuery && (
+                                <button
+                                  onClick={() => setSearchQuery('')}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--c-text-muted)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  setSearchQuery('');
+                                }}
+                                style={{
+                                  background: 'rgba(255, 255, 255, 0.04)',
+                                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                                  borderRadius: 12,
+                                  padding: '4px 10px',
+                                  color: 'var(--c-text-secondary)',
+                                  fontSize: 13,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                <span className="material-symbols-outlined text-lg leading-none">close</span>
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.header>
                     </div>
 
                     {/* Dashboard Contents Scroll Area - spacing for header */}
@@ -1037,107 +1317,6 @@ export default function StudioHub() {
 
                       {/* Recent Sessions list activity */}
                       {(() => {
-                        const formatTimeAgo = (timeInput: any): string => {
-                          try {
-                            const date = new Date(timeInput);
-                            if (isNaN(date.getTime())) return 'Recent';
-                            const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-                            if (seconds < 60) return lang === 'es' ? 'ahora mismo' : 'just now';
-                            const minutes = Math.floor(seconds / 60);
-                            if (minutes < 60) return lang === 'es' ? `hace ${minutes} min` : `${minutes}m ago`;
-                            const hours = Math.floor(minutes / 60);
-                            if (hours < 24) return lang === 'es' ? `hace ${hours} h` : `${hours}h ago`;
-                            const days = Math.floor(hours / 24);
-                            if (days === 1) return lang === 'es' ? 'ayer' : 'yesterday';
-                            if (days < 7) return lang === 'es' ? `hace ${days} días` : `${days}d ago`;
-                            return date.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
-                          } catch {
-                            return 'Recent';
-                          }
-                        };
-
-                        const loadRecentSessions = () => {
-                          const list: { app: 'chords' | 'drums' | 'groovex'; title: string; appName: string; timestamp: string; action: () => void }[] = [];
-                          try {
-                            const chordex = localStorage.getItem('chord-explorer-storage-v3');
-                            if (chordex) {
-                              const parsed = JSON.parse(chordex);
-                              const state = parsed.state || {};
-                              (state.presets || []).forEach((p: any) => {
-                                list.push({
-                                  app: 'chords',
-                                  title: p.name || p.title || 'Untitled Chordex Preset',
-                                  appName: 'Chordex',
-                                  timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
-                                  action: () => {
-                                    launchApp('chords');
-                                    setTimeout(() => {
-                                      NavigationDispatcher.push({ app: 'chords', page: 'library' });
-                                    }, 150);
-                                  }
-                                });
-                              });
-                              (state.progressions || []).forEach((p: any) => {
-                                list.push({
-                                  app: 'chords',
-                                  title: p.name || p.title || 'Untitled Progression',
-                                  appName: 'Chordex',
-                                  timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
-                                  action: () => {
-                                    launchApp('chords');
-                                    setTimeout(() => {
-                                      NavigationDispatcher.push({ app: 'chords', page: 'songs' });
-                                    }, 150);
-                                  }
-                                });
-                              });
-                            }
-                          } catch {}
-
-                          try {
-                            const drumex = localStorage.getItem('chordex-drums');
-                            if (drumex) {
-                              const parsed = JSON.parse(drumex);
-                              const state = parsed.state || {};
-                              (state.drumSongs || []).forEach((s: any) => {
-                                list.push({
-                                  app: 'drums',
-                                  title: s.name || s.title || 'Untitled Drum Song',
-                                  appName: 'Drumex',
-                                  timestamp: s.updatedAt ? formatTimeAgo(s.updatedAt) : 'Recent',
-                                  action: () => {
-                                    launchApp('drums');
-                                    setTimeout(() => {
-                                      NavigationDispatcher.push({ app: 'drums', page: 'songs' });
-                                    }, 150);
-                                  }
-                                });
-                              });
-                            }
-                          } catch {}
-
-                          try {
-                            const groovex = localStorage.getItem('groovex-storage-v1');
-                            if (groovex) {
-                              const parsed = JSON.parse(groovex);
-                              const state = parsed.state || {};
-                              (state.recentSongs || []).forEach((s: any) => {
-                                list.push({
-                                  app: 'groovex',
-                                  title: s.name || s.title || s.artist || 'Untitled Groovex Song',
-                                  appName: 'Groovex',
-                                  timestamp: s.playedAt ? formatTimeAgo(s.playedAt) : 'Recent',
-                                  action: () => {
-                                    launchApp('groovex');
-                                  }
-                                });
-                              });
-                            }
-                          } catch {}
-
-                          return list.slice(0, 3);
-                        };
-
                         const recentSessions = loadRecentSessions();
 
                         return (
@@ -1643,164 +1822,300 @@ export default function StudioHub() {
         </div>
       )}
 
-      {/* 🔍 Global Search Overlay */}
-      {searchOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 10000,
-            background: 'rgba(10, 10, 12, 0.65)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            display: 'flex',
-            flexDirection: 'column',
-            animation: 'search-fade-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both',
-          }}
-          onClick={() => setSearchOpen(false)}
-        >
-          <style>{`
-            @keyframes search-fade-in {
-              from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
-              to { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-            }
-            @keyframes search-slide-up {
-              from { transform: translateY(16px); opacity: 0; }
-              to { transform: translateY(0); opacity: 1; }
-            }
-          `}</style>
-          
-          <div
-            onClick={(e) => e.stopPropagation()}
+      {/* 🔍 Global Search Overlay (Z-indexed below morphed top bar) */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             style={{
-              width: '100%',
-              maxWidth: 448,
-              margin: '0 auto',
-              height: '100%',
+              position: 'absolute',
+              inset: 0,
+              zIndex: 49,
               display: 'flex',
               flexDirection: 'column',
-              padding: '24px 20px',
-              boxSizing: 'border-box'
+            }}
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchQuery('');
             }}
           >
-            {/* Header / Input */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: 16,
-              padding: '10px 16px',
-              animation: 'search-slide-up 250ms cubic-bezier(0.16, 1, 0.3, 1) both'
-            }}>
-              <span className="material-symbols-outlined" style={{ color: 'var(--c-text-muted)', fontSize: 22 }}>search</span>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search apps, settings, sessions..."
-                style={{
-                  flex: 1,
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: 'var(--c-text-primary)',
-                  fontSize: 15,
-                  fontFamily: 'Inter, sans-serif'
-                }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--c-text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
-                </button>
-              )}
-            </div>
+            {/* Real progressive blur behind the results */}
+            <ProgressiveBlur direction="bottom" blurLayers={7} maxBlur={32} style={{ zIndex: -2 }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(10, 10, 12, 0.55)', zIndex: -1, pointerEvents: 'none' }} />
 
-            {/* Results scroll view */}
             <div
+              onClick={(e) => e.stopPropagation()}
               style={{
-                flex: 1,
-                overflowY: 'auto',
-                marginTop: 20,
+                width: '100%',
+                maxWidth: 448,
+                margin: '0 auto',
+                height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 8,
-                animation: 'search-slide-up 300ms cubic-bezier(0.16, 1, 0.3, 1) both'
+                padding: '90px 20px 24px 20px', // Clear top bar
+                boxSizing: 'border-box'
               }}
-              className="pr-1"
             >
-              {searchQuery.trim() ? (
-                (() => {
-                  const results = getSearchResults(searchQuery);
-                  if (results.length === 0) {
-                    return (
-                      <div style={{
-                        textAlign: 'center',
-                        color: 'var(--c-text-muted)',
-                        padding: '40px 20px',
-                        fontSize: 14
-                      }}>
-                        No results found for &ldquo;{searchQuery}&rdquo;
-                      </div>
-                    );
-                  }
-                  return results.map((item, idx) => renderSearchRow(item, idx));
-                })()
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)', marginBottom: 10 }}>Applications</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {apps.map((item, idx) => renderSearchRow(item, idx))}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)', marginBottom: 10 }}>Settings</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {settingsItems.slice(0, 4).map((item, idx) => renderSearchRow(item, idx + 10))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Footer / Info */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginTop: 16,
-              animation: 'search-slide-up 350ms cubic-bezier(0.16, 1, 0.3, 1) both'
-            }}>
-              <button
-                onClick={() => setSearchOpen(false)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: 12,
-                  padding: '8px 16px',
-                  color: 'var(--c-text-secondary)',
-                  fontSize: 13,
-                  cursor: 'pointer'
-                }}
+              {/* Category Filter Chips */}
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  gap: 8, 
+                  overflowX: 'auto', 
+                  paddingBottom: 12, 
+                  marginBottom: 10,
+                  flexShrink: 0
+                }} 
+                className="hide-scrollbar"
               >
-                Close Search
-              </button>
+                {(['all', 'apps', 'settings', 'projects', 'songs', 'actions'] as const).map((cat) => {
+                  const isActive = searchCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setSearchCategory(cat)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 20,
+                        border: '1px solid rgba(128, 128, 128, 0.15)',
+                        background: isActive ? accent.from : 'rgba(255, 255, 255, 0.05)',
+                        color: isActive ? '#fff' : 'var(--c-text-secondary)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        textTransform: 'capitalize',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 120ms ease'
+                      }}
+                    >
+                      {cat === 'all' ? (lang === 'es' ? 'Todo' : 'All') : cat}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Scrollable Results Content */}
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
+                }}
+                className="hide-scrollbar"
+              >
+                {searchQuery.trim() ? (
+                  (() => {
+                    const results = getSearchResults(searchQuery);
+                    if (results.length === 0) {
+                      return (
+                        <div style={{
+                          textAlign: 'center',
+                          color: 'var(--c-text-muted)',
+                          padding: '40px 20px',
+                          fontSize: 14
+                        }}>
+                          {lang === 'es' ? `No se encontraron resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
+                        </div>
+                      );
+                    }
+
+                    // Group results by category
+                    const categories: Record<string, SearchableItem[]> = {};
+                    results.forEach(item => {
+                      if (!categories[item.category]) {
+                        categories[item.category] = [];
+                      }
+                      categories[item.category].push(item);
+                    });
+
+                    return Object.entries(categories).map(([catName, items]) => (
+                      <div key={catName} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          color: 'var(--c-text-secondary)',
+                          opacity: 0.6,
+                          marginBottom: 4,
+                          paddingLeft: 4
+                        }}>
+                          {catName}
+                        </div>
+                        {items.map((item, idx) => renderSearchRow(item, idx))}
+                      </div>
+                    ));
+                  })()
+                ) : (
+                  // Landing/empty state
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    {/* Recent Searches */}
+                    {recentSearches.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 8 }}>
+                          {lang === 'es' ? 'Búsquedas Recientes' : 'Recent Searches'}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {recentSearches.map((term, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                padding: '6px 12px',
+                                borderRadius: 16,
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(128,128,128,0.1)',
+                              }}
+                            >
+                              <span
+                                onClick={() => setSearchQuery(term)}
+                                style={{
+                                  fontSize: 13,
+                                  color: 'var(--c-text-primary)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {term}
+                              </span>
+                              <span
+                                className="material-symbols-outlined"
+                                onClick={() => removeSearchHistory(term)}
+                                style={{
+                                  fontSize: 14,
+                                  color: 'var(--c-text-muted)',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                close
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Suggested Actions */}
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 8 }}>
+                        {lang === 'es' ? 'Sugerencias' : 'Suggested Actions'}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <button
+                          onClick={() => {
+                            setSearchOpen(false);
+                            setSearchQuery('');
+                            // Sync
+                            syncNow?.();
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: 12,
+                            borderRadius: 12,
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(128, 128, 128, 0.06)',
+                            width: '100%',
+                            textAlign: 'left',
+                            color: 'var(--c-text-primary)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ color: accent.from }}>sync</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600 }}>{lang === 'es' ? 'Sincronizar ahora mismo' : 'Sync data to Cloud'}</div>
+                            <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 2 }}>{lang === 'es' ? 'Forzar actualización con la nube' : 'Force update local database with remote servers'}</div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setSearchOpen(false);
+                            setSearchQuery('');
+                            NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: 12,
+                            borderRadius: 12,
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(128, 128, 128, 0.06)',
+                            width: '100%',
+                            textAlign: 'left',
+                            color: 'var(--c-text-primary)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ color: '#38bdf8' }}>account_circle</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600 }}>{lang === 'es' ? 'Perfil de Usuario' : 'User Profile preferences'}</div>
+                            <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 2 }}>{lang === 'es' ? 'Gestionar cuenta y avatar' : 'Manage nickname, synchronizations and auth status'}</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Recently Opened Sessions */}
+                    {(() => {
+                      const recentSessions = loadRecentSessions();
+                      if (recentSessions.length === 0) return null;
+                      return (
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 8 }}>
+                            {lang === 'es' ? 'Sesiones Recientes' : 'Recently Opened'}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {recentSessions.map((session, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  setSearchQuery('');
+                                  session.action();
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 12,
+                                  padding: 12,
+                                  borderRadius: 12,
+                                  background: 'rgba(255, 255, 255, 0.03)',
+                                  border: '1px solid rgba(128, 128, 128, 0.06)',
+                                  width: '100%',
+                                  textAlign: 'left',
+                                  color: 'var(--c-text-primary)',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <span className="material-symbols-outlined" style={{ color: '#a78bfa' }}>history</span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 600 }}>{session.title}</div>
+                                  <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 2 }}>{session.appName} • {session.timestamp}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

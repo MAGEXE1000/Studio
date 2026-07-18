@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.90';
-export const WEB_VERSION = '4.0.90';
+export const NATIVE_VERSION = '4.0.91';
+export const WEB_VERSION = '4.0.91';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -43,7 +43,7 @@ export const APP_VERSION_DATE = '2026-07-18';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/5/2026, 10:35:00 PM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/18/2026, 9:02:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -62,13 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Rebranded the Hub as Livex and aligned design elements for maximum premium appeal.",
-      "Centralized all user profile, sync, authentication, and logout options under the Profile avatar in the top-right app bar.",
-      "Reconstructed the Settings sub-pages to open instantly by removing heavy navigation re-renders.",
-      "Implemented a fuzzy-matched Global Search overlay to index all applications, settings options, and developer tools.",
-      "Replaced static action buttons with a premium Quick Actions sheet overlay containing a customizable shortcut picker.",
-      "Fixed Groovex highlight indicator persistence.",
-      "Removed fake session placeholders and introduced a premium empty state illustration for recent sessions.",
+      "Implemented flagship morphing top bar and stack progressive blur for search experience on Android.",
+      "Added central search index registry and dynamic local storage scanning.",
+      "Integrated performance auto-scaling for backdrop filter layers.",
     ],
   },
 ];
@@ -78,10 +74,9 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Prioritized Firebase manifest querying to prevent unnecessary GitHub API warnings.",
-      "Overhauled Updater view to a dark, premium engineering cockpit dashboard.",
-      "Connected real-time state machine tree, download progress, and virtualized logs.",
-      "Added interactive actions to verify signatures, validate URL, clear cache, and simulate states.",
+      "Implemented flagship morphing top bar and stack progressive blur for search experience on Android.",
+      "Added central search index registry and dynamic local storage scanning.",
+      "Integrated performance auto-scaling for backdrop filter layers.",
     ],
   },
 ];
@@ -92,8 +87,9 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Botón unificado 'Copiar todo' restaurado en el encabezado de diagnóstico.",
-      "Controles de gestión de historial movidos dentro de la sección de historial.",
+      "Unificación de la barra de búsqueda superior con transición continua y difuminado progresivo acumulado.",
+      "Registro de búsqueda centralizado con indexación de proyectos y pistas locales.",
+      "Optimización de rendimiento automático para capas de difuminado según el dispositivo.",
     ],
   },
 ];

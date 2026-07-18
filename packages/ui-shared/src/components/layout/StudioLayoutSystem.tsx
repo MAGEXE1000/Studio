@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MOTION_EASINGS, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
 import { useScrollHide } from '@workspace/studio-core';
+import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -273,11 +274,12 @@ export function DialogScaffold({
             style={{
               position: 'absolute',
               inset: 0,
-              backgroundColor: 'rgba(0,0,0,0.70)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              backgroundColor: 'rgba(0,0,0,0.50)',
+              overflow: 'hidden',
             }}
-          />
+          >
+            <ProgressiveBlur direction="bottom" blurLayers={5} maxBlur={12} className="absolute inset-0" />
+          </motion.div>
 
           {/* Dialog Body */}
           <motion.div

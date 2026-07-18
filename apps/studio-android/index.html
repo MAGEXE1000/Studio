@@ -261,36 +261,20 @@
 
       @media (prefers-reduced-motion: reduce) {
         #intro *, #intro { animation: none !important; transition: opacity 200ms linear !important; }
-        #intro-center { opacity: 1 !important; transform: translate(-50%, -50%) scale(1) !important; }
       }
       </style>
   </head>
   <body>
     <div id="intro" aria-hidden="true">
       <div id="intro-glow"></div>
-      <div id="intro-center" data-intro-id="studio">
-        <div class="logo">
-          <!-- Radial gradient bloom circle overlay -->
-          <div id="logo-bloom"></div>
-          <!-- Studio sine wave (matches StudioLogo component) -->
-          <svg viewBox="0 0 512 512" fill="none">
-            <path d="M 72 256 C 128 60 192 60 256 256 S 384 452 440 256"
-                  stroke="currentColor" stroke-width="44"
-                  stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
-        </div>
-      </div>
     </div>
     <div id="root"></div>
 
     <script>
-      // ── Premium Fluid Surface Reveal Cold-Boot Handshake ────────────────
+      // ── Instant Handshake to React LaunchAnimationEngine ────────────────
       (function () {
-        var intro    = document.getElementById('intro');
-        var center   = document.getElementById('intro-center');
-        var bloom    = document.getElementById('logo-bloom');
-
-        if (window.__introReturnedEarly || !intro || !center) {
+        var intro = document.getElementById('intro');
+        if (window.__introReturnedEarly || !intro) {
           window.__introReturnedEarly = true;
           try {
             if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppInstaller) {
@@ -300,113 +284,35 @@
           return;
         }
 
-        // 1. Read preset from localStorage synchronously
-        var preset = 'fluid_surface';
-        try {
-          var raw = localStorage.getItem('chord-explorer-storage-v3');
-          if (raw) {
-            var parsed = JSON.parse(raw);
-            if (parsed && parsed.state && parsed.state.settings && parsed.state.settings.launchAnimationPreset) {
-              preset = parsed.state.settings.launchAnimationPreset;
-            }
-          }
-        } catch (e) {}
-
-        // Notify Android shell immediately that WebView has completed first paint
+        // Notify Android wrapper immediately that WebView has completed first paint
         try {
           if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppInstaller) {
             window.Capacitor.Plugins.AppInstaller.notifyAppReady();
           }
         } catch (e) {}
 
-        // Helper to check if React has mounted the Hub in the background
         function isReactHubReady() {
           return !!(window.__studioHubReady);
         }
 
-        // Handle fallback to React launch overlays if not using the production default preset
-        if (preset !== 'fluid_surface') {
-          var handleReactReady = function() {
-            window.removeEventListener('studio-hub-ready', handleReactReady);
-            window.removeEventListener('studio:hub-ready', handleReactReady);
-            intro.style.transition = 'opacity 300ms ease-out';
-            intro.style.opacity = '0';
-            setTimeout(function() {
-              intro.classList.add('dismissed');
-              if (intro.parentNode) intro.parentNode.removeChild(intro);
-              window.dispatchEvent(new Event('studio-intro-done'));
-            }, 350);
-          };
-          
-          if (isReactHubReady()) {
-            handleReactReady();
-          } else {
-            window.addEventListener('studio-hub-ready', handleReactReady);
-            window.addEventListener('studio:hub-ready', handleReactReady);
-            setTimeout(handleReactReady, 2000); // safety fallback
-          }
-          return;
-        }
-
-        var animationStartTime = Date.now();
-        var revealed = false;
-
-        function tryReveal() {
-          if (revealed) return;
-
-          // Ensure logo has finished forming (650ms draw + 150ms delay = 800ms)
-          var elapsed = Date.now() - animationStartTime;
-          if (elapsed < 800) {
-            setTimeout(tryReveal, 30);
-            return;
-          }
-
-          // If Hub is not yet fully ready, dynamically extend final frame (no blank screens)
-          if (!isReactHubReady()) {
-            setTimeout(tryReveal, 30);
-            return;
-          }
-
-          revealed = true;
-          executeZoomReveal();
-        }
-
-        // Start checking for readiness
-        setTimeout(tryReveal, 300);
-
-        function executeZoomReveal() {
-          // Play the radial gradient bloom
-          if (bloom) {
-            bloom.classList.add('animate');
-          }
-
-          // Trigger logo zoom-in and fade-out using high-performance CSS transitions
-          center.style.transition = 'transform 800ms cubic-bezier(0.6, 0.01, 0.05, 0.95), opacity 650ms cubic-bezier(0.4, 0, 1, 1)';
-          center.style.transform = 'translate(-50%, -50%) scale(45)';
-          center.style.opacity = '0';
-
-          // Dissolve overlay background
-          intro.style.transition = 'background-color 800ms cubic-bezier(0.6, 0.01, 0.05, 0.95), opacity 800ms ease-out';
-          intro.style.backgroundColor = 'rgba(0,0,0,0)';
+        var handleReactReady = function() {
+          window.removeEventListener('studio-hub-ready', handleReactReady);
+          window.removeEventListener('studio:hub-ready', handleReactReady);
+          intro.style.transition = 'opacity 80ms ease-out';
           intro.style.opacity = '0';
-
-          // Clean up DOM after transition completes
-          setTimeout(function () {
+          setTimeout(function() {
             intro.classList.add('dismissed');
-            if (intro.parentNode) {
-              intro.parentNode.removeChild(intro);
-            }
-            window.dispatchEvent(new Event('studio-intro-done'));
-          }, 850);
-        }
+            if (intro.parentNode) intro.parentNode.removeChild(intro);
+          }, 100);
+        };
 
-        // Safety timeout to guarantee reveal even if React fails
-        setTimeout(function () {
-          if (!revealed) {
-            window.__studioHubReady = true;
-            tryReveal();
-          }
-        }, 3500);
+        if (isReactHubReady()) {
+          handleReactReady();
+        } else {
+          window.addEventListener('studio-hub-ready', handleReactReady);
+          window.addEventListener('studio:hub-ready', handleReactReady);
+          setTimeout(handleReactReady, 3000); // safety fallback
+        }
       })();
       
       // ── Web Auto-Updater ────────────────────────────────────────────────

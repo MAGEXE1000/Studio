@@ -1,20 +1,23 @@
 {
   "platform": "android",
-  "version": "4.0.99",
-  "versionName": "4.0.99",
-  "versionCode": 40099,
-  "version_code": 40099,
-  "commit": "1403b04e",
-  "releasedAt": "7/18/2026, 3:37:47 PM CST",
-  "buildTimestamp": "7/18/2026, 3:37:47 PM CST",
+  "version": "4.1.0",
+  "versionName": "4.1.0",
+  "versionCode": 40100,
+  "version_code": 40100,
+  "commit": "0d08baa6",
+  "releasedAt": "7/18/2026, 3:58:09 PM CST",
+  "buildTimestamp": "7/18/2026, 3:58:09 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Shifted the launch experiences logo drawing path animation to play immediately via CSS in index.html (first painted frame).\n• Implemented high-performance vanilla JS zoom-in reveal transitions inside index.html for direct overlay dismissal.\n• Added duplicate React launch overlay bypass, allowing the Hub to mount and paint directly underneath the HTML splash.",
-  "whatsNew": "• Shifted the launch experiences logo drawing path animation to play immediately via CSS in index.html (first painted frame).\n• Implemented high-performance vanilla JS zoom-in reveal transitions inside index.html for direct overlay dismissal.\n• Added duplicate React launch overlay bypass, allowing the Hub to mount and paint directly underneath the HTML splash.",
+  "changelog": "• Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.\n• Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.\n• Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.\n• Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.\n• Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.\n• Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections.",
+  "whatsNew": "• Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.\n• Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.\n• Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.\n• Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.\n• Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.\n• Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections.",
   "releaseNotes": {
     "added": [
-      "Shifted the launch experiences logo drawing path animation to play immediately via CSS in index.html (first painted frame).",
-      "Implemented high-performance vanilla JS zoom-in reveal transitions inside index.html for direct overlay dismissal.",
-      "Added duplicate React launch overlay bypass, allowing the Hub to mount and paint directly underneath the HTML splash."
+      "Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.",
+      "Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.",
+      "Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.",
+      "Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.",
+      "Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.",
+      "Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections."
     ]
   },
   "mandatory": false

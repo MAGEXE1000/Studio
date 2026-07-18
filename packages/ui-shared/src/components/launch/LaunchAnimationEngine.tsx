@@ -96,7 +96,7 @@ export function LaunchAnimationEngine({
         }
       };
 
-      const baseRevealDuration = preset === 'layer_expansion' ? 800 : preset === 'aurora_reveal' ? 1000 : 750;
+      const baseRevealDuration = preset === 'fluid_surface' ? 950 : preset === 'layer_expansion' ? 800 : preset === 'aurora_reveal' ? 1000 : 750;
       t2 = setTimeout(checkReadyAndComplete, baseRevealDuration);
     }
 
@@ -129,7 +129,7 @@ export function LaunchAnimationEngine({
               <motion.div
                 initial={{ scale: 0.1, opacity: 0.8 }}
                 animate={{ scale: 28, opacity: 0 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
                 style={{
                   position: 'absolute',
                   width: 80,
@@ -145,8 +145,8 @@ export function LaunchAnimationEngine({
             
             <motion.div
               initial={{ opacity: 0, scale: 0.7 }}
-              animate={stage === 'logo' ? { opacity: 1, scale: 1 } : { scale: 45, opacity: 0 }}
-              transition={stage === 'logo' ? logoSpring : { duration: 0.8, ease: [0.6, 0.01, 0.05, 0.95] }}
+              animate={stage === 'logo' ? { opacity: 1, scale: 1 } : { scale: 100, opacity: 0 }}
+              transition={stage === 'logo' ? logoSpring : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
               style={{ zIndex: 3 }}
             >
               <svg width={96 * scaleFactor} height={96 * scaleFactor} viewBox="0 0 512 512" fill="none">
@@ -157,8 +157,8 @@ export function LaunchAnimationEngine({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   initial={{ pathLength: skipIntro ? 1 : 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: skipIntro ? 0 : 0.6, ease: 'easeOut' }}
+                  animate={stage === 'logo' ? { pathLength: 1, strokeWidth: 44 } : { pathLength: 1, strokeWidth: 10 }}
+                  transition={stage === 'logo' ? { duration: skipIntro ? 0 : 0.6, ease: 'easeOut' } : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
                 />
               </svg>
             </motion.div>
@@ -400,14 +400,14 @@ export function LaunchAnimationEngine({
   // Smoothly dissolve the background overlay when revealing the Hub
   const containerAnimate = stage === 'logo'
     ? { backgroundColor: bgColor, opacity: 1 }
-    : { backgroundColor: 'rgba(0,0,0,0)', opacity: 0 };
+    : { backgroundColor: 'rgba(0,0,0,0)', opacity: [1, 1, 0] };
 
   return (
     <motion.div
       key={key}
       initial={{ opacity: 1 }}
       animate={containerAnimate}
-      transition={{ duration: 0.8, ease: [0.6, 0.01, 0.05, 0.95] }}
+      transition={{ duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
       style={{
         position: 'absolute',
         inset: 0,

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.99"
-$VersionCode = "40099"
-$ReleaseNote = "4.0.99 - First-frame HTML splash logo drawing, vanilla JS cinematic zoom-in reveal, and duplicate React overlay bypass on cold boot"
+$VersionName = "4.1.0"
+$VersionCode = "40100"
+$ReleaseNote = "4.1.0 - Unified Motion Playground LaunchEngine, cinematic zoom-in path expansion fly-through, high-performance search overlay repositioning, click-away fix, and Liquid Glass refinements"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

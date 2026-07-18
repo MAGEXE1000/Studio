@@ -46,13 +46,13 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
         maxWidth: '90%',
         height: '46px',
         borderRadius: '9999px',
-        // Real glass thin borders & refracting high-transparency backgrounds (alphas reduced by 25%)
-        border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.15)'}`,
-        background: isLight ? 'rgba(255, 255, 255, 0.32)' : 'rgba(10, 10, 12, 0.20)',
-        // Deep shadows for floating depth + inner glass reflection highlight
+        // Real glass thin refracting outlines & high-transparency backgrounds
+        border: `1px solid ${isLight ? 'rgba(255, 255, 255, 0.40)' : 'rgba(255, 255, 255, 0.22)'}`,
+        background: isLight ? 'rgba(255, 255, 255, 0.18)' : 'rgba(10, 10, 12, 0.12)',
+        // Deep floating shadows + top inner reflection highlights
         boxShadow: isLight
-          ? '0 18px 48px rgba(0, 0, 0, 0.08), inset 0 1px 0.5px rgba(255, 255, 255, 0.9)'
-          : '0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 0.5px rgba(255, 255, 255, 0.18)',
+          ? '0 20px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+          : '0 30px 60px rgba(0, 0, 0, 0.48), 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.28)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         zIndex: 9999,

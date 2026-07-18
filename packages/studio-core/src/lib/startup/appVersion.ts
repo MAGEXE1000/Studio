@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.99';
-export const WEB_VERSION = '4.0.99';
+export const NATIVE_VERSION = '4.1.0';
+export const WEB_VERSION = '4.1.0';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Shifted the launch experiences logo drawing path animation to play immediately via CSS in index.html (first painted frame).",
-      "Implemented high-performance vanilla JS zoom-in reveal transitions inside index.html for direct overlay dismissal.",
-      "Added duplicate React launch overlay bypass, allowing the Hub to mount and paint directly underneath the HTML splash.",
+      "Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.",
+      "Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.",
+      "Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.",
+      "Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.",
+      "Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.",
+      "Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections.",
     ],
   },
 ];

@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.91';
-export const WEB_VERSION = '4.0.91';
+export const NATIVE_VERSION = '4.0.92';
+export const WEB_VERSION = '4.0.92';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented flagship morphing top bar and stack progressive blur for search experience on Android.",
-      "Added central search index registry and dynamic local storage scanning.",
-      "Integrated performance auto-scaling for backdrop filter layers.",
+      "Spotlight-style floating search bar morph interaction, preserving original pill dimensions.",
+      "Centered floating dropdown container for search results positioned directly below the top bar.",
+      "Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.",
+      "Compact result rows with custom brand icons, titles, subtitles, and destination tags.",
+      "Completely removed Recent Sessions section from the Hub tab layout.",
     ],
   },
 ];
@@ -74,9 +76,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Implemented flagship morphing top bar and stack progressive blur for search experience on Android.",
-      "Added central search index registry and dynamic local storage scanning.",
-      "Integrated performance auto-scaling for backdrop filter layers.",
+      "Spotlight-style floating search bar morph interaction, preserving original pill dimensions.",
+      "Centered floating dropdown container for search results positioned directly below the top bar.",
+      "Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.",
+      "Compact result rows with custom brand icons, titles, subtitles, and destination tags.",
+      "Completely removed Recent Sessions section from the Hub tab layout.",
     ],
   },
 ];
@@ -87,9 +91,11 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Unificación de la barra de búsqueda superior con transición continua y difuminado progresivo acumulado.",
-      "Registro de búsqueda centralizado con indexación de proyectos y pistas locales.",
-      "Optimización de rendimiento automático para capas de difuminado según el dispositivo.",
+      "Transición de búsqueda tipo Spotlight integrada en la barra flotante original.",
+      "Dropdown flotante centrado de resultados ubicado directamente debajo de la barra.",
+      "Fondo sutil con difuminado progresivo a pantalla completa manteniendo el Hub visible.",
+      "Filas de resultados compactas con iconos de marca, títulos, subtítulos e indicadores.",
+      "Se ha eliminado por completo la sección de Sesiones Recientes del Hub.",
     ],
   },
 ];

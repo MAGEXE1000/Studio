@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.91"
-$VersionCode = "40091"
-$ReleaseNote = "4.0.91 - Morphing search top app bar, progressive blur overlay, and centralized search indexing registry"
+$VersionName = "4.0.92"
+$VersionCode = "40092"
+$ReleaseNote = "4.0.92 - Spotlight morph search bar and centered compact results dropdown"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

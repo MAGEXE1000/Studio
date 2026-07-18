@@ -22,6 +22,7 @@ import { useNavigationCoordinator, PageTransition, SPRING_PRESETS, MOTION_DURATI
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
+const GOOEY_SPRING = { type: 'spring', stiffness: 380, damping: 30, mass: 0.8 } as const;
 
 
 import AccountCard, { AccountDangerZone, AccountSettingsPage } from '../cards/AccountCard';
@@ -733,39 +734,39 @@ export default function StudioHub() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
+          gap: 10,
           width: '100%',
-          padding: 14,
+          padding: '8px 12px',
           background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(128,128,128,0.08)',
+          border: '1px solid rgba(128,128,128,0.04)',
           borderRadius: 12,
           textAlign: 'left',
           cursor: 'pointer',
-          transition: 'all 150ms cubic-bezier(0.4, 0, 0.2, 1)'
+          transition: 'all 120ms ease'
         }}
         className="hover:scale-[0.99] active:scale-[0.97]"
       >
         <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: 10,
-          background: `${iconColor}15`,
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          background: `${iconColor}12`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: iconColor
         }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{icon}</span>
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--c-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {lang === 'es' ? item.titleEs : item.titleEn}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--c-text-secondary)', marginTop: 2 }}>
+          <div style={{ fontSize: '10.5px', color: 'var(--c-text-secondary)', opacity: 0.8, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {lang === 'es' ? item.subtitleEs : item.subtitleEn}
           </div>
         </div>
-        <span className="material-symbols-outlined" style={{ color: 'var(--c-text-muted)', fontSize: 18 }}>chevron_right</span>
+        <span className="material-symbols-outlined" style={{ color: 'var(--c-text-muted)', fontSize: 16 }}>chevron_right</span>
       </button>
     );
   };
@@ -1034,18 +1035,19 @@ export default function StudioHub() {
                   <div data-hub-tab-content style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
 
                     {/* Centered Floating Glass Top App Bar */}
-                    <div className="fixed top-0 left-0 w-full z-50 flex justify-center pt-4 px-4">
+                    <div className="fixed top-0 left-0 w-full z-50 flex flex-col items-center pt-4 px-4 pointer-events-none">
                       <motion.header 
                         layout
-                        transition={SPRING_PRESETS.soft}
+                        transition={GOOEY_SPRING}
                         style={{
                           width: '100%',
-                          maxWidth: searchOpen ? 'calc(100% - 32px)' : '448px',
+                          maxWidth: '448px',
                           background: 'transparent',
                           border: `1px solid var(--c-border, rgba(128,128,128,0.12))`,
-                          borderRadius: searchOpen ? '20px' : '9999px',
+                          borderRadius: '9999px',
+                          pointerEvents: 'auto',
                         }}
-                        className="flex items-center px-5 py-2.5 shadow-lg relative overflow-hidden"
+                        className="flex items-center px-4 py-2 shadow-lg relative overflow-hidden"
                       >
                         {/* Progressive blur inside header */}
                         <ProgressiveBlur direction="top" blurLayers={6} maxBlur={24} style={{ zIndex: -2 }} />
@@ -1067,18 +1069,20 @@ export default function StudioHub() {
                                 </h1>
                               </div>
                               <div className="flex items-center gap-3">
-                                <motion.button 
+                                <motion.div 
                                   layoutId="search-icon-btn"
                                   onClick={() => setSearchOpen(true)}
                                   style={{
                                     width: '36px', height: '36px', borderRadius: '50%',
                                     backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
                                     border: '1px solid rgba(128,128,128,0.08)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: 'pointer'
                                   }}
-                                  className="flex items-center justify-center hover:bg-surface-bright active:scale-90 transition-transform cursor-pointer outline-none text-on-surface-variant"
+                                  className="hover:bg-surface-bright active:scale-90 transition-transform text-on-surface-variant"
                                 >
-                                  <span className="material-symbols-outlined text-xl">search</span>
-                                </motion.button>
+                                  <motion.span layoutId="search-icon" className="material-symbols-outlined text-xl">search</motion.span>
+                                </motion.div>
                                 
                                 <button 
                                   onClick={() => {
@@ -1116,23 +1120,22 @@ export default function StudioHub() {
                               transition={{ duration: 0.15 }}
                               className="flex items-center gap-3 w-full"
                             >
-                              <motion.div
-                                layoutId="search-icon-btn"
-                                style={{
-                                  width: '36px', height: '36px',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  color: accent.from,
-                                }}
-                              >
-                                <span className="material-symbols-outlined text-xl">search</span>
-                              </motion.div>
+                              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 4 }}>
+                                <motion.span 
+                                  layoutId="search-icon" 
+                                  className="material-symbols-outlined text-xl"
+                                  style={{ color: accent.from }}
+                                >
+                                  search
+                                </motion.span>
+                              </div>
 
                               <input
                                 ref={searchInputRef}
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search apps, settings, sessions..."
+                                placeholder="Search apps, settings..."
                                 style={{
                                   flex: 1,
                                   background: 'transparent',
@@ -1140,7 +1143,8 @@ export default function StudioHub() {
                                   outline: 'none',
                                   color: 'var(--c-text-primary)',
                                   fontSize: 15,
-                                  fontFamily: 'Inter, sans-serif'
+                                  fontFamily: 'Inter, sans-serif',
+                                  padding: 0,
                                 }}
                               />
 
@@ -1153,7 +1157,8 @@ export default function StudioHub() {
                                     color: 'var(--c-text-muted)',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    padding: 4
                                   }}
                                 >
                                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
@@ -1183,6 +1188,278 @@ export default function StudioHub() {
                           )}
                         </AnimatePresence>
                       </motion.header>
+
+                      {/* Floating Dropdown Card directly below Top Bar */}
+                      <AnimatePresence>
+                        {searchOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                            transition={GOOEY_SPRING}
+                            style={{
+                              width: '100%',
+                              maxWidth: '448px',
+                              marginTop: '8px',
+                              pointerEvents: 'auto',
+                              zIndex: 100,
+                              background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.85))',
+                              border: `1px solid var(--c-border, rgba(128,128,128,0.12))`,
+                              borderRadius: '24px',
+                              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.35)',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              flexDirection: 'column',
+                            }}
+                          >
+                            <div
+                              style={{
+                                padding: '16px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 12,
+                                maxHeight: '350px',
+                                overflowY: 'auto'
+                              }}
+                              className="hide-scrollbar"
+                            >
+                              {/* Category Filter Chips */}
+                              <div 
+                                style={{ 
+                                  display: 'flex', 
+                                  gap: 6, 
+                                  overflowX: 'auto', 
+                                  paddingBottom: 4, 
+                                  flexShrink: 0
+                                }} 
+                                className="hide-scrollbar"
+                              >
+                                {(['all', 'apps', 'settings', 'projects', 'songs', 'actions'] as const).map((cat) => {
+                                  const isActive = searchCategory === cat;
+                                  return (
+                                    <button
+                                      key={cat}
+                                      onClick={() => setSearchCategory(cat)}
+                                      style={{
+                                        padding: '4px 10px',
+                                        borderRadius: 12,
+                                        border: '1px solid rgba(128, 128, 128, 0.12)',
+                                        background: isActive ? accent.from : 'rgba(255, 255, 255, 0.04)',
+                                        color: isActive ? '#fff' : 'var(--c-text-secondary)',
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        textTransform: 'capitalize',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap',
+                                        transition: 'all 120ms ease'
+                                      }}
+                                    >
+                                      {cat === 'all' ? (lang === 'es' ? 'Todo' : 'All') : cat}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Search Query Results */}
+                              {searchQuery.trim() ? (
+                                (() => {
+                                  const results = getSearchResults(searchQuery);
+                                  if (results.length === 0) {
+                                    return (
+                                      <div style={{
+                                        textAlign: 'center',
+                                        color: 'var(--c-text-muted)',
+                                        padding: '24px 12px',
+                                        fontSize: 13
+                                      }}>
+                                        {lang === 'es' ? `No se encontraron resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
+                                      </div>
+                                    );
+                                  }
+
+                                  const categories: Record<string, SearchableItem[]> = {};
+                                  results.forEach(item => {
+                                    if (!categories[item.category]) {
+                                      categories[item.category] = [];
+                                    }
+                                    categories[item.category].push(item);
+                                  });
+
+                                  return Object.entries(categories).map(([catName, items]) => (
+                                    <div key={catName} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      <div style={{
+                                        fontSize: 10,
+                                        fontWeight: 800,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.08em',
+                                        color: 'var(--c-text-secondary)',
+                                        opacity: 0.5,
+                                        marginBottom: 2,
+                                        paddingLeft: 4
+                                      }}>
+                                        {catName}
+                                      </div>
+                                      {items.map((item, idx) => renderSearchRow(item, idx))}
+                                    </div>
+                                  ));
+                                })()
+                              ) : (
+                                // Before typing state
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                  {/* Recent Searches */}
+                                  {recentSearches.length > 0 && (
+                                    <div>
+                                      <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.5, marginBottom: 6 }}>
+                                        {lang === 'es' ? 'Historial' : 'Recent Searches'}
+                                      </div>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                        {recentSearches.map((term, idx) => (
+                                          <div
+                                            key={idx}
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 6,
+                                              padding: '4px 10px',
+                                              borderRadius: 12,
+                                              background: 'rgba(255, 255, 255, 0.04)',
+                                              border: '1px solid rgba(128,128,128,0.08)',
+                                            }}
+                                          >
+                                            <span
+                                              onClick={() => setSearchQuery(term)}
+                                              style={{
+                                                fontSize: 12,
+                                                color: 'var(--c-text-primary)',
+                                                cursor: 'pointer'
+                                              }}
+                                            >
+                                              {term}
+                                            </span>
+                                            <span
+                                              className="material-symbols-outlined"
+                                              onClick={() => removeSearchHistory(term)}
+                                              style={{
+                                                fontSize: 13,
+                                                color: 'var(--c-text-muted)',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center'
+                                              }}
+                                            >
+                                              close
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Suggested Actions */}
+                                  <div>
+                                    <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.5, marginBottom: 6 }}>
+                                      {lang === 'es' ? 'Sugerencias' : 'Suggested Actions'}
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      <button
+                                        onClick={() => {
+                                          setSearchOpen(false);
+                                          setSearchQuery('');
+                                          syncNow?.();
+                                        }}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 10,
+                                          padding: '8px 10px',
+                                          borderRadius: 10,
+                                          background: 'rgba(255, 255, 255, 0.02)',
+                                          border: '1px solid rgba(128, 128, 128, 0.04)',
+                                          width: '100%',
+                                          textAlign: 'left',
+                                          color: 'var(--c-text-primary)',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 18 }}>sync</span>
+                                        <div style={{ flex: 1 }}>
+                                          <div style={{ fontSize: 12, fontWeight: 600 }}>{lang === 'es' ? 'Sincronizar Cloud' : 'Sync data to Cloud'}</div>
+                                        </div>
+                                      </button>
+
+                                      <button
+                                        onClick={() => {
+                                          setSearchOpen(false);
+                                          setSearchQuery('');
+                                          NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+                                        }}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 10,
+                                          padding: '8px 10px',
+                                          borderRadius: 10,
+                                          background: 'rgba(255, 255, 255, 0.02)',
+                                          border: '1px solid rgba(128, 128, 128, 0.04)',
+                                          width: '100%',
+                                          textAlign: 'left',
+                                          color: 'var(--c-text-primary)',
+                                          cursor: 'pointer'
+                                        }}
+                                      >
+                                        <span className="material-symbols-outlined" style={{ color: '#38bdf8', fontSize: 18 }}>account_circle</span>
+                                        <div style={{ flex: 1 }}>
+                                          <div style={{ fontSize: 12, fontWeight: 600 }}>{lang === 'es' ? 'Perfil de Usuario' : 'User Profile preferences'}</div>
+                                        </div>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Pinned Destinations */}
+                                  <div>
+                                    <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.5, marginBottom: 6 }}>
+                                      {lang === 'es' ? 'Destinos Fijos' : 'Pinned Destinations'}
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                      {[
+                                        { appName: 'Chordex App', desc: 'Build chord progressions & study harmony', app: 'chords' },
+                                        { appName: 'Drumex App', desc: 'Program drum sequences & beat grids', app: 'drums' }
+                                      ].map((pinned, pIdx) => (
+                                        <button
+                                          key={pIdx}
+                                          onClick={() => {
+                                            setSearchOpen(false);
+                                            setSearchQuery('');
+                                            launchApp(pinned.app as any);
+                                          }}
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 10,
+                                            padding: '8px 10px',
+                                            borderRadius: 10,
+                                            background: 'rgba(255, 255, 255, 0.02)',
+                                            border: '1px solid rgba(128, 128, 128, 0.04)',
+                                            width: '100%',
+                                            textAlign: 'left',
+                                            color: 'var(--c-text-primary)',
+                                            cursor: 'pointer'
+                                          }}
+                                        >
+                                          <span className="material-symbols-outlined" style={{ color: '#a78bfa', fontSize: 18 }}>star</span>
+                                          <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: 12, fontWeight: 600 }}>{pinned.appName}</div>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {/* Dashboard Contents Scroll Area - spacing for header */}
@@ -1315,102 +1592,7 @@ export default function StudioHub() {
                         </div>
                       </section>
 
-                      {/* Recent Sessions list activity */}
-                      {(() => {
-                        const recentSessions = loadRecentSessions();
 
-                        return (
-                          <section style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: '20px' }} className="w-full">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 4px' }}>
-                              <h3 style={{
-                                fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
-                                fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
-                              }}>
-                                {lang === 'es' ? 'Sesiones Recientes' : 'Recent Sessions'}
-                              </h3>
-                            </div>
-                            {recentSessions.length === 0 ? (
-                              <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '32px 20px',
-                                textAlign: 'center',
-                                background: 'var(--app-surface-high, rgba(128,128,128,0.04))',
-                                border: '1px dashed rgba(128,128,128,0.15)',
-                                borderRadius: '20px',
-                              }}>
-                                <div style={{
-                                  width: 56,
-                                  height: 56,
-                                  borderRadius: '50%',
-                                  background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}05)`,
-                                  border: `1px solid ${accent.from}25`,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  marginBottom: 14,
-                                  boxShadow: `0 8px 24px ${accent.from}0a`
-                                }}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: 28, color: accent.from }}>music_note</span>
-                                </div>
-                                <h4 style={{
-                                  fontFamily: 'Manrope',
-                                  fontSize: 14.5,
-                                  fontWeight: 800,
-                                  color: 'var(--c-text-primary)',
-                                  margin: '0 0 6px 0',
-                                }}>
-                                  {lang === 'es' ? 'Sin Sesiones Recientes' : 'No Recent Sessions'}
-                                </h4>
-                                <p style={{
-                                  fontFamily: 'Inter',
-                                  fontSize: 11.5,
-                                  color: 'var(--c-text-secondary)',
-                                  margin: 0,
-                                  lineHeight: 1.5,
-                                  maxWidth: 260,
-                                  opacity: 0.8
-                                }}>
-                                  {lang === 'es'
-                                    ? 'Crea progresiones en Chordex o graba beats en Drumex para comenzar tu trabajo creativo.'
-                                    : 'Create progressions in Chordex or record beats in Drumex to start your creative work.'}
-                                </p>
-                              </div>
-                            ) : (
-                              <div style={{
-                                backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-                                borderRadius: '16px',
-                                overflow: 'hidden',
-                                border: '1px solid rgba(128,128,128,0.08)'
-                              }} className="w-full">
-                                {recentSessions.map((session, idx) => (
-                                  <div 
-                                    key={idx}
-                                    onClick={session.action}
-                                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}
-                                    className={`hover:bg-surface-bright/20 transition-colors ${idx < recentSessions.length - 1 ? 'border-b border-outline-variant/5' : ''}`}
-                                  >
-                                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--app-surface-highest)', overflow: 'hidden', opacity: 0.7 }} className="flex items-center justify-center">
-                                      <span className="material-symbols-outlined" style={{ color: accent.from }}>{session.app === 'chords' ? 'music_video' : session.app === 'drums' ? 'drum' : 'album'}</span>
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                      <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>
-                                        {session.title}
-                                      </h5>
-                                      <p style={{ fontSize: '10px', color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
-                                        {session.timestamp} • {session.appName}
-                                      </p>
-                                    </div>
-                                    <span className="material-symbols-outlined text-on-surface-variant text-base">more_vert</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </section>
-                        );
-                      })()}
 
                     </div>
                   </div>
@@ -1822,298 +2004,41 @@ export default function StudioHub() {
         </div>
       )}
 
-      {/* 🔍 Global Search Overlay (Z-indexed below morphed top bar) */}
+      {/* 🔍 Global Search Backdrop and Click-Away Overlay */}
       <AnimatePresence>
         {searchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              zIndex: 49,
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-            onClick={() => {
-              setSearchOpen(false);
-              setSearchQuery('');
-            }}
-          >
-            {/* Real progressive blur behind the results */}
-            <ProgressiveBlur direction="bottom" blurLayers={7} maxBlur={32} style={{ zIndex: -2 }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(10, 10, 12, 0.55)', zIndex: -1, pointerEvents: 'none' }} />
-
-            <div
-              onClick={(e) => e.stopPropagation()}
+          <>
+            {/* Fixed progressive blur layer */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               style={{
-                width: '100%',
-                maxWidth: 448,
-                margin: '0 auto',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '90px 20px 24px 20px', // Clear top bar
-                boxSizing: 'border-box'
+                position: 'fixed',
+                inset: 0,
+                zIndex: 39,
+                pointerEvents: 'none',
               }}
             >
-              {/* Category Filter Chips */}
-              <div 
-                style={{ 
-                  display: 'flex', 
-                  gap: 8, 
-                  overflowX: 'auto', 
-                  paddingBottom: 12, 
-                  marginBottom: 10,
-                  flexShrink: 0
-                }} 
-                className="hide-scrollbar"
-              >
-                {(['all', 'apps', 'settings', 'projects', 'songs', 'actions'] as const).map((cat) => {
-                  const isActive = searchCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => setSearchCategory(cat)}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: 20,
-                        border: '1px solid rgba(128, 128, 128, 0.15)',
-                        background: isActive ? accent.from : 'rgba(255, 255, 255, 0.05)',
-                        color: isActive ? '#fff' : 'var(--c-text-secondary)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        textTransform: 'capitalize',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        transition: 'all 120ms ease'
-                      }}
-                    >
-                      {cat === 'all' ? (lang === 'es' ? 'Todo' : 'All') : cat}
-                    </button>
-                  );
-                })}
-              </div>
+              <ProgressiveBlur direction="bottom" blurLayers={5} maxBlur={12} />
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(10, 10, 12, 0.25)', pointerEvents: 'none' }} />
+            </motion.div>
 
-              {/* Scrollable Results Content */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 16,
-                }}
-                className="hide-scrollbar"
-              >
-                {searchQuery.trim() ? (
-                  (() => {
-                    const results = getSearchResults(searchQuery);
-                    if (results.length === 0) {
-                      return (
-                        <div style={{
-                          textAlign: 'center',
-                          color: 'var(--c-text-muted)',
-                          padding: '40px 20px',
-                          fontSize: 14
-                        }}>
-                          {lang === 'es' ? `No se encontraron resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
-                        </div>
-                      );
-                    }
-
-                    // Group results by category
-                    const categories: Record<string, SearchableItem[]> = {};
-                    results.forEach(item => {
-                      if (!categories[item.category]) {
-                        categories[item.category] = [];
-                      }
-                      categories[item.category].push(item);
-                    });
-
-                    return Object.entries(categories).map(([catName, items]) => (
-                      <div key={catName} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <div style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
-                          color: 'var(--c-text-secondary)',
-                          opacity: 0.6,
-                          marginBottom: 4,
-                          paddingLeft: 4
-                        }}>
-                          {catName}
-                        </div>
-                        {items.map((item, idx) => renderSearchRow(item, idx))}
-                      </div>
-                    ));
-                  })()
-                ) : (
-                  // Landing/empty state
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {/* Recent Searches */}
-                    {recentSearches.length > 0 && (
-                      <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 8 }}>
-                          {lang === 'es' ? 'Búsquedas Recientes' : 'Recent Searches'}
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                          {recentSearches.map((term, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '6px 12px',
-                                borderRadius: 16,
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(128,128,128,0.1)',
-                              }}
-                            >
-                              <span
-                                onClick={() => setSearchQuery(term)}
-                                style={{
-                                  fontSize: 13,
-                                  color: 'var(--c-text-primary)',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                {term}
-                              </span>
-                              <span
-                                className="material-symbols-outlined"
-                                onClick={() => removeSearchHistory(term)}
-                                style={{
-                                  fontSize: 14,
-                                  color: 'var(--c-text-muted)',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center'
-                                }}
-                              >
-                                close
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Suggested Actions */}
-                    <div>
-                      <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 8 }}>
-                        {lang === 'es' ? 'Sugerencias' : 'Suggested Actions'}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <button
-                          onClick={() => {
-                            setSearchOpen(false);
-                            setSearchQuery('');
-                            // Sync
-                            syncNow?.();
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 12,
-                            padding: 12,
-                            borderRadius: 12,
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(128, 128, 128, 0.06)',
-                            width: '100%',
-                            textAlign: 'left',
-                            color: 'var(--c-text-primary)',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ color: accent.from }}>sync</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600 }}>{lang === 'es' ? 'Sincronizar ahora mismo' : 'Sync data to Cloud'}</div>
-                            <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 2 }}>{lang === 'es' ? 'Forzar actualización con la nube' : 'Force update local database with remote servers'}</div>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setSearchOpen(false);
-                            setSearchQuery('');
-                            NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 12,
-                            padding: 12,
-                            borderRadius: 12,
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(128, 128, 128, 0.06)',
-                            width: '100%',
-                            textAlign: 'left',
-                            color: 'var(--c-text-primary)',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ color: '#38bdf8' }}>account_circle</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600 }}>{lang === 'es' ? 'Perfil de Usuario' : 'User Profile preferences'}</div>
-                            <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 2 }}>{lang === 'es' ? 'Gestionar cuenta y avatar' : 'Manage nickname, synchronizations and auth status'}</div>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Recently Opened Sessions */}
-                    {(() => {
-                      const recentSessions = loadRecentSessions();
-                      if (recentSessions.length === 0) return null;
-                      return (
-                        <div>
-                          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 8 }}>
-                            {lang === 'es' ? 'Sesiones Recientes' : 'Recently Opened'}
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {recentSessions.map((session, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  setSearchOpen(false);
-                                  setSearchQuery('');
-                                  session.action();
-                                }}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 12,
-                                  padding: 12,
-                                  borderRadius: 12,
-                                  background: 'rgba(255, 255, 255, 0.03)',
-                                  border: '1px solid rgba(128, 128, 128, 0.06)',
-                                  width: '100%',
-                                  textAlign: 'left',
-                                  color: 'var(--c-text-primary)',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <span className="material-symbols-outlined" style={{ color: '#a78bfa' }}>history</span>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ fontSize: 13, fontWeight: 600 }}>{session.title}</div>
-                                  <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 2 }}>{session.appName} • {session.timestamp}</div>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
+            {/* Click-away overlay */}
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 40,
+                background: 'transparent',
+              }}
+              onClick={() => {
+                setSearchOpen(false);
+                setSearchQuery('');
+              }}
+            />
+          </>
         )}
       </AnimatePresence>
     </div>

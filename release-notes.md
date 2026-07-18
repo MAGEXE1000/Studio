@@ -1,4 +1,6 @@
 ### Added
-- Implemented flagship morphing top bar and stack progressive blur for search experience on Android.
-- Added central search index registry and dynamic local storage scanning.
-- Integrated performance auto-scaling for backdrop filter layers.
+- Spotlight-style floating search bar morph interaction, preserving original pill dimensions.
+- Centered floating dropdown container for search results positioned directly below the top bar.
+- Subtle full-screen progressive blur backdrop keeping the Hub visible underneath.
+- Compact result rows with custom brand icons, titles, subtitles, and destination tags.
+- Completely removed Recent Sessions section from the Hub tab layout.

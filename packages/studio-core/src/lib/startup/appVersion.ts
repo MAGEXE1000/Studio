@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.1.4';
-export const WEB_VERSION = '4.1.4';
+export const NATIVE_VERSION = '4.1.5';
+export const WEB_VERSION = '4.1.5';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,9 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Deferred StudioHub and sub-app wrapper chunk-loading and mounting until the logo drawing phase completes.",
-      "Eliminated reveal stage checking timers by introducing fully event-driven 'studio-startup-complete' listeners.",
-      "Prevented JavaScript thread scheduling pauses during logo forming, locking frame pacing to native hardware limits.",
+      "Debounced lifecycle logging `localStorage` writes using an in-memory queue to eliminate UI thread blocking disk I/O.",
+      "Deferred Web Cache Storage clearing and Service Worker unregistration out of the critical startup path to a 6-second timeout.",
+      "Deferred `tolgee.run()` translations initialization to a 4-second delay to free up execution cycles during bootstrap.",
+      "Deferred return-to-hub watchdog diagnostics `localStorage` writes by 4 seconds.",
     ],
   },
 ];

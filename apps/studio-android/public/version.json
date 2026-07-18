@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.1.4",
-  "versionName": "4.1.4",
-  "versionCode": 40104,
-  "version_code": 40104,
-  "commit": "06e3eb82",
-  "releasedAt": "7/18/2026, 5:10:01 PM CST",
-  "buildTimestamp": "7/18/2026, 5:10:01 PM CST",
+  "version": "4.1.5",
+  "versionName": "4.1.5",
+  "versionCode": 40105,
+  "version_code": 40105,
+  "commit": "09052a7d",
+  "releasedAt": "7/18/2026, 5:56:44 PM CST",
+  "buildTimestamp": "7/18/2026, 5:56:44 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Deferred StudioHub and sub-app wrapper chunk-loading and mounting until the logo drawing phase completes.\n• Eliminated reveal stage checking timers by introducing fully event-driven 'studio-startup-complete' listeners.\n• Prevented JavaScript thread scheduling pauses during logo forming, locking frame pacing to native hardware limits.",
-  "whatsNew": "• Deferred StudioHub and sub-app wrapper chunk-loading and mounting until the logo drawing phase completes.\n• Eliminated reveal stage checking timers by introducing fully event-driven 'studio-startup-complete' listeners.\n• Prevented JavaScript thread scheduling pauses during logo forming, locking frame pacing to native hardware limits.",
+  "changelog": "• Debounced lifecycle logging `localStorage` writes using an in-memory queue to eliminate UI thread blocking disk I/O.\n• Deferred Web Cache Storage clearing and Service Worker unregistration out of the critical startup path to a 6-second timeout.\n• Deferred `tolgee.run()` translations initialization to a 4-second delay to free up execution cycles during bootstrap.\n• Deferred return-to-hub watchdog diagnostics `localStorage` writes by 4 seconds.",
+  "whatsNew": "• Debounced lifecycle logging `localStorage` writes using an in-memory queue to eliminate UI thread blocking disk I/O.\n• Deferred Web Cache Storage clearing and Service Worker unregistration out of the critical startup path to a 6-second timeout.\n• Deferred `tolgee.run()` translations initialization to a 4-second delay to free up execution cycles during bootstrap.\n• Deferred return-to-hub watchdog diagnostics `localStorage` writes by 4 seconds.",
   "releaseNotes": {
     "added": [
-      "Deferred StudioHub and sub-app wrapper chunk-loading and mounting until the logo drawing phase completes.",
-      "Eliminated reveal stage checking timers by introducing fully event-driven 'studio-startup-complete' listeners.",
-      "Prevented JavaScript thread scheduling pauses during logo forming, locking frame pacing to native hardware limits."
+      "Debounced lifecycle logging `localStorage` writes using an in-memory queue to eliminate UI thread blocking disk I/O.",
+      "Deferred Web Cache Storage clearing and Service Worker unregistration out of the critical startup path to a 6-second timeout.",
+      "Deferred `tolgee.run()` translations initialization to a 4-second delay to free up execution cycles during bootstrap.",
+      "Deferred return-to-hub watchdog diagnostics `localStorage` writes by 4 seconds."
     ]
   },
   "mandatory": false

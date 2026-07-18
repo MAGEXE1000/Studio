@@ -11,4 +11,4 @@
 export * from './navStyles';
 export * from './SharedNavigationContainer';
 export * from './AppAnimationSystem';
-export * from './BottomNav';
+export * from './SharedNavigationBar';

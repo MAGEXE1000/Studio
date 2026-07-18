@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.94';
-export const WEB_VERSION = '4.0.94';
+export const NATIVE_VERSION = '4.0.95';
+export const WEB_VERSION = '4.0.95';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,12 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Snappy search morph animations deferring storage index tasks off the critical path.",
-      "Borderless search and close icons naturally integrated into the floating top bar.",
-      "Snappy spring physics and haptic touch ripples for all interactive pill search states.",
-      "Reusable SharedBottomNavigation component styled with floating liquid glass and progressive blur.",
-      "Unified bottom navigation menus across Chordex, Stagex, and Hub with no labels.",
-      "Redesigned Settings Home, Language selection, and Theme Mode Appearance sub-pages.",
+      "Unified bottom navigation architecture across all applications using SharedNavigationBar.",
+      "Completely removed legacy BottomNav.tsx wrapper and all custom navigation bar containers.",
+      "Redesigned Hub layout to feature exactly three tabs: Notifications, Home, and Settings.",
+      "Integrated premium spring-driven gesture compression on tab pointer down and bounce-back.",
+      "Added smooth spring active scaling transitions to selected navigation icons.",
     ],
   },
 ];

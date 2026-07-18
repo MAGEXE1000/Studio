@@ -6,6 +6,7 @@ import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { SharedNavigationBar, type SharedNavigationItem } from '../../../navigation/SharedNavigationBar';
 
 const GroovexLibrary = lazy(() => import('../components/GroovexLibrary'));
 const GroovexPlayer = lazy(() => import('../components/GroovexPlayer'));
@@ -253,119 +254,19 @@ function GroovexNav({ view, setView, hasActiveSong }: {
 
   useLiquidGlassNav(navRef as React.RefObject<HTMLElement | null>);
 
-  return (
-    <nav
-      ref={navRef}
-      className="glass-nav"
-      style={{
-        position: 'fixed',
-        bottom: 'var(--nav-safe-bottom)',
-        left: '50%',
-        width: '70%',
-        maxWidth: '280px',
-        height: `${expandedH}px`,
-        borderRadius: '2rem',
-        border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.32)'}`,
-        background: amoledBg,
-        boxShadow: isLight
-          ? '0 8px 32px rgba(0,0,0,0.14), 0 1.5px 0 rgba(255,255,255,0.80) inset'
-          : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        zIndex: 50,
-        overflow: 'hidden',
-        pointerEvents: (navHidden || navCollapsed) ? 'none' : 'auto',
-        transform: getSharedNavTransform(navHidden, navCollapsed),
-        opacity: getSharedNavOpacity(navHidden, navCollapsed),
-        willChange: 'transform, opacity',
-        transition: SHARED_NAV_TRANSITION,
-      }}
-    >
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        padding: '4px 8px',
-        opacity: navCollapsed ? 0 : 1,
-        transition: navCollapsed ? 'opacity 100ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms',
-        willChange: 'opacity',
-      }}>
-      {pill.ready && (
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            top: 4,
-            left: pill.left,
-            width: pill.right - pill.left,
-            height: 'calc(100% - 8px)',
-            borderRadius: 9999,
-            background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.09)',
-            border: isLight ? '1.5px solid rgba(0,0,0,0.14)' : '1.5px solid rgba(255,255,255,0.30)',
-            boxShadow: isLight
-              ? 'inset 0 1px 0 rgba(255,255,255,0.90), 0 2px 8px rgba(0,0,0,0.10)'
-              : 'inset 0 1px 0 rgba(255,255,255,0.40), 0 2px 16px rgba(255,255,255,0.06)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            pointerEvents: 'none',
-            zIndex: 0,
-            opacity: 1,
-            transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
-          }}
-        />
-      )}
+  if (navHidden || navCollapsed) return null;
 
-      {items.map((item, i) => {
-        const active = view === item.id;
-        const pressed = pressedId === item.id;
-        return (
-          <button
-            key={item.id}
-            ref={el => { btnRefs.current[i] = el; }}
-            onPointerDown={() => setPressedId(item.id)}
-            onPointerUp={() => setPressedId(null)}
-            onPointerLeave={() => setPressedId(null)}
-            onPointerCancel={() => setPressedId(null)}
-            onClick={() => setView(item.id)}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 3,
-              padding: '8px 4px',
-              borderRadius: 9999,
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: active ? (isLight ? accent.from : '#fff') : 'var(--c-text-secondary)',
-              position: 'relative',
-              zIndex: 1,
-              opacity: 1,
-              transform: pressed ? 'scale(0.91)' : 'scale(1)',
-              transition: 'color 130ms ease, transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{
-              fontSize: 21,
-              fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
-            }}>{item.icon}</span>
-            <span style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 700,
-              fontSize: '9.5px',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              lineHeight: 1,
-              whiteSpace: 'nowrap',
-            }}>
-              {item.label}
-            </span>
-          </button>
-        );
-      })}
-      </div>
-    </nav>
+  return (
+    <SharedNavigationBar
+      items={items.map(item => ({
+        key: item.id,
+        icon: item.icon,
+        label: item.label,
+        isActive: view === item.id,
+        onClick: () => setView(item.id),
+      }))}
+      isLight={isLight}
+    />
   );
 }
 

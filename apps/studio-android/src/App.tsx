@@ -40,7 +40,7 @@ import {
   VocalexLogo
 } from '@workspace/ui-shared/src/components/ChordexLogo';
 
-const BottomNav = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.BottomNav })));
+const SharedNavigationBar = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.SharedNavigationBar })));
 const StudioHub = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.StudioHub })));
 const LibraryPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.LibraryPanel })));
 const ChordPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.ChordPanel })));
@@ -2670,7 +2670,41 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
                 </div>
               </div>
 
-              {cachedApp === 'chords' && <BottomNav />}
+              {cachedApp === 'chords' && (
+                <SharedNavigationBar
+                  items={[
+                    {
+                      key: 'songs',
+                      icon: 'music_note',
+                      label: 'Songs',
+                      isActive: cachedPanel === 'songs',
+                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'songs' }),
+                    },
+                    {
+                      key: 'library',
+                      icon: 'library_music',
+                      label: 'Library',
+                      isActive: cachedPanel === 'library' || !cachedPanel,
+                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'library' }),
+                    },
+                    {
+                      key: 'chord',
+                      icon: 'grid_on',
+                      label: 'Chords',
+                      isActive: cachedPanel === 'chord',
+                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'chord' }),
+                    },
+                    {
+                      key: 'settings',
+                      icon: 'settings',
+                      label: 'Settings',
+                      isActive: cachedPanel === 'settings',
+                      onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+                    },
+                  ]}
+                  isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+                />
+              )}
             </AppEntryTransition>
           </ScreenScaffold>
         </SubAppScaffold>

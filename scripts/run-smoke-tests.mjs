@@ -23,7 +23,7 @@ try {
   const webAppSrc = fs.readFileSync(webAppPath, 'utf8');
   assert(webAppSrc.includes('StudioLandingPage'), 'Web App router must include StudioLandingPage.');
   assert(webAppSrc.includes("route === '/'"), 'Web App router must include public landing route.');
-  assert(!webAppSrc.includes('BottomNav'), 'Web App router must not use Android BottomNav shell.');
+  assert(!webAppSrc.includes('SharedNavigationBar'), 'Web App router must not use Android SharedNavigationBar shell.');
   assert(!webAppSrc.includes('safe-area-inset-top'), 'Web App must not hardcode Android native safe area top insets.');
   console.log('✓ Web App Smoke Tests passed.');
 
@@ -34,7 +34,7 @@ try {
   
   const androidAppSrc = fs.readFileSync(androidAppPath, 'utf8');
   assert(!androidAppSrc.includes('StudioLandingPage'), 'Android App router must exclude StudioLandingPage.');
-  assert(androidAppSrc.includes('BottomNav'), 'Android App router must use Android BottomNav shell.');
+  assert(androidAppSrc.includes('SharedNavigationBar'), 'Android App router must use Android SharedNavigationBar shell.');
   assert(androidAppSrc.includes('safe-area-inset-top'), 'Android App must utilize native safe area top insets.');
   assert(androidAppSrc.includes("navigateTo"), 'Android App must use navigateTo.');
   assert(!androidAppSrc.includes("route === '/'"), 'Android App router must not check route for public landing root.');

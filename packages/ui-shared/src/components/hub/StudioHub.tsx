@@ -1827,7 +1827,7 @@ export default function StudioHub() {
       </div>
 
       {/* ── Bottom nav ── */}
-      {!isWebDesktop && <HubNav tab={tab} setTab={setTab} accent={accent} introFinished={introFinished} />}
+
 
       {/* UpdateIndicator is now hoisted to AppShell so it appears on
           every screen, not just the Hub. */}
@@ -2090,11 +2090,11 @@ export default function StudioHub() {
         <SharedNavigationBar
           items={[
             {
-              key: 'settings',
-              icon: 'settings',
-              label: 'Settings',
-              isActive: tab === 'settings' && page !== 'updater',
-              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+              key: 'notifications',
+              icon: 'notifications',
+              label: 'Updates',
+              isActive: tab === 'settings' && page === 'updater',
+              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' }),
             },
             {
               key: 'home',
@@ -2104,18 +2104,11 @@ export default function StudioHub() {
               onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
             },
             {
-              key: 'layers',
-              icon: 'layers',
-              label: 'Modules',
-              isActive: false,
-              onClick: () => { setSearchOpen(true); },
-            },
-            {
-              key: 'notifications',
-              icon: 'notifications',
-              label: 'Updates',
-              isActive: tab === 'settings' && page === 'updater',
-              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' }),
+              key: 'settings',
+              icon: 'settings',
+              label: 'Settings',
+              isActive: tab === 'settings' && page !== 'updater',
+              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
             },
           ]}
           isLight={isLight}
@@ -6014,209 +6007,6 @@ User Agent: [Automatically Generated]
 }
 
 // ── Floating bottom nav (matches Chordex/Drumex style) ───────────────────────
-function useHubNavItems(): { id: HubTab; icon: string; label: string }[] {
-  const t = useT();
-  return [
-    { id: 'home',     icon: 'home',     label: t.hub.home     },
-    { id: 'settings', icon: 'settings', label: t.hub.settings },
-  ];
-}
-
-function HubNav({ tab, setTab, accent, introFinished = true }: {
-  tab: HubTab;
-  setTab: (t: HubTab) => void;
-  accent: { from: string; to: string; mid: string };
-  introFinished?: boolean;
-}) {
-  const settings = useChordStore(state => state.settings);
-  const HUB_NAV_ITEMS = useHubNavItems();
-  const navRef   = useRef<HTMLElement | null>(null);
-  useLiquidGlassNav(navRef);
-  const btnRefs  = useRef<(HTMLButtonElement | null)[]>([]);
-  const prevIdx  = useRef(HUB_NAV_ITEMS.findIndex(i => i.id === tab));
-  const stretchT = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const navHidden    = useNavHidden();
-  const navCollapsed = useNavCollapsed();
-
-
-  const [pill, setPill]       = useState<{ left: number; right: number; ready: boolean }>({ left: 0, right: 0, ready: false });
-  const [pressed, setPressed] = useState<HubTab | null>(null);
-  const [entered, setEntered] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setEntered(true), 40); return () => clearTimeout(t); }, []);
-
-  // Measure natural height once after mount — needed so height transition
-  // has explicit px values on both ends (auto → px doesn't animate).
-  const [expandedH, setExpandedH] = useState(60);
-  const [expandedW, setExpandedW] = useState(400);
-  useEffect(() => {
-    if (navRef.current) {
-      setExpandedH(navRef.current.offsetHeight);
-      setExpandedW(navRef.current.offsetWidth);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const measureBtn = (idx: number) => {
-    const btn = btnRefs.current[idx];
-    const nav = navRef.current;
-    if (!btn || !nav) return null;
-    const nr = nav.getBoundingClientRect();
-    const br = btn.getBoundingClientRect();
-    return { left: br.left - nr.left, right: br.right - nr.left };
-  };
-
-  useEffect(() => {
-    const m = measureBtn(HUB_NAV_ITEMS.findIndex(i => i.id === tab));
-    if (m) setPill({ left: m.left, right: m.right, ready: true });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const newIdx = HUB_NAV_ITEMS.findIndex(i => i.id === tab);
-    const oldIdx = prevIdx.current;
-    if (newIdx === oldIdx) return;
-    prevIdx.current = newIdx;
-    const newM = measureBtn(newIdx);
-    if (!newM) return;
-    if (stretchT.current) { clearTimeout(stretchT.current); stretchT.current = null; setPill(p => ({ ...p, left: newM.left, right: newM.right })); return; }
-    if (newIdx > oldIdx) {
-      setPill(p => ({ ...p, right: newM.right }));
-      stretchT.current = setTimeout(() => { setPill(p => ({ ...p, left: newM.left })); stretchT.current = null; }, 90);
-    } else {
-      setPill(p => ({ ...p, left: newM.left }));
-      stretchT.current = setTimeout(() => { setPill(p => ({ ...p, right: newM.right })); stretchT.current = null; }, 90);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
-
-  const hubVis2 = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
-  const isLight = (() => {
-    if (hubVis2.theme === 'light') return true;
-    if (hubVis2.theme === 'system') {
-      return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
-    }
-    if (hubVis2.theme === 'dynamic') {
-      const h = new Date().getHours();
-      const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd   = settings.dynamicLightEnd   ?? 20;
-      return h >= lightStart && h < lightEnd;
-    }
-    return false;
-  })();
-  const bg = isLight
-    ? hubVis2.amoledMode
-      ? 'rgba(255, 255, 255, 0.92)'
-      : 'rgba(255, 255, 255, 0.40)'
-    : hubVis2.amoledMode
-      ? 'rgba(4,4,4,0.88)'
-      : 'rgba(26,26,30,0.72)';
-
-  return (
-    <nav
-      ref={navRef}
-      className="glass-nav"
-      style={{
-        position: 'fixed',
-        bottom: 'var(--nav-safe-bottom)',
-        left: '50%',
-        width: '90%',
-        maxWidth: '448px',
-        height: `${expandedH}px`,
-        borderRadius: '2rem',
-        border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.32)'}`,
-        background: bg,
-        boxShadow: isLight
-          ? '0 8px 32px rgba(0,0,0,0.08), 0 1.5px 0 rgba(255,255,255,0.70) inset'
-          : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
-        zIndex: 50,
-        overflow: 'hidden',
-        pointerEvents: (navHidden || navCollapsed || !introFinished) ? 'none' : 'auto',
-        transform: getSharedNavTransform(navHidden, navCollapsed, entered && introFinished),
-        opacity: getSharedNavOpacity(navHidden, navCollapsed, entered && introFinished),
-        willChange: 'transform, opacity',
-        transition: SHARED_NAV_TRANSITION,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-      }}
-    >
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        padding: '6px 8px',
-        opacity: 1,
-        willChange: 'opacity',
-      }}>
-      {/* Sliding pill */}
-      {pill.ready && (
-        <div aria-hidden style={{
-          position: 'absolute', top: 4,
-          left: pill.left, width: pill.right - pill.left,
-          height: 'calc(100% - 8px)',
-          borderRadius: '9999px',
-          // Liquid glass ring — flips for light vs dark
-          background: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.09)',
-          border: isLight ? '1.5px solid rgba(0, 0, 0, 0.06)' : '1.5px solid rgba(255, 255, 255, 0.30)',
-          boxShadow: isLight
-            ? ['inset 0 1px 0 rgba(255,255,255,0.95)', '0 2px 8px rgba(0,0,0,0.08)'].join(', ')
-            : ['inset 0 1px 0 rgba(255,255,255,0.40)', '0 2px 16px rgba(255,255,255,0.06)'].join(', '),
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          pointerEvents: 'none', zIndex: 0,
-          opacity: 1,
-          transition: `left ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')}), width ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`,
-        }} />
-      )}
-
-      {HUB_NAV_ITEMS.map(({ id, icon, label }, i) => {
-        const active = tab === id;
-        const isPressed = pressed === id;
-        return (
-          <button
-            key={id}
-            ref={el => { btnRefs.current[i] = el; }}
-            onPointerDown={() => setPressed(id)}
-            onPointerUp={() => { setPressed(null); setTab(id); }}
-            onPointerLeave={() => setPressed(null)}
-            onPointerCancel={() => setPressed(null)}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', gap: 4,
-              padding: '8px 4px', borderRadius: '9999px',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              color: active
-                ? (isLight ? accent.from : '#fff')
-                : 'var(--c-text-secondary)',
-              position: 'relative', zIndex: 1,
-              opacity: 1,
-              transform: isPressed ? 'scale(0.91)' : 'scale(1)',
-              transition: 'color 130ms ease, transform 120ms cubic-bezier(0.34,1.56,0.64,1)',
-            }}
-          >
-            <span
-              className="material-symbols-outlined"
-              style={{
-                fontSize: 22,
-                fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
-                transition: 'font-variation-settings 200ms ease',
-              }}
-            >
-              {icon}
-            </span>
-            <span style={{
-              fontFamily: 'Manrope, sans-serif', fontWeight: 700,
-              fontSize: '9.5px', letterSpacing: '0.08em',
-              textTransform: 'uppercase', lineHeight: 1, whiteSpace: 'nowrap',
-            }}>
-              {label}
-            </span>
-          </button>
-        );
-      })}
-      </div>
-    </nav>
-  );
-}
-
 type HelpPageActiveId = 'main' | HelpPageId;
 
 function HubHelp({

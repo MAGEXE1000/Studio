@@ -1,7 +1,6 @@
 ### Added
-- Snappy search morph animations deferring storage index tasks off the critical path.
-- Borderless search and close icons naturally integrated into the floating top bar.
-- Snappy spring physics and haptic touch ripples for all interactive pill search states.
-- Reusable SharedBottomNavigation component styled with floating liquid glass and progressive blur.
-- Unified bottom navigation menus across Chordex, Stagex, and Hub with no labels.
-- Redesigned Settings Home, Language selection, and Theme Mode Appearance sub-pages.
+- Unified bottom navigation architecture across all applications using SharedNavigationBar.
+- Completely removed legacy BottomNav.tsx wrapper and all custom navigation bar containers.
+- Redesigned Hub layout to feature exactly three tabs: Notifications, Home, and Settings.
+- Integrated premium spring-driven gesture compression on tab pointer down and bounce-back.
+- Added smooth spring active scaling transitions to selected navigation icons.

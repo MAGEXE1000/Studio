@@ -2,6 +2,7 @@ import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetN
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { SharedNavigationBar, type SharedNavigationItem } from '../../../navigation/SharedNavigationBar';
 import { MOTION_DURATIONS, MOTION_EASINGS } from '../../../navigation/AppAnimationSystem';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { subscribeVocalexBack } from '../utilities/headerBack';
@@ -377,118 +378,18 @@ export default function VocalexApp() {
         </div>
       </div>
 
-      <nav
-        ref={navRef}
-        className="glass-nav fixed"
-        aria-hidden={(navHidden || navCollapsed) || undefined}
-        // @ts-expect-error â€“ `inert` is valid HTML but missing from React types in this version
-        inert={(navHidden || navCollapsed) ? '' : undefined}
-        style={{
-          display: isWebDesktop ? 'none' : undefined,
-          position: 'fixed',
-          bottom: 'var(--nav-safe-bottom)',
-          left: '50%',
-          width: '90%',
-          maxWidth: '448px',
-          height: `${NAV_HEIGHT_PX}px`,
-          borderRadius: '2rem',
-          border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.32)'}`,
-          background: amoledBg,
-          boxShadow: isLight
-            ? '0 8px 32px rgba(0,0,0,0.08), 0 1.5px 0 rgba(255,255,255,0.70) inset'
-            : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
-          zIndex: 50,
-          overflow: 'hidden',
-          pointerEvents: (navHidden || navCollapsed) ? 'none' : 'auto',
-          transform: getSharedNavTransform(navHidden, navCollapsed),
-          opacity: getSharedNavOpacity(navHidden, navCollapsed),
-          willChange: 'transform, opacity',
-          transition: SHARED_NAV_TRANSITION,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}
-      >
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-          padding: '4px 6px',
-          opacity: navCollapsed ? 0 : 1,
-          transition: navCollapsed ? 'opacity 100ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms',
-          willChange: 'opacity',
-        }}>
-        {pill.ready && (
-          <div aria-hidden style={{
-            position: 'absolute',
-            top: '4px',
-            left: pill.left,
-            width: pill.right - pill.left,
-            height: 'calc(100% - 8px)',
-            borderRadius: '9999px',
-            background: isLight ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.09)',
-            border: isLight ? '1.5px solid rgba(0,0,0,0.06)' : '1.5px solid rgba(255,255,255,0.30)',
-            boxShadow: isLight
-              ? 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.08)'
-              : 'inset 0 1px 0 rgba(255,255,255,0.40), 0 2px 16px rgba(255,255,255,0.06)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            pointerEvents: 'none',
-            zIndex: 0,
-            opacity: 1,
-            transition: `left ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')}), width ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`,
-          }} />
-        )}
-
-        {NAV_ITEMS.map(({ panel, Icon, label }, i) => {
-          const isActive = activeTab === panel;
-          const isPressed = pressedPanel === panel;
-          return (
-            <button
-              key={panel}
-              ref={el => { btnRefs.current[i] = el; }}
-              data-testid={`vocalex-nav-${panel}`}
-              onPointerDown={() => setPressedPanel(panel)}
-              onPointerUp={() => setPressedPanel(null)}
-              onPointerLeave={() => setPressedPanel(null)}
-              onPointerCancel={() => setPressedPanel(null)}
-              onClick={() => NavigationDispatcher.push({ app: 'vocalex', page: panel })}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '3px',
-                padding: '6px 4px',
-                borderRadius: '9999px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: isActive ? (isLight ? accent.from : '#fff') : 'var(--c-text-secondary)',
-                position: 'relative',
-                zIndex: 1,
-                opacity: 1,
-                transform: isPressed ? 'scale(0.91)' : 'scale(1)',
-                transition: 'color 130ms ease, transform 120ms cubic-bezier(0.34,1.56,0.64,1)',
-              }}
-            >
-              <Icon active={isActive} />
-              <span style={{
-                fontFamily: 'Manrope, sans-serif',
-                fontWeight: 700,
-                fontSize: '9px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                lineHeight: 1,
-                whiteSpace: 'nowrap',
-                textShadow: isLight ? 'none' : '0 1px 4px rgba(0,0,0,0.60)',
-              }}>
-                {label}
-              </span>
-            </button>
-          );
-        })}
-        </div>
-      </nav>
+      {!(navHidden || navCollapsed) && (
+        <SharedNavigationBar
+          items={NAV_ITEMS.map(item => ({
+            key: item.panel,
+            icon: <item.Icon active={activeTab === item.panel} />,
+            label: item.label,
+            isActive: activeTab === item.panel,
+            onClick: () => NavigationDispatcher.push({ app: 'vocalex', page: item.panel }),
+          }))}
+          isLight={isLight}
+        />
+      )}
     </div>
   );
 }

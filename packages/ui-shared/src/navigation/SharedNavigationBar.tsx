@@ -65,11 +65,18 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
           const isIconString = typeof item.icon === 'string';
 
           return (
-            <button
+            <motion.button
               key={item.key}
               onClick={item.onClick}
               aria-label={item.label}
               title={item.label}
+              whileTap={{ scale: 0.88, y: 1 }}
+              transition={{
+                type: 'spring',
+                stiffness: 500,
+                damping: 25,
+                mass: 0.5
+              }}
               style={{
                 flex: 1,
                 height: '100%',
@@ -89,7 +96,6 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                 WebkitTapHighlightColor: 'transparent',
                 transition: 'color 200ms ease',
               }}
-              className="group active:scale-90 transition-transform"
             >
               {item.isActive && (
                 <motion.div
@@ -107,26 +113,45 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                     background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
                     border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.22)',
                     boxShadow: isLight
-                      ? 'inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.04)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 10px rgba(0,0,0,0.15)',
+                      ? 'inset 0 1px 0 rgba(255,255,255,0.90), 0 2px 4px rgba(0,0,0,0.04)'
+                      : 'inset 0 1px 0 rgba(255,255,255,0.20), 0 4px 10px rgba(0,0,0,0.15)',
                     zIndex: -1,
                   }}
                 />
               )}
 
               {isIconString ? (
-                <span
+                <motion.span
                   className="material-symbols-outlined text-[20px]"
+                  animate={{
+                    scale: item.isActive ? 1.15 : 1.0,
+                  }}
                   style={{
                     fontVariationSettings: item.isActive ? "'FILL' 1" : "'FILL' 0"
                   }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 500,
+                    damping: 22
+                  }}
                 >
                   {item.icon}
-                </span>
+                </motion.span>
               ) : (
-                item.icon
+                <motion.div
+                  animate={{
+                    scale: item.isActive ? 1.15 : 1.0,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 500,
+                    damping: 22
+                  }}
+                >
+                  {item.icon}
+                </motion.div>
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>

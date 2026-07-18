@@ -26,6 +26,7 @@ const MetronomeIcon = ({ size = 16 }: { size?: number }) => (
 
 import ElasticSlider from '../../../components/progress/ElasticSlider';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { SharedNavigationBar, type SharedNavigationItem } from '../../../navigation/SharedNavigationBar';
 import EmptyStateLottie from '../../../components/lottie/EmptyStateLottie';
 import LoadingLottie from '../../../components/lottie/LoadingLottie';
 import SuccessLottie from '../../../components/lottie/SuccessLottie';
@@ -548,123 +549,21 @@ function DrumNav({ activeTab, setTab, accent, isLight, isAmoled, hidden }: {
   hidden?: boolean;
 }) {
   const ALL_NAV_TABS = useDrumNavTabs();
-  const navRef  = useRef<HTMLElement | null>(null);
-  useLiquidGlassNav(navRef);
-  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [pill, setPill] = useState<{ left: number; right: number; ready: boolean }>({ left: 0, right: 0, ready: false });
-  const prevIdx = useRef(ALL_NAV_TABS.findIndex(x => x.id === activeTab));
-  const strT    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [pressed, setPressed] = useState<DrumTab | null>(null);
   const navCollapsed = useNavCollapsed();
-  const [expandedH, setExpandedH] = useState(56);
-  const [expandedW, setExpandedW] = useState(360);
-  useEffect(() => {
-    if (navRef.current) {
-      setExpandedH(navRef.current.offsetHeight);
-      setExpandedW(navRef.current.offsetWidth);
-    }
-  }, []);
 
-  const measure = (idx: number) => {
-    const btn = btnRefs.current[idx]; const nav = navRef.current;
-    if (!btn || !nav) return null;
-    const nr = nav.getBoundingClientRect(); const br = btn.getBoundingClientRect();
-    return { left: br.left - nr.left, right: br.right - nr.left };
-  };
-  useEffect(() => {
-    const m = measure(ALL_NAV_TABS.findIndex(x => x.id === activeTab));
-    if (m) setPill({ ...m, ready: true });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const ni = ALL_NAV_TABS.findIndex(x => x.id === activeTab);
-    const oi = prevIdx.current;
-    if (ni === oi) return;
-    prevIdx.current = ni;
-    if (strT.current) { clearTimeout(strT.current); strT.current = null; }
-    const nm = measure(ni);
-    if (!nm) return;
-    const om = measure(oi);
-    if (ni > oi) {
-      setPill(p => ({ ...p, left: om?.left ?? p.left, right: nm.right }));
-      strT.current = setTimeout(() => setPill(p => ({ ...p, left: nm.left })), 90);
-    } else {
-      setPill(p => ({ ...p, left: nm.left, right: om?.right ?? p.right }));
-      strT.current = setTimeout(() => setPill(p => ({ ...p, right: nm.right })), 90);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  if (hidden || navCollapsed) return null;
 
   return (
-    <nav ref={navRef} className="glass-nav" style={{
-      position: 'fixed', left: '50%',
-      bottom: 'max(10px, env(safe-area-inset-bottom))',
-      width: '88%',
-      maxWidth: '360px',
-      height: `${expandedH}px`,
-      borderRadius: '2rem',
-      border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.32)'}`,
-      background: isAmoled ? 'rgba(4,4,4,0.88)' : (isLight ? 'rgba(255, 255, 255, 0.40)' : 'rgba(26,26,30,0.82)'),
-      boxShadow: isLight
-        ? '0 8px 32px rgba(0,0,0,0.14), 0 1.5px 0 rgba(255,255,255,0.80) inset'
-        : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
-      zIndex: 50, overflow: 'hidden',
-      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      pointerEvents: (hidden || navCollapsed) ? 'none' : 'auto',
-      transform: getSharedNavTransform(!!hidden, !!navCollapsed),
-      opacity: getSharedNavOpacity(!!hidden, !!navCollapsed),
-      willChange: 'transform, opacity',
-      transition: SHARED_NAV_TRANSITION,
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        padding: '6px 8px',
-        opacity: navCollapsed ? 0 : 1,
-        transition: navCollapsed ? 'opacity 100ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms',
-        willChange: 'opacity',
-      }}>
-      {pill.ready && (
-        <div aria-hidden style={{
-          position: 'absolute', top: 4, left: pill.left, width: pill.right - pill.left,
-          height: 'calc(100% - 8px)', borderRadius: '9999px',
-          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.09)',
-          border: isLight ? '1.5px solid rgba(0,0,0,0.14)' : '1.5px solid rgba(255,255,255,0.30)',
-          boxShadow: isLight
-            ? 'inset 0 1px 0 rgba(255,255,255,0.90), 0 2px 8px rgba(0,0,0,0.10)'
-            : 'inset 0 1px 0 rgba(255,255,255,0.40), 0 2px 16px rgba(255,255,255,0.06)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          pointerEvents: 'none', zIndex: 0,
-          opacity: 1,
-          transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
-        }} />
-      )}
-      {ALL_NAV_TABS.map(({ id, label, Icon }, i) => {
-        const isActive = activeTab === id; const isPressed = pressed === id;
-        return (
-          <button key={id} ref={el => { btnRefs.current[i] = el; }}
-            onPointerDown={() => setPressed(id)}
-            onPointerUp={() => { setPressed(null); setTab(id); }}
-            onPointerLeave={() => setPressed(null)} onPointerCancel={() => setPressed(null)}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 4, padding: '8px 4px', borderRadius: '9999px', background: 'transparent', border: 'none',
-              cursor: 'pointer', color: isActive ? (isLight ? accent.from : '#fff') : (isLight ? 'rgba(0,0,0,0.4)' : '#71717a'), position: 'relative', zIndex: 1,
-              opacity: 1,
-              transform: isPressed ? 'scale(0.91)' : 'scale(1)',
-              transition: 'color 130ms ease, transform 120ms cubic-bezier(0.34,1.56,0.64,1)',
-            }}>
-            <Icon active={isActive} />
-            <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: '9px', letterSpacing: '0.09em', textTransform: 'uppercase', lineHeight: 1, whiteSpace: 'nowrap' }}>
-              {label}
-            </span>
-          </button>
-        );
-      })}
-      </div>
-    </nav>
+    <SharedNavigationBar
+      items={ALL_NAV_TABS.map(tab => ({
+        key: tab.id,
+        icon: <tab.Icon active={activeTab === tab.id} />,
+        label: tab.label,
+        isActive: activeTab === tab.id,
+        onClick: () => setTab(tab.id),
+      }))}
+      isLight={isLight}
+    />
   );
 }
 

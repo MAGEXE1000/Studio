@@ -68,7 +68,7 @@ export { WebToolbar, WebButton } from './components/WebDesignSystem';
 export { default as WebAppSectionDock } from './components/WebAppSectionDock';
 export { default as DevToolsDashboard } from './components/DevToolsDashboard';
 
-export { default as BottomNav } from './navigation/BottomNav';
+// BottomNav removed (architectural unification)
 export { default as UpdateIndicator } from './components/UpdateIndicator';
 export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';
 export * from './components/StudioLayoutSystem';

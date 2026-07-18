@@ -11,7 +11,8 @@ import {
   WebButton,
   SharedNavigationContainer,
   MOTION_DURATIONS,
-  MOTION_EASINGS
+  MOTION_EASINGS,
+  SharedNavigationBar
 } from '@workspace/ui-shared';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
@@ -520,6 +521,7 @@ export default function StagexPanel() {
   const [pdfSceneChoice, setPdfSceneChoice] = useState<'current' | 'all' | number>('current');
   const [isStageExpanded, setIsStageExpanded] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [landscapeNavHidden, setLandscapeNavHidden] = useState(false);
 
   // ── Diagnostics & Safe Mode state ──────────────────────────
   const [showDiagnostics, setShowDiagnostics] = useState(() => {
@@ -2772,134 +2774,19 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           </button>
         )}
 
-        {/* ── Glassmorphism bottom nav — matches Chordex BottomNav ── */}
-        <div
-          ref={stageNavRef}
-          className="glass-nav"
-          style={{
-            display: isWebDesktop ? 'none' : undefined,
-            position: 'absolute',
-            bottom: 'max(10px, env(safe-area-inset-bottom))',
-            left: '50%',
-            transform: `translateX(-50%) translateY(${
-              liveMode || hideBottomNav ? 'calc(100% + 32px)' : '0px'
-            })`,
-            pointerEvents: (liveMode || hideBottomNav || navCollapsed) ? 'none' : 'auto',
-            opacity: liveMode ? 0 : 1,
-            width: isLandscapeEditor ? '70%' : '90%',
-            maxWidth: isLandscapeEditor ? '320px' : '400px',
-            height: `${expandedStageH}px`,
-            borderRadius: '2rem',
-            border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.32)'}`,
-            background: stagePillBg,
-            boxShadow: isLight
-              ? '0 8px 32px rgba(0,0,0,0.14), 0 1.5px 0 rgba(255,255,255,0.80) inset'
-              : '0 12px 48px rgba(0,0,0,0.50), 0 1.5px 0 rgba(255,255,255,0.08) inset',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            zIndex: 50,
-            overflow: 'hidden',
-            clipPath: navCollapsed
-              ? `inset(${Math.max(0, expandedStageH - 5)}px ${Math.max(0, Math.floor((expandedStageW - 90) / 2))}px 0 ${Math.max(0, Math.floor((expandedStageW - 90) / 2))}px round 99px)`
-              : 'inset(0 0 0 0 round 2rem)',
-            willChange: 'clip-path, transform, opacity',
-            transition: [
-              navCollapsed
-                ? 'clip-path 250ms cubic-bezier(0.2, 0.8, 0.2, 1)'
-                : 'clip-path 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-              navCollapsed
-                ? 'transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1)'
-                : 'transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-              'background-color 250ms ease',
-            ].join(', '),
-          }}
-        >
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-            padding: isLandscapeEditor ? '3px 6px' : '6px 8px',
-            opacity: navCollapsed ? 0 : 1,
-            transition: navCollapsed ? 'opacity 100ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms',
-            willChange: 'opacity',
-          }}>
-
-          {/* Elastic sliding pill */}
-          {stagePill.ready && (
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                top: isLandscapeEditor ? 2 : 4,
-                left: stagePill.left,
-                width: stagePill.right - stagePill.left,
-                height: isLandscapeEditor ? 'calc(100% - 4px)' : 'calc(100% - 8px)',
-                borderRadius: 9999,
-                background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.09)',
-                border: isLight ? '1.5px solid rgba(0,0,0,0.14)' : '1.5px solid rgba(255,255,255,0.30)',
-                boxShadow: isLight
-                  ? 'inset 0 1px 0 rgba(255,255,255,0.90), 0 2px 8px rgba(0,0,0,0.10)'
-                  : 'inset 0 1px 0 rgba(255,255,255,0.40), 0 2px 16px rgba(255,255,255,0.06)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                pointerEvents: 'none',
-                zIndex: 0,
-                opacity: 1,
-                transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
-              }}
-            />
-          )}
-
-          {/* Nav buttons */}
-          {useMemo(() => {
-            return navTabs.map(({ view, label, icon }, i) => {
-              const active  = isTabActive(view);
-              return (
-                <button
-                  key={view}
-                  ref={el => { stageBtnRefs.current[i] = el; }}
-                  onClick={() => handleNavTap(view)}
-                  onTouchEnd={(e) => { e.preventDefault(); handleNavTap(view); }}
-                  className="stage-nav-btn"
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: isLandscapeEditor ? 1 : 4,
-                    padding: isLandscapeEditor ? '4px 4px' : '8px 4px',
-                    borderRadius: 9999,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: active ? (isLight ? accent.from : '#fff') : (isLight ? 'rgba(0,0,0,0.4)' : 'var(--c-text-secondary, rgba(160,160,180,0.8))'),
-                    position: 'relative',
-                    zIndex: 1,
-                    opacity: 1,
-                    WebkitFontSmoothing: 'antialiased',
-                    WebkitTapHighlightColor: 'transparent',
-                    touchAction: 'manipulation',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: isLandscapeEditor ? 16 : 20, lineHeight: 1, fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}>{icon}</span>
-                  <span style={{
-                    fontFamily: 'Manrope, sans-serif',
-                    fontWeight: 700,
-                    fontSize: isLandscapeEditor ? '7.5px' : '9.5px',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    lineHeight: 1,
-                    whiteSpace: 'nowrap',
-                    WebkitFontSmoothing: 'antialiased',
-                  }}>
-                    {label}
-                  </span>
-                </button>
-              );
-            });
-          }, [curView, isLandscapeEditor, isLight, accent.from, handleNavTap])}
-          </div>
-        </div>
+        {/* ── Glassmorphism bottom nav ── */}
+        {!(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed || isWebDesktop) && (
+          <SharedNavigationBar
+            items={navTabs.map(t => ({
+              key: t.view,
+              icon: t.icon,
+              label: t.label,
+              isActive: isTabActive(t.view),
+              onClick: () => handleNavTap(t.view),
+            }))}
+            isLight={isLight}
+          />
+        )}
       </div>
 
       {/* ── PDF Export Bottom Sheet ───────────────────────── */}

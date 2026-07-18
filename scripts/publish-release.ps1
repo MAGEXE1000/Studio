@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.94"
-$VersionCode = "40094"
-$ReleaseNote = "4.0.94 - Complete UI Revamp: snappy search animations, borderless search/close icons, reusable SharedBottomNavigation system-wide, redesigned Settings Home, Language, and Appearance screens"
+$VersionName = "4.0.95"
+$VersionCode = "40095"
+$ReleaseNote = "4.0.95 - Unified bottom navigation system-wide under SharedNavigationBar, completely deleted all legacy wrappers and custom navigation containers, redesigned Hub with exactly 3 tabs (Notifications, Home, Settings) and added flagship gesture springs"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

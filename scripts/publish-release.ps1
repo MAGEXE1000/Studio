@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.2"
-$VersionCode = "40102"
-$ReleaseNote = "4.1.2 - Removed experimental presets, fixed first-frame skeleton leak, achieved single continuous transition, and implemented Bottom Navigation failsafe watchdog recovery on focus, visibility, and layout changes"
+$VersionName = "4.1.3"
+$VersionCode = "40103"
+$ReleaseNote = "4.1.3 - Dynamic GPU composition pipeline prioritization, disabled blurs/shadows during launch, deleted zoom outer circle and blue flash burst, and implemented hardware acceleration for high-refresh 90Hz/120Hz displays"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

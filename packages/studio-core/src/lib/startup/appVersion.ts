@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.1.3';
-export const WEB_VERSION = '4.1.3';
+export const NATIVE_VERSION = '4.1.4';
+export const WEB_VERSION = '4.1.4';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,10 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented dynamic startup prioritization on GPU composition by turning off blurs and shadows during startup animation.",
-      "Removed outer expanding circular outlines and blue flash background bursts from the zoom transition.",
-      "Configured hardware acceleration styles (willChange, backface-visibility, preserve-3d) to support high-refresh rates (90Hz / 120Hz).",
-      "Enlarged the zoom travel scale target to scale(120) with path thinning to simulate a camera move inside the logo.",
+      "Deferred StudioHub and sub-app wrapper chunk-loading and mounting until the logo drawing phase completes.",
+      "Eliminated reveal stage checking timers by introducing fully event-driven 'studio-startup-complete' listeners.",
+      "Prevented JavaScript thread scheduling pauses during logo forming, locking frame pacing to native hardware limits.",
     ],
   },
 ];

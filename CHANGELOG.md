@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.1.1
+
+### Added
+- Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.
+- Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.
+- Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.
+- Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active.
+
 ## 4.1.0
 
 ### Added

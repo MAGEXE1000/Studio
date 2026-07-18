@@ -28,7 +28,7 @@ export function LaunchAnimationEngine({
   const [canStartReveal, setCanStartReveal] = useState(skipIntro || loopMode);
   const [key, setKey] = useState(0);
 
-  // Telemetry frame tracking (retained for backward compatibility / diagnostic checks)
+  // Telemetry frame tracking
   const frameTimes = useRef<number[]>([]);
   const lastTime = useRef<number>(0);
   
@@ -113,7 +113,7 @@ export function LaunchAnimationEngine({
 
   const logoColor = isLight ? '#0f172a' : '#ffffff';
   
-  // Spring configurations
+  // Spring and zoom timing configurations
   const logoSpring = { type: 'spring' as const, stiffness: 380, damping: 26 };
 
   // Smoothly dissolve the background overlay when revealing the Hub
@@ -134,6 +134,7 @@ export function LaunchAnimationEngine({
           } else {
             setStage('complete');
             if (onComplete) onComplete();
+            window.dispatchEvent(new Event('studio-launch-complete'));
           }
         }
       }}
@@ -142,32 +143,27 @@ export function LaunchAnimationEngine({
         inset: 0,
         zIndex: 9999,
         overflow: 'hidden',
-        backgroundColor: bgColor, // Force solid color background on first paint frame
+        backgroundColor: bgColor,
         pointerEvents: stage === 'complete' ? 'none' : 'auto',
+        // GPU Promotion styles for native screen refresh rate (90Hz / 120Hz)
+        willChange: 'transform, opacity',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+        transformStyle: 'preserve-3d',
       }}
     >
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {stage === 'reveal' && canStartReveal && (
-          <motion.div
-            initial={{ scale: 0.1, opacity: 0.8 }}
-            animate={{ scale: 28, opacity: 0 }}
-            transition={{ duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              position: 'absolute',
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(103,156,255,0.4) 60%, rgba(103,156,255,0) 100%)',
-              zIndex: 2,
-            }}
-          />
-        )}
-        
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
-          animate={!canStartReveal ? { opacity: 1, scale: 1 } : { scale: 100, opacity: 0 }}
+          animate={!canStartReveal ? { opacity: 1, scale: 1 } : { scale: 120, opacity: [1, 1, 0] }}
           transition={!canStartReveal ? logoSpring : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
-          style={{ zIndex: 3 }}
+          style={{ 
+            zIndex: 3,
+            willChange: 'transform, opacity',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transformStyle: 'preserve-3d',
+          }}
         >
           <svg width={96 * scaleFactor} height={96 * scaleFactor} viewBox="0 0 512 512" fill="none">
             <motion.path

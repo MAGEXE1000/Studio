@@ -154,9 +154,38 @@ function DebugSettingsContent({ accent, cardStyle, devNativeVersion, devVersionC
   );
 }
 
+function useStartupComplete() {
+  const [complete, setComplete] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return !!(window as any).__studioStartupComplete;
+  });
+
+  useEffect(() => {
+    if (complete) return;
+    
+    const check = () => {
+      if ((window as any).__studioStartupComplete) {
+        setComplete(true);
+        clearInterval(interval);
+      }
+    };
+
+    const interval = setInterval(check, 100);
+    window.addEventListener('studio-launch-complete', check);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('studio-launch-complete', check);
+    };
+  }, [complete]);
+
+  return complete;
+}
+
 export default function StudioHub() {
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
+  const startupComplete = useStartupComplete();
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -1067,12 +1096,13 @@ export default function StudioHub() {
                         style={{
                           width: '100%',
                           maxWidth: '448px',
-                          background: 'var(--c-surface-glass-bg, rgba(26,26,30,0.45))',
+                          background: startupComplete ? 'var(--c-surface-glass-bg, rgba(26,26,30,0.45))' : 'rgba(26, 26, 30, 0.95)',
                           border: `1px solid var(--c-border, rgba(128,128,128,0.12))`,
                           borderRadius: '9999px',
                           pointerEvents: 'auto',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
+                          backdropFilter: startupComplete ? 'blur(20px)' : 'none',
+                          WebkitBackdropFilter: startupComplete ? 'blur(20px)' : 'none',
+                          boxShadow: startupComplete ? '0 10px 30px rgba(0,0,0,0.3)' : 'none',
                         }}
                         className="flex items-center px-4 py-2 shadow-lg relative overflow-hidden"
                       >

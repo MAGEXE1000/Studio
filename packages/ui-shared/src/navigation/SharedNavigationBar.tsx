@@ -1,7 +1,35 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ProgressiveBlur } from '../components/design-system/ProgressiveBlur';
 import { useNavScrollOffset } from '@workspace/studio-core';
+
+function useStartupComplete() {
+  const [complete, setComplete] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return !!(window as any).__studioStartupComplete;
+  });
+
+  useEffect(() => {
+    if (complete) return;
+    
+    const check = () => {
+      if ((window as any).__studioStartupComplete) {
+        setComplete(true);
+        clearInterval(interval);
+      }
+    };
+
+    const interval = setInterval(check, 100);
+    window.addEventListener('studio-launch-complete', check);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('studio-launch-complete', check);
+    };
+  }, [complete]);
+
+  return complete;
+}
 
 export interface SharedNavigationItem {
   key: string;
@@ -19,6 +47,7 @@ export interface SharedNavigationBarProps {
 export function SharedNavigationBar({ items, isLight = false }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollOffset = useNavScrollOffset();
+  const startupComplete = useStartupComplete();
 
   // Slide down out of view progressively up to 100px (beyond viewport edge)
   const translateY = scrollOffset * 100;
@@ -48,13 +77,17 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
         borderRadius: '9999px',
         // Real glass thin refracting outlines & high-transparency backgrounds
         border: `1px solid ${isLight ? 'rgba(255, 255, 255, 0.40)' : 'rgba(255, 255, 255, 0.22)'}`,
-        background: isLight ? 'rgba(255, 255, 255, 0.18)' : 'rgba(10, 10, 12, 0.12)',
+        background: isLight 
+          ? (startupComplete ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.95)') 
+          : (startupComplete ? 'rgba(10, 10, 12, 0.12)' : 'rgba(10, 10, 12, 0.95)'),
         // Deep floating shadows + top inner reflection highlights
-        boxShadow: isLight
-          ? '0 20px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
-          : '0 30px 60px rgba(0, 0, 0, 0.48), 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.28)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: !startupComplete
+          ? 'none'
+          : (isLight
+            ? '0 20px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+            : '0 30px 60px rgba(0, 0, 0, 0.48), 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.28)'),
+        backdropFilter: startupComplete ? 'blur(20px)' : 'none',
+        WebkitBackdropFilter: startupComplete ? 'blur(20px)' : 'none',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
@@ -63,18 +96,20 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
         pointerEvents: 'auto',
       }}
     >
-      <ProgressiveBlur
-        direction="top"
-        blurLayers={5}
-        maxBlur={8}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: -1,
-          borderRadius: 'inherit',
-          overflow: 'hidden',
-        }}
-      />
+      {startupComplete && (
+        <ProgressiveBlur
+          direction="top"
+          blurLayers={5}
+          maxBlur={8}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: -1,
+            borderRadius: 'inherit',
+            overflow: 'hidden',
+          }}
+        />
+      )}
 
       <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', position: 'relative' }}>
         {items.map((item) => {

@@ -1,22 +1,21 @@
 {
   "platform": "android",
-  "version": "4.1.2",
-  "versionName": "4.1.2",
-  "versionCode": 40102,
-  "version_code": 40102,
-  "commit": "3890db0a",
-  "releasedAt": "7/18/2026, 4:37:53 PM CST",
-  "buildTimestamp": "7/18/2026, 4:37:53 PM CST",
+  "version": "4.1.3",
+  "versionName": "4.1.3",
+  "versionCode": 40103,
+  "version_code": 40103,
+  "commit": "f8593850",
+  "releasedAt": "7/18/2026, 4:56:01 PM CST",
+  "buildTimestamp": "7/18/2026, 4:56:01 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.\n• Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.\n• Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.\n• Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.\n• Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change.",
-  "whatsNew": "• Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.\n• Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.\n• Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.\n• Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.\n• Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change.",
+  "changelog": "• Implemented dynamic startup prioritization on GPU composition by turning off blurs and shadows during startup animation.\n• Removed outer expanding circular outlines and blue flash background bursts from the zoom transition.\n• Configured hardware acceleration styles (willChange, backface-visibility, preserve-3d) to support high-refresh rates (90Hz / 120Hz).\n• Enlarged the zoom travel scale target to scale(120) with path thinning to simulate a camera move inside the logo.",
+  "whatsNew": "• Implemented dynamic startup prioritization on GPU composition by turning off blurs and shadows during startup animation.\n• Removed outer expanding circular outlines and blue flash background bursts from the zoom transition.\n• Configured hardware acceleration styles (willChange, backface-visibility, preserve-3d) to support high-refresh rates (90Hz / 120Hz).\n• Enlarged the zoom travel scale target to scale(120) with path thinning to simulate a camera move inside the logo.",
   "releaseNotes": {
     "added": [
-      "Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.",
-      "Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.",
-      "Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.",
-      "Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.",
-      "Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change."
+      "Implemented dynamic startup prioritization on GPU composition by turning off blurs and shadows during startup animation.",
+      "Removed outer expanding circular outlines and blue flash background bursts from the zoom transition.",
+      "Configured hardware acceleration styles (willChange, backface-visibility, preserve-3d) to support high-refresh rates (90Hz / 120Hz).",
+      "Enlarged the zoom travel scale target to scale(120) with path thinning to simulate a camera move inside the logo."
     ]
   },
   "mandatory": false

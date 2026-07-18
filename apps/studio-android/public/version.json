@@ -1,23 +1,21 @@
 {
   "platform": "android",
-  "version": "4.1.0",
-  "versionName": "4.1.0",
-  "versionCode": 40100,
-  "version_code": 40100,
-  "commit": "0d08baa6",
-  "releasedAt": "7/18/2026, 3:58:09 PM CST",
-  "buildTimestamp": "7/18/2026, 3:58:09 PM CST",
+  "version": "4.1.1",
+  "versionName": "4.1.1",
+  "versionCode": 40101,
+  "version_code": 40101,
+  "commit": "3b1a94e5",
+  "releasedAt": "7/18/2026, 4:21:37 PM CST",
+  "buildTimestamp": "7/18/2026, 4:21:37 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.\n• Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.\n• Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.\n• Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.\n• Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.\n• Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections.",
-  "whatsNew": "• Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.\n• Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.\n• Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.\n• Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.\n• Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.\n• Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections.",
+  "changelog": "• Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.\n• Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.\n• Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.\n• Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active.",
+  "whatsNew": "• Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.\n• Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.\n• Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.\n• Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active.",
   "releaseNotes": {
     "added": [
-      "Unified production launch experience with Motion Playground's LaunchAnimationEngine, ensuring identical physics and curve parity.",
-      "Implemented physical zoom fly-through: logo scales to scale(100) and its strokes thin down during transition to reveal the Hub.",
-      "Fixed global search touch bugs by moving the Top App Bar header to the root layout outside scroll stacking contexts.",
-      "Added automatic search overlay dismissal on all search clicks, suggested action triggers, and pinned item selections.",
-      "Replaced multiple CSS blur layers with a single backdropFilter blur, achieving a locked 60 FPS animation.",
-      "Enhanced Liquid Glass styling with 25% higher transparency and sharp top border edge inner reflections."
+      "Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.",
+      "Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.",
+      "Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.",
+      "Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active."
     ]
   },
   "mandatory": false

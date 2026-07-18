@@ -336,16 +336,7 @@ if (typeof window !== 'undefined') {
       // Auto-reset collapsed/hidden states on route changes
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
-        
-        clearWatchdogTimer();
-        
-        if (_collapsed) {
-          setNavCollapsed(false);
-        }
-        if (_hidden) {
-          _hidden = false;
-          emit(false);
-        }
+        resetNav();
       }
       
       onStateChanged();
@@ -364,6 +355,24 @@ if (typeof window !== 'undefined') {
     document.addEventListener('webkitfullscreenchange', onStateChanged);
     document.addEventListener('mozfullscreenchange', onStateChanged);
     document.addEventListener('MSFullscreenChange', onStateChanged);
+
+    // App Resume failsafes: restore navigation visibility upon focus or visibility restore
+    window.addEventListener('focus', () => {
+      resetNav();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        resetNav();
+      }
+    });
+
+    // Configuration / Layout failsafes: restore navigation visibility upon resize or orientation changes
+    window.addEventListener('resize', () => {
+      resetNav();
+    });
+    window.addEventListener('orientationchange', () => {
+      resetNav();
+    });
   } catch (e) {
     // Passive safety guard
   }

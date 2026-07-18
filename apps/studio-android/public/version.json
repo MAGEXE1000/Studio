@@ -1,23 +1,29 @@
 {
   "platform": "android",
-  "version": "4.0.87",
-  "versionName": "4.0.87",
-  "versionCode": 40087,
-  "version_code": 40087,
-  "commit": "0b82c629",
-  "releasedAt": "7/17/2026, 7:35:26 PM CST",
-  "buildTimestamp": "7/17/2026, 7:35:26 PM CST",
+  "version": "4.0.88",
+  "versionName": "4.0.88",
+  "versionCode": 40088,
+  "version_code": 40088,
+  "commit": "2d82d7b3",
+  "releasedAt": "7/17/2026, 9:13:21 PM CST",
+  "buildTimestamp": "7/17/2026, 9:13:21 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed sticky hover pointer states on Android touch screens.\n• Standardized bottom navigation bar sizing and radii across Chords, Vocalex, and Hub.\n• Unified sliding navigation pill transition ease and speed to match M3 Emphasized curves.\n• Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.\n• Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.\n• Polished Groovex library list row/chip padding, radii, and grid margins.",
-  "whatsNew": "• Fixed sticky hover pointer states on Android touch screens.\n• Standardized bottom navigation bar sizing and radii across Chords, Vocalex, and Hub.\n• Unified sliding navigation pill transition ease and speed to match M3 Emphasized curves.\n• Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.\n• Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.\n• Polished Groovex library list row/chip padding, radii, and grid margins.",
+  "changelog": "• Integrated full Material 3 Motion System and centralized Motion Engine.\n• Standardized bottom navigation bar sizing and radius across Chords, Vocalex, and Hub.\n• Implemented M3 Emphasized sliding pill transitions for active tab selection.\n• Added settings entrance keyframe animations (settings-content-fade-in) for settings panels.\n• Scoped interactive hover styles inside media-hover blocks to prevent sticky WebView touch states.\n• Polished Groovex library list rows and chip radii to match M3 curves.\n• Optimized performance by utilizing GPU-promoted will-change layer styles.\n• Resolved touch interaction sticking state bugs on cards, buttons, and settings rows.",
+  "whatsNew": "• Integrated full Material 3 Motion System and centralized Motion Engine.\n• Standardized bottom navigation bar sizing and radius across Chords, Vocalex, and Hub.\n• Implemented M3 Emphasized sliding pill transitions for active tab selection.\n• Added settings entrance keyframe animations (settings-content-fade-in) for settings panels.\n• Scoped interactive hover styles inside media-hover blocks to prevent sticky WebView touch states.\n• Polished Groovex library list rows and chip radii to match M3 curves.\n• Optimized performance by utilizing GPU-promoted will-change layer styles.\n• Resolved touch interaction sticking state bugs on cards, buttons, and settings rows.",
   "releaseNotes": {
+    "added": [
+      "Integrated full Material 3 Motion System and centralized Motion Engine.",
+      "Standardized bottom navigation bar sizing and radius across Chords, Vocalex, and Hub.",
+      "Implemented M3 Emphasized sliding pill transitions for active tab selection.",
+      "Added settings entrance keyframe animations (settings-content-fade-in) for settings panels."
+    ],
     "improved": [
-      "Fixed sticky hover pointer states on Android touch screens.",
-      "Standardized bottom navigation bar sizing and radii across Chords, Vocalex, and Hub.",
-      "Unified sliding navigation pill transition ease and speed to match M3 Emphasized curves.",
-      "Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.",
-      "Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.",
-      "Polished Groovex library list row/chip padding, radii, and grid margins."
+      "Scoped interactive hover styles inside media-hover blocks to prevent sticky WebView touch states.",
+      "Polished Groovex library list rows and chip radii to match M3 curves.",
+      "Optimized performance by utilizing GPU-promoted will-change layer styles."
+    ],
+    "fixed": [
+      "Resolved touch interaction sticking state bugs on cards, buttons, and settings rows."
     ]
   },
   "mandatory": false

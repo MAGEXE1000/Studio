@@ -33,9 +33,9 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
       }}
       transition={{
         type: 'spring',
-        stiffness: 280,
-        damping: 24,
-        mass: 0.5
+        stiffness: 380,
+        damping: 22,
+        mass: 0.35
       }}
       style={{
         position: 'fixed',
@@ -46,9 +46,9 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
         maxWidth: '90%',
         height: '46px',
         borderRadius: '9999px',
-        // Real glass thin borders & refracting high-transparency backgrounds
+        // Real glass thin borders & refracting high-transparency backgrounds (alphas reduced by 25%)
         border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.15)'}`,
-        background: isLight ? 'rgba(255, 255, 255, 0.45)' : 'rgba(10, 10, 12, 0.28)',
+        background: isLight ? 'rgba(255, 255, 255, 0.32)' : 'rgba(10, 10, 12, 0.20)',
         // Deep shadows for floating depth + inner glass reflection highlight
         boxShadow: isLight
           ? '0 18px 48px rgba(0, 0, 0, 0.08), inset 0 1px 0.5px rgba(255, 255, 255, 0.9)'
@@ -86,12 +86,12 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
               onClick={item.onClick}
               aria-label={item.label}
               title={item.label}
-              whileTap={{ scale: 0.9, y: 0.5 }}
+              whileTap={{ scale: 0.86, y: 1.2 }}
               transition={{
                 type: 'spring',
-                stiffness: 450,
-                damping: 20,
-                mass: 0.5
+                stiffness: 550,
+                damping: 18,
+                mass: 0.4
               }}
               style={{
                 flex: 1,
@@ -118,9 +118,9 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                   layoutId="shared-nav-pill"
                   transition={{
                     type: 'spring',
-                    stiffness: 380,
-                    damping: 24,
-                    mass: 0.8
+                    stiffness: 420,
+                    damping: 22,
+                    mass: 0.6
                   }}
                   style={{
                     position: 'absolute',
@@ -140,15 +140,15 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
                 <motion.span
                   className="material-symbols-outlined text-[20px]"
                   animate={{
-                    scale: item.isActive ? 1.15 : 1.0,
+                    scale: item.isActive ? 1.18 : 1.0,
                   }}
                   style={{
                     fontVariationSettings: item.isActive ? "'FILL' 1" : "'FILL' 0"
                   }}
                   transition={{
                     type: 'spring',
-                    stiffness: 450,
-                    damping: 20
+                    stiffness: 550,
+                    damping: 18
                   }}
                 >
                   {item.icon}
@@ -156,12 +156,12 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
               ) : (
                 <motion.div
                   animate={{
-                    scale: item.isActive ? 1.15 : 1.0,
+                    scale: item.isActive ? 1.18 : 1.0,
                   }}
                   transition={{
                     type: 'spring',
-                    stiffness: 450,
-                    damping: 20
+                    stiffness: 550,
+                    damping: 18
                   }}
                 >
                   {item.icon}

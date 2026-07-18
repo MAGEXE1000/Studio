@@ -1,23 +1,22 @@
 {
   "platform": "android",
-  "version": "4.0.97",
-  "versionName": "4.0.97",
-  "versionCode": 40097,
-  "version_code": 40097,
-  "commit": "4d9fa931",
-  "releasedAt": "7/18/2026, 2:33:11 PM CST",
-  "buildTimestamp": "7/18/2026, 2:33:11 PM CST",
+  "version": "4.0.98",
+  "versionName": "4.0.98",
+  "versionCode": 40098,
+  "version_code": 40098,
+  "commit": "1190b7c2",
+  "releasedAt": "7/18/2026, 3:17:47 PM CST",
+  "buildTimestamp": "7/18/2026, 3:17:47 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.\n• Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.\n• Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.\n• Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.\n• Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).\n• Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes.",
-  "whatsNew": "• Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.\n• Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.\n• Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.\n• Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.\n• Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).\n• Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes.",
+  "changelog": "• Integrated launch experience preset persistence bypass, loading the saved default preset instantly on cold boot.\n• Optimized bottom navigation auto-hide responsiveness: reduced gesture jitter threshold and scroll delta windows.\n• Refined Liquid Glass styling: increased transparency by an additional 25% for a naturally floating panel.\n• Enhanced bottom navigation icon tactile interactions with immediate compression scale and spring feedback.\n• Updated Chordex preferences/settings icon to 'tune' for exact visual consistency with Groovex preferences.",
+  "whatsNew": "• Integrated launch experience preset persistence bypass, loading the saved default preset instantly on cold boot.\n• Optimized bottom navigation auto-hide responsiveness: reduced gesture jitter threshold and scroll delta windows.\n• Refined Liquid Glass styling: increased transparency by an additional 25% for a naturally floating panel.\n• Enhanced bottom navigation icon tactile interactions with immediate compression scale and spring feedback.\n• Updated Chordex preferences/settings icon to 'tune' for exact visual consistency with Groovex preferences.",
   "releaseNotes": {
     "added": [
-      "Implemented premium scroll-driven auto-hide on SharedNavigationBar responding progressively to velocity.",
-      "Added smooth, spring-driven transition animations following scroll direction gesture reversals instantly.",
-      "Refined Liquid Glass visual styling: increased transparency slightly and enhanced shadows for deeper floating depth.",
-      "Fixed Chordex bottom navigation Settings redirect to target its own local Settings Panel instead of the Hub Settings.",
-      "Removed redundant header back buttons and containers from all Vocalex tabs (Monitor, Exercises, Takes, Record, Preferences).",
-      "Refined the launch experience: added cinematic logo zoom-in transitions and instant vanilla-splash handshakes."
+      "Integrated launch experience preset persistence bypass, loading the saved default preset instantly on cold boot.",
+      "Optimized bottom navigation auto-hide responsiveness: reduced gesture jitter threshold and scroll delta windows.",
+      "Refined Liquid Glass styling: increased transparency by an additional 25% for a naturally floating panel.",
+      "Enhanced bottom navigation icon tactile interactions with immediate compression scale and spring feedback.",
+      "Updated Chordex preferences/settings icon to 'tune' for exact visual consistency with Groovex preferences."
     ]
   },
   "mandatory": false

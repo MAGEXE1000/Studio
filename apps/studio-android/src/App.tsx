@@ -719,6 +719,19 @@ function TolgeeSuspenseFallback() {
     </div>
   );
 }
+function getInitialLaunchPreset() {
+  try {
+    const raw = localStorage.getItem('chord-explorer-storage-v3');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.state?.settings?.launchAnimationPreset) {
+        return parsed.state.settings.launchAnimationPreset;
+      }
+    }
+  } catch (e) {}
+  return 'fluid_surface';
+}
+
 export default function App() {
   const activePanel = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];
@@ -730,6 +743,7 @@ export default function App() {
   const { preferences } = useStudioPreferences();
   const isWebDesktop = useIsWebDesktop();
   const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
+  const initialPresetRef = useRef(getInitialLaunchPreset());
 
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);
@@ -2404,7 +2418,7 @@ export default function App() {
 
       {showLaunchOverlay && (
         <LaunchAnimationEngine
-          preset={settings.launchAnimationPreset || 'fluid_surface'}
+          preset={initialPresetRef.current}
           skipIntro={true}
           onComplete={() => setShowLaunchOverlay(false)}
           isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
@@ -2704,7 +2718,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
                     },
                     {
                       key: 'settings',
-                      icon: 'settings',
+                      icon: 'tune',
                       label: 'Settings',
                       isActive: cachedPanel === 'settings',
                       onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'settings' }),

@@ -169,13 +169,13 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
           const prevY = _elementLastY.get(el) ?? y;
           const dy = y - prevY;
 
-          // Jitter filter: ignore scroll updates smaller than 4px for responsiveness
-          if (Math.abs(dy) < 4) {
+          // Jitter filter: ignore scroll updates smaller than 2px for immediate responsiveness
+          if (Math.abs(dy) < 2) {
             return;
           }
 
-          // Progressive translation: 90px total scroll delta triggers complete hide/show transition.
-          const deltaRatio = dy / 90;
+          // Progressive translation: 75px total scroll delta triggers complete hide/show transition.
+          const deltaRatio = dy / 75;
           setNavScrollOffset(_scrollOffset + deltaRatio);
 
           const shouldCollapse = dy > 0;

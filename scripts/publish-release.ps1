@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.97"
-$VersionCode = "40097"
-$ReleaseNote = "4.0.97 - Bottom Navigation scroll-follow hiding, Liquid Glass transparency/depth adjustments, Chordex settings navigation fix, Vocalex back buttons removal, and cinematic launch zoom-in reveal"
+$VersionName = "4.0.98"
+$VersionCode = "40098"
+$ReleaseNote = "4.0.98 - Launch experience preset persistence handshake, auto-hide responsiveness and latency optimization, Liquid Glass transparency enhancements, and Chordex tab icon consistency"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

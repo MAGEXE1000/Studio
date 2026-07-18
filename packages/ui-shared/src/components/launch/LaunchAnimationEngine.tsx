@@ -67,10 +67,9 @@ export function LaunchAnimationEngine({
     };
   }, [key, skipIntro, loopMode]);
 
-  // Phase timers and paint state polling
+  // Phase timers and paint state event-driven checks
   useEffect(() => {
     let t1: ReturnType<typeof setTimeout>;
-    let t2: ReturnType<typeof setTimeout>;
 
     if (stage === 'logo') {
       // Step 1: Materialize logo path drawing (700ms)
@@ -79,28 +78,21 @@ export function LaunchAnimationEngine({
       }, 700);
     } else if (stage === 'reveal') {
       // Step 2: Wait for Hub to mount and paint 2 requestAnimationFrames to prevent flashes
-      const checkReadyAndComplete = () => {
-        if (loopMode) {
-          setCanStartReveal(true);
-          return;
-        }
-
-        const isStartupFinished = (window as any).__studioStartupComplete;
-        if (!isStartupFinished) {
-          t2 = setTimeout(checkReadyAndComplete, 30);
-          return;
-        }
-
-        // Hub is fully painted and stable, release reveal animation!
+      if (loopMode || (typeof window !== 'undefined' && (window as any).__studioStartupComplete)) {
         setCanStartReveal(true);
-      };
-      
-      checkReadyAndComplete();
+      } else {
+        const handleStartupComplete = () => {
+          setCanStartReveal(true);
+        };
+        window.addEventListener('studio-startup-complete', handleStartupComplete);
+        return () => {
+          window.removeEventListener('studio-startup-complete', handleStartupComplete);
+        };
+      }
     }
 
     return () => {
       clearTimeout(t1);
-      clearTimeout(t2);
     };
   }, [stage, loopMode]);
 

@@ -783,6 +783,7 @@ export default function App() {
   }, [routeApp, settings.appMode, updateSettings]);
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
+  const [showHubEnabled, setShowHubEnabled] = useState(false);
 
   const speedScale = useAnimationSpeed();
 
@@ -1656,11 +1657,12 @@ export default function App() {
     const unsub = StartupCoordinator.subscribe((phases) => {
       if (phases['5'].status === 'completed') {
         setStartupComplete(true);
+        setShowHubEnabled(true);
       }
     });
 
     void StartupCoordinator.run(() => {
-      setStartupComplete(true);
+      setShowHubEnabled(true);
     });
 
     return () => {
@@ -2300,7 +2302,7 @@ export default function App() {
               }}
             >
               <LifecycleTracker name="app-main-layout" />
-              {showHub && (
+              {showHub && showHubEnabled && (
                 <>
                   <LifecycleTracker name="StudioHub" />
                   <Suspense fallback={<StudioHubSkeleton />}>
@@ -2311,7 +2313,7 @@ export default function App() {
             </div>
 
             <AnimatePresence mode="wait">
-              {isSubAppActive && (
+              {isSubAppActive && showHubEnabled && (
                 <motion.div
                   key={stableKey}
                   className="sc-subapp-wrapper"

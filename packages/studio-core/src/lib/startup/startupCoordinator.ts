@@ -277,6 +277,7 @@ class StartupCoordinatorClass {
       // Set complete gate to true (enables Updater listener checks)
       if (typeof window !== 'undefined') {
         (window as any).__studioStartupComplete = true;
+        window.dispatchEvent(new Event('studio-startup-complete'));
       }
       
       this.isCompleted = true;

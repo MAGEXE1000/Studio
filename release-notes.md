@@ -1,5 +1,6 @@
 ### Added
-- Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.
-- Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.
-- Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.
-- Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active.
+- Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.
+- Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.
+- Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.
+- Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.
+- Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change.

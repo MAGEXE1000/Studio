@@ -1,21 +1,22 @@
 {
   "platform": "android",
-  "version": "4.1.1",
-  "versionName": "4.1.1",
-  "versionCode": 40101,
-  "version_code": 40101,
-  "commit": "3b1a94e5",
-  "releasedAt": "7/18/2026, 4:21:37 PM CST",
-  "buildTimestamp": "7/18/2026, 4:21:37 PM CST",
+  "version": "4.1.2",
+  "versionName": "4.1.2",
+  "versionCode": 40102,
+  "version_code": 40102,
+  "commit": "3890db0a",
+  "releasedAt": "7/18/2026, 4:37:53 PM CST",
+  "buildTimestamp": "7/18/2026, 4:37:53 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.\n• Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.\n• Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.\n• Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active.",
-  "whatsNew": "• Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.\n• Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.\n• Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.\n• Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active.",
+  "changelog": "• Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.\n• Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.\n• Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.\n• Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.\n• Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change.",
+  "whatsNew": "• Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.\n• Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.\n• Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.\n• Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.\n• Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change.",
   "releaseNotes": {
     "added": [
-      "Unified cold-boot launch with Motion Playground, enabling the full spring-driven logo path drawing sequence on startup.",
-      "Removed app-container opacity locks to allow background Hub mounting and painting underneath the launch animation.",
-      "Restored the Top App Bar header inside the Home tab structure to eliminate transition visual shifts.",
-      "Implemented dynamic stacking context management to clear translate3d and willChange styles only when search is active."
+      "Removed all experimental launch animation presets, keeping only the production Fluid Surface Reveal animation.",
+      "Simplified Motion Playground to show only the Fluid Surface Reveal telemetry and preview.",
+      "Fixed startup skeleton leak by enforcing solid background rendering styles on first paint frame.",
+      "Resolved final transition flash by checking __studioStartupComplete and linking onComplete to onAnimationComplete.",
+      "Implemented Bottom Navigation watchdog failsafe to recover visibility on route change, window focus, visibility change, resize, and orientation change."
     ]
   },
   "mandatory": false

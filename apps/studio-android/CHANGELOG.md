@@ -11,6 +11,17 @@ Conventions:
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
+
+## 4.0.94
+
+### Added
+- Snappy search morph animations deferring storage index tasks off the critical path.
+- Borderless search and close icons naturally integrated into the floating top bar.
+- Snappy spring physics and haptic touch ripples for all interactive pill search states.
+- Reusable SharedBottomNavigation component styled with floating liquid glass and progressive blur.
+- Unified bottom navigation menus across Chordex, Stagex, and Hub with no labels.
+- Redesigned Settings Home, Language selection, and Theme Mode Appearance sub-pages.
+
 ## 4.0.93
 
 ### Added

@@ -15,7 +15,7 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
 import { ActionButton } from '../../../components/design-system/ActionButton';
-import { SharedBottomNavigation, type SharedBottomNavItem } from '../../../navigation/SharedBottomNavigation';
+import { SharedNavigationBar, type SharedNavigationItem } from '../../../navigation/SharedNavigationBar';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -2393,7 +2393,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
                 {/* ── Glassmorphism bottom nav ── */}
         {!(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed || isWebDesktop) && (
-          <SharedBottomNavigation
+          <SharedNavigationBar
             items={navTabs.map(t => ({
               key: t.view,
               icon: t.icon,

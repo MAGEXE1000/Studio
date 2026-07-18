@@ -1,6 +1,6 @@
 import { useChordStore, ACCENT_COLORS, type ActivePanel, type AppKey, useNavHidden, useNavCollapsed, useT, useLiquidGlassNav, useIsWebDesktop, useNavigationStore, NavigationDispatcher, setNavCollapsed } from '@workspace/studio-core';
 import { useEffect, useRef } from 'react';
-import { SharedBottomNavigation, type SharedBottomNavItem } from './SharedBottomNavigation';
+import { SharedNavigationBar, type SharedNavigationItem } from './SharedNavigationBar';
 
 const NAV_ORDER: ActivePanel[] = ['songs', 'library', 'chord', 'settings'];
 
@@ -34,7 +34,7 @@ export default function BottomNav() {
 
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
-  const items: SharedBottomNavItem[] = [
+  const items: SharedNavigationItem[] = [
     {
       key: 'songs',
       icon: 'music_note',
@@ -65,5 +65,5 @@ export default function BottomNav() {
     },
   ];
 
-  return <SharedBottomNavigation items={items} isLight={isLight} />;
+  return <SharedNavigationBar items={items} isLight={isLight} />;
 }

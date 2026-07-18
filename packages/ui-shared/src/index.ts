@@ -74,4 +74,4 @@ export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnostic
 export * from './components/StudioLayoutSystem';
 export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';
 export { ActionButton } from './components/design-system/ActionButton';
-export { SharedBottomNavigation } from './navigation/SharedBottomNavigation';
+export { SharedNavigationBar } from './navigation/SharedNavigationBar';

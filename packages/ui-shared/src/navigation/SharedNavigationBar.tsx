@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { motion } from 'motion/react';
 import { ProgressiveBlur } from '../components/design-system/ProgressiveBlur';
 
-export interface SharedBottomNavItem {
+export interface SharedNavigationItem {
   key: string;
   icon: string | React.ReactNode; // Material Icon name or React component/SVG
   label: string;
@@ -10,12 +10,12 @@ export interface SharedBottomNavItem {
   onClick: () => void;
 }
 
-export interface SharedBottomNavigationProps {
-  items: SharedBottomNavItem[];
+export interface SharedNavigationBarProps {
+  items: SharedNavigationItem[];
   isLight?: boolean;
 }
 
-export function SharedBottomNavigation({ items, isLight = false }: SharedBottomNavigationProps) {
+export function SharedNavigationBar({ items, isLight = false }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (

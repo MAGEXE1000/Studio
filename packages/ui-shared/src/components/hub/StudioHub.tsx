@@ -18,7 +18,7 @@ import SmartLoading from '../loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../loading/StudioSkeleton';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
-import { SharedBottomNavigation } from '../../navigation/SharedBottomNavigation';
+import { SharedNavigationBar } from '../../navigation/SharedNavigationBar';
 import { useNavigationCoordinator, PageTransition, SPRING_PRESETS, MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 
@@ -2087,7 +2087,7 @@ export default function StudioHub() {
 
       {/* Global Shared Bottom Navigation for mobile Hub */}
       {!isWebDesktop && (
-        <SharedBottomNavigation
+        <SharedNavigationBar
           items={[
             {
               key: 'settings',

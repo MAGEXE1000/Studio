@@ -1,6 +1,4 @@
 ### Added
-- Integrated launch experience preset persistence bypass, loading the saved default preset instantly on cold boot.
-- Optimized bottom navigation auto-hide responsiveness: reduced gesture jitter threshold and scroll delta windows.
-- Refined Liquid Glass styling: increased transparency by an additional 25% for a naturally floating panel.
-- Enhanced bottom navigation icon tactile interactions with immediate compression scale and spring feedback.
-- Updated Chordex preferences/settings icon to 'tune' for exact visual consistency with Groovex preferences.
+- Shifted the launch experiences logo drawing path animation to play immediately via CSS in index.html (first painted frame).
+- Implemented high-performance vanilla JS zoom-in reveal transitions inside index.html for direct overlay dismissal.
+- Added duplicate React launch overlay bypass, allowing the Hub to mount and paint directly underneath the HTML splash.

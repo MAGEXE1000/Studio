@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.98"
-$VersionCode = "40098"
-$ReleaseNote = "4.0.98 - Launch experience preset persistence handshake, auto-hide responsiveness and latency optimization, Liquid Glass transparency enhancements, and Chordex tab icon consistency"
+$VersionName = "4.0.99"
+$VersionCode = "40099"
+$ReleaseNote = "4.0.99 - First-frame HTML splash logo drawing, vanilla JS cinematic zoom-in reveal, and duplicate React overlay bypass on cold boot"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

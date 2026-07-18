@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.98';
-export const WEB_VERSION = '4.0.98';
+export const NATIVE_VERSION = '4.0.99';
+export const WEB_VERSION = '4.0.99';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -62,11 +62,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Integrated launch experience preset persistence bypass, loading the saved default preset instantly on cold boot.",
-      "Optimized bottom navigation auto-hide responsiveness: reduced gesture jitter threshold and scroll delta windows.",
-      "Refined Liquid Glass styling: increased transparency by an additional 25% for a naturally floating panel.",
-      "Enhanced bottom navigation icon tactile interactions with immediate compression scale and spring feedback.",
-      "Updated Chordex preferences/settings icon to 'tune' for exact visual consistency with Groovex preferences.",
+      "Shifted the launch experiences logo drawing path animation to play immediately via CSS in index.html (first painted frame).",
+      "Implemented high-performance vanilla JS zoom-in reveal transitions inside index.html for direct overlay dismissal.",
+      "Added duplicate React launch overlay bypass, allowing the Hub to mount and paint directly underneath the HTML splash.",
     ],
   },
 ];

@@ -742,7 +742,7 @@ export default function App() {
   const updateSettings = useChordStore(state => state.updateSettings);
   const { preferences } = useStudioPreferences();
   const isWebDesktop = useIsWebDesktop();
-  const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
+  const [showLaunchOverlay, setShowLaunchOverlay] = useState(() => getInitialLaunchPreset() !== 'fluid_surface');
   const initialPresetRef = useRef(getInitialLaunchPreset());
 
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.4"
-$VersionCode = "40104"
-$ReleaseNote = "4.1.4 - Final performance pass: deferred Hub and sub-app wrapper mounting/chunk-loading until logo forms, refactored reveal timer checks to be event-driven, achieving locked stable frame pacing"
+$VersionName = "4.1.5"
+$VersionCode = "40105"
+$ReleaseNote = "4.1.5 - Optimized main thread blocking: debounced localStorage lifecycle logs, deferred SW/Cache clearing, deferred tolgee.run initialization, and deferred watchdog attempts writes, resolving all blocking stutters"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

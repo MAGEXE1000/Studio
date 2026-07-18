@@ -389,7 +389,7 @@ class StartupCoordinatorClass {
             localStorage.setItem('studio_visual_repaints_log', JSON.stringify(list.slice(-10)));
           }
         } catch (_) {}
-      }, 2000);
+      }, 8000);
     });
   }
 

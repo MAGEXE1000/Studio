@@ -52,6 +52,9 @@ export const tolgee = Tolgee()
   .use(FormatSimple())
   .init(tolgeeConfig);
 
-void tolgee.run();
+// Defer running tolgee active listeners/translators to clear JS thread during start
+setTimeout(() => {
+  void tolgee.run();
+}, 4000);
 
 export default i18n;

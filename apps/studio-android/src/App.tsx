@@ -608,6 +608,9 @@ function captureTimelineCheckpoint(captureId: number, key: string) {
   }
 }
 
+let memoryLifecycleLogs: any[] = [];
+let lifecycleFlushTimer: any = null;
+
 function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
   const timestampStr = new Date().toISOString();
   const currentAppMode = useChordStore.getState().settings.appMode || 'hub';
@@ -628,14 +631,6 @@ function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
     const previousAppMode = (window as any).__lastPreviousAppMode || 'none';
     
     let lastNavigationAction = 'none';
-    try {
-      const historyStr = localStorage.getItem('studio_navigation_history') || '[]';
-      const history = JSON.parse(historyStr);
-      if (history.length > 0) {
-        lastNavigationAction = JSON.stringify(history[history.length - 1]);
-      }
-    } catch (_) {}
-
     const stack = new Error().stack || 'unknown';
 
     const logEntry = {
@@ -654,15 +649,23 @@ function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
       stack
     };
 
-    const logsStr = localStorage.getItem('studio_root_lifecycle_logs') || '[]';
-    let logs: any[] = [];
-    try {
-      logs = JSON.parse(logsStr);
-    } catch (_) {
-      logs = [];
+    memoryLifecycleLogs.push(logEntry);
+    if (memoryLifecycleLogs.length > 100) {
+      memoryLifecycleLogs.shift();
     }
-    logs.push(logEntry);
-    localStorage.setItem('studio_root_lifecycle_logs', JSON.stringify(logs.slice(-100)));
+
+    if (lifecycleFlushTimer) {
+      clearTimeout(lifecycleFlushTimer);
+    }
+    lifecycleFlushTimer = setTimeout(() => {
+      try {
+        const logsStr = localStorage.getItem('studio_root_lifecycle_logs') || '[]';
+        let logs: any[] = JSON.parse(logsStr);
+        logs = logs.concat(memoryLifecycleLogs);
+        localStorage.setItem('studio_root_lifecycle_logs', JSON.stringify(logs.slice(-100)));
+        memoryLifecycleLogs = [];
+      } catch (_) {}
+    }, 4000);
   } catch (err) {
     console.error('Failed to log lifecycle event:', err);
   }
@@ -1991,9 +1994,11 @@ export default function App() {
     };
     const diag = (window as any).__navigationDiagnostics;
     diag.returnAttempts++;
-    try {
-      localStorage.setItem('studio_black_screen_diagnostics', JSON.stringify(diag));
-    } catch (_) {}
+    setTimeout(() => {
+      try {
+        localStorage.setItem('studio_black_screen_diagnostics', JSON.stringify(diag));
+      } catch (_) {}
+    }, 4000);
 
     let consecutiveFailures = 0;
     const maxRetries = 3;

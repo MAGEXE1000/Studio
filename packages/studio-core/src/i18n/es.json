@@ -497,7 +497,7 @@
     "groovexDesc": "Mezclador de práctica multipista",
     "vocalexDesc": "Herramientas vocales y entrenamiento",
     "settingsTitle": "Configuración",
-    "settingsSubtitle": "Ajustes de Studio",
+    "settingsSubtitle": "Ajustes de Livex",
     "account": "Cuenta",
     "login": "Iniciar sesión",
     "syncDevices": "Sincronizar dispositivos",
@@ -630,7 +630,7 @@
       "userLabel": "Usuario",
       "sidebarBehavior": "Comportamiento de la barra lateral",
       "hideSidebar": "Ocultar barra lateral en las aplicaciones",
-      "hideSidebarDesc": "Oculta la barra lateral global de Studio dentro de las aplicaciones para maximizar el espacio de trabajo",
+      "hideSidebarDesc": "Oculta la barra lateral global de Livex dentro de las aplicaciones para maximizar el espacio de trabajo",
       "revealSidebar": "Mostrar barra lateral al pasar el cursor por el borde izquierdo",
       "revealSidebarDesc": "Pasar el cursor por el borde izquierdo de la pantalla muestra la barra lateral oculta",
       "autoCloseSidebar": "Cerrar automáticamente la barra lateral al salir",
@@ -1094,8 +1094,8 @@
       "copied": "¡Copiado al Portapapeles!",
       "copyTemplate": "Copiar Plantilla de Error",
       "githubBtn": "Informar de un Error en GitHub",
-      "nativeDesc": "Si encuentras un error o comportamiento inesperado en Studio, ¡infórmalo! Pulsa abajo para enviarnos un correo de soporte con información de diagnóstico precompletada.",
-      "webDesc": "Si encuentras un error o comportamiento inesperado en Studio, ¡infórmalo! Copia la plantilla a continuación y envíala a nuestro repositorio de GitHub."
+      "nativeDesc": "Si encuentras un error o comportamiento inesperado en Livex, ¡infórmalo! Pulsa abajo para enviarnos un correo de soporte con información de diagnóstico precompletada.",
+      "webDesc": "Si encuentras un error o comportamiento inesperado en Livex, ¡infórmalo! Copia la plantilla a continuación y envíala a nuestro repositorio de GitHub."
     },
     "keyboardShortcuts": {
       "stagexTitle": "Modo de Escenario (Stagex)",
@@ -1108,22 +1108,22 @@
       "redoAlt": "Rehacer último paso deshecho (Alternativa)"
     },
     "terms": {
-      "welcome": "Bienvenido a Studio. Al acceder o usar nuestra aplicación, aceptas cumplir y estar sujeto a las siguientes Condiciones de Servicio. Por favor, léelas atentamente.",
+      "welcome": "Bienvenido a Livex. Al acceder o usar nuestra aplicación, aceptas cumplir y estar sujeto a las siguientes Condiciones de Servicio. Por favor, léelas atentamente.",
       "h1": "1. Propiedad del Contenido",
-      "p1": "Todos los patrones musicales, secuencias de batería, ajustes y otros datos de proyectos creados por ti utilizando las herramientas de Studio (Chordex, Drumex, Stagex, Groovex, Vocalex) siguen siendo de tu entera propiedad. No reclamamos ningún derecho de autor, marca registrada o propiedad sobre tu producción creativa.",
+      "p1": "Todos los patrones musicales, secuencias de batería, ajustes y otros datos de proyectos creados por ti utilizando las herramientas de Livex (Chordex, Drumex, Stagex, Groovex, Vocalex) siguen siendo de tu entera propiedad. No reclamamos ningún derecho de autor, marca registrada o propiedad sobre tu producción creativa.",
       "h2": "2. Uso del Servicio",
-      "p2": "Studio se proporciona de forma local-first. Las funciones de sincronización en la nube se proporcionan para tu comodidad de copia de seguridad personal. Aceptas no abusar de los servidores de sincronización ni intentar sobrecargarlos.",
+      "p2": "Livex se proporciona de forma local-first. Las funciones de sincronización en la nube se proporcionan para tu comodidad de copia de seguridad personal. Aceptas no abusar de los servidores de sincronización ni intentar sobrecargarlos.",
       "h3": "3. Exclusión de Garantías",
-      "p3": "Studio se proporciona \"tal cual\" y \"según disponibilidad\", sin garantías de ningún tipo. Aunque buscamos proteger los datos de tus proyectos mediante mecanismos de almacenamiento local y sincronización en la nube confiables, no podemos garantizar que no se pierdan datos. Recomendamos realizar copias de seguridad manuales periódicas."
+      "p3": "Livex se proporciona \"tal cual\" y \"según disponibilidad\", sin garantías de ningún tipo. Aunque buscamos proteger los datos de tus proyectos mediante mecanismos de almacenamiento local y sincronización en la nube confiables, no podemos garantizar que no se pierdan datos. Recomendamos realizar copias de seguridad manuales periódicas."
     },
     "privacy": {
-      "welcome": "Tu privacidad es extremadamente importante para nosotros. Esta Política de Privacidad detalla cómo Studio recopila, utiliza y protege tus datos.",
+      "welcome": "Tu privacidad es extremadamente importante para nosotros. Esta Política de Privacidad detalla cómo Livex recopila, utiliza y protege tus datos.",
       "h1": "1. Almacenamiento Local-First",
       "p1": "Por defecto, todos los ajustes de tus proyectos, secuencias de batería y canciones se almacenan localmente en tu dispositivo utilizando IndexedDB y localStorage. Ninguno de estos trabajos creativos sale de tu dispositivo a menos que habilites explícitamente la Sincronización en la Nube.",
       "h2": "2. Copia de Seguridad en la Nube y Autenticación",
-      "p2": "Si creas una cuenta de Studio, utilizamos Firebase para gestionar tus credenciales de inicio de sesión. Las copias de seguridad de tus proyectos se almacenan de forma segura en las bases de datos de Firestore. Solo utilizamos estos datos para realizar la sincronización entre dispositivos a petición tuya.",
+      "p2": "Si creas una cuenta de Livex, utilizamos Firebase para gestionar tus credenciales de inicio de sesión. Las copias de seguridad de tus proyectos se almacenan de forma segura en las bases de datos de Firestore. Solo utilizamos estos datos para realizar la sincronización entre dispositivos a petición tuya.",
       "h3": "3. Sin Seguimiento de Terceros",
-      "p3": "Studio no utiliza telemetría, rastreadores publicitarios ni análisis de comportamiento externos. Tu interacción con la aplicación sigue siendo completamente privada."
+      "p3": "Livex no utiliza telemetría, rastreadores publicitarios ni análisis de comportamiento externos. Tu interacción con la aplicación sigue siendo completamente privada."
     }
   }
 }

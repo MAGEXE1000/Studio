@@ -23,19 +23,25 @@ import { SharedNavigationContainer } from '../../navigation/SharedNavigationCont
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
 
-// AccountCard pulls Firebase (auth + firestore). Lazy-load it so Firebase
-// stays out of the initial bundle graph; only fetched when Settings tab opens.
-const AccountCard = lazy(() => import('../cards/AccountCard'));
-const AccountDangerZone = lazy(() =>
-  import('../cards/AccountCard').then(m => ({ default: m.AccountDangerZone }))
-);
-const AccountSettingsPage = lazy(() =>
-  import('../cards/AccountCard').then(m => ({ default: m.AccountSettingsPage }))
-);
-const DevToolsDashboard = lazy(() => import('../devtools/DevToolsDashboard'));
+import AccountCard, { AccountDangerZone, AccountSettingsPage } from '../cards/AccountCard';
+import DevToolsDashboard from '../devtools/DevToolsDashboard';
 
 import { HubTab, HelpPageId, TargetApp, THEME_OPTIONS, TimeWord, TIME_GREETING_ES, GreetingPair, _NAMED_PAIRS_EN, _NAMED_PAIRS_ES, _ANON_PAIRS_EN, _ANON_PAIRS_ES, Theme, getSessionIndex } from './hubConstants';
 import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
+
+const ALL_SHORTCUT_OPTIONS = [
+  { id: 'chords-chord', icon: 'music_note', titleEn: 'Chord Builder', titleEs: 'Constructor de Acordes' },
+  { id: 'chords-songs', icon: 'library_music', titleEn: 'Songs Library', titleEs: 'Biblioteca de Canciones' },
+  { id: 'chords-practice', icon: 'school', titleEn: 'Song Practice', titleEs: 'Práctica de Canciones' },
+  { id: 'drums', icon: 'drum', titleEn: 'Drum Sequencer', titleEs: 'Secuenciador de Batería' },
+  { id: 'stage', icon: 'mic_external_on', titleEn: 'Stagex Console', titleEs: 'Consola Stagex' },
+  { id: 'groovex', icon: 'play_circle', titleEn: 'Groovex Player', titleEs: 'Reproductor Groovex' },
+  { id: 'vocalex-coach', icon: 'record_voice_over', titleEn: 'Vocal Coach', titleEs: 'Entrenador Vocal' },
+  { id: 'vocalex-pitch', icon: 'graphic_eq', titleEn: 'Pitch Tracker', titleEs: 'Seguimiento de Tono' },
+  { id: 'developer', icon: 'terminal', titleEn: 'Dev Options', titleEs: 'Opc. de Desarrollador' },
+  { id: 'updater', icon: 'system_update_alt', titleEn: 'App Updater', titleEs: 'Actualizador de App' },
+  { id: 'help', icon: 'contact_support', titleEn: 'Help & FAQ', titleEs: 'Centro de Ayuda' },
+];
 
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
   const h = new Date().getHours();
@@ -204,6 +210,81 @@ export default function StudioHub() {
     };
   }, []);
   const [zooming, setZooming] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
+  const [shortcuts, setShortcuts] = useState<string[]>([]);
+
+  const activeRouteApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('studio:quick-shortcuts');
+      if (stored) {
+        setShortcuts(JSON.parse(stored));
+      } else {
+        const defaultShortcuts = ['chords-chord', 'chords-songs', 'updater', 'settings'];
+        setShortcuts(defaultShortcuts);
+        localStorage.setItem('studio:quick-shortcuts', JSON.stringify(defaultShortcuts));
+      }
+    } catch {
+      setShortcuts(['chords-chord', 'chords-songs', 'updater', 'settings']);
+    }
+  }, []);
+
+  const handleShortcutClick = (id: string) => {
+    switch (id) {
+      case 'chords-chord':
+        launchApp('chords');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+        }, 150);
+        break;
+      case 'chords-songs':
+        launchApp('chords');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+        }, 150);
+        break;
+      case 'chords-practice':
+        launchApp('chords');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+        }, 150);
+        break;
+      case 'drums':
+        launchApp('drums');
+        break;
+      case 'stage':
+        launchApp('stage');
+        break;
+      case 'groovex':
+        launchApp('groovex');
+        break;
+      case 'vocalex-coach':
+        launchApp('vocalex');
+        break;
+      case 'vocalex-pitch':
+        launchApp('vocalex');
+        break;
+      case 'developer':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'developer' });
+        }, 150);
+        break;
+      case 'updater':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' });
+        }, 150);
+        break;
+      case 'help':
+        setTab('help');
+        break;
+    }
+  };
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [customPhoto, setCustomPhoto] = useState<string | null>(null);
   useEffect(() => {
@@ -516,6 +597,203 @@ export default function StudioHub() {
     [greetName, lang],
   );
 
+  interface SearchItem {
+    type: 'app' | 'setting' | 'project';
+    title: string;
+    subtitle: string;
+    target: {
+      app?: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+      tab?: 'home' | 'settings' | 'profile' | 'help';
+      page?: string;
+      action?: () => void;
+    };
+  }
+
+  const apps: SearchItem[] = [
+    { type: 'app', title: 'Chordex', subtitle: 'Build chord progressions & study harmony', target: { app: 'chords' } },
+    { type: 'app', title: 'Drumex', subtitle: 'Program drum sequences & beat grids', target: { app: 'drums' } },
+    { type: 'app', title: 'Stagex', subtitle: 'Live performance console & midi routing', target: { app: 'stage' } },
+    { type: 'app', title: 'Groovex', subtitle: 'Audio groove player & tempo sync', target: { app: 'groovex' } },
+    { type: 'app', title: 'Vocalex', subtitle: 'Pitch tracker, vocal trainer & voice coach', target: { app: 'vocalex' } },
+  ];
+
+  const settingsItems: SearchItem[] = [
+    { type: 'setting', title: 'General Preferences', subtitle: 'Configure app behaviors & docks', target: { app: 'hub', tab: 'settings', page: 'general' } },
+    { type: 'setting', title: 'Appearance Settings', subtitle: 'Themes, dark mode, colors & animations', target: { app: 'hub', tab: 'settings', page: 'appearance' } },
+    { type: 'setting', title: 'Language', subtitle: 'Change app language (English / Spanish)', target: { app: 'hub', tab: 'settings', page: 'language' } },
+    { type: 'setting', title: 'Privacy & Security', subtitle: 'Data sync options & encryption keys', target: { app: 'hub', tab: 'settings', page: 'privacy' } },
+    { type: 'setting', title: 'App Updater', subtitle: 'Check for OTA updates & release builds', target: { app: 'hub', tab: 'settings', page: 'updater' } },
+    { type: 'setting', title: 'Developer Options', subtitle: 'Diagnostics, console logs, system state', target: { app: 'hub', tab: 'settings', page: 'developer' } },
+    { type: 'setting', title: 'About Livex', subtitle: 'Version manifest, credentials & fingerprint', target: { app: 'hub', tab: 'settings', page: 'about' } },
+    { type: 'setting', title: 'Help Center & FAQ', subtitle: 'Frequently asked questions & documentation', target: { app: 'hub', tab: 'settings', page: 'help-center' } },
+  ];
+
+  const loadSearchableProjects = (): SearchItem[] => {
+    const list: SearchItem[] = [];
+    try {
+      const chordex = localStorage.getItem('chord-explorer-storage-v3');
+      if (chordex) {
+        const parsed = JSON.parse(chordex);
+        const state = parsed.state || {};
+        (state.presets || []).forEach((p: any) => {
+          list.push({
+            type: 'project',
+            title: p.name || p.title || 'Untitled Chordex Preset',
+            subtitle: 'Chordex Preset',
+            target: { app: 'chords', action: () => { launchApp('chords'); setTimeout(() => { NavigationDispatcher.push({ app: 'chords', page: 'library' }); }, 150); } }
+          });
+        });
+        (state.progressions || []).forEach((p: any) => {
+          list.push({
+            type: 'project',
+            title: p.name || p.title || 'Untitled Progression',
+            subtitle: 'Chordex Progression',
+            target: { app: 'chords', action: () => { launchApp('chords'); setTimeout(() => { NavigationDispatcher.push({ app: 'chords', page: 'songs' }); }, 150); } }
+          });
+        });
+      }
+    } catch {}
+
+    try {
+      const drumex = localStorage.getItem('chordex-drums');
+      if (drumex) {
+        const parsed = JSON.parse(drumex);
+        const state = parsed.state || {};
+        (state.drumSongs || []).forEach((s: any) => {
+          list.push({
+            type: 'project',
+            title: s.name || s.title || 'Untitled Drum Song',
+            subtitle: 'Drumex Song',
+            target: { app: 'drums', action: () => { launchApp('drums'); setTimeout(() => { NavigationDispatcher.push({ app: 'drums', page: 'songs' }); }, 150); } }
+          });
+        });
+      }
+    } catch {}
+
+    try {
+      const groovex = localStorage.getItem('groovex-storage-v1');
+      if (groovex) {
+        const parsed = JSON.parse(groovex);
+        const state = parsed.state || {};
+        (state.recentSongs || []).forEach((s: any) => {
+          list.push({
+            type: 'project',
+            title: s.name || s.title || s.artist || 'Untitled Groovex Song',
+            subtitle: 'Groovex Recent Song',
+            target: { app: 'groovex', action: () => { NavigationDispatcher.push({ app: 'groovex' }); } }
+          });
+        });
+      }
+    } catch {}
+
+    return list;
+  };
+
+  const scoreMatch = (query: string, text: string): number => {
+    const q = query.toLowerCase().trim();
+    const t = text.toLowerCase();
+    if (!q) return 0;
+    if (t === q) return 150;
+    if (t.startsWith(q)) return 100;
+    if (t.includes(q)) return 80;
+
+    let qIdx = 0;
+    let tIdx = 0;
+    let matchDistance = 0;
+    while (qIdx < q.length && tIdx < t.length) {
+      if (q[qIdx] === t[tIdx]) {
+        if (qIdx > 0) {
+          matchDistance += (tIdx - qIdx);
+        }
+        qIdx++;
+      }
+      tIdx++;
+    }
+    if (qIdx === q.length) {
+      return Math.max(10, 50 - matchDistance);
+    }
+    return 0;
+  };
+
+  const getSearchResults = (query: string): SearchItem[] => {
+    if (!query.trim()) return [];
+    const items = [...apps, ...settingsItems, ...loadSearchableProjects()];
+    const scored = items.map(item => {
+      const titleScore = scoreMatch(query, item.title);
+      const subtitleScore = scoreMatch(query, item.subtitle) * 0.5;
+      const finalScore = Math.max(titleScore, subtitleScore);
+      return { item, score: finalScore };
+    });
+    return scored
+      .filter(x => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(x => x.item);
+  };
+
+  const renderSearchRow = (item: SearchItem, idx: number) => {
+    const icon = item.type === 'app' ? 'widgets' : item.type === 'setting' ? 'settings' : 'library_music';
+    const iconColor = item.type === 'app' ? accent.from : item.type === 'setting' ? '#38bdf8' : '#a78bfa';
+
+    return (
+      <button
+        key={idx}
+        onClick={() => {
+          setSearchOpen(false);
+          setSearchQuery('');
+          if (item.target.action) {
+            item.target.action();
+          } else if (item.target.app) {
+            if (item.target.app === 'hub') {
+              NavigationDispatcher.push(item.target);
+            } else {
+              NavigationDispatcher.push({ app: item.target.app });
+            }
+          }
+        }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          width: '100%',
+          padding: 14,
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(128,128,128,0.08)',
+          borderRadius: 12,
+          textAlign: 'left',
+          cursor: 'pointer',
+          transition: 'all 150ms cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+        className="hover:scale-[0.99] active:scale-[0.97]"
+      >
+        <div style={{
+          width: 40,
+          height: 40,
+          borderRadius: 10,
+          background: `${iconColor}15`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: iconColor
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{icon}</span>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)' }}>{item.title}</div>
+          <div style={{ fontSize: 12, color: 'var(--c-text-secondary)', marginTop: 2 }}>{item.subtitle}</div>
+        </div>
+        <span className="material-symbols-outlined" style={{ color: 'var(--c-text-muted)', fontSize: 18 }}>chevron_right</span>
+      </button>
+    );
+  };
+
+  useEffect(() => {
+    if (searchOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [searchOpen]);
+
   return (
     <div
       data-livex-hub-root="true"
@@ -581,12 +859,12 @@ export default function StudioHub() {
 
                         <div className="flex items-center gap-3">
                           <h1 style={{ fontFamily: 'Manrope', fontWeight: 900, color: 'var(--c-text-primary)' }} className="text-xl tracking-tighter">
-                            Studio
+                            Livex
                           </h1>
                         </div>
                         <div className="flex items-center gap-3">
                           <button 
-                            onClick={() => launchApp('chords')}
+                            onClick={() => setSearchOpen(true)}
                             style={{
                               width: '36px', height: '36px', borderRadius: '50%',
                               backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
@@ -600,8 +878,7 @@ export default function StudioHub() {
                           {/* Avatar icon entry point for Profile/Settings */}
                           <button 
                             onClick={() => {
-                              setTab('profile');
-                              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' });
+                              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
                             }}
                             style={{
                               width: '36px', height: '36px', borderRadius: '50%',
@@ -650,77 +927,37 @@ export default function StudioHub() {
                           {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
                         </h3>
                         <div style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '4px 0' }} className="hide-scrollbar">
-                          
-                          {/* Chord Builder Shortcut */}
-                          <button 
-                            onClick={() => {
-                              launchApp('chords');
-                              setTimeout(() => {
-                                NavigationDispatcher.push({ app: 'chords', page: 'chord' });
-                              }, 150);
-                            }}
+                          {shortcuts.map((id) => {
+                            const opt = ALL_SHORTCUT_OPTIONS.find(o => o.id === id);
+                            if (!opt) return null;
+                            return (
+                              <button 
+                                key={id}
+                                onClick={() => handleShortcutClick(id)}
+                                className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
+                              >
+                                <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>{opt.icon}</span>
+                                </div>
+                                <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+                                  {lang === 'es' ? opt.titleEs.split(' ')[0] : opt.titleEn.split(' ')[0]}
+                                </span>
+                              </button>
+                            );
+                          })}
+
+                          {/* Plus button to open picker */}
+                          <button
+                            onClick={() => setShortcutPickerOpen(true)}
                             className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
                           >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
-                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>music_note</span>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'transparent', border: '1.5px dashed rgba(128,128,128,0.3)' }} className="flex items-center justify-center">
+                              <span className="material-symbols-outlined text-xl text-on-surface-variant/60">add</span>
                             </div>
-                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
-                              {lang === 'es' ? 'Constructor' : 'Builder'}
+                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8 }}>
+                              {lang === 'es' ? 'Editar' : 'Edit'}
                             </span>
                           </button>
-
-                          {/* Songs Library Shortcut */}
-                          <button 
-                            onClick={() => {
-                              launchApp('chords');
-                              setTimeout(() => {
-                                NavigationDispatcher.push({ app: 'chords', page: 'songs' });
-                              }, 150);
-                            }}
-                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
-                          >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
-                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>library_music</span>
-                            </div>
-                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
-                              {lang === 'es' ? 'Biblioteca' : 'Library'}
-                            </span>
-                          </button>
-
-                          {/* App Update Shortcut */}
-                          <button 
-                            onClick={() => {
-                              setTab('profile');
-                              setTimeout(() => {
-                                NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'updater' });
-                              }, 150);
-                            }}
-                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
-                          >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
-                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>system_update_alt</span>
-                            </div>
-                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
-                              {lang === 'es' ? 'Actualizar' : 'Update'}
-                            </span>
-                          </button>
-
-                          {/* Preferences Shortcut */}
-                          <button 
-                            onClick={() => {
-                              setTab('profile');
-                              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' });
-                            }}
-                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
-                          >
-                            <div style={{ width: '48px', height: '48px', borderRadius: '16px', backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))', border: '1px solid rgba(128,128,128,0.08)' }} className="flex items-center justify-center">
-                              <span className="material-symbols-outlined text-xl" style={{ color: accent.from }}>settings</span>
-                            </div>
-                            <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
-                              {lang === 'es' ? 'Ajustes' : 'Settings'}
-                            </span>
-                          </button>
-
                         </div>
                       </section>
 
@@ -730,16 +967,16 @@ export default function StudioHub() {
                           fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
                           fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
                         }} className="px-1">
-                          {lang === 'es' ? 'Módulos del Ecosistema' : 'Studio Modules'}
+                          {lang === 'es' ? 'Módulos del Ecosistema' : 'Livex Modules'}
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} className="w-full">
                           {([
-                            { app: 'chords' as TargetApp, Logo: ChordexLogo, name: 'Chordex', desc: t.hub.chordexDesc, color: accent.from },
-                            { app: 'drums' as TargetApp, Logo: DrumexLogo, name: 'Drumex', desc: t.hub.drumexDesc, color: accent.from },
-                            { app: 'stage' as TargetApp, Logo: StagexLogoIcon, name: 'Stagex', desc: t.hub.stagexDesc, color: accent.from },
-                            { app: 'groovex' as TargetApp, Logo: GroovexLogo, name: 'Groovex', desc: t.hub.groovexDesc, color: accent.from, active: true },
-                            { app: 'vocalex' as TargetApp, Logo: VocalexLogo, name: 'Vocalex', desc: t.hub.vocalexDesc, color: accent.from }
-                          ]).map(({ app, Logo, name, desc, color, active }) => (
+                            { app: 'chords' as TargetApp, Logo: ChordexLogo, name: 'Chordex', desc: t.hub.chordexDesc, color: accent.from, active: activeRouteApp === 'chords' },
+                            { app: 'drums' as TargetApp, Logo: DrumexLogo, name: 'Drumex', desc: t.hub.drumexDesc, color: accent.from, active: activeRouteApp === 'drums' },
+                            { app: 'stage' as TargetApp, Logo: StagexLogoIcon, name: 'Stagex', desc: t.hub.stagexDesc, color: accent.from, active: activeRouteApp === 'stage' },
+                            { app: 'groovex' as TargetApp, Logo: GroovexLogo, name: 'Groovex', desc: t.hub.groovexDesc, color: accent.from, active: activeRouteApp === 'groovex' },
+                            { app: 'vocalex' as TargetApp, Logo: VocalexLogo, name: 'Vocalex', desc: t.hub.vocalexDesc, color: accent.from, active: activeRouteApp === 'vocalex' }
+                          ] as { app: TargetApp, Logo: any, name: string, desc: string, color: string, active?: boolean }[]).map(({ app, Logo, name, desc, color, active }) => (
                             <motion.button
                               key={app}
                               onClick={() => launchApp(app)}
@@ -799,68 +1036,222 @@ export default function StudioHub() {
                       </section>
 
                       {/* Recent Sessions list activity */}
-                      <section style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: '20px' }} className="w-full">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 4px' }}>
-                          <h3 style={{
-                            fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
-                            fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
-                          }}>
-                            {lang === 'es' ? 'Sesiones Recientes' : 'Recent Sessions'}
-                          </h3>
-                        </div>
-                        <div style={{
-                          backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-                          borderRadius: '16px',
-                          overflow: 'hidden',
-                          border: '1px solid rgba(128,128,128,0.08)'
-                        }} className="w-full">
-                          {/* Midnight Jam session */}
-                          <div 
-                            onClick={() => launchApp('chords')}
-                            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}
-                            className="hover:bg-surface-bright/20 transition-colors border-b border-outline-variant/5"
-                          >
-                            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--app-surface-highest)', overflow: 'hidden', opacity: 0.7 }} className="flex items-center justify-center">
-                              <span className="material-symbols-outlined" style={{ color: accent.from }}>music_video</span>
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>
-                                Neon Midnight Jam
-                              </h5>
-                              <p style={{ fontSize: '10px', color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
-                                3h ago • Chordex
-                              </p>
-                            </div>
-                            <span className="material-symbols-outlined text-on-surface-variant text-base">more_vert</span>
-                          </div>
+                      {(() => {
+                        const formatTimeAgo = (timeInput: any): string => {
+                          try {
+                            const date = new Date(timeInput);
+                            if (isNaN(date.getTime())) return 'Recent';
+                            const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+                            if (seconds < 60) return lang === 'es' ? 'ahora mismo' : 'just now';
+                            const minutes = Math.floor(seconds / 60);
+                            if (minutes < 60) return lang === 'es' ? `hace ${minutes} min` : `${minutes}m ago`;
+                            const hours = Math.floor(minutes / 60);
+                            if (hours < 24) return lang === 'es' ? `hace ${hours} h` : `${hours}h ago`;
+                            const days = Math.floor(hours / 24);
+                            if (days === 1) return lang === 'es' ? 'ayer' : 'yesterday';
+                            if (days < 7) return lang === 'es' ? `hace ${days} días` : `${days}d ago`;
+                            return date.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
+                          } catch {
+                            return 'Recent';
+                          }
+                        };
 
-                          {/* Percussion Layer session */}
-                          <div 
-                            onClick={() => launchApp('drums')}
-                            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}
-                            className="hover:bg-surface-bright/20 transition-colors"
-                          >
-                            <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--app-surface-highest)', overflow: 'hidden', opacity: 0.7 }} className="flex items-center justify-center">
-                              <span className="material-symbols-outlined" style={{ color: accent.from }}>drum</span>
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>
-                                Percussion Layer B
-                              </h5>
-                              <p style={{ fontSize: '10px', color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
-                                Yesterday • Drumex
-                              </p>
-                            </div>
-                            <span className="material-symbols-outlined text-on-surface-variant text-base">more_vert</span>
-                          </div>
+                        const loadRecentSessions = () => {
+                          const list: { app: 'chords' | 'drums' | 'groovex'; title: string; appName: string; timestamp: string; action: () => void }[] = [];
+                          try {
+                            const chordex = localStorage.getItem('chord-explorer-storage-v3');
+                            if (chordex) {
+                              const parsed = JSON.parse(chordex);
+                              const state = parsed.state || {};
+                              (state.presets || []).forEach((p: any) => {
+                                list.push({
+                                  app: 'chords',
+                                  title: p.name || p.title || 'Untitled Chordex Preset',
+                                  appName: 'Chordex',
+                                  timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
+                                  action: () => {
+                                    launchApp('chords');
+                                    setTimeout(() => {
+                                      NavigationDispatcher.push({ app: 'chords', page: 'library' });
+                                    }, 150);
+                                  }
+                                });
+                              });
+                              (state.progressions || []).forEach((p: any) => {
+                                list.push({
+                                  app: 'chords',
+                                  title: p.name || p.title || 'Untitled Progression',
+                                  appName: 'Chordex',
+                                  timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
+                                  action: () => {
+                                    launchApp('chords');
+                                    setTimeout(() => {
+                                      NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+                                    }, 150);
+                                  }
+                                });
+                              });
+                            }
+                          } catch {}
 
-                        </div>
-                      </section>
+                          try {
+                            const drumex = localStorage.getItem('chordex-drums');
+                            if (drumex) {
+                              const parsed = JSON.parse(drumex);
+                              const state = parsed.state || {};
+                              (state.drumSongs || []).forEach((s: any) => {
+                                list.push({
+                                  app: 'drums',
+                                  title: s.name || s.title || 'Untitled Drum Song',
+                                  appName: 'Drumex',
+                                  timestamp: s.updatedAt ? formatTimeAgo(s.updatedAt) : 'Recent',
+                                  action: () => {
+                                    launchApp('drums');
+                                    setTimeout(() => {
+                                      NavigationDispatcher.push({ app: 'drums', page: 'songs' });
+                                    }, 150);
+                                  }
+                                });
+                              });
+                            }
+                          } catch {}
+
+                          try {
+                            const groovex = localStorage.getItem('groovex-storage-v1');
+                            if (groovex) {
+                              const parsed = JSON.parse(groovex);
+                              const state = parsed.state || {};
+                              (state.recentSongs || []).forEach((s: any) => {
+                                list.push({
+                                  app: 'groovex',
+                                  title: s.name || s.title || s.artist || 'Untitled Groovex Song',
+                                  appName: 'Groovex',
+                                  timestamp: s.playedAt ? formatTimeAgo(s.playedAt) : 'Recent',
+                                  action: () => {
+                                    launchApp('groovex');
+                                  }
+                                });
+                              });
+                            }
+                          } catch {}
+
+                          return list.slice(0, 3);
+                        };
+
+                        const recentSessions = loadRecentSessions();
+
+                        return (
+                          <section style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: '20px' }} className="w-full">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 4px' }}>
+                              <h3 style={{
+                                fontFamily: 'Inter', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
+                                fontWeight: 700, color: 'var(--c-text-secondary)', opacity: 0.6
+                              }}>
+                                {lang === 'es' ? 'Sesiones Recientes' : 'Recent Sessions'}
+                              </h3>
+                            </div>
+                            {recentSessions.length === 0 ? (
+                              <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '32px 20px',
+                                textAlign: 'center',
+                                background: 'var(--app-surface-high, rgba(128,128,128,0.04))',
+                                border: '1px dashed rgba(128,128,128,0.15)',
+                                borderRadius: '20px',
+                              }}>
+                                <div style={{
+                                  width: 56,
+                                  height: 56,
+                                  borderRadius: '50%',
+                                  background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}05)`,
+                                  border: `1px solid ${accent.from}25`,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  marginBottom: 14,
+                                  boxShadow: `0 8px 24px ${accent.from}0a`
+                                }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 28, color: accent.from }}>music_note</span>
+                                </div>
+                                <h4 style={{
+                                  fontFamily: 'Manrope',
+                                  fontSize: 14.5,
+                                  fontWeight: 800,
+                                  color: 'var(--c-text-primary)',
+                                  margin: '0 0 6px 0',
+                                }}>
+                                  {lang === 'es' ? 'Sin Sesiones Recientes' : 'No Recent Sessions'}
+                                </h4>
+                                <p style={{
+                                  fontFamily: 'Inter',
+                                  fontSize: 11.5,
+                                  color: 'var(--c-text-secondary)',
+                                  margin: 0,
+                                  lineHeight: 1.5,
+                                  maxWidth: 260,
+                                  opacity: 0.8
+                                }}>
+                                  {lang === 'es'
+                                    ? 'Crea progresiones en Chordex o graba beats en Drumex para comenzar tu trabajo creativo.'
+                                    : 'Create progressions in Chordex or record beats in Drumex to start your creative work.'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div style={{
+                                backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                border: '1px solid rgba(128,128,128,0.08)'
+                              }} className="w-full">
+                                {recentSessions.map((session, idx) => (
+                                  <div 
+                                    key={idx}
+                                    onClick={session.action}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}
+                                    className={`hover:bg-surface-bright/20 transition-colors ${idx < recentSessions.length - 1 ? 'border-b border-outline-variant/5' : ''}`}
+                                  >
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--app-surface-highest)', overflow: 'hidden', opacity: 0.7 }} className="flex items-center justify-center">
+                                      <span className="material-symbols-outlined" style={{ color: accent.from }}>{session.app === 'chords' ? 'music_video' : session.app === 'drums' ? 'drum' : 'album'}</span>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'Manrope' }}>
+                                        {session.title}
+                                      </h5>
+                                      <p style={{ fontSize: '10px', color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
+                                        {session.timestamp} • {session.appName}
+                                      </p>
+                                    </div>
+                                    <span className="material-symbols-outlined text-on-surface-variant text-base">more_vert</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </section>
+                        );
+                      })()}
 
                     </div>
                   </div>
                 )}
-                          {/* 👤 PROFILE & SETTINGS TAB */}
+                          {/* ⚙️ SETTINGS TAB */}
+                {tabId === 'settings' && (
+                  <HubSettings
+                    accent={accent}
+                    scrollRef={settingsScrollRef}
+                    authUser={authUser}
+                    tab={tab}
+                    setTab={setTab}
+                    showDevToast={showDevToast}
+                    handleLogoTap={handleLogoTap}
+                    devToast={devToast}
+                    renderDevToast={renderDevToast}
+                  />
+                )}
+
+                {/* 👤 PROFILE TAB */}
                 {tabId === 'profile' && (
                   <>
                     <HubSettings
@@ -1034,6 +1425,382 @@ export default function StudioHub() {
 
       {/* UpdateIndicator is now hoisted to AppShell so it appears on
           every screen, not just the Hub. */}
+
+      {/* 🛠️ Customizable Quick Actions Picker Modal */}
+      {shortcutPickerOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 10000,
+            background: 'rgba(10, 10, 12, 0.65)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            animation: 'picker-fade-in 250ms cubic-bezier(0.16, 1, 0.3, 1) both',
+          }}
+          onClick={() => setShortcutPickerOpen(false)}
+        >
+          <style>{`
+            @keyframes picker-fade-in {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes picker-slide-up {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+          `}</style>
+          
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 448,
+              background: 'var(--app-surface, #141418)',
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: 'none',
+              padding: '24px 20px',
+              paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '85vh',
+              animation: 'picker-slide-up 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both'
+            }}
+          >
+            {/* Grab handle */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(128, 128, 128, 0.3)', margin: '0 auto 16px' }} />
+
+            <h3 style={{ fontFamily: 'Manrope', fontSize: 18, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px 0' }}>
+              {lang === 'es' ? 'Personalizar Acciones Rápidas' : 'Customize Quick Actions'}
+            </h3>
+            <p style={{ fontFamily: 'Inter', fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 20px 0', opacity: 0.8 }}>
+              {lang === 'es' ? 'Selecciona hasta 5 atajos para acceso rápido en la pantalla de inicio.' : 'Select up to 5 shortcuts for quick access on the home screen.'}
+            </p>
+
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }} className="hide-scrollbar">
+              
+              {/* Selected Section */}
+              <div>
+                <h4 style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 10 }}>
+                  {lang === 'es' ? 'Atajos Activos (Máx 5)' : 'Active Shortcuts (Max 5)'}
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {shortcuts.length === 0 ? (
+                    <div style={{ fontSize: 12, color: 'var(--c-text-secondary)', opacity: 0.5, padding: '12px 14px', border: '1px dashed rgba(128,128,128,0.2)', borderRadius: 12, textAlign: 'center' }}>
+                      {lang === 'es' ? 'Ninguno seleccionado. Agrega algunos abajo.' : 'None selected. Add some below.'}
+                    </div>
+                  ) : (
+                    shortcuts.map((id, index) => {
+                      const opt = ALL_SHORTCUT_OPTIONS.find(o => o.id === id);
+                      if (!opt) return null;
+                      return (
+                        <div
+                          key={id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 12px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderRadius: 12,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 20 }}>{opt.icon}</span>
+                            <span style={{ fontSize: 13, color: 'var(--c-text-primary)', fontWeight: 600 }}>{lang === 'es' ? opt.titleEs : opt.titleEn}</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {/* Move Up */}
+                            <button
+                              disabled={index === 0}
+                              onClick={() => {
+                                const newShortcuts = [...shortcuts];
+                                newShortcuts.splice(index, 1);
+                                newShortcuts.splice(index - 1, 0, id);
+                                setShortcuts(newShortcuts);
+                                localStorage.setItem('studio:quick-shortcuts', JSON.stringify(newShortcuts));
+                              }}
+                              style={{ background: 'transparent', border: 'none', color: index === 0 ? 'rgba(128,128,128,0.2)' : 'var(--c-text-secondary)', display: 'flex', alignItems: 'center', padding: 4, cursor: index === 0 ? 'default' : 'pointer' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_upward</span>
+                            </button>
+                            {/* Move Down */}
+                            <button
+                              disabled={index === shortcuts.length - 1}
+                              onClick={() => {
+                                const newShortcuts = [...shortcuts];
+                                newShortcuts.splice(index, 1);
+                                newShortcuts.splice(index + 1, 0, id);
+                                setShortcuts(newShortcuts);
+                                localStorage.setItem('studio:quick-shortcuts', JSON.stringify(newShortcuts));
+                              }}
+                              style={{ background: 'transparent', border: 'none', color: index === shortcuts.length - 1 ? 'rgba(128,128,128,0.2)' : 'var(--c-text-secondary)', display: 'flex', alignItems: 'center', padding: 4, cursor: index === shortcuts.length - 1 ? 'default' : 'pointer' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_downward</span>
+                            </button>
+                            {/* Delete */}
+                            <button
+                              onClick={() => {
+                                const newShortcuts = shortcuts.filter(x => x !== id);
+                                setShortcuts(newShortcuts);
+                                localStorage.setItem('studio:quick-shortcuts', JSON.stringify(newShortcuts));
+                              }}
+                              style={{ background: 'transparent', border: 'none', color: '#f87171', display: 'flex', alignItems: 'center', padding: 4, cursor: 'pointer' }}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>remove_circle</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Available Shortcuts */}
+              <div>
+                <h4 style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-secondary)', opacity: 0.6, marginBottom: 10 }}>
+                  {lang === 'es' ? 'Atajos Disponibles' : 'Available Shortcuts'}
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {ALL_SHORTCUT_OPTIONS.filter(o => !shortcuts.includes(o.id)).map(opt => {
+                    const isLimitReached = shortcuts.length >= 5;
+                    return (
+                      <div
+                        key={opt.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '10px 12px',
+                          background: 'rgba(255, 255, 255, 0.01)',
+                          border: '1px solid rgba(255, 255, 255, 0.03)',
+                          borderRadius: 12,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.6, fontSize: 20 }}>{opt.icon}</span>
+                          <span style={{ fontSize: 13, color: 'var(--c-text-primary)' }}>{lang === 'es' ? opt.titleEs : opt.titleEn}</span>
+                        </div>
+                        
+                        <button
+                          disabled={isLimitReached}
+                          onClick={() => {
+                            const newShortcuts = [...shortcuts, opt.id];
+                            setShortcuts(newShortcuts);
+                            localStorage.setItem('studio:quick-shortcuts', JSON.stringify(newShortcuts));
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: isLimitReached ? 'rgba(128,128,128,0.2)' : accent.from,
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: 4,
+                            cursor: isLimitReached ? 'default' : 'pointer'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add_circle</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShortcutPickerOpen(false)}
+              style={{
+                width: '100%',
+                height: 48,
+                borderRadius: 14,
+                background: accent.from,
+                color: 'white',
+                border: 'none',
+                fontFamily: 'Manrope',
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: 'pointer',
+                marginTop: 16,
+                boxShadow: `0 4px 12px ${accent.from}25`
+              }}
+            >
+              {lang === 'es' ? 'Listo' : 'Done'}
+            </button>
+
+          </div>
+        </div>
+      )}
+
+      {/* 🔍 Global Search Overlay */}
+      {searchOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 10000,
+            background: 'rgba(10, 10, 12, 0.65)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            display: 'flex',
+            flexDirection: 'column',
+            animation: 'search-fade-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both',
+          }}
+          onClick={() => setSearchOpen(false)}
+        >
+          <style>{`
+            @keyframes search-fade-in {
+              from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+              to { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+            }
+            @keyframes search-slide-up {
+              from { transform: translateY(16px); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+          `}</style>
+          
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 448,
+              margin: '0 auto',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '24px 20px',
+              boxSizing: 'border-box'
+            }}
+          >
+            {/* Header / Input */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 16,
+              padding: '10px 16px',
+              animation: 'search-slide-up 250ms cubic-bezier(0.16, 1, 0.3, 1) both'
+            }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--c-text-muted)', fontSize: 22 }}>search</span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search apps, settings, sessions..."
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 15,
+                  fontFamily: 'Inter, sans-serif'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--c-text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+                </button>
+              )}
+            </div>
+
+            {/* Results scroll view */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                marginTop: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                animation: 'search-slide-up 300ms cubic-bezier(0.16, 1, 0.3, 1) both'
+              }}
+              className="pr-1"
+            >
+              {searchQuery.trim() ? (
+                (() => {
+                  const results = getSearchResults(searchQuery);
+                  if (results.length === 0) {
+                    return (
+                      <div style={{
+                        textAlign: 'center',
+                        color: 'var(--c-text-muted)',
+                        padding: '40px 20px',
+                        fontSize: 14
+                      }}>
+                        No results found for &ldquo;{searchQuery}&rdquo;
+                      </div>
+                    );
+                  }
+                  return results.map((item, idx) => renderSearchRow(item, idx));
+                })()
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)', marginBottom: 10 }}>Applications</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {apps.map((item, idx) => renderSearchRow(item, idx))}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)', marginBottom: 10 }}>Settings</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {settingsItems.slice(0, 4).map((item, idx) => renderSearchRow(item, idx + 10))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Footer / Info */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: 16,
+              animation: 'search-slide-up 350ms cubic-bezier(0.16, 1, 0.3, 1) both'
+            }}>
+              <button
+                onClick={() => setSearchOpen(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  borderRadius: 12,
+                  padding: '8px 16px',
+                  color: 'var(--c-text-secondary)',
+                  fontSize: 13,
+                  cursor: 'pointer'
+                }}
+              >
+                Close Search
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2130,6 +2897,9 @@ function HubSettings({
 
   const page = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];
+    if (last?.tab === 'profile') {
+      return (last.page ?? 'profile') as SettingsPageId;
+    }
     return (last?.tab === 'settings' ? (last.page ?? 'main') : 'main') as SettingsPageId;
   });
   const pageKey = historyLength;
@@ -2147,31 +2917,40 @@ function HubSettings({
 
   const activePageId = page === 'main' ? 'general' : page;
 
-  const sections = useMemo(() => [
-    {
-      label: t.hub.studioSettings.userLabel || (lang === 'es' ? 'Usuario' : 'User'),
-      items: [
-        { id: 'profile' as const, icon: 'account_circle', label: t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account') },
-      ]
-    },
-    {
-      label: t.hub.studioSettings.preferencesLabel || (lang === 'es' ? 'Preferencias' : 'Preferences'),
-      items: [
-        { id: 'general' as const, icon: 'settings', label: t.hub.studioSettings.generalTitle || (lang === 'es' ? 'Ajustes' : 'Settings') },
-        { id: 'appearance' as const, icon: 'palette', label: t.settings.sections.appearance || (lang === 'es' ? 'Apariencia' : 'Appearance') },
-        { id: 'language' as const, icon: 'language', label: t.settings.sections.language || (lang === 'es' ? 'Idioma' : 'Language') },
-        { id: 'privacy' as const, icon: 'security', label: t.hub.studioSettings.privacyTitle || (lang === 'es' ? 'Privacidad y Seguridad' : 'Privacy & Security') },
-      ]
-    },
-    {
-      label: t.hub.studioSettings.applicationLabel || (lang === 'es' ? 'Aplicación' : 'Application'),
-      items: [
-        { id: 'release-notes' as const, icon: 'article', label: t.hub.studioSettings.releaseTitle || (lang === 'es' ? 'Notas de Lanzamiento' : 'Release Notes') },
-        { id: 'about' as const, icon: 'info', label: t.settings.sections.about || (lang === 'es' ? 'Acerca de Studio' : 'About & Version') },
-        ...(settings.developerMode ? [{ id: 'developer' as const, icon: 'terminal', label: t.hub.studioSettings.developerTitle || (lang === 'es' ? 'Opciones de Desarrollador' : 'Developer Options') }] : []),
-      ]
+  const sections = useMemo(() => {
+    const list: {
+      label: string;
+      items: { id: SettingsPageId; icon: string; label: string; }[];
+    }[] = [];
+    if (tab === 'profile') {
+      list.push({
+        label: t.hub.studioSettings.userLabel || (lang === 'es' ? 'Usuario' : 'User'),
+        items: [
+          { id: 'profile' as const, icon: 'account_circle', label: t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account') },
+        ]
+      });
     }
-  ], [t, settings.developerMode, lang]);
+    list.push(
+      {
+        label: t.hub.studioSettings.preferencesLabel || (lang === 'es' ? 'Preferencias' : 'Preferences'),
+        items: [
+          { id: 'general' as const, icon: 'settings', label: t.hub.studioSettings.generalTitle || (lang === 'es' ? 'Ajustes' : 'Settings') },
+          { id: 'appearance' as const, icon: 'palette', label: t.settings.sections.appearance || (lang === 'es' ? 'Apariencia' : 'Appearance') },
+          { id: 'language' as const, icon: 'language', label: t.settings.sections.language || (lang === 'es' ? 'Idioma' : 'Language') },
+          { id: 'privacy' as const, icon: 'security', label: t.hub.studioSettings.privacyTitle || (lang === 'es' ? 'Privacidad y Seguridad' : 'Privacy & Security') },
+        ]
+      },
+      {
+        label: t.hub.studioSettings.applicationLabel || (lang === 'es' ? 'Aplicación' : 'Application'),
+        items: [
+          { id: 'release-notes' as const, icon: 'article', label: t.hub.studioSettings.releaseTitle || (lang === 'es' ? 'Notas de Lanzamiento' : 'Release Notes') },
+          { id: 'about' as const, icon: 'info', label: t.settings.sections.about || (lang === 'es' ? 'Acerca de Studio' : 'About & Version') },
+          ...(settings.developerMode ? [{ id: 'developer' as const, icon: 'terminal', label: t.hub.studioSettings.developerTitle || (lang === 'es' ? 'Opciones de Desarrollador' : 'Developer Options') }] : []),
+        ]
+      }
+    );
+    return list;
+  }, [t, settings.developerMode, lang, tab]);
 
   const getPageTitle = (id: SettingsPageId | 'profile') => {
     if (id === 'help-center') return t.hub.studioSettings.helpTitle || 'Help Center';
@@ -2293,9 +3072,7 @@ function HubSettings({
     }
   }, [page, pageKey]);
 
-  useEffect(() => {
-    resetNav();
-  }, [page]);
+
 
   const navigate = (to: SettingsPageId) => {
     snapshotScroll(page);
@@ -2304,6 +3081,10 @@ function HubSettings({
   };
 
   const goBack = () => {
+    if (tab === 'profile' && page === 'profile') {
+      NavigationDispatcher.push({ app: 'hub', tab: 'home' });
+      return;
+    }
     snapshotScroll(page);
     pendingRestoreRef.current = 'main';
     NavigationDispatcher.pop();
@@ -4094,7 +4875,7 @@ User Agent: [Automatically Generated]
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', paddingBottom: 24 }}>
         <div style={heroCardStyle}>
           <StudioFamilyOrbit items={subAppLogos} onLogoPress={handleLogoTap} />
-          <p style={{ margin: '16px 0 0', fontFamily: 'Manrope', fontWeight: 800, fontSize: 24, letterSpacing: '-0.03em', color: 'var(--c-text-primary)', lineHeight: 1.1 }}>Studio</p>
+          <p style={{ margin: '16px 0 0', fontFamily: 'Manrope', fontWeight: 800, fontSize: 24, letterSpacing: '-0.03em', color: 'var(--c-text-primary)', lineHeight: 1.1 }}>Livex</p>
           <p style={{ margin: '4px 0 0', fontFamily: 'Inter', fontSize: 13, color: 'var(--c-text-secondary)', fontWeight: 500 }}>
             {t.settings.about.version} {APP_VERSION_LABEL}
           </p>
@@ -4422,6 +5203,7 @@ User Agent: [Automatically Generated]
         <SharedNavigationContainer
           activeView={page}
           viewOrder={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'debug', 'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report', 'developer', 'updater']}
+          preMountViews={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'profile']}
         >
           {(pageId) => {
             if (pageId === 'developer') {
@@ -4455,8 +5237,6 @@ User Agent: [Automatically Generated]
                     <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: '5px 0 0', fontWeight: 500 }}>{t.hub.settingsSubtitle}</p>
                   </div>
 
-                  {renderMobileProfileCard()}
-
                   <SettingsSectionLabel delay={70}>{t.hub.studioSettings.preferencesLabel || 'Preferences'}</SettingsSectionLabel>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {!Capacitor.isNativePlatform() && (
@@ -4464,9 +5244,6 @@ User Agent: [Automatically Generated]
                     )}
                     <BentoSettingCard icon="palette" iconColor={accent.from} title={t.settings.sections.appearance} desc={(t.hub as { studioSettings?: { appearanceDesc?: string } }).studioSettings?.appearanceDesc ?? 'Theme, colors, display & performance'} onPress={() => navigate('appearance')} delay={80} />
                     <BentoSettingCard icon="language" iconColor={accent.from} title={t.settings.sections.language} desc={(t.hub as { studioSettings?: { languageDesc?: string } }).studioSettings?.languageDesc ?? 'App display language'} valueText={lang.toUpperCase()} onPress={() => navigate('language')} delay={85} />
-                    {!Capacitor.isNativePlatform() && (
-                      <BentoSettingCard icon="account_circle" iconColor={accent.from} title={t.hub.studioSettings.profileTitle || (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')} desc={t.hub.studioSettings.profileDesc || 'Manage user settings and backup'} onPress={() => navigate('profile')} delay={90} />
-                    )}
                   </div>
 
                   <SettingsSectionLabel delay={100}>{t.hub.studioSettings.helpLabel || 'Help & Support'}</SettingsSectionLabel>
@@ -5010,9 +5787,7 @@ function HubHelp({
     window.dispatchEvent(new CustomEvent('studio:help-page-active', { detail: page }));
   }, [page]);
 
-  useEffect(() => {
-    resetNav();
-  }, [page]);
+
 
   useEffect(() => {
     if (page !== 'download-apps') return;

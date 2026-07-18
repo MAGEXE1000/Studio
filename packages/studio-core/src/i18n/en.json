@@ -497,7 +497,7 @@
     "groovexDesc": "Multitrack practice mixer",
     "vocalexDesc": "Vocal tools & training",
     "settingsTitle": "Settings",
-    "settingsSubtitle": "Studio Settings",
+    "settingsSubtitle": "Livex Settings",
     "account": "Account",
     "login": "Login",
     "syncDevices": "Sync across devices",
@@ -630,7 +630,7 @@
       "userLabel": "User",
       "sidebarBehavior": "Sidebar Behavior",
       "hideSidebar": "Hide sidebar while using apps",
-      "hideSidebarDesc": "Hides the global Studio sidebar inside apps to maximize workspace size",
+      "hideSidebarDesc": "Hides the global Livex sidebar inside apps to maximize workspace size",
       "revealSidebar": "Reveal sidebar on left-edge hover",
       "revealSidebarDesc": "Hovering the far-left edge of the screen reveals the hidden sidebar",
       "autoCloseSidebar": "Auto-close hover-opened sidebar",
@@ -1139,8 +1139,8 @@
       "copied": "Copied to Clipboard!",
       "copyTemplate": "Copy Bug Template",
       "githubBtn": "Report a Bug on GitHub",
-      "nativeDesc": "If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information.",
-      "webDesc": "If you encounter an issue or unexpected behavior in Studio, please report it! Copy the template below and submit it on our GitHub repository."
+      "nativeDesc": "If you encounter an issue or unexpected behavior in Livex, please report it! Tap below to send us a support email with pre-filled diagnostic information.",
+      "webDesc": "If you encounter an issue or unexpected behavior in Livex, please report it! Copy the template below and submit it on our GitHub repository."
     },
     "keyboardShortcuts": {
       "stagexTitle": "Stage Mode (Stagex)",
@@ -1153,22 +1153,22 @@
       "redoAlt": "Redo last undone step (Alternative)"
     },
     "terms": {
-      "welcome": "Welcome to Studio. By accessing or using our application, you agree to comply with and be bound by the following Terms of Service. Please read them carefully.",
+      "welcome": "Welcome to Livex. By accessing or using our application, you agree to comply with and be bound by the following Terms of Service. Please read them carefully.",
       "h1": "1. Ownership of Content",
-      "p1": "All musical patterns, drum sequences, settings, and other project data created by you using Studio's tools (Chordex, Drumex, Stagex, Groovex, Vocalex) remain entirely your property. We lay no claim of copyright, trademark, or ownership over your creative output.",
+      "p1": "All musical patterns, drum sequences, settings, and other project data created by you using Livex's tools (Chordex, Drumex, Stagex, Groovex, Vocalex) remain entirely your property. We lay no claim of copyright, trademark, or ownership over your creative output.",
       "h2": "2. Use of Service",
-      "p2": "Studio is provided on a local-first basis. Data sync features are provided for your personal backup convenience. You agree not to abuse or attempt to overload the sync servers.",
+      "p2": "Livex is provided on a local-first basis. Data sync features are provided for your personal backup convenience. You agree not to abuse or attempt to overload the sync servers.",
       "h3": "3. Disclaimer of Warranties",
-      "p3": "Studio is provided \"as is\" and \"as available\" without any warranties of any kind. While we aim to protect project data using reliable local storage and cloud sync mechanisms, we cannot guarantee data will not be lost. We recommend periodic manual backups."
+      "p3": "Livex is provided \"as is\" and \"as available\" without any warranties of any kind. While we aim to protect project data using reliable local storage and cloud sync mechanisms, we cannot guarantee data will not be lost. We recommend periodic manual backups."
     },
     "privacy": {
-      "welcome": "Your privacy is extremely important to us. This Privacy Policy details how Studio collects, uses, and safeguards your data.",
+      "welcome": "Your privacy is extremely important to us. This Privacy Policy details how Livex collects, uses, and safeguards your data.",
       "h1": "1. Local-First Storage",
       "p1": "By default, all your project settings, drum sequences, and songs are stored locally on your device using IndexedDB and localStorage. None of this creative work leaves your device unless you explicitly enable Cloud Sync.",
       "h2": "2. Cloud Backup & Authentication",
-      "p2": "If you create a Studio Account, we use Firebase to manage your login credentials. Your project backups are stored securely in Firestore databases. We only use this data to perform cross-device syncing at your request.",
+      "p2": "If you create a Livex Account, we use Firebase to manage your login credentials. Your project backups are stored securely in Firestore databases. We only use this data to perform cross-device syncing at your request.",
       "h3": "3. No Third-Party Tracking",
-      "p3": "Studio does not use telemetry, advertising trackers, or external behavioral analytics. Your interaction with the app remains entirely private."
+      "p3": "Livex does not use telemetry, advertising trackers, or external behavioral analytics. Your interaction with the app remains entirely private."
     }
   }
 }

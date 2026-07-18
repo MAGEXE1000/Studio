@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigationStore } from './useNavigationStore';
 
 // â”€â”€â”€ navHidden â€” programmatic full-hide (preset editor, modals, etc.) â”€â”€â”€â”€â”€â”€â”€â”€
@@ -102,12 +102,6 @@ const _elementListeners = new WeakMap<HTMLElement, () => void>();
 const _elementLastY = new WeakMap<HTMLElement, number>();
 
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
-  // Subscribe to active route changes to force hook re-registration
-  const activeRouteStr = useNavigationStore(state => {
-    const activeRoute = state.history[state.history.length - 1];
-    return activeRoute ? JSON.stringify(activeRoute) : 'null';
-  });
-
   const lastElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -197,7 +191,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         onStateChanged();
       }
     };
-  }, [ref, dependency, activeRouteStr]);
+  }, [ref, dependency]);
 }
 
 // â”€â”€â”€ Watchdog Recovery System & Diagnostics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

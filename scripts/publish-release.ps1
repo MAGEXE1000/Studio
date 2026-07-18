@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.89"
-$VersionCode = "40089"
-$ReleaseNote = "4.0.89 - Studio Hub Redesign: Center-aligned app bar, quick actions horizontal gallery, floating bottom nav bar with progressive blur, and spring-driven transitions"
+$VersionName = "4.0.90"
+$VersionCode = "40090"
+$ReleaseNote = "4.0.90 - Livex Redesign & Overhaul: Rebrand to Livex, centralized Profile avatar, instant instant-load Settings page, fuzzy global search indexing, and Quick Actions overlay"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

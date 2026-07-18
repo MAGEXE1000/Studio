@@ -17,6 +17,7 @@ interface SharedNavigationContainerProps {
   className?: string;
   style?: React.CSSProperties;
   variant?: 'slide' | 'fade-through';
+  preMountViews?: string[];
 }
 
 const safeRaf = (cb: () => void) => {
@@ -42,13 +43,30 @@ export function SharedNavigationContainer({
   className = '',
   style,
   variant = 'fade-through',
+  preMountViews,
 }: SharedNavigationContainerProps) {
-  const [visitedViews, setVisitedViews] = useState<Set<string>>(() => new Set([activeView]));
+  const [visitedViews, setVisitedViews] = useState<Set<string>>(() => {
+    const s = new Set([activeView]);
+    if (preMountViews) {
+      preMountViews.forEach(v => s.add(v));
+    }
+    return s;
+  });
   
   // Track transition states mapping: viewId -> state class
-  const [viewStates, setViewStates] = useState<Record<string, string>>(() => ({
-    [activeView]: 'm3-nav-active',
-  }));
+  const [viewStates, setViewStates] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {
+      [activeView]: 'm3-nav-active',
+    };
+    if (preMountViews) {
+      preMountViews.forEach(v => {
+        if (v !== activeView) {
+          initial[v] = 'm3-nav-hidden';
+        }
+      });
+    }
+    return initial;
+  });
 
   const transitionType = useNavigationStore(s => s.transitionType);
   

@@ -11,7 +11,7 @@ All shared UI lives in `packages/ui-shared/src/`. This package provides cross-pl
 | `Button` | `StudioDesignSystem.tsx` (25 KB) | Themed button with variants |
 | `EmptyState` | `StudioDesignSystem.tsx` | Empty state placeholder |
 | `Input` | `StudioDesignSystem.tsx` | Themed text input |
-| `BottomNavigation` | `StudioDesignSystem.tsx` | Navigation bar wrapper |
+| `BottomNavigation` | `StudioDesignSystem.tsx` | Standardized bottom navigation bar wrapper unified across Chords, Vocalex, and Hub (Width 90%, Max Width 448px, Height 60px, Radius 2rem) |
 | `SearchBar` | `StudioDesignSystem.tsx` | Material 3 search bar with z-elevation focus states, trailing clear button, and spring transitions |
 | `WebToolbar` | `WebDesignSystem.tsx` (9.3 KB) | Web-specific toolbar |
 | `WebButton` | `WebDesignSystem.tsx` | Web-specific button |

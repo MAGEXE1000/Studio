@@ -220,7 +220,7 @@ function SongRow({ song, onOpen, isLight }: { song: SongMeta; onOpen: () => void
         background: pressed
           ? (isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)')
           : (isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)'),
-        borderRadius: 8,
+        borderRadius: 12,
         border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.06)',
         cursor: 'pointer', textAlign: 'left', width: '100%',
         boxSizing: 'border-box',
@@ -292,7 +292,7 @@ function FilterChip({ label, active, onClick, isLight }: { label: string; active
       onClick={onClick}
       className="btn-smooth"
       style={{
-        padding: '5px 12px', borderRadius: 6,
+        padding: '5px 12px', borderRadius: 8,
         background: active ? 'rgba(37,99,235,0.15)' : (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)'),
         color: active ? '#3b82f6' : (isLight ? 'var(--c-text-secondary)' : '#a1a1aa'),
         border: active ? '1px solid rgba(37,99,235,0.4)' : (isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.06)'),

@@ -2,6 +2,7 @@ import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetN
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { MOTION_DURATIONS, MOTION_EASINGS } from '../../../navigation/AppAnimationSystem';
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { subscribeVocalexBack } from '../utilities/headerBack';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
@@ -166,7 +167,7 @@ export default function VocalexApp() {
   useLiquidGlassNav(navRef);
   // Fixed nav height - same rationale as BottomNav: always 64px, dynamic
   // measurement was a race condition that returned 64 anyway.
-  const NAV_HEIGHT_PX = 56;
+  const NAV_HEIGHT_PX = 60;
   const [expandedW, setExpandedW] = useState(350);
   useEffect(() => {
     if (navRef.current) setExpandedW(navRef.current.offsetWidth);
@@ -387,8 +388,8 @@ export default function VocalexApp() {
           position: 'fixed',
           bottom: 'var(--nav-safe-bottom)',
           left: '50%',
-          width: '88%',
-          maxWidth: '360px',
+          width: '90%',
+          maxWidth: '448px',
           height: `${NAV_HEIGHT_PX}px`,
           borderRadius: '2rem',
           border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.32)'}`,
@@ -433,7 +434,7 @@ export default function VocalexApp() {
             pointerEvents: 'none',
             zIndex: 0,
             opacity: 1,
-            transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
+            transition: `left ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')}), width ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`,
           }} />
         )}
 

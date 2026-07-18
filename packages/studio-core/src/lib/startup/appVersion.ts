@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.0.86';
-export const WEB_VERSION = '4.0.85';
+export const NATIVE_VERSION = '4.0.87';
+export const WEB_VERSION = '4.0.87';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -39,7 +39,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-15';
+export const APP_VERSION_DATE = '2026-07-18';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
@@ -62,10 +62,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Migrated remaining settings, controls, and search inputs to Material 3 design.",
-      "Integrated unified SearchBar component into SongsPanel and GroovexLibrary.",
-      "Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.",
-      "Verified layout projection and animated SVG switch transitions perform smoothly on Android.",
+      "Fixed sticky hover pointer states on Android touch screens.",
+      "Standardized bottom navigation bar sizing and radii across Chords, Vocalex, and Hub.",
+      "Unified sliding navigation pill transition ease and speed to match M3 Emphasized curves.",
+      "Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.",
+      "Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.",
+      "Polished Groovex library list row/chip padding, radii, and grid margins.",
     ],
   },
 ];

@@ -12,6 +12,24 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.0.87
+
+### Improved
+- Fixed sticky hover pointer states on Android touch screens.
+- Standardized bottom navigation bar sizing and radii across Chords, Vocalex, and Hub.
+- Unified sliding navigation pill transition ease and speed to match M3 Emphasized curves.
+- Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.
+- Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.
+- Polished Groovex library list row/chip padding, radii, and grid margins.
+
+## 4.0.86
+
+### Improved
+- Migrated remaining settings, controls, and search inputs to Material 3 design.
+- Integrated unified SearchBar component into SongsPanel and GroovexLibrary.
+- Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.
+- Verified layout projection and animated SVG switch transitions perform smoothly on Android.
+
 ## 4.0.85
 
 ### Improved

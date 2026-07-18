@@ -88,6 +88,11 @@ Used for toggle controls and switches.
 Used for Bento setting cards, rows, auth inputs, and button components.
 - **Behavior**: Promotes tactile feedback via Framer Motion `whileTap={{ scale: 0.97 }}` or similar spring scaling. A micro-scale contraction provides immediate confirmation of user interaction prior to navigation or action dispatch.
 
+### 7. Touch-Screen Sticking Hover Prevention
+Used for cards, FABs, updates, benefits lists, and custom interactive targets.
+- **Behavior**: Mobile WebViews on Android devices interpret touch taps as sticky "hover" events, keeping buttons or cards in a hovered (enlarged or offset) visual state after the tap is completed.
+- **Resolution**: The motion system utilizes a media-query utility check (`matchMedia('(hover: hover)')`) to verify if the physical pointer supports true hover. Interactive cards, buttons, and list components dynamically disable `whileHover` animations if hover is not supported, ensuring clean, bounce-free touchscreen interactions.
+
 ---
 
 ## Accessibility & User Configuration

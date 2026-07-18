@@ -117,6 +117,8 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   accentBorder?: boolean;
 }
 
+const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
+
 export function Card({
   interactive = false,
   accentBorder = false,
@@ -127,7 +129,7 @@ export function Card({
 }: CardProps) {
   const Component = (interactive ? motion.div : 'div') as any;
   const motionProps = interactive ? {
-    whileHover: { scale: 1.015, y: -2, boxShadow: 'var(--elevation-mid)' },
+    whileHover: isHoverable ? { scale: 1.015, y: -2, boxShadow: 'var(--elevation-mid)' } : undefined,
     whileTap: { scale: 0.985, y: 0 },
     transition: SPRING_PRESETS.soft
   } : {};
@@ -655,10 +657,10 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
         bottom: 'var(--nav-safe-bottom)',
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '88%',
-        maxWidth: '360px',
-        height: '56px',
-        borderRadius: 'var(--radius-3xl)',
+        width: '90%',
+        maxWidth: '448px',
+        height: '60px',
+        borderRadius: '2rem',
         border: `1px solid var(--c-border)`,
         background: 'var(--c-surface-glass-bg)',
         boxShadow: 'var(--elevation-high)',
@@ -690,7 +692,7 @@ export function FloatingButton({
 }: FloatingButtonProps) {
   return (
     <motion.button
-      whileHover={{ scale: 1.06, y: -2 }}
+      whileHover={isHoverable ? { scale: 1.06, y: -2 } : undefined}
       whileTap={{ scale: 0.94, y: 0 }}
       transition={SPRING_PRESETS.medium}
       style={{

@@ -17,8 +17,10 @@ import ProfileDropdown from '../kokonutui/profile-dropdown';
 import SmartLoading from '../loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../loading/StudioSkeleton';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
-import { useNavigationCoordinator, PageTransition, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
+import { useNavigationCoordinator, PageTransition, SPRING_PRESETS, MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
+
+const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 
 
 // AccountCard pulls Firebase (auth + firestore). Lazy-load it so Firebase
@@ -741,7 +743,7 @@ export default function StudioHub() {
                                   {benefitsList.map((item, idx) => (
                                     <motion.div
                                       key={idx}
-                                      whileHover={{ y: -2, scale: 1.01 }}
+                                      whileHover={isHoverable ? { y: -2, scale: 1.01 } : undefined}
                                       transition={SPRING_PRESETS.medium}
                                       style={{
                                         background: isHubLight ? 'rgba(255, 255, 255, 0.6)' : 'rgba(20, 20, 24, 0.45)',
@@ -4812,7 +4814,7 @@ function HubNav({ tab, setTab, accent, introFinished = true }: {
           WebkitBackdropFilter: 'blur(8px)',
           pointerEvents: 'none', zIndex: 0,
           opacity: 1,
-          transition: 'left 300ms cubic-bezier(0.16,1,0.3,1), width 300ms cubic-bezier(0.16,1,0.3,1)',
+          transition: `left ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')}), width ${MOTION_DURATIONS.normal * 1000}ms cubic-bezier(${MOTION_EASINGS.emphasized.join(',')})`,
         }} />
       )}
 

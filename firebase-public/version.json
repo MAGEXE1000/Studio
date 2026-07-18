@@ -1,18 +1,20 @@
 {
   "platform": "web",
-  "version": "4.0.86",
+  "version": "4.0.87",
   "commit": "a5c5c867",
-  "releasedAt": "7/17/2026, 7:05:09 PM CST",
-  "buildTimestamp": "7/17/2026, 7:05:09 PM CST",
+  "releasedAt": "7/18/2026, 9:30:00 AM CST",
+  "buildTimestamp": "7/18/2026, 9:30:00 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Migrated remaining settings, controls, and search inputs to Material 3 design.\n• Integrated unified SearchBar component into SongsPanel and GroovexLibrary.\n• Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.\n• Verified layout projection and animated SVG switch transitions perform smoothly on Android.",
-  "whatsNew": "• Migrated remaining settings, controls, and search inputs to Material 3 design.\n• Integrated unified SearchBar component into SongsPanel and GroovexLibrary.\n• Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.\n• Verified layout projection and animated SVG switch transitions perform smoothly on Android.",
+  "changelog": "• Fixed sticky hover pointer states on touch screens / WebViews (disabled Framer Motion whileHover on touch).\n• Standardized bottom navigation bar sizing (width 90%, max width 448px, height 60px, radius 2rem) across Chords, Vocalex, and Hub.\n• Unified sliding navigation pill transition ease and durations to match Material 3 Emphasized.\n• Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.\n• Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.\n• Polished Groovex library list row/chip padding, radii, and grid margins.",
+  "whatsNew": "• Fixed sticky hover pointer states on touch screens / WebViews (disabled Framer Motion whileHover on touch).\n• Standardized bottom navigation bar sizing (width 90%, max width 448px, height 60px, radius 2rem) across Chords, Vocalex, and Hub.\n• Unified sliding navigation pill transition ease and durations to match Material 3 Emphasized.\n• Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.\n• Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.\n• Polished Groovex library list row/chip padding, radii, and grid margins.",
   "releaseNotes": {
     "improved": [
-      "Migrated remaining settings, controls, and search inputs to Material 3 design.",
-      "Integrated unified SearchBar component into SongsPanel and GroovexLibrary.",
-      "Refactored GroovexPreferences and DrumEditor components to consume centralized Toggle and SegmentedControl elements.",
-      "Verified layout projection and animated SVG switch transitions perform smoothly on Android."
+      "Fixed sticky hover pointer states on touch screens / WebViews (disabled Framer Motion whileHover on touch).",
+      "Standardized bottom navigation bar sizing (width 90%, max width 448px, height 60px, radius 2rem) across Chords, Vocalex, and Hub.",
+      "Unified sliding navigation pill transition ease and durations to match Material 3 Emphasized.",
+      "Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.",
+      "Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.",
+      "Polished Groovex library list row/chip padding, radii, and grid margins."
     ]
   },
   "mandatory": false

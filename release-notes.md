@@ -1,5 +1,6 @@
 ### Added
-- Refined the Shared Bottom Navigation into a translucent Liquid Glass capsule bar.
-- Implemented a continuous morphing App Switcher showing active sub-apps inside the navigation bar.
-- Relocated the Ink Theme Switcher globally inside Settings -> Appearance.
-- Restored the complete 31 chord categories catalog to the redesigned Chordex Library view with balanced density.
+- Upgraded the Shared Bottom Navigation and App Switcher with gesture-driven interactive scrubbing.
+- Animated dynamic capsule stretching based on horizontal swipe velocity.
+- Removed application logo headers from all sub-apps on mobile layout to reflow content areas upward.
+- Integrated the viewport-cropped Ink Toggle droplet reveal animation globally in Appearance settings.
+- Custom-tailored unique motion language logo transitions for Chordex, Drumex, Stagex, Groovex, and Vocalex.

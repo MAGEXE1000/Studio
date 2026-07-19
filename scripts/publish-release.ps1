@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.7"
-$VersionCode = "40107"
-$ReleaseNote = "4.1.7 - Refined Bottom Navigation to Liquid Glass capsule, implemented morphing App Switcher, relocated Ink Theme switch to Settings, and restored 31 chord categories."
+$VersionName = "4.1.8"
+$VersionCode = "40108"
+$ReleaseNote = "4.1.8 - Complete navigation gesture scrubbing, remove sub-app headers, customize portal transition animations, and fix global theme droplet transitions."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

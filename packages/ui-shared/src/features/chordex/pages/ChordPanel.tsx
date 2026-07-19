@@ -692,7 +692,7 @@ export default function ChordPanel() {
                       background: `${accent.from}15`,
                       padding: '5px 12px',
                       borderRadius: '99px',
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--font-headline)',
                       display: 'inline-block'
                     }}>
                       {isSpanish ? 'Acorde del Día' : 'Chord of the Day'}
@@ -703,7 +703,7 @@ export default function ChordPanel() {
                       fontWeight: 900,
                       margin: '16px 0 6px',
                       color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--font-headline)',
                       letterSpacing: '-0.03em',
                       lineHeight: '1.1'
                     }} className="truncate">
@@ -714,7 +714,7 @@ export default function ChordPanel() {
                       fontSize: '14px',
                       color: 'var(--c-text-secondary)',
                       margin: '0 0 16px 0',
-                      fontFamily: 'Inter',
+                      fontFamily: 'var(--font-body)',
                       fontWeight: 500
                     }} className="truncate">
                       {dailyChord.notes.join(' - ')} • <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
@@ -728,10 +728,10 @@ export default function ChordPanel() {
                       color: 'var(--c-text-secondary)',
                       lineHeight: '1.6',
                       borderLeft: `4px solid ${accent.from}`,
-                      fontFamily: 'Inter',
+                      fontFamily: 'var(--font-body)',
                       textAlign: 'left'
                     }}>
-                      <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800 }}>
+                      <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800 }}>
                         {isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}
                       </strong>
                       {getPracticeTip(dailyChord, isSpanish)}
@@ -763,7 +763,7 @@ export default function ChordPanel() {
                       fontSize: '13px',
                       fontWeight: 800,
                       cursor: 'pointer',
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--font-headline)',
                       transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
                       minWidth: '100px'
                     }}
@@ -833,7 +833,7 @@ export default function ChordPanel() {
                       justifyContent: 'center',
                       cursor: 'pointer',
                       boxShadow: `0 4px 12px ${accent.to}35`,
-                      fontFamily: 'Manrope'
+                      fontFamily: 'var(--font-headline)'
                     }}
                     className="btn-smooth"
                   >
@@ -861,10 +861,10 @@ export default function ChordPanel() {
                   <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#fff' }}>search</span>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'Manrope', color: '#fff', letterSpacing: '-0.01em' }}>
+                  <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'var(--font-headline)', color: '#fff', letterSpacing: '-0.01em' }}>
                     {t.chordFinder.openFinder}
                   </h4>
-                  <p style={{ fontSize: '11px', margin: 0, color: 'rgba(255,255,255,0.8)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                  <p style={{ fontSize: '11px', margin: 0, color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-body)', lineHeight: '1.4' }}>
                     {isSpanish ? 'Busca e identifica acordes por notas o en el diapasón.' : 'Search and identify chords by notes or on the fretboard.'}
                   </p>
                 </div>
@@ -899,10 +899,10 @@ export default function ChordPanel() {
                     <span className="material-symbols-outlined" style={{ fontSize: '22px', color: accent.from }}>auto_awesome</span>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'Manrope', color: 'var(--c-text-primary)', letterSpacing: '-0.01em' }}>
+                    <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'var(--font-headline)', color: 'var(--c-text-primary)', letterSpacing: '-0.01em' }}>
                       {isSpanish ? 'Generador' : 'Generator'}
                     </h4>
-                    <p style={{ fontSize: '11px', margin: 0, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                    <p style={{ fontSize: '11px', margin: 0, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', lineHeight: '1.4' }}>
                       {isSpanish ? 'Genera progresiones armónicas en cualquier escala musical.' : 'Generate harmonic progressions in any musical scale.'}
                     </p>
                   </div>
@@ -919,7 +919,7 @@ export default function ChordPanel() {
                 letterSpacing: '0.15em',
                 color: 'var(--c-text-secondary)',
                 marginBottom: '16px',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--font-headline)',
                 textAlign: 'left'
               }}>
                 {isSpanish ? 'Categorías Rápidas' : 'Quick Categories'}
@@ -963,10 +963,10 @@ export default function ChordPanel() {
                           {cat.icon || 'music_note'}
                         </span>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.01em' }}>
+                      <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', letterSpacing: '-0.01em' }}>
                         {cat.label}
                       </div>
-                      <div style={{ fontSize: '11.5px', color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: '1.4' }}>
+                      <div style={{ fontSize: '11.5px', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', lineHeight: '1.4' }}>
                         {cat.desc}
                       </div>
                     </button>
@@ -1014,7 +1014,7 @@ export default function ChordPanel() {
           style={isWebDesktop ? { position: 'relative' } : { background: 'var(--app-surface)', transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)' }}
         >
           <div className="absolute top-5 right-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope' }}>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)' }}>
               {t.chord.instruments[settings.instrument]}
             </p>
           </div>
@@ -1022,11 +1022,11 @@ export default function ChordPanel() {
           <div className="mt-2 mb-6">
             <h2
               className="font-extrabold tracking-tighter leading-none"
-              style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}
+              style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}
             >
               {chord.name.replace(/\s/g, '')}
             </h2>
-            <p className="mt-2" style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontFamily: 'Inter' }}>
+            <p className="mt-2" style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontFamily: 'var(--font-body)' }}>
               {notesStr} ({typeStr})
             </p>
           </div>
@@ -1048,7 +1048,7 @@ export default function ChordPanel() {
                 background: chordPlaying ? `${accent.from}25` : 'var(--app-surface-high)',
                 color: chordPlaying ? accent.from : 'var(--c-text-primary)',
                 borderRadius: '9999px',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--font-headline)',
                 fontSize: '14px',
                 transition: 'background-color 200ms ease, color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}
@@ -1063,7 +1063,7 @@ export default function ChordPanel() {
                 background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                 color: 'white',
                 borderRadius: '9999px',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--font-headline)',
                 fontSize: '14px',
                 boxShadow: `0 4px 20px ${accent.to}40`,
               }}
@@ -1079,7 +1079,7 @@ export default function ChordPanel() {
                 background: favorite ? 'rgba(238,125,119,0.15)' : 'var(--app-surface-high)',
                 color: favorite ? '#ee7d77' : 'var(--c-text-primary)',
                 borderRadius: '9999px',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--font-headline)',
                 fontSize: '14px',
                 transition: 'background-color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}
@@ -1109,8 +1109,8 @@ export default function ChordPanel() {
               <span className="material-symbols-outlined" style={{ fontSize: '20px', color: accent.from }}>search</span>
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: '14px', color: 'var(--c-text-primary)' }}>{t.chordFinder.openFinder}</p>
-              <p style={{ fontFamily: 'Inter', fontSize: '12px', color: 'var(--c-text-secondary)', marginTop: '2px' }}>{t.chordFinder.subtitle}</p>
+              <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '14px', color: 'var(--c-text-primary)' }}>{t.chordFinder.openFinder}</p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--c-text-secondary)', marginTop: '2px' }}>{t.chordFinder.subtitle}</p>
             </div>
             <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--c-text-muted)' }}>chevron_right</span>
           </button>
@@ -1119,7 +1119,7 @@ export default function ChordPanel() {
         {/* Voicings & Variations — gated on Smart Suggestions */}
         {settings.chordAssistant && settings.assistantSmartSuggestions && (
         <div className={getPanelClass('p-6')}>
-          <h3 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>
             {t.chord.voicings}
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -1138,12 +1138,12 @@ export default function ChordPanel() {
                   style={{ background: 'none', border: 'none', padding: 0, width: '100%', textAlign: 'left', cursor: 'pointer' }}
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className="font-bold" style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontSize: '13px' }}>{related.name}</span>
+                    <span className="font-bold" style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontSize: '13px' }}>{related.name}</span>
                   </div>
                   <div style={{ background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)', borderRadius: '0.5rem', padding: '6px 6px 3px', transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)' }}>
                     <ChordDiagram data={related.guitar} accentFrom={accent.from} />
                   </div>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{related.type}</p>
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{related.type}</p>
                 </button>
               </div>
             ))}
@@ -1153,7 +1153,7 @@ export default function ChordPanel() {
 
         {/* Harmonic Context */}
         <div className={getPanelClass('p-6')}>
-          <h3 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+          <h3 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>
             {t.chord.harmonicContext}
           </h3>
           <div className="space-y-5">
@@ -1167,8 +1167,8 @@ export default function ChordPanel() {
                   <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '20px' }}>{icon}</span>
                 </div>
                 <div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>{label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{value}</p>
+                  <p className="font-bold text-sm" style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>{label}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{value}</p>
                 </div>
               </div>
             ))}
@@ -1179,13 +1179,13 @@ export default function ChordPanel() {
         {progressionChords.length > 0 && (
           <div className={getPanelClass('p-6')}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{t.chord.currentProgression}</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{t.chord.currentProgression}</h3>
               <div className="flex items-center gap-3">
                 <button
                   data-testid="open-generator-header"
                   className="btn-smooth text-[10px] font-bold uppercase tracking-wider flex items-center gap-1"
                   onClick={() => setShowGenerator(true)}
-                  style={{ color: accent.from, fontFamily: 'Manrope' }}
+                  style={{ color: accent.from, fontFamily: 'var(--font-headline)' }}
                   title="Generate a new progression"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>auto_awesome</span>
@@ -1195,7 +1195,7 @@ export default function ChordPanel() {
                   className="btn-smooth text-[10px] font-bold uppercase tracking-wider"
                   data-testid="clear-progression"
                   onClick={() => useChordStore.getState().clearProgression()}
-                  style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope' }}
+                  style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)' }}
                 >
                   {t.chord.clear}
                 </button>
@@ -1208,7 +1208,7 @@ export default function ChordPanel() {
                   data-testid={`prog-chord-${i}`}
                   onClick={() => useChordStore.getState().removeFromProgression(i)}
                   className="btn-smooth px-4 py-2 font-medium text-sm"
-                  style={{ background: 'var(--app-surface-high)', color: 'var(--c-text-primary)', borderRadius: '9999px', fontFamily: 'Manrope' }}
+                  style={{ background: 'var(--app-surface-high)', color: 'var(--c-text-primary)', borderRadius: '9999px', fontFamily: 'var(--font-headline)' }}
                   title={t.chord.tapToRemove}
                 >
                   {c.name}
@@ -1217,7 +1217,7 @@ export default function ChordPanel() {
               <button
                 onClick={handleAddToProgression}
                 className="btn-smooth px-4 py-2 font-medium text-sm"
-                style={{ background: 'transparent', color: 'var(--c-text-secondary)', borderRadius: '9999px', border: '1px dashed rgba(72,72,72,0.4)', fontFamily: 'Manrope', fontSize: '13px' }}
+                style={{ background: 'transparent', color: 'var(--c-text-secondary)', borderRadius: '9999px', border: '1px dashed rgba(72,72,72,0.4)', fontFamily: 'var(--font-headline)', fontSize: '13px' }}
               >
                 + {chord.name.replace(/\s/g, '')}
               </button>
@@ -1227,7 +1227,7 @@ export default function ChordPanel() {
                 data-testid="save-progression-btn"
                 onClick={() => setSaving(true)}
                 className="btn-smooth w-full py-2.5 font-bold text-sm"
-                style={{ background: 'var(--app-surface-high)', color: accent.from, borderRadius: '9999px', fontFamily: 'Manrope' }}
+                style={{ background: 'var(--app-surface-high)', color: accent.from, borderRadius: '9999px', fontFamily: 'var(--font-headline)' }}
               >
                 {t.chord.saveProgression}
               </button>
@@ -1240,7 +1240,7 @@ export default function ChordPanel() {
                   placeholder={t.chord.namePlaceholder}
                   data-testid="progression-name-input"
                   className="flex-1 py-2.5 px-4 text-sm outline-none"
-                  style={{ background: 'var(--app-surface-low)', color: 'var(--c-text-primary)', borderRadius: '9999px', border: '1px solid rgba(72,72,72,0.15)', fontFamily: 'Inter' }}
+                  style={{ background: 'var(--app-surface-low)', color: 'var(--c-text-primary)', borderRadius: '9999px', border: '1px solid rgba(72,72,72,0.15)', fontFamily: 'var(--font-body)' }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && progName.trim()) { useChordStore.getState().saveProgression(progName.trim()); setSaving(false); setProgName(''); }
                     if (e.key === 'Escape') setSaving(false);
@@ -1250,7 +1250,7 @@ export default function ChordPanel() {
                   onClick={() => { if (progName.trim()) { useChordStore.getState().saveProgression(progName.trim()); setSaving(false); setProgName(''); } }}
                   data-testid="save-progression-confirm"
                   className="btn-smooth px-5 py-2.5 font-bold text-sm"
-                  style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: 'white', borderRadius: '9999px', fontFamily: 'Manrope' }}
+                  style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: 'white', borderRadius: '9999px', fontFamily: 'var(--font-headline)' }}
                 >
                   {t.chord.save}
                 </button>
@@ -1262,7 +1262,7 @@ export default function ChordPanel() {
         {/* Recent Chords */}
         {recentList.length > 0 && (
           <div className={getPanelClass('p-6')}>
-            <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{t.chord.recentChords}</h3>
+            <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{t.chord.recentChords}</h3>
             <div className="scroll-fade-container">
               <div className={`scroll-fade-content flex gap-2 overflow-x-auto no-scrollbar pb-1 ${recentFadeClass}`} ref={recentScrollRef}>
                 {recentList.map(c => (
@@ -1280,7 +1280,7 @@ export default function ChordPanel() {
                     transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
                   }}
                 >
-                  <p style={{ color: selectedChordId === c.id ? accent.from : 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '12px', letterSpacing: '-0.02em', lineHeight: 1, textAlign: 'left' }}>
+                  <p style={{ color: selectedChordId === c.id ? accent.from : 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '12px', letterSpacing: '-0.02em', lineHeight: 1, textAlign: 'left' }}>
                     {c.name.replace(/\s/g, '')}
                   </p>
                   <div style={{ background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)', borderRadius: '0.5rem', padding: '4px 4px 2px' }}>
@@ -1334,19 +1334,19 @@ function SavedProgressions({ accent }: { accent: { from: string; to: string; mid
 
   return (
     <div className={getPanelClass('p-6')}>
-      <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{t.chord.savedProgressions}</h3>
+      <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{t.chord.savedProgressions}</h3>
       <div className="space-y-3">
         {progressions.map(prog => {
           const chordNames = prog.chords.map(id => getChordById(id)?.name?.replace(/\s/g, '') || '?').join(' → ');
           return (
             <div key={prog.id} className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--app-surface-high)', borderRadius: '0.75rem' }}>
               <div className="flex-1 min-w-0 mr-4">
-                <p className="font-bold text-sm truncate" style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>{prog.name}</p>
-                <p className="text-xs truncate mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{chordNames}</p>
+                <p className="font-bold text-sm truncate" style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>{prog.name}</p>
+                <p className="text-xs truncate mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{chordNames}</p>
               </div>
               <div className="flex items-center gap-3">
-                <button data-testid={`load-prog-${prog.id}`} onClick={() => loadProgression(prog.id)} className="btn-smooth" style={{ color: accent.from, fontFamily: 'Manrope', fontSize: '12px', fontWeight: 700 }}>{t.chord.load}</button>
-                <button data-testid={`del-prog-${prog.id}`} onClick={() => deleteProgression(prog.id)} className="btn-smooth" style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontSize: '18px' }}>×</button>
+                <button data-testid={`load-prog-${prog.id}`} onClick={() => loadProgression(prog.id)} className="btn-smooth" style={{ color: accent.from, fontFamily: 'var(--font-headline)', fontSize: '12px', fontWeight: 700 }}>{t.chord.load}</button>
+                <button data-testid={`del-prog-${prog.id}`} onClick={() => deleteProgression(prog.id)} className="btn-smooth" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontSize: '18px' }}>×</button>
               </div>
             </div>
           );

@@ -109,12 +109,12 @@ export default function TakesPanel() {
     <div className="spring-in" style={{ padding: '24px 20px', minHeight: '100%' }}>
       <div style={{ marginBottom: 28 }}>
         <h2 style={{
-          fontFamily: 'Manrope, sans-serif', fontWeight: 800,
+          fontFamily: 'var(--font-headline)', fontWeight: 800,
           fontSize: 34, letterSpacing: '-0.03em',
           color: 'var(--vx-text)', margin: '0 0 8px', lineHeight: 1,
         }}>{t.vocalex.takesTitle}</h2>
         <p style={{
-          fontFamily: 'Inter, sans-serif', fontSize: 13,
+          fontFamily: 'var(--font-body)', fontSize: 13,
           color: 'var(--vx-text-2)', margin: 0, lineHeight: 1.5,
         }}>{t.vocalex.takesSubtitle}</p>
       </div>
@@ -124,7 +124,7 @@ export default function TakesPanel() {
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '10px 18px', borderRadius: 9999,
           background: 'var(--vx-edge)', border: 'none',
-          color: 'var(--vx-text)', fontFamily: 'Manrope, sans-serif',
+          color: 'var(--vx-text)', fontFamily: 'var(--font-headline)',
           fontWeight: 600, fontSize: 13, cursor: 'pointer',
         }}>
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>sort</span>
@@ -136,7 +136,7 @@ export default function TakesPanel() {
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '10px 20px', borderRadius: 9999,
             background: 'var(--studio-accent)', border: 'none',
-            color: '#fff', fontFamily: 'Manrope, sans-serif',
+            color: '#fff', fontFamily: 'var(--font-headline)',
             fontWeight: 700, fontSize: 13, cursor: 'pointer',
             boxShadow: 'var(--studio-accent-glow)',
           }}
@@ -157,8 +157,8 @@ export default function TakesPanel() {
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
           <EmptyStateLottie app="vocalex" size={56} style={{ marginBottom: 2 }} />
-          <p style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 16, color: 'var(--vx-text)', margin: 0 }}>{t.vocalex.noTakesYet}</p>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-2)', margin: 0 }}>{t.vocalex.noTakesHint}</p>
+          <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 16, color: 'var(--vx-text)', margin: 0 }}>{t.vocalex.noTakesYet}</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-2)', margin: 0 }}>{t.vocalex.noTakesHint}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -202,13 +202,13 @@ function TakeListItem({ take, onOpen, onDelete }: { take: TakeRecord; onOpen: ()
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <h4 style={{
-            fontFamily: 'Manrope, sans-serif', fontWeight: 600,
+            fontFamily: 'var(--font-headline)', fontWeight: 600,
             fontSize: 14, color: 'var(--vx-text)', margin: 0,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{take.name}</h4>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 6, marginTop: 3,
-            fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--vx-text-2)',
+            fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--vx-text-2)',
           }}>
             <span>{formatDateI18n(take.createdAt, t.vocalex)}</span>
             <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--vx-text-4)' }} />
@@ -225,7 +225,7 @@ function TakeListItem({ take, onOpen, onDelete }: { take: TakeRecord; onOpen: ()
             style={{
               background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
               borderRadius: 8, padding: '6px 10px', cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+              fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
               color: '#ef4444',
             }}
           >{t.vocalex.deleteTake}</button>
@@ -234,7 +234,7 @@ function TakeListItem({ take, onOpen, onDelete }: { take: TakeRecord; onOpen: ()
             style={{
               background: 'var(--vx-input)', border: 'none',
               borderRadius: 8, padding: '6px 10px', cursor: 'pointer',
-              fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+              fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
               color: 'var(--vx-text-2)',
             }}
           >{t.vocalex.cancelAction}</button>

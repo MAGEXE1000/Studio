@@ -98,7 +98,7 @@ function TipCard({ tip, color, index }: { tip: Tip; color: string; index: number
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <span style={{
-          fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 14,
+          fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 14,
           color: color, opacity: 0.5, minWidth: 20,
           transition: 'opacity 200ms ease',
           ...(expanded ? { opacity: 0.9 } : {}),
@@ -106,7 +106,7 @@ function TipCard({ tip, color, index }: { tip: Tip; color: string; index: number
           {String(index + 1).padStart(2, '0')}
         </span>
         <span style={{
-          fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 15,
+          fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 15,
           color: 'var(--vx-text)', flex: 1,
         }}>
           {tip.title}
@@ -133,7 +133,7 @@ function TipCard({ tip, color, index }: { tip: Tip; color: string; index: number
             WebkitOverflowScrolling: 'touch',
           }}>
             <p style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 13.5, color: 'var(--vx-text-2)',
+              fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--vx-text-2)',
               lineHeight: 1.7, margin: 0,
               animation: expanded ? 'pp-expand 300ms cubic-bezier(0.22,1,0.36,1) both' : 'none',
             }}>
@@ -224,13 +224,13 @@ export default function PracticePanel() {
           </div>
           <div>
             <h2 style={{
-              fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 22,
+              fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 22,
               color: 'var(--vx-text)', margin: 0,
             }}>
               {section.name}
             </h2>
             <span style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--vx-text-3)',
+              fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--vx-text-3)',
             }}>
               {t.vocalex.tipsCount(section.tips.length)}
             </span>
@@ -248,11 +248,11 @@ export default function PracticePanel() {
         title={t.vocalex.tipsTitle}
         subtitle={t.vocalex.tipsSubtitle}
         titleStyle={{
-          fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 24,
+          fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 24,
           color: 'var(--vx-text)', margin: '0 0 6px',
         }}
         subtitleStyle={{
-          fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-3)',
+          fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-3)',
           margin: '0 0 28px', lineHeight: 1.5,
         }}
       />
@@ -295,13 +295,13 @@ export default function PracticePanel() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{
-                fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 16,
+                fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 16,
                 color: 'var(--vx-text)', margin: 0,
               }}>
                 {section.name}
               </p>
               <p style={{
-                fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--vx-text-3)',
+                fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--vx-text-3)',
                 margin: '3px 0 0',
               }}>
                 {t.vocalex.tipsCount(section.tips.length)}

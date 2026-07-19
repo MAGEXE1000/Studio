@@ -391,7 +391,7 @@ export default function GroovexPlayer() {
                 color: 'var(--c-text-primary)',
                 fontSize: 12,
                 fontWeight: 600,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--font-headline)',
                 cursor: 'pointer',
                 transition: 'background 200ms ease',
               }}
@@ -446,18 +446,18 @@ export default function GroovexPlayer() {
             <h2 style={{
               fontSize: 32, fontWeight: 800, letterSpacing: '-0.03em',
               margin: '0 0 8px', color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope, sans-serif', lineHeight: 1.1,
+              fontFamily: 'var(--font-headline)', lineHeight: 1.1,
             }}>{song.title}</h2>
             <p style={{
               fontSize: 18, fontWeight: 500, color: 'var(--c-text-muted)',
-              margin: 0, fontFamily: 'Manrope, sans-serif',
+              margin: 0, fontFamily: 'var(--font-headline)',
             }}>{song.artist}</p>
           </div>
 
           {phase === 'ready' && (
             <div className="gx-fade-up-1" style={{
               display: 'flex', alignItems: 'center', gap: 8, marginTop: 8,
-              fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--c-text-muted)',
+              fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--c-text-muted)',
             }}>
               <span>{song.bpm} BPM</span>
               <span style={{ opacity: 0.3 }}>|</span>
@@ -492,7 +492,7 @@ export default function GroovexPlayer() {
               <span className="material-symbols-outlined" style={{ fontSize: 24 }}>cloud_download</span>
               <div style={{ textAlign: 'left' }}>
                 <p style={{ fontSize: 14, fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>{t.groovex.downloadStems}</p>
-                <p style={{ fontSize: 11, margin: '2px 0 0', opacity: 0.8, fontFamily: 'Inter' }}>
+                <p style={{ fontSize: 11, margin: '2px 0 0', opacity: 0.8, fontFamily: 'var(--font-body)' }}>
                   {t.groovex.tracksWillBeDownloaded(song.stems.length)}
                 </p>
               </div>
@@ -513,12 +513,12 @@ export default function GroovexPlayer() {
                   <LoadingLottie width={26} />
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0 }}>{t.groovex.downloading}</p>
-                    <p style={{ fontSize: 11, color: 'var(--c-text-muted)', margin: '2px 0 0', fontFamily: 'Inter' }}>
+                    <p style={{ fontSize: 11, color: 'var(--c-text-muted)', margin: '2px 0 0', fontFamily: 'var(--font-body)' }}>
                       {currentStemLabel}
                     </p>
                   </div>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color: '#3b82f6', fontFamily: 'Inter' }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#3b82f6', fontFamily: 'var(--font-body)' }}>
                   <StudioCountUpPercentage value={overallProgress} />%
                 </span>
               </div>
@@ -535,7 +535,7 @@ export default function GroovexPlayer() {
               <h3 style={{
                 fontSize: 11, fontWeight: 700, color: 'var(--c-text-secondary)',
                 letterSpacing: '0.18em', textTransform: 'uppercase', margin: '0 0 4px 4px',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'var(--font-body)',
               }}>{t.groovex.stemsMixer}</h3>
               <div style={{
                 background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
@@ -620,10 +620,10 @@ export default function GroovexPlayer() {
                 }}>
                   <div style={{
                     fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    color: 'var(--c-text-muted)', fontFamily: 'Inter, sans-serif', marginBottom: 2,
+                    color: 'var(--c-text-muted)', fontFamily: 'var(--font-body)', marginBottom: 2,
                   }}>{t.groovex.key}</div>
                   <div style={{
-                    fontSize: 15, fontWeight: 800, fontFamily: 'Manrope, sans-serif',
+                    fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-headline)',
                     color: pitchShift !== 0 ? '#3b82f6' : 'var(--c-text-primary)',
                     transition: 'color 200ms ease',
                   }}>
@@ -684,7 +684,7 @@ export default function GroovexPlayer() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ee7d77' }}>warning</span>
-                    <p style={{ fontSize: 12, color: 'var(--c-text-muted)', margin: 0, fontFamily: 'Inter' }}>
+                    <p style={{ fontSize: 12, color: 'var(--c-text-muted)', margin: 0, fontFamily: 'var(--font-body)' }}>
                       {t.groovex.stemsFailed(failedStems.length)}
                     </p>
                   </div>
@@ -693,7 +693,7 @@ export default function GroovexPlayer() {
                     style={{
                       padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer',
                       background: 'rgba(238,125,119,0.12)', color: '#ee7d77',
-                      fontSize: 11, fontWeight: 700, fontFamily: 'Inter',
+                      fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
                       textTransform: 'uppercase', letterSpacing: '0.05em',
                       transition: 'background 150ms ease',
                     }}
@@ -712,7 +712,7 @@ export default function GroovexPlayer() {
                 <h3 style={{
                   fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)',
                   letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0,
-                  fontFamily: 'Inter, sans-serif',
+                  fontFamily: 'var(--font-body)',
                 }}>{t.groovex.stemsMixer}</h3>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   {song.hasStems && (
@@ -721,7 +721,7 @@ export default function GroovexPlayer() {
                       style={{
                         padding: '5px 10px', borderRadius: 8, border: 'none', cursor: 'pointer',
                         background: 'transparent', color: '#3b82f6',
-                        fontSize: 10, fontWeight: 700, fontFamily: 'Inter',
+                        fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-body)',
                         textTransform: 'uppercase', letterSpacing: '0.06em',
                         display: 'flex', alignItems: 'center', gap: 4,
                         transition: 'background 150ms ease',
@@ -766,7 +766,7 @@ export default function GroovexPlayer() {
               display: 'flex', alignItems: 'center', gap: 12,
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#3b82f6' }}>info</span>
-              <p style={{ fontSize: 13, color: 'var(--c-text-muted)', margin: 0, fontFamily: 'Inter', lineHeight: 1.4 }}>
+              <p style={{ fontSize: 13, color: 'var(--c-text-muted)', margin: 0, fontFamily: 'var(--font-body)', lineHeight: 1.4 }}>
                 {t.groovex.stemsNotAvailable}
               </p>
             </div>
@@ -775,7 +775,7 @@ export default function GroovexPlayer() {
 
         {phase === 'idle' && !song.hasStems && (
           <section className="gx-fade-up-3" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', margin: '0 0 4px 4px', fontFamily: 'Inter' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.18em', textTransform: 'uppercase', margin: '0 0 4px 4px', fontFamily: 'var(--font-body)' }}>
               {t.groovex.mixerTracks(tracks.length)}
             </p>
             {tracks.map((track, idx) => (
@@ -1030,7 +1030,7 @@ function MixerRow({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{
-            fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700,
             color: 'var(--c-text-primary)', letterSpacing: '0.02em',
           }}>{track.label}</span>
           {showLoadFile && (
@@ -1043,7 +1043,7 @@ function MixerRow({
                 cursor: 'pointer',
                 background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.03)', 
                 color: 'var(--c-text-secondary)',
-                fontSize: 9, fontWeight: 700, fontFamily: 'Inter',
+                fontSize: 9, fontWeight: 700, fontFamily: 'var(--font-body)',
                 letterSpacing: '0.05em', textTransform: 'uppercase',
                 transition: 'background 150ms ease',
               }}
@@ -1066,7 +1066,7 @@ function MixerRow({
                 : (isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.08)'),
               color: track.muted ? '#f87171' : 'var(--c-text-secondary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10, fontWeight: 800, fontFamily: 'Inter',
+              fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-body)',
               transition: 'background 150ms ease, color 150ms ease',
               cursor: 'pointer',
             }}
@@ -1084,7 +1084,7 @@ function MixerRow({
                 : (isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.08)'),
               color: track.solo ? '#60a5fa' : 'var(--c-text-secondary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10, fontWeight: 800, fontFamily: 'Inter',
+              fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-body)',
               transition: 'background 150ms ease, color 150ms ease',
               cursor: 'pointer',
             }}

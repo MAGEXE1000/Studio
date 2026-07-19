@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.2.1';
-export const WEB_VERSION = '4.2.1';
+export const NATIVE_VERSION = '4.2.2';
+export const WEB_VERSION = '4.2.2';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -43,7 +43,7 @@ export const APP_VERSION_DATE = '2026-07-19';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 7:40:00 PM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 8:05:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -62,11 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented transition store reset fallback ensuring return-to-hub transitions never hang or turn the screen black.",
-      "Clamped active switcher indicator capsule layout width to prevent shrinking into vertical lemon shapes.",
-      "Elevated the bottom navigation bar and switcher vertically above the native Android gesture navigation area.",
-      "Redesigned theme transitions with a premium hardware-accelerated fluid chromatic bloom effect.",
-      "Consolidated global visual tokens for layouts, colors, radiuses, shadows, and spring animations.",
+      "Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.",
+      "Restored the Bottom Navigation container position to its previous safe area boundaries.",
+      "Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.",
+      "Replaced hardcoded font family overrides with standardized design tokens globally.",
     ],
   },
 ];
@@ -76,11 +75,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Resolved return-to-hub transition freeze bugs by adding transition store fallback escape hatches.",
-      "Clamped switcher highlights to prevent vertical lemon-shape deforming on compression.",
-      "Elevated the bottom navigation container vertically above the Android gesture navigation area.",
-      "Redesigned theme transitions using hardware-accelerated fluid chromatic blooms.",
-      "Consolidated styling tokens and spring motion variables globally.",
+      "Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.",
+      "Restored the Bottom Navigation container position to its previous safe area boundaries.",
+      "Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.",
+      "Replaced hardcoded font family overrides with standardized design tokens globally.",
     ],
   },
 ];
@@ -91,11 +89,10 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Resueltos los congelamientos al regresar al Hub con escapes del estado de transición.",
-      "Indicador activo del switcher limitado geométricamente para evitar formas de limón vertical.",
-      "Contenedor de navegación inferior elevado para evitar superposición con gestos de Android.",
-      "Rediseño de transiciones de tema con propagación cromática fluida acelerada por GPU.",
-      "Consolidación global de tokens de diseño y variables de movimiento.",
+      "Indicador activo alineado ópticamente y centrado verticalmente en la barra de navegación inferior compartida.",
+      "Restaurado el contenedor de navegación inferior a sus límites de área segura anteriores.",
+      "Unificación de pantallas heredadas en Vocalex, Groovex y Drumex para adoptar tokens de diseño y layouts de tarjetas compartidos.",
+      "Reemplazadas las fuentes tipográficas hardcoded con tokens de diseño estandarizados globalmente.",
     ],
   },
 ];

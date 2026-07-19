@@ -1165,8 +1165,8 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '14px 16px', background: 'var(--app-surface-high)', borderRadius: 14 }}>
       <div>
-        <p style={{ fontFamily: 'Manrope', fontWeight: 600, fontSize: 14, color: 'var(--c-text-primary)' }}>{label}</p>
-        {sub && <p style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 1 }}>{sub}</p>}
+        <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 600, fontSize: 14, color: 'var(--c-text-primary)' }}>{label}</p>
+        {sub && <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--c-text-secondary)', marginTop: 1 }}>{sub}</p>}
       </div>
       {right}
     </div>
@@ -1189,11 +1189,11 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
                 style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', flexShrink: 0 }}>
                 <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 22 }}>arrow_back</span>
               </button>
-              <p style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#e7e5e4', lineHeight: 1 }}>
+              <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#e7e5e4', lineHeight: 1 }}>
                 Export Preview
               </p>
             </div>
-            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#484848', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(72,72,72,0.3)' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, color: '#484848', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 6, border: '1px solid rgba(72,72,72,0.3)' }}>
               PDF
             </span>
           </div>
@@ -1209,11 +1209,11 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
               <DrumPaperPreview patterns={patterns} song={song} cfg={cfg} accent={accent} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 14 }}>
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
                 {patterns.length} {patterns.length === 1 ? 'pattern' : 'patterns'}
               </span>
               <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#3a3a3a', display: 'inline-block' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
                 A3 Landscape
               </span>
             </div>
@@ -1221,19 +1221,19 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
 
           {/* File name + note */}
           <div style={{ padding: '28px 20px 8px' }}>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#484848', marginBottom: 10 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#484848', marginBottom: 10 }}>
               File Name
             </p>
             <input type="text" value={pdfName} onChange={e => setPdfName(e.target.value)}
               placeholder={song?.name ?? 'Beat'} maxLength={80}
               style={{ width: '100%', padding: '13px 16px', borderRadius: 12, background: '#191a1a',
-                border: '1px solid rgba(72,72,72,0.25)', color: '#e7e5e4', fontFamily: 'Manrope', fontWeight: 600,
+                border: '1px solid rgba(72,72,72,0.25)', color: '#e7e5e4', fontFamily: 'var(--font-headline)', fontWeight: 600,
                 fontSize: 15, outline: 'none', boxSizing: 'border-box', marginBottom: 24,
                 transition: 'border-color 200ms ease' }} />
             <div style={{ padding: '14px 16px', borderRadius: 12, background: `${accent.from}0d`, border: `1px solid ${accent.from}18`,
               display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 15, flexShrink: 0, marginTop: 1, fontVariationSettings: "'FILL' 1" }}>info</span>
-              <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6e6e80', lineHeight: 1.55, margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#6e6e80', lineHeight: 1.55, margin: 0 }}>
                 The PDF contains the step-sequencer grid for all patterns. Hidden rows (pattern mixer) are excluded from the export.
               </p>
             </div>
@@ -1254,7 +1254,7 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
           <div style={{ padding: '14px 16px 10px', display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center' }}>
             {/* Dark theme chip */}
             <button onClick={() => update('theme', cfg.theme === 'dark' ? 'light' : 'dark')} className="btn-smooth"
-              style={{ padding: '5px 12px', borderRadius: 8, fontFamily: 'Inter', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5,
+              style={{ padding: '5px 12px', borderRadius: 8, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 5,
                 background: cfg.theme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.04)',
                 color: cfg.theme === 'dark' ? '#e7e5e4' : '#6e6e80',
                 border: cfg.theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.04)',
@@ -1269,7 +1269,7 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
                 const active = cfg.style === v;
                 return (
                   <button key={v} onClick={() => update('style', v as DrumExportConfig['style'])} className="btn-smooth"
-                    style={{ padding: '5px 11px', borderRadius: 6, fontFamily: 'Inter', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em',
+                    style={{ padding: '5px 11px', borderRadius: 6, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: 10, letterSpacing: '0.05em',
                       background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
                       color: active ? '#e7e5e4' : '#6e6e80',
                       transition: 'all 160ms ease' }}>
@@ -1284,7 +1284,7 @@ function DrumExportModal({ patterns, song, accent, onClose }: {
           <div style={{ padding: '6px 16px', paddingBottom: 'max(20px,env(safe-area-inset-bottom))', display: 'flex', gap: 10, position: 'relative' }}>
             {saveRes && (
               <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, textAlign: 'center', padding: 6,
-                fontFamily: 'Manrope', fontWeight: 700, fontSize: 12, color: saveRes === 'ok' ? '#34d399' : '#f87171' }}>
+                fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 12, color: saveRes === 'ok' ? '#34d399' : '#f87171' }}>
                 {saveRes === 'ok' ? 'Saved to Downloads!' : 'Could not save â€” try Share instead'}
               </div>
             )}
@@ -2861,8 +2861,8 @@ export default function DrumEditor() {
   const activeSong = activeDrumSongId ? drumSongs.find(s => s.id === activeDrumSongId) ?? null : null;
 
   // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const inputSt: React.CSSProperties = { width: '100%', background: 'var(--app-surface-high)', border: '1px solid rgba(72,72,72,0.12)', borderRadius: '0.625rem', padding: '11px 14px', color: 'var(--c-text-primary)', fontFamily: 'Inter', fontSize: 14, outline: 'none', boxSizing: 'border-box' };
-  const labelSt: React.CSSProperties = { color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: 6 };
+  const inputSt: React.CSSProperties = { width: '100%', background: 'var(--app-surface-high)', border: '1px solid rgba(72,72,72,0.12)', borderRadius: '0.625rem', padding: '11px 14px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-body)', fontSize: 14, outline: 'none', boxSizing: 'border-box' };
+  const labelSt: React.CSSProperties = { color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: 6 };
   const renderCollapsibleSection = (
     id: string,
     title: string,
@@ -2906,7 +2906,7 @@ export default function DrumEditor() {
       </div>
     );
   };
-  const menuItemSt: React.CSSProperties = { width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--c-text-primary)', fontSize: 12.5, fontFamily: 'Manrope', fontWeight: 600, textAlign: 'left', transition: 'background 120ms' };
+  const menuItemSt: React.CSSProperties = { width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--c-text-primary)', fontSize: 12.5, fontFamily: 'var(--font-headline)', fontWeight: 600, textAlign: 'left', transition: 'background 120ms' };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--app-bg)', overflow: 'hidden', userSelect: 'none', WebkitUserSelect: 'none' }}>
@@ -2925,7 +2925,7 @@ export default function DrumEditor() {
                 <span className="material-symbols-outlined" style={{ color: 'var(--c-text-primary)', fontSize: isLandscape ? 17 : 20 }}>arrow_back</span>
               </button>
               {activeSong && (
-                <p style={{ flex: 1, color: 'var(--c-text-primary)', fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: isLandscape ? 12 : 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0, minWidth: 0 }}>
+                <p style={{ flex: 1, color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: isLandscape ? 12 : 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0, minWidth: 0 }}>
                   {activeSong.name}
                 </p>
               )}
@@ -3988,11 +3988,11 @@ export default function DrumEditor() {
             {/* Row visibility toggle */}
             {extraInsts.length > 0 && (
               <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 14px', height: 30, borderBottom: `1px solid ${barColor}`, background: 'var(--app-bg)' }}>
-                <span style={{ color: 'var(--c-text-muted)', fontSize: 9.5, fontFamily: 'Manrope', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <span style={{ color: 'var(--c-text-muted)', fontSize: 9.5, fontFamily: 'var(--font-headline)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {showExtraRows ? `All rows (${visibleInsts.length})` : `Core rows (${visibleInsts.length})`}
                 </span>
                 <button onClick={() => setShowExtraRows(v => !v)} className="btn-smooth"
-                  style={{ height: 22, padding: '0 10px', borderRadius: 999, background: showExtraRows ? `${accent.from}15` : 'rgba(128,128,128,0.10)', border: `1px solid ${showExtraRows ? accent.from + '30' : 'rgba(128,128,128,0.16)'}`, cursor: 'pointer', color: showExtraRows ? accent.from : 'var(--c-text-secondary)', fontSize: 10, fontWeight: 700, fontFamily: 'Manrope', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 180ms' }}>
+                  style={{ height: 22, padding: '0 10px', borderRadius: 999, background: showExtraRows ? `${accent.from}15` : 'rgba(128,128,128,0.10)', border: `1px solid ${showExtraRows ? accent.from + '30' : 'rgba(128,128,128,0.16)'}`, cursor: 'pointer', color: showExtraRows ? accent.from : 'var(--c-text-secondary)', fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-headline)', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 180ms' }}>
                   {showExtraRows ? (
                     <><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 15l-6-6-6 6"/></svg>Hide extras</>
                   ) : (
@@ -4074,7 +4074,7 @@ export default function DrumEditor() {
                             {loopActive && globalM === effectiveLoop.endBar && (
                               <span aria-hidden style={{ position: 'absolute', top: 2, right: 2, fontSize: 8, fontWeight: 900, color: accent.from, lineHeight: 1, pointerEvents: 'none' }}>â—‚</span>
                             )}
-                            <span style={{ color: loopActive && globalM >= effectiveLoop.startBar && globalM <= effectiveLoop.endBar ? accent.from : 'var(--c-text-primary)', fontSize: 10, fontWeight: 700, fontFamily: 'Manrope, sans-serif', opacity: loopActive && globalM >= effectiveLoop.startBar && globalM <= effectiveLoop.endBar ? 0.95 : 0.65, flexShrink: 0 }}>{globalM + 1}</span>
+                            <span style={{ color: loopActive && globalM >= effectiveLoop.startBar && globalM <= effectiveLoop.endBar ? accent.from : 'var(--c-text-primary)', fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-headline)', opacity: loopActive && globalM >= effectiveLoop.startBar && globalM <= effectiveLoop.endBar ? 0.95 : 0.65, flexShrink: 0 }}>{globalM + 1}</span>
                             <svg
                               style={{ position: 'absolute', bottom: 0, left: 0, width: MEASURE_W, height: 13, pointerEvents: 'none' }}
                               viewBox={`0 0 ${MEASURE_W} 13`}
@@ -4172,9 +4172,9 @@ export default function DrumEditor() {
                               ? (isLight ? '#eae9e6' : '#1b1b21')
                               : (isWebDesktop ? 'var(--app-surface)' : 'var(--app-bg)'),
                           }}>
-                            <span style={{ fontSize: 8, fontWeight: 700, fontFamily: 'Manrope, sans-serif', color: (isFoc && drumPrefs.highlightActiveInst) ? 'var(--c-text-primary)' : 'var(--c-text-muted)', letterSpacing: '0.03em', textTransform: 'uppercase', whiteSpace: 'nowrap', transition: 'color 200ms' }}>{INST_LABEL[inst]}</span>
+                            <span style={{ fontSize: 8, fontWeight: 700, fontFamily: 'var(--font-headline)', color: (isFoc && drumPrefs.highlightActiveInst) ? 'var(--c-text-primary)' : 'var(--c-text-muted)', letterSpacing: '0.03em', textTransform: 'uppercase', whiteSpace: 'nowrap', transition: 'color 200ms' }}>{INST_LABEL[inst]}</span>
                             {varList && varList.length > 1 && (
-                              <span style={{ fontSize: 6.5, fontFamily: 'Manrope, sans-serif', color: 'var(--c-text-muted)', opacity: 0.55, letterSpacing: '0.02em', whiteSpace: 'normal', lineHeight: 1.35, marginTop: 1, width: '100%', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{varList.join(' Â· ')}</span>
+                              <span style={{ fontSize: 6.5, fontFamily: 'var(--font-headline)', color: 'var(--c-text-muted)', opacity: 0.55, letterSpacing: '0.02em', whiteSpace: 'normal', lineHeight: 1.35, marginTop: 1, width: '100%', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{varList.join(' Â· ')}</span>
                             )}
                           </div>
                           <InstrumentRow inst={inst} mStartIdx={mStartIdx} rowMeasures={rowMeasures} spm={spm} stepsPerBeat={stepsPerBeat} STEP_W={STEP_W} MEASURE_W={MEASURE_W} noteColor={noteColor} staffColor={staffColor} barColor={barColor} altBg={altBg} showVariations={drumPrefs.showNoteVariations} gridEmphasis={drumPrefs.gridLinesEmphasis} accentFrom={accent.from} ROW_H={ROW_H} isLight={isLight} />
@@ -4241,7 +4241,7 @@ export default function DrumEditor() {
                     <div style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, background: isAmoled ? 'rgba(0,0,0,0.97)' : (isLight ? 'rgba(255,255,255,0.96)' : 'rgba(18,18,22,0.96)'), border: isLight ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(255,255,255,0.10)', borderRadius: 14, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', boxShadow: isLight ? '0 8px 32px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.50)', whiteSpace: 'nowrap', animation: 'drumHamburgerIn 160ms cubic-bezier(0.22,1,0.36,1)', minWidth: 232 }}>
                       {/* Header: label + on/off toggle */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'Manrope, sans-serif', color: 'var(--c-text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase', flex: 1 }}>Smart Loop</span>
+                        <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-headline)', color: 'var(--c-text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase', flex: 1 }}>Smart Loop</span>
                         <button
                           onClick={() => { pushUndo(); setLR({ enabled: !enabled }); }}
                           aria-pressed={enabled}
@@ -4254,18 +4254,18 @@ export default function DrumEditor() {
                       {/* Bar range row */}
                       <div style={{ height: 1, background: 'rgba(128,128,128,0.18)', margin: '2px -4px' }} />
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, ...dimIfDisabled }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'Manrope, sans-serif', color: 'var(--c-text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase', minWidth: 38 }}>Bars</span>
+                        <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-headline)', color: 'var(--c-text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase', minWidth: 38 }}>Bars</span>
                         {/* Start bar -/+ */}
                         <button onPointerDown={() => pushUndo()} onClick={() => setLR({ startBar: Math.max(0, lr.startBar - 1) })}
                           style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(128,128,128,0.10)', border: '1px solid rgba(128,128,128,0.14)', cursor: 'pointer', color: 'var(--c-text-secondary)', fontSize: 14, fontWeight: 800, lineHeight: 1 }}>âˆ’</button>
-                        <span style={{ color: accent.from, fontSize: 13, fontWeight: 800, fontFamily: 'Manrope, sans-serif', minWidth: 18, textAlign: 'center' }}>{lr.startBar + 1}</span>
+                        <span style={{ color: accent.from, fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-headline)', minWidth: 18, textAlign: 'center' }}>{lr.startBar + 1}</span>
                         <button onPointerDown={() => pushUndo()} onClick={() => setLR({ startBar: Math.min(lr.endBar, lr.startBar + 1) })}
                           style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(128,128,128,0.10)', border: '1px solid rgba(128,128,128,0.14)', cursor: 'pointer', color: 'var(--c-text-secondary)', fontSize: 14, fontWeight: 800, lineHeight: 1 }}>+</button>
                         <span style={{ color: 'var(--c-text-muted)', fontSize: 11, fontWeight: 700, padding: '0 2px' }}>â€“</span>
                         {/* End bar -/+ */}
                         <button onPointerDown={() => pushUndo()} onClick={() => setLR({ endBar: Math.max(lr.startBar, lr.endBar - 1) })}
                           style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(128,128,128,0.10)', border: '1px solid rgba(128,128,128,0.14)', cursor: 'pointer', color: 'var(--c-text-secondary)', fontSize: 14, fontWeight: 800, lineHeight: 1 }}>âˆ’</button>
-                        <span style={{ color: accent.from, fontSize: 13, fontWeight: 800, fontFamily: 'Manrope, sans-serif', minWidth: 18, textAlign: 'center' }}>{lr.endBar + 1}</span>
+                        <span style={{ color: accent.from, fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-headline)', minWidth: 18, textAlign: 'center' }}>{lr.endBar + 1}</span>
                         <button onPointerDown={() => pushUndo()} onClick={() => setLR({ endBar: Math.min(barCount - 1, lr.endBar + 1) })}
                           style={{ width: 26, height: 26, borderRadius: 7, background: 'rgba(128,128,128,0.10)', border: '1px solid rgba(128,128,128,0.14)', cursor: 'pointer', color: 'var(--c-text-secondary)', fontSize: 14, fontWeight: 800, lineHeight: 1 }}>+</button>
                       </div>
@@ -4284,7 +4284,7 @@ export default function DrumEditor() {
                                 background: active ? `${accent.from}26` : 'rgba(128,128,128,0.10)',
                                 border: active ? `1px solid ${accent.from}66` : '1px solid rgba(128,128,128,0.14)',
                                 color: active ? accent.from : 'var(--c-text-secondary)',
-                                fontSize: 10, fontWeight: 700, fontFamily: 'Manrope, sans-serif',
+                                fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-headline)',
                                 letterSpacing: '0.03em', cursor: tooBig ? 'not-allowed' : 'pointer',
                                 opacity: tooBig ? 0.35 : 1, transition: 'all 140ms',
                               }}
@@ -4330,7 +4330,7 @@ export default function DrumEditor() {
                       {/* Swing row â€” label, slider, value, preset chips */}
                       <div style={{ height: 1, background: 'rgba(128,128,128,0.18)', margin: '2px -4px' }} />
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'Manrope, sans-serif', color: 'var(--c-text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase', minWidth: 38 }}>Swing</span>
+                        <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-headline)', color: 'var(--c-text-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase', minWidth: 38 }}>Swing</span>
                         <input
                           type="range"
                           min={SWING_MIN}
@@ -4345,7 +4345,7 @@ export default function DrumEditor() {
                             cursor: 'pointer', verticalAlign: 'middle',
                           }}
                         />
-                        <span style={{ color: swing > 0 ? accent.from : 'var(--c-text-muted)', fontSize: 13, fontWeight: 800, fontFamily: 'Manrope, sans-serif', minWidth: 34, textAlign: 'right' }}>{swing}%</span>
+                        <span style={{ color: swing > 0 ? accent.from : 'var(--c-text-muted)', fontSize: 13, fontWeight: 800, fontFamily: 'var(--font-headline)', minWidth: 34, textAlign: 'right' }}>{swing}%</span>
                       </div>
                       <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
                         {SWING_PRESETS.map(p => {
@@ -4359,7 +4359,7 @@ export default function DrumEditor() {
                                 background: active ? `${accent.from}26` : 'rgba(128,128,128,0.10)',
                                 border: active ? `1px solid ${accent.from}66` : '1px solid rgba(128,128,128,0.14)',
                                 color: active ? accent.from : 'var(--c-text-secondary)',
-                                fontSize: 10, fontWeight: 700, fontFamily: 'Manrope, sans-serif',
+                                fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-headline)',
                                 letterSpacing: '0.03em', cursor: 'pointer', transition: 'all 140ms',
                               }}
                             >{presetLabels[p.id]}</button>
@@ -4439,7 +4439,7 @@ export default function DrumEditor() {
                     const active = sideTab === tab;
                     return (
                       <button key={tab} onClick={() => setSideTab(tab)} className="btn-smooth" title={`Switch to ${tab} panel`} aria-label={`Switch to ${tab} panel`} style={{
-                        flex: 1, padding: '6px 0', borderRadius: '8px', fontSize: '10px', fontWeight: 800, fontFamily: 'Manrope', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
+                        flex: 1, padding: '6px 0', borderRadius: '8px', fontSize: '10px', fontWeight: 800, fontFamily: 'var(--font-headline)', textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
                         background: active ? (isLight ? '#f4f4f5' : '#18181b') : 'transparent',
                         border: active ? (isLight ? '1px solid #e4e4e7' : '1px solid #27272a') : '1px solid transparent',
                         color: active ? (isLight ? '#09090b' : '#ffffff') : (isLight ? '#71717a' : '#a1a1aa'), transition: 'all 160ms'
@@ -5288,7 +5288,7 @@ export default function DrumEditor() {
                   const c = INSTRUMENT_COLOR[inst] ?? accent.from;
                   const hasFX = instFX[inst] && Object.values(instFX[inst]!).some(v => v !== 0);
                   return (
-                    <button key={inst} onClick={() => setFxInst(inst)} style={{ flexShrink: 0, padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'Manrope', cursor: 'pointer', background: isAct ? `${c}22` : 'var(--app-surface-high)', border: isAct ? `1.5px solid ${c}55` : '1.5px solid transparent', color: isAct ? c : 'var(--c-text-secondary)', position: 'relative', transition: 'all 130ms' }}>
+                    <button key={inst} onClick={() => setFxInst(inst)} style={{ flexShrink: 0, padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-headline)', cursor: 'pointer', background: isAct ? `${c}22` : 'var(--app-surface-high)', border: isAct ? `1.5px solid ${c}55` : '1.5px solid transparent', color: isAct ? c : 'var(--c-text-secondary)', position: 'relative', transition: 'all 130ms' }}>
                       {INSTRUMENT_NAME[inst] ?? inst.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase())}
                       {hasFX && <span style={{ position: 'absolute', top: 3, right: 3, width: 5, height: 5, borderRadius: '50%', background: c, display: 'block' }} />}
                     </button>
@@ -5300,7 +5300,7 @@ export default function DrumEditor() {
                 {/* â”€â”€ Character presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                 {presets.length > 0 && (
                   <div style={{ padding: '0 20px 14px' }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--c-text-muted)', fontFamily: 'Manrope' }}>Character</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--c-text-muted)', fontFamily: 'var(--font-headline)' }}>Character</span>
                     <div style={{ display: 'flex', gap: 7, marginTop: 8, flexWrap: 'wrap' }}>
                       {presets.map(preset => {
                         const merged = { ...DEFAULT_INST_FX, ...preset.values };
@@ -5311,7 +5311,7 @@ export default function DrumEditor() {
                            <button key={preset.label}
                             onClick={() => setInstFX(fxInst, merged)}
                             title={`Apply "${preset.label}" FX character to ${INST_LABEL[fxInst] || fxInst}`}
-                            style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: 'Manrope', cursor: 'pointer', transition: 'all 140ms', background: isActive ? color : 'var(--app-surface-high)', color: isActive ? '#fff' : 'var(--c-text-secondary)', border: isActive ? `1.5px solid ${color}` : '1.5px solid rgba(128,128,128,0.15)' }}>
+                            style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-headline)', cursor: 'pointer', transition: 'all 140ms', background: isActive ? color : 'var(--app-surface-high)', color: isActive ? '#fff' : 'var(--c-text-secondary)', border: isActive ? `1.5px solid ${color}` : '1.5px solid rgba(128,128,128,0.15)' }}>
                             {preset.label}
                           </button>
                         );
@@ -5331,8 +5331,8 @@ export default function DrumEditor() {
                     <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 20px', borderBottom: '1px solid rgba(128,128,128,0.06)' }}>
                       <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0, opacity: active ? 1 : 0.22, transition: 'opacity 150ms' }} />
                       <div style={{ width: 90, flexShrink: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: active ? 'var(--c-text-primary)' : 'var(--c-text-secondary)', fontFamily: 'Manrope', lineHeight: 1.2 }}>{label}</div>
-                        {hint && <div style={{ fontSize: 9, color: 'var(--c-text-muted)', fontFamily: 'Manrope', letterSpacing: '0.02em' }}>{hint}</div>}
+                        <div style={{ fontSize: 12, fontWeight: 700, color: active ? 'var(--c-text-primary)' : 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', lineHeight: 1.2 }}>{label}</div>
+                        {hint && <div style={{ fontSize: 9, color: 'var(--c-text-muted)', fontFamily: 'var(--font-headline)', letterSpacing: '0.02em' }}>{hint}</div>}
                       </div>
                       <ElasticSlider
                         min={min} max={max} step={step} value={val}
@@ -5340,7 +5340,7 @@ export default function DrumEditor() {
                         accentColor={color}
                         style={{ flex: 1 }}
                       />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: active ? color : 'var(--c-text-muted)', minWidth: 58, textAlign: 'right', fontFamily: 'Manrope', transition: 'color 150ms' }}>{dispVal}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: active ? color : 'var(--c-text-muted)', minWidth: 58, textAlign: 'right', fontFamily: 'var(--font-headline)', transition: 'color 150ms' }}>{dispVal}</span>
                     </div>
                   );
                 })}
@@ -5348,9 +5348,9 @@ export default function DrumEditor() {
                 {/* â”€â”€ Plugins section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                 <div style={{ padding: '14px 20px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--c-text-muted)', fontFamily: 'Manrope', flex: 1 }}>Plugins</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--c-text-muted)', fontFamily: 'var(--font-headline)', flex: 1 }}>Plugins</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '18px 0 14px', color: 'var(--c-text-muted)', fontSize: 11.5, fontFamily: 'Manrope', fontStyle: 'italic', opacity: 0.7 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '18px 0 14px', color: 'var(--c-text-muted)', fontSize: 11.5, fontFamily: 'var(--font-headline)', fontStyle: 'italic', opacity: 0.7 }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7 }}>
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>

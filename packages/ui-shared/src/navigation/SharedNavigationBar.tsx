@@ -417,7 +417,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
       }}
       style={{
         position: 'fixed',
-        bottom: 'var(--nav-safe-bottom)',
+        bottom: 'max(14px, env(safe-area-inset-bottom))',
         left: '50%',
         zIndex: 9999,
         display: 'flex',
@@ -465,7 +465,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
           <motion.div
             style={{
               position: 'absolute',
-              top: '4px',
+              top: '2px',
               height: '38px',
               width: `${pillWidth + 40}px`,
               x: useTransform(pillX, val => val - pillWidth / 2 - 20),

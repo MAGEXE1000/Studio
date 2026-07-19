@@ -83,7 +83,7 @@ export default function GroovexApp() {
     <div className="groovex-root" style={{
       height: '100dvh', display: 'flex', flexDirection: 'column',
       background: 'var(--app-bg)',
-      fontFamily: 'Manrope, sans-serif',
+      fontFamily: 'var(--font-headline)',
       paddingTop: 'env(safe-area-inset-top)',
       overflow: 'hidden',
     }}>

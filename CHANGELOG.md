@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.2
+
+### Added
+- Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.
+- Restored the Bottom Navigation container position to its previous safe area boundaries.
+- Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.
+- Replaced hardcoded font family overrides with standardized design tokens globally.
+
 ## 4.2.1
 
 ### Added

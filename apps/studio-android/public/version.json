@@ -1,22 +1,21 @@
 {
   "platform": "android",
-  "version": "4.2.1",
-  "versionName": "4.2.1",
-  "versionCode": 40201,
-  "version_code": 40201,
-  "commit": "a363950b",
-  "releasedAt": "7/19/2026, 1:41:57 PM CST",
-  "buildTimestamp": "7/19/2026, 1:41:57 PM CST",
+  "version": "4.2.2",
+  "versionName": "4.2.2",
+  "versionCode": 40202,
+  "version_code": 40202,
+  "commit": "cc4857f8",
+  "releasedAt": "7/19/2026, 2:08:27 PM CST",
+  "buildTimestamp": "7/19/2026, 2:08:27 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented transition store reset fallback ensuring return-to-hub transitions never hang or turn the screen black.\n• Clamped active switcher indicator capsule layout width to prevent shrinking into vertical lemon shapes.\n• Elevated the bottom navigation bar and switcher vertically above the native Android gesture navigation area.\n• Redesigned theme transitions with a premium hardware-accelerated fluid chromatic bloom effect.\n• Consolidated global visual tokens for layouts, colors, radiuses, shadows, and spring animations.",
-  "whatsNew": "• Implemented transition store reset fallback ensuring return-to-hub transitions never hang or turn the screen black.\n• Clamped active switcher indicator capsule layout width to prevent shrinking into vertical lemon shapes.\n• Elevated the bottom navigation bar and switcher vertically above the native Android gesture navigation area.\n• Redesigned theme transitions with a premium hardware-accelerated fluid chromatic bloom effect.\n• Consolidated global visual tokens for layouts, colors, radiuses, shadows, and spring animations.",
+  "changelog": "• Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.\n• Restored the Bottom Navigation container position to its previous safe area boundaries.\n• Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.\n• Replaced hardcoded font family overrides with standardized design tokens globally.",
+  "whatsNew": "• Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.\n• Restored the Bottom Navigation container position to its previous safe area boundaries.\n• Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.\n• Replaced hardcoded font family overrides with standardized design tokens globally.",
   "releaseNotes": {
     "added": [
-      "Implemented transition store reset fallback ensuring return-to-hub transitions never hang or turn the screen black.",
-      "Clamped active switcher indicator capsule layout width to prevent shrinking into vertical lemon shapes.",
-      "Elevated the bottom navigation bar and switcher vertically above the native Android gesture navigation area.",
-      "Redesigned theme transitions with a premium hardware-accelerated fluid chromatic bloom effect.",
-      "Consolidated global visual tokens for layouts, colors, radiuses, shadows, and spring animations."
+      "Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.",
+      "Restored the Bottom Navigation container position to its previous safe area boundaries.",
+      "Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.",
+      "Replaced hardcoded font family overrides with standardized design tokens globally."
     ]
   },
   "mandatory": false

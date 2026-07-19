@@ -210,7 +210,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
       position: 'fixed', inset: 0, zIndex: 200,
       background: 'var(--vx-bg, #000000)',
       display: 'flex', flexDirection: 'column',
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'var(--font-body)',
     }}>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
@@ -234,7 +234,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <h2 style={{
-              fontFamily: 'Manrope, sans-serif', fontWeight: 800,
+              fontFamily: 'var(--font-headline)', fontWeight: 800,
               fontSize: 17, color: 'var(--vx-text, #fff)',
               margin: 0, letterSpacing: '-0.02em',
             }}>{t.vocalex.harmonizerTitle || 'Harmonizer'}</h2>
@@ -243,7 +243,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
                 background: `${accent}22`, border: `1px solid ${accent}55`,
                 borderRadius: 6, padding: '2px 7px',
                 fontSize: 10, fontWeight: 800, color: accent,
-                fontFamily: 'Manrope, sans-serif', letterSpacing: '0.06em',
+                fontFamily: 'var(--font-headline)', letterSpacing: '0.06em',
                 flexShrink: 0,
               }}>
                 {detectedKey}
@@ -430,7 +430,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
                   }} />
                   <div style={{
                     fontSize: 11, fontWeight: 800, color: '#fff',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--font-headline)',
                   }}>{h.short}</div>
                   <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>{h.label}</div>
                 </button>
@@ -540,7 +540,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
             background: isBouncing ? 'rgba(0,122,255,0.08)' : `${accent}22`,
             border: `1px solid ${accent}44`,
             color: activeCount === 0 ? 'rgba(0,122,255,0.35)' : accent,
-            fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 13,
+            fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 13,
             cursor: isBouncing || activeCount === 0 ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             opacity: activeCount === 0 ? 0.5 : 1,
@@ -565,7 +565,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
               background: 'rgba(255,255,255,0.07)',
               border: '1px solid rgba(255,255,255,0.12)',
               color: activeCount === 0 ? 'rgba(255,255,255,0.25)' : '#fff',
-              fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 13,
+              fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 13,
               cursor: isBouncing || activeCount === 0 ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', gap: 6,
               opacity: activeCount === 0 ? 0.5 : 1,
@@ -601,7 +601,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
                     width: '100%', padding: '12px 15px',
                     background: 'none', border: 'none',
                     cursor: 'pointer', color: '#fff',
-                    fontFamily: 'Inter, sans-serif', fontSize: 13,
+                    fontFamily: 'var(--font-body)', fontSize: 13,
                     fontWeight: 500, textAlign: 'left',
                     borderBottom: '1px solid rgba(255,255,255,0.06)',
                   }}
@@ -666,7 +666,7 @@ function LayerCard({
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
             <span style={{
               fontSize: 12.5, fontWeight: 700, color: layer.enabled ? '#fff' : 'rgba(255,255,255,0.35)',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--font-headline)',
             }}>{def.label}</span>
             <span style={{
               fontSize: 10, fontWeight: 700, color: def.color,
@@ -790,7 +790,7 @@ function MiniButton({
         color: active ? activeTextColor : 'rgba(255,255,255,0.4)',
         cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Manrope, sans-serif', fontSize: 9, fontWeight: 800,
+        fontFamily: 'var(--font-headline)', fontSize: 9, fontWeight: 800,
         transition: 'background 150ms, border-color 150ms, color 150ms',
       }}
     >{label}</button>

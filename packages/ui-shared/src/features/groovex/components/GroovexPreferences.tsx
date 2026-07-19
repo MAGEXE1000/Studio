@@ -7,6 +7,7 @@ import { getCacheSize, clearAllCache, clearSongCache, getPerSongCacheInfo, type 
 import { SONG_CATALOG } from '../services/songCatalog';
 import { WebSettingsSection, WebPreferenceRow } from '../../../components/design-system/WebDesignSystem';
 import { Toggle } from '../../../components/typography/SettingControls';
+import { Card } from '../../../components/design-system/StudioDesignSystem';
 
 
 export default function GroovexPreferences() {
@@ -67,17 +68,17 @@ export default function GroovexPreferences() {
 
         {isWebDesktop ? (
           <div className="mb-6">
-            <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>
               {t.groovex.audioEngine}
             </h2>
-            <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '11px', marginTop: '2px' }}>
+            <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '11px', marginTop: '2px' }}>
               {t.groovex.audioEngineDesc}
             </p>
           </div>
         ) : (
           <section style={{ paddingTop: 32, marginBottom: 32 }}>
             <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 6px', color: 'var(--c-text-primary)' }}>{t.groovex.audioEngine}</h2>
-            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', margin: 0 }}>
+            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', margin: 0 }}>
               {t.groovex.audioEngineDesc}
             </p>
           </section>
@@ -162,7 +163,7 @@ export default function GroovexPreferences() {
             <div style={{ padding: isWebDesktop ? '12px 16px' : '4px 0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--c-text-secondary)', margin: '0 0 4px', fontFamily: 'Inter' }}>
+                  <p style={{ fontSize: 11, color: 'var(--c-text-secondary)', margin: '0 0 4px', fontFamily: 'var(--font-body)' }}>
                     {t.groovex.songUnit(cacheInfo.songCount)} • {cacheInfo.stemCount} stems
                   </p>
                   <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0 }}>
@@ -178,7 +179,7 @@ export default function GroovexPreferences() {
                         style={{
                           padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
                           background: '#ee7d77', color: '#fff',
-                          fontSize: 11, fontWeight: 700, fontFamily: 'Inter',
+                          fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
                           opacity: deletingId ? 0.5 : 1,
                         }}
                       >
@@ -189,7 +190,7 @@ export default function GroovexPreferences() {
                         style={{
                           padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
                           background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)', color: 'var(--c-text-primary)',
-                          fontSize: 11, fontWeight: 700, fontFamily: 'Inter',
+                          fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
                           border: isLight ? '1px solid rgba(0,0,0,0.08)' : 'none',
                         }}
                       >
@@ -203,7 +204,7 @@ export default function GroovexPreferences() {
                       style={{
                         padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
                         background: 'rgba(238,125,119,0.15)', color: '#ee7d77',
-                        fontSize: 11, fontWeight: 700, fontFamily: 'Inter',
+                        fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
                         opacity: deletingId ? 0.5 : 1,
                       }}
                     >
@@ -249,7 +250,7 @@ export default function GroovexPreferences() {
                           </p>
                           <p style={{
                             fontSize: 10, color: 'var(--c-text-secondary)', margin: '1px 0 0',
-                            fontFamily: 'Inter',
+                            fontFamily: 'var(--font-body)',
                           }}>
                             {meta?.artist ?? t.groovex.unknown} • {sc.stemCount} stems • {formatBytes(sc.totalBytes)}
                           </p>
@@ -277,7 +278,7 @@ export default function GroovexPreferences() {
                 </div>
               )}
 
-              <p style={{ fontSize: 10.5, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'Inter', opacity: 0.7, lineHeight: 1.4 }}>
+              <p style={{ fontSize: 10.5, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'var(--font-body)', opacity: 0.7, lineHeight: 1.4 }}>
                 {songCaches.length === 0
                   ? t.groovex.noSongsDownloaded
                   : t.groovex.downloadedSongsHint}
@@ -287,13 +288,13 @@ export default function GroovexPreferences() {
 
           <PrefCard title={t.groovex.aboutGroovex} icon="info" isWebDesktop={isWebDesktop}>
             <div style={{ padding: isWebDesktop ? '12px 16px' : '4px 0' }}>
-              <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 8px', fontFamily: 'Inter', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 8px', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
                 {t.groovex.aboutDesc1}
               </p>
-              <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 8px', fontFamily: 'Inter', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 8px', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
                 {t.groovex.aboutDesc2}
               </p>
-              <p style={{ fontSize: 10.5, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'Inter', opacity: 0.6 }}>
+              <p style={{ fontSize: 10.5, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'var(--font-body)', opacity: 0.6 }}>
                 {APP_VERSION_LABEL} • {t.groovex.aboutVersion}
               </p>
             </div>
@@ -340,18 +341,15 @@ function PrefCard({ title, icon, children, isWebDesktop }: { title: string; icon
     );
   }
   return (
-    <div style={{
-      background: 'var(--gx-surface)', borderRadius: 16, padding: 20,
-      transition: 'background 150ms ease',
-    }}>
+    <Card style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--gx-accent)' }}>{icon}</span>
-        <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0 }}>{title}</h3>
+        <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'var(--font-headline)' }}>{title}</h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {children}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -379,7 +377,7 @@ function SliderRow({ label, value, onChange, displayValue, isWebDesktop }: {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-secondary)', fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
           {label}
         </label>
         <span style={{ fontSize: 13, color: 'var(--gx-accent)', fontWeight: 700 }}>{displayValue}</span>

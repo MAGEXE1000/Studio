@@ -8,6 +8,7 @@ import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { subscribeVocalexBack } from '../utilities/headerBack';
 import { SHARED_NAV_TRANSITION, getSharedNavTransform, getSharedNavOpacity } from '../../../navigation/navStyles';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
+import { Card } from '../../../components/design-system/StudioDesignSystem';
 
 import { IconSettings } from '../../../components/icons/NavIcons';
 
@@ -359,25 +360,21 @@ function VocalexPreferences() {
     <div style={{ padding: '24px 20px', minHeight: '100%' }}>
       <div style={{ marginBottom: 28 }}>
         <h2 style={{
-          fontFamily: 'Manrope, sans-serif', fontWeight: 800,
+          fontFamily: 'var(--font-headline)', fontWeight: 800,
           fontSize: 34, letterSpacing: '-0.03em',
           color: 'var(--c-text-primary)', margin: '0 0 8px', lineHeight: 1,
         }}>
           {vt.settingsTitle || 'Preferences'}
         </h2>
         <p style={{
-          fontFamily: 'Inter, sans-serif', fontSize: 13,
+          fontFamily: 'var(--font-body)', fontSize: 13,
           color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.5,
         }}>
           Configure default behaviors for Vocalex.
         </p>
       </div>
 
-      <div style={{
-        background: 'var(--app-surface, rgba(128,128,128,0.05))',
-        borderRadius: '1.5rem',
-        overflow: 'hidden',
-        border: '1px solid rgba(128,128,128,0.1)',
+      <Card style={{
         padding: '16px 20px',
         display: 'flex',
         flexDirection: 'column',
@@ -385,10 +382,10 @@ function VocalexPreferences() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
-              Start On
+            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-headline)', color: 'var(--c-text-primary)' }}>
+               Start On
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.4 }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.4 }}>
               Choose which screen opens when you launch Vocalex.
             </p>
           </div>
@@ -421,7 +418,7 @@ function VocalexPreferences() {
             })}
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

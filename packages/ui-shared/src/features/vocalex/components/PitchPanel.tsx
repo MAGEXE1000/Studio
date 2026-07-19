@@ -314,11 +314,11 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
 
         <div style={{ textAlign: 'center', zIndex: 1, position: 'relative' }}>
           <p style={{
-            fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500,
+            fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500,
             color: 'var(--vx-text-2)', letterSpacing: '0.2em', marginBottom: 8,
           }}>{t.vocalex.currentNote}</p>
           <h1 style={{
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--font-headline)',
             fontSize: 96, fontWeight: 800,
             color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.08)',
             lineHeight: 1, letterSpacing: '-0.04em',
@@ -330,7 +330,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           {(active && statusLabel) && (
             <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
               <span style={{
-                fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600,
+                fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
                 color: statusColor,
                 padding: '4px 14px', borderRadius: 9999,
                 background: `${statusColor}1a`,
@@ -351,12 +351,12 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           borderLeft: '2px solid #007aff',
         }}>
           <p style={{
-            fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
             color: 'var(--vx-text-2)', letterSpacing: '0.14em', textTransform: 'uppercase',
             margin: '0 0 4px',
           }}>{t.vocalex.frequency}</p>
           <p style={{
-            fontFamily: 'Manrope, sans-serif', fontSize: 24, fontWeight: 700,
+            fontFamily: 'var(--font-headline)', fontSize: 24, fontWeight: 700,
             color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.1)',
             margin: 0, transition: 'color 200ms ease',
           }}>
@@ -369,12 +369,12 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           background: 'var(--vx-card-2)', borderRadius: 12, padding: '16px 18px',
         }}>
           <p style={{
-            fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
+            fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
             color: 'var(--vx-text-2)', letterSpacing: '0.14em', textTransform: 'uppercase',
             margin: '0 0 4px',
           }}>{t.vocalex.precision}</p>
           <p style={{
-            fontFamily: 'Manrope, sans-serif', fontSize: 24, fontWeight: 700,
+            fontFamily: 'var(--font-headline)', fontSize: 24, fontWeight: 700,
             color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.1)',
             margin: 0, transition: 'color 200ms ease',
           }}>
@@ -437,7 +437,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
             background: 'var(--vx-input-2)', border: 'none',
             color: 'var(--vx-text-5)',
             fontSize: 14, fontWeight: 700,
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--font-body)',
             cursor: 'pointer',
           }}
         >
@@ -457,7 +457,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
             border: listening ? '1px solid rgba(239,68,68,0.3)' : 'none',
             color: listening ? '#ef4444' : '#fff',
             fontSize: 14, fontWeight: 700,
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--font-body)',
             cursor: 'pointer',
             boxShadow: listening ? 'none' : '0 4px 16px rgba(0,122,255,0.2)',
             transition: 'all 200ms ease',
@@ -481,7 +481,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
         <div style={{
           padding: '14px 16px', borderRadius: 12, marginTop: 12,
           background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-          color: '#ef4444', fontSize: 12, fontFamily: 'Inter, sans-serif',
+          color: '#ef4444', fontSize: 12, fontFamily: 'var(--font-body)',
           textAlign: 'center', maxWidth: 360, width: '100%',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10
         }}>
@@ -504,7 +504,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
                 padding: '8px 16px', borderRadius: 8,
                 background: '#ef4444', border: 'none',
                 color: '#fff', fontSize: 12, fontWeight: 700,
-                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+                fontFamily: 'var(--font-body)', cursor: 'pointer',
                 boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
                 transition: 'background 150ms ease',
               }}
@@ -521,7 +521,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
                 padding: '8px 16px', borderRadius: 8,
                 background: '#ef4444', border: 'none',
                 color: '#fff', fontSize: 12, fontWeight: 700,
-                fontFamily: 'Inter, sans-serif', cursor: 'pointer',
+                fontFamily: 'var(--font-body)', cursor: 'pointer',
                 boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
                 transition: 'background 150ms ease',
               }}

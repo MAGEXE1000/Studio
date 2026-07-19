@@ -2,6 +2,7 @@ import { useDrumStore, useChordStore, ACCENT_COLORS, useT, useScrollHide, useIsW
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useState, useEffect } from 'react';
 import { Toggle, SectionHeader, SettingRow } from '../../../components/typography/SettingControls';
+import { Card } from '../../../components/design-system/StudioDesignSystem';
 
 function IconDrumSongs({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.6; const ao = active ? 0.13 : 0;
@@ -101,12 +102,12 @@ export default function DrumPrefsPanel() {
   function PrefsSection({ title, children }: { title: string; children: React.ReactNode }) {
     return (
       <div className="flex flex-col gap-2">
-        <span className={`text-[9.5px] font-extrabold tracking-widest uppercase px-1 ${isLight ? 'text-zinc-500' : 'text-zinc-450'}`}>
+        <span className={`text-[9.5px] font-extrabold tracking-widest uppercase px-1 ${isLight ? 'text-zinc-500' : 'text-zinc-450'}`} style={{ fontFamily: 'var(--font-headline)' }}>
           {title}
         </span>
-        <div className={`border rounded-xl overflow-hidden ${isLight ? 'border-zinc-200 bg-white' : 'border-zinc-900 bg-[#000000]'}`}>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
           {children}
-        </div>
+        </Card>
       </div>
     );
   }
@@ -284,14 +285,14 @@ export default function DrumPrefsPanel() {
       >
         <div className="spring-in" style={{ marginTop: 12, marginBottom: 24 }}>
           <h2 style={{
-            fontFamily: 'Manrope', fontWeight: 900, fontSize: '2.6rem',
+            fontFamily: 'var(--font-headline)', fontWeight: 900, fontSize: '2.6rem',
             color: 'var(--c-text-primary)', letterSpacing: '-0.04em',
             lineHeight: 1, margin: 0,
           }}>
             {dp.title}
           </h2>
           <p style={{
-            color: 'var(--c-text-secondary)', fontFamily: 'Inter',
+            color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)',
             fontSize: 13, marginTop: 4,
           }}>
             {dp.subtitle}
@@ -299,35 +300,35 @@ export default function DrumPrefsPanel() {
         </div>
 
         <SectionHeader icon="edit_note" title={dp.editorBehavior} />
-        <div style={cardStyle}>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
           {row('noteVariationsCycle', dp.noteVariations, dp.noteVariationsDesc)}
           {row('autoExpandPattern', dp.autoExpand, dp.autoExpandDesc)}
           {row('snapToGrid', dp.snapToGrid, dp.snapToGridDesc)}
           {row('dragToFill', dp.dragToFill, dp.dragToFillDesc)}
-        </div>
+        </Card>
 
         <SectionHeader icon="play_circle" title={dp.playback} />
-        <div style={cardStyle}>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
           {row('autoPlayOnEdit', dp.autoPlay, dp.autoPlayDesc)}
           {row('loopPlayback', dp.loopPlayback, dp.loopPlaybackDesc)}
           {row('metronome', dp.metronome, dp.metronomeDesc)}
           {row('countIn', dp.countIn, dp.countInDesc)}
           {row('humanizeVelocity', dp.humanizeVelocity, dp.humanizeVelocityDesc)}
-        </div>
+        </Card>
 
         <SectionHeader icon="touch_app" title={dp.interaction} />
-        <div style={cardStyle}>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
           {row('showNoteVariations', dp.showVariations, dp.showVariationsDesc)}
           {row('highlightActiveInst', dp.highlightActive, dp.highlightActiveDesc)}
-        </div>
+        </Card>
 
         <SectionHeader icon="grid_on" title={dp.visual} />
-        <div style={cardStyle}>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
           {row('gridLinesEmphasis', dp.gridEmphasis, dp.gridEmphasisDesc)}
-        </div>
+        </Card>
 
         <SectionHeader icon="dashboard" title={dp.startOn} />
-        <div style={cardStyle}>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
           <SettingRow label={dp.startOn} desc={dp.startOnDesc}>
             {(() => {
               const cur = settings.defaultDrumTab ?? 'songs';
@@ -364,7 +365,7 @@ export default function DrumPrefsPanel() {
               );
             })()}
           </SettingRow>
-        </div>
+        </Card>
       </div>
     </div>
   );

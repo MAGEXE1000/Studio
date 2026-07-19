@@ -253,7 +253,7 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
             borderTopColor: 'transparent', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 16px',
           }} />
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--vx-text-2)' }}>{t.vocalex.processing}</p>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--vx-text-2)' }}>{t.vocalex.processing}</p>
         </div>
       )}
 
@@ -327,7 +327,7 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
                 <span
                   key={countdownNum}
                   style={{
-                    fontFamily: 'Manrope, sans-serif', fontSize: 64, fontWeight: 800,
+                    fontFamily: 'var(--font-headline)', fontSize: 64, fontWeight: 800,
                     color: '#fff', animation: 'countPop 0.6s ease-out forwards',
                   }}
                 >{countdownNum}</span>
@@ -354,20 +354,20 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
                   animation: 'recPulse 1.2s ease-in-out infinite',
                 }} />
                 <span style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600,
+                  fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600,
                   color: '#ef4444', letterSpacing: '0.1em', textTransform: 'uppercase',
                 }}>{t.vocalex.rec}</span>
               </div>
             )}
             <p style={{
-              fontFamily: 'Manrope, sans-serif', fontSize: 48, fontWeight: 800,
+              fontFamily: 'var(--font-headline)', fontSize: 48, fontWeight: 800,
               color: 'var(--vx-text)', margin: 0, letterSpacing: '-0.02em',
               fontVariantNumeric: 'tabular-nums',
             }}>
               {formatDuration(elapsed)}
             </p>
             <p style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-2)',
+              fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-2)',
               margin: '8px 0 0',
             }}>
               {state === 'countdown' ? t.vocalex.getReady :
@@ -387,7 +387,7 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
                 width: '100%', maxWidth: 300,
                 padding: '12px 16px', borderRadius: 12,
                 background: 'var(--vx-card-2)', border: '1px solid var(--vx-text-4)',
-                color: 'var(--vx-text)', fontFamily: 'Inter, sans-serif',
+                color: 'var(--vx-text)', fontFamily: 'var(--font-body)',
                 fontSize: 14, outline: 'none',
               }}
               onFocus={e => { e.target.style.borderColor = 'var(--studio-accent)'; }}
@@ -399,7 +399,7 @@ export default function RecordingView({ onComplete, onCancel }: { onComplete: (t
             <div style={{
               padding: '10px 16px', borderRadius: 12,
               background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-              color: '#ef4444', fontSize: 12, fontFamily: 'Inter, sans-serif',
+              color: '#ef4444', fontSize: 12, fontFamily: 'var(--font-body)',
               textAlign: 'center', maxWidth: 300, width: '100%',
             }}>
               {error}

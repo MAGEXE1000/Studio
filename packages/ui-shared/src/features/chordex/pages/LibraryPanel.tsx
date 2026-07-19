@@ -274,13 +274,13 @@ export default function LibraryPanel() {
         <div className="max-w-xl mx-auto space-y-6">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 mb-1" style={{ fontFamily: 'Manrope' }}>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 mb-1" style={{ fontFamily: 'var(--font-headline)' }}>
                 {t.chord.instruments[settings.instrument]}
               </p>
-              <h2 className="text-3xl font-extrabold tracking-tighter text-[var(--c-text-primary)]" style={{ fontFamily: 'Manrope' }}>
+              <h2 className="text-3xl font-extrabold tracking-tighter text-[var(--c-text-primary)]" style={{ fontFamily: 'var(--font-headline)' }}>
                 {chord.name}
               </h2>
-              <p className="text-xs text-[var(--c-text-secondary)] mt-1" style={{ fontFamily: 'Inter' }}>
+              <p className="text-xs text-[var(--c-text-secondary)] mt-1" style={{ fontFamily: 'var(--font-body)' }}>
                 {notesStr} ({typeStr})
               </p>
             </div>
@@ -304,7 +304,7 @@ export default function LibraryPanel() {
               <button
                 onClick={() => addToProgression(chord.id)}
                 className="h-10 px-4 rounded-full flex items-center justify-center gap-1.5 cursor-pointer transition-all border border-zinc-800 bg-zinc-950/40 text-zinc-300 text-xs font-bold uppercase tracking-wider"
-                style={{ fontFamily: 'Manrope' }}
+                style={{ fontFamily: 'var(--font-headline)' }}
               >
                 <span className="material-symbols-outlined text-sm">add</span>
                 Add
@@ -318,7 +318,7 @@ export default function LibraryPanel() {
 
           {settings.chordAssistant && settings.assistantSmartSuggestions && relatedChords.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-[9.5px] font-extrabold uppercase tracking-widest text-zinc-500" style={{ fontFamily: 'Inter' }}>
+              <h3 className="text-[9.5px] font-extrabold uppercase tracking-widest text-zinc-500" style={{ fontFamily: 'var(--font-body)' }}>
                 {t.chord.voicings}
               </h3>
               <div className="grid grid-cols-2 gap-3">
@@ -331,7 +331,7 @@ export default function LibraryPanel() {
                     <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}>
                       <RelatedPlayBtn guitar={related.guitar} accent={accent} isLight={isLight} />
                     </div>
-                    <span className="font-bold text-[var(--c-text-primary)] text-xs block mb-2" style={{ fontFamily: 'Manrope' }}>
+                    <span className="font-bold text-[var(--c-text-primary)] text-xs block mb-2" style={{ fontFamily: 'var(--font-headline)' }}>
                       {related.name}
                     </span>
                     <div className="bg-black/40 rounded-lg p-3">
@@ -353,8 +353,8 @@ export default function LibraryPanel() {
     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
       <header className="relative z-10 px-6 pt-12 pb-4 flex justify-between items-start">
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'Manrope', marginBottom: '2px' }}>Library</h1>
-          <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6 }}>Explore {allChords.length} Chords</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', marginBottom: '2px' }}>Library</h1>
+          <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6 }}>Explore {allChords.length} Chords</p>
         </div>
       </header>
 
@@ -363,7 +363,7 @@ export default function LibraryPanel() {
         <button
           onClick={() => setShowFinder(true)}
           className="flex-1 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center gap-2 text-zinc-100 text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
-          style={{ fontFamily: 'Manrope' }}
+          style={{ fontFamily: 'var(--font-headline)' }}
         >
           <span className="material-symbols-outlined text-primary text-base">add_circle</span>
           Chord Finder
@@ -371,7 +371,7 @@ export default function LibraryPanel() {
         <button
           onClick={() => setShowGenerator(true)}
           className="flex-1 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center gap-2 text-zinc-100 text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
-          style={{ fontFamily: 'Manrope' }}
+          style={{ fontFamily: 'var(--font-headline)' }}
         >
           <span className="material-symbols-outlined text-primary text-base">auto_awesome</span>
           Generator
@@ -439,10 +439,10 @@ export default function LibraryPanel() {
                   className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex flex-col justify-between h-[110px]"
                 >
                   <div>
-                    <span className="font-bold text-[var(--c-text-primary)] text-xs block" style={{ fontFamily: 'Manrope' }}>
+                    <span className="font-bold text-[var(--c-text-primary)] text-xs block" style={{ fontFamily: 'var(--font-headline)' }}>
                       {c.name}
                     </span>
-                    <span className="text-[10px] text-zinc-500 block mt-1" style={{ fontFamily: 'Inter' }}>
+                    <span className="text-[10px] text-zinc-500 block mt-1" style={{ fontFamily: 'var(--font-body)' }}>
                       {c.notes.join(' · ')}
                     </span>
                   </div>
@@ -476,10 +476,10 @@ export default function LibraryPanel() {
                 className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex flex-col justify-between h-[110px]"
               >
                 <div>
-                  <span className="font-bold text-[var(--c-text-primary)] text-xs block" style={{ fontFamily: 'Manrope' }}>
+                  <span className="font-bold text-[var(--c-text-primary)] text-xs block" style={{ fontFamily: 'var(--font-headline)' }}>
                     {c.name}
                   </span>
-                  <span className="text-[10px] text-zinc-500 block mt-1" style={{ fontFamily: 'Inter' }}>
+                  <span className="text-[10px] text-zinc-500 block mt-1" style={{ fontFamily: 'var(--font-body)' }}>
                     {c.notes.join(' · ')}
                   </span>
                 </div>
@@ -499,10 +499,10 @@ export default function LibraryPanel() {
               <div className="glass-surface rounded-3xl p-6 relative overflow-hidden border border-white/5 bg-gradient-to-br from-primary/5 to-transparent">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className="text-primary font-label-md text-[10px] uppercase tracking-[0.2em] mb-2 block" style={{ fontFamily: 'Manrope' }}>
+                    <span className="text-primary font-label-md text-[10px] uppercase tracking-[0.2em] mb-2 block" style={{ fontFamily: 'var(--font-headline)' }}>
                       Chord of the Day
                     </span>
-                    <h2 className="text-4xl font-display-lg text-on-surface" style={{ fontFamily: 'Manrope', fontWeight: 800 }}>
+                    <h2 className="text-4xl font-display-lg text-on-surface" style={{ fontFamily: 'var(--font-headline)', fontWeight: 800 }}>
                       {chordOfTheDay.name.split(' ')[0]} <span className="text-primary">{chordOfTheDay.name.split(' ').slice(1).join(' ')}</span>
                     </h2>
                   </div>
@@ -524,7 +524,7 @@ export default function LibraryPanel() {
                   <button
                     onClick={() => handleChordClick(chordOfTheDay.id)}
                     className="px-5 py-2.5 rounded-full bg-on-surface text-background font-label-md text-xs uppercase tracking-wider font-extrabold ml-auto"
-                    style={{ fontFamily: 'Manrope' }}
+                    style={{ fontFamily: 'var(--font-headline)' }}
                   >
                     Practice
                   </button>
@@ -537,7 +537,7 @@ export default function LibraryPanel() {
           {recentChords.length > 0 && (
             <section className="relative z-10 mb-10">
               <div className="px-6 mb-4 flex justify-between items-center">
-                <h2 className="font-title-md text-lg text-on-surface font-extrabold" style={{ fontFamily: 'Manrope' }}>Recently Practiced</h2>
+                <h2 className="font-title-md text-lg text-on-surface font-extrabold" style={{ fontFamily: 'var(--font-headline)' }}>Recently Practiced</h2>
               </div>
               <div className="flex overflow-x-auto no-scrollbar gap-4 px-6 snap-x pb-2">
                 {recentChords.slice(0, 4).map(rcId => {
@@ -553,10 +553,10 @@ export default function LibraryPanel() {
                         <div className="absolute top-2 right-2 opacity-20">
                           <span className="material-symbols-outlined text-[10px]">history</span>
                         </div>
-                        <span className="text-on-surface-variant text-[8px] uppercase tracking-widest mb-1" style={{ fontFamily: 'Manrope' }}>
+                        <span className="text-on-surface-variant text-[8px] uppercase tracking-widest mb-1" style={{ fontFamily: 'var(--font-headline)' }}>
                           {rc.name}
                         </span>
-                        <span className="text-4xl font-display-lg text-primary drop-shadow-[0_0_15px_rgba(173,198,255,0.3)]" style={{ fontFamily: 'Manrope', fontWeight: 800 }}>
+                        <span className="text-4xl font-display-lg text-primary drop-shadow-[0_0_15px_rgba(173,198,255,0.3)]" style={{ fontFamily: 'var(--font-headline)', fontWeight: 800 }}>
                           {rc.name.split(' ')[0]}
                         </span>
                       </div>
@@ -569,7 +569,7 @@ export default function LibraryPanel() {
 
           {/* Categories Grid */}
           <section className="relative z-10 px-6 mb-12">
-            <h2 className="font-title-md text-lg text-on-surface mb-6 font-extrabold" style={{ fontFamily: 'Manrope' }}>Categories</h2>
+            <h2 className="font-title-md text-lg text-on-surface mb-6 font-extrabold" style={{ fontFamily: 'var(--font-headline)' }}>Categories</h2>
             <div className="grid grid-cols-2 gap-3">
               {CATEGORIES.map(cat => {
                 return (
@@ -582,8 +582,8 @@ export default function LibraryPanel() {
                       <span className="material-symbols-outlined text-5xl text-primary transform rotate-12">{cat.icon || 'star'}</span>
                     </div>
                     <div>
-                      <h3 className="text-sm text-on-surface font-extrabold" style={{ fontFamily: 'Manrope', lineHeight: 1.1 }}>{cat.label}</h3>
-                      <p className="text-[10px] text-on-surface-variant opacity-60 mt-1" style={{ fontFamily: 'Inter' }}>{cat.variations}</p>
+                      <h3 className="text-sm text-on-surface font-extrabold" style={{ fontFamily: 'var(--font-headline)', lineHeight: 1.1 }}>{cat.label}</h3>
+                      <p className="text-[10px] text-on-surface-variant opacity-60 mt-1" style={{ fontFamily: 'var(--font-body)' }}>{cat.variations}</p>
                     </div>
                   </div>
                 );
@@ -619,7 +619,7 @@ export default function LibraryPanel() {
               >
                 <span className="material-symbols-outlined text-base">arrow_back</span>
               </button>
-              <span className="font-extrabold text-sm text-zinc-300" style={{ fontFamily: 'Manrope' }}>Back to Library</span>
+              <span className="font-extrabold text-sm text-zinc-300" style={{ fontFamily: 'var(--font-headline)' }}>Back to Library</span>
             </header>
             {renderChordDetail()}
           </div>

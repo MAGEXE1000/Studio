@@ -1197,7 +1197,7 @@ function PaperPreview({ preset, cfg, accent, transposeOffset = 0, storedCustomCh
         : '0 32px 80px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08)',
       padding: compact ? '18px 16px' : '22px 18px',
       color: text,
-      fontFamily: 'Manrope, sans-serif',
+      fontFamily: 'var(--font-headline)',
       display: 'flex',
       flexDirection: 'column',
       width: '100%',
@@ -1413,7 +1413,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
         return (
           <button key={opt.value} onClick={() => onChange(opt.value)} className="btn-smooth"
             style={{
-              flex: 1, padding: '6px 10px', borderRadius: '7px', fontFamily: 'Manrope',
+              flex: 1, padding: '6px 10px', borderRadius: '7px', fontFamily: 'var(--font-headline)',
               fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap',
               background: active ? 'var(--app-surface-highest)' : 'transparent',
               color: active ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
@@ -1434,8 +1434,8 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
       padding: '14px 16px', background: 'var(--app-surface-high)', borderRadius: '14px',
     }}>
       <div>
-        <p style={{ fontFamily: 'Manrope', fontWeight: 600, fontSize: '14px', color: 'var(--c-text-primary)' }}>{label}</p>
-        {sub && <p style={{ fontFamily: 'Inter', fontSize: '11px', color: 'var(--c-text-secondary)', marginTop: '1px' }}>{sub}</p>}
+        <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 600, fontSize: '14px', color: 'var(--c-text-primary)' }}>{label}</p>
+        {sub && <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--c-text-secondary)', marginTop: '1px' }}>{sub}</p>}
       </div>
       {right}
     </div>
@@ -1465,11 +1465,11 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
               style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', flexShrink: 0 }}>
               <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '22px' }}>arrow_back</span>
             </button>
-            <p style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#e7e5e4', lineHeight: 1 }}>
+            <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '14px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#e7e5e4', lineHeight: 1 }}>
               Vista previa
             </p>
           </div>
-          <span style={{ fontFamily: 'Inter', fontSize: '10px', fontWeight: 700, color: '#484848', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '6px', border: '1px solid rgba(72,72,72,0.3)' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, color: '#484848', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '6px', border: '1px solid rgba(72,72,72,0.3)' }}>
             PDF
           </span>
         </div>
@@ -1492,11 +1492,11 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
             <PaperPreview preset={preset} cfg={cfg} accent={accent} transposeOffset={transposeOffset} storedCustomChords={storedCustomChords} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginTop: '14px' }}>
-            <span style={{ fontFamily: 'Inter', fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
               Página 1 de 1
             </span>
             <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#3a3a3a', display: 'inline-block' }} />
-            <span style={{ fontFamily: 'Inter', fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3a3a3a' }}>
               {totalChordCount} {totalChordCount === 1 ? 'acorde' : 'acordes'}
             </span>
           </div>
@@ -1504,7 +1504,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
 
         {/* File name + notes */}
         <div style={{ padding: '28px 20px 8px' }}>
-          <p style={{ fontFamily: 'Inter', fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#484848', marginBottom: '10px' }}>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#484848', marginBottom: '10px' }}>
             File Name
           </p>
           <input
@@ -1517,7 +1517,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
               width: '100%', padding: '13px 16px', borderRadius: '12px',
               background: '#191a1a',
               border: '1px solid rgba(72,72,72,0.25)',
-              color: '#e7e5e4', fontFamily: 'Manrope', fontWeight: 600, fontSize: '15px',
+              color: '#e7e5e4', fontFamily: 'var(--font-headline)', fontWeight: 600, fontSize: '15px',
               outline: 'none', boxSizing: 'border-box',
               transition: 'border-color 200ms ease',
               marginBottom: '16px',
@@ -1533,7 +1533,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
                 const active = (cfg.paperSize ?? 'a4') === v;
                 return (
                   <button key={v} onClick={() => update('paperSize', v)} className="btn-smooth"
-                    style={{ padding: '5px 11px', borderRadius: '6px', fontFamily: 'Inter', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase',
+                    style={{ padding: '5px 11px', borderRadius: '6px', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase',
                       background: active ? accent.from : 'transparent',
                       color: active ? '#fff' : '#6e6e80',
                       transition: 'all 160ms ease' }}>
@@ -1549,7 +1549,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
                 const active = cfg.orientation === v;
                 return (
                   <button key={v} onClick={() => update('orientation', v)} className="btn-smooth"
-                    style={{ padding: '5px 11px', borderRadius: '6px', fontFamily: 'Inter', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em',
+                    style={{ padding: '5px 11px', borderRadius: '6px', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em',
                       background: active ? accent.from : 'transparent',
                       color: active ? '#fff' : '#6e6e80',
                       transition: 'all 160ms ease' }}>
@@ -1565,7 +1565,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
                 const active = (cfg.exportStyle ?? 'elegant') === v;
                 return (
                   <button key={v} onClick={() => update('exportStyle', v as ExportConfig['exportStyle'])} className="btn-smooth"
-                    style={{ padding: '5px 11px', borderRadius: '6px', fontFamily: 'Inter', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em',
+                    style={{ padding: '5px 11px', borderRadius: '6px', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em',
                       background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
                       color: active ? '#e7e5e4' : '#6e6e80',
                       transition: 'all 160ms ease' }}>
@@ -1577,7 +1577,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
 
             {/* Dark theme chip */}
             <button onClick={() => update('theme', cfg.theme === 'dark' ? 'light' : 'dark')} className="btn-smooth"
-              style={{ padding: '5px 12px', borderRadius: '8px', fontFamily: 'Inter', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px',
+              style={{ padding: '5px 12px', borderRadius: '8px', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px',
                 background: cfg.theme === 'dark' ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.04)',
                 color: cfg.theme === 'dark' ? '#e7e5e4' : '#6e6e80',
                 border: cfg.theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.04)',
@@ -1588,7 +1588,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
 
             {/* Diagrams chip */}
             <button onClick={() => update('chordDisplay', cfg.chordDisplay !== 'name' ? 'name' : 'both')} className="btn-smooth"
-              style={{ padding: '5px 12px', borderRadius: '8px', fontFamily: 'Inter', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px',
+              style={{ padding: '5px 12px', borderRadius: '8px', fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px',
                 background: cfg.chordDisplay !== 'name' ? `${accent.from}20` : 'rgba(255,255,255,0.04)',
                 color: cfg.chordDisplay !== 'name' ? accent.from : '#6e6e80',
                 border: cfg.chordDisplay !== 'name' ? `1px solid ${accent.from}2e` : '1px solid rgba(255,255,255,0.04)',
@@ -1605,7 +1605,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
             display: 'flex', gap: '10px', alignItems: 'flex-start',
           }}>
             <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '15px', flexShrink: 0, marginTop: '1px', fontVariationSettings: "'FILL' 1" }}>info</span>
-            <p style={{ fontFamily: 'Inter', fontSize: '12px', color: '#6e6e80', lineHeight: 1.55, margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#6e6e80', lineHeight: 1.55, margin: 0 }}>
               {t.songs.pdfExportNote}
             </p>
           </div>
@@ -1625,7 +1625,7 @@ function ExportModal({ preset, accent, onClose, transposeOffset = 0, storedCusto
         {/* Export button */}
         <div style={{ padding: '6px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))', display: 'flex', gap: '10px', position: 'relative' }}>
           {saveResult && (
-            <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px', fontFamily: 'Manrope', fontWeight: 700, fontSize: '12px',
+            <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '12px',
               color: saveResult === 'ok' ? '#34d399' : '#f87171' }}>
               {saveResult === 'ok' && (
                 <SuccessLottie size={20} isLight={false} style={{ flexShrink: 0 }} />
@@ -1785,13 +1785,13 @@ function JsonExportSheet({ preset, accent, onClose }: {
       title="Export JSON"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <p style={{ fontFamily: 'Inter', fontSize: '13px', color: 'var(--c-text-secondary)', margin: 0 }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--c-text-secondary)', margin: 0 }}>
           Exporting: <strong>{preset.name}</strong>
         </p>
 
         {saveResult && (
           <div style={{
-            textAlign: 'center', fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px',
+            textAlign: 'center', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '13px',
             color: saveResult === 'ok' ? '#34d399' : '#f87171',
           }}>
             {saveResult === 'ok' ? 'Saved to Downloads!' : 'Could not save — try Share instead'}
@@ -1983,13 +1983,13 @@ function ImportSongModal({ accent, existingPresets, onImport, onClose }: {
         style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--app-surface-high)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <span className="material-symbols-outlined" style={{ color: 'var(--c-text-primary)', fontSize: '20px' }}>close</span>
       </button>
-      <p style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: '18px', color: 'var(--c-text-primary)' }}>{title}</p>
+      <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '18px', color: 'var(--c-text-primary)' }}>{title}</p>
     </div>
   );
 
   /* ── Pill badge ── */
   const Pill = ({ label, color }: { label: string; color: string }) => (
-    <span style={{ padding: '3px 10px', borderRadius: '9999px', background: `${color}18`, color, fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', border: `1px solid ${color}33` }}>{label}</span>
+    <span style={{ padding: '3px 10px', borderRadius: '9999px', background: `${color}18`, color, fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', border: `1px solid ${color}33` }}>{label}</span>
   );
 
   const getTitle = () => {
@@ -2464,22 +2464,22 @@ const PresetCard = React.memo(function PresetCard({
           <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '24px', fontVariationSettings: "'FILL' 1" }}>queue_music</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{preset.name}</p>
-          {preset.artist && <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '12px', marginTop: '2px' }}>{preset.artist}</p>}
+          <p style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{preset.name}</p>
+          {preset.artist && <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '12px', marginTop: '2px' }}>{preset.artist}</p>}
           <div style={{ display: 'flex', gap: '6px', marginTop: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
             {preset.key && (
-              <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-primary)', background: 'var(--app-surface-high)', padding: '2px 8px 2px 7px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
-                <span style={{ fontFamily: 'Manrope', fontWeight: 900, fontSize: '11px', lineHeight: 1, color: 'var(--c-text-secondary)' }}>#</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-headline)', fontWeight: 700, color: 'var(--c-text-primary)', background: 'var(--app-surface-high)', padding: '2px 8px 2px 7px', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'var(--font-headline)', fontWeight: 900, fontSize: '11px', lineHeight: 1, color: 'var(--c-text-secondary)' }}>#</span>
                 {preset.key}
               </span>
             )}
             {preset.bpm > 0 && (
-              <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-headline)', fontWeight: 700, color: 'var(--c-text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '11px', lineHeight: 1 }}>speed</span>
                 {preset.bpm} BPM
               </span>
             )}
-            <span style={{ fontSize: '10px', fontFamily: 'Manrope', fontWeight: 700, color: 'var(--c-text-muted)' }}>{t.songs.chordsLabel(preset.chords.length)}</span>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-headline)', fontWeight: 700, color: 'var(--c-text-muted)' }}>{t.songs.chordsLabel(preset.chords.length)}</span>
           </div>
         </div>
         <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: '20px', flexShrink: 0 }}>chevron_right</span>
@@ -2490,7 +2490,7 @@ const PresetCard = React.memo(function PresetCard({
         <button
           onClick={handleLiveClick}
           className="btn-smooth"
-          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: accent.from, fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: accent.from, fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}
           data-testid={`live-${preset.id}`}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>play_circle</span>
           Live
@@ -2499,21 +2499,21 @@ const PresetCard = React.memo(function PresetCard({
           onClick={handlePdfClick}
           className="btn-smooth"
           data-testid={`pdf-${preset.id}`}
-          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#9d9da6', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#9d9da6', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>picture_as_pdf</span>
           PDF
         </button>
         <button
           onClick={handleEditClick}
           className="btn-smooth"
-          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', borderRight: '1px solid rgba(72,72,72,0.07)', whiteSpace: 'nowrap' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>edit</span>
           Edit
         </button>
         <button
           onClick={handleDeleteClick}
           className="btn-smooth"
-          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#ee7d77', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap' }}>
+          style={{ flex: 1, padding: '9px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', color: '#ee7d77', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>delete</span>
           Delete
         </button>
@@ -3053,8 +3053,8 @@ export default function SongsPanel() {
               </button>
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h2 style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 950, fontSize: isWebDesktop ? '18px' : '22px', letterSpacing: '-0.02em', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activePreset.name}</h2>
-              {activePreset.artist && <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '12px', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activePreset.artist}</p>}
+              <h2 style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 950, fontSize: isWebDesktop ? '18px' : '22px', letterSpacing: '-0.02em', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activePreset.name}</h2>
+              {activePreset.artist && <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '12px', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activePreset.artist}</p>}
             </div>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
               {/* Live Mode pill */}
@@ -3065,7 +3065,7 @@ export default function SongsPanel() {
                   <button onClick={() => setShowLive(true)} data-testid="enter-live-mode" className="btn-smooth"
                     style={{ height: '34px', padding: '0 11px 0 9px', borderRadius: '9999px', background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, boxShadow: `0 2px 12px ${accent.to}55`, display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: '16px' }}>play_circle</span>
-                    <span style={{ color: '#fff', fontFamily: 'Manrope', fontWeight: 800, fontSize: '11px', letterSpacing: '0.02em' }}>{t.songs.liveMode}</span>
+                    <span style={{ color: '#fff', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '11px', letterSpacing: '0.02em' }}>{t.songs.liveMode}</span>
                   </button>
                 ) : null;
               })()}
@@ -3097,8 +3097,8 @@ export default function SongsPanel() {
             {/* Left: key badge + BPM badge */}
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {activePreset.key && (
-                <span style={{ padding: '3px 10px 3px 8px', background: 'var(--app-surface-high)', color: 'var(--c-text-primary)', borderRadius: '9999px', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', border: '1px solid rgba(72,72,72,0.18)', display: 'inline-flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
-                  <span style={{ fontFamily: 'Manrope', fontWeight: 900, fontSize: '12px', lineHeight: 1, color: 'var(--c-text-secondary)' }}>#</span>
+                <span style={{ padding: '3px 10px 3px 8px', background: 'var(--app-surface-high)', color: 'var(--c-text-primary)', borderRadius: '9999px', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', border: '1px solid rgba(72,72,72,0.18)', display: 'inline-flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontFamily: 'var(--font-headline)', fontWeight: 900, fontSize: '12px', lineHeight: 1, color: 'var(--c-text-secondary)' }}>#</span>
                   {transposeOffset === 0 ? activePreset.key : (
                     <>
                       <span style={{ opacity: 0.4, textDecoration: 'line-through', fontSize: '10px' }}>{activePreset.key}</span>
@@ -3108,7 +3108,7 @@ export default function SongsPanel() {
                 </span>
               )}
               {activePreset.bpm > 0 && (
-                <span style={{ padding: '3px 10px', background: 'var(--app-surface-high)', color: 'var(--c-text-secondary)', borderRadius: '9999px', fontFamily: 'Manrope', fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap' }}>
+                <span style={{ padding: '3px 10px', background: 'var(--app-surface-high)', color: 'var(--c-text-secondary)', borderRadius: '9999px', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '11px', whiteSpace: 'nowrap' }}>
                   {activePreset.bpm} BPM
                 </span>
               )}
@@ -3124,7 +3124,7 @@ export default function SongsPanel() {
               )}
               <button onClick={() => updateSettings({ preferFlats: !preferFlats })} className="btn-smooth"
                 title={preferFlats ? t.songs.usingFlats : t.songs.usingSharps}
-                style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'var(--app-surface-high)', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'var(--app-surface-high)', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {preferFlats ? 'â™­' : 'â™¯'}
               </button>
               <button onClick={() => setTranspose(activePreset.id, transposeOffset - 1)} className="btn-smooth" data-testid="transpose-down"
@@ -3132,7 +3132,7 @@ export default function SongsPanel() {
                 style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--app-surface-high)', color: transposeOffset > -11 ? 'var(--c-text-primary)' : 'var(--c-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: transposeOffset <= -11 ? 0.4 : 1 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>remove</span>
               </button>
-              <div style={{ width: '30px', textAlign: 'center', fontFamily: 'Manrope', fontWeight: 900, fontSize: '12px', color: transposeOffset !== 0 ? accent.from : 'var(--c-text-muted)', transition: 'color 250ms ease', flexShrink: 0 }}>
+              <div style={{ width: '30px', textAlign: 'center', fontFamily: 'var(--font-headline)', fontWeight: 900, fontSize: '12px', color: transposeOffset !== 0 ? accent.from : 'var(--c-text-muted)', transition: 'color 250ms ease', flexShrink: 0 }}>
                 {formatOffset(transposeOffset)}
               </div>
               <button onClick={() => setTranspose(activePreset.id, transposeOffset + 1)} className="btn-smooth" data-testid="transpose-up"
@@ -3187,9 +3187,9 @@ export default function SongsPanel() {
                           onChange={e => setEditingSectionName(e.target.value)}
                           onBlur={() => { if (editingSectionName.trim()) updateSection(activePreset.id, section.id, editingSectionName.trim()); setEditingSectionId(null); }}
                           onKeyDown={e => { if (e.key === 'Enter') { if (editingSectionName.trim()) updateSection(activePreset.id, section.id, editingSectionName.trim()); setEditingSectionId(null); } if (e.key === 'Escape') setEditingSectionId(null); }}
-                          style={{ flex: 1, background: 'var(--app-surface)', border: `1px solid ${accent.from}44`, borderRadius: '8px', padding: '5px 10px', color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px', outline: 'none' }} />
+                          style={{ flex: 1, background: 'var(--app-surface)', border: `1px solid ${accent.from}44`, borderRadius: '8px', padding: '5px 10px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '13px', outline: 'none' }} />
                       ) : (
-                        <p style={{ flex: 1, color: accent.from, fontFamily: 'Manrope', fontWeight: 800, fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase', borderLeft: `3px solid ${accent.from}`, paddingLeft: '8px' }}>{section.name}</p>
+                        <p style={{ flex: 1, color: accent.from, fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase', borderLeft: `3px solid ${accent.from}`, paddingLeft: '8px' }}>{section.name}</p>
                       )}
                       {!isEditing && (<>
                         <button onClick={() => { setEditingSectionId(section.id); setEditingSectionName(section.name); }} className="btn-smooth"
@@ -3204,7 +3204,7 @@ export default function SongsPanel() {
                     </div>
                     {/* Chords in section */}
                     {section.chords.length === 0 && (
-                      <p style={{ color: 'var(--c-text-muted)', fontFamily: 'Inter', fontSize: '12px', padding: '4px 12px 8px' }}>{t.songs.noSectionChords}</p>
+                      <p style={{ color: 'var(--c-text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', padding: '4px 12px 8px' }}>{t.songs.noSectionChords}</p>
                     )}
                     {(() => {
                       const sChords = (secChordDragKey === section.id ? (localSections.find(s => s.id === section.id)?.chords ?? section.chords) : section.chords);
@@ -3258,7 +3258,7 @@ export default function SongsPanel() {
                                 <div style={{ background: 'var(--app-surface-lowest)', borderRadius: '8px', padding: '3px 3px 1px', width: '52px', flexShrink: 0 }}>
                                   {isCustom && customChord ? <CustomMiniDiagram chord={customChord} accentFrom={accent.from} /> : <ChordDiagram data={chord!.guitar} accentFrom={accent.from} />}
                                 </div>
-                                <p style={{ flex: 1, color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '15px' }}>
+                                <p style={{ flex: 1, color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '15px' }}>
                                   {isCustom ? (customChord?.name || t.songs.customChord) : chord!.name.replace(/\s/g, '')}
                                 </p>
                                 <button onClick={() => duplicateChordInSection(activePreset.id, section.id, idx)} className="btn-smooth"
@@ -3285,7 +3285,7 @@ export default function SongsPanel() {
           {localChords.length === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: '12px' }}>
               <MusicNotesLottie size={52} />
-              <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '14px' }}>{t.songs.noChords}</p>
+              <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '14px' }}>{t.songs.noChords}</p>
             </div>
           )}
           {/* During drag: absolute-positioned items with CSS `top` transitions for siblings */}
@@ -3362,7 +3362,7 @@ export default function SongsPanel() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <p style={{ color: 'var(--c-text-primary)', fontFamily: 'Manrope', fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>
+                      <p style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '17px', lineHeight: 1 }}>
                         {isCustom ? (customChord?.name || t.songs.customChord) : chord!.name.replace(/\s/g, '')}
                       </p>
                       {settings.chordAssistant && settings.assistantConflictDetection && !isCustom && activePreset.key && isChordOutOfKey(chordId, activePreset.key) && (
@@ -3380,19 +3380,19 @@ export default function SongsPanel() {
                           display: 'inline-block', marginTop: '4px',
                           padding: '1px 7px', borderRadius: '9999px',
                           background: `${c}1a`, border: `1px solid ${c}44`,
-                          color: c, fontFamily: 'Inter', fontWeight: 800,
+                          color: c, fontFamily: 'var(--font-body)', fontWeight: 800,
                           fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em',
                         }}>
                           {instr}
                         </span>
                       );
                     })() : (
-                      <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '10px', marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '10px', marginTop: '3px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                         {chord!.type}
                       </p>
                     )}
                   </div>
-                  <span style={{ color: 'var(--c-text-muted)', fontFamily: 'Manrope', fontWeight: 900, fontSize: '12px', flexShrink: 0 }}>#{i + 1}</span>
+                  <span style={{ color: 'var(--c-text-muted)', fontFamily: 'var(--font-headline)', fontWeight: 900, fontSize: '12px', flexShrink: 0 }}>#{i + 1}</span>
                   {isCustom && customChord && (
                     <button onClick={() => { setEditCustomId(customChord.id); setShowCustomBuilder(true); }} className="btn-smooth"
                       title={t.songs.editCustomChord}
@@ -3423,7 +3423,7 @@ export default function SongsPanel() {
           <button
             onClick={() => { setCustomSectionName(''); setCustomSectionMode(false); setShowSectionPicker(true); }}
             data-testid="add-section-btn" className="btn-smooth"
-            style={{ flex: 1, padding: '10px 12px', borderRadius: '9999px', background: 'rgba(72,72,72,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            style={{ flex: 1, padding: '10px 12px', borderRadius: '9999px', background: 'rgba(72,72,72,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>segment</span>
             {t.songs.addSection}
           </button>
@@ -3436,7 +3436,7 @@ export default function SongsPanel() {
               setShowPicker(true);
             }
           }} data-testid="add-chord-btn" className="btn-smooth"
-            style={{ flex: 1, padding: '10px 12px', borderRadius: '9999px', background: 'rgba(72,72,72,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            style={{ flex: 1, padding: '10px 12px', borderRadius: '9999px', background: 'rgba(72,72,72,0.35)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.07)', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>library_music</span>
             {t.songs.addChord}
           </button>
@@ -3704,7 +3704,7 @@ export default function SongsPanel() {
 
       <header className="flex-none px-6 pt-12 pb-4 flex justify-between items-center bg-transparent">
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>Songs</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>Songs</h2>
         </div>
       </header>
 
@@ -3727,7 +3727,7 @@ export default function SongsPanel() {
         {filteredPresets.length === 0 && (
           <div className="flex flex-col items-center justify-center text-center py-12">
             <span className="material-symbols-outlined text-6xl text-on-surface-variant opacity-20 mb-6">library_music</span>
-            <h3 className="font-headline-lg-mobile text-2xl font-extrabold text-on-surface mb-2" style={{ fontFamily: 'Manrope' }}>No songs yet</h3>
+            <h3 className="font-headline-lg-mobile text-2xl font-extrabold text-on-surface mb-2" style={{ fontFamily: 'var(--font-headline)' }}>No songs yet</h3>
             <p className="text-zinc-500 font-inter text-sm">Tap the '+' button to create your first progression</p>
           </div>
         )}

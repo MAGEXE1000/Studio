@@ -89,7 +89,7 @@ export default function GroovexLibrary() {
             title={t.groovex.libraryTitle}
             subtitle={t.groovex.sessionsAvailable(SONG_CATALOG.length)}
             titleStyle={{ fontSize: isWebDesktop ? 26 : 32, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 4px', color: 'var(--c-text-primary)' }}
-            subtitleStyle={{ fontSize: 10, color: 'var(--c-text-muted)', fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, fontWeight: 700 }}
+            subtitleStyle={{ fontSize: 10, color: 'var(--c-text-muted)', fontFamily: 'var(--font-body)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, fontWeight: 700 }}
           />
         </section>
 
@@ -112,7 +112,7 @@ export default function GroovexLibrary() {
                 border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 8,
                 padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6,
-                color: 'var(--c-text-primary)', cursor: 'pointer', fontFamily: 'Inter',
+                color: 'var(--c-text-primary)', cursor: 'pointer', fontFamily: 'var(--font-body)',
                 fontSize: 11, fontWeight: 700, letterSpacing: '0.02em',
               }}
             >
@@ -128,7 +128,7 @@ export default function GroovexLibrary() {
                 borderRadius: 8,
                 padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6,
                 color: (filterArtist || filterGenre) ? '#3b82f6' : 'var(--c-text-primary)',
-                cursor: 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em',
+                cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700, letterSpacing: '0.02em',
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>tune</span>
@@ -141,7 +141,7 @@ export default function GroovexLibrary() {
                 style={{
                   background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8,
                   padding: '8px 14px', color: '#f87171', cursor: 'pointer',
-                  fontFamily: 'Inter', fontSize: 11, fontWeight: 700,
+                  fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700,
                 }}
               >
                 {t.groovex.clear}
@@ -186,7 +186,7 @@ export default function GroovexLibrary() {
           {grouped.map(([group, songs]) => (
             <div key={group || 'all'}>
               {group && (
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 8px 4px', fontFamily: 'Inter' }}>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 8px 4px', fontFamily: 'var(--font-body)' }}>
                   {group} <span style={{ opacity: 0.5 }}>({songs.length})</span>
                 </p>
               )}
@@ -249,7 +249,7 @@ function SongRow({ song, onOpen, isLight }: { song: SongMeta; onOpen: () => void
           <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {song.title}
           </p>
-          <p style={{ fontSize: 11, color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'Inter' }}>
+          <p style={{ fontSize: 11, color: 'var(--c-text-secondary)', margin: '2px 0 0', fontFamily: 'var(--font-body)' }}>
             {song.artist}
           </p>
         </div>
@@ -262,7 +262,7 @@ function SongRow({ song, onOpen, isLight }: { song: SongMeta; onOpen: () => void
               background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
               borderRadius: 4,
               border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.06)',
-              fontSize: 8, fontFamily: 'Inter', color: isLight ? 'var(--c-text-secondary)' : '#a1a1aa', fontWeight: 700,
+              fontSize: 8, fontFamily: 'var(--font-body)', color: isLight ? 'var(--c-text-secondary)' : '#a1a1aa', fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.05em',
             }}>
               {s.name.slice(0, 3)}
@@ -274,7 +274,7 @@ function SongRow({ song, onOpen, isLight }: { song: SongMeta; onOpen: () => void
               background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
               borderRadius: 4,
               border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.06)',
-              fontSize: 8, fontFamily: 'Inter', color: isLight ? 'var(--c-text-secondary)' : '#a1a1aa', fontWeight: 700,
+              fontSize: 8, fontFamily: 'var(--font-body)', color: isLight ? 'var(--c-text-secondary)' : '#a1a1aa', fontWeight: 700,
             }}>
               +{song.stems.length - 3}
             </span>
@@ -297,7 +297,7 @@ function FilterChip({ label, active, onClick, isLight }: { label: string; active
         color: active ? '#3b82f6' : (isLight ? 'var(--c-text-secondary)' : '#a1a1aa'),
         border: active ? '1px solid rgba(37,99,235,0.4)' : (isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.06)'),
         cursor: 'pointer', fontSize: 11, fontWeight: 700,
-        fontFamily: 'Inter', letterSpacing: '0.02em',
+        fontFamily: 'var(--font-body)', letterSpacing: '0.02em',
         transition: 'all 120ms ease',
       }}
     >

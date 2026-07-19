@@ -173,7 +173,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
             cursor: 'pointer', color: 'var(--studio-accent)',
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '7px 14px', borderRadius: 9999,
-            fontFamily: 'Manrope, sans-serif', fontSize: 13, fontWeight: 700,
+            fontFamily: 'var(--font-headline)', fontSize: 13, fontWeight: 700,
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}>graphic_eq</span>
@@ -184,7 +184,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
             color: '#ef4444', display: 'flex', alignItems: 'center', gap: 4,
-            fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600,
+            fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600,
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
@@ -236,13 +236,13 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
       {/* Take info */}
       <div style={{ marginBottom: 20 }}>
         <h2 style={{
-          fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 22,
+          fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 22,
           color: 'var(--vx-text)', margin: '0 0 4px', lineHeight: 1.2,
           wordBreak: 'break-word',
         }}>{take.name}</h2>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--vx-text-2)',
+          fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--vx-text-2)',
         }}>
           <span>{formatDateI18n(take.createdAt, t.vocalex)}</span>
           <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--vx-text-4)' }} />
@@ -275,7 +275,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
           </button>
           <div>
             <p style={{
-              fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 14,
+              fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 14,
               color: playing ? 'var(--studio-accent)' : 'var(--vx-text-2)', margin: 0,
               transition: 'color 200ms ease',
             }}>
@@ -316,7 +316,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
         <div style={{
           display: 'flex', justifyContent: 'space-between',
           padding: '6px 2px 0',
-          fontFamily: 'Inter, sans-serif', fontSize: 11,
+          fontFamily: 'var(--font-body)', fontSize: 11,
           fontWeight: 700, color: 'var(--vx-text-2)', fontVariantNumeric: 'tabular-nums',
         }}>
           <span>{formatDuration(currentTimeSec * 1000)}</span>
@@ -329,7 +329,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--studio-accent)' }}>insights</span>
           <h3 style={{
-            fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 18,
+            fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 18,
             color: 'var(--vx-text)', margin: 0,
           }}>{t.vocalex.vocalAnalysis}</h3>
         </div>
@@ -344,7 +344,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
               borderTopColor: 'transparent', borderRadius: '50%',
               animation: 'spin 0.8s linear infinite', margin: '0 auto 12px',
             }} />
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-2)', margin: 0 }}>{t.vocalex.analyzing}</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-2)', margin: 0 }}>{t.vocalex.analyzing}</p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         ) : analysis ? (
@@ -364,7 +364,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
                 marginBottom: 16, height: 100, position: 'relative', overflow: 'hidden',
               }}>
                 <p style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
+                  fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
                   color: 'var(--vx-text-2)', letterSpacing: '0.12em', textTransform: 'uppercase',
                   margin: '0 0 8px', position: 'relative', zIndex: 1,
                 }}>{t.vocalex.pitchTimeline}</p>
@@ -411,19 +411,19 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
                     }}>{insight.icon}</span>
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{
-                        fontFamily: 'Manrope, sans-serif', fontWeight: 700, fontSize: 14,
+                        fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 14,
                         color: 'var(--vx-text)',
                       }}>{insight.title}</span>
                       {insight.value && (
                         <span style={{
-                          fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 14,
+                          fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 14,
                           color: insight.color,
                         }}>{insight.value}</span>
                       )}
                     </div>
                   </div>
                   <p style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: 12.5,
+                    fontFamily: 'var(--font-body)', fontSize: 12.5,
                     color: 'var(--vx-text-2)', margin: 0, lineHeight: 1.6,
                   }}>{insight.detail}</p>
                 </div>
@@ -434,7 +434,7 @@ export default function TakeDetailView({ take, onBack, onDelete, onSaveBounce }:
           <div style={{
             padding: 24, textAlign: 'center', background: 'var(--vx-card-2)', borderRadius: 14,
           }}>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--vx-text-2)', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-2)', margin: 0 }}>
               {t.vocalex.analysisError}
             </p>
           </div>
@@ -447,12 +447,12 @@ function StatCard({ label, value, color }: { label: string; value: string; color
   return (
     <div style={{ background: 'var(--vx-card-2)', borderRadius: 12, padding: '14px 16px' }}>
       <p style={{
-        fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
+        fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
         color: 'var(--vx-text-2)', letterSpacing: '0.12em', textTransform: 'uppercase',
         margin: '0 0 4px',
       }}>{label}</p>
       <p style={{
-        fontFamily: 'Manrope, sans-serif', fontSize: 20, fontWeight: 700,
+        fontFamily: 'var(--font-headline)', fontSize: 20, fontWeight: 700,
         color: color ?? 'var(--vx-text)', margin: 0,
       }}>{value}</p>
     </div>

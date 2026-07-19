@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.5"
-$VersionCode = "40105"
-$ReleaseNote = "4.1.5 - Optimized main thread blocking: debounced localStorage lifecycle logs, deferred SW/Cache clearing, deferred tolgee.run initialization, and deferred watchdog attempts writes, resolving all blocking stutters"
+$VersionName = "4.1.6"
+$VersionCode = "40106"
+$ReleaseNote = "4.1.6 - Chordex app modernization, redesigned library and songs experiences, implemented exact Ink Toggle theme switch animation."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

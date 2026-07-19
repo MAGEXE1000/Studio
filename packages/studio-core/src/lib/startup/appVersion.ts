@@ -62,10 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Refined the Shared Bottom Navigation into a translucent Liquid Glass capsule bar.",
-      "Implemented a continuous morphing App Switcher showing active sub-apps inside the navigation bar.",
-      "Relocated the Ink Theme Switcher globally inside Settings -> Appearance.",
-      "Restored the complete 31 chord categories catalog to the redesigned Chordex Library view with balanced density.",
+      "Upgraded the Shared Bottom Navigation and App Switcher with gesture-driven interactive scrubbing.",
+      "Animated dynamic capsule stretching based on horizontal swipe velocity.",
+      "Removed application logo headers from all sub-apps on mobile layout to reflow content areas upward.",
+      "Integrated the viewport-cropped Ink Toggle droplet reveal animation globally in Appearance settings.",
+      "Custom-tailored unique motion language logo transitions for Chordex, Drumex, Stagex, Groovex, and Vocalex.",
     ],
   },
 ];
@@ -75,11 +76,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Deferred search index parsing by 350ms to unblock initial morph animations for 60 FPS transitions.",
-      "Designed a reusable ActionButton system supporting micro-interactions, ripples, spring physics, and loading/success states.",
-      "Integrated the visibility morph transition FAB button inside the Stagex editor.",
-      "Replaced multiple raw copy buttons in the Emergency Debug Overlay with interactive copy-action buttons.",
-      "Optimized progressive blur dropdown backdrop to preserve text legibility and center background blur behind card surfaces only.",
+      "Upgraded the Shared Bottom Navigation and App Switcher with gesture-driven interactive scrubbing.",
+      "Animated dynamic capsule stretching based on horizontal swipe velocity.",
+      "Removed application logo headers from all sub-apps on mobile layout to reflow content areas upward.",
+      "Integrated the viewport-cropped Ink Toggle droplet reveal animation globally in Appearance settings.",
+      "Custom-tailored unique motion language logo transitions for Chordex, Drumex, Stagex, Groovex, and Vocalex.",
     ],
   },
 ];
@@ -90,11 +91,11 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Indexación diferida de la búsqueda por 350 ms para lograr animaciones iniciales fluidas a 60 FPS.",
-      "Diseño de un sistema reusable ActionButton compatible con microinteracciones y respuestas táctiles.",
-      "Integración del botón FAB con morphing de visibilidad en el editor Stagex.",
-      "Reemplazo de los botones de copia en la pantalla de depuración por ActionButtons interactivos.",
-      "Difuminado progresivo ajustado y restringido únicamente al fondo de la tarjeta para legibilidad perfecta.",
+      "Navegación inferior interactiva con arrastre fluido y micro-interacciones de cápsula de vidrio.",
+      "Estiramiento elástico de cápsula según velocidad horizontal para feedback físico natural.",
+      "Eliminación de cabeceras redundantes en móviles para Chordex, Drumex, Groovex, Stagex y Vocalex.",
+      "Transición Ink Toggle mejorada con capturas recortadas para evitar distorsiones en pantallas largas.",
+      "Transiciones de carga personalizadas y animaciones específicas para cada sub-aplicación.",
     ],
   },
 ];

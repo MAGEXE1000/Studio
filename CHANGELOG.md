@@ -12,6 +12,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.1.8
+
+### Added
+- Upgraded the Shared Bottom Navigation and App Switcher with gesture-driven interactive scrubbing.
+- Animated dynamic capsule stretching based on horizontal swipe velocity.
+- Removed application logo headers from all sub-apps on mobile layout to reflow content areas upward.
+- Integrated the viewport-cropped Ink Toggle droplet reveal animation globally in Appearance settings.
+- Custom-tailored unique motion language logo transitions for Chordex, Drumex, Stagex, Groovex, and Vocalex.
+
 ## 4.1.7
 
 ### Added

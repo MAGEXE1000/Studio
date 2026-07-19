@@ -90,7 +90,7 @@ export default function GroovexApp() {
 
       {!isWebDesktop && (
         <header style={{
-          display: 'flex', alignItems: 'center',
+          display: view === 'player' ? 'flex' : 'none', alignItems: 'center',
           padding: '24px 24px 4px', flexShrink: 0,
           background: 'var(--gx-bg)',
         }}>
@@ -117,7 +117,6 @@ export default function GroovexApp() {
               <span className="material-symbols-outlined" style={{ color: 'var(--c-text-primary)', fontSize: 18 }}>arrow_back</span>
             </button>
           </div>
-          <AppModeMenuLogo />
         </header>
       )}
 

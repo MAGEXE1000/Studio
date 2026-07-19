@@ -272,18 +272,7 @@ export default function VocalexApp() {
       '--panel-exit-dur': `${Math.round(durMs * 0.65)}ms`,
     } as React.CSSProperties}>
       
-      {!isWebDesktop && (
-        <header className="flex-none px-6 pt-6 pb-1 spring-in" style={{ display: 'flex', alignItems: 'center' }}>
-          <h1 style={{
-            fontSize: '14px', fontWeight: 700,
-            color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em',
-            display: 'flex', alignItems: 'center', gap: '7px',
-            margin: 0,
-          }}>
-            <AppModeMenuLogo />
-          </h1>
-        </header>
-      )}
+
 
       <div 
         style={{ 

@@ -31,7 +31,7 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine } from '@workspace/ui-shared';
+import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine, InkThemeOverlay, html2canvas } from '@workspace/ui-shared';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -1036,9 +1036,47 @@ export default function App() {
   const [appPreloaded, setAppPreloaded] = useState(false);
   const [splashFullyOpaque, setSplashFullyOpaque] = useState(false);
   const isInitialMount = useRef(true);
+  const [themeOverlay, setThemeOverlay] = useState<any>(null);
 
   useEffect(() => {
     isInitialMount.current = false;
+
+    (window as any).__triggerThemeTransition = async (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
+      try {
+        const startX = x ?? window.innerWidth / 2;
+        const startY = y ?? window.innerHeight / 2;
+
+        const screenshot = await html2canvas(document.body, {
+          useCORS: true,
+          logging: false,
+          backgroundColor: nextTheme === 'light' ? '#f4f4f5' : '#000000',
+          scale: window.devicePixelRatio || 1,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: window.innerWidth,
+          windowHeight: window.innerHeight,
+        });
+
+        flushSync(() => {
+          setThemeOverlay({
+            screenshot,
+            startX,
+            startY,
+          });
+        });
+
+        updateFn();
+      } catch (err) {
+        console.error('Failed to trigger Ink theme transition:', err);
+        updateFn();
+      }
+    };
+
+    return () => {
+      delete (window as any).__triggerThemeTransition;
+    };
   }, []);
 
   useEffect(() => {
@@ -2322,10 +2360,10 @@ export default function App() {
                 <motion.div
                   key={stableKey}
                   className="sc-subapp-wrapper"
-                  initial={{ opacity: 0, scale: 0.98 }}
+                  initial={{ opacity: 1, scale: 1 }}
                   animate={{ 
-                    opacity: splashVisible ? 0 : 1, 
-                    scale: splashVisible ? 0.98 : 1 
+                    opacity: 1, 
+                    scale: 1 
                   }}
                   exit={{ opacity: 0, scale: 0.98, pointerEvents: 'none' as any }}
                   transition={{
@@ -2352,68 +2390,19 @@ export default function App() {
             </AnimatePresence>
 
             <AnimatePresence>
-              {splashVisible && launchingApp && (
-                <motion.div
-                  key="launch-splash"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    zIndex: 99999,
-                    backgroundColor: 'var(--c-background)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Inter, sans-serif',
-                    color: 'var(--c-text-primary)',
-                    pointerEvents: 'auto',
+              {launchingApp && (
+                <ApplicationTransitionEngine
+                  appKey={launchingApp}
+                  preloaded={appPreloaded}
+                  onComplete={() => {
+                    setSplashVisible(false);
+                    setTimeout(() => {
+                      setLaunchingApp(null);
+                    }, 50);
                   }}
-                >
-                  <motion.div
-                    initial={{ scale: 0.96, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 1.02, opacity: 0 }}
-                    transition={{
-                      duration: 0.35,
-                      ease: [0.16, 1, 0.3, 1]
-                    }}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <div
-                      style={{
-                        marginBottom: '24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: getAppColor(launchingApp),
-                      }}
-                    >
-                      {renderAppLogo(launchingApp, 80)}
-                    </div>
-                    <h1
-                      style={{
-                        fontSize: '28px',
-                        fontWeight: 900,
-                        letterSpacing: '-0.03em',
-                        margin: 0,
-                        background: `linear-gradient(135deg, var(--c-text-primary) 0%, ${getAppColor(launchingApp)} 100%)`,
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      }}
-                    >
-                      {getAppName(launchingApp)}
-                    </h1>
-                  </motion.div>
-                </motion.div>
+                  isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+                  isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
+                />
               )}
             </AnimatePresence>
           </TolgeeProvider>
@@ -2429,6 +2418,15 @@ export default function App() {
           onComplete={() => setShowLaunchOverlay(false)}
           isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
           isAmoled={settings.perApp?.hub?.amoledMode}
+        />
+      )}
+
+      {themeOverlay && (
+        <InkThemeOverlay
+          screenshotCanvas={themeOverlay.screenshot}
+          startX={themeOverlay.startX}
+          startY={themeOverlay.startY}
+          onComplete={() => setThemeOverlay(null)}
         />
       )}
     </div>

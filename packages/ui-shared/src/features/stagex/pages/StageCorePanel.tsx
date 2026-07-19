@@ -1,4 +1,4 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
@@ -1065,10 +1065,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               if(t&&t.closest&&t.closest('#bottom-toolbar,#properties-panel'))return;
               var y=t.scrollTop;
               if(typeof y!=='number')return;
-              if(y<30){window.parent.postMessage({type:'sc-scroll-dir',down:false},'*');ly=y;return;}
+              if(y<30){window.parent.postMessage({type:'sc-scroll-reset'},'*');ly=y;return;}
               var dy=y-ly;
               if(Math.abs(dy)<6)return;
-              window.parent.postMessage({type:'sc-scroll-dir',down:dy>0},'*');
+              window.parent.postMessage({type:'sc-scroll-delta',dy:dy},'*');
               ly=y;
             }
             document.addEventListener('scroll',h,{passive:true,capture:true});
@@ -1160,7 +1160,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       }
 
       if (e.data?.type === 'sc-dial-state') setFabOpen(!!e.data.open);
-      if (e.data?.type === 'sc-scroll-dir') setNavCollapsed(!!e.data.down);
+      if (e.data?.type === 'sc-scroll-delta') {
+        const dy = e.data.dy;
+        setNavScrollOffset(getNavScrollOffset() + dy / 64);
+      }
+      if (e.data?.type === 'sc-scroll-reset') {
+        setNavScrollOffset(0);
+      }
       if (e.data?.type === 'sc-prop-state') setPropPanelOpen(e.data.state === 'open' || e.data.state === 'peek');
       if (e.data?.type === 'sc-live-mode') setLiveMode(!!e.data.on);
     };
@@ -1962,7 +1968,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
       <div className="spring-in" style={{
         flexShrink: 0,
-        display: 'flex',
+        display: (isWebDesktop || showBack) ? 'flex' : 'none',
         alignItems: 'center',
         padding: '24px 24px 4px',
         background: stageHdr,
@@ -2012,10 +2018,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             </span>
           </button>
         </div>
-
-        {!isWebDesktop && (
-          <AppModeMenuLogo color={isLight ? 'rgba(0,0,0,0.80)' : 'rgba(255,255,255,0.90)'} size={13} />
-        )}
 
         <div style={{ flex: 1 }} />
 

@@ -97,6 +97,10 @@ export function useNavCollapsed(): boolean {
 let _scrollOffset = 0;
 const _scrollOffsetListeners = new Set<(o: number) => void>();
 
+export function getNavScrollOffset(): number {
+  return _scrollOffset;
+}
+
 export function setNavScrollOffset(offset: number) {
   if (_locked) return;
   const clamped = Math.max(0, Math.min(1, offset));

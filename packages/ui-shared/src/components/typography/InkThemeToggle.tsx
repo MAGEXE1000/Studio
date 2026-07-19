@@ -24,36 +24,50 @@ export default function InkThemeToggle({ className, style }: { className?: strin
     if (isTransitioningRef.current || !buttonRef.current) return;
     isTransitioningRef.current = true;
 
-    try {
-      const btn = buttonRef.current;
-      const rect = btn.getBoundingClientRect();
-      const startX = rect.left + rect.width / 2;
-      const startY = rect.top + rect.height / 2;
+    const btn = buttonRef.current;
+    const rect = btn.getBoundingClientRect();
+    const startX = rect.left + rect.width / 2;
+    const startY = rect.top + rect.height / 2;
+    const nextTheme = isLight ? 'dark' : 'light';
 
-      // 1. Take snapshot of document body
-      const screenshot = await html2canvas(document.body, {
-        useCORS: true,
-        logging: false,
-        backgroundColor: isLight ? '#f4f4f5' : '#000000',
-        scale: 1, // Keep snapshot memory usage light and sharp
+    if (typeof (window as any).__triggerThemeTransition === 'function') {
+      (window as any).__triggerThemeTransition(nextTheme, false, startX, startY, () => {
+        updateSettings({
+          theme: nextTheme,
+          amoledMode: false,
+        });
+        isTransitioningRef.current = false;
       });
+    } else {
+      try {
+        // 1. Take snapshot of document body
+        const screenshot = await html2canvas(document.body, {
+          useCORS: true,
+          logging: false,
+          backgroundColor: isLight ? '#f4f4f5' : '#000000',
+          scale: 1, // Keep snapshot memory usage light and sharp
+        });
 
-      // 2. Set overlay screenshot to block visually
-      setOverlayData({
-        screenshot,
-        startX,
-        startY,
-      });
+        // 2. Set overlay screenshot to block visually
+        setOverlayData({
+          screenshot,
+          startX,
+          startY,
+        });
 
-      // 3. Switch application theme underneath synchronously
-      const nextTheme = isLight ? 'dark' : 'light';
-      updateSettings({
-        theme: nextTheme,
-        amoledMode: false,
-      });
-    } catch (err) {
-      console.error('Failed to trigger Ink theme transition:', err);
-      isTransitioningRef.current = false;
+        // 3. Switch application theme underneath synchronously
+        updateSettings({
+          theme: nextTheme,
+          amoledMode: false,
+        });
+      } catch (err) {
+        console.error('Failed to trigger Ink theme transition:', err);
+        updateSettings({
+          theme: nextTheme,
+          amoledMode: false,
+        });
+        isTransitioningRef.current = false;
+      }
     }
   }, [isLight, updateSettings]);
 

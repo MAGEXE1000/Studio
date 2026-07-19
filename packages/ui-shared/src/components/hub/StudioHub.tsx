@@ -4398,11 +4398,38 @@ User Agent: [Automatically Generated]
               <motion.button
                 key={tOpt.id}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  if (tOpt.id === 'system') requestChange({ theme: 'system', amoledMode: false });
-                  else if (tOpt.id === 'light') requestChange({ theme: 'light', amoledMode: false });
-                  else if (tOpt.id === 'dark') requestChange({ theme: 'dark', amoledMode: false });
-                  else if (tOpt.id === 'amoled') requestChange({ theme: 'dark', amoledMode: true });
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = rect.left + rect.width / 2;
+                  const y = rect.top + rect.height / 2;
+
+                  const targetTheme = tOpt.id === 'system' ? 'system' : (tOpt.id === 'light' ? 'light' : 'dark');
+                  const targetAmoled = tOpt.id === 'amoled';
+
+                  const currentTheme = settings.theme ?? 'dark';
+                  const nextIsLight = tOpt.id === 'light' || (tOpt.id === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+                  const currentIsLight = currentTheme === 'light' || (currentTheme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+
+                  if (!isThemeActive) {
+                    if (typeof (window as any).__triggerThemeTransition === 'function') {
+                      (window as any).__triggerThemeTransition(nextIsLight ? 'light' : 'dark', targetAmoled, x, y, () => {
+                        if (tOpt.id === 'system') requestChange({ theme: 'system', amoledMode: false });
+                        else if (tOpt.id === 'light') requestChange({ theme: 'light', amoledMode: false });
+                        else if (tOpt.id === 'dark') requestChange({ theme: 'dark', amoledMode: false });
+                        else if (tOpt.id === 'amoled') requestChange({ theme: 'dark', amoledMode: true });
+                      });
+                    } else {
+                      if (tOpt.id === 'system') requestChange({ theme: 'system', amoledMode: false });
+                      else if (tOpt.id === 'light') requestChange({ theme: 'light', amoledMode: false });
+                      else if (tOpt.id === 'dark') requestChange({ theme: 'dark', amoledMode: false });
+                      else if (tOpt.id === 'amoled') requestChange({ theme: 'dark', amoledMode: true });
+                    }
+                  } else {
+                    if (tOpt.id === 'system') requestChange({ theme: 'system', amoledMode: false });
+                    else if (tOpt.id === 'light') requestChange({ theme: 'light', amoledMode: false });
+                    else if (tOpt.id === 'dark') requestChange({ theme: 'dark', amoledMode: false });
+                    else if (tOpt.id === 'amoled') requestChange({ theme: 'dark', amoledMode: true });
+                  }
                 }}
                 style={{
                   position: 'relative',

@@ -661,13 +661,7 @@ export default function ChordPanel() {
           }
         ` }} />
         
-        {!isWebDesktop && (
-          <header className="flex-none px-6 pt-6 pb-1 app-bg m3-animate-fade-up" style={{ animationDelay: '0ms' }}>
-            <h1 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <AppModeMenuLogo />
-            </h1>
-          </header>
-        )}
+
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
           <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -1010,13 +1004,7 @@ export default function ChordPanel() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden app-bg">
-      {!isWebDesktop && (
-        <header className="flex-none px-6 pt-6 pb-1 app-bg spring-in">
-          <h1 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <AppModeMenuLogo />
-          </h1>
-        </header>
-      )}
+
 
       {/* Scrollable content */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32 spring-in" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>

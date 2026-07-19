@@ -176,13 +176,7 @@ export default function SettingsPanel() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden app-bg">
-      {!isWebDesktop && (
-        <header className="flex-none px-6 pb-1 app-bg spring-in" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
-          <h1 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-text-secondary)', fontFamily: 'Manrope', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <AppModeMenuLogo />
-          </h1>
-        </header>
-      )}
+
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-5" style={{ paddingBottom: 'var(--content-bottom-pad)', paddingTop: isWebDesktop ? '20px' : '0' }}>
         {/* Page title */}

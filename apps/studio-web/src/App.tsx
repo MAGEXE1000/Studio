@@ -1,5 +1,4 @@
-import { type AppKey } from '@workspace/studio-core';
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -14,7 +13,8 @@ import {
   NavigationDispatcher,
   useNavigationStore,
   type ActivePanel,
-  navDiagnosticsRegistry
+  navDiagnosticsRegistry,
+  type AppKey
 } from '@workspace/studio-core';
 
 import {
@@ -41,7 +41,10 @@ import {
   StageCorePanel,
   ErrorBoundary,
   SharedNavigationContainer,
-  ScreenScaffold
+  ScreenScaffold,
+  ApplicationTransitionEngine,
+  InkThemeOverlay,
+  html2canvas
 } from '@workspace/ui-shared';
 
 import {
@@ -75,6 +78,31 @@ type AccountState =
 const NAV_ORDER = ['songs', 'library', 'settings'] as const;
 const ALL_PANELS = ['library', 'songs', 'settings'] as const;
 
+const AppReadyNotifier = memo(function AppReadyNotifier({
+  app,
+  onReady
+}: {
+  app: AppKey;
+  onReady: (app: AppKey) => void;
+}) {
+  useEffect(() => {
+    let active = true;
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (active) {
+          onReady(app);
+        }
+      });
+    });
+    return () => {
+      active = false;
+      cancelAnimationFrame(rafId);
+    };
+  }, [app, onReady]);
+
+  return null;
+});
+
 export default function App() {
   const activePanel = useNavigationStore(s => {
     const last = s.history[s.history.length - 1];
@@ -85,6 +113,86 @@ export default function App() {
   };
   const { settings, activePresetId, updateSettings } = useChordStore();
   const { preferences } = useStudioPreferences();
+
+  const [launchingApp, setLaunchingApp] = useState<AppKey | null>(null);
+  const [splashVisible, setSplashVisible] = useState(false);
+  const [appPreloaded, setAppPreloaded] = useState(false);
+  const [themeOverlay, setThemeOverlay] = useState<any>(null);
+  const previousAppModeRef = useRef<AppKey>('hub');
+
+  // Global theme transition listener
+  useEffect(() => {
+    (window as any).__triggerThemeTransition = async (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
+      try {
+        const startX = x ?? window.innerWidth / 2;
+        const startY = y ?? window.innerHeight / 2;
+
+        const screenshot = await html2canvas(document.body, {
+          useCORS: true,
+          logging: false,
+          backgroundColor: nextTheme === 'light' ? '#f4f4f5' : '#000000',
+          scale: window.devicePixelRatio || 1,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: window.innerWidth,
+          windowHeight: window.innerHeight,
+        });
+
+        flushSync(() => {
+          setThemeOverlay({
+            screenshot,
+            startX,
+            startY,
+          });
+        });
+
+        updateFn();
+      } catch (err) {
+        console.error('Failed to trigger Ink theme transition:', err);
+        updateFn();
+      }
+    };
+
+    return () => {
+      delete (window as any).__triggerThemeTransition;
+    };
+  }, []);
+
+  // Launch transition hook
+  useEffect(() => {
+    let cleanup: (() => void) | undefined = undefined;
+    const appMode = settings.appMode || 'hub';
+
+    if (appMode !== 'hub') {
+      const targetApp = appMode as AppKey;
+      if (launchingApp === targetApp) return;
+
+      setLaunchingApp(targetApp);
+      setSplashVisible(true);
+      setAppPreloaded(false);
+
+      const safetyTimer = setTimeout(() => {
+        setSplashVisible(false);
+        setLaunchingApp(null);
+      }, 4000);
+
+      cleanup = () => clearTimeout(safetyTimer);
+    } else {
+      setLaunchingApp(null);
+      setSplashVisible(false);
+      setAppPreloaded(false);
+    }
+
+    previousAppModeRef.current = appMode;
+    return cleanup;
+  }, [settings.appMode, launchingApp]);
+
+  const handleAppPreloaded = useCallback((app: AppKey) => {
+    if (useChordStore.getState().settings.appMode !== app) return;
+    setAppPreloaded(true);
+  }, []);
 
   const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
 
@@ -468,7 +576,7 @@ export default function App() {
             {isSubAppActive && (
               <motion.div
                 key={stableKey}
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 style={{
@@ -476,13 +584,16 @@ export default function App() {
                   inset: 0,
                   zIndex: 2,
                   background: 'var(--app-bg)',
-                  pointerEvents: isSubAppActive ? 'auto' : 'none',
+                  pointerEvents: isSubAppActive && !splashVisible ? 'auto' : 'none',
                 }}
               >
                 {stableKey === 'groovex' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Groovex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<GroovexAppSkeleton />} />}><AppEntryTransition><GroovexApp /></AppEntryTransition></Suspense>
+                      <Suspense fallback={<SmartLoading fallbackSkeleton={<GroovexAppSkeleton />} />}>
+                        <AppReadyNotifier app="groovex" onReady={handleAppPreloaded} />
+                        <AppEntryTransition><GroovexApp /></AppEntryTransition>
+                      </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
@@ -490,7 +601,10 @@ export default function App() {
                 {stableKey === 'vocalex' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Vocalex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<VocalexTakesSkeleton />} />}><AppEntryTransition><VocalexApp /></AppEntryTransition></Suspense>
+                      <Suspense fallback={<SmartLoading fallbackSkeleton={<VocalexTakesSkeleton />} />}>
+                        <AppReadyNotifier app="vocalex" onReady={handleAppPreloaded} />
+                        <AppEntryTransition><VocalexApp /></AppEntryTransition>
+                      </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
@@ -498,20 +612,29 @@ export default function App() {
                 {stableKey === 'stage' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
                     <ErrorBoundary moduleName="Stagex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<StagexPanelSkeleton />} />}><AppEntryTransition><StageCorePanel /></AppEntryTransition></Suspense>
+                      <Suspense fallback={<SmartLoading fallbackSkeleton={<StagexPanelSkeleton />} />}>
+                        <AppReadyNotifier app="stage" onReady={handleAppPreloaded} />
+                        <AppEntryTransition><StageCorePanel /></AppEntryTransition>
+                      </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
 
                 {stableKey === 'drums' && (
                   <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-                    <ErrorBoundary moduleName="Drumex"><Suspense fallback={<SmartLoading fallbackSkeleton={<DrumEditorSkeleton />} />}><AppEntryTransition><DrumEditor /></AppEntryTransition></Suspense></ErrorBoundary>
+                    <ErrorBoundary moduleName="Drumex">
+                      <Suspense fallback={<SmartLoading fallbackSkeleton={<DrumEditorSkeleton />} />}>
+                        <AppReadyNotifier app="drums" onReady={handleAppPreloaded} />
+                        <AppEntryTransition><DrumEditor /></AppEntryTransition>
+                      </Suspense>
+                    </ErrorBoundary>
                   </div>
                 )}
 
                 {stableKey === 'chords' && (
                   <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
                     <ScreenScaffold safeAreaTop={!isWebDesktop} safeAreaBottom={false} className="app-bg">
+                      <AppReadyNotifier app="chords" onReady={handleAppPreloaded} />
                       <AppEntryTransition
                         className="flex flex-col w-full overflow-hidden select-none"
                         style={{
@@ -564,6 +687,32 @@ export default function App() {
           </AnimatePresence>
         </SidebarInset>
       </div>
+
+      <AnimatePresence>
+        {launchingApp && (
+          <ApplicationTransitionEngine
+            appKey={launchingApp}
+            preloaded={appPreloaded}
+            onComplete={() => {
+              setSplashVisible(false);
+              setTimeout(() => {
+                setLaunchingApp(null);
+              }, 50);
+            }}
+            isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+            isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
+          />
+        )}
+      </AnimatePresence>
+
+      {themeOverlay && (
+        <InkThemeOverlay
+          screenshotCanvas={themeOverlay.screenshot}
+          startX={themeOverlay.startX}
+          startY={themeOverlay.startY}
+          onComplete={() => setThemeOverlay(null)}
+        />
+      )}
     </SidebarProvider>
   );
 }

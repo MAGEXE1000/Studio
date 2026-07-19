@@ -14,7 +14,9 @@ import {
   useNavigationStore,
   type ActivePanel,
   navDiagnosticsRegistry,
-  type AppKey
+  type AppKey,
+  useApplicationTransitionStore,
+  ThemeTransitionEngine
 } from '@workspace/studio-core';
 
 import {
@@ -42,9 +44,7 @@ import {
   ErrorBoundary,
   SharedNavigationContainer,
   ScreenScaffold,
-  ApplicationTransitionEngine,
-  InkThemeOverlay,
-  html2canvas
+  ApplicationTransitionEngine
 } from '@workspace/ui-shared';
 
 import {
@@ -114,45 +114,27 @@ export default function App() {
   const { settings, activePresetId, updateSettings } = useChordStore();
   const { preferences } = useStudioPreferences();
 
-  const [launchingApp, setLaunchingApp] = useState<AppKey | null>(null);
-  const [splashVisible, setSplashVisible] = useState(false);
-  const [appPreloaded, setAppPreloaded] = useState(false);
-  const [themeOverlay, setThemeOverlay] = useState<any>(null);
-  const previousAppModeRef = useRef<AppKey>('hub');
+  const {
+    state: transitionState,
+    launchingApp,
+    appPreloaded,
+    requestTransition,
+    setAppPreloaded
+  } = useApplicationTransitionStore();
+
+  const splashVisible = transitionState !== 'IDLE';
+  const previousAppModeRef = useRef<AppKey>(settings.appMode || 'hub');
 
   // Global theme transition listener
   useEffect(() => {
-    (window as any).__triggerThemeTransition = async (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
-      try {
-        const startX = x ?? window.innerWidth / 2;
-        const startY = y ?? window.innerHeight / 2;
-
-        const screenshot = await html2canvas(document.body, {
-          useCORS: true,
-          logging: false,
-          backgroundColor: nextTheme === 'light' ? '#f4f4f5' : '#000000',
-          scale: window.devicePixelRatio || 1,
-          width: window.innerWidth,
-          height: window.innerHeight,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: window.innerWidth,
-          windowHeight: window.innerHeight,
-        });
-
-        flushSync(() => {
-          setThemeOverlay({
-            screenshot,
-            startX,
-            startY,
-          });
-        });
-
-        updateFn();
-      } catch (err) {
-        console.error('Failed to trigger Ink theme transition:', err);
-        updateFn();
-      }
+    (window as any).__triggerThemeTransition = (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
+      ThemeTransitionEngine.startTransition({
+        nextTheme,
+        amoled,
+        startX: x,
+        startY: y,
+        updateFn,
+      });
     };
 
     return () => {
@@ -160,39 +142,25 @@ export default function App() {
     };
   }, []);
 
-  // Launch transition hook
+  // Launch transition hook using global useApplicationTransitionStore state machine
   useEffect(() => {
-    let cleanup: (() => void) | undefined = undefined;
     const appMode = settings.appMode || 'hub';
-
-    if (appMode !== 'hub') {
-      const targetApp = appMode as AppKey;
-      if (launchingApp === targetApp) return;
-
-      setLaunchingApp(targetApp);
-      setSplashVisible(true);
-      setAppPreloaded(false);
-
-      const safetyTimer = setTimeout(() => {
-        setSplashVisible(false);
-        setLaunchingApp(null);
-      }, 4000);
-
-      cleanup = () => clearTimeout(safetyTimer);
-    } else {
-      setLaunchingApp(null);
-      setSplashVisible(false);
-      setAppPreloaded(false);
+    if (appMode !== previousAppModeRef.current) {
+      const ok = requestTransition(appMode);
+      if (ok) {
+        previousAppModeRef.current = appMode;
+        if (appMode === 'hub') {
+          // Hub is root app and always preloaded
+          setAppPreloaded(true);
+        }
+      }
     }
-
-    previousAppModeRef.current = appMode;
-    return cleanup;
-  }, [settings.appMode, launchingApp]);
+  }, [settings.appMode, requestTransition, setAppPreloaded]);
 
   const handleAppPreloaded = useCallback((app: AppKey) => {
     if (useChordStore.getState().settings.appMode !== app) return;
     setAppPreloaded(true);
-  }, []);
+  }, [setAppPreloaded]);
 
   const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
 
@@ -693,26 +661,12 @@ export default function App() {
           <ApplicationTransitionEngine
             appKey={launchingApp}
             preloaded={appPreloaded}
-            onComplete={() => {
-              setSplashVisible(false);
-              setTimeout(() => {
-                setLaunchingApp(null);
-              }, 50);
-            }}
+            onComplete={() => {}}
             isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
             isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
           />
         )}
       </AnimatePresence>
-
-      {themeOverlay && (
-        <InkThemeOverlay
-          screenshotCanvas={themeOverlay.screenshot}
-          startX={themeOverlay.startX}
-          startY={themeOverlay.startY}
-          onComplete={() => setThemeOverlay(null)}
-        />
-      )}
     </SidebarProvider>
   );
 }

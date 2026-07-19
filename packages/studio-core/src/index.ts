@@ -83,3 +83,7 @@ export * from './lib/updater/updateHistory';
 export * from './lib/nativePlatform';
 export * from './lib/utilities/visualEffects';
 export * from './lib/navigation/searchIndex';
+export * from './lib/navigation/useApplicationTransitionStore';
+export * from './lib/themeTransitionEngine';
+
+

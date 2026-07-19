@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.8"
-$VersionCode = "40108"
-$ReleaseNote = "4.1.8 - Complete navigation gesture scrubbing, remove sub-app headers, customize portal transition animations, and fix global theme droplet transitions."
+$VersionName = "4.1.9"
+$VersionCode = "40109"
+$ReleaseNote = "4.1.9 - Hardened transition engine singleton state machine, clamping bottom nav indicator capsule, dynamic theme pre-painting, Vocalex monitor OFF by default."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

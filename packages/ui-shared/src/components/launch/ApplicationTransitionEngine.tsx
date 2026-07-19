@@ -10,6 +10,8 @@ interface TransitionEngineProps {
   isAmoled?: boolean;
 }
 
+import { useApplicationTransitionStore } from '@workspace/studio-core';
+
 export function ApplicationTransitionEngine({
   appKey,
   preloaded,
@@ -17,23 +19,19 @@ export function ApplicationTransitionEngine({
   isLight = false,
   isAmoled = false,
 }: TransitionEngineProps) {
-  const [iconFormed, setIconFormed] = useState(false);
-  const [startZoom, setStartZoom] = useState(false);
+  const state = useApplicationTransitionStore(s => s.state);
+  const setLogoFormed = useApplicationTransitionStore(s => s.setLogoFormed);
+  const completeTransition = useApplicationTransitionStore(s => s.completeTransition);
 
-  // Icon formation takes exactly 700ms
+  // Icon formation takes exactly 750ms
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIconFormed(true);
+      setLogoFormed(true);
     }, 750);
     return () => clearTimeout(timer);
-  }, []);
+  }, [setLogoFormed]);
 
-  // Once icon is formed AND the target app is preloaded, trigger the zoom!
-  useEffect(() => {
-    if (iconFormed && preloaded) {
-      setStartZoom(true);
-    }
-  }, [iconFormed, preloaded]);
+  const startZoom = state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
 
   const bgColor = isAmoled
     ? '#000000'
@@ -502,6 +500,21 @@ export function ApplicationTransitionEngine({
           </svg>
         );
 
+      case 'hub':
+        return (
+          <svg viewBox="0 0 512 512" fill="none" style={svgStyle}>
+            <motion.path
+              d="M 72 256 C 128 60 192 60 256 256 S 384 452 440 256"
+              stroke={accentColor}
+              strokeWidth="24"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.65, ease: 'easeInOut' }}
+            />
+          </svg>
+        );
+
       default:
         return null;
     }
@@ -514,7 +527,8 @@ export function ApplicationTransitionEngine({
       transition={{ duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
       onAnimationComplete={() => {
         if (startZoom) {
-          onComplete();
+          completeTransition();
+          if (onComplete) onComplete();
         }
       }}
       style={{

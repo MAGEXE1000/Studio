@@ -39,6 +39,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   const smoothedFreqRef = useRef<number>(0);
   const activeRef = useRef<boolean>(panelActive);
   const startingRef = useRef<boolean>(false);
+  const wasListeningBeforeBackground = useRef<boolean>(false);
 
   const detectLoop = useCallback(() => {
     const analyser = analyserRef.current;
@@ -157,12 +158,10 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
 
   useEffect(() => {
     activeRef.current = panelActive;
-    if (panelActive) {
-      startListening();
-    } else {
+    if (!panelActive) {
       stopListening();
     }
-  }, [panelActive, startListening, stopListening]);
+  }, [panelActive, stopListening]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -172,9 +171,10 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       appStateListener = App.addListener('appStateChange', ({ isActive }) => {
         console.log(`[PitchPanel] App state changed. isActive: ${isActive}`);
         if (!isActive) {
+          wasListeningBeforeBackground.current = !!audioCtxRef.current;
           stopListening();
         } else {
-          if (activeRef.current) {
+          if (activeRef.current && wasListeningBeforeBackground.current) {
             startListening();
           }
         }

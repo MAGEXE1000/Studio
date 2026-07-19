@@ -23,7 +23,9 @@ import {
   useNavigationStore,
   NavigationDispatcher,
   type ActivePanel,
-  navDiagnosticsRegistry
+  navDiagnosticsRegistry,
+  useApplicationTransitionStore,
+  ThemeTransitionEngine
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -31,7 +33,7 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine, InkThemeOverlay, html2canvas } from '@workspace/ui-shared';
+import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine } from '@workspace/ui-shared';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -1030,48 +1032,27 @@ export default function App() {
 
   const transitionActive = useNavigationStore(s => s.isTransitioning);
 
-  // App launch transition state machine
-  const [launchingApp, setLaunchingApp] = useState<AppKey | null>(null);
-  const [splashVisible, setSplashVisible] = useState(false);
-  const [appPreloaded, setAppPreloaded] = useState(false);
-  const [splashFullyOpaque, setSplashFullyOpaque] = useState(false);
-  const isInitialMount = useRef(true);
-  const [themeOverlay, setThemeOverlay] = useState<any>(null);
+  // App launch transition state machine using global useApplicationTransitionStore
+  const {
+    state: transitionState,
+    launchingApp,
+    appPreloaded,
+    requestTransition,
+    setAppPreloaded
+  } = useApplicationTransitionStore();
+
+  const splashVisible = transitionState !== 'IDLE';
+  const transitionPreviousAppModeRef = useRef<AppKey>(settings.appMode || 'hub');
 
   useEffect(() => {
-    isInitialMount.current = false;
-
-    (window as any).__triggerThemeTransition = async (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
-      try {
-        const startX = x ?? window.innerWidth / 2;
-        const startY = y ?? window.innerHeight / 2;
-
-        const screenshot = await html2canvas(document.body, {
-          useCORS: true,
-          logging: false,
-          backgroundColor: nextTheme === 'light' ? '#f4f4f5' : '#000000',
-          scale: window.devicePixelRatio || 1,
-          width: window.innerWidth,
-          height: window.innerHeight,
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: window.innerWidth,
-          windowHeight: window.innerHeight,
-        });
-
-        flushSync(() => {
-          setThemeOverlay({
-            screenshot,
-            startX,
-            startY,
-          });
-        });
-
-        updateFn();
-      } catch (err) {
-        console.error('Failed to trigger Ink theme transition:', err);
-        updateFn();
-      }
+    (window as any).__triggerThemeTransition = (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
+      ThemeTransitionEngine.startTransition({
+        nextTheme,
+        amoled,
+        startX: x,
+        startY: y,
+        updateFn,
+      });
     };
 
     return () => {
@@ -1079,61 +1060,10 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if ((window as any).__startupAnimationFreezes) {
-      (window as any).__startupAnimationFreezes.forEach((f: any) => {
-        addLog('warn', 'perf', `Pre-mount startup planets animation freeze: at ${f.t}ms, duration ${f.dt}ms`);
-      });
-      delete (window as any).__startupAnimationFreezes;
-    }
-  }, []);
-
-  const launchStartTimeRef = useRef<number>(0);
-  const launchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longTasksRef = useRef<number[]>([]);
-  const observerRef = useRef<PerformanceObserver | null>(null);
-
   const handleAppPreloaded = useCallback((app: AppKey) => {
     if (useChordStore.getState().settings.appMode !== app) return;
-
     setAppPreloaded(true);
-    if (typeof window !== 'undefined') {
-      (window as any).studioTransitionActive = false;
-    }
-
-    const elapsed = Date.now() - launchStartTimeRef.current;
-    const minDuration = 100 * speedScale; // Snappy visual confirmation delay scaled by speed preferences
-    const remainingTime = Math.max(0, minDuration - elapsed);
-
-    console.log(`[Launch] App ${app} loaded in ${elapsed}ms. Remaining splash time: ${remainingTime}ms.`);
-    addLog('info', 'perf', `App preloaded: ${app} in ${elapsed}ms. First paint complete. Remaining splash: ${remainingTime}ms.`);
-
-    if (launchTimerRef.current) {
-      clearTimeout(launchTimerRef.current);
-    }
-    if (safetyTimeoutRef.current) {
-      clearTimeout(safetyTimeoutRef.current);
-      safetyTimeoutRef.current = null;
-    }
-
-    launchTimerRef.current = setTimeout(() => {
-      console.log(`[Launch] Transitioning splash screen out for app: ${app}`);
-      setSplashVisible(false);
-      
-      // Wait for the fade-out transition to complete (300ms) before clearing launchingApp
-      setTimeout(() => {
-        if (observerRef.current) {
-          observerRef.current.disconnect();
-          observerRef.current = null;
-        }
-        const maxDuration = longTasksRef.current.length > 0 ? Math.max(...longTasksRef.current) : 0;
-        setLaunchingApp(null);
-        addLog('info', 'perf', `App entry transition complete: ${app} fully active after ${Date.now() - launchStartTimeRef.current}ms.`);
-        addLog('info', 'perf', `Longest main-thread blocking task during ${app} transition: ${maxDuration > 0 ? maxDuration.toFixed(1) + 'ms' : 'none detected'}.`);
-      }, 300);
-    }, remainingTime);
-  }, []);
+  }, [setAppPreloaded]);
 
   const appMode = settings.appMode || 'hub';
 
@@ -1169,97 +1099,20 @@ export default function App() {
     };
   }, [appMode, launchingApp, splashVisible, appPreloaded, transitionActive, showHub]);
 
+  // Launch transition hook using global useApplicationTransitionStore state machine
   useEffect(() => {
-    let cleanup: (() => void) | undefined = undefined;
-
-    if (appMode !== 'hub') {
-      const targetApp = appMode as AppKey;
-
-      if (launchingApp === targetApp) return;
-
-      console.log(`[Launch] Initiating transition from ${previousAppModeRef.current} to sub-app: ${targetApp}`);
-      addLog('info', 'perf', `App launch transition started: ${previousAppModeRef.current} -> ${targetApp}`);
-
-      if (launchTimerRef.current) {
-        clearTimeout(launchTimerRef.current);
-        launchTimerRef.current = null;
-      }
-
-      // Lock transition until target app is preloaded
-      (window as any).studioTransitionActive = true;
-
-      safetyTimeoutRef.current = setTimeout(() => {
-        console.error(`[Launch] Safety timeout fired. ${targetApp} did not report ready within 4000ms. Forcing recovery.`);
-        addLog('error', 'perf', `App launch transition timed out for: ${targetApp}. Forcing splash recovery.`);
-        
-        // Force recovery
-        setSplashVisible(false);
-        (window as any).studioTransitionActive = false;
-        setTimeout(() => {
-          setLaunchingApp(null);
-        }, 300);
-      }, 4000);
-
-      // Initialize long task detection during this transition
-      longTasksRef.current = [];
-      if (typeof PerformanceObserver !== 'undefined') {
-        try {
-          if (observerRef.current) {
-            observerRef.current.disconnect();
-          }
-          const obs = new PerformanceObserver((list) => {
-            for (const entry of list.getEntries()) {
-              longTasksRef.current.push(entry.duration);
-            }
-          });
-          obs.observe({ entryTypes: ['longtask'] });
-          observerRef.current = obs;
-        } catch (e) {
-          console.warn('[Perf] PerformanceObserver longtask not supported:', e);
+    const appMode = settings.appMode || 'hub';
+    if (appMode !== transitionPreviousAppModeRef.current) {
+      const ok = requestTransition(appMode);
+      if (ok) {
+        transitionPreviousAppModeRef.current = appMode;
+        if (appMode === 'hub') {
+          // Hub is root app and always preloaded
+          setAppPreloaded(true);
         }
       }
-
-      launchStartTimeRef.current = Date.now();
-      setLaunchingApp(targetApp);
-      setSplashVisible(true);
-      setAppPreloaded(false);
-
-      if (!isInitialMount.current) {
-        setSplashFullyOpaque(false);
-        const tid = setTimeout(() => {
-          setSplashFullyOpaque(true);
-        }, 350);
-        cleanup = () => {
-          clearTimeout(tid);
-          if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
-        };
-      } else {
-        cleanup = () => {
-          if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
-        };
-        setSplashFullyOpaque(true);
-      }
-    } else {
-      if (launchTimerRef.current) {
-        clearTimeout(launchTimerRef.current);
-        launchTimerRef.current = null;
-      }
-      setLaunchingApp(null);
-      setSplashVisible(false);
-      setAppPreloaded(false);
-      setSplashFullyOpaque(false);
     }
-
-    return cleanup;
-  }, [appMode]);
-
-  useEffect(() => {
-    return () => {
-      if (launchTimerRef.current) {
-        clearTimeout(launchTimerRef.current);
-      }
-    };
-  }, []);
+  }, [settings.appMode, requestTransition, setAppPreloaded]);
 
   function getAppName(app: AppKey): string {
     switch (app) {
@@ -2394,12 +2247,7 @@ export default function App() {
                 <ApplicationTransitionEngine
                   appKey={launchingApp}
                   preloaded={appPreloaded}
-                  onComplete={() => {
-                    setSplashVisible(false);
-                    setTimeout(() => {
-                      setLaunchingApp(null);
-                    }, 50);
-                  }}
+                  onComplete={() => {}}
                   isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
                   isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
                 />
@@ -2418,15 +2266,6 @@ export default function App() {
           onComplete={() => setShowLaunchOverlay(false)}
           isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
           isAmoled={settings.perApp?.hub?.amoledMode}
-        />
-      )}
-
-      {themeOverlay && (
-        <InkThemeOverlay
-          screenshotCanvas={themeOverlay.screenshot}
-          startX={themeOverlay.startX}
-          startY={themeOverlay.startY}
-          onComplete={() => setThemeOverlay(null)}
         />
       )}
     </div>

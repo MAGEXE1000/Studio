@@ -1,6 +1,6 @@
 ### Added
-- Upgraded the Shared Bottom Navigation and App Switcher with gesture-driven interactive scrubbing.
-- Animated dynamic capsule stretching based on horizontal swipe velocity.
-- Removed application logo headers from all sub-apps on mobile layout to reflow content areas upward.
-- Integrated the viewport-cropped Ink Toggle droplet reveal animation globally in Appearance settings.
-- Custom-tailored unique motion language logo transitions for Chordex, Drumex, Stagex, Groovex, and Vocalex.
+- Hardened the global navigation transition architecture with a single deterministic state machine singleton.
+- Synchronized application portal transitions cleanly to prevent unmount cuts, stutters, and freezes.
+- Constrained and clamped the bottom navigation active pill gesture to stay strictly inside the capsule bounds.
+- Re-architected and isolated the theme transition engine with pre-emptive repainting during the droplet fall phase.
+- Set the Vocal Monitor monitor state to be OFF by default in Vocalex.

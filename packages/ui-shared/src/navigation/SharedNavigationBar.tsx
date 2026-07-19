@@ -220,7 +220,10 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     
     e.currentTarget.setPointerCapture(e.pointerId);
     const rect = e.currentTarget.getBoundingClientRect();
-    const relativeX = Math.max(paddingX, Math.min(barWidth - paddingX, e.clientX - rect.left));
+    const relativeX = e.clientX - rect.left;
+    const minX = getCenterX(0);
+    const maxX = getCenterX(N - 1);
+    const clampedX = Math.max(minX, Math.min(maxX, relativeX));
     
     startXRef.current = e.clientX;
     lastXRef.current = e.clientX;
@@ -237,7 +240,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
         try { window.navigator.vibrate(15); } catch (err) {}
       }
 
-      pillX.set(relativeX);
+      pillX.set(clampedX);
     }, 200);
   };
 
@@ -245,7 +248,10 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const relativeX = Math.max(paddingX, Math.min(barWidth - paddingX, e.clientX - rect.left));
+    const relativeX = e.clientX - rect.left;
+    const minX = getCenterX(0);
+    const maxX = getCenterX(N - 1);
+    const clampedX = Math.max(minX, Math.min(maxX, relativeX));
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     const dx = e.clientX - lastXRef.current;
@@ -266,7 +272,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     }
 
     if (isScrubbingRef.current) {
-      pillX.set(relativeX);
+      pillX.set(clampedX);
       
       const stretch = 1 + Math.min(0.35, Math.abs(velocity) * 0.08);
       const skew = Math.max(-12, Math.min(12, velocity * 4));

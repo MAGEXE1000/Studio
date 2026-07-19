@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.1.6",
-  "versionName": "4.1.6",
-  "versionCode": 40106,
-  "version_code": 40106,
-  "commit": "48f73166",
-  "releasedAt": "7/18/2026, 11:46:16 PM CST",
-  "buildTimestamp": "7/18/2026, 11:46:16 PM CST",
+  "version": "4.1.7",
+  "versionName": "4.1.7",
+  "versionCode": 40107,
+  "version_code": 40107,
+  "commit": "e8c6345c",
+  "releasedAt": "7/19/2026, 12:11:01 AM CST",
+  "buildTimestamp": "7/19/2026, 12:11:01 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Redesigned the Chordex Library dashboard layout with Chord of the Day, Recently Practiced cards, and Categories grid.\n• Redesigned the Chordex Songs setlist search bar, circular action buttons, and modernized empty states.\n• Implemented the Ink Toggle Dark Mode transition with metaball liquid teardrop physics and upward rising wave compositing.\n• Simplified navigation by deprecating the redundant Chords tab and panel routes.",
-  "whatsNew": "• Redesigned the Chordex Library dashboard layout with Chord of the Day, Recently Practiced cards, and Categories grid.\n• Redesigned the Chordex Songs setlist search bar, circular action buttons, and modernized empty states.\n• Implemented the Ink Toggle Dark Mode transition with metaball liquid teardrop physics and upward rising wave compositing.\n• Simplified navigation by deprecating the redundant Chords tab and panel routes.",
+  "changelog": "• Refined the Shared Bottom Navigation into a translucent Liquid Glass capsule bar.\n• Implemented a continuous morphing App Switcher showing active sub-apps inside the navigation bar.\n• Relocated the Ink Theme Switcher globally inside Settings -> Appearance.\n• Restored the complete 31 chord categories catalog to the redesigned Chordex Library view with balanced density.",
+  "whatsNew": "• Refined the Shared Bottom Navigation into a translucent Liquid Glass capsule bar.\n• Implemented a continuous morphing App Switcher showing active sub-apps inside the navigation bar.\n• Relocated the Ink Theme Switcher globally inside Settings -> Appearance.\n• Restored the complete 31 chord categories catalog to the redesigned Chordex Library view with balanced density.",
   "releaseNotes": {
     "added": [
-      "Redesigned the Chordex Library dashboard layout with Chord of the Day, Recently Practiced cards, and Categories grid.",
-      "Redesigned the Chordex Songs setlist search bar, circular action buttons, and modernized empty states.",
-      "Implemented the Ink Toggle Dark Mode transition with metaball liquid teardrop physics and upward rising wave compositing.",
-      "Simplified navigation by deprecating the redundant Chords tab and panel routes."
+      "Refined the Shared Bottom Navigation into a translucent Liquid Glass capsule bar.",
+      "Implemented a continuous morphing App Switcher showing active sub-apps inside the navigation bar.",
+      "Relocated the Ink Theme Switcher globally inside Settings -> Appearance.",
+      "Restored the complete 31 chord categories catalog to the redesigned Chordex Library view with balanced density."
     ]
   },
   "mandatory": false

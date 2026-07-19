@@ -74,7 +74,7 @@ type AccountState =
   | { phase: 'pending'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }; scheduledAtMs: number }
   | { phase: 'disabled'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } };
 
-const ALL_PANELS = ['songs', 'library', 'chord', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'settings'] as const;
 
 function getVisualStateForElement(selector: string) {
   const el = document.querySelector(selector);
@@ -2714,13 +2714,6 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
                       label: 'Library',
                       isActive: cachedPanel === 'library' || !cachedPanel,
                       onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'library' }),
-                    },
-                    {
-                      key: 'chord',
-                      icon: 'grid_on',
-                      label: 'Chords',
-                      isActive: cachedPanel === 'chord',
-                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'chord' }),
                     },
                     {
                       key: 'settings',

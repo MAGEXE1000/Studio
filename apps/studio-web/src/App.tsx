@@ -72,8 +72,8 @@ type AccountState =
   | { phase: 'pending'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }; scheduledAtMs: number }
   | { phase: 'disabled'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } };
 
-const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
-const ALL_PANELS = ['library', 'chord', 'songs', 'settings'] as const;
+const NAV_ORDER = ['songs', 'library', 'settings'] as const;
+const ALL_PANELS = ['library', 'songs', 'settings'] as const;
 
 export default function App() {
   const activePanel = useNavigationStore(s => {
@@ -546,7 +546,6 @@ export default function App() {
                                   {(panel) => (
                                     <>
                                       {panel === 'library'  && <LibraryPanel />}
-                                      {panel === 'chord'    && <ChordPanel />}
                                       {panel === 'songs'    && <SongsPanel />}
                                       {panel === 'settings' && <SettingsPanel />}
                                     </>

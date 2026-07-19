@@ -12,6 +12,7 @@ import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../../../components/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input, SearchBar } from '../../../components/design-system/StudioDesignSystem';
+import InkThemeToggle from '../../../components/typography/InkThemeToggle';
 
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -2575,6 +2576,16 @@ export default function SongsPanel() {
   const [exportModalPreset, setExportModal]   = useState<SongPreset | null>(null);
   const [jsonExportPreset, setJsonExportPreset] = useState<SongPreset | null>(null);
   const [showImport, setShowImport]           = useState(false);
+  const [searchQuery, setSearchQuery]         = useState('');
+  const filteredPresets = useMemo(() => {
+    if (!searchQuery) return presets;
+    const q = searchQuery.toLowerCase();
+    return presets.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      (p.artist && p.artist.toLowerCase().includes(q)) ||
+      (p.key && p.key.toLowerCase().includes(q))
+    );
+  }, [presets, searchQuery]);
 
   // Section state
   const [pickerSectionId, setPickerSectionId]         = useState<string | null>(null);
@@ -3691,65 +3702,58 @@ export default function SongsPanel() {
     <div className="flex flex-col h-full overflow-hidden app-bg" style={{ position: 'relative' }}>
       {showForm && <PresetForm accent={accent} initial={editingFormData} onSave={handleFormSave} onCancel={() => { setShowForm(false); setEditingId(null); }} />}
 
-      {!isWebDesktop && (
-        <header className="flex-none px-6 pt-6 pb-1 app-bg">
-          <h1 style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontWeight: 700, fontSize: '15px', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <AppModeMenuLogo />
-          </h1>
-        </header>
-      )}
+      <header className="flex-none px-6 pt-12 pb-4 flex justify-between items-center bg-transparent">
+        <div>
+          <h2 className="font-headline-lg-mobile text-3xl font-extrabold text-on-surface tracking-tight" style={{ fontFamily: 'Manrope' }}>Songs</h2>
+        </div>
+        <InkThemeToggle />
+      </header>
 
       {/* Scrollable list (nav auto-hides here) */}
-      <div ref={listScrollRef} className="flex-1 overflow-y-auto no-scrollbar px-5 pb-32" style={{ paddingTop: isWebDesktop ? '20px' : '0px' }}>
-        <AnimatedAppHeader
-          title={t.songs.title}
-          subtitle={t.songs.subtitle}
-        />
+      <div ref={listScrollRef} className="flex-1 overflow-y-auto no-scrollbar px-6 pb-32" style={{ paddingTop: '0px' }}>
+        
+        {/* Search Bar pill layout */}
+        <div className="relative mb-6">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-40">search</span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search titles, keys, or tags..."
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-full py-4 pl-12 pr-6 outline-none text-zinc-100 placeholder:text-zinc-500 font-inter text-sm"
+          />
+        </div>
 
-        {/* Empty state */}
-        {presets.length === 0 && (
-          <div className="spring-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--c-surface-highest)', border: '1px solid var(--c-border)', borderRadius: '1.5rem', padding: '24px 20px', gap: '16px' }}>
-            <EmptyState
-              message={t.songs.noSongs}
-              icon="queue_music"
-              description="Create your first song or import a shared preset."
-            />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <Button
-                variant="primary"
-                onClick={() => { setEditingId(null); setShowForm(true); }}
-              >
-                {t.songs.newSong}
-              </Button>
-              <Button
-                onClick={() => setShowImport(true)}
-                icon="upload_file"
-              >
-                Import
-              </Button>
-            </div>
+        {/* Empty state when no songs at all or search returns nothing */}
+        {filteredPresets.length === 0 && (
+          <div className="flex flex-col items-center justify-center text-center py-12">
+            <span className="material-symbols-outlined text-6xl text-on-surface-variant opacity-20 mb-6">library_music</span>
+            <h3 className="font-headline-lg-mobile text-2xl font-extrabold text-on-surface mb-2" style={{ fontFamily: 'Manrope' }}>No songs yet</h3>
+            <p className="text-zinc-500 font-inter text-sm">Tap the '+' button to create your first progression</p>
           </div>
         )}
 
         {/* Preset list */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <StaggeredReveal staggerInterval={40}>
-            {presets.map(preset => (
-              <PresetCard
-                key={preset.id}
-                preset={preset}
-                accent={accent}
-                t={t}
-                setActivePreset={setActivePreset}
-                setShowLive={setShowLive}
-                setExportModal={setExportModal}
-                setEditingId={setEditingId}
-                setShowForm={setShowForm}
-                setShowDeleteId={setShowDeleteId}
-              />
-            ))}
-          </StaggeredReveal>
-        </div>
+        {filteredPresets.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <StaggeredReveal staggerInterval={40}>
+              {filteredPresets.map(preset => (
+                <PresetCard
+                  key={preset.id}
+                  preset={preset}
+                  accent={accent}
+                  t={t}
+                  setActivePreset={setActivePreset}
+                  setShowLive={setShowLive}
+                  setExportModal={setExportModal}
+                  setEditingId={setEditingId}
+                  setShowForm={setShowForm}
+                  setShowDeleteId={setShowDeleteId}
+                />
+              ))}
+            </StaggeredReveal>
+          </div>
+        )}
       </div>
 
       {/* Delete confirmation sheet */}
@@ -3801,39 +3805,42 @@ export default function SongsPanel() {
       )}
 
       {/* Floating action buttons above bottom nav */}
-      <div style={{ position: 'absolute', right: '20px', bottom: 'var(--content-bottom-pad)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', pointerEvents: 'none', zIndex: 50 }}>
+      <div style={{ position: 'fixed', right: '24px', bottom: '96px', display: 'flex', flexDirection: 'column', gap: '16px', zIndex: 9999 }}>
         {/* Import circle â€” top */}
         <button
           onClick={() => setShowImport(true)}
           data-testid="import-preset-btn"
-          className="btn-smooth"
+          className="btn-smooth flex items-center justify-center text-on-surface hover:bg-white/5 transition-all shadow-lg"
           style={{
-            width: '48px', height: '48px', borderRadius: '50%',
-            background: 'var(--app-surface-high)',
-            border: '1px solid rgba(128,128,128,0.18)',
-            color: 'var(--c-text-secondary)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.28)',
-            pointerEvents: 'auto',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'rgba(30, 30, 30, 0.72)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: 'var(--c-text-primary)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            cursor: 'pointer',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>upload_file</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>cloud_download</span>
         </button>
         {/* New circle â€” bottom */}
         <button
           onClick={() => { setEditingId(null); setShowForm(true); }}
           data-testid="new-preset-btn"
-          className="btn-smooth"
+          className="flex items-center justify-center active:scale-95 transition-all shadow-lg"
           style={{
-            width: '54px', height: '54px', borderRadius: '50%',
-            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-            color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 4px 20px ${accent.to}66`,
-            pointerEvents: 'auto',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: accent.from,
+            border: 'none',
+            color: 'white',
+            cursor: 'pointer',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '26px', fontVariationSettings: "'wght' 400" }}>add</span>
+          <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>add</span>
         </button>
       </div>
     </div>

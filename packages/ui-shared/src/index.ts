@@ -7,6 +7,7 @@ export { SharedNavigationContainer } from './navigation/SharedNavigationContaine
 export { default as StudioCountUpPercentage } from './components/StudioCountUpPercentage';
 export { default as StudioProgressBar } from './components/StudioProgressBar';
 export { default as StudioThemeToggler } from './components/StudioThemeToggler';
+export { default as InkThemeToggle } from './components/typography/InkThemeToggle';
 export { default as StudioTitleReveal } from './components/StudioTitleReveal';
 export { default as StudioUpdateAuroraBackground } from './components/StudioUpdateAuroraBackground';
 export { ErrorBoundary } from './components/ErrorBoundary';

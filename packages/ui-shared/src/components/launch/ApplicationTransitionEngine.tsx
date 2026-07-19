@@ -23,13 +23,19 @@ export function ApplicationTransitionEngine({
   const setLogoFormed = useApplicationTransitionStore(s => s.setLogoFormed);
   const completeTransition = useApplicationTransitionStore(s => s.completeTransition);
 
-  // Icon formation takes exactly 750ms
+  const isHub = appKey === 'hub';
+
+  // Icon formation takes exactly 750ms (instantly complete for hub)
   useEffect(() => {
+    if (isHub) {
+      setLogoFormed(true);
+      return;
+    }
     const timer = setTimeout(() => {
       setLogoFormed(true);
     }, 750);
     return () => clearTimeout(timer);
-  }, [setLogoFormed]);
+  }, [isHub, setLogoFormed]);
 
   const startZoom = state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
 
@@ -55,7 +61,13 @@ export function ApplicationTransitionEngine({
   // Shared Animation Presets
   const containerAnimate = !startZoom
     ? { backgroundColor: bgColor, opacity: 1 }
-    : { backgroundColor: 'rgba(0,0,0,0)', opacity: [1, 1, 0] };
+    : isHub
+      ? { backgroundColor: 'rgba(0,0,0,0)', opacity: 0 }
+      : { backgroundColor: 'rgba(0,0,0,0)', opacity: [1, 1, 0] };
+
+  const containerTransition: any = isHub
+    ? { duration: 0.35, ease: 'easeOut' }
+    : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] };
 
   // Render progressive icons
   const renderIcon = () => {
@@ -500,21 +512,6 @@ export function ApplicationTransitionEngine({
           </svg>
         );
 
-      case 'hub':
-        return (
-          <svg viewBox="0 0 512 512" fill="none" style={svgStyle}>
-            <motion.path
-              d="M 72 256 C 128 60 192 60 256 256 S 384 452 440 256"
-              stroke={accentColor}
-              strokeWidth="24"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.65, ease: 'easeInOut' }}
-            />
-          </svg>
-        );
-
       default:
         return null;
     }
@@ -524,7 +521,7 @@ export function ApplicationTransitionEngine({
     <motion.div
       initial={{ opacity: 1, backgroundColor: bgColor }}
       animate={containerAnimate}
-      transition={{ duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
+      transition={containerTransition}
       onAnimationComplete={() => {
         if (startZoom) {
           completeTransition();
@@ -546,26 +543,28 @@ export function ApplicationTransitionEngine({
         transformStyle: 'preserve-3d',
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.75 }}
-        animate={!startZoom ? { opacity: 1, scale: 1 } : { scale: 120, opacity: [1, 1, 0] }}
-        transition={
-          !startZoom
-            ? { type: 'spring', stiffness: 380, damping: 26 }
-            : {
-                scale: { duration: 0.95, ease: [0.65, 0, 0.35, 1] },
-                opacity: { duration: 0.8, times: [0, 0.45, 1], ease: 'easeOut' },
-              }
-        }
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          willChange: 'transform, opacity',
-        }}
-      >
-        {renderIcon()}
-      </motion.div>
+      {!isHub && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.75 }}
+          animate={!startZoom ? { opacity: 1, scale: 1 } : { scale: 120, opacity: [1, 1, 0] }}
+          transition={
+            !startZoom
+              ? { type: 'spring', stiffness: 380, damping: 26 }
+              : {
+                  scale: { duration: 0.95, ease: [0.65, 0, 0.35, 1] },
+                  opacity: { duration: 0.8, times: [0, 0.45, 1], ease: 'easeOut' },
+                }
+          }
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            willChange: 'transform, opacity',
+          }}
+        >
+          {renderIcon()}
+        </motion.div>
+      )}
     </motion.div>
   );
 }

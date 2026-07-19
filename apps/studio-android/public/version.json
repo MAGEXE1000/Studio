@@ -1,22 +1,23 @@
 {
   "platform": "android",
-  "version": "4.1.9",
-  "versionName": "4.1.9",
-  "versionCode": 40109,
-  "version_code": 40109,
-  "commit": "2a0346c8",
-  "releasedAt": "7/19/2026, 12:06:14 PM CST",
-  "buildTimestamp": "7/19/2026, 12:06:14 PM CST",
+  "version": "4.2.0",
+  "versionName": "4.2.0",
+  "versionCode": 40200,
+  "version_code": 40200,
+  "commit": "9b60ee93",
+  "releasedAt": "7/19/2026, 1:04:33 PM CST",
+  "buildTimestamp": "7/19/2026, 1:04:33 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Hardened the global navigation transition architecture with a single deterministic state machine singleton.\n• Synchronized application portal transitions cleanly to prevent unmount cuts, stutters, and freezes.\n• Constrained and clamped the bottom navigation active pill gesture to stay strictly inside the capsule bounds.\n• Re-architected and isolated the theme transition engine with pre-emptive repainting during the droplet fall phase.\n• Set the Vocal Monitor monitor state to be OFF by default in Vocalex.",
-  "whatsNew": "• Hardened the global navigation transition architecture with a single deterministic state machine singleton.\n• Synchronized application portal transitions cleanly to prevent unmount cuts, stutters, and freezes.\n• Constrained and clamped the bottom navigation active pill gesture to stay strictly inside the capsule bounds.\n• Re-architected and isolated the theme transition engine with pre-emptive repainting during the droplet fall phase.\n• Set the Vocal Monitor monitor state to be OFF by default in Vocalex.",
+  "changelog": "• Re-engineered the interactive bottom navigation capsule to use localized Bezier path deformation instead of global scale stretching.\n• Implemented a touch-down compression response to simulate soft polished liquid glass with critically damped spring recovery.\n• Globally corrected active highlight centering positioning offsets, achieving perfect mathematical alignment across all device screen densities.\n• Re-architected theme transitions using hardware-accelerated View Transitions and CSS circular clip-paths to eliminate main-thread stutters.\n• Removed unnecessary blue logo animations and overhead from return-to-hub transitions.\n• Performed a responsive layout audit to guarantee safe area compliance and prevent clipping on small displays and foldables.",
+  "whatsNew": "• Re-engineered the interactive bottom navigation capsule to use localized Bezier path deformation instead of global scale stretching.\n• Implemented a touch-down compression response to simulate soft polished liquid glass with critically damped spring recovery.\n• Globally corrected active highlight centering positioning offsets, achieving perfect mathematical alignment across all device screen densities.\n• Re-architected theme transitions using hardware-accelerated View Transitions and CSS circular clip-paths to eliminate main-thread stutters.\n• Removed unnecessary blue logo animations and overhead from return-to-hub transitions.\n• Performed a responsive layout audit to guarantee safe area compliance and prevent clipping on small displays and foldables.",
   "releaseNotes": {
     "added": [
-      "Hardened the global navigation transition architecture with a single deterministic state machine singleton.",
-      "Synchronized application portal transitions cleanly to prevent unmount cuts, stutters, and freezes.",
-      "Constrained and clamped the bottom navigation active pill gesture to stay strictly inside the capsule bounds.",
-      "Re-architected and isolated the theme transition engine with pre-emptive repainting during the droplet fall phase.",
-      "Set the Vocal Monitor monitor state to be OFF by default in Vocalex."
+      "Re-engineered the interactive bottom navigation capsule to use localized Bezier path deformation instead of global scale stretching.",
+      "Implemented a touch-down compression response to simulate soft polished liquid glass with critically damped spring recovery.",
+      "Globally corrected active highlight centering positioning offsets, achieving perfect mathematical alignment across all device screen densities.",
+      "Re-architected theme transitions using hardware-accelerated View Transitions and CSS circular clip-paths to eliminate main-thread stutters.",
+      "Removed unnecessary blue logo animations and overhead from return-to-hub transitions.",
+      "Performed a responsive layout audit to guarantee safe area compliance and prevent clipping on small displays and foldables."
     ]
   },
   "mandatory": false

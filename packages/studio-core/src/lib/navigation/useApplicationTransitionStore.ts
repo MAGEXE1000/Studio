@@ -57,7 +57,7 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       state: 'PREPARING',
       launchingApp: targetApp,
       appPreloaded: false,
-      logoFormed: false,
+      logoFormed: targetApp === 'hub',
     });
     
     // Switch to preloading and logo formation

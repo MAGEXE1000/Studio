@@ -169,18 +169,32 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
   ], []);
 
   const currentItems = isSwitcherOpen ? switcherApps : items;
-
-  // Gesture/Scrubbing properties
   const N = currentItems.length;
-  const barWidth = 330;
+
+  // Dynamic screen width monitoring for robust responsiveness
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 360);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const showSwitcherButton = currentApp !== 'hub';
+  const switcherButtonWidth = showSwitcherButton ? 54 : 0; // 46px switcher + 8px gap
+  const maxAvailableWidth = windowWidth - 32 - switcherButtonWidth;
+  const barWidth = Math.min(330, maxAvailableWidth);
+
   const paddingX = 4;
   const insetX = 6;
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / N;
   const pillWidth = itemWidth - insetX * 2;
 
+  // Mathematically perfect centering (relative to wrapper div, no paddingX offset!)
   const getCenterX = useCallback((index: number) => {
-    return paddingX + (index + 0.5) * itemWidth;
+    return (index + 0.5) * itemWidth;
   }, [itemWidth]);
 
   const activeIndex = useMemo(() => {
@@ -191,8 +205,33 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
   }, [currentItems, currentApp, isSwitcherOpen]);
 
   const pillX = useMotionValue(getCenterX(activeIndex));
-  const pillScaleX = useMotionValue(1);
   const pillSkewX = useMotionValue(0);
+  const pressureOffset = useMotionValue(0);
+
+  const pillPathD = useTransform(
+    [pillSkewX, pressureOffset] as const,
+    ([skewVal, pressVal]) => {
+      const tailAmount = (skewVal as number) * 1.2;
+      const press = pressVal as number;
+      const leftX = (tailAmount < 0 ? tailAmount : 0) + press;
+      const rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
+      
+      const H = 38;
+      const R = 19;
+      
+      const leftR = tailAmount > 0 ? Math.max(12, R - tailAmount * 0.25) : R;
+      const rightR = tailAmount < 0 ? Math.max(12, R + tailAmount * 0.25) : R;
+      
+      return `M ${leftX + leftR} 0
+              L ${rightX - rightR} 0
+              A ${rightR} ${R} 0 0 1 ${rightX} ${R}
+              A ${rightR} ${R} 0 0 1 ${rightX - rightR} ${H}
+              L ${leftX + leftR} ${H}
+              A ${leftR} ${R} 0 0 1 ${leftX} ${R}
+              A ${leftR} ${R} 0 0 1 ${leftX + leftR} 0
+              Z`;
+    }
+  );
 
   const [isScrubbing, setIsScrubbing] = useState(false);
   const isScrubbingRef = useRef(false);
@@ -230,6 +269,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     lastTimeRef.current = performance.now();
     isScrubbingRef.current = false;
     scrubbingIndexRef.current = activeIndex;
+
+    animate(pressureOffset, 4, { type: 'spring', stiffness: 500, damping: 25 });
 
     if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
     pressTimerRef.current = setTimeout(() => {
@@ -274,13 +315,10 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     if (isScrubbingRef.current) {
       pillX.set(clampedX);
       
-      const stretch = 1 + Math.min(0.35, Math.abs(velocity) * 0.08);
-      const skew = Math.max(-12, Math.min(12, velocity * 4));
-      
-      pillScaleX.set(stretch);
+      const skew = Math.max(-10, Math.min(10, velocity * 3.5));
       pillSkewX.set(skew);
 
-      const progress = (relativeX - paddingX) / usableWidth;
+      const progress = relativeX / usableWidth;
       const hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
       
       if (hoveredIndex !== scrubbingIndexRef.current) {
@@ -299,8 +337,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    animate(pillScaleX, 1, { type: 'spring', stiffness: 400, damping: 20 });
     animate(pillSkewX, 0, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(pressureOffset, 0, { type: 'spring', stiffness: 400, damping: 20 });
 
     if (isScrubbingRef.current) {
       isScrubbingRef.current = false;
@@ -322,7 +360,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     } else {
       const rect = e.currentTarget.getBoundingClientRect();
       const relativeX = e.clientX - rect.left;
-      const progress = (relativeX - paddingX) / usableWidth;
+      const progress = relativeX / usableWidth;
       const clickIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
       const clickedItem = currentItems[clickIndex];
       
@@ -338,8 +376,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    animate(pillScaleX, 1, { type: 'spring', stiffness: 400, damping: 20 });
     animate(pillSkewX, 0, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(pressureOffset, 0, { type: 'spring', stiffness: 400, damping: 20 });
 
     isScrubbingRef.current = false;
     setIsScrubbing(false);
@@ -352,7 +390,6 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     });
   };
 
-  const pillXTrans = useTransform(pillX, val => val - pillWidth / 2);
   const pillSkewXTrans = useTransform(pillSkewX, val => `${val}deg`);
 
   return (
@@ -382,10 +419,6 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     >
       <div
         className="shared-bottom-nav"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerCancel}
         style={{
           pointerEvents: 'auto',
           width: `${barWidth}px`,
@@ -405,24 +438,46 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
           userSelect: 'none',
         }}
       >
-        <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', position: 'relative' }}>
-          {/* Floating interactive capsule indicator */}
+        <div 
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          style={{ 
+            display: 'flex', 
+            width: '100%', 
+            height: '100%', 
+            alignItems: 'center', 
+            position: 'relative',
+            touchAction: 'none'
+          }}
+        >
+          {/* Floating interactive liquid capsule indicator */}
           <motion.div
             style={{
               position: 'absolute',
               top: '4px',
-              bottom: '4px',
-              width: `${pillWidth}px`,
-              borderRadius: '9999px',
-              background: 'rgba(255, 255, 255, 0.16)',
-              zIndex: 0,
-              x: pillXTrans,
-              scaleX: pillScaleX,
+              height: '38px',
+              width: `${pillWidth + 40}px`,
+              x: useTransform(pillX, val => val - pillWidth / 2 - 20),
               skewX: pillSkewXTrans,
               transformOrigin: 'center center',
               pointerEvents: 'none',
+              zIndex: 0,
             }}
-          />
+          >
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`-20 0 ${pillWidth + 40} 38`}
+              style={{ overflow: 'visible' }}
+            >
+              <motion.path
+                d={pillPathD}
+                fill="rgba(255, 255, 255, 0.16)"
+              />
+            </svg>
+          </motion.div>
 
           {currentItems.map((item, index) => {
             const isActive = isSwitcherOpen 

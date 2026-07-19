@@ -1,7 +1,6 @@
 ### Added
-- Re-engineered the interactive bottom navigation capsule to use localized Bezier path deformation instead of global scale stretching.
-- Implemented a touch-down compression response to simulate soft polished liquid glass with critically damped spring recovery.
-- Globally corrected active highlight centering positioning offsets, achieving perfect mathematical alignment across all device screen densities.
-- Re-architected theme transitions using hardware-accelerated View Transitions and CSS circular clip-paths to eliminate main-thread stutters.
-- Removed unnecessary blue logo animations and overhead from return-to-hub transitions.
-- Performed a responsive layout audit to guarantee safe area compliance and prevent clipping on small displays and foldables.
+- Implemented transition store reset fallback ensuring return-to-hub transitions never hang or turn the screen black.
+- Clamped active switcher indicator capsule layout width to prevent shrinking into vertical lemon shapes.
+- Elevated the bottom navigation bar and switcher vertically above the native Android gesture navigation area.
+- Redesigned theme transitions with a premium hardware-accelerated fluid chromatic bloom effect.
+- Consolidated global visual tokens for layouts, colors, radiuses, shadows, and spring animations.

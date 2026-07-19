@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.0"
-$VersionCode = "40200"
-$ReleaseNote = "4.2.0 - Liquid glass highlight physics, math centering on all screen densities, responsive safe bounds, native view transition theme reveals."
+$VersionName = "4.2.1"
+$VersionCode = "40201"
+$ReleaseNote = "4.2.1 - Return-to-Hub recovery, switcher lemon geometry clamp, elevated bottom nav clears gesture navigation, hardware-accelerated chromatic theme transitions."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

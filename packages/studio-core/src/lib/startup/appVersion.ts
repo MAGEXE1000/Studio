@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.2.0';
-export const WEB_VERSION = '4.2.0';
+export const NATIVE_VERSION = '4.2.1';
+export const WEB_VERSION = '4.2.1';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -43,7 +43,7 @@ export const APP_VERSION_DATE = '2026-07-19';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 7:00:00 PM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 7:40:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -62,12 +62,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Re-engineered the interactive bottom navigation capsule to use localized Bezier path deformation instead of global scale stretching.",
-      "Implemented a touch-down compression response to simulate soft polished liquid glass with critically damped spring recovery.",
-      "Globally corrected active highlight centering positioning offsets, achieving perfect mathematical alignment across all device screen densities.",
-      "Re-architected theme transitions using hardware-accelerated View Transitions and CSS circular clip-paths to eliminate main-thread stutters.",
-      "Removed unnecessary blue logo animations and overhead from return-to-hub transitions.",
-      "Performed a responsive layout audit to guarantee safe area compliance and prevent clipping on small displays and foldables.",
+      "Implemented transition store reset fallback ensuring return-to-hub transitions never hang or turn the screen black.",
+      "Clamped active switcher indicator capsule layout width to prevent shrinking into vertical lemon shapes.",
+      "Elevated the bottom navigation bar and switcher vertically above the native Android gesture navigation area.",
+      "Redesigned theme transitions with a premium hardware-accelerated fluid chromatic bloom effect.",
+      "Consolidated global visual tokens for layouts, colors, radiuses, shadows, and spring animations.",
     ],
   },
 ];
@@ -77,11 +76,11 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Re-engineered bottom navigation capsule with localized Bezier path deformation.",
-      "Acknowledge pressure on touch-down with soft liquid glass compression.",
-      "Globally corrected active highlight centering positioning offsets on all screen densities.",
-      "Re-architected theme transitions using hardware-accelerated View Transitions and CSS clip-path.",
-      "Removed unnecessary blue logo animations from return-to-hub transitions.",
+      "Resolved return-to-hub transition freeze bugs by adding transition store fallback escape hatches.",
+      "Clamped switcher highlights to prevent vertical lemon-shape deforming on compression.",
+      "Elevated the bottom navigation container vertically above the Android gesture navigation area.",
+      "Redesigned theme transitions using hardware-accelerated fluid chromatic blooms.",
+      "Consolidated styling tokens and spring motion variables globally.",
     ],
   },
 ];
@@ -92,11 +91,11 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Cápsula de navegación inferior rediseñada con deformación de ruta Bezier localizada.",
-      "Respuesta táctil al presionar con compresión física y retorno elástico amortiguado.",
-      "Centrado matemáticamente perfecto del indicador activo en todas las densidades de pantalla.",
-      "Transición de tema mediante View Transitions aceleradas por GPU y máscaras circulares.",
-      "Transiciones de retorno a Hub aligeradas sin animaciones de logotipo redundantes.",
+      "Resueltos los congelamientos al regresar al Hub con escapes del estado de transición.",
+      "Indicador activo del switcher limitado geométricamente para evitar formas de limón vertical.",
+      "Contenedor de navegación inferior elevado para evitar superposición con gestos de Android.",
+      "Rediseño de transiciones de tema con propagación cromática fluida acelerada por GPU.",
+      "Consolidación global de tokens de diseño y variables de movimiento.",
     ],
   },
 ];

@@ -213,11 +213,20 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     ([skewVal, pressVal]) => {
       const tailAmount = (skewVal as number) * 1.2;
       const press = pressVal as number;
-      const leftX = (tailAmount < 0 ? tailAmount : 0) + press;
-      const rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
       
       const H = 38;
       const R = 19;
+      
+      let leftX = (tailAmount < 0 ? tailAmount : 0) + press;
+      let rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
+      
+      // Enforce minimum width to prevent collapsing into a vertical lemon shape
+      const currentWidth = rightX - leftX;
+      if (currentWidth < H) {
+        const delta = (H - currentWidth) / 2;
+        leftX -= delta;
+        rightX += delta;
+      }
       
       const leftR = tailAmount > 0 ? Math.max(12, R - tailAmount * 0.25) : R;
       const rightR = tailAmount < 0 ? Math.max(12, R + tailAmount * 0.25) : R;
@@ -408,7 +417,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
       }}
       style={{
         position: 'fixed',
-        bottom: 'max(14px, env(safe-area-inset-bottom))',
+        bottom: 'var(--nav-safe-bottom)',
         left: '50%',
         zIndex: 9999,
         display: 'flex',

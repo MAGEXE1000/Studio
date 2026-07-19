@@ -43,14 +43,18 @@ class ThemeTransitionEngineImpl {
           }
           ::view-transition-new(root) {
             z-index: 999999;
-            animation: theme-reveal-clip 600ms cubic-bezier(0.33, 1, 0.68, 1) both;
+            animation: theme-reveal-clip 500ms cubic-bezier(0.25, 1, 0.5, 1) both;
           }
           @keyframes theme-reveal-clip {
             from {
               clip-path: circle(0px at var(--theme-transition-x) var(--theme-transition-y));
+              filter: brightness(1.2) contrast(1.25) saturate(1.4) blur(4px);
+              transform: scale(0.98);
             }
             to {
               clip-path: circle(150% at var(--theme-transition-x) var(--theme-transition-y));
+              filter: brightness(1) contrast(1) saturate(1) blur(0px);
+              transform: scale(1);
             }
           }
         `;

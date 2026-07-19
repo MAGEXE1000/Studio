@@ -32,10 +32,16 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   logoFormed: false,
 
   requestTransition: (targetApp) => {
-    const { state } = get();
+    let { state } = get();
     if (state !== 'IDLE') {
-      console.warn(`[TransitionEngine] Transition request to ${targetApp} ignored. State is currently ${state}`);
-      return false;
+      if (targetApp === 'hub') {
+        console.warn(`[TransitionEngine] Force-interrupting active transition state ${state} to return to Hub.`);
+        get().reset();
+        state = 'IDLE';
+      } else {
+        console.warn(`[TransitionEngine] Transition request to ${targetApp} ignored. State is currently ${state}`);
+        return false;
+      }
     }
 
     console.log(`[TransitionEngine] Requesting transition: IDLE -> PREPARING to ${targetApp}`);
@@ -62,7 +68,14 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
     
     // Switch to preloading and logo formation
     setTimeout(() => {
-      set({ state: 'LOGO_FORMATION' });
+      const current = get();
+      if (current.state === 'PREPARING') {
+        set({ state: 'LOGO_FORMATION' });
+        // If both are already satisfied, transition to zoom immediately!
+        if (current.appPreloaded && current.logoFormed) {
+          get().startZoom();
+        }
+      }
     }, 20);
     return true;
   },
@@ -74,8 +87,8 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
     set({ appPreloaded: preloaded });
 
-    // If preloaded is true, and logo is already formed, trigger formation completion hold!
-    if (preloaded && logoFormed && (state === 'LOGO_FORMATION' || state === 'FORMATION_COMPLETE')) {
+    // Trigger zoom if both conditions are met (including during PREPARING phase)
+    if (preloaded && logoFormed && (state === 'PREPARING' || state === 'LOGO_FORMATION' || state === 'FORMATION_COMPLETE')) {
       get().startZoom();
     }
   },
@@ -88,7 +101,7 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
     set({ logoFormed: formed });
 
     if (formed) {
-      if (appPreloaded) {
+      if (appPreloaded && (state === 'PREPARING' || state === 'LOGO_FORMATION' || state === 'FORMATION_COMPLETE')) {
         get().startZoom();
       } else {
         set({ state: 'FORMATION_COMPLETE' });

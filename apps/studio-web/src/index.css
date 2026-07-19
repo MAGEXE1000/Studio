@@ -337,7 +337,7 @@ html, body { background: var(--app-bg); }
                           = gap + pill + 16px breathing room (≥ 90px)
 ──────────────────────────────────────────────────────────────────────────── */
 :root {
-  --nav-safe-bottom:    max(10px, env(safe-area-inset-bottom, 0px));
+  --nav-safe-bottom:    max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px));
   --nav-h:              64px;
   --content-bottom-pad: calc(var(--nav-safe-bottom) + var(--nav-h) + 16px);
 }

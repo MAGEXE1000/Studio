@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.2.2';
-export const WEB_VERSION = '4.2.2';
+export const NATIVE_VERSION = '4.2.3';
+export const WEB_VERSION = '4.2.3';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -43,7 +43,7 @@ export const APP_VERSION_DATE = '2026-07-19';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 8:05:00 PM CST';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 8:38:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -62,10 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.",
-      "Restored the Bottom Navigation container position to its previous safe area boundaries.",
-      "Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.",
-      "Replaced hardcoded font family overrides with standardized design tokens globally.",
+      "Centralized Bottom Navigation state machine and Visibility controller globally.",
+      "Resolved transition freezing issues by adding active task interruptions and startZoom guards.",
+      "Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.",
+      "Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
     ],
   },
 ];
@@ -75,10 +75,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.",
-      "Restored the Bottom Navigation container position to its previous safe area boundaries.",
-      "Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.",
-      "Replaced hardcoded font family overrides with standardized design tokens globally.",
+      "Centralized Bottom Navigation state machine and Visibility controller globally.",
+      "Resolved transition freezing issues by adding active task interruptions and startZoom guards.",
+      "Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.",
+      "Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
     ],
   },
 ];
@@ -89,10 +89,10 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Indicador activo alineado ópticamente y centrado verticalmente en la barra de navegación inferior compartida.",
-      "Restaurado el contenedor de navegación inferior a sus límites de área segura anteriores.",
-      "Unificación de pantallas heredadas en Vocalex, Groovex y Drumex para adoptar tokens de diseño y layouts de tarjetas compartidos.",
-      "Reemplazadas las fuentes tipográficas hardcoded con tokens de diseño estandarizados globalmente.",
+      "Controlador de visibilidad y máquina de estados centralizada para la navegación inferior.",
+      "Resueltos los congelamientos de transición con interrupciones del hilo de transición activa y guardas de startZoom.",
+      "Expansión del Motion Playground a un laboratorio completo de transiciones de tema con 10 conceptos GPU.",
+      "Eliminadas anomalías de deslizamiento lateral manteniendo la barra de navegación montada globalmente.",
     ],
   },
 ];

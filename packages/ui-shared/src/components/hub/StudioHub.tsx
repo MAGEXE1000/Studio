@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore } from '@workspace/studio-core';
 import { getUpdateHistory, StartupCoordinator, startDiagnosticsSession, resetUpdateTimeline, getTimelineReport, searchIndex, type SearchableItem } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -251,6 +251,35 @@ export default function StudioHub() {
   const activeRoute = useNavigationStore(s => s.history[s.history.length - 1]) || { app: 'hub', tab: 'home' };
   const page = activeRoute.app === 'hub' && activeRoute.tab === 'settings' ? (activeRoute.page ?? 'main') : 'main';
   const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+
+  useEffect(() => {
+    if (isWebDesktop) return;
+    useBottomNavigationStore.getState().setItems([
+      {
+        key: 'notifications',
+        icon: 'notifications',
+        label: 'Updates',
+        isActive: tab === 'settings' && page === 'updater',
+        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' }),
+      },
+      {
+        key: 'home',
+        icon: 'home',
+        label: 'Home',
+        isActive: tab === 'home',
+        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
+      },
+      {
+        key: 'settings',
+        icon: 'settings',
+        label: 'Settings',
+        isActive: tab === 'settings' && page !== 'updater',
+        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+      },
+    ]);
+    useBottomNavigationStore.getState().setVisible(true);
+    useBottomNavigationStore.getState().setIsLight(isLight);
+  }, [tab, page, isLight, isWebDesktop]);
   const [langQuery, setLangQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<'all' | 'apps' | 'settings' | 'projects' | 'songs' | 'actions'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -2110,35 +2139,7 @@ export default function StudioHub() {
         )}
       </AnimatePresence>
 
-      {/* Global Shared Bottom Navigation for mobile Hub */}
-      {!isWebDesktop && (
-        <SharedNavigationBar
-          items={[
-            {
-              key: 'notifications',
-              icon: 'notifications',
-              label: 'Updates',
-              isActive: tab === 'settings' && page === 'updater',
-              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' }),
-            },
-            {
-              key: 'home',
-              icon: 'home',
-              label: 'Home',
-              isActive: tab === 'home',
-              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
-            },
-            {
-              key: 'settings',
-              icon: 'settings',
-              label: 'Settings',
-              isActive: tab === 'settings' && page !== 'updater',
-              onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
-            },
-          ]}
-          isLight={isLight}
-        />
-      )}
+
     </div>
   );
 }

@@ -32,16 +32,16 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   logoFormed: false,
 
   requestTransition: (targetApp) => {
-    let { state } = get();
+    let { state, launchingApp } = get();
     if (state !== 'IDLE') {
-      if (targetApp === 'hub') {
-        console.warn(`[TransitionEngine] Force-interrupting active transition state ${state} to return to Hub.`);
-        get().reset();
-        state = 'IDLE';
-      } else {
-        console.warn(`[TransitionEngine] Transition request to ${targetApp} ignored. State is currently ${state}`);
-        return false;
+      // If we are already transitioning to the same app, do nothing
+      if (launchingApp === targetApp) {
+        return true;
       }
+      
+      console.warn(`[TransitionEngine] Active transition (${state} -> ${launchingApp}) interrupted by request to ${targetApp}. Resetting...`);
+      get().reset();
+      state = 'IDLE';
     }
 
     console.log(`[TransitionEngine] Requesting transition: IDLE -> PREPARING to ${targetApp}`);
@@ -53,11 +53,11 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       (window as any).__transitionWatchdog = null;
     }
     
-    // Set 3.5s safety watchdog timer
+    // Set 4.5s safety watchdog timer (generous fallback)
     (window as any).__transitionWatchdog = setTimeout(() => {
       console.warn(`[TransitionEngine] Watchdog triggered. Resetting to IDLE to prevent stuck screens.`);
       get().reset();
-    }, 3500);
+    }, 4500);
 
     set({
       state: 'PREPARING',
@@ -111,20 +111,24 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
   startZoom: () => {
     const { state } = get();
-    console.log(`[TransitionEngine] starting zoom transition from state ${state}`);
+    if (state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS') return;
     
+    console.log(`[TransitionEngine] starting zoom transition from state ${state}`);
     set({ state: 'FORMATION_COMPLETE' });
+    
     setTimeout(() => {
       const current = get();
       if (current.state === 'FORMATION_COMPLETE' && current.appPreloaded) {
         console.log(`[TransitionEngine] Brief completion hold ended. Beginning zoom.`);
         set({ state: 'ZOOM_TRANSITION' });
       }
-    }, 200); // 200ms brief completion hold
+    }, 180); // 180ms brief completion hold
   },
 
   completeTransition: () => {
     const { state } = get();
+    if (state === 'IDLE' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE') return;
+    
     console.log(`[TransitionEngine] completeTransition | Current state: ${state} -> OVERLAY_DISMISS`);
     
     const existing = (window as any).__transitionWatchdog;
@@ -146,7 +150,7 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
           logoFormed: false,
         });
       }, 50);
-    }, 300); // 300ms overlay dismiss fade animation
+    }, 250); // 250ms overlay dismiss fade animation
   },
 
   reset: () => {

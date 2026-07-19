@@ -39,6 +39,7 @@ import {
   type DrumInstrument, type KitType, type HouseMic, type HouseCrashModel, type CymbalPack, type DrumSong, type DrumMeasure, type NoteVariation,
   type DrumPattern, type DrumHit, type GrooveEntry, type GrooveTag, type InstFX,
   type InstPlugin, type LoopRange,
+  useBottomNavigationStore
 } from '@workspace/studio-core';
 import {
   drumScheduler, samplePool, loadDrumSamples, loadHouseKit, houseKitPool,
@@ -549,22 +550,24 @@ function DrumNav({ activeTab, setTab, accent, isLight, isAmoled, hidden }: {
   hidden?: boolean;
 }) {
   const ALL_NAV_TABS = useDrumNavTabs();
-  const navCollapsed = useNavCollapsed();
+  const isWebDesktop = useIsWebDesktop();
 
-  if (hidden || navCollapsed) return null;
-
-  return (
-    <SharedNavigationBar
-      items={ALL_NAV_TABS.map(tab => ({
+  useEffect(() => {
+    if (isWebDesktop) return;
+    useBottomNavigationStore.getState().setItems(
+      ALL_NAV_TABS.map(tab => ({
         key: tab.id,
         icon: <tab.Icon active={activeTab === tab.id} />,
         label: tab.label,
         isActive: activeTab === tab.id,
         onClick: () => setTab(tab.id),
-      }))}
-      isLight={isLight}
-    />
-  );
+      }))
+    );
+    useBottomNavigationStore.getState().setIsLight(isLight);
+    useBottomNavigationStore.getState().setVisible(!hidden);
+  }, [activeTab, isLight, hidden, isWebDesktop, ALL_NAV_TABS, setTab]);
+
+  return null;
 }
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

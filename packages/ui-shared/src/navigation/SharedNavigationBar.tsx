@@ -4,7 +4,8 @@ import {
   useNavScrollOffset,
   useChordStore,
   useNavigationStore,
-  NavigationDispatcher
+  NavigationDispatcher,
+  useBottomNavigationStore
 } from '@workspace/studio-core';
 import { 
   StudioLogo, 
@@ -52,7 +53,7 @@ export interface SharedNavigationItem {
 }
 
 export interface SharedNavigationBarProps {
-  items: SharedNavigationItem[];
+  items?: SharedNavigationItem[];
   isLight?: boolean;
 }
 
@@ -141,11 +142,24 @@ const NavigationItem = React.memo(({
   );
 });
 
-export function SharedNavigationBar({ items, isLight = false }: SharedNavigationBarProps) {
+export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
-  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+  
+  // Read centralized state from useBottomNavigationStore
+  const storeItems = useBottomNavigationStore(s => s.items);
+  const storeIsLight = useBottomNavigationStore(s => s.isLight);
+  const storeVisible = useBottomNavigationStore(s => s.visible);
+  const storeCollapsed = useBottomNavigationStore(s => s.collapsed);
+  
+  const isSwitcherOpen = useBottomNavigationStore(s => s.isSwitcherOpen);
+  const setIsSwitcherOpen = (open: boolean) => useBottomNavigationStore.getState().setSwitcherOpen(open);
+
+  const items = propsItems !== undefined ? propsItems : storeItems;
+  const isLight = propsIsLight !== undefined ? propsIsLight : storeIsLight;
+  const visible = storeVisible;
+  const collapsed = storeCollapsed;
 
   // Slide down out of view progressively up to 100px (beyond viewport edge)
   const translateY = scrollOffset * 100;
@@ -168,8 +182,8 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
     { key: 'vocalex', label: 'Vocalex', icon: <VocalexLogo size={18} />, onClick: () => handleAppSwitch('vocalex') },
   ], []);
 
-  const currentItems = isSwitcherOpen ? switcherApps : items;
-  const N = currentItems.length;
+  const currentItems = isSwitcherOpen ? switcherApps : (items || []);
+  const N = currentItems.length || 1;
 
   // Dynamic screen width monitoring for robust responsiveness
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 360);
@@ -266,6 +280,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     
+    useBottomNavigationStore.getState().setMotionState('Dragging');
     e.currentTarget.setPointerCapture(e.pointerId);
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
@@ -342,6 +357,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
     
+    useBottomNavigationStore.getState().setMotionState('Idle');
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
@@ -381,6 +397,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
 
   const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+    useBottomNavigationStore.getState().setMotionState('Idle');
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
@@ -406,13 +423,14 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
       ref={containerRef}
       className="shared-bottom-nav-container"
       animate={{
-        y: translateY,
-        x: '-50%'
+        y: (!visible || collapsed || currentItems.length === 0) ? 150 : translateY,
+        x: '-50%',
+        opacity: (!visible || collapsed || currentItems.length === 0) ? 0 : 1,
       }}
       transition={{
         type: 'spring',
         stiffness: 380,
-        damping: 22,
+        damping: 24,
         mass: 0.35
       }}
       style={{
@@ -511,7 +529,7 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
 
       {currentApp !== 'hub' && (
         <motion.button
-          onClick={() => setIsSwitcherOpen(prev => !prev)}
+          onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
           whileTap={{ scale: 0.9 }}
           style={{
             pointerEvents: 'auto',

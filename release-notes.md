@@ -1,5 +1,5 @@
 ### Added
-- Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.
-- Restored the Bottom Navigation container position to its previous safe area boundaries.
-- Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.
-- Replaced hardcoded font family overrides with standardized design tokens globally.
+- Centralized Bottom Navigation state machine and Visibility controller globally.
+- Resolved transition freezing issues by adding active task interruptions and startZoom guards.
+- Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.
+- Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.

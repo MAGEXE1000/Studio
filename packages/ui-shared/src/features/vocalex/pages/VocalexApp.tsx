@@ -1,4 +1,4 @@
-import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, useScrollHide } from '@workspace/studio-core';
+import { useBackHandler, useChordStore, ACCENT_COLORS, type AppKey, useT, resetNav, setNavCollapsed, useNavHidden, useNavCollapsed, useLiquidGlassNav, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, useScrollHide, useBottomNavigationStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
@@ -190,6 +190,20 @@ export default function VocalexApp() {
 
   useScrollHide(activeScrollRef, activeTab);
 
+  useEffect(() => {
+    if (isWebDesktop) return;
+    useBottomNavigationStore.getState().setItems(
+      NAV_ITEMS.map(item => ({
+        key: item.panel,
+        icon: <item.Icon active={activeTab === item.panel} />,
+        label: item.label,
+        isActive: activeTab === item.panel,
+        onClick: () => NavigationDispatcher.push({ app: 'vocalex', page: item.panel }),
+      }))
+    );
+    useBottomNavigationStore.getState().setIsLight(isLight);
+  }, [activeTab, isLight, isWebDesktop]);
+
   const navHidden   = useNavHidden();
   const navCollapsed = useNavCollapsed();
   const [headerBack, setHeaderBack] = useState<(() => void) | null>(null);
@@ -322,18 +336,6 @@ export default function VocalexApp() {
         </div>
       </div>
 
-      {!(navHidden || navCollapsed) && (
-        <SharedNavigationBar
-          items={NAV_ITEMS.map(item => ({
-            key: item.panel,
-            icon: <item.Icon active={activeTab === item.panel} />,
-            label: item.label,
-            isActive: activeTab === item.panel,
-            onClick: () => NavigationDispatcher.push({ app: 'vocalex', page: item.panel }),
-          }))}
-          isLight={isLight}
-        />
-      )}
     </div>
   );
 }

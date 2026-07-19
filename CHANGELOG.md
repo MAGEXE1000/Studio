@@ -12,6 +12,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.3
+
+### Added
+- Centralized Bottom Navigation state machine and Visibility controller globally.
+- Resolved transition freezing issues by adding active task interruptions and startZoom guards.
+- Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.
+- Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.
+
 ## 4.2.2
 
 ### Added

@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.2.2",
-  "versionName": "4.2.2",
-  "versionCode": 40202,
-  "version_code": 40202,
-  "commit": "cc4857f8",
-  "releasedAt": "7/19/2026, 2:08:27 PM CST",
-  "buildTimestamp": "7/19/2026, 2:08:27 PM CST",
+  "version": "4.2.3",
+  "versionName": "4.2.3",
+  "versionCode": 40203,
+  "version_code": 40203,
+  "commit": "55936107",
+  "releasedAt": "7/19/2026, 2:38:44 PM CST",
+  "buildTimestamp": "7/19/2026, 2:38:44 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.\n• Restored the Bottom Navigation container position to its previous safe area boundaries.\n• Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.\n• Replaced hardcoded font family overrides with standardized design tokens globally.",
-  "whatsNew": "• Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.\n• Restored the Bottom Navigation container position to its previous safe area boundaries.\n• Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.\n• Replaced hardcoded font family overrides with standardized design tokens globally.",
+  "changelog": "• Centralized Bottom Navigation state machine and Visibility controller globally.\n• Resolved transition freezing issues by adding active task interruptions and startZoom guards.\n• Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.\n• Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
+  "whatsNew": "• Centralized Bottom Navigation state machine and Visibility controller globally.\n• Resolved transition freezing issues by adding active task interruptions and startZoom guards.\n• Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.\n• Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
   "releaseNotes": {
     "added": [
-      "Optically aligned and vertically centered active highlight capsule inside the Shared Bottom Navigation bar.",
-      "Restored the Bottom Navigation container position to its previous safe area boundaries.",
-      "Unified legacy screens in Vocalex, Groovex, and Drumex to adopt design tokens and shared Card layouts.",
-      "Replaced hardcoded font family overrides with standardized design tokens globally."
+      "Centralized Bottom Navigation state machine and Visibility controller globally.",
+      "Resolved transition freezing issues by adding active task interruptions and startZoom guards.",
+      "Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.",
+      "Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally."
     ]
   },
   "mandatory": false

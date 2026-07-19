@@ -39,6 +39,17 @@ export function ApplicationTransitionEngine({
 
   const startZoom = state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
 
+  useEffect(() => {
+    if (startZoom) {
+      const timer = setTimeout(() => {
+        console.warn(`[ApplicationTransitionEngine] Animation complete callback timed out. Triggering completeTransition fallback.`);
+        completeTransition();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+    return () => {};
+  }, [startZoom, completeTransition]);
+
   const bgColor = isAmoled
     ? '#000000'
     : isLight

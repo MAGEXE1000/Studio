@@ -25,7 +25,8 @@ import {
   type ActivePanel,
   navDiagnosticsRegistry,
   useApplicationTransitionStore,
-  ThemeTransitionEngine
+  ThemeTransitionEngine,
+  useBottomNavigationStore
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -33,7 +34,7 @@ import { TolgeeProvider } from '@tolgee/react';
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
 import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine } from '@workspace/ui-shared';
+import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine, BottomNavigationController } from '@workspace/ui-shared';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -2253,6 +2254,7 @@ export default function App() {
                 />
               )}
             </AnimatePresence>
+            <BottomNavigationController />
           </TolgeeProvider>
         </Suspense>
       </ErrorBoundary>
@@ -2370,6 +2372,35 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       setCachedPanel(activePanel);
     }
   }, [activePanel, visiblePanel, isActive]);
+
+  useEffect(() => {
+    if (cachedApp === 'chords' && isActive) {
+      useBottomNavigationStore.getState().setItems([
+        {
+          key: 'songs',
+          icon: 'music_note',
+          label: 'Songs',
+          isActive: cachedPanel === 'songs',
+          onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'songs' }),
+        },
+        {
+          key: 'library',
+          icon: 'library_music',
+          label: 'Library',
+          isActive: cachedPanel === 'library' || !cachedPanel,
+          onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'library' }),
+        },
+        {
+          key: 'settings',
+          icon: 'tune',
+          label: 'Settings',
+          isActive: cachedPanel === 'settings',
+          onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'settings' }),
+        },
+      ]);
+      useBottomNavigationStore.getState().setVisible(true);
+    }
+  }, [cachedApp, cachedPanel, isActive]);
 
   useEffect(() => {
     if (exitingPanel !== null) {
@@ -2533,36 +2564,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
                     </Suspense>
                   </ErrorBoundary>
                 </div>
-              </div>
-
-              {cachedApp === 'chords' && (
-                <SharedNavigationBar
-                  items={[
-                    {
-                      key: 'songs',
-                      icon: 'music_note',
-                      label: 'Songs',
-                      isActive: cachedPanel === 'songs',
-                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'songs' }),
-                    },
-                    {
-                      key: 'library',
-                      icon: 'library_music',
-                      label: 'Library',
-                      isActive: cachedPanel === 'library' || !cachedPanel,
-                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'library' }),
-                    },
-                    {
-                      key: 'settings',
-                      icon: 'tune',
-                      label: 'Settings',
-                      isActive: cachedPanel === 'settings',
-                      onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'settings' }),
-                    },
-                  ]}
-                  isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
-                />
-              )}
+              </div>              
             </AppEntryTransition>
           </ScreenScaffold>
         </SubAppScaffold>

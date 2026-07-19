@@ -76,6 +76,7 @@ export * from './components/StudioLayoutSystem';
 export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';
 export { ActionButton } from './components/design-system/ActionButton';
 export { SharedNavigationBar } from './navigation/SharedNavigationBar';
+export { BottomNavigationController } from './navigation/BottomNavigationController';
 export { LaunchAnimationEngine, type LaunchPreset } from './components/launch/LaunchAnimationEngine';
 export { ApplicationTransitionEngine } from './components/launch/ApplicationTransitionEngine';
 export { default as InkThemeOverlay } from './components/feature/InkThemeOverlay';

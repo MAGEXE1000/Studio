@@ -1,4 +1,4 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset, useScrollHide, useBottomNavigationStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
@@ -477,6 +477,9 @@ export default function StagexPanel() {
   useEffect(() => {
     useChordStore.getState().setLastSession({ stagexView: curView });
   }, [curView]);
+
+  const elementsScrollRef = useRef<HTMLDivElement>(null);
+  useScrollHide(elementsScrollRef);
 
   /* â”€â”€ Glassmorphism bottom nav state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const stageNavRef    = useRef<HTMLDivElement | null>(null);
@@ -1320,6 +1323,20 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     transitionToView(target);
   }, [transitionToView]);
 
+  useEffect(() => {
+    if (isWebDesktop) return;
+    useBottomNavigationStore.getState().setItems(
+      navTabs.map(t => ({
+        key: t.view,
+        icon: t.icon,
+        label: t.label,
+        isActive: isTabActive(t.view),
+        onClick: () => handleNavTap(t.view),
+      }))
+    );
+    useBottomNavigationStore.getState().setIsLight(isLight);
+    useBottomNavigationStore.getState().setVisible(!(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden)));
+  }, [curView, isLight, liveMode, hideBottomNav, isLandscapeEditor, landscapeNavHidden, isWebDesktop, handleNavTap, isTabActive]);
   const handleFabTap = useCallback(() => {
     callIframe('toggleSCDial');
   }, [callIframe]);
@@ -1679,7 +1696,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   )}
                 </button>
                 {/* Scrollable Elements Area */}
-                <div style={{
+                <div ref={elementsScrollRef} style={{
                   flex: 1,
                   overflowY: 'auto',
                   padding: '16px 16px var(--content-bottom-pad, 96px) 16px',
@@ -2393,19 +2410,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           </button>
         )}
 
-                {/* ── Glassmorphism bottom nav ── */}
-        {!(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden) || navCollapsed || isWebDesktop) && (
-          <SharedNavigationBar
-            items={navTabs.map(t => ({
-              key: t.view,
-              icon: t.icon,
-              label: t.label,
-              isActive: isTabActive(t.view),
-              onClick: () => handleNavTap(t.view),
-            }))}
-            isLight={isLight}
-          />
-        )}
       </div>
 
       {/* PDF Export Dialog */}

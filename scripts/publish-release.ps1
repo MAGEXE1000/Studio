@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.1.6"
-$VersionCode = "40106"
-$ReleaseNote = "4.1.6 - Chordex app modernization, redesigned library and songs experiences, implemented exact Ink Toggle theme switch animation."
+$VersionName = "4.1.7"
+$VersionCode = "40107"
+$ReleaseNote = "4.1.7 - Refined Bottom Navigation to Liquid Glass capsule, implemented morphing App Switcher, relocated Ink Theme switch to Settings, and restored 31 chord categories."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

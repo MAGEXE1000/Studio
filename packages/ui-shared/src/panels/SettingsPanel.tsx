@@ -6,6 +6,7 @@ import { Toggle, SectionHeader, SettingRow } from '../components/SettingControls
 import { IconSongs, IconLibrary, IconChords, IconSettings } from '../components/NavIcons';
 import { WebSettingsSection, WebPreferenceRow } from '../components/WebDesignSystem';
 import { DialogScaffold } from '../components/StudioLayoutSystem';
+import InkThemeToggle from '../components/typography/InkThemeToggle';
 
 export default function SettingsPanel() {
   const settings = useChordStore(s => s.settings);
@@ -135,6 +136,13 @@ export default function SettingsPanel() {
                 );
               })()}
              </WebPreferenceRow>
+          </WebSettingsSection>
+
+          {/* ── APPEARANCE ── */}
+          <WebSettingsSection title={t.settings.sections.appearance}>
+            <WebPreferenceRow label={t.settings.rows.theme} desc="Switch between Light and Dark modes">
+              <InkThemeToggle />
+            </WebPreferenceRow>
           </WebSettingsSection>
 
           {/* ── INTELLIGENCE ── */}
@@ -287,6 +295,14 @@ export default function SettingsPanel() {
             })()}
           </SettingRow>
 
+        </div>
+
+        {/* ── APPEARANCE ── */}
+        <SectionHeader icon="palette" title={t.settings.sections.appearance} />
+        <div style={cardStyle}>
+          <SettingRow label={t.settings.rows.theme} desc="Switch between Light and Dark modes">
+            <InkThemeToggle />
+          </SettingRow>
         </div>
 
         {/* ── INTELLIGENCE ── */}

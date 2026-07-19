@@ -1,7 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ProgressiveBlur } from '../components/design-system/ProgressiveBlur';
-import { useNavScrollOffset } from '@workspace/studio-core';
+import { 
+  useNavScrollOffset,
+  useChordStore,
+  useNavigationStore,
+  NavigationDispatcher
+} from '@workspace/studio-core';
+import { 
+  StudioLogo, 
+  ChordexLogo, 
+  DrumexLogo, 
+  StagexLogoIcon, 
+  GroovexLogo, 
+  VocalexLogo 
+} from '../components/icons/ChordexLogo';
 
 function useStartupComplete() {
   const [complete, setComplete] = useState(() => {
@@ -48,14 +60,35 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
   // Slide down out of view progressively up to 100px (beyond viewport edge)
   const translateY = scrollOffset * 100;
 
+  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]);
+  const currentApp = currentRoute?.app ?? 'hub';
+
+  const handleAppSwitch = (appKey: string) => {
+    NavigationDispatcher.push({ app: appKey as any });
+    useChordStore.getState().updateSettings({ appMode: appKey as any });
+    setIsSwitcherOpen(false);
+  };
+
+  const switcherApps = [
+    { key: 'hub', label: 'Hub', icon: <StudioLogo size={18} />, onClick: () => handleAppSwitch('hub') },
+    { key: 'chords', label: 'Chordex', icon: <ChordexLogo size={18} />, onClick: () => handleAppSwitch('chords') },
+    { key: 'drums', label: 'Drumex', icon: <DrumexLogo size={18} />, onClick: () => handleAppSwitch('drums') },
+    { key: 'stage', label: 'Stagex', icon: <StagexLogoIcon size={18} />, onClick: () => handleAppSwitch('stage') },
+    { key: 'groovex', label: 'Groovex', icon: <GroovexLogo size={18} />, onClick: () => handleAppSwitch('groovex') },
+    { key: 'vocalex', label: 'Vocalex', icon: <VocalexLogo size={18} />, onClick: () => handleAppSwitch('vocalex') },
+  ];
+
+  const currentItems = isSwitcherOpen ? switcherApps : items;
+
   return (
     <motion.div
       ref={containerRef}
-      className="shared-bottom-nav"
+      className="shared-bottom-nav-container"
       animate={{
         y: translateY,
         x: '-50%'
@@ -70,142 +103,156 @@ export function SharedNavigationBar({ items, isLight = false }: SharedNavigation
         position: 'fixed',
         bottom: 'max(14px, env(safe-area-inset-bottom))',
         left: '50%',
-        width: 'max-content',
-        minWidth: '280px',
-        maxWidth: '90%',
-        height: '46px',
-        borderRadius: '9999px',
-        // Real glass thin refracting outlines & high-transparency backgrounds
-        border: `1px solid ${isLight ? 'rgba(255, 255, 255, 0.40)' : 'rgba(255, 255, 255, 0.22)'}`,
-        background: isLight 
-          ? (startupComplete ? 'rgba(255, 255, 255, 0.18)' : 'rgba(255, 255, 255, 0.95)') 
-          : (startupComplete ? 'rgba(10, 10, 12, 0.12)' : 'rgba(10, 10, 12, 0.95)'),
-        // Deep floating shadows + top inner reflection highlights
-        boxShadow: !startupComplete
-          ? 'none'
-          : (isLight
-            ? '0 20px 40px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
-            : '0 30px 60px rgba(0, 0, 0, 0.48), 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.28)'),
-        backdropFilter: startupComplete ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: startupComplete ? 'blur(20px)' : 'none',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-around',
-        padding: '2px 4px',
-        pointerEvents: 'auto',
+        gap: '8px',
+        pointerEvents: 'none',
       }}
     >
-      {startupComplete && (
-        <ProgressiveBlur
-          direction="top"
-          blurLayers={5}
-          maxBlur={8}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: -1,
-            borderRadius: 'inherit',
-            overflow: 'hidden',
-          }}
-        />
-      )}
+      <div
+        className="shared-bottom-nav"
+        style={{
+          pointerEvents: 'auto',
+          width: '330px',
+          height: '46px',
+          borderRadius: '9999px',
+          border: '1.5px solid rgba(255, 255, 255, 0.08)',
+          background: 'rgba(0, 0, 0, 0.60)',
+          boxShadow: '0 8px 20px 8px rgba(0, 0, 0, 0.40)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          padding: '2px 4px',
+          position: 'relative',
+        }}
+      >
+        <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', position: 'relative' }}>
+          {currentItems.map((item) => {
+            const isActive = isSwitcherOpen 
+              ? (item.key === currentApp)
+              : item.isActive;
 
-      <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', position: 'relative' }}>
-        {items.map((item) => {
-          const isIconString = typeof item.icon === 'string';
+            const isIconString = typeof item.icon === 'string';
 
-          return (
-            <motion.button
-              key={item.key}
-              onClick={item.onClick}
-              aria-label={item.label}
-              title={item.label}
-              whileTap={{ scale: 0.86, y: 1.2 }}
-              transition={{
-                type: 'spring',
-                stiffness: 550,
-                damping: 18,
-                mass: 0.4
-              }}
-              style={{
-                flex: 1,
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                position: 'relative',
-                zIndex: 1,
-                color: item.isActive
-                  ? (isLight ? '#000000' : '#ffffff')
-                  : (isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)'),
-                padding: '0 16px',
-                outline: 'none',
-                WebkitTapHighlightColor: 'transparent',
-                transition: 'color 200ms ease',
-              }}
-            >
-              {item.isActive && (
-                <motion.div
-                  layoutId="shared-nav-pill"
-                  transition={{
-                    type: 'spring',
-                    stiffness: 420,
-                    damping: 22,
-                    mass: 0.6
-                  }}
-                  style={{
-                    position: 'absolute',
-                    inset: '4px 6px',
-                    borderRadius: '9999px',
-                    background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
-                    border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.22)',
-                    boxShadow: isLight
-                      ? 'inset 0 1px 0 rgba(255,255,255,0.90), 0 2px 4px rgba(0,0,0,0.04)'
-                      : 'inset 0 1px 0 rgba(255,255,255,0.20), 0 4px 10px rgba(0,0,0,0.15)',
-                    zIndex: -1,
-                  }}
-                />
-              )}
+            return (
+              <motion.button
+                layout
+                key={item.key}
+                onClick={item.onClick}
+                aria-label={item.label}
+                title={item.label}
+                whileTap={{ scale: 0.86, y: 1.2 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 550,
+                  damping: 18,
+                  mass: 0.4
+                }}
+                style={{
+                  flex: 1,
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  zIndex: 1,
+                  color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.50)',
+                  padding: '0 8px',
+                  outline: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  transition: 'color 200ms ease',
+                }}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="shared-nav-pill"
+                    transition={{
+                      type: 'spring',
+                      stiffness: 420,
+                      damping: 22,
+                      mass: 0.6
+                    }}
+                    style={{
+                      position: 'absolute',
+                      inset: '4px 6px',
+                      borderRadius: '9999px',
+                      background: 'rgba(255, 255, 255, 0.16)',
+                      zIndex: -1,
+                    }}
+                  />
+                )}
 
-              {isIconString ? (
-                <motion.span
-                  className="material-symbols-outlined text-[20px]"
-                  animate={{
-                    scale: item.isActive ? 1.18 : 1.0,
-                  }}
-                  style={{
-                    fontVariationSettings: item.isActive ? "'FILL' 1" : "'FILL' 0"
-                  }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 550,
-                    damping: 18
-                  }}
-                >
-                  {item.icon}
-                </motion.span>
-              ) : (
-                <motion.div
-                  animate={{
-                    scale: item.isActive ? 1.18 : 1.0,
-                  }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 550,
-                    damping: 18
-                  }}
-                >
-                  {item.icon}
-                </motion.div>
-              )}
-            </motion.button>
-          );
-        })}
+                {isIconString ? (
+                  <motion.span
+                    className="material-symbols-outlined text-[20px]"
+                    animate={{
+                      scale: isActive ? 1.12 : 1.0,
+                    }}
+                    style={{
+                      fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0"
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 550,
+                      damping: 18
+                    }}
+                  >
+                    {item.icon}
+                  </motion.span>
+                ) : (
+                  <motion.div
+                    animate={{
+                      scale: isActive ? 1.12 : 1.0,
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 550,
+                      damping: 18
+                    }}
+                  >
+                    {item.icon}
+                  </motion.div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
+
+      {currentApp !== 'hub' && (
+        <motion.button
+          onClick={() => setIsSwitcherOpen(prev => !prev)}
+          whileTap={{ scale: 0.9 }}
+          style={{
+            pointerEvents: 'auto',
+            width: '46px',
+            height: '46px',
+            borderRadius: '50%',
+            background: 'rgba(0, 0, 0, 0.60)',
+            border: '1.5px solid rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 8px 20px 8px rgba(0, 0, 0, 0.40)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
+            cursor: 'pointer',
+            outline: 'none',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            {isSwitcherOpen ? 'close' : 'apps'}
+          </span>
+        </motion.button>
+      )}
     </motion.div>
   );
 }

@@ -30,7 +30,7 @@ import GuitarDiagram from '../../../components/GuitarDiagram';
 import PianoDiagram from '../../../components/PianoDiagram';
 import FourStringDiagram from '../../../components/FourStringDiagram';
 import { WebEmptyState } from '../../../components/WebDesignSystem';
-import InkThemeToggle from '../../../components/typography/InkThemeToggle';
+
 
 const CustomChordBuilder = lazy(() => import('../../../components/feature/CustomChordBuilder'));
 const ProgressionGenerator = lazy(() => import('../../../components/feature/ProgressionGenerator'));
@@ -41,14 +41,42 @@ const CATEGORIES: {
   icon: string;
   label: string;
   desc: string;
+  wide?: boolean;
+  noDecor?: boolean;
   color: string;
-  variations: string;
+  variations?: string;
 }[] = [
-  { type: 'major', icon: 'piano', label: 'Major', desc: 'Bright, happy, foundational.', color: '#679cff', variations: '84 Variations' },
-  { type: 'minor', icon: 'music_note', label: 'Minor', desc: 'Moody & emotional.', color: '#bb5551', variations: '72 Variations' },
-  { type: '7th', icon: 'star', label: '7th Chords', desc: 'Dominant & Major 7ths.', color: '#9d9da6', variations: 'Dominant & Major 7ths' },
-  { type: 'sus2', icon: 'waves', label: 'Sus2/4', desc: 'Open & airy.', color: '#2dd4bf', variations: '42 Variations' },
-  { type: 'dim', icon: 'blur_on', label: 'Diminished', desc: 'Tense & dissonant.', color: '#ee7d77', variations: '36 Variations' },
+  { type: 'major',   icon: 'piano',               label: 'Major',        desc: 'Bright, happy, foundational.',     wide: true, noDecor: true, color: '#679cff', variations: '84 Variations' },
+  { type: 'minor',   icon: 'dark_mode',           label: 'Minor',        desc: 'Moody & emotional.',                color: '#bb5551', variations: '72 Variations' },
+  { type: '7th',     icon: 'electric_bolt',       label: '7th',          desc: 'Jazz & blues backbone.',            color: '#9d9da6', variations: '64 Variations' },
+  { type: 'maj7',    icon: 'stars',               label: 'Maj7',         desc: 'Lush & dreamy.',                   color: '#679cff', variations: '56 Variations' },
+  { type: 'min7',    icon: 'nightlight',          label: 'Min7',         desc: 'Smooth & introspective.',          color: '#bb5551', variations: '56 Variations' },
+  { type: 'dim',     icon: 'warning',             label: 'Diminished',   desc: 'Tense & dissonant.',               color: '#ee7d77', variations: '36 Variations' },
+  { type: 'aug',     icon: 'trending_up',         label: 'Augmented',    desc: 'Mysterious & floating.',           color: '#9d9da6', variations: '24 Variations' },
+  { type: 'sus2',    icon: 'waves',               label: 'Sus2',         desc: 'Open & airy.',                     color: '#2dd4bf', variations: '42 Variations' },
+  { type: 'sus4',    icon: 'hourglass_empty',     label: 'Sus4',         desc: 'Suspended tension.',               color: '#2dd4bf', variations: '42 Variations' },
+  { type: '9th',     icon: 'tune',                label: '9th',          desc: 'Rich & funky.',                    color: '#b57bee', variations: '48 Variations' },
+  { type: 'maj9',    icon: 'auto_awesome',        label: 'Maj9',         desc: 'Romantic & complex.',              color: '#b57bee', variations: '36 Variations' },
+  { type: 'min9',    icon: 'cloud',               label: 'Min9',         desc: 'Dark & jazzy.',                    color: '#b57bee', variations: '36 Variations' },
+  { type: 'add9',    icon: 'add_circle',          label: 'Add9',         desc: 'Major with color.',                color: '#34d399', variations: '30 Variations' },
+  { type: '6th',     icon: 'hexagon',             label: '6th',          desc: 'Sweet & vintage.',                 color: '#fbbf24', variations: '32 Variations' },
+  { type: 'min6',    icon: 'star_half',           label: 'Min6',         desc: 'Bittersweet.',                     color: '#fbbf24', variations: '32 Variations' },
+  { type: 'halfdim', icon: 'contrast',            label: 'Half-Dim ø7',  desc: 'Jazz & classical tension.',        color: '#ee7d77', variations: '28 Variations' },
+  { type: 'dim7',    icon: 'block',               label: 'Dim7',         desc: 'Symmetrical & eerie.',             color: '#ee7d77', variations: '24 Variations' },
+  { type: '11th',    icon: 'stacked_bar_chart',   label: '11th',         desc: 'Dense & modern.',                  color: '#b57bee', variations: '24 Variations' },
+  { type: 'min11',   icon: 'stacked_bar_chart',   label: 'Min11',        desc: 'Mellow minor 11th.',               color: '#b57bee', variations: '24 Variations' },
+  { type: '13th',    icon: 'equalizer',           label: '13th',         desc: 'Full jazz voicing.',               color: '#b57bee', variations: '24 Variations' },
+  { type: 'min13',   icon: 'equalizer',           label: 'Min13',        desc: 'Rich minor 13th.',                 color: '#b57bee', variations: '24 Variations' },
+  { type: '7sus4',   icon: 'pending',             label: '7sus4',        desc: 'Funky & unresolved.',              color: '#34d399', variations: '20 Variations' },
+  { type: '7sus2',   icon: 'radio_button_unchecked', label: '7sus2',     desc: 'Open dominant.',                   color: '#34d399', variations: '20 Variations' },
+  { type: 'maj6',    icon: 'grade',               label: 'Maj6',         desc: 'Vintage & melodic.',               color: '#fbbf24', variations: '24 Variations' },
+  { type: 'power',   icon: 'flash_on',            label: 'Power',        desc: 'Rock & metal essential.',          color: '#ee7d77', variations: '16 Variations' },
+  { type: 'minmaj7', icon: 'merge',               label: 'm/maj7',       desc: 'Jazz sophistication.',             color: '#b57bee', variations: '18 Variations' },
+  { type: 'aug7',    icon: 'north_east',          label: 'Aug7',         desc: 'Tense jazz transition.',           color: '#2dd4bf', variations: '16 Variations' },
+  { type: '7b9',     icon: 'south',               label: '7b9',          desc: 'Dark Spanish-jazz tension.',       color: '#ee7d77', variations: '18 Variations' },
+  { type: '7s9',     icon: 'bolt',                label: '7#9',          desc: 'The Hendrix chord.',               color: '#9d9da6', variations: '18 Variations' },
+  { type: '69',      icon: 'grain',               label: '6/9',          desc: 'Jazz & bossa nova color.',         color: '#fbbf24', variations: '20 Variations' },
+  { type: '9sus4',   icon: 'blur_on',             label: '9sus4',        desc: 'Soulful & unresolved.',            color: '#34d399', variations: '16 Variations' },
 ];
 
 function RelatedPlayBtn({ guitar, accent, isLight }: {
@@ -200,12 +228,7 @@ export default function LibraryPanel() {
 
   const filteredByType = useMemo(() => {
     if (!activeType) return [];
-    return allChords.filter(c => {
-      if (activeType === 'sus2') return c.type === 'sus2' || c.type === 'sus4';
-      if (activeType === 'dim') return c.type === 'dim' || c.type === 'dim7' || c.type === 'halfdim';
-      if (activeType === '7th') return c.type === '7th' || c.type === 'maj7' || c.type === 'min7';
-      return c.type === activeType;
-    });
+    return allChords.filter(c => c.type === activeType);
   }, [activeType, allChords]);
 
   const handlePlayChord = () => {
@@ -328,12 +351,11 @@ export default function LibraryPanel() {
 
   const mainView = (
     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
-      <header className="relative z-10 px-6 pt-12 pb-6 flex justify-between items-start">
+      <header className="relative z-10 px-6 pt-12 pb-4 flex justify-between items-start">
         <div>
-          <h1 className="font-headline-lg-mobile text-3xl text-on-surface tracking-tight mb-1" style={{ fontFamily: 'Manrope' }}>Library</h1>
-          <p className="font-label-md text-xs text-on-surface-variant tracking-widest uppercase opacity-60">Explore {allChords.length} Chords</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'Manrope', marginBottom: '2px' }}>Library</h1>
+          <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6 }}>Explore {allChords.length} Chords</p>
         </div>
-        <InkThemeToggle />
       </header>
 
       {/* Action shortcuts row (Finder & Generator) */}
@@ -548,43 +570,21 @@ export default function LibraryPanel() {
           {/* Categories Grid */}
           <section className="relative z-10 px-6 mb-12">
             <h2 className="font-title-md text-lg text-on-surface mb-6 font-extrabold" style={{ fontFamily: 'Manrope' }}>Categories</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {CATEGORIES.map(cat => {
-                const isWide = cat.type === '7th';
                 return (
                   <div
                     key={cat.type}
                     onClick={() => setActiveType(cat.type)}
-                    className={`glass-surface rounded-2xl p-6 h-40 flex flex-col justify-between relative overflow-hidden group border border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors ${isWide ? 'col-span-2' : ''}`}
+                    className="glass-surface rounded-2xl p-4 h-24 flex flex-col justify-between relative overflow-hidden group border border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors"
                   >
-                    <div className="absolute -top-4 -right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <span className="material-symbols-outlined text-8xl text-primary transform rotate-12">{cat.icon}</span>
+                    <div className="absolute -top-1 -right-1 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <span className="material-symbols-outlined text-5xl text-primary transform rotate-12">{cat.icon || 'star'}</span>
                     </div>
                     <div>
-                      <h3 className="font-title-md text-base text-on-surface font-extrabold" style={{ fontFamily: 'Manrope' }}>{cat.label}</h3>
-                      <p className="font-label-md text-xs text-on-surface-variant opacity-60" style={{ fontFamily: 'Manrope' }}>{cat.variations}</p>
+                      <h3 className="text-sm text-on-surface font-extrabold" style={{ fontFamily: 'Manrope', lineHeight: 1.1 }}>{cat.label}</h3>
+                      <p className="text-[10px] text-on-surface-variant opacity-60 mt-1" style={{ fontFamily: 'Inter' }}>{cat.variations}</p>
                     </div>
-                    {cat.type === 'major' && (
-                      <div className="flex gap-1 items-end h-8">
-                        <div className="w-1 bg-primary/40 h-[40%] rounded-full"></div>
-                        <div className="w-1 bg-primary/40 h-[70%] rounded-full"></div>
-                        <div className="w-1 bg-primary h-[100%] rounded-full"></div>
-                        <div className="w-1 bg-primary/40 h-[60%] rounded-full"></div>
-                      </div>
-                    )}
-                    {cat.type === 'minor' && (
-                      <div className="flex gap-1 items-end h-8">
-                        <div className="w-1 bg-on-surface-variant/20 h-[100%] rounded-full"></div>
-                        <div className="w-1 bg-on-surface-variant/20 h-[40%] rounded-full"></div>
-                        <div className="w-1 bg-on-surface-variant/20 h-[80%] rounded-full"></div>
-                        <div className="w-1 bg-on-surface-variant/20 h-[50%] rounded-full"></div>
-                      </div>
-                    )}
-                    {cat.type === '7th' && (
-                      <div className="absolute right-6 bottom-6 w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_30px_rgba(173,198,255,0.15)]">
-                        <span className="material-symbols-outlined text-2xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                      </div>
-                    )}
                   </div>
                 );
               })}

@@ -12,7 +12,7 @@ import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 import { DialogScaffold, ScreenScaffold, ScrollScaffold } from '../../../components/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input, SearchBar } from '../../../components/design-system/StudioDesignSystem';
-import InkThemeToggle from '../../../components/typography/InkThemeToggle';
+
 
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -3704,9 +3704,8 @@ export default function SongsPanel() {
 
       <header className="flex-none px-6 pt-12 pb-4 flex justify-between items-center bg-transparent">
         <div>
-          <h2 className="font-headline-lg-mobile text-3xl font-extrabold text-on-surface tracking-tight" style={{ fontFamily: 'Manrope' }}>Songs</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>Songs</h2>
         </div>
-        <InkThemeToggle />
       </header>
 
       {/* Scrollable list (nav auto-hides here) */}

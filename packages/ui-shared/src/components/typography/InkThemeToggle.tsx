@@ -33,7 +33,7 @@ export default function InkThemeToggle({
 
     if (typeof (window as any).__triggerThemeTransition === 'function') {
       (window as any).__triggerThemeTransition(nextTheme, false, startX, startY, () => {
-        settingsController.updateSettings({
+        useSettingsStore.getState().updateSettings({
           theme: nextTheme,
           amoledMode: false,
         });
@@ -46,7 +46,7 @@ export default function InkThemeToggle({
         startX,
         startY,
         updateFn: () => {
-          settingsController.updateSettings({
+          useSettingsStore.getState().updateSettings({
             theme: nextTheme,
             amoledMode: false,
           });
@@ -54,7 +54,7 @@ export default function InkThemeToggle({
         },
       });
     }
-  }, [isLight, updateSettings]);
+  }, [isLight, useSettingsStore.getState().updateSettings]);
 
   return (
     <button

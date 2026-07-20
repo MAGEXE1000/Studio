@@ -1,7 +1,8 @@
+import { NavigationDispatcher } from '@workspace/studio-core';
 import { useChordStore, ACCENT_COLORS, type AppKey, useSettingsStore, SpringPresets } from '@workspace/studio-core';
-import React, { lazy, Suspense } from 'react';
+import React, {  lazy, Suspense , useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { AnimatedAppHeader, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
+import { AnimatedAppHeader } from '../../navigation/AppAnimationSystem';
 import { ProgressiveBlur } from './ProgressiveBlur';
 import AppSpinner from '../loading/AppSpinner';
 

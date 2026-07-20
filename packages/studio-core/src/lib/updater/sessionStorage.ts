@@ -75,7 +75,6 @@ export async function getNativeVersion(): Promise<string | null> {
     releaseMetadataInspector.rawVersionName = info.versionName;
     return info.versionName;
   } catch (e) {
-    console.warn('[Updater] Failed to query native app version:', e);
     return null;
   }
 }
@@ -87,7 +86,6 @@ export async function getNativeVersionCode(): Promise<number | null> {
     const info = await AppInstaller.getInstalledAppInfo();
     return info.versionCode;
   } catch (e) {
-    console.warn('[Updater] Failed to query native app version code:', e);
     return null;
   }
 }

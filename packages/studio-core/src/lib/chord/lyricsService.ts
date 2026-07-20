@@ -3,7 +3,7 @@ import { type SongChartSection, type LyricsLine } from '../../data/songs';
 export interface SyncedLine {
   text: string;
   timestamp: number; // in ms
-  duration?: number;  // in ms
+  duration?: number; // in ms
 }
 
 export interface LyricsResult {
@@ -32,7 +32,10 @@ export interface LyricsProvider {
 
 // ── SIMILARITY HELPERS ───────────────────────────────────────
 function cleanString(str: string): string {
-  return (str || '').toLowerCase().replace(/[^\w\s]/g, '').trim();
+  return (str || '')
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .trim();
 }
 
 export function getSimilarity(s1: string, s2: string): number {
@@ -41,11 +44,11 @@ export function getSimilarity(s1: string, s2: string): number {
   if (!clean1 && !clean2) return 1;
   if (!clean1 || !clean2) return 0;
   if (clean1 === clean2) return 1;
-  
+
   const w1 = new Set(clean1.split(/\s+/));
   const w2 = new Set(clean2.split(/\s+/));
   let intersection = 0;
-  w1.forEach(w => {
+  w1.forEach((w) => {
     if (w2.has(w)) intersection++;
   });
   const union = w1.size + w2.size - intersection;
@@ -56,13 +59,13 @@ export function parseLRC(lrcText: string): SyncedLine[] {
   const lines = (lrcText || '').split('\n');
   const result: SyncedLine[] = [];
   const timeRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/g;
-  
+
   for (const line of lines) {
     timeRegex.lastIndex = 0;
     const matches: { time: number }[] = [];
     let match;
     let lastIndex = 0;
-    
+
     while ((match = timeRegex.exec(line)) !== null) {
       const min = parseInt(match[1], 10);
       const sec = parseInt(match[2], 10);
@@ -72,7 +75,7 @@ export function parseLRC(lrcText: string): SyncedLine[] {
       matches.push({ time: timestamp });
       lastIndex = timeRegex.lastIndex;
     }
-    
+
     if (matches.length > 0) {
       const text = line.substring(lastIndex).trim();
       for (const m of matches) {
@@ -80,9 +83,9 @@ export function parseLRC(lrcText: string): SyncedLine[] {
       }
     }
   }
-  
+
   result.sort((a, b) => a.timestamp - b.timestamp);
-  
+
   for (let i = 0; i < result.length; i++) {
     const next = result[i + 1];
     if (next) {
@@ -91,7 +94,7 @@ export function parseLRC(lrcText: string): SyncedLine[] {
       result[i].duration = 4000;
     }
   }
-  
+
   return result;
 }
 
@@ -117,7 +120,6 @@ export class LrcLibProvider implements LyricsProvider {
         }
       }
     } catch (e) {
-      console.warn('[LRCLIB] Exact get failed, falling back to search:', e);
     }
 
     // Fallback to search
@@ -127,19 +129,24 @@ export class LrcLibProvider implements LyricsProvider {
     const list = await res.json();
     if (!Array.isArray(list)) return [];
 
-    return list.map(item => {
+    return list.map((item) => {
       const titleSim = getSimilarity(title, item.trackName || item.name);
       const artistSim = getSimilarity(artist, item.artistName);
       const hasSynced = !!item.syncedLyrics;
-      
+
       let confidence = titleSim * 0.5 + artistSim * 0.4;
       if (hasSynced) confidence += 0.1;
-      
+
       return this.normalizeItem(item, title, artist, confidence);
     });
   }
 
-  private normalizeItem(item: any, targetTitle: string, targetArtist: string, confidence: number): LyricsResult {
+  private normalizeItem(
+    item: any,
+    targetTitle: string,
+    targetArtist: string,
+    confidence: number
+  ): LyricsResult {
     const syncedLines = item.syncedLyrics ? parseLRC(item.syncedLyrics) : [];
     return {
       provider: this.id,
@@ -151,7 +158,7 @@ export class LrcLibProvider implements LyricsProvider {
       duration: item.duration || undefined,
       confidence,
       fetchedAt: Date.now(),
-      sourceMetadata: { album: item.albumName }
+      sourceMetadata: { album: item.albumName },
     };
   }
 }
@@ -238,7 +245,7 @@ export const PROVIDERS: LyricsProvider[] = [
   new YouTubeMusicProvider(),
   new LyricsPlusProvider(),
   new MusixmatchAdapter(),
-  new LyricFindAdapter()
+  new LyricFindAdapter(),
 ];
 
 export interface FetchOptions {
@@ -246,16 +253,20 @@ export interface FetchOptions {
   enabledProviders?: string[]; // array of provider ids
 }
 
-export async function fetchLyricsOnline(title: string, artist: string, options: FetchOptions = {}): Promise<LyricsResult | null> {
+export async function fetchLyricsOnline(
+  title: string,
+  artist: string,
+  options: FetchOptions = {}
+): Promise<LyricsResult | null> {
   const preferSynced = options.preferSynced !== false;
   const enabledIds = options.enabledProviders || ['lrclib']; // default to lrclib
-  
-  const activeProviders = PROVIDERS.filter(p => p.enabled && enabledIds.includes(p.id))
-    .sort((a, b) => a.priority - b.priority);
+
+  const activeProviders = PROVIDERS.filter((p) => p.enabled && enabledIds.includes(p.id)).sort(
+    (a, b) => a.priority - b.priority
+  );
 
   for (const provider of activeProviders) {
     try {
-      console.log(`[LyricsService] Querying provider: ${provider.name} for "${artist} - ${title}"`);
       const results = await provider.searchLyrics(title, artist);
       if (results && results.length > 0) {
         // Find best result above 0.5 confidence
@@ -268,7 +279,7 @@ export async function fetchLyricsOnline(title: string, artist: string, options: 
               // Compare
               const bestHasSynced = best.syncedLines.length > 0;
               const resHasSynced = res.syncedLines.length > 0;
-              
+
               if (preferSynced && resHasSynced && !bestHasSynced) {
                 best = res;
               } else if (res.confidence > best.confidence) {
@@ -278,12 +289,10 @@ export async function fetchLyricsOnline(title: string, artist: string, options: 
           }
         }
         if (best) {
-          console.log(`[LyricsService] Match found via ${provider.name} (confidence: ${best.confidence})`);
           return best;
         }
       }
     } catch (e) {
-      console.warn(`[LyricsService] Provider ${provider.name} failed:`, e);
     }
   }
 

@@ -20,15 +20,15 @@ Copy this file and rename it with a descriptive kebab-case name (e.g., `hub-tran
 
 > What the user or developer observes. Include visual descriptions, error messages, or unexpected behaviors.
 
-- 
+-
 
 ## How to Reproduce
 
 > Step-by-step reproduction instructions.
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Expected Behavior
 
@@ -42,7 +42,7 @@ Copy this file and rename it with a descriptive kebab-case name (e.g., `hub-tran
 
 > List the subsystems, packages, or features impacted.
 
-- 
+-
 
 ## Root Cause
 
@@ -56,7 +56,7 @@ Copy this file and rename it with a descriptive kebab-case name (e.g., `hub-tran
 
 > Solutions that were tried but did not work, and why they failed. This prevents future engineers from repeating them.
 
-1. 
+1.
 
 ## Successful Solution
 
@@ -66,7 +66,7 @@ Copy this file and rename it with a descriptive kebab-case name (e.g., `hub-tran
 
 > List every file changed as part of the fix, with links.
 
-- 
+-
 
 ## Architecture Changes
 

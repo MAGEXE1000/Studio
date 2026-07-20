@@ -1,21 +1,17 @@
 import type { GuitarChordData } from '../../data/chords';
 
-const OPEN_STRINGS = [
-  82.41,
-  110.00,
-  146.83,
-  196.00,
-  246.94,
-  329.63,
-];
+const OPEN_STRINGS = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63];
 
 const STRING_GAUGE = [0.052, 0.042, 0.032, 0.024, 0.016, 0.012];
 
 let audioCtx: AudioContext | null = null;
 
-const AudioCtxClass = typeof AudioContext !== 'undefined'
-  ? AudioContext
-  : (typeof (window as any).webkitAudioContext !== 'undefined' ? (window as any).webkitAudioContext as typeof AudioContext : null);
+const AudioCtxClass =
+  typeof AudioContext !== 'undefined'
+    ? AudioContext
+    : typeof (window as any).webkitAudioContext !== 'undefined'
+      ? ((window as any).webkitAudioContext as typeof AudioContext)
+      : null;
 
 function getCtx(): AudioContext {
   if (!audioCtx) {
@@ -34,7 +30,7 @@ function createPluckBuffer(
   ctx: AudioContext,
   freq: number,
   duration: number,
-  stringIdx: number,
+  stringIdx: number
 ): AudioBuffer {
   const sr = ctx.sampleRate;
   const samples = Math.ceil(sr * duration);
@@ -52,7 +48,7 @@ function createPluckBuffer(
     const noise = Math.random() * 2 - 1;
     const shaped = noise * (1 - 0.3 * Math.sin(Math.PI * phase));
     const pluckPos = 0.13;
-    const pluckFilter = Math.sin(Math.PI * phase / pluckPos);
+    const pluckFilter = Math.sin((Math.PI * phase) / pluckPos);
     const excitation = phase < pluckPos ? shaped * pluckFilter : shaped * 0.6;
     data[i] = excitation;
   }
@@ -96,9 +92,16 @@ let activeSources: AudioBufferSourceNode[] = [];
 let playbackTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export function stopChordPlayback() {
-  activeSources.forEach(n => { try { n.stop(); } catch {} });
+  activeSources.forEach((n) => {
+    try {
+      n.stop();
+    } catch {}
+  });
   activeSources = [];
-  if (playbackTimeout) { clearTimeout(playbackTimeout); playbackTimeout = null; }
+  if (playbackTimeout) {
+    clearTimeout(playbackTimeout);
+    playbackTimeout = null;
+  }
 }
 
 export function playChord(data: GuitarChordData, volume: number = 0.65) {
@@ -154,8 +157,8 @@ export function playChord(data: GuitarChordData, volume: number = 0.65) {
     .connect(comp)
     .connect(ctx.destination);
 
-  const strumBase = 0.020;
-  const strumVar = 0.010;
+  const strumBase = 0.02;
+  const strumVar = 0.01;
   const duration = 3.0;
 
   const stringsToPlay: { freq: number; stringIdx: number; delay: number }[] = [];
@@ -186,6 +189,10 @@ export function playChord(data: GuitarChordData, volume: number = 0.65) {
     activeSources.push(source);
   });
 
-  playbackTimeout = setTimeout(() => { activeSources = []; }, (duration + 0.5) * 1000);
+  playbackTimeout = setTimeout(
+    () => {
+      activeSources = [];
+    },
+    (duration + 0.5) * 1000
+  );
 }
-

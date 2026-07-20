@@ -8,11 +8,15 @@ const EXPECTED_SHA256 = '58b9bf2de5064c62ac3ca181b5608fe135c6894a8359ff6588e1921
 
 function printUsage() {
   console.log('Usage:');
-  console.log('  node apps/studio-android/scripts/check-keystore-fingerprint.mjs --keystore <path> [--alias <alias>]');
+  console.log(
+    '  node apps/studio-android/scripts/check-keystore-fingerprint.mjs --keystore <path> [--alias <alias>]'
+  );
   console.log('\nOptions:');
   console.log('  --keystore   Path to the candidate keystore file');
   console.log('  --alias      Key alias (if omitted, lists all aliases in the keystore)');
-  console.log('\nAlternative: Set STORE_PASS environment variable to bypass interactive password prompt.');
+  console.log(
+    '\nAlternative: Set STORE_PASS environment variable to bypass interactive password prompt.'
+  );
 }
 
 function askPassword(query) {
@@ -24,12 +28,12 @@ function askPassword(query) {
           process.stdout.write(chunk, encoding);
         }
         callback();
-      }
+      },
     });
     const rl = readline.createInterface({
       input: process.stdin,
       output: mutableStdout,
-      terminal: true
+      terminal: true,
     });
     process.stdout.write(query);
     muted = true;
@@ -74,11 +78,11 @@ async function main() {
 
   if (!alias) {
     console.log(`\nRetrieving aliases from: ${keystorePath}`);
-    const keytoolResult = spawnSync('keytool', [
-      '-list',
-      '-keystore', keystorePath,
-      '-storepass', storePass
-    ], { encoding: 'utf8' });
+    const keytoolResult = spawnSync(
+      'keytool',
+      ['-list', '-keystore', keystorePath, '-storepass', storePass],
+      { encoding: 'utf8' }
+    );
 
     if (keytoolResult.status !== 0) {
       console.error('\nError: Keytool failed. Incorrect password or invalid keystore.');
@@ -105,15 +109,16 @@ async function main() {
   }
 
   console.log(`\nChecking alias "${alias}" in keystore: ${keystorePath}`);
-  const keytoolResult = spawnSync('keytool', [
-    '-list', '-v',
-    '-keystore', keystorePath,
-    '-alias', alias,
-    '-storepass', storePass
-  ], { encoding: 'utf8' });
+  const keytoolResult = spawnSync(
+    'keytool',
+    ['-list', '-v', '-keystore', keystorePath, '-alias', alias, '-storepass', storePass],
+    { encoding: 'utf8' }
+  );
 
   if (keytoolResult.status !== 0) {
-    console.error(`\nError: Keytool failed. Incorrect password, missing alias "${alias}", or invalid keystore.`);
+    console.error(
+      `\nError: Keytool failed. Incorrect password, missing alias "${alias}", or invalid keystore.`
+    );
     const errOut = (keytoolResult.stderr || '').trim();
     if (errOut) console.error(`Details:\n${errOut}`);
     process.exit(1);
@@ -125,13 +130,13 @@ async function main() {
   if (!sha256Match) {
     console.error('\nError: Could not extract SHA-256 fingerprint from keytool output.');
     console.log('Sample keytool output lines containing fingerprints:');
-    const lines = output.split('\n').filter(l => /sha/i.test(l));
-    lines.forEach(l => console.log(`  ${l.trim()}`));
+    const lines = output.split('\n').filter((l) => /sha/i.test(l));
+    lines.forEach((l) => console.log(`  ${l.trim()}`));
     process.exit(1);
   }
 
   const fingerprint = sha256Match[1].replace(/:/g, '').toLowerCase().trim();
-  const matches = (fingerprint === EXPECTED_SHA256);
+  const matches = fingerprint === EXPECTED_SHA256;
 
   console.log('\n=========================================');
   console.log(`Keystore:    ${keystorePath}`);
@@ -148,7 +153,7 @@ async function main() {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Unexpected error:', err);
   process.exit(1);
 });

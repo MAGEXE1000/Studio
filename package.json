@@ -8,6 +8,10 @@
     "build:web": "pnpm --filter @workspace/studio-web build",
     "build:android:web": "pnpm --filter @workspace/studio-android build",
     "build:android": "pnpm --filter @workspace/studio-android android:build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
     "typecheck:libs": "tsc --build",
     "typecheck:web": "pnpm run typecheck:libs && pnpm --filter @workspace/studio-web typecheck",
     "typecheck:android": "pnpm run typecheck:libs && pnpm --filter @workspace/studio-android typecheck",
@@ -22,14 +26,18 @@
   },
   "private": true,
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-livex": "workspace:*",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
     "prettier": "^3.9.5",
     "puppeteer": "^25.3.0",
-    "typescript": "~5.7.2"
-  },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.1085.0",
-    "@octokit/rest": "^22.0.1",
-    "adm-zip": "^0.6.0"
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.64.0"
   },
   "pnpm": {
     "overrides": {

@@ -58,6 +58,7 @@ stateDiagram-v2
 Source: `stateMachine.ts` (1033 lines, 41 KB)
 
 **Key exports:**
+
 - `globalUpdateState` — mutable state object tracking current FSM state
 - `updateGlobalState()` — state mutation function
 - `transitionToState()` — validated state transition
@@ -70,13 +71,13 @@ The central orchestrator managing the full update lifecycle.
 
 ### Public API
 
-| Function | Purpose |
-|----------|---------|
-| `checkForUpdate()` | Fetches remote metadata, compares versions, returns update info |
-| `downloadUpdate()` | Downloads APK with multi-source fallback and retry |
-| `applyUpdate()` | Triggers PackageInstaller installation |
-| `enforceStartupRecovery()` | Cold-start recovery for interrupted updates |
-| `initializeGlobalUpdateListeners()` | Sets up PackageInstaller event listeners |
+| Function                            | Purpose                                                         |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `checkForUpdate()`                  | Fetches remote metadata, compares versions, returns update info |
+| `downloadUpdate()`                  | Downloads APK with multi-source fallback and retry              |
+| `applyUpdate()`                     | Triggers PackageInstaller installation                          |
+| `enforceStartupRecovery()`          | Cold-start recovery for interrupted updates                     |
+| `initializeGlobalUpdateListeners()` | Sets up PackageInstaller event listeners                        |
 
 ### Download Sources (Priority Order)
 
@@ -106,6 +107,7 @@ eligibilityVerification.ts → AppInstaller.inspectApk()
 Extracts the signing certificate SHA-256 fingerprint from both the installed app and the downloaded APK. Verifies against `PRODUCTION_SIGNING_SHA256` constant.
 
 **Full inspection data:**
+
 - `packageName`, `versionName`, `versionCode`
 - `signingSha256` (certificate fingerprint)
 - `debuggable` flag, `minSdk`, `targetSdk`
@@ -145,13 +147,13 @@ sequenceDiagram
 
 ### Install Status Codes
 
-| Code | Meaning | Handling |
-|------|---------|----------|
-| 0 | `SUCCESS` | Update complete, `INSTALL_SUCCESS` state |
-| 3 | `CANCELLED` | User cancelled, `INSTALL_CANCELLED` state |
-| 5 | `SIGNATURE_MISMATCH` | Triggers 4-stage recovery |
-| 6 | `STORAGE` | Insufficient storage |
-| 7 | `VERSION_DOWNGRADE` | Version code too low |
+| Code | Meaning              | Handling                                  |
+| ---- | -------------------- | ----------------------------------------- |
+| 0    | `SUCCESS`            | Update complete, `INSTALL_SUCCESS` state  |
+| 3    | `CANCELLED`          | User cancelled, `INSTALL_CANCELLED` state |
+| 5    | `SIGNATURE_MISMATCH` | Triggers 4-stage recovery                 |
+| 6    | `STORAGE`            | Insufficient storage                      |
+| 7    | `VERSION_DOWNGRADE`  | Version code too low                      |
 
 ## Recovery Flow (`recovery.ts`)
 
@@ -190,6 +192,7 @@ Comprehensive diagnostic system:
 ## Flight Recorder (`flightRecorder.ts`)
 
 Ring-buffer event log for post-mortem analysis:
+
 - 2000 events maximum
 - 2 MB size limit
 - 7-day retention
@@ -197,17 +200,17 @@ Ring-buffer event log for post-mortem analysis:
 
 ## Supporting Modules
 
-| Module | Size | Purpose |
-|--------|------|---------|
-| `releaseMetadata.ts` | 20 KB | Remote manifest fetching and validation |
-| `downloadManager.ts` | 5.4 KB | Multi-source download orchestration |
-| `cacheManager.ts` | 4.3 KB | Local APK cache lifecycle |
-| `sessionStorage.ts` | 2.4 KB | Session/localStorage wrappers |
-| `versionComparison.ts` | 4.6 KB | Semver comparison logic |
-| `packageInstallerStatus.ts` | 1 KB | Status code → name mapping |
-| `telemetry.ts` | 3 KB | Diagnostic event logging |
-| `updateHistory.ts` | 1.6 KB | Update transition history log |
-| `versionLogger.ts` | 2.4 KB | Version transformation audit trail |
-| `versionManager.ts` | 808 B | Just-updated detection |
-| `updaterSimulation.ts` | 6 KB | Dev-mode update simulation harness |
-| `installActions.ts` | 3.9 KB | Direct install, share, dismiss actions |
+| Module                      | Size   | Purpose                                 |
+| --------------------------- | ------ | --------------------------------------- |
+| `releaseMetadata.ts`        | 20 KB  | Remote manifest fetching and validation |
+| `downloadManager.ts`        | 5.4 KB | Multi-source download orchestration     |
+| `cacheManager.ts`           | 4.3 KB | Local APK cache lifecycle               |
+| `sessionStorage.ts`         | 2.4 KB | Session/localStorage wrappers           |
+| `versionComparison.ts`      | 4.6 KB | Semver comparison logic                 |
+| `packageInstallerStatus.ts` | 1 KB   | Status code → name mapping              |
+| `telemetry.ts`              | 3 KB   | Diagnostic event logging                |
+| `updateHistory.ts`          | 1.6 KB | Update transition history log           |
+| `versionLogger.ts`          | 2.4 KB | Version transformation audit trail      |
+| `versionManager.ts`         | 808 B  | Just-updated detection                  |
+| `updaterSimulation.ts`      | 6 KB   | Dev-mode update simulation harness      |
+| `installActions.ts`         | 3.9 KB | Direct install, share, dismiss actions  |

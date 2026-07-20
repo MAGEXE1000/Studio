@@ -6,6 +6,7 @@ description: Key rules, file locations, and constraints for the Chordex monorepo
 # Chordex Project Context
 
 ## Structure
+
 - `apps/studio-android/` — Native Android application (built via Capacitor and Gradle)
 - `apps/studio-web/` — Web-based PWA application (deployed via Netlify)
 - `packages/studio-core/` — Platform-neutral core logic (sync backend, configuration store)
@@ -16,6 +17,7 @@ description: Key rules, file locations, and constraints for the Chordex monorepo
 - `lib/db/` — Drizzle ORM schema + database connection
 
 ## Hard Rules
+
 - Never edit `lib/api-spec/` without explicit user approval
 - Never modify `tsconfig.base.json` without explicit instruction
 - Always use `pnpm` (never npm or yarn)
@@ -23,6 +25,7 @@ description: Key rules, file locations, and constraints for the Chordex monorepo
 - Strictly isolate platforms: Web changes must not modify Android files, and vice versa.
 
 ## Key Files
+
 - `packages/studio-core/src/lib/appVersion.ts` — Version constants + Changelog (single source of truth)
 - `apps/studio-android/src/App.tsx` — Android startup wrapper, status bar, and themes synchronizers
 - `packages/studio-core/src/lib/sync.ts` — Firestore cloud sync engine
@@ -30,10 +33,12 @@ description: Key rules, file locations, and constraints for the Chordex monorepo
 - `firebase-public/app-release.json` — Android OTA version manifest (production update tracker)
 
 ## Current Versions
+
 - **Android / APK**: 3.6.42 (versionCode 69)
 - **Web / PWA**: 4.0.0
 
 ## Security
+
 - Dependency vulnerabilities: patched via pnpm overrides in root `package.json`
 - postMessage in Stage mode validates `e.origin`
 - All `.innerHTML` uses `DOMPurify.sanitize()`

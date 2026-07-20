@@ -12,13 +12,7 @@ export function StudioSkeletonCard({
   borderRadius?: string;
   style?: React.CSSProperties;
 }) {
-  return (
-    <Skeleton
-      width="100%"
-      height={height}
-      style={{ borderRadius, ...style }}
-    />
-  );
+  return <Skeleton width="100%" height={height} style={{ borderRadius, ...style }} />;
 }
 
 export function StudioSkeletonRow({
@@ -228,7 +222,9 @@ export function StudioHubSkeleton() {
         }}
       >
         {/* Welcome greeting */}
-        <div style={{ padding: '22px 22px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div
+          style={{ padding: '22px 22px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}
+        >
           <div className="studio-shimmer" style={{ width: '55%', height: 18, borderRadius: 4 }} />
           <div className="studio-shimmer" style={{ width: '75%', height: 11, borderRadius: 4 }} />
         </div>
@@ -256,11 +252,20 @@ export function StudioHubSkeleton() {
               />
               {/* Info text details */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div className="studio-shimmer" style={{ width: '35%', height: 13, borderRadius: 4 }} />
-                <div className="studio-shimmer" style={{ width: '70%', height: 9, borderRadius: 4 }} />
+                <div
+                  className="studio-shimmer"
+                  style={{ width: '35%', height: 13, borderRadius: 4 }}
+                />
+                <div
+                  className="studio-shimmer"
+                  style={{ width: '70%', height: 9, borderRadius: 4 }}
+                />
               </div>
               {/* Arrow */}
-              <div className="studio-shimmer" style={{ width: 14, height: 14, borderRadius: '50%' }} />
+              <div
+                className="studio-shimmer"
+                style={{ width: 14, height: 14, borderRadius: '50%' }}
+              />
             </div>
           ))}
         </div>
@@ -298,7 +303,15 @@ export function StudioHubSkeleton() {
 
 export function VocalexTakesSkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', boxSizing: 'border-box' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        width: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
@@ -326,13 +339,34 @@ export function VocalexTakesSkeleton() {
           />
           {/* Text details */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ width: '60%', height: 14, background: 'var(--vx-card-2)', borderRadius: 4 }} />
-            <div style={{ width: '40%', height: 10, background: 'var(--vx-card-2)', borderRadius: 4 }} />
+            <div
+              style={{ width: '60%', height: 14, background: 'var(--vx-card-2)', borderRadius: 4 }}
+            />
+            <div
+              style={{ width: '40%', height: 10, background: 'var(--vx-card-2)', borderRadius: 4 }}
+            />
           </div>
           {/* Mini waveform representation */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 1.5, height: 24, flexShrink: 0, opacity: 0.15 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              height: 24,
+              flexShrink: 0,
+              opacity: 0.15,
+            }}
+          >
             {[14, 28, 42, 21, 35, 48, 17, 30].map((h, j) => (
-              <div key={j} style={{ width: 2, height: `${h}%`, background: 'var(--vx-text)', borderRadius: 9999 }} />
+              <div
+                key={j}
+                style={{
+                  width: 2,
+                  height: `${h}%`,
+                  background: 'var(--vx-text)',
+                  borderRadius: 9999,
+                }}
+              />
             ))}
           </div>
         </div>
@@ -345,8 +379,23 @@ export function VocalexTakesSkeleton() {
 
 export function GroovexAppSkeleton() {
   return (
-    <div style={{ padding: '0 20px', paddingBottom: 'var(--content-bottom-pad)', width: '100%', boxSizing: 'border-box' }}>
-      <section style={{ paddingTop: 32, marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div
+      style={{
+        padding: '0 20px',
+        paddingBottom: 'var(--content-bottom-pad)',
+        width: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
+      <section
+        style={{
+          paddingTop: 32,
+          marginBottom: 32,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
         <div className="studio-shimmer" style={{ width: 150, height: 32, borderRadius: 6 }} />
         <div className="studio-shimmer" style={{ width: 100, height: 12, borderRadius: 4 }} />
       </section>
@@ -391,15 +440,50 @@ export function GroovexAppSkeleton() {
               />
               {/* Title & Artist lines */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ width: '55%', height: 13, background: 'var(--gx-surface-lowest)', borderRadius: 4 }} />
-                <div style={{ width: '35%', height: 9, background: 'var(--gx-surface-lowest)', borderRadius: 4 }} />
+                <div
+                  style={{
+                    width: '55%',
+                    height: 13,
+                    background: 'var(--gx-surface-lowest)',
+                    borderRadius: 4,
+                  }}
+                />
+                <div
+                  style={{
+                    width: '35%',
+                    height: 9,
+                    background: 'var(--gx-surface-lowest)',
+                    borderRadius: 4,
+                  }}
+                />
               </div>
             </div>
             {/* Audio Stem tag markers */}
             <div style={{ display: 'flex', gap: 4, flexShrink: 0, opacity: 0.4 }}>
-              <div style={{ width: 26, height: 14, borderRadius: 4, background: 'var(--gx-surface-lowest)' }} />
-              <div style={{ width: 26, height: 14, borderRadius: 4, background: 'var(--gx-surface-lowest)' }} />
-              <div style={{ width: 26, height: 14, borderRadius: 4, background: 'var(--gx-surface-lowest)' }} />
+              <div
+                style={{
+                  width: 26,
+                  height: 14,
+                  borderRadius: 4,
+                  background: 'var(--gx-surface-lowest)',
+                }}
+              />
+              <div
+                style={{
+                  width: 26,
+                  height: 14,
+                  borderRadius: 4,
+                  background: 'var(--gx-surface-lowest)',
+                }}
+              />
+              <div
+                style={{
+                  width: 26,
+                  height: 14,
+                  borderRadius: 4,
+                  background: 'var(--gx-surface-lowest)',
+                }}
+              />
             </div>
           </div>
         ))}
@@ -424,7 +508,14 @@ export function StagexPanelSkeleton() {
       }}
     >
       {/* Top Title Action Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="studio-shimmer" style={{ width: 36, height: 36, borderRadius: '50%' }} />
           <div className="studio-shimmer" style={{ width: 120, height: 24, borderRadius: 6 }} />
@@ -500,7 +591,15 @@ export function StagexPanelSkeleton() {
       </div>
 
       {/* Plots lists preview row */}
-      <div style={{ display: 'flex', gap: 12, overflowX: 'hidden', flexShrink: 0, paddingBottom: 'var(--nav-safe-bottom)' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          overflowX: 'hidden',
+          flexShrink: 0,
+          paddingBottom: 'var(--nav-safe-bottom)',
+        }}
+      >
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
@@ -519,8 +618,22 @@ export function StagexPanelSkeleton() {
               boxSizing: 'border-box',
             }}
           >
-            <div style={{ width: '80%', height: 12, background: 'var(--app-surface-highest)', borderRadius: 3 }} />
-            <div style={{ width: '50%', height: 9, background: 'var(--app-surface-highest)', borderRadius: 3 }} />
+            <div
+              style={{
+                width: '80%',
+                height: 12,
+                background: 'var(--app-surface-highest)',
+                borderRadius: 3,
+              }}
+            />
+            <div
+              style={{
+                width: '50%',
+                height: 9,
+                background: 'var(--app-surface-highest)',
+                borderRadius: 3,
+              }}
+            />
           </div>
         ))}
       </div>
@@ -544,13 +657,22 @@ export function DrumEditorSkeleton() {
       }}
     >
       {/* Kit headers */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
         <div className="studio-shimmer" style={{ width: 130, height: 24, borderRadius: 6 }} />
         <div className="studio-shimmer" style={{ width: 80, height: 28, borderRadius: 14 }} />
       </div>
 
       {/* MPC Pads Grid selection */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, flexShrink: 0 }}>
+      <div
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, flexShrink: 0 }}
+      >
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
@@ -567,13 +689,22 @@ export function DrumEditorSkeleton() {
               boxSizing: 'border-box',
             }}
           >
-            <div style={{ width: '60%', height: 10, background: 'var(--app-surface-highest)', borderRadius: 3 }} />
+            <div
+              style={{
+                width: '60%',
+                height: 10,
+                background: 'var(--app-surface-highest)',
+                borderRadius: 3,
+              }}
+            />
           </div>
         ))}
       </div>
 
       {/* Step drum Sequencer tracks listing */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflow: 'hidden' }}>
+      <div
+        style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, overflow: 'hidden' }}
+      >
         <div className="studio-shimmer" style={{ width: 110, height: 14, borderRadius: 4 }} />
         {Array.from({ length: 4 }).map((_, i) => (
           <div
@@ -591,7 +722,14 @@ export function DrumEditorSkeleton() {
             }}
           >
             {/* Pad label outline */}
-            <div style={{ width: 80, height: 12, background: 'var(--app-surface-highest)', borderRadius: 3 }} />
+            <div
+              style={{
+                width: 80,
+                height: 12,
+                background: 'var(--app-surface-highest)',
+                borderRadius: 3,
+              }}
+            />
             {/* Sequential step circle placeholders */}
             <div style={{ display: 'flex', gap: 6, opacity: 0.35 }}>
               {Array.from({ length: 8 }).map((_, j) => (
@@ -601,7 +739,8 @@ export function DrumEditorSkeleton() {
                     width: 10,
                     height: 10,
                     borderRadius: '50%',
-                    background: j % 4 === 0 ? 'var(--app-surface-highest)' : 'var(--app-surface-high)',
+                    background:
+                      j % 4 === 0 ? 'var(--app-surface-highest)' : 'var(--app-surface-high)',
                   }}
                 />
               ))}
@@ -638,7 +777,15 @@ export function ChordexPanelSkeleton() {
       </div>
 
       {/* Grid of Chord cells representing standard guitar frets diagrams */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, flex: 1, overflow: 'hidden' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 10,
+          flex: 1,
+          overflow: 'hidden',
+        }}
+      >
         {Array.from({ length: 9 }).map((_, i) => (
           <div
             key={i}
@@ -657,7 +804,14 @@ export function ChordexPanelSkeleton() {
             }}
           >
             {/* Chord name placeholder */}
-            <div style={{ width: '60%', height: 12, background: 'var(--app-surface-highest)', borderRadius: 3 }} />
+            <div
+              style={{
+                width: '60%',
+                height: 12,
+                background: 'var(--app-surface-highest)',
+                borderRadius: 3,
+              }}
+            />
             {/* Guitar fret lines mock diagram */}
             <div
               style={{
@@ -672,15 +826,51 @@ export function ChordexPanelSkeleton() {
                 opacity: 0.4,
               }}
             >
-              <div style={{ width: '100%', height: 1, background: 'rgba(128,128,128,0.15)', position: 'absolute', top: '30%' }} />
-              <div style={{ width: '100%', height: 1, background: 'rgba(128,128,128,0.15)', position: 'absolute', top: '65%' }} />
+              <div
+                style={{
+                  width: '100%',
+                  height: 1,
+                  background: 'rgba(128,128,128,0.15)',
+                  position: 'absolute',
+                  top: '30%',
+                }}
+              />
+              <div
+                style={{
+                  width: '100%',
+                  height: 1,
+                  background: 'rgba(128,128,128,0.15)',
+                  position: 'absolute',
+                  top: '65%',
+                }}
+              />
               {/* String lines */}
               <div style={{ width: 1, height: '100%', background: 'rgba(128,128,128,0.2)' }} />
               <div style={{ width: 1, height: '100%', background: 'rgba(128,128,128,0.2)' }} />
               <div style={{ width: 1, height: '100%', background: 'rgba(128,128,128,0.2)' }} />
               {/* Finger circle dot */}
-              <div style={{ position: 'absolute', width: 6, height: 6, borderRadius: '50%', background: 'var(--c-text-primary)', top: '40%', left: '30%' }} />
-              <div style={{ position: 'absolute', width: 6, height: 6, borderRadius: '50%', background: 'var(--c-text-primary)', top: '50%', left: '70%' }} />
+              <div
+                style={{
+                  position: 'absolute',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--c-text-primary)',
+                  top: '40%',
+                  left: '30%',
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--c-text-primary)',
+                  top: '50%',
+                  left: '70%',
+                }}
+              />
             </div>
           </div>
         ))}
@@ -708,18 +898,50 @@ export function GroovexMixerSkeleton({ tracksCount = 4 }: { tracksCount?: number
           }}
         >
           {/* Track name label skeleton */}
-          <div style={{ width: 70, height: 12, background: 'var(--gx-surface-high)', borderRadius: 3 }} />
+          <div
+            style={{ width: 70, height: 12, background: 'var(--gx-surface-high)', borderRadius: 3 }}
+          />
           {/* Slider and M/S controls skeleton */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, justifyContent: 'flex-end', maxWidth: '70%' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              flex: 1,
+              justifyContent: 'flex-end',
+              maxWidth: '70%',
+            }}
+          >
             {/* Slider bar */}
-            <div style={{ flex: 1, height: 4, background: 'var(--gx-surface-high)', borderRadius: 2, maxWidth: 120 }} />
+            <div
+              style={{
+                flex: 1,
+                height: 4,
+                background: 'var(--gx-surface-high)',
+                borderRadius: 2,
+                maxWidth: 120,
+              }}
+            />
             {/* M/S button circles */}
-            <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gx-surface-high)' }} />
-            <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gx-surface-high)' }} />
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                background: 'var(--gx-surface-high)',
+              }}
+            />
+            <div
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                background: 'var(--gx-surface-high)',
+              }}
+            />
           </div>
         </div>
       ))}
     </div>
   );
 }
-

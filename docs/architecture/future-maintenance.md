@@ -24,12 +24,12 @@ These rules are enforced at build time and must never be violated:
 
 ### When to Use Each Package
 
-| Package | Use When |
-|---------|----------|
+| Package       | Use When                                                                        |
+| ------------- | ------------------------------------------------------------------------------- |
 | `studio-core` | Adding business logic, state, services, or utilities that are platform-agnostic |
-| `ui-shared` | Adding React components or feature modules that work on both Android and Web |
-| `ui-android` | Adding Android-specific UI (native bridge integration, Capacitor-only features) |
-| `ui-web` | Adding Web-specific UI (sidebar layout, landing page, desktop features) |
+| `ui-shared`   | Adding React components or feature modules that work on both Android and Web    |
+| `ui-android`  | Adding Android-specific UI (native bridge integration, Capacitor-only features) |
+| `ui-web`      | Adding Web-specific UI (sidebar layout, landing page, desktop features)         |
 
 ## Adding a New Feature Module
 
@@ -127,11 +127,11 @@ export const useMyStore = create(
 
 Keep components under these thresholds:
 
-| Metric | Target | Maximum |
-|--------|--------|---------|
-| Lines | < 400 | 600 |
-| File size | < 20 KB | 40 KB |
-| Props | < 10 | 15 |
+| Metric    | Target  | Maximum |
+| --------- | ------- | ------- |
+| Lines     | < 400   | 600     |
+| File size | < 20 KB | 40 KB   |
+| Props     | < 10    | 15      |
 
 When a component exceeds these limits, extract sub-components, custom hooks, or utility functions.
 
@@ -179,6 +179,7 @@ function MyComponent() {
 ### Manifest Changes
 
 When adding new permissions:
+
 1. Add to `AndroidManifest.xml`
 2. Handle runtime permission requests for dangerous permissions
 3. Document in [android.md](android.md)
@@ -210,14 +211,14 @@ When making significant architectural changes:
 
 ### Priority Test Areas
 
-| Area | Type | Rationale |
-|------|------|-----------|
-| Navigation validation | Unit | Route normalization, cycle detection, whitelist |
-| Store migrations | Unit | 13-step migration chains must not break |
-| Auth flow | Integration | Dual Google Sign-In paths (native vs web) |
-| OTA state machine | Unit | 18-state FSM transition validity |
-| Semver parsing | Unit | Version comparison for update eligibility |
-| SharedNavigationContainer | Component | Panel switching, keep-alive, transitions |
+| Area                      | Type        | Rationale                                       |
+| ------------------------- | ----------- | ----------------------------------------------- |
+| Navigation validation     | Unit        | Route normalization, cycle detection, whitelist |
+| Store migrations          | Unit        | 13-step migration chains must not break         |
+| Auth flow                 | Integration | Dual Google Sign-In paths (native vs web)       |
+| OTA state machine         | Unit        | 18-state FSM transition validity                |
+| Semver parsing            | Unit        | Version comparison for update eligibility       |
+| SharedNavigationContainer | Component   | Panel switching, keep-alive, transitions        |
 
 ### Test File Location
 

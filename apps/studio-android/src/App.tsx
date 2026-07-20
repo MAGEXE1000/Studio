@@ -2,64 +2,49 @@ import { type AppKey } from '@workspace/studio-core';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  useChordStore,
-  ACCENT_COLORS,
-  useIsWebDesktop,
-  useStudioPreferences,
-  logActivity,
-  resetNav,
-  setNavHidden,
-  setNavLocked,
-  BackDispatcher,
-  useStatusBar,
-  recordNavigation,
-  getNavigationEntries,
-  NATIVE_VERSION,
-  tolgee,
-  addLog,
-  useBackHandler,
-  StartupCoordinator,
-  useNavigationStore,
-  NavigationDispatcher,
-  type ActivePanel,
-  navDiagnosticsRegistry,
-  useApplicationTransitionStore,
-  ThemeTransitionEngine,
-  useBottomNavigationStore,
-  useNotificationService,
-  subscribeAuth,
-  subscribeSyncStatus,
-  syncNow
-} from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useStudioPreferences, logActivity, resetNav, setNavHidden, setNavLocked, BackDispatcher, useStatusBar, recordNavigation, getNavigationEntries, NATIVE_VERSION, tolgee, addLog, useBackHandler, StartupCoordinator, useNavigationStore, NavigationDispatcher, type ActivePanel, navDiagnosticsRegistry, useApplicationTransitionStore, ThemeTransitionEngine, useBottomNavigationStore, useNotificationService, subscribeSyncStatus, syncNow, useSettingsStore, authRepository } from "@workspace/studio-core";
 
 import { TolgeeProvider } from '@tolgee/react';
 
 import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
 import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
-import { AppEntryTransition, useAnimationSpeed, MOTION_EASINGS } from '@workspace/ui-shared/src/components/AppAnimationSystem';
-import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine, BottomNavigationController } from '@workspace/ui-shared';
-import {
-  ChordexLogo,
-  DrumexLogo,
-  StagexLogoIcon,
-  GroovexLogo,
-  VocalexLogo
-} from '@workspace/ui-shared/src/components/ChordexLogo';
+import { AppEntryTransition, useAnimationSpeed,  } from '@workspace/ui-shared/src/navigation/AppAnimationSystem';
+import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine, BottomNavigationController,  } from '@workspace/ui-shared';
+import { ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo,  } from '@workspace/ui-shared/src/components/ChordexLogo';
 
-const SharedNavigationBar = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.SharedNavigationBar })));
-const StudioHub = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.StudioHub })));
-const LibraryPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.LibraryPanel })));
-const ChordPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.ChordPanel })));
-const SettingsPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.SettingsPanel })));
-const SongsPanel = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.SongsPanel })));
-const DrumEditor = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.DrumEditor })));
-const GroovexApp = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.GroovexApp })));
-const VocalexApp = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.VocalexApp })));
-const StageCorePanel = lazy(() => import('@workspace/ui-android').then(m => ({ default: m.StageCorePanel })));
+const SharedNavigationBar = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.SharedNavigationBar }))
+);
+const StudioHub = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.StudioHub }))
+);
+const LibraryPanel = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel }))
+);
+const ChordPanel = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.ChordPanel }))
+);
+const SettingsPanel = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel }))
+);
+const SongsPanel = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.SongsPanel }))
+);
+const DrumEditor = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.DrumEditor }))
+);
+const GroovexApp = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.GroovexApp }))
+);
+const VocalexApp = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.VocalexApp }))
+);
+const StageCorePanel = lazy(() =>
+  import('@workspace/ui-android').then((m) => ({ default: m.StageCorePanel }))
+);
 import { Capacitor } from '@capacitor/core';
 
-import "./index.css";
+import './index.css';
 
 if (typeof window !== 'undefined') {
   (window as any).__preloadUIModules = () => {
@@ -68,18 +53,42 @@ if (typeof window !== 'undefined') {
   };
 }
 
-const isDebugModeEnabled = typeof window !== 'undefined' && (
-  localStorage.getItem('studio_debug_mode') === 'true' ||
-  (window as any).__studio_debug_mode === true
-);
-
+const isDebugModeEnabled =
+  typeof window !== 'undefined' &&
+  (localStorage.getItem('studio_debug_mode') === 'true' ||
+    (window as any).__studio_debug_mode === true);
 
 type AccountState =
   | { phase: 'unknown' }
   | { phase: 'signedOut' }
-  | { phase: 'active'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } }
-  | { phase: 'pending'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }; scheduledAtMs: number }
-  | { phase: 'disabled'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } };
+  | {
+      phase: 'active';
+      user: {
+        uid: string;
+        email: string | null;
+        displayName: string | null;
+        photoURL: string | null;
+      };
+    }
+  | {
+      phase: 'pending';
+      user: {
+        uid: string;
+        email: string | null;
+        displayName: string | null;
+        photoURL: string | null;
+      };
+      scheduledAtMs: number;
+    }
+  | {
+      phase: 'disabled';
+      user: {
+        uid: string;
+        email: string | null;
+        displayName: string | null;
+        photoURL: string | null;
+      };
+    };
 
 const ALL_PANELS = ['songs', 'library', 'settings'] as const;
 
@@ -95,7 +104,7 @@ function getVisualStateForElement(selector: string) {
       transform: 'none',
       filter: 'none',
       backdropFilter: 'none',
-      zIndex: 'none'
+      zIndex: 'none',
     };
   }
   const style = window.getComputedStyle(el);
@@ -108,7 +117,7 @@ function getVisualStateForElement(selector: string) {
     transform: style.transform || 'none',
     filter: style.filter || 'none',
     backdropFilter: style.backdropFilter || (style as any).webkitBackdropFilter || 'none',
-    zIndex: style.zIndex || 'none'
+    zIndex: style.zIndex || 'none',
   };
 }
 
@@ -125,7 +134,7 @@ function getBoundingClientRectForElement(selector: string) {
     right: Math.round(rect.right),
     bottom: Math.round(rect.bottom),
     width: Math.round(rect.width),
-    height: Math.round(rect.height)
+    height: Math.round(rect.height),
   };
 }
 
@@ -134,21 +143,25 @@ function getViewportAudit() {
   return {
     innerWidth: window.innerWidth,
     innerHeight: window.innerHeight,
-    visualViewport: vv ? {
-      width: Math.round(vv.width),
-      height: Math.round(vv.height),
-      scale: vv.scale,
-      offsetLeft: Math.round(vv.offsetLeft),
-      offsetTop: Math.round(vv.offsetTop)
-    } : null,
+    visualViewport: vv
+      ? {
+          width: Math.round(vv.width),
+          height: Math.round(vv.height),
+          scale: vv.scale,
+          offsetLeft: Math.round(vv.offsetLeft),
+          offsetTop: Math.round(vv.offsetTop),
+        }
+      : null,
     dpr: window.devicePixelRatio || 1,
-    orientation: screen.orientation ? {
-      type: screen.orientation.type,
-      angle: screen.orientation.angle
-    } : {
-      type: window.innerHeight > window.innerWidth ? 'portrait-primary' : 'landscape-primary',
-      angle: 0
-    }
+    orientation: screen.orientation
+      ? {
+          type: screen.orientation.type,
+          angle: screen.orientation.angle,
+        }
+      : {
+          type: window.innerHeight > window.innerWidth ? 'portrait-primary' : 'landscape-primary',
+          angle: 0,
+        },
   };
 }
 
@@ -156,13 +169,15 @@ function estimateCompositedLayers(): number {
   try {
     const all = document.querySelectorAll('*');
     let layers = 0;
-    all.forEach(el => {
+    all.forEach((el) => {
       const style = window.getComputedStyle(el);
       const hasTransform = style.transform && style.transform !== 'none';
-      const hasWillChange = style.willChange && style.willChange !== 'auto' && style.willChange !== 'none';
+      const hasWillChange =
+        style.willChange && style.willChange !== 'auto' && style.willChange !== 'none';
       const hasFilter = style.filter && style.filter !== 'none';
-      const hasBackdrop = ((style as any).backdropFilter && (style as any).backdropFilter !== 'none') ||
-                          ((style as any).webkitBackdropFilter && (style as any).webkitBackdropFilter !== 'none');
+      const hasBackdrop =
+        ((style as any).backdropFilter && (style as any).backdropFilter !== 'none') ||
+        ((style as any).webkitBackdropFilter && (style as any).webkitBackdropFilter !== 'none');
       const hasFixed = style.position === 'fixed';
       const isComposited = hasTransform || hasWillChange || hasFilter || hasBackdrop || hasFixed;
       if (isComposited) {
@@ -178,7 +193,11 @@ function estimateCompositedLayers(): number {
 function isElementVisuallyEmpty(el: Element): boolean {
   if (el.textContent && el.textContent.trim().length > 0) {
     const style = window.getComputedStyle(el);
-    if (style.visibility !== 'hidden' && style.display !== 'none' && parseFloat(style.opacity || '1') > 0.01) {
+    if (
+      style.visibility !== 'hidden' &&
+      style.display !== 'none' &&
+      parseFloat(style.opacity || '1') > 0.01
+    ) {
       return false; // Has visible text content!
     }
   }
@@ -188,18 +207,21 @@ function isElementVisuallyEmpty(el: Element): boolean {
   return true;
 }
 
-function getComputedAccumulatedColor(el: Element): { isBlackOrTransparent: boolean; color: string } {
+function getComputedAccumulatedColor(el: Element): {
+  isBlackOrTransparent: boolean;
+  color: string;
+} {
   let current: Element | null = el;
   while (current) {
     const style = window.getComputedStyle(current);
     const bg = style.backgroundColor;
     const bgImg = style.backgroundImage;
     const opacity = parseFloat(style.opacity || '1');
-    
+
     if (bgImg && bgImg !== 'none') {
       return { isBlackOrTransparent: false, color: `image: ${bgImg}` };
     }
-    
+
     if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
       const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+(?:\.\d+)?))?\)/);
       if (match) {
@@ -207,7 +229,7 @@ function getComputedAccumulatedColor(el: Element): { isBlackOrTransparent: boole
         const g = parseInt(match[2]);
         const b = parseInt(match[3]);
         const a = match[4] !== undefined ? parseFloat(match[4]) : 1;
-        
+
         if (a > 0.05 && opacity > 0.05) {
           // Check if color is black or very dark
           const isBlack = r < 15 && g < 15 && b < 15;
@@ -217,7 +239,7 @@ function getComputedAccumulatedColor(el: Element): { isBlackOrTransparent: boole
         }
       }
     }
-    
+
     current = current.parentElement;
   }
   return { isBlackOrTransparent: true, color: 'transparent_or_black' };
@@ -231,12 +253,21 @@ function getVisuallyEmptyProbe() {
     { label: 'topLeft', x: Math.round(w * 0.1), y: Math.round(h * 0.1) },
     { label: 'topRight', x: Math.round(w * 0.9), y: Math.round(h * 0.1) },
     { label: 'bottomLeft', x: Math.round(w * 0.1), y: Math.round(h * 0.9) },
-    { label: 'bottomRight', x: Math.round(w * 0.9), y: Math.round(h * 0.9) }
+    { label: 'bottomRight', x: Math.round(w * 0.9), y: Math.round(h * 0.9) },
   ];
-  
-  const results: Record<string, { point: string; element: string; status: 'empty' | 'painted'; color: string; hasContent: boolean }> = {};
-  
-  points.forEach(pt => {
+
+  const results: Record<
+    string,
+    {
+      point: string;
+      element: string;
+      status: 'empty' | 'painted';
+      color: string;
+      hasContent: boolean;
+    }
+  > = {};
+
+  points.forEach((pt) => {
     try {
       const el = document.elementFromPoint(pt.x, pt.y);
       if (!el) {
@@ -245,20 +276,20 @@ function getVisuallyEmptyProbe() {
           element: 'none',
           status: 'empty',
           color: 'transparent',
-          hasContent: false
+          hasContent: false,
         };
         return;
       }
       const hasContent = !isElementVisuallyEmpty(el);
       const colorAudit = getComputedAccumulatedColor(el);
       const empty = !hasContent && colorAudit.isBlackOrTransparent;
-      
+
       results[pt.label] = {
         point: `${pt.x},${pt.y}`,
         element: `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className ? '.' + el.className.split(' ').join('.') : ''}`,
         status: empty ? 'empty' : 'painted',
         color: colorAudit.color,
-        hasContent
+        hasContent,
       };
     } catch (_) {
       results[pt.label] = {
@@ -266,23 +297,23 @@ function getVisuallyEmptyProbe() {
         element: 'error',
         status: 'empty',
         color: 'error',
-        hasContent: false
+        hasContent: false,
       };
     }
   });
-  
-  const allEmpty = Object.values(results).every(res => res.status === 'empty');
-  
+
+  const allEmpty = Object.values(results).every((res) => res.status === 'empty');
+
   return {
     results,
-    allEmpty
+    allEmpty,
   };
 }
 
 function getWebViewRenderAudit() {
   const rootSelector = '#root';
   const hubSelector = '[data-livex-hub-root="true"], #hub-root';
-  
+
   const getAuditForEl = (sel: string) => {
     const el = document.querySelector(sel);
     if (!el) return { exists: false };
@@ -294,7 +325,7 @@ function getWebViewRenderAudit() {
         left: Math.round(rect.left),
         top: Math.round(rect.top),
         width: Math.round(rect.width),
-        height: Math.round(rect.height)
+        height: Math.round(rect.height),
       },
       display: style.display || 'none',
       visibility: style.visibility || 'none',
@@ -303,49 +334,55 @@ function getWebViewRenderAudit() {
       filter: style.filter || 'none',
       contain: style.contain || 'none',
       isolation: style.isolation || 'none',
-      overflow: style.overflow || 'visible'
+      overflow: style.overflow || 'visible',
     };
   };
-  
+
   return {
     root: getAuditForEl(rootSelector),
     hub: getAuditForEl(hubSelector),
-    layerCount: estimateCompositedLayers()
+    layerCount: estimateCompositedLayers(),
   };
 }
 
 function takeForensicSnapshot(stage: string) {
-  const currentAppMode = useChordStore.getState().settings.appMode || 'hub';
-  const stableKey = (window as any).__studioStableKey || "none";
+  const currentAppMode = useSettingsStore.getState().settings.appMode || 'hub';
+  const stableKey = (window as any).__studioStableKey || 'none';
   const transitionActive = (window as any).studioTransitionActive || false;
   const visualProbe = getVisuallyEmptyProbe();
   const renderAudit = getWebViewRenderAudit();
 
-  const hubRoot = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
+  const hubRoot =
+    document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
   const hubDomState = {
     mounted: !!hubRoot,
     htmlLength: hubRoot ? hubRoot.outerHTML.length : 0,
     elementCount: hubRoot ? hubRoot.getElementsByTagName('*').length : 0,
     textContentLength: hubRoot ? (hubRoot.textContent || '').trim().length : 0,
     id: hubRoot ? hubRoot.id : '',
-    className: hubRoot ? hubRoot.className : ''
+    className: hubRoot ? hubRoot.className : '',
   };
 
   const getRectSafe = (sel: string) => {
     const el = document.querySelector(sel);
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    return { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
+    return {
+      left: Math.round(r.left),
+      top: Math.round(r.top),
+      width: Math.round(r.width),
+      height: Math.round(r.height),
+    };
   };
 
   const bounds = {
-    'root': getRectSafe('#root'),
+    root: getRectSafe('#root'),
     'app-container': getRectSafe('.app-container'),
     'app-main-layout': getRectSafe('.app-main-layout'),
     'hub-root': getRectSafe('[data-livex-hub-root="true"], #hub-root'),
     'hub-content': getRectSafe('[data-livex-hub-content="true"], .gb-wrap'),
     'subapp-wrapper': getRectSafe('.sc-subapp-wrapper'),
-    'subapp-container': getRectSafe('.app-sub-app-container')
+    'subapp-container': getRectSafe('.app-sub-app-container'),
   };
 
   const getStylesSafe = (sel: string) => {
@@ -362,24 +399,24 @@ function takeForensicSnapshot(stage: string) {
       isolation: s.isolation || 'none',
       overflow: s.overflow || 'visible',
       zIndex: s.zIndex || 'auto',
-      position: s.position || 'static'
+      position: s.position || 'static',
     };
   };
 
   const computedStyles = {
-    'root': getStylesSafe('#root'),
+    root: getStylesSafe('#root'),
     'app-container': getStylesSafe('.app-container'),
     'app-main-layout': getStylesSafe('.app-main-layout'),
     'hub-root': getStylesSafe('[data-livex-hub-root="true"], #hub-root'),
     'hub-content': getStylesSafe('[data-livex-hub-content="true"], .gb-wrap'),
-    'subapp-wrapper': getStylesSafe('.sc-subapp-wrapper')
+    'subapp-wrapper': getStylesSafe('.sc-subapp-wrapper'),
   };
 
   const topmostElementsStack = (() => {
     try {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      return Array.from(document.elementsFromPoint(w / 2, h / 2)).map(el => {
+      return Array.from(document.elementsFromPoint(w / 2, h / 2)).map((el) => {
         const s = window.getComputedStyle(el);
         return {
           tag: el.tagName.toLowerCase(),
@@ -389,7 +426,7 @@ function takeForensicSnapshot(stage: string) {
           opacity: s.opacity || '1',
           pointerEvents: s.pointerEvents || 'auto',
           display: s.display || 'block',
-          visibility: s.visibility || 'visible'
+          visibility: s.visibility || 'visible',
         };
       });
     } catch (_) {
@@ -404,21 +441,25 @@ function takeForensicSnapshot(stage: string) {
     innerHeight: window.innerHeight,
     dpr: window.devicePixelRatio || 1,
     colorDepth: screen.colorDepth || 24,
-    orientation: screen.orientation ? {
-      type: screen.orientation.type,
-      angle: screen.orientation.angle
-    } : {
-      type: window.innerHeight > window.innerWidth ? 'portrait-primary' : 'landscape-primary',
-      angle: 0
-    },
-    visualViewport: window.visualViewport ? {
-      width: Math.round(window.visualViewport.width),
-      height: Math.round(window.visualViewport.height),
-      offsetLeft: Math.round(window.visualViewport.offsetLeft),
-      offsetTop: Math.round(window.visualViewport.offsetTop),
-      scale: window.visualViewport.scale
-    } : null,
-    layerCount: estimateCompositedLayers()
+    orientation: screen.orientation
+      ? {
+          type: screen.orientation.type,
+          angle: screen.orientation.angle,
+        }
+      : {
+          type: window.innerHeight > window.innerWidth ? 'portrait-primary' : 'landscape-primary',
+          angle: 0,
+        },
+    visualViewport: window.visualViewport
+      ? {
+          width: Math.round(window.visualViewport.width),
+          height: Math.round(window.visualViewport.height),
+          offsetLeft: Math.round(window.visualViewport.offsetLeft),
+          offsetTop: Math.round(window.visualViewport.offsetTop),
+          scale: window.visualViewport.scale,
+        }
+      : null,
+    layerCount: estimateCompositedLayers(),
   };
 
   return {
@@ -429,14 +470,14 @@ function takeForensicSnapshot(stage: string) {
     stableKey,
     transitionActive,
     elements: {
-      'root': getVisualStateForElement('#root'),
+      root: getVisualStateForElement('#root'),
       'app-container': getVisualStateForElement('.app-container'),
       'app-main-layout': getVisualStateForElement('.app-main-layout'),
       'hub-root': getVisualStateForElement('[data-livex-hub-root="true"], #hub-root'),
       'hub-shell': getVisualStateForElement('.hub-shell'),
       'hub-content': getVisualStateForElement('[data-livex-hub-content="true"], .gb-wrap'),
       'subapp-wrapper': getVisualStateForElement('.sc-subapp-wrapper'),
-      'subapp-container': getVisualStateForElement('.app-sub-app-container')
+      'subapp-container': getVisualStateForElement('.app-sub-app-container'),
     },
     bounds,
     computedStyles,
@@ -446,12 +487,13 @@ function takeForensicSnapshot(stage: string) {
     viewport: getViewportAudit(),
     visualProbe,
     renderAudit,
-    hubDomState
+    hubDomState,
   };
 }
 
 async function runPaintVerification(scaleFactor = 0.1) {
-  const el = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('root');
+  const el =
+    document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('root');
   if (!el) {
     return {
       domExists: false,
@@ -459,7 +501,7 @@ async function runPaintVerification(scaleFactor = 0.1) {
       blackPercent: 0,
       histogram: { black: 0, dark: 0, mid: 0, bright: 0 },
       totalPixels: 0,
-      thumbnail: ''
+      thumbnail: '',
     };
   }
 
@@ -468,7 +510,7 @@ async function runPaintVerification(scaleFactor = 0.1) {
     const canvas = await html2canvas(el as HTMLElement, {
       logging: false,
       useCORS: true,
-      scale: scaleFactor
+      scale: scaleFactor,
     });
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -476,24 +518,24 @@ async function runPaintVerification(scaleFactor = 0.1) {
     }
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imgData.data;
-    
+
     let blackCount = 0;
     let darkCount = 0;
     let midCount = 0;
     let brightCount = 0;
     const total = canvas.width * canvas.height;
-    
+
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
-      const g = data[i+1];
-      const b = data[i+2];
-      
+      const g = data[i + 1];
+      const b = data[i + 2];
+
       const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-      
+
       if (r < 15 && g < 15 && b < 15) {
         blackCount++;
       }
-      
+
       if (gray <= 15) {
         // already counted in black
       } else if (gray <= 64) {
@@ -504,10 +546,10 @@ async function runPaintVerification(scaleFactor = 0.1) {
         brightCount++;
       }
     }
-    
+
     const blackPercent = total > 0 ? Math.round((blackCount / total) * 100) : 0;
     const isVisuallyBlack = blackPercent > 98;
-    
+
     let thumbnail = '';
     try {
       const thumbCanvas = document.createElement('canvas');
@@ -534,10 +576,10 @@ async function runPaintVerification(scaleFactor = 0.1) {
         black: blackCount,
         dark: darkCount,
         mid: midCount,
-        bright: brightCount
+        bright: brightCount,
       },
       totalPixels: total,
-      thumbnail
+      thumbnail,
     };
   } catch (err) {
     console.error('Paint verification failed:', err);
@@ -547,7 +589,7 @@ async function runPaintVerification(scaleFactor = 0.1) {
       blackPercent: 0,
       histogram: { black: 0, dark: 0, mid: 0, bright: 0 },
       totalPixels: 0,
-      thumbnail: ''
+      thumbnail: '',
     };
   }
 }
@@ -555,10 +597,10 @@ async function runPaintVerification(scaleFactor = 0.1) {
 function captureTimelineCheckpoint(captureId: number, key: string) {
   try {
     const snap = takeForensicSnapshot(key);
-    
+
     const currentTimelineStr = localStorage.getItem('studio_current_navigation_timeline');
     let timeline = currentTimelineStr ? JSON.parse(currentTimelineStr) : null;
-    
+
     if (!timeline || timeline.id !== captureId) {
       timeline = {
         id: captureId,
@@ -567,16 +609,16 @@ function captureTimelineCheckpoint(captureId: number, key: string) {
         versionCode: 95,
         snapshots: {},
         result: 'pending',
-        reason: ''
+        reason: '',
       };
     } else {
       timeline.appVersion = NATIVE_VERSION;
       timeline.versionCode = 95;
     }
-    
+
     timeline.snapshots[key] = snap;
     localStorage.setItem('studio_current_navigation_timeline', JSON.stringify(timeline));
-    
+
     const listStr = localStorage.getItem('studio_forensic_captures') || '[]';
     const list = JSON.parse(listStr);
     const index = list.findIndex((c: any) => c.id === captureId);
@@ -592,24 +634,30 @@ function captureTimelineCheckpoint(captureId: number, key: string) {
       localStorage.setItem('studio_forensic_captures', JSON.stringify(list));
     }
 
-    runPaintVerification().then(paintData => {
-      const currentTimelineStrLatest = localStorage.getItem('studio_current_navigation_timeline');
-      let tLatest = currentTimelineStrLatest ? JSON.parse(currentTimelineStrLatest) : null;
-      if (tLatest && tLatest.id === captureId) {
-        tLatest.snapshots[key].paintVerification = paintData;
-        localStorage.setItem('studio_current_navigation_timeline', JSON.stringify(tLatest));
-      }
-      
-      const listStrLatest = localStorage.getItem('studio_forensic_captures') || '[]';
-      const listLatest = JSON.parse(listStrLatest);
-      const idxLatest = listLatest.findIndex((c: any) => c.id === captureId);
-      if (idxLatest !== -1 && listLatest[idxLatest].snapshots && listLatest[idxLatest].snapshots[key]) {
-        listLatest[idxLatest].snapshots[key].paintVerification = paintData;
-        localStorage.setItem('studio_forensic_captures', JSON.stringify(listLatest));
-      }
-    }).catch(err => {
-      console.error(`Failed to capture paint verification for checkpoint ${key}:`, err);
-    });
+    runPaintVerification()
+      .then((paintData) => {
+        const currentTimelineStrLatest = localStorage.getItem('studio_current_navigation_timeline');
+        let tLatest = currentTimelineStrLatest ? JSON.parse(currentTimelineStrLatest) : null;
+        if (tLatest && tLatest.id === captureId) {
+          tLatest.snapshots[key].paintVerification = paintData;
+          localStorage.setItem('studio_current_navigation_timeline', JSON.stringify(tLatest));
+        }
+
+        const listStrLatest = localStorage.getItem('studio_forensic_captures') || '[]';
+        const listLatest = JSON.parse(listStrLatest);
+        const idxLatest = listLatest.findIndex((c: any) => c.id === captureId);
+        if (
+          idxLatest !== -1 &&
+          listLatest[idxLatest].snapshots &&
+          listLatest[idxLatest].snapshots[key]
+        ) {
+          listLatest[idxLatest].snapshots[key].paintVerification = paintData;
+          localStorage.setItem('studio_forensic_captures', JSON.stringify(listLatest));
+        }
+      })
+      .catch((err) => {
+        console.error(`Failed to capture paint verification for checkpoint ${key}:`, err);
+      });
   } catch (err) {
     console.error(`Failed to capture checkpoint ${key}:`, err);
   }
@@ -620,15 +668,14 @@ let lifecycleFlushTimer: any = null;
 
 function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
   const timestampStr = new Date().toISOString();
-  const currentAppMode = useChordStore.getState().settings.appMode || 'hub';
+  const currentAppMode = useSettingsStore.getState().settings.appMode || 'hub';
   const isTransitioning = useNavigationStore.getState().isTransitioning;
-  console.log(`[Lifecycle] [${timestampStr}] ${name} ${event} | appMode: ${currentAppMode}, transitionActive: ${isTransitioning}`);
   if (!isDebugModeEnabled) {
     return;
   }
   try {
     const timestamp = Date.now();
-    const appMode = useChordStore.getState().settings.appMode || 'hub';
+    const appMode = useSettingsStore.getState().settings.appMode || 'hub';
     const activeSubApp = (window as any).__lastActiveSubApp || 'none';
     const stableKey = (window as any).__lastStableKey || 'none';
     const activeAppToRender = (window as any).__lastActiveAppToRender || 'none';
@@ -636,7 +683,7 @@ function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
     const transitionActive = (window as any).studioTransitionActive || false;
     const hubRenderKey = (window as any).__lastHubRenderKey || 0;
     const previousAppMode = (window as any).__lastPreviousAppMode || 'none';
-    
+
     let lastNavigationAction = 'none';
     const stack = new Error().stack || 'unknown';
 
@@ -653,7 +700,7 @@ function logLifecycleEvent(name: string, event: 'mount' | 'unmount') {
       hubRenderKey,
       previousAppMode,
       lastNavigationAction,
-      stack
+      stack,
     };
 
     memoryLifecycleLogs.push(logEntry);
@@ -694,7 +741,7 @@ function TolgeeSuspenseFallback() {
     const errorLog = {
       timestamp: Date.now(),
       type: 'SUSPENSE_FALLBACK_RENDERED',
-      stack: new Error().stack || 'unknown'
+      stack: new Error().stack || 'unknown',
     };
     try {
       const logs = JSON.parse(localStorage.getItem('studio_root_lifecycle_logs') || '[]');
@@ -704,14 +751,39 @@ function TolgeeSuspenseFallback() {
   }, []);
 
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      height: '100%', width: '100%', background: '#121214', color: '#eaeaea', padding: 24, textAlign: 'center',
-      fontFamily: 'Inter, sans-serif', boxSizing: 'border-box', position: 'absolute', inset: 0, zIndex: 1000
-    }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700 }}>Loading Translation Resources...</h3>
-      <p style={{ margin: '0 0 24px', fontSize: 13, color: '#a0a0a5', maxWidth: 360, lineHeight: 1.5 }}>
-        Please wait while language assets are being initialized. If this screen persists, return to the Studio Hub.
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
+        background: '#121214',
+        color: '#eaeaea',
+        padding: 24,
+        textAlign: 'center',
+        fontFamily: 'Inter, sans-serif',
+        boxSizing: 'border-box',
+        position: 'absolute',
+        inset: 0,
+        zIndex: 1000,
+      }}
+    >
+      <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700 }}>
+        Loading Translation Resources...
+      </h3>
+      <p
+        style={{
+          margin: '0 0 24px',
+          fontSize: 13,
+          color: '#a0a0a5',
+          maxWidth: 360,
+          lineHeight: 1.5,
+        }}
+      >
+        Please wait while language assets are being initialized. If this screen persists, return to
+        the Studio Hub.
       </p>
       <button
         onClick={() => {
@@ -720,8 +792,15 @@ function TolgeeSuspenseFallback() {
           }
         }}
         style={{
-          padding: '10px 20px', background: '#3b5bdb', border: 'none', borderRadius: 8,
-          color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter, sans-serif'
+          padding: '10px 20px',
+          background: '#3b5bdb',
+          border: 'none',
+          borderRadius: 8,
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: 700,
+          cursor: 'pointer',
+          fontFamily: 'Inter, sans-serif',
         }}
       >
         Return to Hub
@@ -743,13 +822,13 @@ function getInitialLaunchPreset() {
 }
 
 export default function App() {
-  const activePanel = useNavigationStore(s => {
+  const activePanel = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    return (last?.app === 'chords' && last.page ? last.page as ActivePanel : 'library');
+    return last?.app === 'chords' && last.page ? (last.page as ActivePanel) : 'library';
   });
-  const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
-  const settings = useChordStore(state => state.settings);
-  const updateSettings = useChordStore(state => state.updateSettings);
+  const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
+  const settings = useSettingsStore((state) => state.settings);
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const { preferences } = useStudioPreferences();
   const isWebDesktop = useIsWebDesktop();
   const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
@@ -763,19 +842,21 @@ export default function App() {
     const settingsApp = settings.appMode || 'hub';
 
     if (routeApp !== settingsApp) {
-      const routeChanged = lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
-      const settingsChanged = lastSyncedSettingsAppRef.current !== null && settingsApp !== lastSyncedSettingsAppRef.current;
+      const routeChanged =
+        lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
+      const settingsChanged =
+        lastSyncedSettingsAppRef.current !== null &&
+        settingsApp !== lastSyncedSettingsAppRef.current;
 
       if (routeChanged && !settingsChanged) {
-        console.log(`[Sync-Android] Navigation route changed: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
       } else if (settingsChanged && !routeChanged) {
-        console.log(`[Sync-Android] Settings appMode changed: ${routeApp} -> ${settingsApp}. Updating navigation dispatcher.`);
         if (settingsApp === 'hub') {
           NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
         } else {
           const currentHistory = useNavigationStore.getState().history;
-          const isCurrentlySubApp = currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
+          const isCurrentlySubApp =
+            currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
           if (isCurrentlySubApp) {
             NavigationDispatcher.replace({ app: settingsApp as any });
           } else {
@@ -783,7 +864,6 @@ export default function App() {
           }
         }
       } else {
-        console.log(`[Sync-Android] Resolving sync drift: ${settingsApp} -> ${routeApp} (authoritative). Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
       }
     }
@@ -803,41 +883,40 @@ export default function App() {
   }, [speedScale]);
 
   const runForceWebViewRepaint = useCallback(() => {
-    console.warn('[Diagnostics] Force WebView Repaint triggered.');
     try {
       const el = document.getElementById('root') || document.body;
       const originalDisplay = el.style.display;
       const originalTransform = el.style.transform;
       const originalOpacity = el.style.opacity;
-      
+
       // A. Opacity toggle
       el.style.opacity = '0.99';
       // B. Display toggle
       el.style.display = 'none';
       document.body.offsetHeight; // force reflow
-      
+
       // C. requestAnimationFrame repaint sequence
       requestAnimationFrame(() => {
         el.style.display = originalDisplay || 'block';
         el.style.opacity = '0.999';
         el.style.transform = 'translateZ(0)';
         document.body.offsetHeight;
-        
+
         requestAnimationFrame(() => {
           el.style.opacity = originalOpacity || '1';
           el.style.transform = originalTransform || 'none';
           document.body.offsetHeight;
-          
+
           // D. Dispatch events
           window.dispatchEvent(new Event('resize'));
           window.dispatchEvent(new Event('orientationchange'));
         });
       });
-      
+
       // Log status
       setTimeout(() => {
         try {
-          runPaintVerification().then(paintData => {
+          runPaintVerification().then((paintData) => {
             const success = paintData.paintState === 'painted';
             const logStr = localStorage.getItem('studio_visual_repaints_log') || '[]';
             const log = JSON.parse(logStr);
@@ -845,7 +924,7 @@ export default function App() {
               timestamp: Date.now(),
               action: 'force_repaint',
               success,
-              paintData
+              paintData,
             });
             if (log.length > 20) log.shift();
             localStorage.setItem('studio_visual_repaints_log', JSON.stringify(log));
@@ -858,11 +937,9 @@ export default function App() {
   }, []);
 
   const runForceFullHubRebuild = useCallback(() => {
-    console.warn('[Diagnostics] Force Full Hub Rebuild triggered.');
-    
     // Reset transition locks and subapp wrappers
     try {
-      document.querySelectorAll('.sc-subapp-wrapper').forEach(el => {
+      document.querySelectorAll('.sc-subapp-wrapper').forEach((el) => {
         el.remove();
       });
     } catch (_) {}
@@ -874,14 +951,14 @@ export default function App() {
 
     setTimeout(() => {
       flushSync(() => {
-        setHubRenderKey(k => k + 1);
+        setHubRenderKey((k) => k + 1);
         setShowHub(true);
       });
 
       // Log full rebuild status
       setTimeout(() => {
         try {
-          runPaintVerification().then(paintData => {
+          runPaintVerification().then((paintData) => {
             const success = paintData.paintState === 'painted';
             const logStr = localStorage.getItem('studio_nuclear_recoveries_log') || '[]';
             const log = JSON.parse(logStr);
@@ -889,7 +966,7 @@ export default function App() {
               timestamp: Date.now(),
               action: 'full_rebuild',
               success,
-              paintData
+              paintData,
             });
             if (log.length > 20) log.shift();
             localStorage.setItem('studio_nuclear_recoveries_log', JSON.stringify(log));
@@ -897,36 +974,34 @@ export default function App() {
         } catch (_) {}
       }, 150);
     }, 50);
-
   }, []);
 
   const runForceWebViewRefreshLayer = useCallback(() => {
-    console.warn('[Diagnostics] Force WebView Refresh Compositor Layer triggered.');
     try {
       const el = document.documentElement;
-      
+
       // Toggle compositing triggers on HTML element
       const originalWillChange = el.style.willChange;
       const originalFilter = el.style.filter;
       const originalTransform = el.style.transform;
-      
+
       el.style.willChange = 'transform, opacity';
       el.style.filter = 'blur(0.01px)';
       el.style.transform = 'translate3d(0, 0, 0)';
-      
+
       document.body.offsetHeight; // force reflow
-      
+
       requestAnimationFrame(() => {
         el.style.willChange = originalWillChange;
         el.style.filter = originalFilter;
         el.style.transform = originalTransform;
         document.body.offsetHeight;
       });
-      
+
       // Log status
       setTimeout(() => {
         try {
-          runPaintVerification().then(paintData => {
+          runPaintVerification().then((paintData) => {
             const success = paintData.paintState === 'painted';
             const logStr = localStorage.getItem('studio_visual_repaints_log') || '[]';
             const log = JSON.parse(logStr);
@@ -934,7 +1009,7 @@ export default function App() {
               timestamp: Date.now(),
               action: 'refresh_layer',
               success,
-              paintData
+              paintData,
             });
             if (log.length > 20) log.shift();
             localStorage.setItem('studio_visual_repaints_log', JSON.stringify(log));
@@ -951,30 +1026,28 @@ export default function App() {
     (window as any).runForceWebViewRepaint = runForceWebViewRepaint;
     (window as any).runForceFullHubRebuild = runForceFullHubRebuild;
     (window as any).runForceWebViewRefreshLayer = runForceWebViewRefreshLayer;
-    
+
     // Backwards compatibility mappings
     (window as any).runVisualRepaintRecovery = runForceWebViewRepaint;
     (window as any).runNuclearRecovery = runForceFullHubRebuild;
     (window as any).forceHubRepaint = runForceWebViewRepaint;
     (window as any).__forceRemountHub = () => {
-      setHubRenderKey(k => k + 1);
+      setHubRenderKey((k) => k + 1);
     };
 
     (window as any).__runRootWatchdogCheck = (name: string) => {
-      const currentMode = useChordStore.getState().settings.appMode || 'hub';
+      const currentMode = useSettingsStore.getState().settings.appMode || 'hub';
       const rootNode = document.getElementById('root');
       const appContainer = document.querySelector('.app-container');
 
       if (currentMode === 'hub' && rootNode && !appContainer) {
-        console.warn(`[Root Watchdog] ROOT_APP_TREE_MISSING detected at ${name}! Running force remount.`);
-        
         const logEntry = {
           timestamp: Date.now(),
           type: 'ROOT_TREE_MISSING',
           checkpoint: name,
-          action: 'FORCE_REMOUNT'
+          action: 'FORCE_REMOUNT',
         };
-        
+
         let recoveryLog: any[] = [];
         try {
           const recStr = localStorage.getItem('studio_hub_mount_recovery_log') || '[]';
@@ -989,24 +1062,28 @@ export default function App() {
 
         flushSync(() => {
           (window as any).studioTransitionActive = false;
-          useChordStore.getState().updateSettings({ appMode: 'hub' });
+          useSettingsStore.getState().updateSettings({ appMode: 'hub' });
         });
 
         requestAnimationFrame(() => {
           const checkApp = document.querySelector('.app-container');
-          const checkHub = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
+          const checkHub =
+            document.querySelector('[data-livex-hub-root="true"]') ||
+            document.getElementById('hub-root');
           const success = !!(checkApp && checkHub);
-          
+
           const resultEntry = {
             timestamp: Date.now(),
             type: success ? 'ROOT_TREE_RESTORED' : 'ROOT_TREE_RESTORE_FAILED',
             checkpoint: name,
             appContainerExists: !!checkApp,
-            hubRootExists: !!checkHub
+            hubRootExists: !!checkHub,
           };
 
           try {
-            const currentLog = JSON.parse(localStorage.getItem('studio_hub_mount_recovery_log') || '[]');
+            const currentLog = JSON.parse(
+              localStorage.getItem('studio_hub_mount_recovery_log') || '[]'
+            );
             currentLog.push(resultEntry);
             localStorage.setItem('studio_hub_mount_recovery_log', JSON.stringify(currentLog));
           } catch (_) {}
@@ -1027,15 +1104,11 @@ export default function App() {
     };
   }, [runForceWebViewRepaint, runForceFullHubRebuild, runForceWebViewRefreshLayer]);
 
-
-
-
-
   const [exitToast, setExitToast] = useState(false);
   const exitToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastBackTime = useRef<number>(0);
 
-  const transitionActive = useNavigationStore(s => s.isTransitioning);
+  const transitionActive = useNavigationStore((s) => s.isTransitioning);
 
   // App launch transition state machine using global useApplicationTransitionStore
   const {
@@ -1043,14 +1116,20 @@ export default function App() {
     launchingApp,
     appPreloaded,
     requestTransition,
-    setAppPreloaded
+    setAppPreloaded,
   } = useApplicationTransitionStore();
 
   const splashVisible = transitionState !== 'IDLE';
   const transitionPreviousAppModeRef = useRef<AppKey>(settings.appMode || 'hub');
 
   useEffect(() => {
-    (window as any).__triggerThemeTransition = (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
+    (window as any).__triggerThemeTransition = (
+      nextTheme: string,
+      amoled: boolean,
+      x: number,
+      y: number,
+      updateFn: () => void
+    ) => {
       ThemeTransitionEngine.startTransition({
         nextTheme,
         amoled,
@@ -1065,10 +1144,13 @@ export default function App() {
     };
   }, []);
 
-  const handleAppPreloaded = useCallback((app: AppKey) => {
-    if (useChordStore.getState().settings.appMode !== app) return;
-    setAppPreloaded(true);
-  }, [setAppPreloaded]);
+  const handleAppPreloaded = useCallback(
+    (app: AppKey) => {
+      if (useSettingsStore.getState().settings.appMode !== app) return;
+      setAppPreloaded(true);
+    },
+    [setAppPreloaded]
+  );
 
   const appMode = settings.appMode || 'hub';
 
@@ -1121,34 +1203,52 @@ export default function App() {
 
   function getAppName(app: AppKey): string {
     switch (app) {
-      case 'chords': return 'Chordex';
-      case 'drums': return 'Drumex';
-      case 'stage': return 'Stagex';
-      case 'groovex': return 'Groovex';
-      case 'vocalex': return 'Vocalex';
-      default: return '';
+      case 'chords':
+        return 'Chordex';
+      case 'drums':
+        return 'Drumex';
+      case 'stage':
+        return 'Stagex';
+      case 'groovex':
+        return 'Groovex';
+      case 'vocalex':
+        return 'Vocalex';
+      default:
+        return '';
     }
   }
 
   function getAppColor(app: AppKey): string {
     switch (app) {
-      case 'chords': return '#a855f7'; // Purple
-      case 'drums': return '#ec4899'; // Pink
-      case 'stage': return '#3b82f6'; // Blue
-      case 'groovex': return '#10b981'; // Green
-      case 'vocalex': return '#f59e0b'; // Amber/Yellow
-      default: return '#ffffff';
+      case 'chords':
+        return '#a855f7'; // Purple
+      case 'drums':
+        return '#ec4899'; // Pink
+      case 'stage':
+        return '#3b82f6'; // Blue
+      case 'groovex':
+        return '#10b981'; // Green
+      case 'vocalex':
+        return '#f59e0b'; // Amber/Yellow
+      default:
+        return '#ffffff';
     }
   }
 
   function renderAppLogo(app: AppKey, size: number) {
     switch (app) {
-      case 'chords': return <ChordexLogo size={size} />;
-      case 'drums': return <DrumexLogo size={size} />;
-      case 'stage': return <StagexLogoIcon size={size} />;
-      case 'groovex': return <GroovexLogo size={size} />;
-      case 'vocalex': return <VocalexLogo size={size} />;
-      default: return null;
+      case 'chords':
+        return <ChordexLogo size={size} />;
+      case 'drums':
+        return <DrumexLogo size={size} />;
+      case 'stage':
+        return <StagexLogoIcon size={size} />;
+      case 'groovex':
+        return <GroovexLogo size={size} />;
+      case 'vocalex':
+        return <VocalexLogo size={size} />;
+      default:
+        return null;
     }
   }
 
@@ -1162,10 +1262,9 @@ export default function App() {
         set(val) {
           useNavigationStore.getState().setTransition(null, !!val);
         },
-        configurable: true
+        configurable: true,
       });
     } catch (e) {
-      console.warn('Failed to defineProperty studioTransitionActive', e);
     }
     return () => {
       try {
@@ -1179,7 +1278,6 @@ export default function App() {
     let watchdogTimer: ReturnType<typeof setTimeout> | undefined;
     if (transitionActive) {
       watchdogTimer = setTimeout(() => {
-        console.warn('[Safety] transitionActive watchdog triggered! Forcing reset to Hub.');
         useNavigationStore.getState().setTransition(null, false);
         updateSettings({ appMode: 'hub' });
         window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
@@ -1195,7 +1293,7 @@ export default function App() {
     let lastSyncing = false;
 
     // A. Subscribe Auth
-    const unsubAuth = subscribeAuth((user) => {
+    const unsubAuth = authRepository.subscribeAuth((user) => {
       if (user) {
         if (user.email !== lastUserEmail) {
           useNotificationService.getState().publish({
@@ -1203,7 +1301,7 @@ export default function App() {
             priority: 'normal',
             title: 'Signed In Successfully',
             subtitle: `Connected to Cloud: ${user.email}. Settings synchronization is active.`,
-            icon: 'account_circle'
+            icon: 'account_circle',
           });
           lastUserEmail = user.email;
         }
@@ -1214,7 +1312,7 @@ export default function App() {
             priority: 'normal',
             title: 'Signed Out',
             subtitle: 'You have signed out of your account. Local settings will not sync.',
-            icon: 'no_accounts'
+            icon: 'no_accounts',
           });
           lastUserEmail = null;
         }
@@ -1234,7 +1332,7 @@ export default function App() {
             title: 'Sync Synchronization Failed',
             subtitle: `Sync error: ${status.error}`,
             icon: 'sync_problem',
-            actions: [{ label: 'Retry Now', actionId: 'sync_now' }]
+            actions: [{ label: 'Retry Now', actionId: 'sync_now' }],
           });
         } else {
           useNotificationService.getState().publish({
@@ -1242,7 +1340,7 @@ export default function App() {
             priority: 'low',
             title: 'Settings Synchronized',
             subtitle: 'Successfully updated configurations across all devices.',
-            icon: 'sync'
+            icon: 'sync',
           });
         }
       }
@@ -1255,141 +1353,147 @@ export default function App() {
   }, []);
   // ── Sync Active Theme & AMOLED Mode (handled globally by StartupCoordinator's subscriber) ──
 
+  const returnToStudioHub = useCallback(
+    (isSwipeSuccess = false) => {
+      const fromApp = useSettingsStore.getState().settings.appMode || 'hub';
+      if (fromApp === 'hub') {
+        return; // Already in hub, no need to navigate
+      }
 
-
-  const returnToStudioHub = useCallback((isSwipeSuccess = false) => {
-    const fromApp = useChordStore.getState().settings.appMode || 'hub';
-    if (fromApp === 'hub') {
-      return; // Already in hub, no need to navigate
-    }
-
-    // Diagnostics Logging
-    try {
-      const history = useNavigationStore.getState().history;
-      const activeTab = history[history.length - 1]?.page || 'library';
-      const transitionState = (window as any).studioTransitionActive || false;
-      const lastBack = (window as any).__lastBackEventDetails;
-      addLog('info', 'nav', `returnToStudioHub invoked: fromApp=${fromApp}, isSwipeSuccess=${isSwipeSuccess}, activeTab=${activeTab}, transitionActive=${transitionState}, lastBackEvent=${lastBack ? JSON.stringify(lastBack) : 'none'}`);
-    } catch (e: any) {
-      console.warn('Failed to print returnToStudioHub diagnostics:', e);
-    }
-
-    // FORENSIC AUTO-CAPTURE FOR CHORDEX -> HUB
-    const isFromChords = fromApp === 'chords';
-    if (isFromChords && isDebugModeEnabled) {
+      // Diagnostics Logging
       try {
-        const lastCaptureId = Date.now();
-        (window as any).__lastForensicCaptureId = lastCaptureId;
-        localStorage.setItem('studio_navigation_in_progress', 'true');
-        
-        // Capture 7 timing checkpoints
-        (window as any).__lastCheckpointStage = 'T+0ms';
-        captureTimelineCheckpoint(lastCaptureId, 'T+0ms');
-        
-        const runWatchdogs = (name: string) => {
-          (window as any).__lastCheckpointStage = name;
-          (window as any).__watchdogRunning = true;
-          if (typeof (window as any).__runRootWatchdogCheck === 'function') {
-            (window as any).__runRootWatchdogCheck(name);
-          }
-          const currentMode = useChordStore.getState().settings.appMode || 'hub';
-          const rootNode = document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root');
-          const isEarlyStage = name === 'T+50ms' || name === 'T+100ms' || name === 'T+250ms' || name === 'T+500ms';
-          if (currentMode === 'hub' && !rootNode && !isEarlyStage) {
-            (window as any).__runFailsafeRecovery?.(name);
-          }
-          (window as any).__watchdogRunning = false;
-        };
-
-        setTimeout(() => {
-          runWatchdogs('T+50ms');
-          captureTimelineCheckpoint(lastCaptureId, 'T+50ms');
-        }, 50);
-        
-        setTimeout(() => {
-          runWatchdogs('T+100ms');
-          captureTimelineCheckpoint(lastCaptureId, 'T+100ms');
-        }, 100);
-
-        setTimeout(() => {
-          runWatchdogs('T+250ms');
-          captureTimelineCheckpoint(lastCaptureId, 'T+250ms');
-        }, 250);
-
-        setTimeout(() => {
-          runWatchdogs('T+500ms');
-          captureTimelineCheckpoint(lastCaptureId, 'T+500ms');
-        }, 500);
-
-        setTimeout(() => {
-          (window as any).__lastCheckpointStage = 'T+1000ms';
-          if (typeof (window as any).__runRootWatchdogCheck === 'function') {
-            (window as any).__runRootWatchdogCheck('T+1000ms');
-          }
-          captureTimelineCheckpoint(lastCaptureId, 'T+1000ms');
-        }, 1000);
-
-        setTimeout(() => {
-          (window as any).__lastCheckpointStage = 'T+2000ms';
-          captureTimelineCheckpoint(lastCaptureId, 'T+2000ms');
-        }, 2000);
-        
-      } catch (err) {
-        console.error('Forensics: Failed to start multi-snapshot captures', err);
+        const history = useNavigationStore.getState().history;
+        const activeTab = history[history.length - 1]?.page || 'library';
+        const transitionState = (window as any).studioTransitionActive || false;
+        const lastBack = (window as any).__lastBackEventDetails;
+        addLog(
+          'info',
+          'nav',
+          `returnToStudioHub invoked: fromApp=${fromApp}, isSwipeSuccess=${isSwipeSuccess}, activeTab=${activeTab}, transitionActive=${transitionState}, lastBackEvent=${lastBack ? JSON.stringify(lastBack) : 'none'}`
+        );
+      } catch (e: any) {
       }
-    }
 
-    recordNavigation({
-      fromApp,
-      toApp: 'hub',
-      transitionStart: Date.now(),
-      transitionLockState: true,
-      activeAppAfterTransition: 'hub',
-      fallbackRendered: false
-    });
+      // FORENSIC AUTO-CAPTURE FOR CHORDEX -> HUB
+      const isFromChords = fromApp === 'chords';
+      if (isFromChords && isDebugModeEnabled) {
+        try {
+          const lastCaptureId = Date.now();
+          (window as any).__lastForensicCaptureId = lastCaptureId;
+          localStorage.setItem('studio_navigation_in_progress', 'true');
 
-    // 1. Close active modals/sheets/overlays
-    window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
-    window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
-    document.querySelectorAll('.modal-backdrop, .overlay').forEach(el => {
-      if (el.id !== 'update-fade-overlay') {
-        el.remove();
+          // Capture 7 timing checkpoints
+          (window as any).__lastCheckpointStage = 'T+0ms';
+          captureTimelineCheckpoint(lastCaptureId, 'T+0ms');
+
+          const runWatchdogs = (name: string) => {
+            (window as any).__lastCheckpointStage = name;
+            (window as any).__watchdogRunning = true;
+            if (typeof (window as any).__runRootWatchdogCheck === 'function') {
+              (window as any).__runRootWatchdogCheck(name);
+            }
+            const currentMode = useSettingsStore.getState().settings.appMode || 'hub';
+            const rootNode =
+              document.querySelector('[data-livex-hub-root="true"]') ||
+              document.getElementById('hub-root');
+            const isEarlyStage =
+              name === 'T+50ms' || name === 'T+100ms' || name === 'T+250ms' || name === 'T+500ms';
+            if (currentMode === 'hub' && !rootNode && !isEarlyStage) {
+              (window as any).__runFailsafeRecovery?.(name);
+            }
+            (window as any).__watchdogRunning = false;
+          };
+
+          setTimeout(() => {
+            runWatchdogs('T+50ms');
+            captureTimelineCheckpoint(lastCaptureId, 'T+50ms');
+          }, 50);
+
+          setTimeout(() => {
+            runWatchdogs('T+100ms');
+            captureTimelineCheckpoint(lastCaptureId, 'T+100ms');
+          }, 100);
+
+          setTimeout(() => {
+            runWatchdogs('T+250ms');
+            captureTimelineCheckpoint(lastCaptureId, 'T+250ms');
+          }, 250);
+
+          setTimeout(() => {
+            runWatchdogs('T+500ms');
+            captureTimelineCheckpoint(lastCaptureId, 'T+500ms');
+          }, 500);
+
+          setTimeout(() => {
+            (window as any).__lastCheckpointStage = 'T+1000ms';
+            if (typeof (window as any).__runRootWatchdogCheck === 'function') {
+              (window as any).__runRootWatchdogCheck('T+1000ms');
+            }
+            captureTimelineCheckpoint(lastCaptureId, 'T+1000ms');
+          }, 1000);
+
+          setTimeout(() => {
+            (window as any).__lastCheckpointStage = 'T+2000ms';
+            captureTimelineCheckpoint(lastCaptureId, 'T+2000ms');
+          }, 2000);
+        } catch (err) {
+          console.error('Forensics: Failed to start multi-snapshot captures', err);
+        }
       }
-    });
-    document.documentElement.classList.remove('has-modal-open');
 
-    // 2. Set transition active lock
-    useNavigationStore.getState().setTransition('replace', true);
-
-    // Reset Hub's zoom/opacity animation state immediately so it starts fading in as the sub-app exits
-    window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
-
-    // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
-    updateSettings({ appMode: 'hub' });
-    NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
-    
-    // Reset nested views to defaults if rememberLastAppSection is disabled
-    if (!preferences.rememberLastAppSection) {
-      const storeState = useChordStore.getState();
-      storeState.setLastSession({
-        vocalexTab: 'coach',
-        drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
-        stagexView: storeState.settings.defaultStageView ?? 'Editor',
-      });
-    }
-
-    setTimeout(() => {
-      useNavigationStore.getState().setTransition(null, false);
       recordNavigation({
         fromApp,
         toApp: 'hub',
-        transitionComplete: Date.now(),
-        transitionLockState: false,
+        transitionStart: Date.now(),
+        transitionLockState: true,
         activeAppAfterTransition: 'hub',
-        fallbackRendered: false
+        fallbackRendered: false,
       });
-    }, 300 * speedScale);
-  }, [updateSettings, preferences.rememberLastAppSection]);
+
+      // 1. Close active modals/sheets/overlays
+      window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
+      window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
+      document.querySelectorAll('.modal-backdrop, .overlay').forEach((el) => {
+        if (el.id !== 'update-fade-overlay') {
+          el.remove();
+        }
+      });
+      document.documentElement.classList.remove('has-modal-open');
+
+      // 2. Set transition active lock
+      useNavigationStore.getState().setTransition('replace', true);
+
+      // Reset Hub's zoom/opacity animation state immediately so it starts fading in as the sub-app exits
+      window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
+
+      // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
+      updateSettings({ appMode: 'hub' });
+      NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
+
+      // Reset nested views to defaults if rememberLastAppSection is disabled
+      if (!preferences.rememberLastAppSection) {
+        const storeState = useChordStore.getState();
+        storeState.setLastSession({
+          vocalexTab: 'coach',
+          drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
+          stagexView: storeState.settings.defaultStageView ?? 'Editor',
+        });
+      }
+
+      setTimeout(() => {
+        useNavigationStore.getState().setTransition(null, false);
+        recordNavigation({
+          fromApp,
+          toApp: 'hub',
+          transitionComplete: Date.now(),
+          transitionLockState: false,
+          activeAppAfterTransition: 'hub',
+          fallbackRendered: false,
+        });
+      }, 300 * speedScale);
+    },
+    [updateSettings, preferences.rememberLastAppSection]
+  );
 
   const returnToStudioHubRef = useRef(returnToStudioHub);
   useEffect(() => {
@@ -1415,9 +1519,11 @@ export default function App() {
 
       if (!isLeftEdge && !isRightEdge) return;
 
-      const overlayEl = document.querySelector('.sheet-overlay, .modal-overlay, [role="dialog"], .settings-panel-sheet, .profile-panel-sheet, #exit-toast');
+      const overlayEl = document.querySelector(
+        '.sheet-overlay, .modal-overlay, [role="dialog"], .settings-panel-sheet, .profile-panel-sheet, #exit-toast'
+      );
       const overlayOpen = !!overlayEl;
-      const isSubApp = useChordStore.getState().settings.appMode !== 'hub';
+      const isSubApp = useSettingsStore.getState().settings.appMode !== 'hub';
 
       if (!overlayOpen && !isSubApp) return;
 
@@ -1473,7 +1579,7 @@ export default function App() {
       if (progress >= 0.45) {
         const handled = BackDispatcher.handleBackEvent();
         if (!handled) {
-          const isSubApp = useChordStore.getState().settings.appMode !== 'hub';
+          const isSubApp = useSettingsStore.getState().settings.appMode !== 'hub';
           if (isSubApp) {
             returnToStudioHubRef.current(true);
           }
@@ -1530,22 +1636,26 @@ export default function App() {
         (window as any).__lastBackEventTime = now;
         (window as any).__lastBackEventDetails = {
           timestamp: now,
-          activeApp: useChordStore.getState().settings.appMode,
-          activePanel: useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]?.page || 'library',
+          activeApp: useSettingsStore.getState().settings.appMode,
+          activePanel:
+            useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]
+              ?.page || 'library',
           selectedChordId: useChordStore.getState().selectedChordId,
         };
       } catch (_) {}
 
       const handled = BackDispatcher.handleBackEvent();
-      addLog('info', 'nav', `Android back button / swipe gesture triggered. BackDispatcher.handleBackEvent returned: ${handled}`);
+      addLog(
+        'info',
+        'nav',
+        `Android back button / swipe gesture triggered. BackDispatcher.handleBackEvent returned: ${handled}`
+      );
 
       if (!handled) {
         // Double press to exit when already on the Studio Hub / root reached
         const now = Date.now();
         if (now - lastBackTime.current < 2000) {
-          import('@capacitor/app')
-            .then(({ App: CapApp }) => CapApp.exitApp())
-            .catch(() => {});
+          import('@capacitor/app').then(({ App: CapApp }) => CapApp.exitApp()).catch(() => {});
         } else {
           lastBackTime.current = now;
           setExitToast(true);
@@ -1585,7 +1695,6 @@ export default function App() {
   useEffect(() => {
     const validModes = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
     if (!settings.appMode || !validModes.includes(settings.appMode)) {
-      console.warn('[Safety] Invalid appMode detected:', settings.appMode, 'Falling back to hub.');
       updateSettings({ appMode: 'hub' });
     }
   }, [settings.appMode, updateSettings]);
@@ -1605,7 +1714,6 @@ export default function App() {
 
     // Listen for the intro-done signal to coordinate preflight checks (monitored by regression tests)
     const handleIntroDone = () => {
-      console.log('[App] Received studio-intro-done event.');
     };
     window.addEventListener('studio-intro-done', handleIntroDone);
     return () => {
@@ -1668,7 +1776,7 @@ export default function App() {
         timestamp: Date.now(),
         transitionDuration: (window as any).studioTransitionActive ? 340 : 0,
         lockState: (window as any).studioTransitionActive || false,
-        recoveredViaFailsafe: false
+        recoveredViaFailsafe: false,
       });
       if ((window as any).__navigationTraceHistory.length > 50) {
         (window as any).__navigationTraceHistory.shift();
@@ -1676,15 +1784,13 @@ export default function App() {
     }
   }, [appMode]);
 
-
-
   // Define window.__captureBlackScreenState
   useEffect(() => {
     (window as any).__captureBlackScreenState = () => {
-      const currentAppMode = useChordStore.getState().settings.appMode || 'hub';
+      const currentAppMode = useSettingsStore.getState().settings.appMode || 'hub';
       const prevMode = previousAppModeRef.current;
       const subActive = currentAppMode !== 'hub';
-      
+
       const hubLayout = document.querySelector('.app-main-layout');
       const hubMounted = !!hubLayout;
       let hubVisible = false;
@@ -1696,7 +1802,7 @@ export default function App() {
         hubOpacity = style.opacity;
         hubTransform = style.transform;
       }
-      
+
       const subappWrapper = document.querySelector('.sc-subapp-wrapper');
       const subappWrapperMounted = !!subappWrapper;
       let subappWrapperOpacity = 'unknown';
@@ -1738,9 +1844,13 @@ export default function App() {
         iframeTransform = style.transform;
         iframeSrc = (iframeEl as HTMLIFrameElement).src || '';
       }
-      
-      const overlays = Array.from(document.querySelectorAll('.modal, .dialog, .sheet, .overlay, .backdrop, [class*="overlay"], [class*="backdrop"], [class*="modal"]'))
-        .map(el => {
+
+      const overlays = Array.from(
+        document.querySelectorAll(
+          '.modal, .dialog, .sheet, .overlay, .backdrop, [class*="overlay"], [class*="backdrop"], [class*="modal"]'
+        )
+      )
+        .map((el) => {
           const style = window.getComputedStyle(el);
           return {
             tag: el.tagName.toLowerCase(),
@@ -1749,14 +1859,18 @@ export default function App() {
             opacity: style.opacity,
             zIndex: style.zIndex,
             pointerEvents: style.pointerEvents,
-            display: style.display
+            display: style.display,
           };
         })
-        .filter(o => o.display !== 'none' && o.opacity !== '0');
+        .filter((o) => o.display !== 'none' && o.opacity !== '0');
 
-      const suspenseFallback = !!document.querySelector('.smart-loading, .fallback-skeleton, .studio-accent-loader, .studio-shimmer, [class*="skeleton"]');
-      const motionExitActive = subappWrapper ? subappWrapper.getAttribute('data-projection-id') !== null : false;
-      
+      const suspenseFallback = !!document.querySelector(
+        '.smart-loading, .fallback-skeleton, .studio-accent-loader, .studio-shimmer, [class*="skeleton"]'
+      );
+      const motionExitActive = subappWrapper
+        ? subappWrapper.getAttribute('data-projection-id') !== null
+        : false;
+
       const w = window.innerWidth;
       const h = window.innerHeight;
       const points = {
@@ -1764,9 +1878,9 @@ export default function App() {
         topCenter: [w / 2, h * 0.1],
         bottomCenter: [w / 2, h * 0.9],
         leftCenter: [w * 0.1, h / 2],
-        rightCenter: [w * 0.9, h / 2]
+        rightCenter: [w * 0.9, h / 2],
       };
-      
+
       const topmostElements: any = {};
       for (const [key, coords] of Object.entries(points)) {
         try {
@@ -1777,7 +1891,9 @@ export default function App() {
               id: el.id,
               className: el.className,
               pointerEvents: window.getComputedStyle(el).pointerEvents,
-              isHub: !!el.closest?.('[data-livex-hub-root="true"]') || !!el.closest?.('.app-main-layout')
+              isHub:
+                !!el.closest?.('[data-livex-hub-root="true"]') ||
+                !!el.closest?.('.app-main-layout'),
             };
           } else {
             topmostElements[key] = null;
@@ -1788,13 +1904,17 @@ export default function App() {
       }
 
       const chordexDiagnostics = (window as any).__chordexDiagnostics || { status: 'none' };
-      const chordexOverlayPresent = !!document.querySelector('[class*="chordex-overlay"], [class*="ch-overlay"]');
+      const chordexOverlayPresent = !!document.querySelector(
+        '[class*="chordex-overlay"], [class*="ch-overlay"]'
+      );
       const chordexRootPresent = !!document.querySelector('.app-sub-app-container');
-      const activeElement = document.activeElement ? {
-        tag: document.activeElement.tagName.toLowerCase(),
-        id: document.activeElement.id,
-        className: document.activeElement.className
-      } : null;
+      const activeElement = document.activeElement
+        ? {
+            tag: document.activeElement.tagName.toLowerCase(),
+            id: document.activeElement.id,
+            className: document.activeElement.className,
+          }
+        : null;
 
       // Extract last navigation entry
       let lastNavigationAction: any = null;
@@ -1809,14 +1929,18 @@ export default function App() {
             transitionStart: last.transitionStart,
             transitionComplete: last.transitionComplete,
             transitionLockState: last.transitionLockState,
-            fallbackRendered: last.fallbackRendered
+            fallbackRendered: last.fallbackRendered,
           };
         }
       } catch (_) {}
 
-      const hubShellFound = !!document.querySelector('.app-container.app-mode-hub .app-main-layout');
+      const hubShellFound = !!document.querySelector(
+        '.app-container.app-mode-hub .app-main-layout'
+      );
       const hubRootFound = !!document.querySelector('[data-livex-hub-root="true"]');
-      const hubContentFound = !!document.querySelector('[data-livex-hub-content="true"]') || !!document.querySelector('.gb-wrap');
+      const hubContentFound =
+        !!document.querySelector('[data-livex-hub-content="true"]') ||
+        !!document.querySelector('.gb-wrap');
       const hubNavFound = !!document.querySelector('nav.glass-nav');
       const hubActuallyPainted = hubRootFound || hubContentFound || hubNavFound;
 
@@ -1833,11 +1957,14 @@ export default function App() {
         if (hubActuallyPainted && !hubRootFound) {
           return 'DIAGNOSTIC_SELECTOR_FALSE_POSITIVE';
         }
-        
+
         const hubLayout = document.querySelector('.app-main-layout');
         if (hubLayout) {
           const style = window.getComputedStyle(hubLayout);
-          const isHidden = style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') === 0;
+          const isHidden =
+            style.display === 'none' ||
+            style.visibility === 'hidden' ||
+            parseFloat(style.opacity || '1') === 0;
           if (isHidden) {
             return 'HUB_CONTENT_PRESENT_BUT_NOT_VISIBLE';
           }
@@ -1848,15 +1975,32 @@ export default function App() {
           const tag = centerEl.tag;
           const id = centerEl.id;
           const cls = centerEl.className || '';
-          const isHubElement = centerEl.isHub || id === 'hub-root' || cls.includes('hub') || cls.includes('app-main-layout') || tag === 'body' || tag === 'html';
+          const isHubElement =
+            centerEl.isHub ||
+            id === 'hub-root' ||
+            cls.includes('hub') ||
+            cls.includes('app-main-layout') ||
+            tag === 'body' ||
+            tag === 'html';
           if (isHubElement) {
             return 'HUB_VISIBLE_BUT_BLACK_PAINT';
-          } else if (cls.includes('subapp') || cls.includes('overlay') || cls.includes('backdrop') || cls.includes('modal') || cls.includes('chordex')) {
+          } else if (
+            cls.includes('subapp') ||
+            cls.includes('overlay') ||
+            cls.includes('backdrop') ||
+            cls.includes('modal') ||
+            cls.includes('chordex')
+          ) {
             return 'HUB_CONTENT_PRESENT_BUT_NOT_VISIBLE';
           }
         }
 
-        if (hubActuallyPainted && hubRootFound && centerEl && (centerEl.tag === 'body' || centerEl.tag === 'html')) {
+        if (
+          hubActuallyPainted &&
+          hubRootFound &&
+          centerEl &&
+          (centerEl.tag === 'body' || centerEl.tag === 'html')
+        ) {
           return 'NATIVE_WEBVIEW_BLACK_LAYER';
         }
 
@@ -1871,7 +2015,8 @@ export default function App() {
         activeSubApp: currentAppMode !== 'hub' ? currentAppMode : 'none',
         prevAppMode: prevMode,
         stableKey: stableKeyRef.current,
-        stableKeyExplanation: "stableKey preserves the last active sub-app key so that AnimatePresence can render the exit transition correctly",
+        stableKeyExplanation:
+          'stableKey preserves the last active sub-app key so that AnimatePresence can render the exit transition correctly',
         isSubAppActive: subActive,
         transitionActive: (window as any).studioTransitionActive || false,
         hubShellFound,
@@ -1884,14 +2029,14 @@ export default function App() {
           mounted: hubMounted,
           visible: hubVisible,
           opacity: hubOpacity,
-          transform: hubTransform
+          transform: hubTransform,
         },
         subappWrapper: {
           mounted: subappWrapperMounted,
           opacity: subappWrapperOpacity,
           zIndex: subappWrapperZIndex,
           pointerEvents: subappWrapperPointerEvents,
-          motionExitActive
+          motionExitActive,
         },
         mountedComponents: {
           hubRoot: hubRootFound,
@@ -1899,7 +2044,7 @@ export default function App() {
           subappWrapper: subappWrapperMounted,
           subappContainer: subappContainerMounted,
           subappContainerZIndex,
-          subappContainerPointerEvents
+          subappContainerPointerEvents,
         },
         stagexIframe: {
           mounted: iframeMounted,
@@ -1908,7 +2053,7 @@ export default function App() {
           zIndex: iframeZIndex,
           pointerEvents: iframePointerEvents,
           transform: iframeTransform,
-          src: iframeSrc
+          src: iframeSrc,
         },
         overlays,
         suspenseFallback,
@@ -1917,9 +2062,9 @@ export default function App() {
           diagnostics: chordexDiagnostics,
           overlayPresent: chordexOverlayPresent,
           rootPresent: chordexRootPresent,
-          focusElement: activeElement
+          focusElement: activeElement,
         },
-        lastNavigationAction
+        lastNavigationAction,
       };
     };
 
@@ -1949,7 +2094,7 @@ export default function App() {
       failedReturns: 0,
       blackScreenDetections: 0,
       lastBlocker: 'none',
-      history: []
+      history: [],
     };
     const diag = (window as any).__navigationDiagnostics;
     diag.returnAttempts++;
@@ -1969,32 +2114,36 @@ export default function App() {
         diag.failedReturns++;
         diag.blackScreenDetections++;
         diag.lastBlocker = finalReason;
-        
+
         const systemDiagnostics = {
-          activeElement: document.activeElement ? `${document.activeElement.tagName.toLowerCase()}${document.activeElement.id ? '#' + document.activeElement.id : ''}${document.activeElement.className ? '.' + document.activeElement.className.split(' ').join('.') : ''}` : 'none',
+          activeElement: document.activeElement
+            ? `${document.activeElement.tagName.toLowerCase()}${document.activeElement.id ? '#' + document.activeElement.id : ''}${document.activeElement.className ? '.' + document.activeElement.className.split(' ').join('.') : ''}`
+            : 'none',
           rootChildrenCount: document.getElementById('root')?.children?.length || 0,
-          currentAppMode: useChordStore.getState().settings.appMode || 'none',
+          currentAppMode: useSettingsStore.getState().settings.appMode || 'none',
           transitionActive: (window as any).studioTransitionActive || false,
-          memory: (performance as any).memory ? {
-            usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-            totalJSHeapSize: (performance as any).memory.totalJSHeapSize
-          } : 'N/A',
+          memory: (performance as any).memory
+            ? {
+                usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
+                totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
+              }
+            : 'N/A',
           url: window.location.href,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
-        
+
         const enrichedPayload = paintData
           ? { ...statePayload, paintVerification: paintData, systemDiagnostics }
           : { ...statePayload, systemDiagnostics };
-          
+
         diag.lastPayload = enrichedPayload;
-        
+
         console.error('BLACK_SCREEN_DETECTED', finalReason, enrichedPayload);
-        
+
         diag.history.push({
           time: Date.now(),
           reason: finalReason,
-          payload: enrichedPayload
+          payload: enrichedPayload,
         });
 
         try {
@@ -2007,13 +2156,12 @@ export default function App() {
         }
 
         if (finalReason === 'HUB_ROOT_MISSING') {
-          console.warn('[Failsafe] HUB_ROOT_MISSING detected! Running deterministic Hub remount.');
           const actualFrom = previousAppModeRef.current || 'none';
           flushSync(() => {
-            setHubRenderKey(k => k + 1);
+            setHubRenderKey((k) => k + 1);
             useNavigationStore.getState().setTransition(null, false);
             lastActiveAppRef.current = 'chords';
-            useChordStore.getState().updateSettings({ appMode: 'hub' });
+            useSettingsStore.getState().updateSettings({ appMode: 'hub' });
           });
           (window as any).__navigationTraceHistory = (window as any).__navigationTraceHistory || [];
           (window as any).__navigationTraceHistory.push({
@@ -2022,7 +2170,7 @@ export default function App() {
             timestamp: Date.now(),
             transitionDuration: 0,
             lockState: false,
-            recoveredViaFailsafe: true
+            recoveredViaFailsafe: true,
           });
           recordNavigation({
             fromApp: actualFrom,
@@ -2031,7 +2179,7 @@ export default function App() {
             activeAppAfterTransition: 'hub',
             transitionLockState: false,
             fallbackRendered: false,
-            recoveredViaFailsafe: true
+            recoveredViaFailsafe: true,
           } as any);
         }
       }
@@ -2053,9 +2201,12 @@ export default function App() {
               timeline.watchdogPaintVerification = paintData;
             }
             localStorage.setItem('studio_current_navigation_timeline', JSON.stringify(timeline));
-            
+
             if (finalBlocked) {
-              localStorage.setItem('studio_last_failed_navigation_timeline', JSON.stringify(timeline));
+              localStorage.setItem(
+                'studio_last_failed_navigation_timeline',
+                JSON.stringify(timeline)
+              );
               localStorage.setItem('studio_failed_navigation_unviewed', 'true');
             }
           }
@@ -2070,7 +2221,7 @@ export default function App() {
               list[index].watchdogPaintVerification = paintData;
             }
             localStorage.setItem('studio_forensic_captures', JSON.stringify(list));
-            
+
             // Also store individual last successful or failed capture
             if (finalBlocked) {
               localStorage.setItem('studio_forensic_last_failed', JSON.stringify(list[index]));
@@ -2092,7 +2243,7 @@ export default function App() {
         runWatchdogVerdict(false, 'Capture state not ready');
         return;
       }
-      
+
       const hubVisible = statePayload.hub.visible;
       const hubOpacity = parseFloat(statePayload.hub.opacity);
       const topmostCenter = statePayload.topmostElements.center;
@@ -2115,7 +2266,7 @@ export default function App() {
               const appModeIsHub = snap.appMode === 'hub';
               const hubMounted = snap.hubDomState?.mounted;
               const isBlack = snap.paintVerification?.paintState === 'visually_black';
-              
+
               if (appModeIsHub && !hubMounted) {
                 checkpointFailed = true;
                 checkpointReason = `Checkpoint ${key} Hub DOM not mounted`;
@@ -2154,26 +2305,47 @@ export default function App() {
         const tag = topmostCenter.tag;
         const id = topmostCenter.id;
         const cls = topmostCenter.className || '';
-        
-        const isHubElement = topmostCenter.isHub || id === 'hub-root' || cls.includes('hub') || cls.includes('app-main-layout') || 
-                             cls.includes('studio-hub') || tag === 'body' || tag === 'html';
-                             
-        if (!isHubElement && (cls.includes('subapp') || cls.includes('overlay') || cls.includes('backdrop') || cls.includes('modal') || cls.includes('chordex'))) {
+
+        const isHubElement =
+          topmostCenter.isHub ||
+          id === 'hub-root' ||
+          cls.includes('hub') ||
+          cls.includes('app-main-layout') ||
+          cls.includes('studio-hub') ||
+          tag === 'body' ||
+          tag === 'html';
+
+        if (
+          !isHubElement &&
+          (cls.includes('subapp') ||
+            cls.includes('overlay') ||
+            cls.includes('backdrop') ||
+            cls.includes('modal') ||
+            cls.includes('chordex'))
+        ) {
           isBlocked = true;
           reason = `Topmost blocking element at center: ${tag}${id ? '#' + id : ''}${cls ? '.' + cls.split(' ').join('.') : ''}`;
         }
       }
 
       // Check grace conditions:
-      const transitionActive = (window as any).studioTransitionActive || (window as any).__navigationInProgress === true || statePayload.transitionActive;
-      const hasLoading = !!document.querySelector('.smart-loading, .fallback-skeleton, .studio-accent-loading, .app-loading-screen, #loading-screen');
-      const hasOverlay = !!document.querySelector('.modal, .overlay, .backdrop, .dialog, .chordex-overlay, [role="dialog"]');
-      const hasSuspense = !!document.querySelector('.tolgee-loading, [data-testid="suspense-fallback"]');
-      
+      const transitionActive =
+        (window as any).studioTransitionActive ||
+        (window as any).__navigationInProgress === true ||
+        statePayload.transitionActive;
+      const hasLoading = !!document.querySelector(
+        '.smart-loading, .fallback-skeleton, .studio-accent-loading, .app-loading-screen, #loading-screen'
+      );
+      const hasOverlay = !!document.querySelector(
+        '.modal, .overlay, .backdrop, .dialog, .chordex-overlay, [role="dialog"]'
+      );
+      const hasSuspense = !!document.querySelector(
+        '.tolgee-loading, [data-testid="suspense-fallback"]'
+      );
+
       const gracePeriodActive = transitionActive || hasLoading || hasOverlay || hasSuspense;
 
       if (gracePeriodActive) {
-        console.log(`[Watchdog] Black screen check bypassed. Reason: Grace conditions active (Transition: ${transitionActive}, Loading: ${hasLoading}, Overlay: ${hasOverlay}, Suspense: ${hasSuspense})`);
         consecutiveFailures = 0;
         timer = setTimeout(runCheckPass, checkInterval);
         return;
@@ -2182,9 +2354,10 @@ export default function App() {
       const evaluateVerdict = (finalBlocked: boolean, finalReason: string, paintData?: any) => {
         if (finalBlocked) {
           consecutiveFailures++;
-          console.warn(`[Watchdog] Compositor freeze pass #${consecutiveFailures} detected. Reason: ${finalReason}`);
           if (consecutiveFailures >= maxRetries) {
-            console.error(`[Watchdog] Compositor freeze confirmed after ${maxRetries} consecutive failures.`);
+            console.error(
+              `[Watchdog] Compositor freeze confirmed after ${maxRetries} consecutive failures.`
+            );
             runWatchdogVerdict(true, finalReason, paintData);
           } else {
             timer = setTimeout(runCheckPass, checkInterval);
@@ -2196,20 +2369,22 @@ export default function App() {
       };
 
       if (!isBlocked) {
-        runPaintVerification().then(paintData => {
-          const isVisuallyBlack = paintData.paintState === 'visually_black';
-          const domExists = paintData.domExists;
-          const visuallyBlackAndDomExists = isVisuallyBlack && domExists;
-          
-          if (visuallyBlackAndDomExists) {
-            evaluateVerdict(true, 'COMPOSITOR_FREEZE', paintData);
-          } else {
-            evaluateVerdict(false, '', paintData);
-          }
-        }).catch(err => {
-          console.error('Watchdog paint verification failed:', err);
-          evaluateVerdict(false, '');
-        });
+        runPaintVerification()
+          .then((paintData) => {
+            const isVisuallyBlack = paintData.paintState === 'visually_black';
+            const domExists = paintData.domExists;
+            const visuallyBlackAndDomExists = isVisuallyBlack && domExists;
+
+            if (visuallyBlackAndDomExists) {
+              evaluateVerdict(true, 'COMPOSITOR_FREEZE', paintData);
+            } else {
+              evaluateVerdict(false, '', paintData);
+            }
+          })
+          .catch((err) => {
+            console.error('Watchdog paint verification failed:', err);
+            evaluateVerdict(false, '');
+          });
       } else {
         evaluateVerdict(isBlocked, reason);
       }
@@ -2240,14 +2415,12 @@ export default function App() {
         overflow: 'hidden',
         background: 'var(--app-bg)',
         opacity: 1,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
       }}
     >
       <LifecycleTracker name="App" />
       <LifecycleTracker name="app-container" />
-      
 
-      
       <ErrorBoundary moduleName="RootApp">
         <Suspense fallback={null}>
           <TolgeeProvider tolgee={tolgee} fallback={null}>
@@ -2282,14 +2455,14 @@ export default function App() {
                   key={stableKey}
                   className="sc-subapp-wrapper"
                   initial={{ opacity: 1, scale: 1 }}
-                  animate={{ 
-                    opacity: 1, 
-                    scale: 1 
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
                   }}
                   exit={{ opacity: 0, scale: 0.98, pointerEvents: 'none' as any }}
                   transition={{
                     duration: 0.3 * speedScale,
-                    ease: MOTION_EASINGS.standard
+                    ease: EasingPresets.standard,
                   }}
                   style={{
                     position: 'absolute',
@@ -2316,7 +2489,12 @@ export default function App() {
                   appKey={launchingApp}
                   preloaded={appPreloaded}
                   onComplete={() => {}}
-                  isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+                  isLight={
+                    settings.theme === 'light' ||
+                    (settings.theme === 'system' &&
+                      typeof window !== 'undefined' &&
+                      window.matchMedia('(prefers-color-scheme: light)').matches)
+                  }
                   isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
                 />
               )}
@@ -2333,7 +2511,12 @@ export default function App() {
           preset={initialPresetRef.current}
           skipIntro={false}
           onComplete={() => setShowLaunchOverlay(false)}
-          isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+          isLight={
+            settings.theme === 'light' ||
+            (settings.theme === 'system' &&
+              typeof window !== 'undefined' &&
+              window.matchMedia('(prefers-color-scheme: light)').matches)
+          }
           isAmoled={settings.perApp?.hub?.amoledMode}
         />
       )}
@@ -2365,21 +2548,21 @@ export default function App() {
       >
         Press back or swipe again to exit
       </div>,
-        document.body
+      document.body
     );
   }
 }
 
 const AppReadyNotifier = memo(function AppReadyNotifier({
   app,
-  onReady
+  onReady,
 }: {
   app: AppKey;
   onReady: (app: AppKey) => void;
 }) {
   useEffect(() => {
     let active = true;
-    
+
     // Double requestAnimationFrame guarantees React completed rendering and browser finished initial paint
     const rafId = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -2412,13 +2595,18 @@ function FallbackTracker({ app, children }: { app: AppKey; children: React.React
       toApp: app,
       activeAppAfterTransition: app,
       transitionLockState: (window as any).studioTransitionActive || false,
-      fallbackRendered: true
+      fallbackRendered: true,
     });
   }, [app]);
   return <>{children}</>;
 }
 
-const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, onReady }: SubAppWrapperProps) {
+const SubAppWrapper = memo(function SubAppWrapper({
+  app,
+  activePanel,
+  settings,
+  onReady,
+}: SubAppWrapperProps) {
   const [cachedApp] = useState<AppKey>(app);
 
   // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
@@ -2481,9 +2669,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
 
   useEffect(() => {
     const timestamp = new Date().toISOString();
-    console.log(`[SubAppWrapper] [${timestamp}] Mount | app: ${cachedApp}, activePanel: ${activePanel}, isActive: ${isActive}`);
     return () => {
-      console.log(`[SubAppWrapper] [${new Date().toISOString()}] Unmount | app: ${cachedApp}`);
     };
   }, [cachedApp]);
 
@@ -2497,13 +2683,13 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       unmountedCount: 0,
       lastMountTime: null,
       lastUnmountTime: null,
-      status: 'none'
+      status: 'none',
     };
     const diag = (window as any).__chordexDiagnostics;
     diag.mountedCount++;
     diag.lastMountTime = Date.now();
     diag.status = 'mounted';
-    
+
     return () => {
       diag.unmountedCount++;
       diag.lastUnmountTime = Date.now();
@@ -2519,13 +2705,13 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       hubMounted: true,
       activeAppAfterTransition: app,
       transitionLockState: (window as any).studioTransitionActive || false,
-      fallbackRendered: false
+      fallbackRendered: false,
     });
     return () => {
       // Clean up modals, backdrops, sheets, and overlays when unmounting any sub-app
       window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
       window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
-      document.querySelectorAll('.modal-backdrop, .overlay').forEach(el => {
+      document.querySelectorAll('.modal-backdrop, .overlay').forEach((el) => {
         if (el.id !== 'update-fade-overlay') {
           el.remove();
         }
@@ -2538,7 +2724,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
         subappUnmounted: true,
         activeAppAfterTransition: 'hub',
         transitionLockState: (window as any).studioTransitionActive || false,
-        fallbackRendered: false
+        fallbackRendered: false,
       });
     };
   }, [app]);
@@ -2548,9 +2734,17 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       {cachedApp === 'groovex' && (
         <SubAppScaffold appKey="groovex">
           <ErrorBoundary moduleName="Groovex">
-            <Suspense fallback={<FallbackTracker app="groovex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+            <Suspense
+              fallback={
+                <FallbackTracker app="groovex">
+                  <div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} />
+                </FallbackTracker>
+              }
+            >
               <AppReadyNotifier app="groovex" onReady={onReady} />
-              <AppEntryTransition><GroovexApp /></AppEntryTransition>
+              <AppEntryTransition>
+                <GroovexApp />
+              </AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
         </SubAppScaffold>
@@ -2559,9 +2753,17 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       {cachedApp === 'vocalex' && (
         <SubAppScaffold appKey="vocalex">
           <ErrorBoundary moduleName="Vocalex">
-            <Suspense fallback={<FallbackTracker app="vocalex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+            <Suspense
+              fallback={
+                <FallbackTracker app="vocalex">
+                  <div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} />
+                </FallbackTracker>
+              }
+            >
               <AppReadyNotifier app="vocalex" onReady={onReady} />
-              <AppEntryTransition><VocalexApp /></AppEntryTransition>
+              <AppEntryTransition>
+                <VocalexApp />
+              </AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
         </SubAppScaffold>
@@ -2570,9 +2772,17 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       {cachedApp === 'stage' && (
         <SubAppScaffold appKey="stage">
           <ErrorBoundary moduleName="Stagex">
-            <Suspense fallback={<FallbackTracker app="stage"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+            <Suspense
+              fallback={
+                <FallbackTracker app="stage">
+                  <div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} />
+                </FallbackTracker>
+              }
+            >
               <AppReadyNotifier app="stage" onReady={onReady} />
-              <AppEntryTransition><StageCorePanel /></AppEntryTransition>
+              <AppEntryTransition>
+                <StageCorePanel />
+              </AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
         </SubAppScaffold>
@@ -2581,9 +2791,17 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
       {cachedApp === 'drums' && (
         <SubAppScaffold appKey="drums">
           <ErrorBoundary moduleName="Drumex">
-            <Suspense fallback={<FallbackTracker app="drums"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+            <Suspense
+              fallback={
+                <FallbackTracker app="drums">
+                  <div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} />
+                </FallbackTracker>
+              }
+            >
               <AppReadyNotifier app="drums" onReady={onReady} />
-              <AppEntryTransition><DrumEditor /></AppEntryTransition>
+              <AppEntryTransition>
+                <DrumEditor />
+              </AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
         </SubAppScaffold>
@@ -2596,34 +2814,41 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
             {/* Note: safe-area-inset-top is handled by ScreenScaffold */}
             <AppEntryTransition
               className="flex flex-col w-full overflow-hidden select-none"
-              style={{
-                position: 'relative',
-                height: '100%',
-              } as React.CSSProperties}
+              style={
+                {
+                  position: 'relative',
+                  height: '100%',
+                } as React.CSSProperties
+              }
             >
-              <div 
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  flex: 1, 
-                  width: '100%', 
-                  height: '100%', 
-                  overflow: 'hidden' 
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: 1,
+                  width: '100%',
+                  height: '100%',
+                  overflow: 'hidden',
                 }}
               >
                 <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                   <ErrorBoundary moduleName="Chordex">
-                    <Suspense fallback={<FallbackTracker app="chords"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+                    <Suspense
+                      fallback={
+                        <FallbackTracker app="chords">
+                          <div
+                            style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }}
+                          />
+                        </FallbackTracker>
+                      }
+                    >
                       <AppReadyNotifier app="chords" onReady={onReady} />
-                      <SharedNavigationContainer
-                        activeView={cachedPanel}
-                        viewOrder={ALL_PANELS}
-                      >
+                      <SharedNavigationContainer activeView={cachedPanel} viewOrder={ALL_PANELS}>
                         {(panel) => (
                           <>
-                            {panel === 'library'  && <LibraryPanel />}
-                            {panel === 'chord'    && <ChordPanel />}
-                            {panel === 'songs'    && <SongsPanel />}
+                            {panel === 'library' && <LibraryPanel />}
+                            {panel === 'chord' && <ChordPanel />}
+                            {panel === 'songs' && <SongsPanel />}
                             {panel === 'settings' && <SettingsPanel />}
                           </>
                         )}
@@ -2631,7 +2856,7 @@ const SubAppWrapper = memo(function SubAppWrapper({ app, activePanel, settings, 
                     </Suspense>
                   </ErrorBoundary>
                 </div>
-              </div>              
+              </div>
             </AppEntryTransition>
           </ScreenScaffold>
         </SubAppScaffold>

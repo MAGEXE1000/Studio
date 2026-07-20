@@ -17,9 +17,9 @@ export default function LandingFeatureGrid() {
   };
 
   const itemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: isReduced ? 0 : 16 
+    hidden: {
+      opacity: 0,
+      y: isReduced ? 0 : 16,
     },
     visible: {
       opacity: 1,
@@ -32,18 +32,22 @@ export default function LandingFeatureGrid() {
   };
 
   return (
-    <section id="features" className="py-24 border-t border-zinc-900 bg-[#030303] relative select-none">
+    <section
+      id="features"
+      className="py-24 border-t border-zinc-900 bg-[#030303] relative select-none"
+    >
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white uppercase mb-4 landing-font-heading">
             Technical Design Core
           </h2>
           <p className="text-zinc-400 text-xs md:text-sm leading-relaxed landing-font-body">
-            Studio is engineered to withstand the demanding conditions of live music performance and band rehearsal settings.
+            Studio is engineered to withstand the demanding conditions of live music performance and
+            band rehearsal settings.
           </p>
         </div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -53,7 +57,7 @@ export default function LandingFeatureGrid() {
           {FEATURES_DATA.map((feat, idx) => {
             const Icon = feat.icon;
             return (
-              <motion.div 
+              <motion.div
                 key={idx}
                 variants={itemVariants}
                 className="p-6 rounded-lg bg-zinc-950/40 border border-zinc-900 flex flex-col gap-4 transition-all duration-300 hover:border-zinc-800"
@@ -61,7 +65,9 @@ export default function LandingFeatureGrid() {
                 <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-zinc-100">
                   <Icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider landing-font-heading">{feat.title}</h3>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider landing-font-heading">
+                  {feat.title}
+                </h3>
                 <p className="text-xs text-zinc-500 leading-relaxed landing-font-body">
                   {feat.desc}
                 </p>

@@ -49,7 +49,7 @@ const MANIFEST_PATH = 'audio-manifest.json';
 
 interface AudioManifest {
   generatedAt: string;
-  files: string[];   // each starts with "/" — e.g. "/drums/realistic/..."
+  files: string[]; // each starts with "/" — e.g. "/drums/realistic/..."
 }
 
 let _seedPromise: Promise<void> | null = null;
@@ -108,7 +108,6 @@ export function seedAudioAssets(): Promise<void> {
   if (!isNative()) return Promise.resolve();
   if (_seedPromise) return _seedPromise;
   _seedPromise = doSeed().catch((err) => {
-    console.warn('[assetCache] seed failed:', err);
   });
   return _seedPromise;
 }
@@ -129,7 +128,6 @@ async function doSeed(): Promise<void> {
 
   const manifest = await loadManifest();
   if (!manifest) {
-    console.warn('[assetCache] no audio manifest — drum-sample seed skipped');
     return;
   }
 
@@ -165,7 +163,9 @@ async function doSeed(): Promise<void> {
       try {
         let resp = await fetch(file, { cache: 'force-cache' });
         if (!resp.ok) {
-          const remoteBase = (import.meta.env.VITE_OTA_BASE_URL || 'https://studio-30f44.web.app').replace(/\/$/, '');
+          const remoteBase = (
+            import.meta.env.VITE_OTA_BASE_URL || 'https://studio-30f44.web.app'
+          ).replace(/\/$/, '');
           const fileUrl = `${remoteBase}/${file.replace(/^\/+/, '')}`;
           resp = await fetch(fileUrl);
         }
@@ -181,7 +181,9 @@ async function doSeed(): Promise<void> {
             path: parent,
             recursive: true,
           });
-        } catch { /* exists */ }
+        } catch {
+          /* exists */
+        }
         await Filesystem.writeFile({
           directory: Directory.Data,
           path: dataPath,
@@ -198,10 +200,6 @@ async function doSeed(): Promise<void> {
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
   const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-  console.log(
-    `[assetCache] seeded ${copied}/${total} files in ${elapsed}s (${failed} failed)`,
-  );
-
   if (copied === 0) {
     // Source bundle had nothing — almost certainly a "slim" Updater was
     // installed before any seed ever ran. Don't stamp the marker, so
@@ -221,7 +219,6 @@ async function doSeed(): Promise<void> {
       encoding: Encoding.UTF8,
     });
   } catch (err) {
-    console.warn('[assetCache] could not stamp seed marker:', err);
   }
   _seeded = true;
 }

@@ -5,6 +5,8 @@ import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n
 import { secureReadLocal, secureWriteLocal } from '../lib/security';
 
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
+import type { Theme, AccentColor, AnimationSpeed, DisplayDensity, Language, ActivePanel, AppKey, PerAppVisuals } from './useSettingsStore';
+
 
 // Re-exported from i18n.ts so the store and the translation system always
 // agree on the supported language set. v3.0.57 added: de, fr, zh, pt, it, ja, ko.
@@ -50,75 +52,6 @@ export interface SongPreset {
   sections?: SongSection[]; // optional section-based organisation
   createdAt: number;
   updatedAt: number;
-}
-
-export interface AppSettings {
-  instrument: Instrument;
-  theme: Theme;
-  showNoteNames: boolean;
-  showIntervals: boolean;
-  tuning: string;
-  amoledMode: boolean;
-  accentColor: AccentColor;
-  leftHanded: boolean;
-  showFretNumbers: boolean;
-  showFingerNumbers: boolean;
-  animationSpeed: AnimationSpeed;
-  displayDensity: DisplayDensity;
-  showChordQualityColors: boolean;
-  diagramSize: number;
-  bassFiveString: boolean;
-  hapticFeedback: boolean;
-  showOpenStrings: boolean;
-  fontSize: 'small' | 'medium' | 'large';
-  showIntervalNames: boolean;
-  liveModeAnimations: boolean;
-  liveModeDiagram: boolean;
-  liveChordSize: number;
-  language: Language;
-  preferFlats: boolean;
-  defaultTab: ActivePanel;
-  defaultDrumTab: 'songs' | 'patterns' | 'prefs';
-  defaultStageView: 'Editor' | 'Setup' | 'Preferences';
-  defaultVocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
-  defaultGroovexView?: 'library' | 'preferences';
-  startupApp: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
-  hubUserName: string;
-  highRefreshRate: boolean;
-  lowLatencyMode: boolean;
-  performanceMode: boolean;
-  chordAssistant: boolean;
-  assistantSmartSuggestions: boolean;
-  assistantProgressionTips: boolean;
-  assistantConflictDetection: boolean;
-  assistantLearning: boolean;
-  /**
-   * When true, opening the app restores the last visited app, sub-tab and
-   * sub-view (e.g. Stagex view, Drumex tab, Vocalex tab). When false (the
-   * default), every launch falls back to the user's startupApp preference
-   * and each sub-app's pinned default tab/view.
-   */
-  restoreLastSession: boolean;
-  autoHideSidebarInApps: boolean;
-  swipeBackBehavior: 'exit-to-hub' | 'manual-only';
-  perApp: Record<AppKey, PerAppVisuals>;
-  customAccentHue: number;
-  dynamicLightStart: number;
-  dynamicLightEnd: number;
-  privacyAnalytics: boolean;
-  privacyCrashReports: boolean;
-  privacyPerfReports: boolean;
-  autoBackup: boolean;
-  syncAcrossDevices: boolean;
-  backupFrequency: 'manual' | 'daily' | 'weekly' | 'monthly';
-  backupRetention: 'forever' | '90days' | '30days';
-  autoCleanTemp: boolean;
-  lastExportDate: string;
-  activityHistoryEnabled: boolean;
-  developerMode: boolean;
-  syncBackendProvider: 'firebase-firestore-legacy' | 'supabase-realtime' | 'supabase-powersync';
-  launchAnimationPreset?:
-    'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
 }
 
 interface ChordStore {

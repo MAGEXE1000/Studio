@@ -23,13 +23,13 @@ export interface VersionComparisonResult {
 export function compareVersions(
   remote: RemoteVersionInfo | null,
   localVersionName: string = APP_VERSION,
-  localVersionCode?: number | null,
+  localVersionCode?: number | null
 ): VersionComparisonResult {
   const details = {
     localVersionName,
     localVersionCode: localVersionCode ?? null,
     remoteVersionName: remote ? remote.version : null,
-    remoteVersionCode: (remote && remote.versionCode !== undefined) ? remote.versionCode : null,
+    remoteVersionCode: remote && remote.versionCode !== undefined ? remote.versionCode : null,
     metadataAvailable: remote !== null,
     metadataIntegrity: false,
     apkUrlPresent: false,
@@ -50,15 +50,24 @@ export function compareVersions(
   const apkUrl = remote.apkUrl || remote.downloadUrl;
   details.apkUrlPresent = !!apkUrl;
   details.sha256Present = !!remote.apkSha256;
-  
+
   const parsedRemoteSemver = remote.version ? parseSemver(remote.version) : null;
   const isVerNameValid = !!parsedRemoteSemver && remote.version !== 'V' && remote.version !== 'v';
-  
+
   let isVerCodeValid = true;
   if (localVersionCode !== undefined && localVersionCode !== null) {
     const rawVersionCode = remote.versionCode;
-    const versionCode = typeof rawVersionCode === 'number' ? rawVersionCode : (typeof rawVersionCode === 'string' ? parseInt(rawVersionCode, 10) : undefined);
-    isVerCodeValid = (versionCode !== undefined && typeof versionCode === 'number' && !isNaN(versionCode) && versionCode > 0);
+    const versionCode =
+      typeof rawVersionCode === 'number'
+        ? rawVersionCode
+        : typeof rawVersionCode === 'string'
+          ? parseInt(rawVersionCode, 10)
+          : undefined;
+    isVerCodeValid =
+      versionCode !== undefined &&
+      typeof versionCode === 'number' &&
+      !isNaN(versionCode) &&
+      versionCode > 0;
   }
 
   if (!isVerNameValid || !isVerCodeValid) {
@@ -75,11 +84,9 @@ export function compareVersions(
   details.metadataIntegrity = true;
 
   if (!apkUrl) {
-    console.warn('[AppUpdater] APK download URL is missing in remote metadata.');
   }
 
   if (!remote.apkSha256) {
-    console.warn('[AppUpdater] SHA-256 checksum is missing in remote metadata. Checksum verification will be skipped.');
   }
 
   const nameComparison = compareSemver(remote.version, localVersionName);
@@ -91,7 +98,12 @@ export function compareVersions(
   // versionCode is the primary determinant of update availability.
   // versionName (semver) is used only as a fallback when versionCode
   // is not available on both sides, and as a display hint.
-  if (localVersionCode !== undefined && localVersionCode !== null && remote.versionCode !== undefined && remote.versionCode !== null) {
+  if (
+    localVersionCode !== undefined &&
+    localVersionCode !== null &&
+    remote.versionCode !== undefined &&
+    remote.versionCode !== null
+  ) {
     // Both versionCodes available: use versionCode as the single source of truth
     if (remote.versionCode > localVersionCode) {
       isUpgrade = true;

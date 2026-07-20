@@ -30,7 +30,7 @@ const EXCLUDED_DIRS = new Set([
   'artifacts',
   'scratch',
   'screenshots',
-  '.firebase'
+  '.firebase',
 ]);
 
 function scanDirectory(dir) {
@@ -38,7 +38,7 @@ function scanDirectory(dir) {
   const list = fs.readdirSync(dir);
   for (const file of list) {
     const fullPath = path.join(dir, file);
-    
+
     // Check symlinks to prevent loops
     let stat;
     try {
@@ -64,7 +64,14 @@ function scanDirectory(dir) {
         duplicateFilenames[file] = [relPath];
       }
 
-      if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.java') || file.endsWith('.mjs')) {
+      if (
+        file.endsWith('.ts') ||
+        file.endsWith('.tsx') ||
+        file.endsWith('.js') ||
+        file.endsWith('.jsx') ||
+        file.endsWith('.java') ||
+        file.endsWith('.mjs')
+      ) {
         srcFilesCount++;
         const content = fs.readFileSync(fullPath, 'utf8');
         const lines = content.split('\n');
@@ -81,18 +88,22 @@ scanDirectory(workspaceRoot);
 
 // Filter duplicate filenames
 const duplicates = Object.keys(duplicateFilenames)
-  .filter(name => duplicateFilenames[name].length > 1 && !name.endsWith('.png') && !name.endsWith('.json') && !name.endsWith('.md'))
-  .map(name => ({ name, paths: duplicateFilenames[name] }));
+  .filter(
+    (name) =>
+      duplicateFilenames[name].length > 1 &&
+      !name.endsWith('.png') &&
+      !name.endsWith('.json') &&
+      !name.endsWith('.md')
+  )
+  .map((name) => ({ name, paths: duplicateFilenames[name] }));
 
 // Find largest files
-const largestFiles = [...allFiles]
-  .sort((a, b) => b.size - a.size)
-  .slice(0, 15);
+const largestFiles = [...allFiles].sort((a, b) => b.size - a.size).slice(0, 15);
 
 // Find files over threshold
 const largeSourceFiles = Object.keys(fileLinesMap)
-  .map(filePath => ({ path: filePath, lines: fileLinesMap[filePath] }))
-  .filter(file => file.lines > SIZE_THRESHOLD_LINES)
+  .map((filePath) => ({ path: filePath, lines: fileLinesMap[filePath] }))
+  .filter((file) => file.lines > SIZE_THRESHOLD_LINES)
   .sort((a, b) => b.lines - a.lines);
 
 // Segment large components, hooks, utilities
@@ -100,7 +111,7 @@ const largeComponents = [];
 const largeHooks = [];
 const largeUtils = [];
 
-Object.keys(fileLinesMap).forEach(filePath => {
+Object.keys(fileLinesMap).forEach((filePath) => {
   const lines = fileLinesMap[filePath];
   if (filePath.includes('components/') && lines > LARGE_COMP_LIMIT) {
     largeComponents.push({ path: filePath, lines });
@@ -143,7 +154,7 @@ Source:
 ## 2. Largest Files (by byte size)
 | File Path | Size (KB) |
 |---|---|
-${largestFiles.map(f => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.relPath}) | ${(f.size / 1024).toFixed(1)} |`).join('\n')}
+${largestFiles.map((f) => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.relPath}) | ${(f.size / 1024).toFixed(1)} |`).join('\n')}
 
 Source:
 * \`scripts/repository-health.mjs\`
@@ -152,9 +163,15 @@ Source:
 
 ## 3. Files Exceeding Recommended Line Count (>${SIZE_THRESHOLD_LINES} lines)
 These files represent prime candidates for modular refactoring:
-${largeSourceFiles.length > 0 
-  ? largeSourceFiles.map(f => `*   [${f.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) (${f.lines} lines)`).join('\n')
-  : '*   *None detected! All files satisfy the line count recommendation.*'
+${
+  largeSourceFiles.length > 0
+    ? largeSourceFiles
+        .map(
+          (f) =>
+            `*   [${f.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) (${f.lines} lines)`
+        )
+        .join('\n')
+    : '*   *None detected! All files satisfy the line count recommendation.*'
 }
 
 Source:
@@ -166,21 +183,39 @@ Source:
 Segmented list of oversized logical components:
 
 ### Large Components (>${LARGE_COMP_LIMIT} lines)
-${largeComponents.length > 0
-  ? largeComponents.map(c => `*   [${c.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${c.path}) (${c.lines} lines)`).join('\n')
-  : '*   *None detected.*'
+${
+  largeComponents.length > 0
+    ? largeComponents
+        .map(
+          (c) =>
+            `*   [${c.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${c.path}) (${c.lines} lines)`
+        )
+        .join('\n')
+    : '*   *None detected.*'
 }
 
 ### Large Hooks (>${LARGE_HOOK_LIMIT} lines)
-${largeHooks.length > 0
-  ? largeHooks.map(h => `*   [${h.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${h.path}) (${h.lines} lines)`).join('\n')
-  : '*   *None detected.*'
+${
+  largeHooks.length > 0
+    ? largeHooks
+        .map(
+          (h) =>
+            `*   [${h.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${h.path}) (${h.lines} lines)`
+        )
+        .join('\n')
+    : '*   *None detected.*'
 }
 
 ### Large Utilities (>${LARGE_UTIL_LIMIT} lines)
-${largeUtils.length > 0
-  ? largeUtils.map(u => `*   [${u.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${u.path}) (${u.lines} lines)`).join('\n')
-  : '*   *None detected.*'
+${
+  largeUtils.length > 0
+    ? largeUtils
+        .map(
+          (u) =>
+            `*   [${u.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${u.path}) (${u.lines} lines)`
+        )
+        .join('\n')
+    : '*   *None detected.*'
 }
 
 Source:
@@ -190,10 +225,15 @@ Source:
 
 ## 5. Duplicate Filenames (Clash warnings)
 Clashing filenames in different workspace folders:
-${duplicates.length > 0
-  ? duplicates.map(d => `*   **${d.name}** present in:
-${d.paths.map(p => `    - [${p}](file:///${workspaceRoot.replace(/\\/g, '/')}/${p})`).join('\n')}`).join('\n')
-  : '*   *None detected.*'
+${
+  duplicates.length > 0
+    ? duplicates
+        .map(
+          (d) => `*   **${d.name}** present in:
+${d.paths.map((p) => `    - [${p}](file:///${workspaceRoot.replace(/\\/g, '/')}/${p})`).join('\n')}`
+        )
+        .join('\n')
+    : '*   *None detected.*'
 }
 
 Source:

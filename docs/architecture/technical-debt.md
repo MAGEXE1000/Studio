@@ -6,28 +6,28 @@ This document catalogs known technical debt, large files, tight coupling, and re
 
 These files significantly exceed reasonable single-file complexity limits and are the most urgent candidates for decomposition.
 
-| File | Size | Lines | Module |
-|------|------|-------|--------|
-| `DrumEditor.tsx` | 363 KB | 5,603 | drumex |
-| `StudioHub.tsx` | 262 KB | ~4,000+ | hub |
-| `AccountCard.tsx` | 249 KB | ~4,000+ | cards |
-| `SongsPanel.tsx` | 195 KB | ~3,000+ | chordex |
-| `DevToolsDashboard.tsx` | 185 KB | ~3,000+ | devtools |
-| `StageCorePanel.tsx` (Android) | 136 KB | ~2,600 | stagex |
-| `StageCorePanel.tsx` (Shared) | 116 KB | ~2,600 | stagex |
-| `progressions.ts` | 111 KB | — | data |
-| `LibraryPanel.tsx` | 94 KB | ~1,800 | chordex |
-| `UpdateIndicator.tsx` | 87 KB | ~1,700 | update |
-| `AppInstallerPlugin.java` | 85.8 KB | 1,860 | android native |
-| `pipeline.ts` | 75 KB | 1,695 | updater |
-| `faqConstants.tsx` | 70 KB | — | hub |
-| `ChordPanel.tsx` | 65 KB | 1,370 | chordex |
-| `LabPanel.tsx` | 57 KB | ~1,100 | vocalex |
-| `diagnostics.ts` | 52.6 KB | 1,483 | updater |
-| `StageCorePanel.tsx` (Shared) | 50 KB | — | feature |
-| `GroovexPlayer.tsx` | 46 KB | — | groovex |
-| `data/chords.ts` | 48.8 KB | — | data |
-| `stateMachine.ts` | 41 KB | 1,033 | updater |
+| File                           | Size    | Lines   | Module         |
+| ------------------------------ | ------- | ------- | -------------- |
+| `DrumEditor.tsx`               | 363 KB  | 5,603   | drumex         |
+| `StudioHub.tsx`                | 262 KB  | ~4,000+ | hub            |
+| `AccountCard.tsx`              | 249 KB  | ~4,000+ | cards          |
+| `SongsPanel.tsx`               | 195 KB  | ~3,000+ | chordex        |
+| `DevToolsDashboard.tsx`        | 185 KB  | ~3,000+ | devtools       |
+| `StageCorePanel.tsx` (Android) | 136 KB  | ~2,600  | stagex         |
+| `StageCorePanel.tsx` (Shared)  | 116 KB  | ~2,600  | stagex         |
+| `progressions.ts`              | 111 KB  | —       | data           |
+| `LibraryPanel.tsx`             | 94 KB   | ~1,800  | chordex        |
+| `UpdateIndicator.tsx`          | 87 KB   | ~1,700  | update         |
+| `AppInstallerPlugin.java`      | 85.8 KB | 1,860   | android native |
+| `pipeline.ts`                  | 75 KB   | 1,695   | updater        |
+| `faqConstants.tsx`             | 70 KB   | —       | hub            |
+| `ChordPanel.tsx`               | 65 KB   | 1,370   | chordex        |
+| `LabPanel.tsx`                 | 57 KB   | ~1,100  | vocalex        |
+| `diagnostics.ts`               | 52.6 KB | 1,483   | updater        |
+| `StageCorePanel.tsx` (Shared)  | 50 KB   | —       | feature        |
+| `GroovexPlayer.tsx`            | 46 KB   | —       | groovex        |
+| `data/chords.ts`               | 48.8 KB | —       | data           |
+| `stateMachine.ts`              | 41 KB   | 1,033   | updater        |
 
 > **Impact**: Large files increase parse/compile time, make code review difficult, cause merge conflicts, and hinder onboarding.
 
@@ -37,10 +37,10 @@ These files significantly exceed reasonable single-file complexity limits and ar
 
 Two separate implementations of `StageCorePanel`:
 
-| Location | Size |
-|----------|------|
+| Location                                                 | Size   |
+| -------------------------------------------------------- | ------ |
 | `ui-shared/src/features/stagex/pages/StageCorePanel.tsx` | 116 KB |
-| `ui-android/src/components/StageCorePanel.tsx` | 136 KB |
+| `ui-android/src/components/StageCorePanel.tsx`           | 136 KB |
 
 **Recommendation**: Extract shared logic into a base component or hooks, with platform-specific wrappers for Android-only features (screen orientation, native bridge).
 
@@ -56,17 +56,17 @@ Two separate implementations of `StageCorePanel`:
 
 This store has grown to manage concerns that should be separate:
 
-| Concern | Should Be |
-|---------|-----------|
-| Chord selection & usage | Chord store |
-| App-wide settings (~50 fields) | Dedicated settings store |
-| Favorites & recent chords | Chord store |
-| Progressions CRUD | Dedicated progressions store |
-| Song presets CRUD | Dedicated songs store |
-| Custom chords CRUD | Chord store |
-| Session restore | Navigation store |
-| Activity logging | Dedicated service |
-| Per-app visual overrides | Settings store |
+| Concern                        | Should Be                    |
+| ------------------------------ | ---------------------------- |
+| Chord selection & usage        | Chord store                  |
+| App-wide settings (~50 fields) | Dedicated settings store     |
+| Favorites & recent chords      | Chord store                  |
+| Progressions CRUD              | Dedicated progressions store |
+| Song presets CRUD              | Dedicated songs store        |
+| Custom chords CRUD             | Chord store                  |
+| Session restore                | Navigation store             |
+| Activity logging               | Dedicated service            |
+| Per-app visual overrides       | Settings store               |
 
 The store also carries 13 migration steps, indicating significant schema evolution.
 
@@ -115,13 +115,13 @@ All Zustand stores use encrypted localStorage (`secureReadLocal`/`secureWriteLoc
 
 Large static data files are compiled into the bundle:
 
-| File | Size | Content |
-|------|------|---------|
-| `progressions.ts` | 111 KB | Chord progression data |
-| `faqConstants.tsx` | 70 KB | FAQ text |
-| `chords.ts` | 48.8 KB | Chord definitions |
-| `progressionsEs.ts` | 32 KB | Spanish progressions |
-| `songs.ts` | 17 KB | Song data |
+| File                | Size    | Content                |
+| ------------------- | ------- | ---------------------- |
+| `progressions.ts`   | 111 KB  | Chord progression data |
+| `faqConstants.tsx`  | 70 KB   | FAQ text               |
+| `chords.ts`         | 48.8 KB | Chord definitions      |
+| `progressionsEs.ts` | 32 KB   | Spanish progressions   |
+| `songs.ts`          | 17 KB   | Song data              |
 
 **Recommendation**: Consider moving to JSON files loaded via dynamic `import()` or fetched on demand.
 
@@ -133,9 +133,9 @@ The `__tests__/` directory exists only under `lib/updater/`. No other module app
 
 ## Debt Severity Summary
 
-| Severity | Count | Top Items |
-|----------|-------|-----------|
-| **Critical** | 5 | DrumEditor 363KB, StudioHub 262KB, AccountCard 249KB, SongsPanel 195KB, DevTools 185KB |
-| **High** | 3 | StageCorePanel duplication, monolithic stores, proxy proliferation |
-| **Medium** | 4 | Navigation coupling, relaxed TypeScript, encrypted storage overhead, window hooks |
-| **Low** | 2 | Static data bundling, missing tests |
+| Severity     | Count | Top Items                                                                              |
+| ------------ | ----- | -------------------------------------------------------------------------------------- |
+| **Critical** | 5     | DrumEditor 363KB, StudioHub 262KB, AccountCard 249KB, SongsPanel 195KB, DevTools 185KB |
+| **High**     | 3     | StageCorePanel duplication, monolithic stores, proxy proliferation                     |
+| **Medium**   | 4     | Navigation coupling, relaxed TypeScript, encrypted storage overhead, window hooks      |
+| **Low**      | 2     | Static data bundling, missing tests                                                    |

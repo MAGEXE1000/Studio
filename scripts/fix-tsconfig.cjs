@@ -5,7 +5,7 @@ const tsconfigs = [
   'packages/studio-core/tsconfig.json',
   'packages/ui-shared/tsconfig.json',
   'packages/ui-web/tsconfig.json',
-  'packages/ui-android/tsconfig.json'
+  'packages/ui-android/tsconfig.json',
 ];
 
 for (const p of tsconfigs) {
@@ -16,7 +16,7 @@ for (const p of tsconfigs) {
       const updated = data.replace(/"baseUrl"\s*:\s*".",?/g, '');
       fs.writeFileSync(fullPath, updated);
       console.log(`Updated ${p}`);
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   }

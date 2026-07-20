@@ -14,7 +14,11 @@
 import { Capacitor } from '@capacitor/core';
 
 function isNative(): boolean {
-  try { return Capacitor.isNativePlatform(); } catch { return false; }
+  try {
+    return Capacitor.isNativePlatform();
+  } catch {
+    return false;
+  }
 }
 
 /** Read a single string value. Returns `null` if not present or on error. */
@@ -28,7 +32,11 @@ export async function nativeGet(key: string): Promise<string | null> {
       return null;
     }
   }
-  try { return localStorage.getItem(key); } catch { return null; }
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
 /** Write a single string value. Best-effort; errors are swallowed. */
@@ -42,7 +50,11 @@ export async function nativeSet(key: string, value: string): Promise<void> {
       /* fall through to localStorage so something still persists */
     }
   }
-  try { localStorage.setItem(key, value); } catch { /* quota / privacy */ }
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* quota / privacy */
+  }
 }
 
 /** Keys used by both JS and the Android background worker. Keep in

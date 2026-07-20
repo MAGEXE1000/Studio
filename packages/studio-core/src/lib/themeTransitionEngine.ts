@@ -67,7 +67,6 @@ class ThemeTransitionEngineImpl {
         });
         await transition.finished;
       } catch (e) {
-        console.warn('[ThemeTransitionEngine] ViewTransition failed, fallback to direct update:', e);
         updateFn();
       } finally {
         this.isTransitioning = false;
@@ -85,7 +84,7 @@ class ThemeTransitionEngineImpl {
       overlay.style.backgroundColor = nextTheme === 'light' ? '#f4f4f5' : '#09090b';
       overlay.style.opacity = '0';
       overlay.style.transition = 'opacity 300ms ease-out';
-      
+
       document.body.appendChild(overlay);
 
       overlay.getBoundingClientRect(); // trigger reflow

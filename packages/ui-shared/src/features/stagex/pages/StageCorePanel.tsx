@@ -49,7 +49,7 @@ export default function StagexPanel() {
   }, [isWebDesktop]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeReady = useRef(false);
-  const settings = useChordStore(useShallow((state) => state.settings));
+  const settings = useSettingsStore(useShallow((state) => state.settings));
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<StageLibraryItem[]>([]);
@@ -104,7 +104,7 @@ export default function StagexPanel() {
   // from the persisted session. The iframe's internal view is switched to
   // match below in handleLoad, after the iframe finishes loading.
   const [curView, setCurView] = useState<string>(() => {
-    const s = useChordStore.getState();
+    const s = useSettingsStore.getState();
     const saved = s.settings.restoreLastSession ? s.lastSession?.stagexView : undefined;
     return saved || s.settings.defaultStageView || 'Editor';
   });
@@ -351,7 +351,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       curViewRef.current,
       handleNavTap,
       stageBtnRefs,
-      iframeRef,
+      iframeRef as any,
       callIframe,
       toggleStageExpanded,
       fabOpen,
@@ -1184,7 +1184,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     expandedCats={expandedCats}
                     setExpandedCats={setExpandedCats}
                     callIframe={callIframe}
-                    iframeRef={iframeRef}
+                    iframeRef={iframeRef as any}
                     handleAddElement={handleAddElement}
                   />
                 </div>
@@ -1902,7 +1902,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             )}
           </div>
 
-          <ExportPdfDialog
+          <ExportPdfDialog saveLabel="" shareLabel=""
               open={pdfSheetOpen}
               onClose={() => !pdfBusy && setPdfSheetOpen(false)}
               title={tr.stagex.pdfSheetTitle}
@@ -1918,8 +1918,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               canShare={canShareFiles}
               onSave={() => runPdfExport('save')}
               onShare={() => runPdfExport('share')}
-              saveLabel={tr.stagex.toolSave}
-              shareLabel={tr.stagex.toolShare}
+//               saveLabel={tr.stagex.toolSave}
+//               shareLabel={tr.stagex.toolShare}
               cancelLabel={tr.stagex.pdfSheetCancel}
             />
         </div>

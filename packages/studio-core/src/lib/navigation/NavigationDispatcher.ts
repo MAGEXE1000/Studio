@@ -21,7 +21,6 @@ export class NavigationDispatcher {
    */
   public static push(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] push | requested: ${JSON.stringify(route)}`);
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
@@ -29,16 +28,10 @@ export class NavigationDispatcher {
     const current = store.history[store.history.length - 1];
 
     if (current && isRouteEqual(current, nextRoute)) {
-      console.warn(
-        `[NavigationDispatcher] [${timestamp}] Push ignored: Duplicate route detected. Current: ${JSON.stringify(current)} | Next: ${JSON.stringify(nextRoute)}`
-      );
       return;
     }
 
     if (detectRecursion(store.history, nextRoute)) {
-      console.warn(
-        `[NavigationDispatcher] [${timestamp}] Push ignored: Recursive cycle detected. Stack: ${JSON.stringify(store.history)} | Next: ${JSON.stringify(nextRoute)}`
-      );
       return;
     }
 
@@ -58,9 +51,6 @@ export class NavigationDispatcher {
    */
   public static replace(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    console.log(
-      `[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`
-    );
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
@@ -77,14 +67,10 @@ export class NavigationDispatcher {
    */
   public static pop(): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] pop`);
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();
     if (isRootRouteOnly(store.history)) {
-      console.warn(
-        `[NavigationDispatcher] [${timestamp}] Pop ignored: Cannot pop past root route. Stack: ${JSON.stringify(store.history)}`
-      );
       return;
     }
 
@@ -105,21 +91,16 @@ export class NavigationDispatcher {
    */
   public static popTo(predicate: (route: NavigationRoute) => boolean): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] popTo`);
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const store = useNavigationStore.getState();
     const index = store.history.findIndex(predicate);
 
     if (index === -1) {
-      console.warn(
-        `[NavigationDispatcher] [${timestamp}] popTo ignored: Target route not found in stack. Stack: ${JSON.stringify(store.history)}`
-      );
       return;
     }
 
     if (index === store.history.length - 1) {
-      console.log(`[NavigationDispatcher] [${timestamp}] popTo: Already at the target`);
       return;
     }
 
@@ -134,7 +115,6 @@ export class NavigationDispatcher {
    */
   public static reset(stack: NavigationHistory): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] reset | stack: ${JSON.stringify(stack)}`);
     if (stack.length === 0) {
       throw new Error(`[NavigationDispatcher] [${timestamp}] Reset history stack cannot be empty.`);
     }
@@ -179,7 +159,6 @@ export class NavigationDispatcher {
    */
   public static openApp(appKey: NavigationRoute['app']): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] openApp | appKey: ${appKey}`);
     if (this.currentApp() === appKey) return;
     this.push({ app: appKey });
   }
@@ -189,7 +168,6 @@ export class NavigationDispatcher {
    */
   public static closeApp(): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] closeApp`);
     this.openApp('hub');
   }
 
@@ -198,7 +176,6 @@ export class NavigationDispatcher {
    */
   public static switchTab(tab: NavigationRoute['tab']): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] switchTab | tab: ${tab}`);
     const current = this.currentRoute();
     if (current.tab === tab) return;
     this.push({ app: current.app, tab });
@@ -230,7 +207,6 @@ export class NavigationDispatcher {
    */
   private static lockTransition(type: TransitionType): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] lockTransition | type: ${type}`);
     const store = useNavigationStore.getState();
     store.setTransition(type, true);
 
@@ -239,9 +215,6 @@ export class NavigationDispatcher {
     }
 
     this.transitionTimeout = setTimeout(() => {
-      console.log(
-        `[NavigationDispatcher] [${new Date().toISOString()}] lockTransition timeout auto-release`
-      );
       useNavigationStore.getState().setTransition(null, false);
       this.transitionTimeout = null;
     }, 300); // 300ms matches visual transition timing

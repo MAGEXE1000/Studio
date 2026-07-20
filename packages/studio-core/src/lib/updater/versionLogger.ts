@@ -38,7 +38,6 @@ export function logRawSource(sourceName: string, content: string) {
     releaseMetadataInspector.rawGithubResponse = content;
   }
   releaseMetadataInspector.timestamp = ts;
-  console.log(`[RAW SOURCE LOG] [${ts}] Source: ${sourceName} | Length: ${content.length}`);
 }
 
 export function logVersionTransformation(
@@ -54,13 +53,18 @@ export function logVersionTransformation(
     const lines = stack.split('\n');
     for (let i = 2; i < lines.length; i++) {
       const line = lines[i].trim();
-      if (!line.includes('logVersionTransformation') && 
-          !line.includes('parseAndNormalizeVersion') && 
-          !line.includes('parseSemver') && 
-          !line.includes('normalizeSemver') && 
-          !line.includes('compareSemver')) {
+      if (
+        !line.includes('logVersionTransformation') &&
+        !line.includes('parseAndNormalizeVersion') &&
+        !line.includes('parseSemver') &&
+        !line.includes('normalizeSemver') &&
+        !line.includes('compareSemver')
+      ) {
         callerLine = line;
-        stackTrace = lines.slice(i, i + 6).map(l => l.trim()).join('\n');
+        stackTrace = lines
+          .slice(i, i + 6)
+          .map((l) => l.trim())
+          .join('\n');
         break;
       }
     }
@@ -68,5 +72,4 @@ export function logVersionTransformation(
 
   const traceMsg = `Input: '${input ?? 'null'}' -> Output: '${output ?? 'null'}' -> Function: '${funcName}' -> Caller: '${callerLine}'`;
   releaseMetadataInspector.parserChain.push(`${traceMsg}\nStack:\n${stackTrace}`);
-  console.log(`[VERSION TRANSFORMATION] ${traceMsg}`);
 }

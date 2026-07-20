@@ -21,7 +21,10 @@ export function handleGlobalBack(): boolean {
 /**
  * Legacy setBackHandler stub, now forwarding directly to BackDispatcher.
  */
-export function setBackHandler(priority: BackPriority, handler: (() => boolean) | null): () => void {
+export function setBackHandler(
+  priority: BackPriority,
+  handler: (() => boolean) | null
+): () => void {
   if (handler) {
     return BackDispatcher.register(priority, handler);
   }

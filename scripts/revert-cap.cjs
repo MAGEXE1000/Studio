@@ -12,7 +12,7 @@ const packagesToUpdate = {
   '@capacitor/status-bar': '^6.0.1',
   '@capacitor/cli': '^6.2.1',
   '@capacitor-firebase/authentication': '^6.3.1',
-  '@capacitor/preferences': '^6.0.3'
+  '@capacitor/preferences': '^6.0.3',
 };
 
 function findPackageJsons(dir, fileList = []) {
@@ -36,7 +36,7 @@ for (const fullPath of packageJsonPaths) {
   try {
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     let modified = false;
-    
+
     for (const section of ['dependencies', 'devDependencies']) {
       if (data[section]) {
         for (const dep in data[section]) {
@@ -52,5 +52,5 @@ for (const fullPath of packageJsonPaths) {
       fs.writeFileSync(fullPath, JSON.stringify(data, null, 2) + '\n');
       console.log(`Reverted ${path.relative(rootDir, fullPath)}`);
     }
-  } catch(e) {}
+  } catch (e) {}
 }

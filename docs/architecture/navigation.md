@@ -23,10 +23,10 @@ graph TD
 ```typescript
 type NavigationRoute = {
   app: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
-  tab?: string;     // Hub tabs: 'home' | 'settings' | ...
-  page?: string;    // Sub-pages within an app
+  tab?: string; // Hub tabs: 'home' | 'settings' | ...
+  page?: string; // Sub-pages within an app
   subView?: string; // Nested views within a page
-  id?: string;      // Entity identifiers
+  id?: string; // Entity identifiers
   type?: 'screen' | 'modal' | 'sheet' | 'overlay';
 };
 
@@ -41,19 +41,20 @@ The history is a simple stack of `NavigationRoute` objects, persisted to encrypt
 
 **Static class** — the central command API for all navigation actions.
 
-| Method | Behavior |
-|--------|----------|
-| `push(route)` | Validates route, checks duplicate/recursion guards, resolves defaults, pushes to stack |
-| `replace(route)` | Replaces the top-of-stack route |
-| `pop()` | Pops the top route (prevents popping past root) |
-| `popTo(predicate)` | Finds first matching route and slices history back to it |
-| `reset(stack)` | Validates and replaces entire navigation stack |
-| `canGoBack()` | Returns `true` if history has > 1 entry |
-| `currentRoute()` | Returns the top-of-stack route |
-| `previousRoute()` | Returns the second-from-top route |
-| `subscribe(fn)` | Subscribes to navigation state changes |
+| Method             | Behavior                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| `push(route)`      | Validates route, checks duplicate/recursion guards, resolves defaults, pushes to stack |
+| `replace(route)`   | Replaces the top-of-stack route                                                        |
+| `pop()`            | Pops the top route (prevents popping past root)                                        |
+| `popTo(predicate)` | Finds first matching route and slices history back to it                               |
+| `reset(stack)`     | Validates and replaces entire navigation stack                                         |
+| `canGoBack()`      | Returns `true` if history has > 1 entry                                                |
+| `currentRoute()`   | Returns the top-of-stack route                                                         |
+| `previousRoute()`  | Returns the second-from-top route                                                      |
+| `subscribe(fn)`    | Subscribes to navigation state changes                                                 |
 
 **Key behaviors:**
+
 - Routes pass through `NavigationCoordinator.resolveDefaultRoute()` to fill in default pages
 - Transition type is inferred from `route.type` (modal → modal transition, sheet → sheet, etc.)
 - Transition lock is auto-released after 300ms
@@ -63,14 +64,14 @@ The history is a simple stack of `NavigationRoute` objects, persisted to encrypt
 
 **Static class** — resolves default pages for each app based on user preferences.
 
-| App | Default Resolution Source |
-|-----|--------------------------|
-| `hub` | Keeps as-is |
-| `chords` | `settings.defaultTab` → page (e.g., `'library'`) |
-| `drums` | `settings.defaultDrumTab` → page |
-| `groovex` | `settings.defaultGroovexView` → page |
-| `vocalex` | `settings.defaultVocalexTab` → page |
-| `stage` | `settings.defaultStageView` → page |
+| App       | Default Resolution Source                        |
+| --------- | ------------------------------------------------ |
+| `hub`     | Keeps as-is                                      |
+| `chords`  | `settings.defaultTab` → page (e.g., `'library'`) |
+| `drums`   | `settings.defaultDrumTab` → page                 |
+| `groovex` | `settings.defaultGroovexView` → page             |
+| `vocalex` | `settings.defaultVocalexTab` → page              |
+| `stage`   | `settings.defaultStageView` → page               |
 
 Also provides `restoreLastSession()` which builds a 2-entry history `[hub, restoredApp]` from saved session state in `useChordStore.lastSession`.
 
@@ -80,12 +81,12 @@ Also provides `restoreLastSession()` which builds a 2-entry history `[hub, resto
 
 ```typescript
 interface NavigationState {
-  history: NavigationHistory;           // Stack of routes (persisted)
+  history: NavigationHistory; // Stack of routes (persisted)
   transitionType: TransitionType | null; // 'forward' | 'backward' | 'replace' | 'modal' | 'sheet'
   isTransitioning: boolean;
-  gestureState: GestureState;           // 'idle' | 'swiping' | 'cancelled' | 'committed'
-  predictiveProgress: number;           // 0–1 gesture progress
-  activeHandlers: BackHandlerInfo[];    // Registered back handlers with priority
+  gestureState: GestureState; // 'idle' | 'swiping' | 'cancelled' | 'committed'
+  predictiveProgress: number; // 0–1 gesture progress
+  activeHandlers: BackHandlerInfo[]; // Registered back handlers with priority
 }
 ```
 
@@ -126,12 +127,12 @@ On commit, triggers `NavigationDispatcher.pop()`.
 
 **Static class** — provides CSS transition parameters for native and web navigation.
 
-| Transition Type | Easing | Duration |
-|----------------|--------|----------|
-| `modal` | `cubic-bezier(0.34, 1.56, 0.64, 1)` (elastic) | 300ms |
-| `sheet` | `cubic-bezier(0.22, 1, 0.36, 1)` (quintic) | 300ms |
-| `forward` / `backward` | `cubic-bezier(0.16, 1, 0.3, 1)` (M3 Decelerate) | 300ms |
-| `replace` | instant | 0ms |
+| Transition Type        | Easing                                          | Duration |
+| ---------------------- | ----------------------------------------------- | -------- |
+| `modal`                | `cubic-bezier(0.34, 1.56, 0.64, 1)` (elastic)   | 300ms    |
+| `sheet`                | `cubic-bezier(0.22, 1, 0.36, 1)` (quintic)      | 300ms    |
+| `forward` / `backward` | `cubic-bezier(0.16, 1, 0.3, 1)` (M3 Decelerate) | 300ms    |
+| `replace`              | instant                                         | 0ms      |
 
 Respects `prefers-reduced-motion` and user `animationSpeed` settings.
 
@@ -152,24 +153,24 @@ graph LR
     HUB -->|push| GROOVEX["Groovex"]
     HUB -->|push| VOCALEX["Vocalex"]
     HUB -->|tab switch| SETTINGS["Settings"]
-    
+
     CHORDS -->|page| LIB["Library"]
     CHORDS -->|page| CHORD["Chord Detail"]
     CHORDS -->|page| SONGS["Songs"]
     CHORDS -->|page| CSETTINGS["Settings"]
-    
+
     DRUMS -->|page| EDITOR["Drum Editor"]
     DRUMS -->|page| PREFS["Drum Preferences"]
-    
+
     GROOVEX -->|page| GLIB["Library"]
     GROOVEX -->|page| PLAYER["Player"]
     GROOVEX -->|page| GPREFS["Preferences"]
-    
+
     VOCALEX -->|page| COACH["Coach"]
     VOCALEX -->|page| RECORDER["Recorder"]
     VOCALEX -->|page| TAKES["Takes"]
     VOCALEX -->|page| VPREFS["Preferences"]
-    
+
     STAGE -->|page| SVIEW["Stage View"]
 ```
 

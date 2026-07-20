@@ -1,6 +1,15 @@
 import { Capacitor } from '@capacitor/core';
-import { useAppUpdate, type StructuredReleaseNotes, updateDiagnostics, updateDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder } from '@workspace/studio-core';
-import { applyUpdateDirect, shareDownloadedApk, getDiagnosticsReport, recordUpToDatePopup, recordCloseEvent, logTimelineEvent, clearInstallationJustCompleted, endPostInstallSession } from '@workspace/studio-core';
+import { useAppUpdate, type StructuredReleaseNotes, updateDiagnostics, updateDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder, useSettingsStore, DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
+import {
+  applyUpdateDirect,
+  shareDownloadedApk,
+  getDiagnosticsReport,
+  recordUpToDatePopup,
+  recordCloseEvent,
+  logTimelineEvent,
+  clearInstallationJustCompleted,
+  endPostInstallSession,
+} from '@workspace/studio-core';
 /**
  * Floating "update available" indicator — top of the Hub.
  *
@@ -40,12 +49,8 @@ import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
 import ChangelogSheet from '../sheets/ChangelogSheet';
 import { DialogScaffold } from '../layout/StudioLayoutSystem';
 import { DownloadIcon } from '../icons/DownloadIcon';
-import { SPRING_PRESETS, MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
-import {
-  enableLiquidGlass,
-  tagLiquidTarget,
-  untagLiquidTarget,
-} from '@workspace/studio-core';
+
+import { enableLiquidGlass, tagLiquidTarget, untagLiquidTarget } from '@workspace/studio-core';
 
 const isUpdateInProgress = (state: string) => {
   const isSim = false;
@@ -57,7 +62,7 @@ const isUpdateInProgress = (state: string) => {
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
     'INSTALLING',
-    'INSTALL_SUCCESS'
+    'INSTALL_SUCCESS',
   ].includes(state);
 };
 
@@ -82,12 +87,22 @@ function CheckIconSvg() {
 function GithubIcon({ size = 18, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill={color} style={{ flexShrink: 0 }}>
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
     </svg>
   );
 }
 
-function SpinnerSvg({ cFrom, cTo, size = 14, strokeWidth = 3.2 }: { cFrom: string; cTo: string; size?: number; strokeWidth?: number }) {
+function SpinnerSvg({
+  cFrom,
+  cTo,
+  size = 14,
+  strokeWidth = 3.2,
+}: {
+  cFrom: string;
+  cTo: string;
+  size?: number;
+  strokeWidth?: number;
+}) {
   return (
     <svg
       width={size}
@@ -103,7 +118,11 @@ function SpinnerSvg({ cFrom, cTo, size = 14, strokeWidth = 3.2 }: { cFrom: strin
       }}
     >
       <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.15)" strokeWidth={strokeWidth} />
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#lg-spinner-grad-indicator)" strokeWidth={strokeWidth} />
+      <path
+        d="M12 2a10 10 0 0 1 10 10"
+        stroke="url(#lg-spinner-grad-indicator)"
+        strokeWidth={strokeWidth}
+      />
       <defs>
         <linearGradient id="lg-spinner-grad-indicator" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor={cFrom} />
@@ -142,11 +161,21 @@ function readAutoOpenedVersion(): string | null {
     const raw = sessionStorage.getItem(AUTO_OPENED_VERSION_KEY);
     if (!raw || normalizeSemver(raw) === null) return null;
     return raw;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 function writeAutoOpenedVersion(v: string): void {
-  try { sessionStorage.setItem(AUTO_OPENED_VERSION_KEY, v); } catch { /* ignore */ }
-  try { localStorage.removeItem(AUTO_OPENED_VERSION_KEY); } catch { /* ignore */ }
+  try {
+    sessionStorage.setItem(AUTO_OPENED_VERSION_KEY, v);
+  } catch {
+    /* ignore */
+  }
+  try {
+    localStorage.removeItem(AUTO_OPENED_VERSION_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 function readLaterVersion(): string | null {
@@ -154,16 +183,24 @@ function readLaterVersion(): string | null {
     const raw = sessionStorage.getItem(LATER_VERSION_KEY);
     if (!raw || normalizeSemver(raw) === null) return null;
     return raw;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 function writeLaterVersion(v: string): void {
-  try { sessionStorage.setItem(LATER_VERSION_KEY, v); } catch { /* quota / privacy */ }
+  try {
+    sessionStorage.setItem(LATER_VERSION_KEY, v);
+  } catch {
+    /* quota / privacy */
+  }
 }
 function clearLegacyDismissed(): void {
   try {
     localStorage.removeItem(LEGACY_DISMISSED_KEY);
     localStorage.removeItem(LATER_VERSION_KEY); // Also clean up any stale legacy persisted storage entry
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 type Phase = 'banner' | 'pill';
@@ -191,16 +228,16 @@ function getSavedReleaseNotesAsSections(): any[] | undefined {
       if (typeof rn === 'object') {
         const sections: any[] = [];
         if (rn.added && rn.added.length > 0) {
-          sections.push({ heading: "Added", items: rn.added });
+          sections.push({ heading: 'Added', items: rn.added });
         }
         if (rn.improved && rn.improved.length > 0) {
-          sections.push({ heading: "Improved", items: rn.improved });
+          sections.push({ heading: 'Improved', items: rn.improved });
         }
         if (rn.fixed && rn.fixed.length > 0) {
-          sections.push({ heading: "Fixed", items: rn.fixed });
+          sections.push({ heading: 'Fixed', items: rn.fixed });
         }
         if (rn.changed && rn.changed.length > 0) {
-          sections.push({ heading: "Changed", items: rn.changed });
+          sections.push({ heading: 'Changed', items: rn.changed });
         }
         return sections.length > 0 ? sections : undefined;
       }
@@ -221,7 +258,12 @@ export default function UpdateIndicator({
   const updater = useAppUpdate();
 
   // Record render of UpdateIndicator during active install states
-  const installStates = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING', 'INSTALL_SUCCESS'];
+  const installStates = [
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING',
+    'INSTALL_SUCCESS',
+  ];
   if (installStates.includes(updater.updateState)) {
     UpdaterFlightRecorder.record({
       thread: 'ui',
@@ -229,7 +271,7 @@ export default function UpdateIndicator({
       workflowId: null,
       eventType: 'UpdateIndicatorRender',
       caller: 'UpdateIndicator',
-      reason: `Rendered UpdateIndicator in state: ${updater.updateState} with progress: ${Math.round(updater.progress * 100)}%`
+      reason: `Rendered UpdateIndicator in state: ${updater.updateState} with progress: ${Math.round(updater.progress * 100)}%`,
     });
   }
 
@@ -242,17 +284,22 @@ export default function UpdateIndicator({
   const checkRef = useRef<HTMLDivElement | null>(null);
   const pillRef = useRef<HTMLButtonElement | null>(null);
 
-  const settings = useChordStore(s => s.settings);
-  const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
+  const settings = useSettingsStore((s) => s.settings);
+  const hubVis = settings.perApp?.hub ?? {
+    theme: settings.theme ?? 'dark',
+    amoledMode: settings.amoledMode ?? false,
+  };
   const isLight = (() => {
     if (hubVis.theme === 'light') return true;
     if (hubVis.theme === 'system') {
-      return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
+      return (
+        typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches
+      );
     }
     if (hubVis.theme === 'dynamic') {
       const h = new Date().getHours();
       const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd   = settings.dynamicLightEnd   ?? 20;
+      const lightEnd = settings.dynamicLightEnd ?? 20;
       return h >= lightStart && h < lightEnd;
     }
     return false;
@@ -262,7 +309,6 @@ export default function UpdateIndicator({
   const [showChangelogSheet, setShowChangelogSheet] = useState(false);
 
   useEffect(() => {
-    console.log('[INSTRUMENTATION] [REACT] UpdateIndicator component mounted!');
     clearLegacyDismissed();
     if (typeof (window as any).logDiagnosticEvent === 'function') {
       (window as any).logDiagnosticEvent('UPDATE_UI_MOUNTED');
@@ -279,7 +325,6 @@ export default function UpdateIndicator({
         try {
           const { AppInstaller } = await import('@workspace/studio-core');
           const result = await AppInstaller['getLastInstallResult']();
-          console.log('[UpdateIndicator Startup] Checked last native result:', result);
           if (result.statusCode === 0) {
             const expectedVerName = result.expectedVersionName;
             const currentAppVer = APP_VERSION_LABEL;
@@ -293,13 +338,11 @@ export default function UpdateIndicator({
             }
           }
         } catch (e) {
-          console.warn('[UpdateIndicator Startup] Failed to run startup install status verification:', e);
         }
       })();
     }
 
     return () => {
-      console.log('[INSTRUMENTATION] [REACT] UpdateIndicator component unmounted!');
       if (typeof (window as any).logDiagnosticEvent === 'function') {
         (window as any).logDiagnosticEvent('UPDATE_UI_UNMOUNTED');
       }
@@ -323,7 +366,6 @@ export default function UpdateIndicator({
 
   useEffect(() => {
     if (isUpdateInProgress(updater.updateState)) {
-      console.log('[Updater UI] Active session. Keeping update modal open.');
       setOpen(true);
     }
   }, [updater.updateState]);
@@ -331,30 +373,23 @@ export default function UpdateIndicator({
   useEffect(() => {
     if (updater.validApkExists && updater.remoteVersion) {
       if (updater.shouldShowRecoveryReminder(updater.remoteVersion)) {
-        console.log('[Smart Recovery] Valid APK exists on startup and reminder policy allows it. Opening modal.');
         setOpen(true);
       } else {
-        console.log('[Smart Recovery] Valid APK exists on startup, but suppressed by reminder policy.');
       }
     }
   }, [updater.validApkExists, updater.remoteVersion]);
 
   useEffect(() => {
-    console.log('[INSTRUMENTATION] [REACT] Add open-update-dialog event listener');
     const id = requestAnimationFrame(() => setEntered(true));
     const handleOpen = () => {
-      console.log('[INSTRUMENTATION] [REACT] studio:open-update-dialog event fired');
       setOpen(true);
     };
     window.addEventListener('studio:open-update-dialog', handleOpen);
     return () => {
-      console.log('[INSTRUMENTATION] [REACT] Remove open-update-dialog event listener');
       cancelAnimationFrame(id);
       window.removeEventListener('studio:open-update-dialog', handleOpen);
     };
   }, []);
-
-
 
   useEffect(() => {
     const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
@@ -369,7 +404,6 @@ export default function UpdateIndicator({
       const wasLater = readLaterVersion() === updater.remoteVersion;
       const wasAutoOpened = readAutoOpenedVersion() === updater.remoteVersion;
       if (!wasLater && !wasAutoOpened) {
-        console.log('[Updater UI] New version detected, auto-opening update screen.');
         writeAutoOpenedVersion(updater.remoteVersion);
         setOpen(true);
       }
@@ -382,7 +416,9 @@ export default function UpdateIndicator({
     try {
       const dismissed = sessionStorage.getItem('studio:web-update-dismissed');
       return dismissed === updater.remoteVersion;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
 
   // CHECK-STATUS PILL ─────────────────────────────────────────────────
@@ -394,9 +430,7 @@ export default function UpdateIndicator({
   //   'gone'      — unmounted
   // If an update IS available, this whole branch is skipped and the
   // existing banner/pill flow takes over.
-  const [checkPhase, setCheckPhase] = useState<
-    'checking' | 'ok' | 'fading' | 'gone'
-  >('checking');
+  const [checkPhase, setCheckPhase] = useState<'checking' | 'ok' | 'fading' | 'gone'>('checking');
   useEffect(() => {
     if (updater.updateAvailable) {
       setCheckPhase('gone');
@@ -456,7 +490,8 @@ export default function UpdateIndicator({
         onLater={() => setOpen(false)}
         onClose={() => {
           setOpen(false);
-          const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
+          const isFailed =
+            updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
           if (isFailed) {
             updater.dismissUpdate();
           }
@@ -494,10 +529,7 @@ export default function UpdateIndicator({
             animation: 'web-refresh-bar-enter 400ms cubic-bezier(0.34, 1.12, 0.64, 1) both',
           }}
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 16, opacity: 0.9 }}
-          >
+          <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.9 }}>
             system_update
           </span>
           <span>
@@ -533,7 +565,9 @@ export default function UpdateIndicator({
                 if (updater.remoteVersion) {
                   sessionStorage.setItem('studio:web-update-dismissed', updater.remoteVersion);
                 }
-              } catch { /* ignore */ }
+              } catch {
+                /* ignore */
+              }
             }}
             style={{
               background: 'none',
@@ -545,7 +579,9 @@ export default function UpdateIndicator({
               alignItems: 'center',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              close
+            </span>
           </button>
         </div>
         <style>{`
@@ -582,7 +618,6 @@ export default function UpdateIndicator({
           localStorage.setItem(key, JSON.stringify(list));
         }
       } catch (err) {
-        console.warn('[Updater] Failed to write dismissedVersion:', err);
       }
     }
     setPhase('pill');
@@ -597,22 +632,24 @@ export default function UpdateIndicator({
   // swap atomic and cross-fades correctly when the user changes their
   // accent in Studio settings.
   const cFrom = `var(--accent-from, ${accentFrom})`;
-  const cTo   = `var(--accent-to, ${accentTo})`;
+  const cTo = `var(--accent-to, ${accentTo})`;
   // For tinted backgrounds we need an alpha-mixed version. color-mix
   // is supported on every Android Chrome WebView ≥ 111 (we ship Updater
   // on a far newer baseline) so we can mix the live CSS var directly.
-  const tint  = (pct: number) => `color-mix(in srgb, ${cTo} ${pct}%, transparent)`;
+  const tint = (pct: number) => `color-mix(in srgb, ${cTo} ${pct}%, transparent)`;
   const tintFrom = (pct: number) => `color-mix(in srgb, ${cFrom} ${pct}%, transparent)`;
 
-  const amoledBg = isLight
-    ? 'rgba(255, 255, 255, 0.40)'
-    : 'rgba(26, 26, 30, 0.72)';
+  const amoledBg = isLight ? 'rgba(255, 255, 255, 0.40)' : 'rgba(26, 26, 30, 0.72)';
   const fallbackBorder = isLight
     ? '1px solid rgba(0, 0, 0, 0.08)'
     : '1px solid rgba(255, 255, 255, 0.28)';
   const fallbackShadow = isBanner
-    ? (isLight ? '0 16px 40px rgba(0, 0, 0, 0.12), inset 0 1.5px 0 rgba(255, 255, 255, 0.70)' : '0 16px 40px rgba(0, 0, 0, 0.40), inset 0 1.5px 0 rgba(255, 255, 255, 0.08)')
-    : (isLight ? '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1.5px 0 rgba(255, 255, 255, 0.70)' : '0 12px 48px rgba(0, 0, 0, 0.50), inset 0 1.5px 0 rgba(255, 255, 255, 0.08)');
+    ? isLight
+      ? '0 16px 40px rgba(0, 0, 0, 0.12), inset 0 1.5px 0 rgba(255, 255, 255, 0.70)'
+      : '0 16px 40px rgba(0, 0, 0, 0.40), inset 0 1.5px 0 rgba(255, 255, 255, 0.08)'
+    : isLight
+      ? '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1.5px 0 rgba(255, 255, 255, 0.70)'
+      : '0 12px 48px rgba(0, 0, 0, 0.50), inset 0 1.5px 0 rgba(255, 255, 255, 0.08)';
 
   if (!open) {
     return (
@@ -624,7 +661,7 @@ export default function UpdateIndicator({
               initial={{ opacity: 0, y: -50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={SPRING_PRESETS.medium}
+              transition={SpringPresets.medium}
               style={{
                 position: 'fixed',
                 top: 'calc(env(safe-area-inset-top) + 16px)',
@@ -645,28 +682,47 @@ export default function UpdateIndicator({
                 gap: 12,
               }}
             >
-              <div style={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                background: 'rgba(34, 197, 94, 0.12)',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}>
+              <div
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: 'rgba(34, 197, 94, 0.12)',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
                 <CheckIconSvg />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start', textAlign: 'left' }}>
-                <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 13, color: 'var(--c-text-primary)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  alignItems: 'flex-start',
+                  textAlign: 'left',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'Manrope',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    color: 'var(--c-text-primary)',
+                  }}
+                >
                   Studio updated
                 </span>
-                <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)' }}>
+                <span
+                  style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)' }}
+                >
                   Version v{successNotificationVersion} installed successfully
                 </span>
               </div>
-              
+
               <button
                 type="button"
                 onClick={() => {
@@ -708,7 +764,9 @@ export default function UpdateIndicator({
                   alignItems: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  close
+                </span>
               </button>
             </motion.div>
           )}
@@ -744,7 +802,8 @@ export default function UpdateIndicator({
         onLater={handleLater}
         onClose={() => {
           setOpen(false);
-          const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
+          const isFailed =
+            updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
           if (isFailed) {
             updater.dismissUpdate();
           }
@@ -804,12 +863,13 @@ function ActionButton({
       disabled={disabled}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       whileHover={disabled ? undefined : { scale: 1.015 }}
-      transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.decelerate }}
+      transition={{ duration: DurationPresets.fast, ease: EasingPresets.decelerate }}
       style={{
         ...style,
         outline: 'none',
         border: style?.border || 'none',
-        transition: 'opacity 200ms ease, background-color 200ms ease, border-color 200ms ease, transform 200ms ease',
+        transition:
+          'opacity 200ms ease, background-color 200ms ease, border-color 200ms ease, transform 200ms ease',
       }}
     >
       {children}
@@ -817,96 +877,141 @@ function ActionButton({
   );
 }
 
-const DownloadProgressIndicator = React.memo(({ updater, toVersion, accentFrom, accentTo, isLight }: any) => {
-  const [interpolatedProgress, setInterpolatedProgress] = useState(0);
+const DownloadProgressIndicator = React.memo(
+  ({ updater, toVersion, accentFrom, accentTo, isLight }: any) => {
+    const [interpolatedProgress, setInterpolatedProgress] = useState(0);
 
-  useEffect(() => {
-    let target = 0;
+    useEffect(() => {
+      let target = 0;
+      const s = updater.updateState;
+      if (s === 'FETCH_APK_INFORMATION') {
+        target = 0.05;
+      } else if (s === 'DOWNLOAD_APK') {
+        target = 0.05 + updater.progress * 0.8; // 5% to 85%
+      } else if (s === 'VERIFY_SHA256') {
+        target = 0.88;
+      } else if (s === 'PREPARING_INSTALL') {
+        target = 0.92;
+      } else if (s === 'WAITING_USER_CONFIRMATION' || s === 'PACKAGEINSTALLER_VISIBLE') {
+        target = 0.96;
+      } else if (s === 'INSTALLING') {
+        target = 0.98;
+      } else if (s === 'INSTALL_SUCCESS') {
+        target = 1.0;
+      }
+
+      let animationFrameId: number;
+      const step = () => {
+        setInterpolatedProgress((prev) => {
+          const diff = target - prev;
+          if (Math.abs(diff) < 0.002) {
+            return target;
+          }
+          const next = prev + diff * 0.12;
+          animationFrameId = requestAnimationFrame(step);
+          return next;
+        });
+      };
+      animationFrameId = requestAnimationFrame(step);
+      return () => cancelAnimationFrame(animationFrameId);
+    }, [updater.progress, updater.updateState]);
+
+    const pct = Math.round(interpolatedProgress * 100);
+
+    let statusText = 'Preparing...';
+    let subText = 'Do not close the application.';
+
     const s = updater.updateState;
-    if (s === 'FETCH_APK_INFORMATION') {
-      target = 0.05;
-    } else if (s === 'DOWNLOAD_APK') {
-      target = 0.05 + updater.progress * 0.80; // 5% to 85%
+    if (s === 'DOWNLOAD_APK' || s === 'FETCH_APK_INFORMATION') {
+      statusText = `Downloading update (${pct}%)`;
+      subText = updater.statusText || 'Studio is downloading the latest app package.';
+    } else if (pct >= 95) {
+      statusText = 'Almost ready...';
+      subText = 'Finalizing installation before handing over to Android installer.';
     } else if (s === 'VERIFY_SHA256') {
-      target = 0.88;
+      statusText = 'Verifying checksum...';
+      subText = 'Checking integrity of the download package.';
     } else if (s === 'PREPARING_INSTALL') {
-      target = 0.92;
-    } else if (s === 'WAITING_USER_CONFIRMATION' || s === 'PACKAGEINSTALLER_VISIBLE') {
-      target = 0.96;
-    } else if (s === 'INSTALLING') {
-      target = 0.98;
+      statusText = 'Preparing installation...';
+      subText = 'Configuring Android packages.';
+    } else if (
+      s === 'INSTALLING' ||
+      s === 'PACKAGEINSTALLER_VISIBLE' ||
+      s === 'WAITING_USER_CONFIRMATION'
+    ) {
+      statusText = 'Installing update...';
+      subText = 'Handing over to Android installer. Please follow system prompts.';
     } else if (s === 'INSTALL_SUCCESS') {
-      target = 1.0;
+      statusText = 'Finalizing...';
+      subText = 'Update completed successfully.';
     }
 
-    let animationFrameId: number;
-    const step = () => {
-      setInterpolatedProgress(prev => {
-        const diff = target - prev;
-        if (Math.abs(diff) < 0.002) {
-          return target;
-        }
-        const next = prev + diff * 0.12;
-        animationFrameId = requestAnimationFrame(step);
-        return next;
-      });
-    };
-    animationFrameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [updater.progress, updater.updateState]);
-
-  const pct = Math.round(interpolatedProgress * 100);
-
-  let statusText = 'Preparing...';
-  let subText = 'Do not close the application.';
-
-  const s = updater.updateState;
-  if (s === 'DOWNLOAD_APK' || s === 'FETCH_APK_INFORMATION') {
-    statusText = `Downloading update (${pct}%)`;
-    subText = updater.statusText || 'Studio is downloading the latest app package.';
-  } else if (pct >= 95) {
-    statusText = 'Almost ready...';
-    subText = 'Finalizing installation before handing over to Android installer.';
-  } else if (s === 'VERIFY_SHA256') {
-    statusText = 'Verifying checksum...';
-    subText = 'Checking integrity of the download package.';
-  } else if (s === 'PREPARING_INSTALL') {
-    statusText = 'Preparing installation...';
-    subText = 'Configuring Android packages.';
-  } else if (s === 'INSTALLING' || s === 'PACKAGEINSTALLER_VISIBLE' || s === 'WAITING_USER_CONFIRMATION') {
-    statusText = 'Installing update...';
-    subText = 'Handing over to Android installer. Please follow system prompts.';
-  } else if (s === 'INSTALL_SUCCESS') {
-    statusText = 'Finalizing...';
-    subText = 'Update completed successfully.';
-  }
-
-  return (
-    <div style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
-        <span>{statusText}</span>
-        <span>{pct}%</span>
-      </div>
-      
-      <div style={{ width: '100%', height: 6, borderRadius: 3, background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
-        <div 
+    return (
+      <div
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          marginTop: 14,
+        }}
+      >
+        <div
           style={{
-            height: '100%',
-            width: `${pct}%`,
-            background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
-            transition: 'width 80ms ease-out',
-          }} 
-        />
-      </div>
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 13,
+            fontWeight: 700,
+            fontFamily: 'Manrope',
+            color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)',
+          }}
+        >
+          <span>{statusText}</span>
+          <span>{pct}%</span>
+        </div>
 
-      <div style={{ fontSize: 11.5, fontFamily: 'Inter', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)', textAlign: 'left', lineHeight: 1.45 }}>
-        {subText}
+        <div
+          style={{
+            width: '100%',
+            height: 6,
+            borderRadius: 3,
+            background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${pct}%`,
+              background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
+              transition: 'width 80ms ease-out',
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            fontSize: 11.5,
+            fontFamily: 'Inter',
+            color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)',
+            textAlign: 'left',
+            lineHeight: 1.45,
+          }}
+        >
+          {subText}
+        </div>
       </div>
-    </div>
-  );
-}, (prev: any, next: any) => {
-  return prev.updater.progress === next.updater.progress && prev.updater.updateState === next.updater.updateState && prev.isLight === next.isLight;
-});
+    );
+  },
+  (prev: any, next: any) => {
+    return (
+      prev.updater.progress === next.updater.progress &&
+      prev.updater.updateState === next.updater.updateState &&
+      prev.isLight === next.isLight
+    );
+  }
+);
 
 function UpdateModal({
   fromLabel,
@@ -940,17 +1045,22 @@ function UpdateModal({
     window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
   };
 
-  const settings = useChordStore(s => s.settings);
-  const hubVis = settings.perApp?.hub ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
+  const settings = useSettingsStore((s) => s.settings);
+  const hubVis = settings.perApp?.hub ?? {
+    theme: settings.theme ?? 'dark',
+    amoledMode: settings.amoledMode ?? false,
+  };
   const isLight = (() => {
     if (hubVis.theme === 'light') return true;
     if (hubVis.theme === 'system') {
-      return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
+      return (
+        typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches
+      );
     }
     if (hubVis.theme === 'dynamic') {
       const h = new Date().getHours();
       const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd   = settings.dynamicLightEnd   ?? 20;
+      const lightEnd = settings.dynamicLightEnd ?? 20;
       return h >= lightStart && h < lightEnd;
     }
     return false;
@@ -964,7 +1074,7 @@ function UpdateModal({
     if (s === 'FETCH_APK_INFORMATION') {
       target = 0.05;
     } else if (s === 'DOWNLOAD_APK') {
-      target = 0.05 + updater.progress * 0.80;
+      target = 0.05 + updater.progress * 0.8;
     } else if (s === 'VERIFY_SHA256') {
       target = 0.88;
     } else if (s === 'PREPARING_INSTALL') {
@@ -979,7 +1089,7 @@ function UpdateModal({
 
     let animationFrameId: number;
     const step = () => {
-      setInterpolatedProgress(prev => {
+      setInterpolatedProgress((prev) => {
         const diff = target - prev;
         if (Math.abs(diff) < 0.002) {
           return target;
@@ -1009,7 +1119,6 @@ function UpdateModal({
     // and state resets. This eliminates the premature "Studio is up to date"
     // message that occurred when the old process was still alive after APK
     // installation.
-    console.log('[Updater UI] Installation success detected. Success screen will remain visible until lifecycle transition.');
   }, [updater.updateState, updater]);
 
   const getDiagnosticsText = () => {
@@ -1074,7 +1183,7 @@ function UpdateModal({
       `Eligibility release build: ${updateDebugLogs.eligibilityReleaseBuild !== null ? updateDebugLogs.eligibilityReleaseBuild : 'N/A'}`,
       `Eligibility valid APK: ${updateDebugLogs.eligibilityValidApk !== null ? updateDebugLogs.eligibilityValidApk : 'N/A'}`,
       `Eligibility final install: ${updateDebugLogs.eligibilityFinalInstall || 'N/A'}`,
-      `Eligibility reason: ${updateDebugLogs.eligibilityReason || 'N/A'}`
+      `Eligibility reason: ${updateDebugLogs.eligibilityReason || 'N/A'}`,
     ].join('\n');
   };
 
@@ -1107,7 +1216,7 @@ function UpdateModal({
           return;
         }
       }
-      
+
       // Attempt to launch installer
       await updater.applyUpdate('UpdateIndicator: UpdateModal');
     } catch (err) {
@@ -1138,16 +1247,17 @@ function UpdateModal({
           await updater.applyUpdate('UpdateIndicator: UpdateModal');
         }
       } catch (err) {
-        console.warn('[Permissions] Failed to query status:', err);
       }
     };
 
-    import('@capacitor/app').then(async ({ App }) => {
-      if (!active) return;
-      nativeListener = await App.addListener('appStateChange', (s) => {
-        if (s.isActive) checkPerm();
-      });
-    }).catch(() => {});
+    import('@capacitor/app')
+      .then(async ({ App }) => {
+        if (!active) return;
+        nativeListener = await App.addListener('appStateChange', (s) => {
+          if (s.isActive) checkPerm();
+        });
+      })
+      .catch(() => {});
 
     window.addEventListener('focus', checkPerm);
     return () => {
@@ -1156,8 +1266,6 @@ function UpdateModal({
       nativeListener?.remove().catch(() => {});
     };
   }, [permissionBlocked, updater]);
-
-
 
   // Select Icon and Colors based on State
   let iconName = 'download';
@@ -1171,7 +1279,13 @@ function UpdateModal({
 
   const displayState = (() => {
     let s = updater.updateState;
-    if (s === 'INITIALIZING' || s === 'FETCH_REMOTE_METADATA' || s === 'VALIDATE_METADATA' || s === 'COMPARE_VERSION') return 'checking';
+    if (
+      s === 'INITIALIZING' ||
+      s === 'FETCH_REMOTE_METADATA' ||
+      s === 'VALIDATE_METADATA' ||
+      s === 'COMPARE_VERSION'
+    )
+      return 'checking';
     if (s === 'NO_UPDATE_AVAILABLE' || s === 'IDLE') return 'idle';
     if (s === 'UPDATE_AVAILABLE') return 'update_available';
     if (s === 'FETCH_APK_INFORMATION' || s === 'DOWNLOAD_APK') return 'downloading';
@@ -1187,7 +1301,11 @@ function UpdateModal({
     if (s === 'INSTALL_CANCELLED') return 'cancelled';
     if (s === 'INSTALL_FAILED') return 'failed';
     if (s === 'RECOVERY') {
-      if (updater.error?.includes('Signature mismatch') || updater.error?.includes('Conflicting Package')) return 'signature_mismatch';
+      if (
+        updater.error?.includes('Signature mismatch') ||
+        updater.error?.includes('Conflicting Package')
+      )
+        return 'signature_mismatch';
       if (updater.error?.includes('versionCode_low')) return 'versionCode_low';
       return 'failed';
     }
@@ -1196,7 +1314,9 @@ function UpdateModal({
 
   let state = installFailedReason
     ? 'install_failed'
-    : (permissionBlocked ? 'permission_blocked' : displayState);
+    : permissionBlocked
+      ? 'permission_blocked'
+      : displayState;
   if (state === 'update_available') {
     if (updater.reinstallRequired) {
       state = 'reinstall_warning';
@@ -1213,7 +1333,10 @@ function UpdateModal({
     state = 'installedOrReady';
   } else if (displayState === 'idle') {
     if (updater.error) {
-      if (updater.error.includes('Signature mismatch') || updater.error.includes('Conflicting Package')) {
+      if (
+        updater.error.includes('Signature mismatch') ||
+        updater.error.includes('Conflicting Package')
+      ) {
         state = 'signature_mismatch';
       } else if (updater.error.includes('versionCode_low')) {
         state = 'versionCode_low';
@@ -1226,7 +1349,9 @@ function UpdateModal({
   }
 
   // Collapsible changelog section state
-  const [changelogExpanded, setChangelogExpanded] = useState(state === 'available' || state === 'reinstall_warning');
+  const [changelogExpanded, setChangelogExpanded] = useState(
+    state === 'available' || state === 'reinstall_warning'
+  );
 
   useEffect(() => {
     setChangelogExpanded(state === 'available' || state === 'reinstall_warning');
@@ -1239,7 +1364,9 @@ function UpdateModal({
       title = 'Manual reinstall required';
       description = (
         <p style={{ margin: 0, lineHeight: 1.5 }}>
-          This update requires a manual reinstall. Android security policy prevents automatic upgrades when cryptographic keys change. Please uninstall the current app, then install the new version.
+          This update requires a manual reinstall. Android security policy prevents automatic
+          upgrades when cryptographic keys change. Please uninstall the current app, then install
+          the new version.
         </p>
       );
       break;
@@ -1248,7 +1375,8 @@ function UpdateModal({
       iconName = 'security';
       iconColor = '#eab308';
       title = 'Automatic installation blocked';
-      description = "Please enable the 'Install unknown apps' permission for Studio in system settings to install the update.";
+      description =
+        "Please enable the 'Install unknown apps' permission for Studio in system settings to install the update.";
       break;
 
     case 'checking':
@@ -1278,7 +1406,8 @@ function UpdateModal({
       iconName = 'download_for_offline';
       iconColor = '#eab308';
       title = 'Manual update required';
-      description = 'This version of Studio cannot install updates automatically. Please download and install Studio manually once. Future updates will install automatically.';
+      description =
+        'This version of Studio cannot install updates automatically. Please download and install Studio manually once. Future updates will install automatically.';
       break;
 
     case 'preparing':
@@ -1313,7 +1442,8 @@ function UpdateModal({
       iconName = 'verified_user';
       iconColor = purpleFrom;
       title = 'Verifying update';
-      description = updater.statusText || 'Studio is checking the update package before installation.';
+      description =
+        updater.statusText || 'Studio is checking the update package before installation.';
       showSpinner = true;
       showButtons = false;
       break;
@@ -1322,7 +1452,8 @@ function UpdateModal({
       iconName = 'task_alt';
       iconColor = '#22c55e';
       title = 'Ready to install';
-      description = 'The update package is verified. Android will now ask you to confirm the installation.';
+      description =
+        'The update package is verified. Android will now ask you to confirm the installation.';
       break;
 
     case 'waitingForUserInstallConfirmation':
@@ -1342,8 +1473,14 @@ function UpdateModal({
       title = isSuccess ? 'Finalizing...' : 'Installing...';
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
-          <div>{isSuccess ? 'Finalizing installation...' : (updater.statusText || 'Android is installing the update.')}</div>
-          <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>Please wait... Do not close the application.</div>
+          <div>
+            {isSuccess
+              ? 'Finalizing installation...'
+              : updater.statusText || 'Android is installing the update.'}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>
+            Please wait... Do not close the application.
+          </div>
         </div>
       );
       showButtons = false;
@@ -1376,7 +1513,9 @@ function UpdateModal({
       title = 'Signature Mismatch Detected';
       description = (
         <p style={{ margin: 0, lineHeight: 1.5 }}>
-          The downloaded update package signature does not match the installed app's signature. Android blocks installations when keys differ to prevent security conflicts. Please reinstall the application or use fallback download options below.
+          The downloaded update package signature does not match the installed app's signature.
+          Android blocks installations when keys differ to prevent security conflicts. Please
+          reinstall the application or use fallback download options below.
         </p>
       );
       break;
@@ -1385,7 +1524,8 @@ function UpdateModal({
       iconName = 'error';
       iconColor = '#f87171';
       title = 'Invalid update package';
-      description = 'This update cannot be installed because its Android versionCode is not newer than the installed app.';
+      description =
+        'This update cannot be installed because its Android versionCode is not newer than the installed app.';
       break;
 
     case 'failed':
@@ -1394,12 +1534,22 @@ function UpdateModal({
         iconColor = '#eab308';
         title = 'Update Recovery Mode';
         description = (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', fontSize: 13, marginTop: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              textAlign: 'left',
+              fontSize: 13,
+              marginTop: 4,
+            }}
+          >
             <p style={{ margin: 0, fontWeight: 700, color: '#eab308', lineHeight: 1.4 }}>
               Studio failed to update automatically multiple times.
             </p>
             <p style={{ margin: 0, color: 'var(--c-text-secondary)', lineHeight: 1.45 }}>
-              Use the fail-safe recovery options below to install the update directly, share the update package, or download from alternative mirror sites.
+              Use the fail-safe recovery options below to install the update directly, share the
+              update package, or download from alternative mirror sites.
             </p>
           </div>
         );
@@ -1407,25 +1557,59 @@ function UpdateModal({
         iconName = 'error';
         iconColor = '#f87171';
         title = 'Update download failed';
-        if (updater.error && (updater.error.includes('404') || updater.error.includes('non-OK status: 404'))) {
+        if (
+          updater.error &&
+          (updater.error.includes('404') || updater.error.includes('non-OK status: 404'))
+        ) {
           description = (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', fontSize: 13, marginTop: 4 }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                textAlign: 'left',
+                fontSize: 13,
+                marginTop: 4,
+              }}
+            >
               <p style={{ margin: 0, fontWeight: 700, color: '#f87171', lineHeight: 1.4 }}>
                 Studio update package was not found on the release server.
               </p>
-              <div style={{ background: 'rgba(128,128,128,0.05)', padding: '10px 12px', borderRadius: 10, fontFamily: 'monospace', fontSize: 11, border: '1px solid rgba(128,128,128,0.1)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div
+                style={{
+                  background: 'rgba(128,128,128,0.05)',
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  border: '1px solid rgba(128,128,128,0.1)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                }}
+              >
                 <div>Target Version: {updater.remoteVersion || 'N/A'}</div>
                 <div style={{ wordBreak: 'break-all' }}>APK URL: {updater.apkUrl || 'N/A'}</div>
                 <div>HTTP Status: 404 (Not Found)</div>
                 <div>Metadata (app-release.json) fetched: Yes</div>
               </div>
-              <p style={{ margin: 0, color: 'var(--c-text-secondary)', fontSize: 12, lineHeight: 1.4 }}>
-                <strong>Suggested action:</strong> Try again later. This usually means the release metadata was published before the APK upload completed.
+              <p
+                style={{
+                  margin: 0,
+                  color: 'var(--c-text-secondary)',
+                  fontSize: 12,
+                  lineHeight: 1.4,
+                }}
+              >
+                <strong>Suggested action:</strong> Try again later. This usually means the release
+                metadata was published before the APK upload completed.
               </p>
             </div>
           );
         } else {
-          description = updater.error || 'Studio could not complete the update. You can try again or copy diagnostics.';
+          description =
+            updater.error ||
+            'Studio could not complete the update. You can try again or copy diagnostics.';
         }
       }
   }
@@ -1435,63 +1619,95 @@ function UpdateModal({
     description = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
         <div>Finalizing installation before handing over to Android installer.</div>
-        <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>Please wait... Do not close the application.</div>
+        <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>
+          Please wait... Do not close the application.
+        </div>
       </div>
     );
   }
 
   // Visual custom styles overrides using HSL purple/pink colors
   const primaryButtonStyle: React.CSSProperties = {
-    flex: 1, height: 44, borderRadius: 12,
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
     background: `linear-gradient(135deg, ${purpleFrom}, ${purpleTo})`,
-    border: 'none', color: 'white',
-    fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
+    border: 'none',
+    color: 'white',
+    fontFamily: 'Manrope',
+    fontWeight: 800,
+    fontSize: 13,
     cursor: 'pointer',
     boxShadow: `0 4px 14px color-mix(in srgb, ${purpleTo} 25%, transparent)`,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     transition: 'opacity 200ms ease, transform 150ms ease',
   };
 
   const secondaryButtonStyle: React.CSSProperties = {
-    flex: 1, height: 44, borderRadius: 12,
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
     background: 'rgba(128, 128, 128, 0.06)',
     border: '1px solid rgba(128, 128, 128, 0.15)',
     color: 'var(--c-text-secondary)',
-    fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
+    fontFamily: 'Manrope',
+    fontWeight: 700,
+    fontSize: 13,
     cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     transition: 'background 200ms ease, border-color 200ms ease',
   };
 
   const halfSecondaryButtonStyle: React.CSSProperties = {
-    flex: 1, height: 42, borderRadius: 12,
+    flex: 1,
+    height: 42,
+    borderRadius: 12,
     background: 'transparent',
     border: '1px solid rgba(128, 128, 128, 0.15)',
     color: 'var(--c-text-primary)',
-    fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
+    fontFamily: 'Manrope',
+    fontWeight: 700,
+    fontSize: 13,
     cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const tertiaryButtonStyle: React.CSSProperties = {
-    width: '100%', height: 40, borderRadius: 12,
+    width: '100%',
+    height: 40,
+    borderRadius: 12,
     background: 'transparent',
     border: 'none',
     color: 'var(--c-text-secondary)',
-    fontFamily: 'Manrope', fontWeight: 700, fontSize: 13,
+    fontFamily: 'Manrope',
+    fontWeight: 700,
+    fontSize: 13,
     cursor: 'pointer',
     marginTop: 2,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const animatedPrimaryButtonStyle: React.CSSProperties = {
     height: '100%',
     width: '100%',
     background: `linear-gradient(135deg, ${purpleFrom}, ${purpleTo})`,
-    fontFamily: 'Manrope', fontWeight: 800, fontSize: 13,
+    fontFamily: 'Manrope',
+    fontWeight: 800,
+    fontSize: 13,
     cursor: 'pointer',
     boxShadow: `0 4px 14px color-mix(in srgb, ${purpleTo} 25%, transparent)`,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
   };
 
   const renderButtons = () => {
@@ -1507,11 +1723,7 @@ function UpdateModal({
           >
             Cancel
           </ActionButton>
-          <ActionButton
-            type="button"
-            onClick={handleOpenSettings}
-            style={primaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={handleOpenSettings} style={primaryButtonStyle}>
             Open Settings
           </ActionButton>
         </div>
@@ -1544,31 +1756,19 @@ function UpdateModal({
       };
 
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
-          
-          
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}
+        >
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <ActionButton
-              type="button"
-              onClick={copyDiagnostics}
-              style={halfSecondaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={copyDiagnostics} style={halfSecondaryButtonStyle}>
               Copy diagnostics
             </ActionButton>
-            <ActionButton
-              type="button"
-              onClick={onClose}
-              style={halfSecondaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={onClose} style={halfSecondaryButtonStyle}>
               I understand
             </ActionButton>
           </div>
 
-          <ActionButton
-            type="button"
-            onClick={onLater}
-            style={tertiaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
             Cancel
           </ActionButton>
         </div>
@@ -1579,7 +1779,15 @@ function UpdateModal({
       return (
         <div style={{ width: '100%' }}>
           {updater.validApkExists ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                marginTop: 18,
+                width: '100%',
+              }}
+            >
               <ActionButton
                 type="button"
                 onClick={async () => {
@@ -1592,24 +1800,21 @@ function UpdateModal({
                 }}
                 style={primaryButtonStyle}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>play_circle</span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, marginRight: 6 }}
+                >
+                  play_circle
+                </span>
                 Continue Installation
               </ActionButton>
-              <ActionButton
-                type="button"
-                onClick={onLater}
-                style={secondaryButtonStyle}
-              >
+              <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
                 Later
               </ActionButton>
             </div>
           ) : (
             <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
-              <ActionButton
-                type="button"
-                onClick={onLater}
-                style={secondaryButtonStyle}
-              >
+              <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
                 Later
               </ActionButton>
               <AnimatedActionButton
@@ -1629,10 +1834,14 @@ function UpdateModal({
     }
 
     if (state === 'manual_apk_required') {
-      const manualApkUrl = updater.manualApkUrl || `https://studio-30f44.web.app/apk/studio-${updater.remoteVersion}.bin`;
+      const manualApkUrl =
+        updater.manualApkUrl ||
+        `https://studio-30f44.web.app/apk/studio-${updater.remoteVersion}.bin`;
 
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, width: '100%' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, width: '100%' }}
+        >
           <ActionButton
             type="button"
             onClick={() => window.open(manualApkUrl, '_system')}
@@ -1656,19 +1865,11 @@ function UpdateModal({
             >
               {linkCopied ? 'Copied!' : 'Copy Link'}
             </ActionButton>
-            <ActionButton
-              type="button"
-              onClick={handleOpenGitHub}
-              style={halfSecondaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={handleOpenGitHub} style={halfSecondaryButtonStyle}>
               GitHub Fallback
             </ActionButton>
           </div>
-          <ActionButton
-            type="button"
-            onClick={onLater}
-            style={tertiaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
             Later
           </ActionButton>
         </div>
@@ -1678,18 +1879,10 @@ function UpdateModal({
     if (state === 'ready_to_install') {
       return (
         <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
-          <ActionButton
-            type="button"
-            onClick={onLater}
-            style={secondaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
             Later
           </ActionButton>
-          <ActionButton
-            type="button"
-            onClick={handleInstallApk}
-            style={primaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={handleInstallApk} style={primaryButtonStyle}>
             Install
           </ActionButton>
         </div>
@@ -1706,7 +1899,7 @@ function UpdateModal({
           console.error('Failed to copy diagnostics:', err);
         }
       };
-      
+
       const handleRetryRecovery = async () => {
         try {
           await updater.runSignatureMismatchRecovery();
@@ -1716,7 +1909,9 @@ function UpdateModal({
       };
 
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}
+        >
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
             <ActionButton
               type="button"
@@ -1725,17 +1920,11 @@ function UpdateModal({
             >
               Retry
             </ActionButton>
-            <ActionButton
-              type="button"
-              onClick={onLater}
-              style={halfSecondaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={onLater} style={halfSecondaryButtonStyle}>
               Cancel
             </ActionButton>
           </div>
 
-          
-          
           <div style={{ display: 'flex', gap: 6, width: '100%', marginTop: 4 }}>
             <ActionButton
               type="button"
@@ -1775,13 +1964,11 @@ function UpdateModal({
       };
 
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}
+        >
           <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <ActionButton
-              type="button"
-              onClick={copyDiagnostics}
-              style={halfSecondaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={copyDiagnostics} style={halfSecondaryButtonStyle}>
               Copy Diagnostics
             </ActionButton>
             <ActionButton
@@ -1793,11 +1980,7 @@ function UpdateModal({
             </ActionButton>
           </div>
 
-          <ActionButton
-            type="button"
-            onClick={onLater}
-            style={primaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={onLater} style={primaryButtonStyle}>
             Later
           </ActionButton>
         </div>
@@ -1822,7 +2005,7 @@ function UpdateModal({
           await Share.share({
             title: 'Studio Updater Diagnostics',
             text: report,
-            dialogTitle: 'Export Diagnostics'
+            dialogTitle: 'Export Diagnostics',
           });
         } catch (err) {
           console.error('Failed to export diagnostics, copying instead:', err);
@@ -1832,12 +2015,39 @@ function UpdateModal({
 
       if (updater.validApkExists) {
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14, width: '100%' }}>
-            <h4 style={{ margin: '4px 0 2px', fontSize: 13, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', alignSelf: 'flex-start' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              marginTop: 14,
+              width: '100%',
+            }}
+          >
+            <h4
+              style={{
+                margin: '4px 0 2px',
+                fontSize: 13,
+                fontWeight: 800,
+                color: 'var(--c-text-primary)',
+                fontFamily: 'Manrope',
+                alignSelf: 'flex-start',
+              }}
+            >
               Installation could not be started
             </h4>
-            <p style={{ margin: '0 0 6px', fontSize: 11.5, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45, textAlign: 'left' }}>
-              {updater.error || 'Studio could not start the installation automatically. Please choose an option below to recover.'}
+            <p
+              style={{
+                margin: '0 0 6px',
+                fontSize: 11.5,
+                color: 'var(--c-text-secondary)',
+                fontFamily: 'Inter',
+                lineHeight: 1.45,
+                textAlign: 'left',
+              }}
+            >
+              {updater.error ||
+                'Studio could not start the installation automatically. Please choose an option below to recover.'}
             </p>
 
             <ActionButton
@@ -1852,7 +2062,9 @@ function UpdateModal({
               }}
               style={primaryButtonStyle}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>refresh</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>
+                refresh
+              </span>
               Retry Installation
             </ActionButton>
 
@@ -1868,11 +2080,11 @@ function UpdateModal({
               }}
               style={secondaryButtonStyle}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>play_circle</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>
+                play_circle
+              </span>
               Continue Installation
             </ActionButton>
-
-            
 
             <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
               <ActionButton
@@ -1891,11 +2103,7 @@ function UpdateModal({
               </ActionButton>
             </div>
 
-            <ActionButton
-              type="button"
-              onClick={onLater}
-              style={tertiaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
               Cancel
             </ActionButton>
           </div>
@@ -1903,12 +2111,39 @@ function UpdateModal({
       }
 
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14, width: '100%' }}>
-          <h4 style={{ margin: '4px 0 2px', fontSize: 13, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', alignSelf: 'flex-start' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+            marginTop: 14,
+            width: '100%',
+          }}
+        >
+          <h4
+            style={{
+              margin: '4px 0 2px',
+              fontSize: 13,
+              fontWeight: 800,
+              color: 'var(--c-text-primary)',
+              fontFamily: 'Manrope',
+              alignSelf: 'flex-start',
+            }}
+          >
             Update Recovery Center
           </h4>
-          <p style={{ margin: '0 0 6px', fontSize: 11.5, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.45, textAlign: 'left' }}>
-            {updater.error || 'Studio could not complete the update automatically. Please choose a recovery action below.'}
+          <p
+            style={{
+              margin: '0 0 6px',
+              fontSize: 11.5,
+              color: 'var(--c-text-secondary)',
+              fontFamily: 'Inter',
+              lineHeight: 1.45,
+              textAlign: 'left',
+            }}
+          >
+            {updater.error ||
+              'Studio could not complete the update automatically. Please choose a recovery action below.'}
           </p>
 
           <ActionButton
@@ -1922,18 +2157,14 @@ function UpdateModal({
             }}
             style={primaryButtonStyle}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>refresh</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>
+              refresh
+            </span>
             Retry Update
           </ActionButton>
 
-          
-
           <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
-            <ActionButton
-              type="button"
-              onClick={copyDiagnostics}
-              style={halfSecondaryButtonStyle}
-            >
+            <ActionButton type="button" onClick={copyDiagnostics} style={halfSecondaryButtonStyle}>
               Copy Diagnostics
             </ActionButton>
             <ActionButton
@@ -1945,11 +2176,7 @@ function UpdateModal({
             </ActionButton>
           </div>
 
-          <ActionButton
-            type="button"
-            onClick={onLater}
-            style={tertiaryButtonStyle}
-          >
+          <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
             Cancel
           </ActionButton>
         </div>
@@ -1962,7 +2189,6 @@ function UpdateModal({
           <ActionButton
             type="button"
             onClick={async () => {
-              console.log('[INSTRUMENTATION] [JS] Done button clicked. Requesting app exit.');
               try {
                 // End the post-install session and clear all locks so future
                 // automatic checks are not blocked on the next cold start.
@@ -1992,21 +2218,52 @@ function UpdateModal({
 
   const renderIndeterminateProgress = () => {
     return (
-      <div style={{ width: '100%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+      <div
+        style={{ width: '100%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'Manrope',
+            color: 'var(--c-text-primary)',
+          }}
+        >
           <span>Installing update...</span>
           <span>In progress</span>
         </div>
-        <div style={{ width: '100%', height: 6, borderRadius: 3, background: 'rgba(128,128,128,0.12)', overflow: 'hidden', position: 'relative' }}>
-          <div style={{
-            position: 'absolute',
-            width: '40%', height: '100%',
-            background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
-            animation: 'lg-indeterminate-progress 1.5s infinite linear',
+        <div
+          style={{
+            width: '100%',
+            height: 6,
             borderRadius: 3,
-          }} />
+            background: 'rgba(128,128,128,0.12)',
+            overflow: 'hidden',
+            position: 'relative',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              width: '40%',
+              height: '100%',
+              background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
+              animation: 'lg-indeterminate-progress 1.5s infinite linear',
+              borderRadius: 3,
+            }}
+          />
         </div>
-        <div style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8, textAlign: 'left' }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: 'var(--c-text-secondary)',
+            fontFamily: 'Inter',
+            opacity: 0.8,
+            textAlign: 'left',
+          }}
+        >
           {updater.statusText || 'Waiting for system confirmation...'}
         </div>
       </div>
@@ -2021,20 +2278,59 @@ function UpdateModal({
     const pct = Math.round(progressVal * 100);
     const fileName = `studio-update-${toVersion || 'latest'}.apk`;
     return (
-      <div style={{ width: '100%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+      <div
+        style={{ width: '100%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'Manrope',
+            color: 'var(--c-text-primary)',
+          }}
+        >
           <span>Downloading update</span>
           <span>{pct}%</span>
         </div>
-        <div style={{ width: '100%', height: 6, borderRadius: 3, background: 'rgba(128,128,128,0.12)', overflow: 'hidden' }}>
-          <div style={{
-            width: `${pct}%`, height: '100%',
-            background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
-            transition: 'width 200ms ease-out',
-          }} />
+        <div
+          style={{
+            width: '100%',
+            height: 6,
+            borderRadius: 3,
+            background: 'rgba(128,128,128,0.12)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${pct}%`,
+              height: '100%',
+              background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
+              transition: 'width 200ms ease-out',
+            }}
+          />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'monospace', opacity: 0.8 }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%', textAlign: 'left' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 11,
+            color: 'var(--c-text-secondary)',
+            fontFamily: 'monospace',
+            opacity: 0.8,
+          }}
+        >
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: '75%',
+              textAlign: 'left',
+            }}
+          >
             {fileName}
           </span>
           {updateDebugLogs.downloadedApkSize && updateDebugLogs.downloadedApkSize !== 'N/A' && (
@@ -2048,7 +2344,14 @@ function UpdateModal({
   const renderSpinner = () => {
     if (!showSpinner) return null;
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '12px 0 6px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          margin: '12px 0 6px',
+        }}
+      >
         <SpinnerSvg cFrom={purpleFrom} cTo={purpleTo} />
       </div>
     );
@@ -2057,27 +2360,39 @@ function UpdateModal({
   const renderIcon = () => {
     if (showSpinner) {
       return (
-        <div style={{
-          width: 58, height: 58, borderRadius: '50%',
-          background: 'rgba(128,128,128,0.06)',
-          border: '1.5px solid rgba(128,128,128,0.12)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          marginBottom: 10,
-        }}>
+        <div
+          style={{
+            width: 58,
+            height: 58,
+            borderRadius: '50%',
+            background: 'rgba(128,128,128,0.06)',
+            border: '1.5px solid rgba(128,128,128,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 10,
+          }}
+        >
           <SpinnerSvg cFrom={purpleFrom} cTo={purpleTo} size={28} strokeWidth={3.6} />
         </div>
       );
     }
 
     return (
-      <div style={{
-        width: 58, height: 58, borderRadius: '50%',
-        background: `color-mix(in srgb, ${iconColor} 12%, var(--app-surface))`,
-        border: `1.5px solid color-mix(in srgb, ${iconColor} 28%, transparent)`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: `0 0 20px color-mix(in srgb, ${iconColor} 18%, transparent)`,
-        marginBottom: 10,
-      }}>
+      <div
+        style={{
+          width: 58,
+          height: 58,
+          borderRadius: '50%',
+          background: `color-mix(in srgb, ${iconColor} 12%, var(--app-surface))`,
+          border: `1.5px solid color-mix(in srgb, ${iconColor} 28%, transparent)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: `0 0 20px color-mix(in srgb, ${iconColor} 18%, transparent)`,
+          marginBottom: 10,
+        }}
+      >
         {iconName === 'download' ? (
           <DownloadIcon size={26} color={iconColor} />
         ) : (
@@ -2093,12 +2408,18 @@ function UpdateModal({
     const releaseNotes = updater.releaseNotes;
 
     // Check if we have structured release notes with at least one item
-    const hasStructured = releaseNotes && typeof releaseNotes === 'object' && !Array.isArray(releaseNotes) && (
-      ((releaseNotes as StructuredReleaseNotes).added && (releaseNotes as StructuredReleaseNotes).added!.length > 0) ||
-      ((releaseNotes as StructuredReleaseNotes).improved && (releaseNotes as StructuredReleaseNotes).improved!.length > 0) ||
-      ((releaseNotes as StructuredReleaseNotes).fixed && (releaseNotes as StructuredReleaseNotes).fixed!.length > 0) ||
-      ((releaseNotes as StructuredReleaseNotes).changed && (releaseNotes as StructuredReleaseNotes).changed!.length > 0)
-    );
+    const hasStructured =
+      releaseNotes &&
+      typeof releaseNotes === 'object' &&
+      !Array.isArray(releaseNotes) &&
+      (((releaseNotes as StructuredReleaseNotes).added &&
+        (releaseNotes as StructuredReleaseNotes).added!.length > 0) ||
+        ((releaseNotes as StructuredReleaseNotes).improved &&
+          (releaseNotes as StructuredReleaseNotes).improved!.length > 0) ||
+        ((releaseNotes as StructuredReleaseNotes).fixed &&
+          (releaseNotes as StructuredReleaseNotes).fixed!.length > 0) ||
+        ((releaseNotes as StructuredReleaseNotes).changed &&
+          (releaseNotes as StructuredReleaseNotes).changed!.length > 0));
 
     if (hasStructured) {
       const rn = releaseNotes as StructuredReleaseNotes;
@@ -2107,18 +2428,20 @@ function UpdateModal({
         { label: 'Improved', items: rn.improved },
         { label: 'Fixed', items: rn.fixed },
         { label: 'Changed', items: rn.changed },
-      ].filter(cat => cat.items && cat.items.length > 0);
+      ].filter((cat) => cat.items && cat.items.length > 0);
 
       return (
-        <div style={{
-          width: '100%',
-          margin: '12px 0 4px',
-          borderRadius: 14,
-          background: 'rgba(128, 128, 128, 0.05)',
-          border: '1px solid rgba(128, 128, 128, 0.08)',
-          overflow: 'hidden',
-          transition: 'all 200ms ease',
-        }}>
+        <div
+          style={{
+            width: '100%',
+            margin: '12px 0 4px',
+            borderRadius: 14,
+            background: 'rgba(128, 128, 128, 0.05)',
+            border: '1px solid rgba(128, 128, 128, 0.08)',
+            overflow: 'hidden',
+            transition: 'all 200ms ease',
+          }}
+        >
           {/* Toggle Header */}
           <button
             type="button"
@@ -2140,15 +2463,23 @@ function UpdateModal({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: purpleFrom }}>info</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 16, color: purpleFrom }}
+              >
+                info
+              </span>
               <span>What's New</span>
             </div>
-            <span className="material-symbols-outlined" style={{
-              fontSize: 16,
-              color: 'var(--c-text-secondary)',
-              transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 200ms ease',
-            }}>
+            <span
+              className="material-symbols-outlined"
+              style={{
+                fontSize: 16,
+                color: 'var(--c-text-secondary)',
+                transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 200ms ease',
+              }}
+            >
               expand_more
             </span>
           </button>
@@ -2160,7 +2491,7 @@ function UpdateModal({
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
+                transition={{ duration: DurationPresets.normal, ease: EasingPresets.standard }}
                 style={{
                   maxHeight: 150,
                   overflowY: 'auto',
@@ -2170,18 +2501,29 @@ function UpdateModal({
               >
                 {categories.map((cat, idx) => (
                   <div key={idx} style={{ marginTop: idx === 0 ? 8 : 12 }}>
-                    <div style={{
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      marginBottom: 4,
-                    }}>
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'Manrope',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: 4,
+                      }}
+                    >
                       {cat.label}
                     </div>
-                    <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55 }}>
+                    <ul
+                      style={{
+                        margin: 0,
+                        paddingLeft: 16,
+                        fontSize: 12,
+                        color: 'var(--c-text-secondary)',
+                        fontFamily: 'Inter',
+                        lineHeight: 1.55,
+                      }}
+                    >
                       {cat.items!.map((item: string, itemIdx: number) => (
                         <li key={itemIdx} style={{ marginBottom: 4 }}>
                           {item}
@@ -2200,20 +2542,27 @@ function UpdateModal({
     // Fallback to flat list or plain text splits
     const bullets = Array.isArray(releaseNotes)
       ? (releaseNotes as string[])
-      : (updater.changelog ? updater.changelog.split('\n').map(l => l.trim()).filter(Boolean) : []);
+      : updater.changelog
+        ? updater.changelog
+            .split('\n')
+            .map((l) => l.trim())
+            .filter(Boolean)
+        : [];
 
     if (bullets.length === 0) return null;
 
     return (
-      <div style={{
-        width: '100%',
-        margin: '12px 0 4px',
-        borderRadius: 14,
-        background: 'rgba(128, 128, 128, 0.05)',
-        border: '1px solid rgba(128, 128, 128, 0.08)',
-        overflow: 'hidden',
-        transition: 'all 200ms ease',
-      }}>
+      <div
+        style={{
+          width: '100%',
+          margin: '12px 0 4px',
+          borderRadius: 14,
+          background: 'rgba(128, 128, 128, 0.05)',
+          border: '1px solid rgba(128, 128, 128, 0.08)',
+          overflow: 'hidden',
+          transition: 'all 200ms ease',
+        }}
+      >
         {/* Toggle Header */}
         <button
           type="button"
@@ -2235,15 +2584,20 @@ function UpdateModal({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: purpleFrom }}>info</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: purpleFrom }}>
+              info
+            </span>
             <span>What's New</span>
           </div>
-          <span className="material-symbols-outlined" style={{
-            fontSize: 16,
-            color: 'var(--c-text-secondary)',
-            transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 200ms ease',
-          }}>
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: 16,
+              color: 'var(--c-text-secondary)',
+              transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 200ms ease',
+            }}
+          >
             expand_more
           </span>
         </button>
@@ -2255,7 +2609,7 @@ function UpdateModal({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
+              transition={{ duration: DurationPresets.normal, ease: EasingPresets.standard }}
               style={{
                 maxHeight: 150,
                 overflowY: 'auto',
@@ -2263,7 +2617,16 @@ function UpdateModal({
                 borderTop: '1px solid rgba(128, 128, 128, 0.06)',
               }}
             >
-              <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter', lineHeight: 1.55 }}>
+              <ul
+                style={{
+                  margin: '8px 0 0',
+                  paddingLeft: 18,
+                  fontSize: 12,
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                  lineHeight: 1.55,
+                }}
+              >
                 {bullets.map((bullet, idx) => (
                   <li key={idx} style={{ marginBottom: 5 }}>
                     {bullet.replace(/^-\s*/, '')}
@@ -2278,8 +2641,6 @@ function UpdateModal({
   };
   // Render buttons
   const actionButtons = renderButtons();
-
-
 
   const progressComponent = showProgress ? (
     <DownloadProgressIndicator

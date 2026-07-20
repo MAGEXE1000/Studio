@@ -30,20 +30,21 @@ Extends Capacitor's `BridgeActivity`. Responsibilities:
 
 The primary Capacitor native plugin. This is the largest native file and handles:
 
-| Category | Methods |
-|----------|---------|
-| **APK Download** | `downloadApk`, `downloadAndInstallApk`, `downloadFileWithResume` (HTTP redirect handling up to 8 hops, Range header resume, progress events) |
-| **APK Installation** | `triggerInstallation` (PackageInstaller Session API), `installApk` |
-| **APK Inspection** | `inspectApk` (extracts packageName, versionName/Code, signing cert SHA-256, debuggable flag, minSdk, targetSdk, X.509 cert details) |
-| **Verification** | `verifySha256` (SHA-256 hash of downloaded APK file) |
-| **Permissions** | `canRequestPackageInstalls`, `openUnknownAppSourcesSettings`, `openInstallPermissionSettings` |
-| **Secure Storage** | EncryptedSharedPreferences via `MasterKeys.AES256_GCM_SPEC` |
-| **Diagnostics** | `getExtendedDiagnostics` (PackageInstaller session dump), `logNativeInstrumentation`, call counters per method |
-| **Device Info** | `getDeviceInfo` (model, SDK, architecture, locale, storage, network, battery, RAM) |
-| **Clipboard** | `copyToClipboard` |
-| **Notification** | `notifyAppReady` (releases splash screen) |
+| Category             | Methods                                                                                                                                      |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **APK Download**     | `downloadApk`, `downloadAndInstallApk`, `downloadFileWithResume` (HTTP redirect handling up to 8 hops, Range header resume, progress events) |
+| **APK Installation** | `triggerInstallation` (PackageInstaller Session API), `installApk`                                                                           |
+| **APK Inspection**   | `inspectApk` (extracts packageName, versionName/Code, signing cert SHA-256, debuggable flag, minSdk, targetSdk, X.509 cert details)          |
+| **Verification**     | `verifySha256` (SHA-256 hash of downloaded APK file)                                                                                         |
+| **Permissions**      | `canRequestPackageInstalls`, `openUnknownAppSourcesSettings`, `openInstallPermissionSettings`                                                |
+| **Secure Storage**   | EncryptedSharedPreferences via `MasterKeys.AES256_GCM_SPEC`                                                                                  |
+| **Diagnostics**      | `getExtendedDiagnostics` (PackageInstaller session dump), `logNativeInstrumentation`, call counters per method                               |
+| **Device Info**      | `getDeviceInfo` (model, SDK, architecture, locale, storage, network, battery, RAM)                                                           |
+| **Clipboard**        | `copyToClipboard`                                                                                                                            |
+| **Notification**     | `notifyAppReady` (releases splash screen)                                                                                                    |
 
 **Event bridge to JS:**
+
 - `onInstallStatusChanged` — PackageInstaller status updates
 - `apkDownloadProgress` — Download progress (bytes/total)
 - `onNativeInstrumentation` — Native diagnostic events
@@ -70,18 +71,18 @@ WorkManager periodic worker (15-minute intervals):
 
 ### Permissions
 
-| Permission | Purpose |
-|------------|---------|
-| `INTERNET` | Network access |
-| `RECORD_AUDIO` | Vocalex recording |
-| `MODIFY_AUDIO_SETTINGS` | Audio engine control |
-| `POST_NOTIFICATIONS` | Update notifications (Android 13+) |
-| `REQUEST_INSTALL_PACKAGES` | OTA APK installation |
-| `READ_EXTERNAL_STORAGE` | File access |
-| `WRITE_EXTERNAL_STORAGE` | File write (maxSdkVersion=32) |
-| `READ_MEDIA_IMAGES` | Media access (Android 13+) |
-| `READ_MEDIA_AUDIO` | Audio file access |
-| `READ_MEDIA_VIDEO` | Video file access |
+| Permission                 | Purpose                            |
+| -------------------------- | ---------------------------------- |
+| `INTERNET`                 | Network access                     |
+| `RECORD_AUDIO`             | Vocalex recording                  |
+| `MODIFY_AUDIO_SETTINGS`    | Audio engine control               |
+| `POST_NOTIFICATIONS`       | Update notifications (Android 13+) |
+| `REQUEST_INSTALL_PACKAGES` | OTA APK installation               |
+| `READ_EXTERNAL_STORAGE`    | File access                        |
+| `WRITE_EXTERNAL_STORAGE`   | File write (maxSdkVersion=32)      |
+| `READ_MEDIA_IMAGES`        | Media access (Android 13+)         |
+| `READ_MEDIA_AUDIO`         | Audio file access                  |
+| `READ_MEDIA_VIDEO`         | Video file access                  |
 
 ### Intent Filters
 
@@ -97,16 +98,16 @@ WorkManager periodic worker (15-minute intervals):
 
 ## Build Configuration (`build.gradle`)
 
-| Property | Value |
-|----------|-------|
-| Package | `com.chordex.app` |
-| Java | 21 |
-| minSdk | 23 |
-| compileSdk | 35 |
-| targetSdk | 35 |
-| minifyEnabled | true (release) |
-| shrinkResources | true (release) |
-| ProGuard | enabled |
+| Property        | Value             |
+| --------------- | ----------------- |
+| Package         | `com.chordex.app` |
+| Java            | 21                |
+| minSdk          | 23                |
+| compileSdk      | 35                |
+| targetSdk       | 35                |
+| minifyEnabled   | true (release)    |
+| shrinkResources | true (release)    |
+| ProGuard        | enabled           |
 
 ### Signing
 
@@ -119,35 +120,36 @@ WorkManager periodic worker (15-minute intervals):
 
 ### Dependencies
 
-| Dependency | Purpose |
-|------------|---------|
-| `capacitor-android` | Capacitor runtime |
-| `play-services-auth` | Google Sign-In |
-| `firebase-auth` | Firebase Authentication |
-| `work-runtime:2.9.1` | Background update polling |
-| `security-crypto:1.0.0` | EncryptedSharedPreferences |
-| `guava:33.2.1-android` | ListenableFuture for WorkManager |
-| `core-splashscreen` | AndroidX Splash Screen |
+| Dependency              | Purpose                          |
+| ----------------------- | -------------------------------- |
+| `capacitor-android`     | Capacitor runtime                |
+| `play-services-auth`    | Google Sign-In                   |
+| `firebase-auth`         | Firebase Authentication          |
+| `work-runtime:2.9.1`    | Background update polling        |
+| `security-crypto:1.0.0` | EncryptedSharedPreferences       |
+| `guava:33.2.1-android`  | ListenableFuture for WorkManager |
+| `core-splashscreen`     | AndroidX Splash Screen           |
 
 ## Capacitor Plugins
 
-| Plugin | Package | Purpose |
-|--------|---------|---------|
-| Core | `@capacitor/core` | Runtime, `isNativePlatform()`, `registerPlugin()` |
-| Android | `@capacitor/android` | Platform support |
-| App | `@capacitor/app` | App lifecycle events |
-| Filesystem | `@capacitor/filesystem` | File I/O for APK cache |
-| Local Notifications | `@capacitor/local-notifications` | Update available notifications |
-| Preferences | `@capacitor/preferences` | SharedPreferences bridge (JS↔native) |
-| Screen Orientation | `@capacitor/screen-orientation` | Orientation lock (Stagex) |
-| Share | `@capacitor/share` | Share APK via Android Share Sheet |
-| Status Bar | `@capacitor/status-bar` | Status bar style/color |
-| Firebase Auth | `@capacitor-firebase/authentication` | Google Sign-In (skipNativeAuth: true) |
-| **AppInstaller** | Custom | APK download, install, inspect, verify |
+| Plugin              | Package                              | Purpose                                           |
+| ------------------- | ------------------------------------ | ------------------------------------------------- |
+| Core                | `@capacitor/core`                    | Runtime, `isNativePlatform()`, `registerPlugin()` |
+| Android             | `@capacitor/android`                 | Platform support                                  |
+| App                 | `@capacitor/app`                     | App lifecycle events                              |
+| Filesystem          | `@capacitor/filesystem`              | File I/O for APK cache                            |
+| Local Notifications | `@capacitor/local-notifications`     | Update available notifications                    |
+| Preferences         | `@capacitor/preferences`             | SharedPreferences bridge (JS↔native)              |
+| Screen Orientation  | `@capacitor/screen-orientation`      | Orientation lock (Stagex)                         |
+| Share               | `@capacitor/share`                   | Share APK via Android Share Sheet                 |
+| Status Bar          | `@capacitor/status-bar`              | Status bar style/color                            |
+| Firebase Auth       | `@capacitor-firebase/authentication` | Google Sign-In (skipNativeAuth: true)             |
+| **AppInstaller**    | Custom                               | APK download, install, inspect, verify            |
 
 ### Custom AppInstaller Plugin
 
 Registered as:
+
 ```typescript
 // JS side (apkDownloader.ts)
 const AppInstaller = registerPlugin<AppInstallerPlugin>('AppInstaller');

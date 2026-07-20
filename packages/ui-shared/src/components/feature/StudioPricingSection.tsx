@@ -1,6 +1,14 @@
 import { UserProfile, AuthUser } from '@workspace/studio-core';
 import React from 'react';
-import { Circle, Layers3, BadgeCheck, ShieldCheck, CheckCircle, Info, HelpCircle } from 'lucide-react';
+import {
+  Circle,
+  Layers3,
+  BadgeCheck,
+  ShieldCheck,
+  CheckCircle,
+  Info,
+  HelpCircle,
+} from 'lucide-react';
 
 interface PricingPlan {
   id: string;
@@ -99,28 +107,35 @@ interface Props {
 function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast }: Props) {
   const isEs = lang === 'es';
 
-  const getPlanStatus = (planId: string): 'active' | 'admin_bypass' | 'included' | 'downgraded' | 'available' => {
+  const getPlanStatus = (
+    planId: string
+  ): 'active' | 'admin_bypass' | 'included' | 'downgraded' | 'available' => {
     if (!profile) {
       return planId === 'free' ? 'active' : 'available';
     }
 
     const role = profile.role;
-    const isPremiumValid = profile.subscriptionStatus === 'active' || profile.subscriptionStatus === 'past_due';
+    const isPremiumValid =
+      profile.subscriptionStatus === 'active' || profile.subscriptionStatus === 'past_due';
 
     if (role === 'admin') {
       return 'admin_bypass';
     }
 
     if (planId === 'free') {
-      return (role === 'free' || !isPremiumValid) ? 'active' : 'downgraded';
+      return role === 'free' || !isPremiumValid ? 'active' : 'downgraded';
     }
 
     if (planId === 'core') {
-      return (isPremiumValid && role === 'core') ? 'active' : (isPremiumValid && role === 'pro' ? 'included' : 'available');
+      return isPremiumValid && role === 'core'
+        ? 'active'
+        : isPremiumValid && role === 'pro'
+          ? 'included'
+          : 'available';
     }
 
     if (planId === 'pro') {
-      return (isPremiumValid && role === 'pro') ? 'active' : 'available';
+      return isPremiumValid && role === 'pro' ? 'active' : 'available';
     }
 
     return 'available';
@@ -247,9 +262,23 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
               {/* ── Plan Header info ── */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  {plan.id === 'free' && <Circle size={18} color="#94a3b8" style={{ strokeWidth: 2.2, flexShrink: 0 }} />}
-                  {plan.id === 'core' && <Layers3 size={18} color="#3b82f6" style={{ strokeWidth: 2.2, flexShrink: 0 }} />}
-                  {plan.id === 'pro' && <BadgeCheck size={18} color="#a855f7" style={{ strokeWidth: 2.2, flexShrink: 0 }} />}
+                  {plan.id === 'free' && (
+                    <Circle size={18} color="#94a3b8" style={{ strokeWidth: 2.2, flexShrink: 0 }} />
+                  )}
+                  {plan.id === 'core' && (
+                    <Layers3
+                      size={18}
+                      color="#3b82f6"
+                      style={{ strokeWidth: 2.2, flexShrink: 0 }}
+                    />
+                  )}
+                  {plan.id === 'pro' && (
+                    <BadgeCheck
+                      size={18}
+                      color="#a855f7"
+                      style={{ strokeWidth: 2.2, flexShrink: 0 }}
+                    />
+                  )}
                   <p
                     style={{
                       fontFamily: 'Manrope',
@@ -287,7 +316,15 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
               />
 
               {/* ── Pricing / Cost ── */}
-              <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+              <div
+                style={{
+                  marginBottom: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                }}
+              >
                 <span
                   style={{
                     fontFamily: 'Manrope',
@@ -318,8 +355,12 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                       letterSpacing: '0.05em',
                       padding: '2.5px 7px',
                       borderRadius: 6,
-                      background: plan.isRecommended ? `${accent.from}15` : 'rgba(128,128,128,0.12)',
-                      border: plan.isRecommended ? `1px solid ${accent.from}25` : '1px solid rgba(128,128,128,0.08)',
+                      background: plan.isRecommended
+                        ? `${accent.from}15`
+                        : 'rgba(128,128,128,0.12)',
+                      border: plan.isRecommended
+                        ? `1px solid ${accent.from}25`
+                        : '1px solid rgba(128,128,128,0.08)',
                       color: plan.isRecommended ? accent.from : 'var(--c-text-secondary)',
                     }}
                   >
@@ -427,7 +468,7 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                   btnText = isEs ? 'Próximamente' : 'Coming Soon';
                   if (plan.id === 'core') IconComp = Layers3;
                   else if (plan.id === 'pro') IconComp = BadgeCheck;
-                  
+
                   btnStyle = {
                     ...btnStyle,
                     border: '1px solid rgba(128,128,128,0.12)',
@@ -457,7 +498,8 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                   };
                 }
 
-                const isInteractive = (status === 'available' || status === 'downgraded') && (plan.id === 'free');
+                const isInteractive =
+                  (status === 'available' || status === 'downgraded') && plan.id === 'free';
 
                 return (
                   <button

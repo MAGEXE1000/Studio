@@ -1,66 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import {
-  useBackHandler,
-  subscribeAuth,
-  signOut,
-  type AuthUser,
-  subscribeSyncStatus,
-  type SyncStatus,
-  deviceId,
-  getConflictLogs,
-  clearConflictLogs,
-  createCloudBackup,
-  getSyncDiagnostics,
-  pushLocalSettingsToCloud,
-  pullCloudSettingsFromCloud,
-  registerDevice,
-  registerCurrentDevice,
-  reconnectDevices,
-  useChordStore,
-  ACCENT_COLORS,
-  type AnimationSpeed,
-  type DisplayDensity,
-  type AppKey,
-  type PerAppVisuals,
-  useNavHidden,
-  useNavCollapsed,
-  useScrollHide,
-  useT,
-  APP_VERSION_LABEL,
-  APP_VERSION_TAG,
-  APP_VERSION_DATE,
-  compareSemver,
-  APP_VERSION,
-  getChangelogSections,
-  useAppUpdate,
-  updateDebugLogs,
-  updateDiagnostics,
-  checkForUpdate,
-  resetAppUpdateState,
-  isAppInstallerAvailable,
-  applyUpdate,
-  fadeToBlackAndReload,
-  resolveApkUrl,
-  downloadAndInstallApk,
-  resolveReleasePageUrl,
-  useLiquidGlassNav,
-  useIsWebDesktop,
-  useStudioPreferences,
-  registerDebugProvider,
-  unregisterDebugProvider,
-  recordNavigation,
-  getFirestoreDiagnostics,
-  getNavigationEntries,
-  resetNav,
-  useNavigationStore,
-  NavigationDispatcher,
-  useBottomNavigationStore,
-  useNotificationService,
-  useSettingsStore,
-  DurationPresets,
-  EasingPresets,
-  SpringPresets,
-} from '@workspace/studio-core';
+import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
   StartupCoordinator,
@@ -803,7 +742,7 @@ export default function StudioHub() {
   );
 
   useEffect(() => {
-    return subscribeAuth((user) => {
+    return authRepository.subscribeAuth((user) => {
       if (isFirstAuthRun.current) {
         isFirstAuthRun.current = false;
         lastUserRef.current = user;

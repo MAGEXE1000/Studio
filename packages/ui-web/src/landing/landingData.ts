@@ -1,10 +1,4 @@
-import { 
-  ShieldCheck, 
-  Zap, 
-  Layout,
-  Smartphone,
-  Sliders
-} from 'lucide-react';
+import { ShieldCheck, Layout, Smartphone, Sliders } from 'lucide-react';
 import React from 'react';
 
 export interface AppInfo {
@@ -26,10 +20,10 @@ export const APPS_DATA: AppInfo[] = [
     bullets: [
       'Interactive chord library & diagrams',
       'Key transpositions & setlist manager',
-      'Custom song chord sheet configurations'
+      'Custom song chord sheet configurations',
     ],
     colorClass: 'border-white/10 group-hover:border-zinc-200/40',
-    hoverColor: 'rgba(255, 255, 255, 0.04)'
+    hoverColor: 'rgba(255, 255, 255, 0.04)',
   },
   {
     key: 'stage',
@@ -39,10 +33,10 @@ export const APPS_DATA: AppInfo[] = [
     bullets: [
       'Drag-and-drop gear, monitor, and amp nodes',
       'Technical rider exports & input charts',
-      'Band setup template configurations'
+      'Band setup template configurations',
     ],
     colorClass: 'border-white/10 group-hover:border-zinc-200/40',
-    hoverColor: 'rgba(255, 255, 255, 0.04)'
+    hoverColor: 'rgba(255, 255, 255, 0.04)',
   },
   {
     key: 'groovex',
@@ -52,10 +46,10 @@ export const APPS_DATA: AppInfo[] = [
     bullets: [
       'Low-latency multitrack fader mixing',
       'Flexible A-B segment loops & scale trainer',
-      'Custom backing stem integrations'
+      'Custom backing stem integrations',
     ],
     colorClass: 'border-white/10 group-hover:border-zinc-200/40',
-    hoverColor: 'rgba(255, 255, 255, 0.04)'
+    hoverColor: 'rgba(255, 255, 255, 0.04)',
   },
   {
     key: 'drums',
@@ -65,10 +59,10 @@ export const APPS_DATA: AppInfo[] = [
     bullets: [
       'Snare drum chart rudiment editor',
       'Dynamic speed tempo click system',
-      'Interactive visual beat-pulse grid'
+      'Interactive visual beat-pulse grid',
     ],
     colorClass: 'border-white/10 group-hover:border-zinc-200/40',
-    hoverColor: 'rgba(255, 255, 255, 0.04)'
+    hoverColor: 'rgba(255, 255, 255, 0.04)',
   },
   {
     key: 'vocalex',
@@ -78,11 +72,11 @@ export const APPS_DATA: AppInfo[] = [
     bullets: [
       'Real-time vocal pitch visual tracing',
       'Safe local audio take recorder & logger',
-      'Warmup scales & target interval training'
+      'Warmup scales & target interval training',
     ],
     colorClass: 'border-white/10 group-hover:border-zinc-200/40',
-    hoverColor: 'rgba(255, 255, 255, 0.04)'
-  }
+    hoverColor: 'rgba(255, 255, 255, 0.04)',
+  },
 ];
 
 export interface FeatureInfo {
@@ -95,21 +89,21 @@ export const FEATURES_DATA: FeatureInfo[] = [
   {
     icon: Layout,
     title: 'Adaptive Layout',
-    desc: 'Web 4.0.0 responsive dashboard fits perfectly on high-res monitors, staging tablets, and mobile phones.'
+    desc: 'Web 4.0.0 responsive dashboard fits perfectly on high-res monitors, staging tablets, and mobile phones.',
   },
   {
     icon: Smartphone,
     title: 'Android APK',
-    desc: 'Download and install the native Android package for lightweight, dedicated performance on the move.'
+    desc: 'Download and install the native Android package for lightweight, dedicated performance on the move.',
   },
   {
     icon: Sliders,
     title: 'Local Preferences',
-    desc: 'Retain custom settings, appearance options, and tool states directly within your browser cache.'
+    desc: 'Retain custom settings, appearance options, and tool states directly within your browser cache.',
   },
   {
     icon: ShieldCheck,
     title: 'No Setup Required',
-    desc: 'Access your full music workspace instantly over secure HTTPS without running any installers.'
-  }
+    desc: 'Access your full music workspace instantly over secure HTTPS without running any installers.',
+  },
 ];

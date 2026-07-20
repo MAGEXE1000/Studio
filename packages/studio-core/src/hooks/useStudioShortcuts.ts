@@ -13,7 +13,7 @@ export function useStudioShortcuts() {
   });
 
   const addShortcut = (id: string) => {
-    setShortcuts(prev => {
+    setShortcuts((prev) => {
       if (prev.includes(id)) return prev;
       const next = [...prev, id];
       try {
@@ -24,8 +24,8 @@ export function useStudioShortcuts() {
   };
 
   const removeShortcut = (id: string) => {
-    setShortcuts(prev => {
-      const next = prev.filter(item => item !== id);
+    setShortcuts((prev) => {
+      const next = prev.filter((item) => item !== id);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {}

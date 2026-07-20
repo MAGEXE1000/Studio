@@ -328,8 +328,13 @@ export interface SyncBackendProvider {
   checkCloudDataExists(appKey: string): Promise<boolean>;
   createCloudBackup(label: string, data: Record<string, any>): Promise<void>;
   deleteCloudData(appKeys: string[]): Promise<void>;
-  pullAppState(appKey: string): Promise<{ body: any; updatedAt: any; deviceId: string; schemaVersion?: number } | null>;
-  pushAppState(appKey: string, data: { kind: string; body: any; deviceId: string; schemaVersion: number }): Promise<number>;
+  pullAppState(
+    appKey: string
+  ): Promise<{ body: any; updatedAt: any; deviceId: string; schemaVersion?: number } | null>;
+  pushAppState(
+    appKey: string,
+    data: { kind: string; body: any; deviceId: string; schemaVersion: number }
+  ): Promise<number>;
 
   getDiagnostics(): SyncDiagnostics;
   subscribeDiagnostics(callback: DiagnosticsListener): Unsubscribe;

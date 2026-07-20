@@ -6,11 +6,11 @@ This directory records significant architectural decisions made during the devel
 
 ## Contents
 
-| Document | Date | Decision |
-|---|---|---|
-| [001-shared-bottom-navigation.md](001-shared-bottom-navigation.md) | 2026-07-12 | Centralize bottom navigation into a single global controller |
-| [002-notification-service.md](002-notification-service.md) | 2026-07-19 | Create a centralized notification service instead of per-feature alerts |
-| [003-per-app-back-isolation.md](003-per-app-back-isolation.md) | 2026-07-19 | Isolate back navigation stacks per application |
+| Document                                                           | Date       | Decision                                                                |
+| ------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------- |
+| [001-shared-bottom-navigation.md](001-shared-bottom-navigation.md) | 2026-07-12 | Centralize bottom navigation into a single global controller            |
+| [002-notification-service.md](002-notification-service.md)         | 2026-07-19 | Create a centralized notification service instead of per-feature alerts |
+| [003-per-app-back-isolation.md](003-per-app-back-isolation.md)     | 2026-07-19 | Isolate back navigation stacks per application                          |
 
 ## How to Add a Decision
 
@@ -23,4 +23,4 @@ This directory records significant architectural decisions made during the devel
 
 - Decisions are permanent records — never delete or overwrite them. If a decision is superseded, add a new decision that references the old one.
 - Every significant architectural choice should be recorded here.
-- This directory is the historical record of *why* the architecture is the way it is.
+- This directory is the historical record of _why_ the architecture is the way it is.

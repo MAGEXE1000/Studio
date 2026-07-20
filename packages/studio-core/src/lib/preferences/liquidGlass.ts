@@ -39,33 +39,43 @@
  *     `useLiquidGlassNav`'s scroll handler.
  */
 
-const STYLE_ID     = 'liquid-glass-style';
+const STYLE_ID = 'liquid-glass-style';
 const TARGET_CLASS = 'liquidGL-nav';
-const XLINK_NS     = 'http://www.w3.org/1999/xlink';
-const SVG_NS       = 'http://www.w3.org/2000/svg';
+const XLINK_NS = 'http://www.w3.org/1999/xlink';
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /* ───────────────────── Capability probes ─────────────────────────────────── */
 
 function isNativePlatform(): boolean {
-  try { return !!(window as any).Capacitor?.isNativePlatform?.(); }
-  catch { return false; }
+  try {
+    return !!(window as any).Capacitor?.isNativePlatform?.();
+  } catch {
+    return false;
+  }
 }
 function prefersReducedMotion(): boolean {
-  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  catch { return false; }
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
 }
 
 let _platformSupportedCache: boolean | null = null;
 export function liquidGlassPlatformSupported(): boolean {
   if (_platformSupportedCache !== null) return _platformSupportedCache;
-  if (typeof window === 'undefined' || typeof document === 'undefined') return (_platformSupportedCache = false);
+  if (typeof window === 'undefined' || typeof document === 'undefined')
+    return (_platformSupportedCache = false);
   // Note: reduced-motion only suppresses the scroll-shine animation in the hook,
   // not the glass visual itself — so we deliberately do NOT gate on prefersReducedMotion here.
   try {
-    const ok = CSS.supports('backdrop-filter', 'blur(1px)') ||
-               CSS.supports('-webkit-backdrop-filter', 'blur(1px)');
+    const ok =
+      CSS.supports('backdrop-filter', 'blur(1px)') ||
+      CSS.supports('-webkit-backdrop-filter', 'blur(1px)');
     return (_platformSupportedCache = ok);
-  } catch { return (_platformSupportedCache = false); }
+  } catch {
+    return (_platformSupportedCache = false);
+  }
 }
 
 /* ───────────────────── shuding's fragment shader ─────────────────────────── */
@@ -77,9 +87,7 @@ function smoothStep(a: number, b: number, t: number): number {
 function roundedRectSDF(x: number, y: number, w: number, h: number, r: number): number {
   const qx = Math.abs(x) - w + r;
   const qy = Math.abs(y) - h + r;
-  return Math.min(Math.max(qx, qy), 0)
-       + Math.hypot(Math.max(qx, 0), Math.max(qy, 0))
-       - r;
+  return Math.min(Math.max(qx, qy), 0) + Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - r;
 }
 
 /**
@@ -91,8 +99,8 @@ function fragment(uvX: number, uvY: number): { x: number; y: number } {
   const ix = uvX - 0.5;
   const iy = uvY - 0.5;
   const distanceToEdge = roundedRectSDF(ix, iy, 0.3, 0.2, 0.6);
-  const displacement   = smoothStep(0.8, 0, distanceToEdge - 0.15);
-  const scaled         = smoothStep(0, 1, displacement);
+  const displacement = smoothStep(0.8, 0, distanceToEdge - 0.15);
+  const scaled = smoothStep(0, 1, displacement);
   return { x: ix * scaled + 0.5, y: iy * scaled + 0.5 };
 }
 
@@ -104,15 +112,15 @@ interface Shader {
   feImageR: SVGFEImageElement;
   feImageG: SVGFEImageElement;
   feImageB: SVGFEImageElement;
-  feDispR:  SVGFEDisplacementMapElement;
-  feDispG:  SVGFEDisplacementMapElement;
-  feDispB:  SVGFEDisplacementMapElement;
-  filter:   SVGFilterElement;
-  canvas:   HTMLCanvasElement;
-  ctx:      CanvasRenderingContext2D;
-  ro:       ResizeObserver;
-  width:    number;
-  height:   number;
+  feDispR: SVGFEDisplacementMapElement;
+  feDispG: SVGFEDisplacementMapElement;
+  feDispB: SVGFEDisplacementMapElement;
+  filter: SVGFilterElement;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  ro: ResizeObserver;
+  width: number;
+  height: number;
   /** Inline styles captured BEFORE we mutated them, restored on destroy. */
   styleSnapshot: {
     backdropFilter: string;
@@ -124,7 +132,9 @@ interface Shader {
 
 const _shaders = new WeakMap<HTMLElement, Shader>();
 let _idCounter = 0;
-function nextFilterId(): string { return `lgshader-${++_idCounter}`; }
+function nextFilterId(): string {
+  return `lgshader-${++_idCounter}`;
+}
 
 /**
  * Generate the displacement map PNG for the given dimensions and write it
@@ -139,7 +149,8 @@ function regenerateMap(s: Shader, width: number, height: number): void {
   s.canvas.width = width;
   s.canvas.height = height;
 
-  const w = width, h = height;
+  const w = width,
+    h = height;
   const data = new Uint8ClampedArray(w * h * 4);
   let maxScale = 0;
   const raw: number[] = [];
@@ -161,7 +172,7 @@ function regenerateMap(s: Shader, width: number, height: number): void {
 
   let idx = 0;
   for (let i = 0; i < data.length; i += 4) {
-    data[i]     = (raw[idx++] / maxScale + 0.5) * 255;
+    data[i] = (raw[idx++] / maxScale + 0.5) * 255;
     data[i + 1] = (raw[idx++] / maxScale + 0.5) * 255;
     data[i + 2] = 0;
     data[i + 3] = 255;
@@ -172,11 +183,11 @@ function regenerateMap(s: Shader, width: number, height: number): void {
   // Update filter region.
   s.filter.setAttribute('x', '0');
   s.filter.setAttribute('y', '0');
-  s.filter.setAttribute('width',  String(w));
+  s.filter.setAttribute('width', String(w));
   s.filter.setAttribute('height', String(h));
 
   for (const fe of [s.feImageR, s.feImageG, s.feImageB]) {
-    fe.setAttribute('width',  String(w));
+    fe.setAttribute('width', String(w));
     fe.setAttribute('height', String(h));
     // CRITICAL: xlink:href via setAttributeNS — plain 'href' is silently
     // ignored by Chrome Android in <feImage>.
@@ -237,9 +248,11 @@ function createShader(host: HTMLElement): Shader {
     fe.setAttribute('in', `DISP_${channel}`);
     fe.setAttribute('type', 'matrix');
     const m =
-      channel === 'R' ? '1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0' :
-      channel === 'G' ? '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0' :
-                        '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0';
+      channel === 'R'
+        ? '1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'
+        : channel === 'G'
+          ? '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0'
+          : '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0';
     fe.setAttribute('values', m);
     fe.setAttribute('result', `CH_${channel}`);
     return fe;
@@ -248,9 +261,9 @@ function createShader(host: HTMLElement): Shader {
   const feImageR = mkImage('R');
   const feImageG = mkImage('G');
   const feImageB = mkImage('B');
-  const feDispR  = mkDisp('R', 'R', 'SourceGraphic');
-  const feDispG  = mkDisp('G', 'G', 'SourceGraphic');
-  const feDispB  = mkDisp('B', 'B', 'SourceGraphic');
+  const feDispR = mkDisp('R', 'R', 'SourceGraphic');
+  const feDispG = mkDisp('G', 'G', 'SourceGraphic');
+  const feDispB = mkDisp('B', 'B', 'SourceGraphic');
   const matR = mkChannelMatrix('R');
   const matG = mkChannelMatrix('G');
   const matB = mkChannelMatrix('B');
@@ -266,9 +279,19 @@ function createShader(host: HTMLElement): Shader {
   blendRGB.setAttribute('in2', 'GB');
   blendRGB.setAttribute('mode', 'screen');
 
-  filter.append(feImageR, feImageG, feImageB,
-                feDispR,  feDispG,  feDispB,
-                matR, matG, matB, blendGB, blendRGB);
+  filter.append(
+    feImageR,
+    feImageG,
+    feImageB,
+    feDispR,
+    feDispG,
+    feDispB,
+    matR,
+    matG,
+    matB,
+    blendGB,
+    blendRGB
+  );
   defs.appendChild(filter);
   svg.appendChild(defs);
   document.body.appendChild(svg);
@@ -283,18 +306,27 @@ function createShader(host: HTMLElement): Shader {
   // Snapshot inline styles BEFORE mutating, so destroyShader() can faithfully
   // restore whatever the host element had set (including !important flags).
   const styleSnapshot = {
-    backdropFilter:               host.style.getPropertyValue('backdrop-filter'),
-    backdropFilterPriority:       host.style.getPropertyPriority('backdrop-filter'),
-    webkitBackdropFilter:         host.style.getPropertyValue('-webkit-backdrop-filter'),
+    backdropFilter: host.style.getPropertyValue('backdrop-filter'),
+    backdropFilterPriority: host.style.getPropertyPriority('backdrop-filter'),
+    webkitBackdropFilter: host.style.getPropertyValue('-webkit-backdrop-filter'),
     webkitBackdropFilterPriority: host.style.getPropertyPriority('-webkit-backdrop-filter'),
   };
 
   const shader: Shader = {
-    filterId, svg, filter,
-    feImageR, feImageG, feImageB,
-    feDispR,  feDispG,  feDispB,
-    canvas, ctx, ro,
-    width: 0, height: 0,
+    filterId,
+    svg,
+    filter,
+    feImageR,
+    feImageG,
+    feImageB,
+    feDispR,
+    feDispG,
+    feDispB,
+    canvas,
+    ctx,
+    ro,
+    width: 0,
+    height: 0,
     styleSnapshot,
   };
 
@@ -316,9 +348,21 @@ function createShader(host: HTMLElement): Shader {
 function destroyShader(host: HTMLElement): void {
   const s = _shaders.get(host);
   if (!s) return;
-  try { s.ro.disconnect(); } catch { /* swallow */ }
-  try { s.svg.remove(); } catch { /* swallow */ }
-  try { s.canvas.remove(); } catch { /* swallow */ }
+  try {
+    s.ro.disconnect();
+  } catch {
+    /* swallow */
+  }
+  try {
+    s.svg.remove();
+  } catch {
+    /* swallow */
+  }
+  try {
+    s.canvas.remove();
+  } catch {
+    /* swallow */
+  }
   // Restore inline styles to their pre-tag state (preserves both value and
   // !important flag). An empty captured value means the property wasn't
   // inline before, so we just clear it.
@@ -329,7 +373,11 @@ function destroyShader(host: HTMLElement): void {
   }
   host.style.removeProperty('-webkit-backdrop-filter');
   if (snap.webkitBackdropFilter) {
-    host.style.setProperty('-webkit-backdrop-filter', snap.webkitBackdropFilter, snap.webkitBackdropFilterPriority);
+    host.style.setProperty(
+      '-webkit-backdrop-filter',
+      snap.webkitBackdropFilter,
+      snap.webkitBackdropFilterPriority
+    );
   }
   // Clear the scroll-shine var the hook may have written.
   host.style.removeProperty('--lg-shine-x');
@@ -423,7 +471,6 @@ export function tagLiquidTarget(el: HTMLElement | null): void {
   try {
     shader = createShader(el);
   } catch (e) {
-    console.warn('[liquidGlass] failed to create shader', e);
     return;
   }
   _shaders.set(el, shader);
@@ -439,29 +486,29 @@ export function untagLiquidTarget(el: HTMLElement | null): void {
 }
 
 /** No-op kept for API compatibility. */
-export function scheduleRefresh(_delay = 0): void { /* no-op */ }
-export function isLiquidGlassEnabled(): boolean { return _enabled; }
+export function scheduleRefresh(_delay = 0): void {
+  /* no-op */
+}
+export function isLiquidGlassEnabled(): boolean {
+  return _enabled;
+}
 
 /* ───────────────────── Debug overlay ─────────────────────────────────────── */
 
 const DEBUG_STYLE_ID = 'liquid-glass-debug-style';
 function paintDebugOverlay(on: boolean): void {
   document.getElementById(DEBUG_STYLE_ID)?.remove();
-  if (!on) { console.log('[liquidGlass] debug OFF'); return; }
+  if (!on) {
+    return;
+  }
   const style = document.createElement('style');
   style.id = DEBUG_STYLE_ID;
   style.textContent = `.${TARGET_CLASS}{outline:2px dashed #ff2b88!important;outline-offset:2px!important;}`;
   document.head.appendChild(style);
   console.group('[liquidGlass] debug ON');
-  console.log({ enabled: _enabled, tagged: _taggedEls.size, platformOk: liquidGlassPlatformSupported() });
   for (const el of _taggedEls) {
     const s = _shaders.get(el);
     const cs = getComputedStyle(el);
-    console.log(el, {
-      filterId: s?.filterId, mapSize: s ? `${s.width}x${s.height}` : 'n/a',
-      backdropFilter: cs.backdropFilter || (cs as any).webkitBackdropFilter,
-      rect: el.getBoundingClientRect(),
-    });
   }
   console.groupEnd();
 }
@@ -471,5 +518,7 @@ if (typeof window !== 'undefined') {
     if (new URLSearchParams(window.location.search).get('lgDebug') === '1') {
       setTimeout(() => paintDebugOverlay(true), 100);
     }
-  } catch { /* swallow */ }
+  } catch {
+    /* swallow */
+  }
 }

@@ -72,9 +72,7 @@ export function setUserAvatar(uid: string, icon: AvatarIcon | null): void {
   else map[uid] = icon;
   writeMap(map);
   try {
-    window.dispatchEvent(
-      new CustomEvent('chordex:user-avatar-changed', { detail: { uid, icon } }),
-    );
+    window.dispatchEvent(new CustomEvent('chordex:user-avatar-changed', { detail: { uid, icon } }));
   } catch {
     /* CustomEvent unavailable in some test envs */
   }

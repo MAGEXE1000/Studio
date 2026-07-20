@@ -7,7 +7,7 @@ const repoRoot = path.resolve(__dirname, '..');
 
 const paths = {
   webDist: path.join(repoRoot, 'dist/web'),
-  androidDist: path.join(repoRoot, 'dist/android-web')
+  androidDist: path.join(repoRoot, 'dist/android-web'),
 };
 
 console.log('=== RUNNING BUNDLE SEPARATION ASSERTIONS ===');
@@ -20,7 +20,7 @@ if (!fs.existsSync(paths.webDist) || !fs.existsSync(paths.androidDist)) {
 function getFiles(dir) {
   let results = [];
   const list = fs.readdirSync(dir);
-  list.forEach(file => {
+  list.forEach((file) => {
     file = path.join(dir, file);
     const stat = fs.statSync(file);
     if (stat && stat.isDirectory()) {
@@ -40,17 +40,15 @@ const webFiles = getFiles(paths.webDist);
 let failed = false;
 
 // 1. Android bundle checks (must not contain landing page copy)
-const forbiddenAndroidTexts = [
-  'USE STUDIO WEB',
-  'WINDOWS APP',
-  'STUDIO PLATFORM SUITE'
-];
+const forbiddenAndroidTexts = ['USE STUDIO WEB', 'WINDOWS APP', 'STUDIO PLATFORM SUITE'];
 
-androidFiles.forEach(file => {
+androidFiles.forEach((file) => {
   const content = fs.readFileSync(file, 'utf8');
-  forbiddenAndroidTexts.forEach(text => {
+  forbiddenAndroidTexts.forEach((text) => {
     if (content.toUpperCase().includes(text.toUpperCase())) {
-      console.error(`\x1b[31mAssertion Failed: Android asset '${path.relative(repoRoot, file)}' contains forbidden landing copy '${text}'!\x1b[0m`);
+      console.error(
+        `\x1b[31mAssertion Failed: Android asset '${path.relative(repoRoot, file)}' contains forbidden landing copy '${text}'!\x1b[0m`
+      );
       failed = true;
     }
   });
@@ -59,15 +57,17 @@ androidFiles.forEach(file => {
 // 2. Web bundle checks (must not bundle Android bottom navigation shell or native back listeners)
 const forbiddenWebTexts = [
   'bottom-nav-container', // class or ID uniquely identifying BottomNav
-  'hardwareBack' // checking back handlers
+  'hardwareBack', // checking back handlers
 ];
 
-webFiles.forEach(file => {
+webFiles.forEach((file) => {
   const content = fs.readFileSync(file, 'utf8');
-  forbiddenWebTexts.forEach(text => {
+  forbiddenWebTexts.forEach((text) => {
     // Only check our own assets, not third-party vendors
     if (content.includes(text) && !file.includes('vendor') && !file.includes('firebase')) {
-      console.error(`\x1b[31mAssertion Failed: Web asset '${path.relative(repoRoot, file)}' contains forbidden native behavior reference '${text}'!\x1b[0m`);
+      console.error(
+        `\x1b[31mAssertion Failed: Web asset '${path.relative(repoRoot, file)}' contains forbidden native behavior reference '${text}'!\x1b[0m`
+      );
       failed = true;
     }
   });

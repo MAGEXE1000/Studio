@@ -16,7 +16,6 @@ export async function fadeToBlackAndReload(
   overlay.style.opacity = '1';
 
   const safetyTimer = setTimeout(() => {
-    console.warn('[fadeToBlackAndReload] Reload safety watchdog triggered. Removing black overlay.');
     overlay.style.opacity = '0';
     setTimeout(() => {
       overlay.remove();

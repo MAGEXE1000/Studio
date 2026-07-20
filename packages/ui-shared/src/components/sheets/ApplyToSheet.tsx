@@ -1,3 +1,4 @@
+import { NavigationDispatcher } from '@workspace/studio-core';
 import { useChordStore, ACCENT_COLORS, type AppKey, useT, useSettingsStore } from '@workspace/studio-core';
 import React, { useState, useEffect } from 'react';
 import {

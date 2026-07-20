@@ -1,1 +1,1 @@
-export * from './services/accountStatus';
+export * from '../repositories/UserRepository';

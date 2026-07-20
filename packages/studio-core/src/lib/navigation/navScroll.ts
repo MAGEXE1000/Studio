@@ -10,18 +10,29 @@ const AUTO_SHOW_MS = 4000;
 let _autoShowTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearAutoShow() {
-  if (_autoShowTimer) { clearTimeout(_autoShowTimer); _autoShowTimer = null; }
+  if (_autoShowTimer) {
+    clearTimeout(_autoShowTimer);
+    _autoShowTimer = null;
+  }
 }
-function emit(hidden: boolean) { _listeners.forEach(fn => fn(hidden)); }
+function emit(hidden: boolean) {
+  _listeners.forEach((fn) => fn(hidden));
+}
 
 export function setNavLocked(locked: boolean) {
   if (_locked === locked) return;
   _locked = locked;
   if (!locked) {
     clearAutoShow();
-    if (_hidden) { _hidden = false; emit(false); }
+    if (_hidden) {
+      _hidden = false;
+      emit(false);
+    }
     // Also un-collapse when unlocking so the bar is always reachable.
-    if (_collapsed) { _collapsed = false; emitCollapsed(false); }
+    if (_collapsed) {
+      _collapsed = false;
+      emitCollapsed(false);
+    }
   }
   onStateChanged();
 }
@@ -47,8 +58,14 @@ export function setNavHidden(hidden: boolean) {
 export function resetNav() {
   clearAutoShow();
   _locked = false;
-  if (_hidden)    { _hidden    = false; emit(false); }
-  if (_collapsed) { _collapsed = false; emitCollapsed(false); }
+  if (_hidden) {
+    _hidden = false;
+    emit(false);
+  }
+  if (_collapsed) {
+    _collapsed = false;
+    emitCollapsed(false);
+  }
   setNavScrollOffset(0);
   onStateChanged();
 }
@@ -57,7 +74,9 @@ export function useNavHidden(): boolean {
   const [hidden, setHidden] = useState(_hidden);
   useEffect(() => {
     _listeners.add(setHidden);
-    return () => { _listeners.delete(setHidden); };
+    return () => {
+      _listeners.delete(setHidden);
+    };
   }, []);
   return hidden;
 }
@@ -68,7 +87,9 @@ export function useNavHidden(): boolean {
 let _collapsed = false;
 const _collapsedListeners = new Set<(c: boolean) => void>();
 
-function emitCollapsed(c: boolean) { _collapsedListeners.forEach(fn => fn(c)); }
+function emitCollapsed(c: boolean) {
+  _collapsedListeners.forEach((fn) => fn(c));
+}
 
 export function setNavCollapsed(collapsed: boolean) {
   if (_locked && !collapsed) return;
@@ -89,7 +110,9 @@ export function useNavCollapsed(): boolean {
   const [c, setC] = useState(_collapsed);
   useEffect(() => {
     _collapsedListeners.add(setC);
-    return () => { _collapsedListeners.delete(setC); };
+    return () => {
+      _collapsedListeners.delete(setC);
+    };
   }, []);
   return c;
 }
@@ -106,14 +129,16 @@ export function setNavScrollOffset(offset: number) {
   const clamped = Math.max(0, Math.min(1, offset));
   if (_scrollOffset === clamped) return;
   _scrollOffset = clamped;
-  _scrollOffsetListeners.forEach(fn => fn(clamped));
+  _scrollOffsetListeners.forEach((fn) => fn(clamped));
 }
 
 export function useNavScrollOffset(): number {
   const [offset, setOffset] = useState(_scrollOffset);
   useEffect(() => {
     _scrollOffsetListeners.add(setOffset);
-    return () => { _scrollOffsetListeners.delete(setOffset); };
+    return () => {
+      _scrollOffsetListeners.delete(setOffset);
+    };
   }, []);
   return offset;
 }
@@ -150,11 +175,11 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 
       if (el) {
         _registeredScrollElements.add(el);
-        
+
         const onScroll = () => {
           const y = el.scrollTop;
           const maxScroll = el.scrollHeight - el.clientHeight;
-          
+
           // Ignore overscroll bounce
           if (y < 0 || y > maxScroll) {
             return;
@@ -193,7 +218,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         _elementLastY.set(el, el.scrollTop);
         _elementListeners.set(el, onScroll);
         el.addEventListener('scroll', onScroll, { passive: true });
-        
+
         onStateChanged();
       }
     };
@@ -240,7 +265,7 @@ function logRecovery(reason: string, action: string, startTime: number) {
     const currentRoute = navStore.history[navStore.history.length - 1];
     const previousRoute = navStore.history[navStore.history.length - 2] ?? null;
     const duration = Date.now() - startTime;
-    
+
     const diagnosticsInfo = {
       currentRoute: currentRoute ? JSON.stringify(currentRoute) : 'null',
       previousRoute: previousRoute ? JSON.stringify(previousRoute) : 'null',
@@ -249,11 +274,9 @@ function logRecovery(reason: string, action: string, startTime: number) {
       transitionState: `isTransitioning=${navStore.isTransitioning}`,
       recoveryReason: reason,
       recoveryAction: action,
-      recoveryDuration: `${duration}ms`
+      recoveryDuration: `${duration}ms`,
     };
-    console.warn('[RecoveryDiagnostics]', diagnosticsInfo);
   } catch (e) {
-    console.warn('[RecoveryDiagnostics] Failed to collect full diagnostics:', e);
   }
 }
 
@@ -297,7 +320,7 @@ export function onStateChanged() {
       const startTime = Date.now();
       _watchdogTimer = setTimeout(() => {
         _watchdogTimer = null;
-        
+
         const isTransitioning = useNavigationStore.getState().isTransitioning;
         if (isTransitioning) return;
 
@@ -318,7 +341,11 @@ export function onStateChanged() {
         if (hasFullscreenView) return;
 
         // Stuck hidden state
-        logRecovery('Hidden state active but no fullscreen elements or transitions detected', 'resetNav()', startTime);
+        logRecovery(
+          'Hidden state active but no fullscreen elements or transitions detected',
+          'resetNav()',
+          startTime
+        );
         resetNav();
       }, 200);
     }
@@ -331,18 +358,18 @@ export function onStateChanged() {
 if (typeof window !== 'undefined') {
   try {
     let lastActiveRoute: string | null = null;
-    
+
     // Subscribe to navigation store state changes
     useNavigationStore.subscribe((state) => {
       const activeRoute = state.history[state.history.length - 1];
       const activeRouteStr = activeRoute ? JSON.stringify(activeRoute) : 'null';
-      
+
       // Auto-reset collapsed/hidden states on route changes
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
         resetNav();
       }
-      
+
       onStateChanged();
     });
 
@@ -381,6 +408,3 @@ if (typeof window !== 'undefined') {
     // Passive safety guard
   }
 }
-
-
-

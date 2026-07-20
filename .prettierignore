@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+coverage
+android
+ios
+.next
+.nuxt
+.vuepress
+*.apk
+*.zip
+*.tar.gz
+TakesPanel_old.tsx
+public/**
+knip-report.json

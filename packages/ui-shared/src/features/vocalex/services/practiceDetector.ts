@@ -35,8 +35,8 @@ export function centsToAccuracy(cents: number): number {
   if (absCents <= 5) return 1.0;
   if (absCents <= 10) return 0.95;
   if (absCents <= CENTS_GOOD) return 0.85;
-  if (absCents <= 25) return 0.70;
-  if (absCents <= CENTS_CLOSE) return 0.50;
+  if (absCents <= 25) return 0.7;
+  if (absCents <= CENTS_CLOSE) return 0.5;
   if (absCents <= 50) return 0.25;
   return 0.0;
 }
@@ -50,10 +50,14 @@ export function centsToStatus(cents: number): 'good' | 'close' | 'off' {
 
 export function statusColor(status: DetectorState['status']): string {
   switch (status) {
-    case 'good': return '#34d399';
-    case 'close': return '#eab308';
-    case 'off': return '#ef4444';
-    default: return '#484848';
+    case 'good':
+      return '#34d399';
+    case 'close':
+      return '#eab308';
+    case 'off':
+      return '#ef4444';
+    default:
+      return '#484848';
   }
 }
 
@@ -76,7 +80,10 @@ export class PracticeDetector {
           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
         });
       } catch (constraintsErr) {
-        console.warn('[PracticeDetector] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
+        console.warn(
+          '[PracticeDetector] getUserMedia with constraints failed, falling back to simple audio:',
+          constraintsErr
+        );
         this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
       this.ctx = createAudioContext();
@@ -87,7 +94,13 @@ export class PracticeDetector {
       this.buffer = new Float32Array(this.analyser.fftSize);
       this.tick();
     } catch {
-      onUpdate({ listening: false, currentPitch: null, accuracy: 0, centsOff: 0, status: 'silent' });
+      onUpdate({
+        listening: false,
+        currentPitch: null,
+        accuracy: 0,
+        centsOff: 0,
+        status: 'silent',
+      });
     }
   }
 
@@ -100,7 +113,8 @@ export class PracticeDetector {
   getStepScore(): StepScore {
     const detected = this.samples.length;
     const total = Math.max(1, this.totalSamples);
-    if (detected === 0) return { avgCentsOff: 0, accuracy: 0, samplesDetected: 0, totalSamples: total };
+    if (detected === 0)
+      return { avgCentsOff: 0, accuracy: 0, samplesDetected: 0, totalSamples: total };
     const avgCents = this.samples.reduce((s, c) => s + Math.abs(c), 0) / detected;
     const accuracy = this.samples.reduce((s, c) => s + centsToAccuracy(c), 0) / detected;
     return { avgCentsOff: avgCents, accuracy, samplesDetected: detected, totalSamples: total };
@@ -145,7 +159,7 @@ export class PracticeDetector {
 
   stop() {
     cancelAnimationFrame(this.raf);
-    this.stream?.getTracks().forEach(t => t.stop());
+    this.stream?.getTracks().forEach((t) => t.stop());
     this.ctx?.close().catch(() => {});
     this.ctx = null;
     this.stream = null;

@@ -84,9 +84,6 @@ export interface ActiveUpdateSession {
 export function verifyAndCleanCaches() {
   try {
     if (typeof localStorage === 'undefined') return;
-    
-    console.log('[Cache Verification] Running verification check on all update caches...');
-
     // 1. Verify session cache
     const sessionStr = localStorage.getItem('studio:active_update_session');
     if (sessionStr) {
@@ -95,11 +92,9 @@ export function verifyAndCleanCaches() {
         const ver = parsed?.targetVersion;
         const sem = ver ? parseSemver(ver) : null;
         if (!sem || ver === 'V' || ver === 'v') {
-          console.warn('[Cache Verification] Invalidation: Corrupted session version detected:', ver);
           localStorage.removeItem('studio:active_update_session');
           releaseMetadataInspector.cacheSource = 'invalidated_session';
         } else if (compareSemver(APP_VERSION, ver) >= 0) {
-          console.log(`[Cache Verification] Update to v${ver} already completed successfully (Current: v${APP_VERSION}). Clearing session.`);
           localStorage.removeItem('studio:active_update_session');
           localStorage.removeItem('studio:install_in_progress');
           localStorage.removeItem('studio:is_simulation_active');
@@ -117,7 +112,6 @@ export function verifyAndCleanCaches() {
     if (downloadedVer) {
       const sem = parseSemver(downloadedVer);
       if (!sem || downloadedVer === 'V' || downloadedVer === 'v') {
-        console.warn('[Cache Verification] Invalidation: Corrupted downloaded APK version detected:', downloadedVer);
         localStorage.removeItem('studio:downloadedApkVersion');
         localStorage.removeItem('studio:downloadedApkPath');
         releaseMetadataInspector.cacheSource = (releaseMetadataInspector.cacheSource || '') + ' | invalidated_apk';
@@ -135,7 +129,6 @@ export function verifyAndCleanCaches() {
           const cleanList = list.filter(v => typeof v === 'string' && parseSemver(v) !== null && v !== 'V' && v !== 'v');
           if (cleanList.length !== list.length) {
             localStorage.setItem('studio:dismissedVersions', JSON.stringify(cleanList));
-            console.warn('[Cache Verification] Cleaned invalid dismissedVersions list');
           }
         } else {
           localStorage.removeItem('studio:dismissedVersions');
@@ -148,7 +141,6 @@ export function verifyAndCleanCaches() {
     // 4. Verify recovery versions
     const lastDismissedRecoveryVer = localStorage.getItem('studio:lastDismissedRecoveryVersion');
     if (lastDismissedRecoveryVer && (!parseSemver(lastDismissedRecoveryVer) || lastDismissedRecoveryVer === 'V' || lastDismissedRecoveryVer === 'v')) {
-      console.warn('[Cache Verification] Invalidation: Corrupted recovery version:', lastDismissedRecoveryVer);
       localStorage.removeItem('studio:lastDismissedRecoveryVersion');
       localStorage.removeItem('studio:lastDismissedRecoveryTimestamp');
     }
@@ -156,7 +148,6 @@ export function verifyAndCleanCaches() {
     // 5. Verify later version
     const laterUpdateVer = localStorage.getItem('studio:laterUpdateVersion');
     if (laterUpdateVer && (!parseSemver(laterUpdateVer) || laterUpdateVer === 'V' || laterUpdateVer === 'v')) {
-      console.warn('[Cache Verification] Invalidation: Corrupted laterUpdateVersion:', laterUpdateVer);
       localStorage.removeItem('studio:laterUpdateVersion');
     }
   } catch (e) {
@@ -177,7 +168,6 @@ export function loadPersistedSession(): ActiveUpdateSession | null {
         const parsed = JSON.parse(sessionStr);
         const ver = parsed?.targetVersion;
         if (ver && compareSemver(APP_VERSION, ver) >= 0) {
-          console.log(`[Session Recovery] Session target version v${ver} is already met by current version v${APP_VERSION}. Wiping.`);
           localStorage.removeItem('studio:active_update_session');
           localStorage.removeItem('studio:install_in_progress');
           activeUpdateSession = null;
@@ -188,7 +178,6 @@ export function loadPersistedSession(): ActiveUpdateSession | null {
       }
     }
   } catch (e) {
-    console.warn('[Session Recovery] Failed to load persisted session:', e);
   }
   return null;
 }
@@ -222,11 +211,9 @@ function setInstallationJustCompleted() {
     clearTimeout(installationJustCompletedTimer);
   }
   installationJustCompletedTimer = setTimeout(() => {
-    console.log('[InstallationLock] Safety timeout (60s) reached — clearing installationJustCompleted flag.');
     installationJustCompleted = false;
     installationJustCompletedTimer = null;
   }, 60000);
-  console.log('[InstallationLock] installationJustCompleted set to TRUE. No automatic update checks until cleared.');
 }
 
 /**
@@ -236,7 +223,6 @@ function setInstallationJustCompleted() {
  */
 export function clearInstallationJustCompleted() {
   if (installationJustCompleted) {
-    console.log('[InstallationLock] installationJustCompleted cleared by UI/caller.');
   }
   installationJustCompleted = false;
   if (installationJustCompletedTimer) {
@@ -284,11 +270,9 @@ const POST_INSTALL_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes safety
     if (storedVersion === APP_VERSION) {
       // Only restore if within the safety timeout window
       if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
-        console.log(`[PostInstallSession] Cold start detected with matching version v${APP_VERSION}. Restoring post-install session.`);
         postInstallSessionActive = true;
         postInstallSessionTimestamp = storedTimestamp;
         postInstallSessionTimer = setTimeout(() => {
-          console.log('[PostInstallSession] Safety timeout (5min) reached — ending post-install session.');
           postInstallSessionActive = false;
           postInstallSessionTimestamp = null;
           postInstallSessionTimer = null;
@@ -298,19 +282,16 @@ const POST_INSTALL_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes safety
           } catch (_) {}
         }, Math.max(0, POST_INSTALL_SESSION_TIMEOUT_MS - elapsed));
       } else {
-        console.log(`[PostInstallSession] Cold start with matching version but safety timeout expired (${elapsed}ms). Clearing.`);
         localStorage.removeItem(POST_INSTALL_VERSION_KEY);
         localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
       }
     } else {
       // Version mismatch — either install hasn't happened, a different version
       // was installed, or a downgrade occurred. Clear the stale marker.
-      console.log(`[PostInstallSession] Version mismatch: stored=${storedVersion}, current=${APP_VERSION}. Clearing stale post-install marker.`);
       localStorage.removeItem(POST_INSTALL_VERSION_KEY);
       localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
     }
   } catch (e) {
-    console.warn('[PostInstallSession] Error during cold-start restoration:', e);
   }
 })();
 
@@ -326,7 +307,6 @@ function activatePostInstallSession() {
   postInstallSessionTimestamp = Date.now();
   if (postInstallSessionTimer) clearTimeout(postInstallSessionTimer);
   postInstallSessionTimer = setTimeout(() => {
-    console.log('[PostInstallSession] Safety timeout (5min) reached — ending post-install session.');
     postInstallSessionActive = false;
     postInstallSessionTimestamp = null;
     postInstallSessionTimer = null;
@@ -343,8 +323,6 @@ function activatePostInstallSession() {
     localStorage.setItem(POST_INSTALL_VERSION_KEY, targetVersion);
     localStorage.setItem(POST_INSTALL_TIMESTAMP_KEY, String(Date.now()));
   } catch (_) {}
-
-  console.log(`[PostInstallSession] ACTIVATED. targetVersion=${globalUpdateState.remoteVersion}. All automatic checks blocked until session ends.`);
 }
 
 /**
@@ -362,7 +340,6 @@ export function isPostInstallSessionActive(): boolean {
         const storedTimestamp = parseInt(localStorage.getItem(POST_INSTALL_TIMESTAMP_KEY) || '0', 10);
         const elapsed = Date.now() - storedTimestamp;
         if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
-          console.log(`[PostInstallSession] Restoring session from localStorage fallback (elapsed=${elapsed}ms).`);
           postInstallSessionActive = true;
           postInstallSessionTimestamp = storedTimestamp;
           return true;
@@ -385,7 +362,6 @@ export function endPostInstallSession(reason: string) {
 function endPostInstallSessionInternal(reason: string) {
   if (postInstallSessionActive) {
     const duration = postInstallSessionTimestamp ? Date.now() - postInstallSessionTimestamp : 0;
-    console.log(`[PostInstallSession] ENDED. Reason: ${reason}. Duration: ${duration}ms.`);
   }
   postInstallSessionActive = false;
   postInstallSessionTimestamp = null;
@@ -459,7 +435,6 @@ export function startUpdateSession(startedBy: string, trigger: string) {
       activeUpdateSession.startedBy = `manual (${trigger})`;
       saveSession();
     }
-    console.log(`[UpdateSession] Reusing active session: ${activeUpdateSession.sessionId}`);
     return activeUpdateSession;
   }
   
@@ -484,7 +459,6 @@ export function startUpdateSession(startedBy: string, trigger: string) {
   };
   
   saveSession();
-  console.log(`[UpdateSession] Created new session: ${sId}`);
   return activeUpdateSession;
 }
 
@@ -647,14 +621,12 @@ export function transitionToState(state: AppUpdateState, reason: string, failure
   if (state === 'INSTALL_FAILED') {
     const current = globalUpdateState.updateState;
     if (current === 'IDLE' || current === 'INSTALL_SUCCESS') {
-      console.warn(`[UPDATE STATE WARNING] Blocking invalid transition: ${current} -> INSTALL_FAILED (Reason: ${reason})`);
       return;
     }
   }
 
   // Prevent recursive transitions
   if (transitionLock) {
-    console.warn(`[UPDATE STATE WARNING] Recursive transition blocked: attempted ${globalUpdateState.updateState} -> ${state} (Reason: ${reason}) while another transition is committing.`);
     recordRejectedTransition(globalUpdateState.updateState, state, `RECURSIVE_BLOCKED: ${reason}`);
     return;
   }
@@ -815,9 +787,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   } catch {
     /* ignore */
   }
-
-  console.log(`[INSTRUMENTATION] [JS_STATE] Transition: ${current} -> ${state} | Reason: ${reason} | Caller: ${caller} | Thread: Main JS Thread`);
-
   // Calculate duration of previous state
 
   const isUnexpectedResetToIdle = state === 'IDLE' && [
@@ -866,7 +835,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     // If the user never taps Update/Install, recover after 5 minutes.
     watchdogTimer = setTimeout(() => {
       if (globalUpdateState.updateState === 'WAITING_USER_CONFIRMATION') {
-        console.warn('[Watchdog] User confirmation timeout (5min) reached.');
         handleWatchdogTimeout('User did not confirm update within 5 minutes.');
       }
     }, 5 * 60 * 1000);
@@ -879,7 +847,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
           const { AppInstaller } = await import('../apkDownloader');
           const check = await AppInstaller.isInstallActive();
           if (check.active) {
-            console.log('[Watchdog] PackageInstaller session is active in PACKAGEINSTALLER_VISIBLE. Extending watchdog by 2min...');
             watchdogTimer = setTimeout(() => {
               if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
                 handleWatchdogTimeout('PackageInstaller dialog timed out (5min total).');
@@ -890,16 +857,13 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
           // Not active — check if there's already a result
           const result = await AppInstaller.getLastInstallResult();
           if (result.statusCode === 0) {
-            console.log('[Watchdog] Install succeeded while in PACKAGEINSTALLER_VISIBLE. Transitioning.');
             transitionToState('INSTALL_SUCCESS', 'Watchdog detected install success');
             return;
           } else if (result.statusCode > 0) {
-            console.log(`[Watchdog] Install failed (code ${result.statusCode}) while in PACKAGEINSTALLER_VISIBLE.`);
             transitionToState('INSTALL_FAILED', `Watchdog detected install failure: ${result.statusMessage || result.statusCode}`);
             return;
           }
         } catch (err) {
-          console.warn('[Watchdog] Failed to check native installer state during PACKAGEINSTALLER_VISIBLE timeout:', err);
         }
         handleWatchdogTimeout('PackageInstaller dialog confirmation timed out (3min).');
       }
@@ -911,7 +875,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
           const { AppInstaller } = await import('../apkDownloader');
           const check = await AppInstaller.isInstallActive();
           if (check.active) {
-            console.log('[Watchdog] PackageInstaller session is still active. Extending watchdog timer...');
             watchdogTimer = setTimeout(() => {
               if (globalUpdateState.updateState === 'INSTALLING') {
                 handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
@@ -920,7 +883,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
             return;
           }
         } catch (err) {
-          console.warn('[Watchdog] Failed to check active installer session during timeout check:', err);
         }
         handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
       }
@@ -932,7 +894,6 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     activeUpdateSession.previousState = current;
     activeUpdateSession.currentState = state;
     if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(state)) {
-      console.log(`[UpdateSession] Ending update session: ${activeUpdateSession.sessionId}`);
       activeUpdateSession = null;
       try {
         localStorage.removeItem('studio:active_update_session');
@@ -1060,14 +1021,12 @@ export function resetDownloadWatchdog() {
 }
 
 export function handleWatchdogTimeout(errorMsg: string) {
-  console.warn(`[Watchdog Timeout] ${errorMsg}. Resetting to RECOVERY.`);
   stopWatchdog();
 
   const newFailureCount = globalUpdateState.consecutiveFailures + 1;
 
   // Bound recovery loops: after MAX_CONSECUTIVE_FAILURES, stop retrying
   if (newFailureCount >= MAX_CONSECUTIVE_FAILURES) {
-    console.warn(`[Watchdog] Maximum consecutive failures reached (${MAX_CONSECUTIVE_FAILURES}). Giving up.`);
     updateGlobalState({
       error: `${errorMsg} Maximum recovery attempts (${MAX_CONSECUTIVE_FAILURES}) reached.`,
       consecutiveFailures: newFailureCount,

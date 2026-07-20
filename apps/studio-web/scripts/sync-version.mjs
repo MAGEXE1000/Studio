@@ -57,7 +57,9 @@ if (fs.existsSync(localChangelogPath)) {
     for (const rawLine of lines) {
       const line = rawLine.trim();
       if (!line) continue;
-      const hMatch = line.match(/^###\s+(Added|Improved|Fixed|Changes|Bug\s*Fixes|Fixes|Changed)\b/i);
+      const hMatch = line.match(
+        /^###\s+(Added|Improved|Fixed|Changes|Bug\s*Fixes|Fixes|Changed)\b/i
+      );
       if (hMatch) {
         const heading = hMatch[1].toLowerCase();
         if (heading.startsWith('add')) currentCategory = 'added';
@@ -74,12 +76,12 @@ if (fs.existsSync(localChangelogPath)) {
         flatBullets.push(bulletContent);
       }
     }
-    changelog = flatBullets.map(b => `• ${b}`).join('\n');
+    changelog = flatBullets.map((b) => `• ${b}`).join('\n');
     releaseNotes = {
       added: categories.added.length > 0 ? categories.added : undefined,
       improved: categories.improved.length > 0 ? categories.improved : undefined,
       fixed: categories.fixed.length > 0 ? categories.fixed : undefined,
-      changed: categories.changed.length > 0 ? categories.changed : undefined
+      changed: categories.changed.length > 0 ? categories.changed : undefined,
     };
   }
 }

@@ -15,72 +15,137 @@ import { pitchShiftBuffer, audioBufferToWavBlob, type PitchShiftOptions } from '
 // ── Harmony interval catalogue ──────────────────────────────────────────────
 
 export type HarmonyId =
-  | 'third_up' | 'third_down'
+  | 'third_up'
+  | 'third_down'
   | 'fifth_up'
-  | 'sixth_up' | 'sixth_down'
-  | 'octave_up' | 'octave_down'
-  | 'double' | 'custom';
+  | 'sixth_up'
+  | 'sixth_down'
+  | 'octave_up'
+  | 'octave_down'
+  | 'double'
+  | 'custom';
 
 export interface HarmonyDef {
-  id:       HarmonyId;
-  label:    string;
-  short:    string;
+  id: HarmonyId;
+  label: string;
+  short: string;
   semitones: number;
-  color:    string;
-  hint:     string;
+  color: string;
+  hint: string;
 }
 
 export const HARMONIES: HarmonyDef[] = [
-  { id: 'third_up',    label: '3rd Above',    short: '+3rd',  semitones: 4,    color: '#007aff', hint: 'Bright, sweet upper harmony' },
-  { id: 'third_down',  label: '3rd Below',    short: '−3rd',  semitones: -3,   color: '#5856d6', hint: 'Warm, intimate lower harmony' },
-  { id: 'fifth_up',    label: '5th Above',    short: '+5th',  semitones: 7,    color: '#34c759', hint: 'Strong, open consonant interval' },
-  { id: 'sixth_up',    label: '6th Above',    short: '+6th',  semitones: 9,    color: '#ff9f0a', hint: 'Expressive, soulful upper voice' },
-  { id: 'sixth_down',  label: '6th Below',    short: '−6th',  semitones: -9,   color: '#ff6b35', hint: 'Full, rich lower harmony' },
-  { id: 'octave_up',   label: 'Octave Up',    short: '+8ve',  semitones: 12,   color: '#af52de', hint: 'Doubles melody one octave higher' },
-  { id: 'octave_down', label: 'Octave Down',  short: '−8ve',  semitones: -12,  color: '#ff2d55', hint: 'Deep double one octave below' },
-  { id: 'double',      label: 'Double Track', short: 'DBL',   semitones: 0.18, color: '#32d74b', hint: 'Classic double-tracking thickener' },
-  { id: 'custom',      label: 'Custom',       short: 'CST',   semitones: 5,    color: '#64d2ff', hint: 'Custom semitone interval' },
+  {
+    id: 'third_up',
+    label: '3rd Above',
+    short: '+3rd',
+    semitones: 4,
+    color: '#007aff',
+    hint: 'Bright, sweet upper harmony',
+  },
+  {
+    id: 'third_down',
+    label: '3rd Below',
+    short: '−3rd',
+    semitones: -3,
+    color: '#5856d6',
+    hint: 'Warm, intimate lower harmony',
+  },
+  {
+    id: 'fifth_up',
+    label: '5th Above',
+    short: '+5th',
+    semitones: 7,
+    color: '#34c759',
+    hint: 'Strong, open consonant interval',
+  },
+  {
+    id: 'sixth_up',
+    label: '6th Above',
+    short: '+6th',
+    semitones: 9,
+    color: '#ff9f0a',
+    hint: 'Expressive, soulful upper voice',
+  },
+  {
+    id: 'sixth_down',
+    label: '6th Below',
+    short: '−6th',
+    semitones: -9,
+    color: '#ff6b35',
+    hint: 'Full, rich lower harmony',
+  },
+  {
+    id: 'octave_up',
+    label: 'Octave Up',
+    short: '+8ve',
+    semitones: 12,
+    color: '#af52de',
+    hint: 'Doubles melody one octave higher',
+  },
+  {
+    id: 'octave_down',
+    label: 'Octave Down',
+    short: '−8ve',
+    semitones: -12,
+    color: '#ff2d55',
+    hint: 'Deep double one octave below',
+  },
+  {
+    id: 'double',
+    label: 'Double Track',
+    short: 'DBL',
+    semitones: 0.18,
+    color: '#32d74b',
+    hint: 'Classic double-tracking thickener',
+  },
+  {
+    id: 'custom',
+    label: 'Custom',
+    short: 'CST',
+    semitones: 5,
+    color: '#64d2ff',
+    hint: 'Custom semitone interval',
+  },
 ];
 
 export interface HarmonyLayerState {
-  id:             HarmonyId;
-  enabled:        boolean;
-  gain:           number;           // 0–1.5 linear
-  pan:            number;           // −1 (L) to +1 (R)
-  mute:           boolean;
-  solo:           boolean;
-  fineTune:       number;           // −1 to +1 semitones of additional shift
-  customSemitones: number;          // only used when id === 'custom'
+  id: HarmonyId;
+  enabled: boolean;
+  gain: number; // 0–1.5 linear
+  pan: number; // −1 (L) to +1 (R)
+  mute: boolean;
+  solo: boolean;
+  fineTune: number; // −1 to +1 semitones of additional shift
+  customSemitones: number; // only used when id === 'custom'
 }
 
 const LAYER_DEFAULTS: Omit<HarmonyLayerState, 'id'> = {
   enabled: true,
-  gain:    0.75,
-  pan:     0,
-  mute:    false,
-  solo:    false,
+  gain: 0.75,
+  pan: 0,
+  mute: false,
+  solo: false,
   fineTune: 0,
   customSemitones: 5,
 };
 
 export const DEFAULT_HARMONY_LAYERS: HarmonyLayerState[] = [
-  { ...LAYER_DEFAULTS, id: 'third_up',   pan:  0.25 },
+  { ...LAYER_DEFAULTS, id: 'third_up', pan: 0.25 },
   { ...LAYER_DEFAULTS, id: 'third_down', pan: -0.25, enabled: false },
-  { ...LAYER_DEFAULTS, id: 'fifth_up',   pan: -0.15, enabled: false },
+  { ...LAYER_DEFAULTS, id: 'fifth_up', pan: -0.15, enabled: false },
 ];
 
 /** Effective semitone shift for a layer (base + fineTune, or custom). */
 export function layerSemitones(layer: HarmonyLayerState): number {
-  const def = HARMONIES.find(h => h.id === layer.id)!;
+  const def = HARMONIES.find((h) => h.id === layer.id)!;
   const base = layer.id === 'custom' ? layer.customSemitones : def.semitones;
   return base + layer.fineTune;
 }
 
 // ── Key detection ───────────────────────────────────────────────────────────
 
-export function detectKey(
-  pitchTimeline: { noteName: string; frequency: number }[],
-): string | null {
+export function detectKey(pitchTimeline: { noteName: string; frequency: number }[]): string | null {
   if (!pitchTimeline.length) return null;
   const counts = new Map<string, number>();
   for (const { noteName } of pitchTimeline) {
@@ -89,7 +154,10 @@ export function detectKey(
   let best = '';
   let max = 0;
   for (const [note, count] of counts) {
-    if (count > max) { max = count; best = note; }
+    if (count > max) {
+      max = count;
+      best = note;
+    }
   }
   return best || null;
 }
@@ -97,8 +165,8 @@ export function detectKey(
 // ── Buffer cache ────────────────────────────────────────────────────────────
 
 interface TakeCache {
-  source:  AudioBuffer;
-  shifted: Map<string, AudioBuffer>;  // key = serialised options
+  source: AudioBuffer;
+  shifted: Map<string, AudioBuffer>; // key = serialised options
 }
 const cache = new Map<string, TakeCache>();
 
@@ -119,11 +187,11 @@ async function getShiftedBuffer(
   take: TakeRecord,
   semitones: number,
   ctx: AudioContext,
-  opts: PitchShiftOptions = {},
+  opts: PitchShiftOptions = {}
 ): Promise<AudioBuffer> {
   const source = await getSource(take, ctx);
-  const entry  = cache.get(take.id)!;
-  const key    = shiftCacheKey(semitones, opts);
+  const entry = cache.get(take.id)!;
+  const key = shiftCacheKey(semitones, opts);
   const cached = entry.shifted.get(key);
   if (cached) return cached;
   const shifted = pitchShiftBuffer(ctx, source, semitones, opts);
@@ -139,17 +207,17 @@ export function clearTakeCache(takeId: string) {
 // ── Playback session ────────────────────────────────────────────────────────
 
 export interface HarmonyPlaybackSession {
-  stop:     () => void;
+  stop: () => void;
   /** Update gain of a layer (index) or 'dry'. */
-  setGain:  (layerIdx: number | 'dry', gain: number) => void;
-  onEnded:  (cb: () => void) => void;
+  setGain: (layerIdx: number | 'dry', gain: number) => void;
+  onEnded: (cb: () => void) => void;
   duration: number;
 }
 
 export interface PlaybackOptions {
-  dryGain?:           number;
-  humanize?:          number;   // 0–1
-  formantCorrection?: number;   // 0–1
+  dryGain?: number;
+  humanize?: number; // 0–1
+  formantCorrection?: number; // 0–1
 }
 
 /**
@@ -157,28 +225,24 @@ export interface PlaybackOptions {
  * Mute/solo logic is applied before scheduling.
  */
 export async function startHarmonyPlayback(
-  take:   TakeRecord,
+  take: TakeRecord,
   layers: HarmonyLayerState[],
-  ctx:    AudioContext,
-  opts:   PlaybackOptions = {},
+  ctx: AudioContext,
+  opts: PlaybackOptions = {}
 ): Promise<HarmonyPlaybackSession> {
   const { dryGain = 1, humanize = 0, formantCorrection = 0 } = opts;
   const shiftOpts: PitchShiftOptions = { humanize, formantCorrection };
 
   const source = await getSource(take, ctx);
 
-  const hasSolo = layers.some(l => l.enabled && l.solo && !l.mute);
-  const audible = layers.filter(l =>
-    l.enabled && !l.mute && (!hasSolo || l.solo),
-  );
+  const hasSolo = layers.some((l) => l.enabled && l.solo && !l.mute);
+  const audible = layers.filter((l) => l.enabled && !l.mute && (!hasSolo || l.solo));
 
-  await Promise.all(
-    audible.map(l => getShiftedBuffer(take, layerSemitones(l), ctx, shiftOpts)),
-  );
+  await Promise.all(audible.map((l) => getShiftedBuffer(take, layerSemitones(l), ctx, shiftOpts)));
 
-  const startAt  = ctx.currentTime + 0.05;
+  const startAt = ctx.currentTime + 0.05;
   const gainNodes = new Map<number | 'dry', GainNode>();
-  const sources:  AudioBufferSourceNode[] = [];
+  const sources: AudioBufferSourceNode[] = [];
 
   // Dry vocal
   const drySrc = ctx.createBufferSource();
@@ -192,9 +256,9 @@ export async function startHarmonyPlayback(
 
   // Harmony layers
   for (let i = 0; i < audible.length; i++) {
-    const layer   = audible[i];
-    const key     = shiftCacheKey(layerSemitones(layer), shiftOpts);
-    const buf     = cache.get(take.id)?.shifted.get(key);
+    const layer = audible[i];
+    const key = shiftCacheKey(layerSemitones(layer), shiftOpts);
+    const buf = cache.get(take.id)?.shifted.get(key);
     if (!buf) continue;
 
     const src = ctx.createBufferSource();
@@ -224,18 +288,32 @@ export async function startHarmonyPlayback(
       if (stopped) return;
       stopped = true;
       for (const s of sources) {
-        try { s.stop(); } catch { /* already ended */ }
-        try { s.disconnect(); } catch { /* noop */ }
+        try {
+          s.stop();
+        } catch {
+          /* already ended */
+        }
+        try {
+          s.disconnect();
+        } catch {
+          /* noop */
+        }
       }
       for (const g of gainNodes.values()) {
-        try { g.disconnect(); } catch { /* noop */ }
+        try {
+          g.disconnect();
+        } catch {
+          /* noop */
+        }
       }
     },
     setGain: (id, gain) => {
       const g = gainNodes.get(id);
       if (g) g.gain.setTargetAtTime(gain, ctx.currentTime, 0.02);
     },
-    onEnded: cb => { endedCb = cb; },
+    onEnded: (cb) => {
+      endedCb = cb;
+    },
     duration: source.duration,
   };
 }
@@ -243,16 +321,16 @@ export async function startHarmonyPlayback(
 // ── Offline bounce ──────────────────────────────────────────────────────────
 
 export async function bounceHarmonizedTake(
-  take:    TakeRecord,
-  layers:  HarmonyLayerState[],
+  take: TakeRecord,
+  layers: HarmonyLayerState[],
   newName: string,
-  opts:    PlaybackOptions = {},
+  opts: PlaybackOptions = {}
 ): Promise<TakeRecord> {
   const { dryGain = 1, humanize = 0, formantCorrection = 0 } = opts;
   const shiftOpts: PitchShiftOptions = { humanize, formantCorrection };
 
   const sourceBuf = await blobToAudioBuffer(take.audioBlob);
-  const sr    = sourceBuf.sampleRate;
+  const sr = sourceBuf.sampleRate;
   const numCh = Math.min(2, Math.max(1, sourceBuf.numberOfChannels));
 
   const offline = new OfflineAudioContext(numCh, sourceBuf.length, sr);
@@ -266,7 +344,7 @@ export async function bounceHarmonizedTake(
   drySrc.start(0);
 
   // Harmony layers
-  const hasSolo = layers.some(l => l.enabled && l.solo && !l.mute);
+  const hasSolo = layers.some((l) => l.enabled && l.solo && !l.mute);
   for (const layer of layers) {
     if (!layer.enabled || layer.mute) continue;
     if (hasSolo && !layer.solo) continue;
@@ -286,17 +364,17 @@ export async function bounceHarmonizedTake(
   }
 
   const rendered = await offline.startRendering();
-  const blob     = audioBufferToWavBlob(rendered);
-  const peaks    = extractWaveformPeaks(rendered, 60);
+  const blob = audioBufferToWavBlob(rendered);
+  const peaks = extractWaveformPeaks(rendered, 60);
 
   const id = `take-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   return {
     id,
-    name:          newName,
-    createdAt:     Date.now(),
-    durationMs:    Math.round(rendered.duration * 1000),
-    audioBlob:     blob,
+    name: newName,
+    createdAt: Date.now(),
+    durationMs: Math.round(rendered.duration * 1000),
+    audioBlob: blob,
     waveformPeaks: peaks,
-    sampleRate:    rendered.sampleRate,
+    sampleRate: rendered.sampleRate,
   };
 }

@@ -1,6 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { APP_VERSION } from '../appVersion';
-import { globalUpdateState, activePipelineContext, startUpdateSession, activeUpdateSession } from './stateMachine';
+import {
+  globalUpdateState,
+  activePipelineContext,
+  startUpdateSession,
+  activeUpdateSession,
+} from './stateMachine';
 import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 
 export interface UpdateDiagnostics {
@@ -69,13 +74,13 @@ export let updateDiagnostics: UpdateDiagnostics = {
 export const updateDebugLogs: {
   appVersion: string;
   nativeApkVersion: string | null;
-  
+
   fetchedVersionJson: string | null;
   fetchedAppReleaseJson: string | null;
   compareResult: number | null;
   updateType: string | null;
   remoteUpdateType: string | null;
-  
+
   apkEligibilityResult: string;
   finalDecision: string | null;
   downloadStatus: string | null;
@@ -97,11 +102,11 @@ export const updateDebugLogs: {
   requiredVersionCode: number | null;
   nativeApkBehind: boolean;
   apkUpdateRequired: boolean;
-  
-  
+
   UpdaterSetBlocked: boolean;
   triggerComponent: string | null;
-  finalPathExecuted: 'Updater applied' | 'APK installer launched' | 'blocked due to APK required' | 'N/A';
+  finalPathExecuted:
+    'Updater applied' | 'APK installer launched' | 'blocked due to APK required' | 'N/A';
   installedPackageName: string | null;
   installedVersionName: string | null;
   installedSigningSha256: string | null;
@@ -154,13 +159,13 @@ export const updateDebugLogs: {
 } = {
   appVersion: APP_VERSION,
   nativeApkVersion: null,
-  
+
   fetchedVersionJson: null,
   fetchedAppReleaseJson: null,
   compareResult: null,
   updateType: null,
   remoteUpdateType: null,
-  
+
   apkEligibilityResult: 'N/A',
   finalDecision: null,
   downloadStatus: null,
@@ -182,8 +187,7 @@ export const updateDebugLogs: {
   requiredVersionCode: null,
   nativeApkBehind: false,
   apkUpdateRequired: false,
-  
-  
+
   UpdaterSetBlocked: false,
   triggerComponent: null,
   finalPathExecuted: 'N/A',
@@ -257,7 +261,8 @@ export function isAppInstallerAvailable(): boolean {
     typeof plugin.downloadApk === 'function' &&
     (typeof plugin.verifyApkSha256 === 'function' || typeof plugin.verifySha256 === 'function') &&
     typeof plugin.installApk === 'function' &&
-    (typeof plugin.openInstallPermissionSettings === 'function' || typeof plugin.openUnknownAppSourcesSettings === 'function')
+    (typeof plugin.openInstallPermissionSettings === 'function' ||
+      typeof plugin.openUnknownAppSourcesSettings === 'function')
   );
 }
 
@@ -270,10 +275,9 @@ export async function logProgressStage(stage: string, message?: string, exceptio
         status: 0,
         message: message || '',
         exceptionStack: exceptionStack || '',
-        packageName: globalUpdateState.packageName || 'com.chordex.app'
+        packageName: globalUpdateState.packageName || 'com.chordex.app',
       });
     } catch (e) {
-      console.warn('[Updater] Failed to write progress stage log:', e);
     }
   }
 }
@@ -294,18 +298,20 @@ export async function populateDiagnostics(err: any, reason: string) {
         model = deviceInfo.model;
         androidVersion = `${deviceInfo.androidVersion} (API ${deviceInfo.sdkInt})`;
         permissionState = `canRequestPackageInstalls: ${deviceInfo.canRequestPackageInstalls}`;
-        
+
         updateDiagnostics.architecture = deviceInfo.architecture || 'N/A';
         updateDiagnostics.deviceLocale = deviceInfo.deviceLocale || 'N/A';
         updateDiagnostics.storageAvailable = deviceInfo.storageAvailable || 'N/A';
         updateDiagnostics.networkState = deviceInfo.networkState || 'N/A';
       } catch (e) {
-        console.warn('[Updater] Failed to get native device info for diagnostics:', e);
         permissionState = 'Error querying permission';
       }
     }
 
-    const apkPath = updateDebugLogs.downloadedApkPath || localStorage.getItem('studio:downloadedApkPath') || 'N/A';
+    const apkPath =
+      updateDebugLogs.downloadedApkPath ||
+      localStorage.getItem('studio:downloadedApkPath') ||
+      'N/A';
     let fileSize = 'N/A';
     let magicHeader = 'N/A';
 
@@ -322,20 +328,20 @@ export async function populateDiagnostics(err: any, reason: string) {
           magicHeader = `Hex: ${firstBytes.hex}, ASCII: ${firstBytes.ascii} (Matches PK/ZIP: ${matchesPK})`;
           updateDebugLogs.magicHeaderCheck = magicHeader;
         } catch (hErr) {
-          console.warn('[Updater] Failed to read magic bytes:', hErr);
           magicHeader = `Failed to read: ${hErr instanceof Error ? hErr.message : String(hErr)}`;
           updateDebugLogs.magicHeaderCheck = magicHeader;
         }
       } catch (statErr) {
-        console.warn('[Updater] Failed to read file stats:', statErr);
       }
     }
 
     let shaCalculated = updateDebugLogs.shaVerification || 'N/A';
 
     updateDiagnostics.exceptionMessage = err instanceof Error ? err.message : String(err);
-    updateDiagnostics.failureReason = reason + (err instanceof Error && err.stack ? `\nStack: ${err.stack}` : '');
-    updateDiagnostics.downloadUrl = globalUpdateState.apkUrl || globalUpdateState.downloadUrl || 'N/A';
+    updateDiagnostics.failureReason =
+      reason + (err instanceof Error && err.stack ? `\nStack: ${err.stack}` : '');
+    updateDiagnostics.downloadUrl =
+      globalUpdateState.apkUrl || globalUpdateState.downloadUrl || 'N/A';
     updateDiagnostics.apkPath = apkPath;
     updateDiagnostics.fileSize = fileSize;
     updateDiagnostics.shaExpected = globalUpdateState.apkSha256 || 'N/A';
@@ -374,13 +380,19 @@ export async function runUpdaterHealthCheck(): Promise<HealthStatus> {
     const res = await fetch('https://studio-30f44.web.app/app-release.json', { method: 'HEAD' });
     metadataReachable = res.ok;
     firebaseReachable = res.ok;
-    details.push(res.ok ? 'Firebase metadata server reachable.' : `Firebase metadata unreachable (HTTP ${res.status}).`);
+    details.push(
+      res.ok
+        ? 'Firebase metadata server reachable.'
+        : `Firebase metadata unreachable (HTTP ${res.status}).`
+    );
   } catch (err: any) {
     details.push(`Firebase metadata unreachable: ${err.message || String(err)}`);
   }
 
   try {
-    const res = await fetch('https://api.github.com/repos/MAGEXE1000/Studio/releases', { method: 'HEAD' });
+    const res = await fetch('https://api.github.com/repos/MAGEXE1000/Studio/releases', {
+      method: 'HEAD',
+    });
     githubReachable = res.ok;
     details.push(res.ok ? 'GitHub API reachable.' : `GitHub API unreachable (HTTP ${res.status}).`);
   } catch (err: any) {
@@ -393,15 +405,18 @@ export async function runUpdaterHealthCheck(): Promise<HealthStatus> {
       installerAvailable = typeof AppInstaller.installApk === 'function';
       packageInstallerAvailable = true;
       details.push('AppInstaller native plugin loaded.');
-      
+
       const appInfo = await AppInstaller.getInstalledAppInfo();
-      const expectedFingerprint = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+      const expectedFingerprint =
+        '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
       const cleanFingerprint = appInfo.signingSha256.replace(/:/g, '').toLowerCase();
-      certificateValid = (cleanFingerprint === expectedFingerprint);
+      certificateValid = cleanFingerprint === expectedFingerprint;
       if (certificateValid) {
         details.push('App signing certificate matches official production key.');
       } else {
-        details.push(`Warning: App certificate mismatch! Current: ${cleanFingerprint}, Expected: ${expectedFingerprint}`);
+        details.push(
+          `Warning: App certificate mismatch! Current: ${cleanFingerprint}, Expected: ${expectedFingerprint}`
+        );
       }
     } catch (err: any) {
       details.push(`Native installer check failed: ${err.message || String(err)}`);
@@ -414,7 +429,11 @@ export async function runUpdaterHealthCheck(): Promise<HealthStatus> {
   }
 
   const isHealthy = metadataReachable && githubReachable && installerAvailable && certificateValid;
-  const status = isHealthy ? 'healthy' : (installerAvailable && certificateValid ? 'warning' : 'unhealthy');
+  const status = isHealthy
+    ? 'healthy'
+    : installerAvailable && certificateValid
+      ? 'warning'
+      : 'unhealthy';
 
   return {
     status,
@@ -424,7 +443,7 @@ export async function runUpdaterHealthCheck(): Promise<HealthStatus> {
     installerAvailable,
     packageInstallerAvailable,
     certificateValid,
-    details
+    details,
   };
 }
 
@@ -439,7 +458,7 @@ export async function getDiagnosticsReport(): Promise<string> {
       dev = await AppInstaller.getDeviceInfo();
     } catch {}
   }
-  
+
   return `=== STUDIO UPDATER HEALTH & DIAGNOSTICS REPORT ===
 Timestamp: ${new Date().toISOString()}
 Current State: ${globalUpdateState.updateState}
@@ -476,21 +495,37 @@ ${health.details.join('\n')}
 
 export function resetUpdateDiagnostics() {
   // Reset all keys in updateDiagnostics
-  Object.keys(updateDiagnostics).forEach(key => {
+  Object.keys(updateDiagnostics).forEach((key) => {
     (updateDiagnostics as any)[key] = null;
   });
 
   // Reset keys in updateDebugLogs
-  Object.keys(updateDebugLogs).forEach(key => {
+  Object.keys(updateDebugLogs).forEach((key) => {
     if (key === 'appVersion') {
       updateDebugLogs.appVersion = APP_VERSION;
-    } else if (key === 'apkEligibilityResult' || key === 'pluginMethodCheck' || key === 'finalUpdatePath') {
+    } else if (
+      key === 'apkEligibilityResult' ||
+      key === 'pluginMethodCheck' ||
+      key === 'finalUpdatePath'
+    ) {
       (updateDebugLogs as any)[key] = 'N/A';
     } else if (key === 'registeredPlugins') {
       updateDebugLogs.registeredPlugins = '[]';
-    } else if (key === 'otaBlockedBecauseApkRequired' || key === 'nativeApkBehind' || key === 'apkUpdateRequired' || key === 'staleOtaCleared' || key === 'UpdaterSetBlocked') {
+    } else if (
+      key === 'otaBlockedBecauseApkRequired' ||
+      key === 'nativeApkBehind' ||
+      key === 'apkUpdateRequired' ||
+      key === 'staleOtaCleared' ||
+      key === 'UpdaterSetBlocked'
+    ) {
       (updateDebugLogs as any)[key] = false;
-    } else if (key === 'appInstallerAvailable' || key === 'downloadApkAvailable' || key === 'verifyApkSha256Available' || key === 'installApkAvailable' || key === 'openInstallPermissionSettingsAvailable') {
+    } else if (
+      key === 'appInstallerAvailable' ||
+      key === 'downloadApkAvailable' ||
+      key === 'verifyApkSha256Available' ||
+      key === 'installApkAvailable' ||
+      key === 'openInstallPermissionSettingsAvailable'
+    ) {
       (updateDebugLogs as any)[key] = false;
     } else if (key === 'recoveryAttemptsPerformed') {
       updateDebugLogs.recoveryAttemptsPerformed = [];
@@ -635,7 +670,7 @@ export interface CallerInfo {
 export function parseStackTrace(error = new Error()): CallerInfo {
   const stack = error.stack || '';
   const lines = stack.split('\n');
-  
+
   let functionName = 'unknown';
   let file = 'unknown';
   let callerLine = 'unknown';
@@ -643,15 +678,16 @@ export function parseStackTrace(error = new Error()): CallerInfo {
   let callerIndex = 2;
   while (callerIndex < lines.length) {
     const line = lines[callerIndex];
-    if (line && 
-        !line.includes('parseStackTrace') && 
-        !line.includes('logTimelineEvent') && 
-        !line.includes('transitionToState') && 
-        !line.includes('safeTransition') && 
-        !line.includes('commitTransition') &&
-        !line.includes('recordStateTransition') &&
-        !line.includes('recordCloseEvent') &&
-        !line.includes('recordUpToDatePopup')
+    if (
+      line &&
+      !line.includes('parseStackTrace') &&
+      !line.includes('logTimelineEvent') &&
+      !line.includes('transitionToState') &&
+      !line.includes('safeTransition') &&
+      !line.includes('commitTransition') &&
+      !line.includes('recordStateTransition') &&
+      !line.includes('recordCloseEvent') &&
+      !line.includes('recordUpToDatePopup')
     ) {
       break;
     }
@@ -680,7 +716,7 @@ export function parseStackTrace(error = new Error()): CallerInfo {
     file,
     functionName,
     callerLine,
-    stackTrace: stack
+    stackTrace: stack,
   };
 }
 
@@ -733,7 +769,7 @@ export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'un
     transitions: [],
     closeEvent: null,
     upToDateEvent: null,
-    stateDurations: {}
+    stateDurations: {},
   };
 
   updateSessions.push(newSession);
@@ -757,11 +793,11 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
   let offsetMs = 0;
   let startTimestamp = now;
 
-  let session = updateSessions.find(s => s.id === activeSessionId);
+  let session = updateSessions.find((s) => s.id === activeSessionId);
   if (!session && updateSessions.length > 0) {
     session = updateSessions[updateSessions.length - 1];
   }
-  
+
   if (session) {
     startTimestamp = session.startTimestamp;
     offsetMs = now - startTimestamp;
@@ -771,7 +807,12 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
   const min = Math.floor(offsetMs / 60000);
   const sec = Math.floor((offsetMs % 60000) / 1000);
   const ms = offsetMs % 1000;
-  const formatOffset = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
+  const formatOffset =
+    String(min).padStart(2, '0') +
+    ':' +
+    String(sec).padStart(2, '0') +
+    '.' +
+    String(ms).padStart(3, '0');
 
   const ev: TimelineEvent = {
     timestamp: formatTime,
@@ -782,7 +823,7 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
     event,
     state: globalUpdateState.updateState,
     reason,
-    durationMs
+    durationMs,
   };
 
   if (session) {
@@ -792,8 +833,6 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
     }
     saveSessions();
   }
-
-  console.log(`[Updater Diagnostics] [${formatOffset}] [${module}] ${event} (${globalUpdateState.updateState}) - ${reason}`);
 }
 
 export function recordStateTransition(fromState: string, toState: string, reason: string) {
@@ -808,7 +847,7 @@ export function recordStateTransition(fromState: string, toState: string, reason
   if (!devMode) return;
 
   const now = Date.now();
-  let session = updateSessions.find(s => s.id === activeSessionId);
+  let session = updateSessions.find((s) => s.id === activeSessionId);
   if (!session && updateSessions.length > 0) {
     session = updateSessions[updateSessions.length - 1];
   }
@@ -818,7 +857,11 @@ export function recordStateTransition(fromState: string, toState: string, reason
   const formatTime = new Date(now).toTimeString().split(' ')[0];
 
   const lastTransition = session ? session.transitions[session.transitions.length - 1] : null;
-  const enteredTime = lastTransition ? lastTransition.absoluteTimestamp : (session ? session.startTimestamp : now);
+  const enteredTime = lastTransition
+    ? lastTransition.absoluteTimestamp
+    : session
+      ? session.startTimestamp
+      : now;
   const durationMs = now - enteredTime;
 
   let screen = 'unknown';
@@ -831,7 +874,8 @@ export function recordStateTransition(fromState: string, toState: string, reason
     }
   } catch (_) {}
 
-  const lifecycleState = typeof document !== 'undefined' ? (document.hidden ? 'background' : 'foreground') : 'unknown';
+  const lifecycleState =
+    typeof document !== 'undefined' ? (document.hidden ? 'background' : 'foreground') : 'unknown';
   const packageInstallerStatus = (window as any).__studioInstallerStatus || 'none';
   const progress = globalUpdateState.progress;
 
@@ -852,22 +896,24 @@ export function recordStateTransition(fromState: string, toState: string, reason
     screen,
     lifecycleState,
     packageInstallerStatus,
-    progress
+    progress,
   };
 
   if (session) {
     session.transitions.push(trans);
-    
+
     if (!session.stateDurations) {
       session.stateDurations = {};
     }
     if (fromState) {
       const lastTransition = session.transitions[session.transitions.length - 2];
-      const enteredTime = lastTransition ? lastTransition.absoluteTimestamp : session.startTimestamp;
+      const enteredTime = lastTransition
+        ? lastTransition.absoluteTimestamp
+        : session.startTimestamp;
       const duration = now - enteredTime;
       session.stateDurations[fromState] = (session.stateDurations[fromState] || 0) + duration;
     }
-    
+
     if (toState === 'INSTALL_SUCCESS') {
       session.result = 'SUCCESS';
       session.endTime = new Date().toISOString();
@@ -880,7 +926,10 @@ export function recordStateTransition(fromState: string, toState: string, reason
       const caller = parseStackTrace();
       const lifecycleState = typeof document !== 'undefined' ? document.visibilityState : 'unknown';
       const activityState = (window as any).__studioActivityState || 'active';
-      const pipelineIdStr = String(activePipelineContext?.checkId ?? (activeUpdateSession ? activeUpdateSession.pipelineId : 'N/A'));
+      const pipelineIdStr = String(
+        activePipelineContext?.checkId ??
+          (activeUpdateSession ? activeUpdateSession.pipelineId : 'N/A')
+      );
       const sessionIdStr = session.id || 'N/A';
 
       session.noUpdateDetails = {
@@ -893,7 +942,7 @@ export function recordStateTransition(fromState: string, toState: string, reason
         lifecycleState: lifecycleState || 'unknown',
         activityState: activityState,
         reason: reason || 'unknown',
-        timestamp: new Date(now).toISOString()
+        timestamp: new Date(now).toISOString(),
       };
     } else if (toState === 'INSTALL_CANCELLED') {
       session.result = 'CANCELLED';
@@ -903,7 +952,10 @@ export function recordStateTransition(fromState: string, toState: string, reason
       session.result = 'FAILED';
       session.endTime = new Date().toISOString();
       session.durationMs = now - session.startTimestamp;
-    } else if (toState === 'IDLE' && ['INSTALLING', 'WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(fromState)) {
+    } else if (
+      toState === 'IDLE' &&
+      ['INSTALLING', 'WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(fromState)
+    ) {
       session.result = 'ABORTED';
       session.endTime = new Date().toISOString();
       session.durationMs = now - session.startTimestamp;
@@ -925,14 +977,14 @@ export function recordCloseEvent(reason: string) {
   if (!devMode) return;
 
   const now = Date.now();
-  let session = updateSessions.find(s => s.id === activeSessionId);
+  let session = updateSessions.find((s) => s.id === activeSessionId);
   if (!session && updateSessions.length > 0) {
     session = updateSessions[updateSessions.length - 1];
   }
 
   const caller = parseStackTrace();
   const current = globalUpdateState.updateState;
-  
+
   let prev: string = current;
   if (session && session.transitions.length > 0) {
     prev = session.transitions[session.transitions.length - 1].previousState;
@@ -947,7 +999,7 @@ export function recordCloseEvent(reason: string) {
     stackTrace: caller.stackTrace,
     currentState: current,
     previousState: prev,
-    sessionId: session ? session.id : 'N/A'
+    sessionId: session ? session.id : 'N/A',
   };
 
   if (session) {
@@ -960,7 +1012,7 @@ export function recordCloseEvent(reason: string) {
       module: 'UI',
       event: 'UPDATER_CLOSED',
       state: current,
-      reason: `Closed by ${caller.functionName} (${caller.file}) - Reason: ${reason}`
+      reason: `Closed by ${caller.functionName} (${caller.file}) - Reason: ${reason}`,
     });
     saveSessions();
   }
@@ -978,7 +1030,7 @@ export function recordUpToDatePopup(reason: string, isAutomatic: boolean) {
   if (!devMode) return;
 
   const now = Date.now();
-  let session = updateSessions.find(s => s.id === activeSessionId);
+  let session = updateSessions.find((s) => s.id === activeSessionId);
   if (!session && updateSessions.length > 0) {
     session = updateSessions[updateSessions.length - 1];
   }
@@ -1000,7 +1052,7 @@ export function recordUpToDatePopup(reason: string, isAutomatic: boolean) {
     currentState: current,
     sessionId: session ? session.id : 'N/A',
     reason: reason,
-    triggerType: isAutomatic ? 'AUTOMATIC' : 'USER ACTION'
+    triggerType: isAutomatic ? 'AUTOMATIC' : 'USER ACTION',
   };
 
   if (session) {
@@ -1013,7 +1065,7 @@ export function recordUpToDatePopup(reason: string, isAutomatic: boolean) {
       module: 'UI',
       event: 'UP_TO_DATE_POPUP_SHOWN',
       state: current,
-      reason: `Shown via: ${isAutomatic ? 'AUTOMATIC' : 'USER ACTION'} (${caller.functionName} in ${caller.file}) - Reason: ${reason}`
+      reason: `Shown via: ${isAutomatic ? 'AUTOMATIC' : 'USER ACTION'} (${caller.functionName} in ${caller.file}) - Reason: ${reason}`,
     });
     saveSessions();
   }
@@ -1023,11 +1075,17 @@ function formatOffsetTime(offsetMs: number): string {
   const min = Math.floor(offsetMs / 60000);
   const sec = Math.floor((offsetMs % 60000) / 1000);
   const ms = offsetMs % 1000;
-  return String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
+  return (
+    String(min).padStart(2, '0') +
+    ':' +
+    String(sec).padStart(2, '0') +
+    '.' +
+    String(ms).padStart(3, '0')
+  );
 }
 
 export function deleteUpdateSession(id: string) {
-  updateSessions = updateSessions.filter(s => s.id !== id);
+  updateSessions = updateSessions.filter((s) => s.id !== id);
   if (activeSessionId === id) {
     activeSessionId = null;
   }
@@ -1042,10 +1100,10 @@ export function deleteAllUpdateSessions() {
 
 export function getUpdateSessions(): UpdateSession[] {
   const events = UpdaterFlightRecorder.getEvents();
-  
+
   // Group events by sessionId
   const sessionsMap = new Map<string, FlightRecorderEvent[]>();
-  events.forEach(e => {
+  events.forEach((e) => {
     if (e.sessionId) {
       if (!sessionsMap.has(e.sessionId)) {
         sessionsMap.set(e.sessionId, []);
@@ -1064,16 +1122,29 @@ export function getUpdateSessions(): UpdateSession[] {
     const firstEvent = sessionEvents[0];
     const lastEvent = sessionEvents[sessionEvents.length - 1];
     const startTimestamp = firstEvent.timestamp;
-    
+
     // Find final state of session
-    let result: 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'IN_PROGRESS' | 'FINISHED' | 'ABORTED' = 'IN_PROGRESS';
+    let result: 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'IN_PROGRESS' | 'FINISHED' | 'ABORTED' =
+      'IN_PROGRESS';
     let endTime: string | null = null;
     let durationMs: number | null = null;
 
     // Check if session has ended
-    const successEvent = sessionEvents.find(e => e.newState === 'INSTALL_SUCCESS' || e.eventType === 'applyUpdateSuccess' || e.eventType === 'INSTALL_SUCCESS');
-    const failureEvent = sessionEvents.find(e => e.newState === 'INSTALL_FAILED' || e.eventType === 'applyUpdateError' || e.eventType === 'INSTALL_FAILED');
-    const cancelEvent = sessionEvents.find(e => e.newState === 'INSTALL_CANCELLED' || e.eventType === 'INSTALL_CANCELLED');
+    const successEvent = sessionEvents.find(
+      (e) =>
+        e.newState === 'INSTALL_SUCCESS' ||
+        e.eventType === 'applyUpdateSuccess' ||
+        e.eventType === 'INSTALL_SUCCESS'
+    );
+    const failureEvent = sessionEvents.find(
+      (e) =>
+        e.newState === 'INSTALL_FAILED' ||
+        e.eventType === 'applyUpdateError' ||
+        e.eventType === 'INSTALL_FAILED'
+    );
+    const cancelEvent = sessionEvents.find(
+      (e) => e.newState === 'INSTALL_CANCELLED' || e.eventType === 'INSTALL_CANCELLED'
+    );
 
     if (successEvent) {
       result = 'SUCCESS';
@@ -1089,7 +1160,10 @@ export function getUpdateSessions(): UpdateSession[] {
       durationMs = cancelEvent.timestamp - startTimestamp;
     } else {
       // Look at the last event to check if it represents a terminal state
-      if (lastEvent.newState === 'NO_UPDATE_AVAILABLE' || lastEvent.eventType === 'NO_UPDATE_AVAILABLE') {
+      if (
+        lastEvent.newState === 'NO_UPDATE_AVAILABLE' ||
+        lastEvent.eventType === 'NO_UPDATE_AVAILABLE'
+      ) {
         result = 'FINISHED';
         endTime = new Date(lastEvent.timestamp).toISOString();
         durationMs = lastEvent.timestamp - startTimestamp;
@@ -1106,7 +1180,12 @@ export function getUpdateSessions(): UpdateSession[] {
       const min = Math.floor(offsetMs / 60000);
       const sec = Math.floor((offsetMs % 60000) / 1000);
       const ms = offsetMs % 1000;
-      const offset = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0') + '.' + String(ms).padStart(3, '0');
+      const offset =
+        String(min).padStart(2, '0') +
+        ':' +
+        String(sec).padStart(2, '0') +
+        '.' +
+        String(ms).padStart(3, '0');
 
       // Add to timeline
       timeline.push({
@@ -1117,7 +1196,7 @@ export function getUpdateSessions(): UpdateSession[] {
         module: e.category || 'Pipeline',
         event: e.eventType,
         state: (e.newState || 'IDLE') as any,
-        reason: e.reason || e.details || ''
+        reason: e.reason || e.details || '',
       });
 
       // Add to transitions if it's a state transition
@@ -1139,7 +1218,7 @@ export function getUpdateSessions(): UpdateSession[] {
           screen: 'unknown',
           lifecycleState: 'unknown',
           packageInstallerStatus: 'none',
-          progress: 0
+          progress: 0,
         });
 
         // Compute state durations
@@ -1168,7 +1247,7 @@ export function getUpdateSessions(): UpdateSession[] {
       transitions,
       closeEvent: null,
       upToDateEvent: null,
-      stateDurations
+      stateDurations,
     });
   });
 
@@ -1178,7 +1257,7 @@ export function getUpdateSessions(): UpdateSession[] {
 export function getActiveSession(): UpdateSession | null {
   const sessions = getUpdateSessions();
   if (sessions.length === 0) return null;
-  const active = sessions.find(s => s.id === activeSessionId) || sessions[sessions.length - 1];
+  const active = sessions.find((s) => s.id === activeSessionId) || sessions[sessions.length - 1];
   return active || null;
 }
 if (typeof window !== 'undefined') {
@@ -1192,7 +1271,9 @@ export function exportSessionSubset(
 ): string {
   let targets: UpdateSession[] = [];
   if (sessionSelector === 'current') {
-    const s = updateSessions.find(x => x.id === activeSessionId) || updateSessions[updateSessions.length - 1];
+    const s =
+      updateSessions.find((x) => x.id === activeSessionId) ||
+      updateSessions[updateSessions.length - 1];
     if (s) targets = [s];
   } else if (sessionSelector === 'previous') {
     if (updateSessions.length >= 2) {
@@ -1201,15 +1282,15 @@ export function exportSessionSubset(
   } else if (sessionSelector === 'all') {
     targets = updateSessions;
   } else {
-    const s = updateSessions.find(x => x.id === sessionSelector);
+    const s = updateSessions.find((x) => x.id === sessionSelector);
     if (s) targets = [s];
   }
 
   if (targets.length === 0) return 'No matching update sessions found.';
 
-  const filtered = targets.map(session => {
+  const filtered = targets.map((session) => {
     const sCopy = { ...session };
-    
+
     if (subset === 'timeline') {
       sCopy.transitions = [];
       sCopy.closeEvent = null;
@@ -1219,12 +1300,16 @@ export function exportSessionSubset(
       sCopy.closeEvent = null;
       sCopy.upToDateEvent = null;
     } else if (subset === 'native') {
-      sCopy.timeline = sCopy.timeline.filter(e => e.module === 'NativeInstaller' || e.module === 'RecoveryManager');
+      sCopy.timeline = sCopy.timeline.filter(
+        (e) => e.module === 'NativeInstaller' || e.module === 'RecoveryManager'
+      );
       sCopy.transitions = [];
     } else if (subset === 'js') {
-      sCopy.timeline = sCopy.timeline.filter(e => e.module !== 'NativeInstaller' && e.module !== 'RecoveryManager');
+      sCopy.timeline = sCopy.timeline.filter(
+        (e) => e.module !== 'NativeInstaller' && e.module !== 'RecoveryManager'
+      );
     }
-    
+
     return sCopy;
   });
 
@@ -1235,8 +1320,9 @@ export function exportSessionSubset(
   let output = '';
   filtered.forEach((session) => {
     const startIso = session.startTime;
-    const durSec = session.durationMs !== null ? (session.durationMs / 1000).toFixed(2) + 's' : 'N/A';
-    
+    const durSec =
+      session.durationMs !== null ? (session.durationMs / 1000).toFixed(2) + 's' : 'N/A';
+
     if (format === 'md') {
       output += `# Session: ${session.id}\n`;
       output += `- **Started**: ${startIso}\n`;
@@ -1250,7 +1336,7 @@ export function exportSessionSubset(
         output += `### Timeline\n\n`;
         output += `| Timestamp | Offset | State | Module | Event | Reason |\n`;
         output += `|---|---|---|---|---|---|\n`;
-        session.timeline.forEach(e => {
+        session.timeline.forEach((e) => {
           output += `| ${e.timestamp} | ${e.offset} | ${e.state} | ${e.module} | ${e.event} | ${e.reason.replace(/\|/g, '\\|')} |\n`;
         });
         output += `\n`;
@@ -1260,7 +1346,7 @@ export function exportSessionSubset(
         output += `### Workflow Transitions\n\n`;
         output += `| Timestamp | Elapsed | Prev | Next | Function | File | Reason |\n`;
         output += `|---|---|---|---|---|---|---|\n`;
-        session.transitions.forEach(t => {
+        session.transitions.forEach((t) => {
           output += `| ${t.timestamp} | ${(t.elapsedTimeMs / 1000).toFixed(3)}s | ${t.previousState} | ${t.nextState} | ${t.functionName} | ${t.file} | ${t.reason.replace(/\|/g, '\\|')} |\n`;
         });
         output += `\n`;
@@ -1283,7 +1369,7 @@ export function exportSessionSubset(
         output += `- **Reason**: ${session.upToDateEvent.reason}\n`;
         output += `- **State**: ${session.upToDateEvent.previousState} -> ${session.upToDateEvent.currentState}\n\n`;
       }
-      
+
       output += `---\n\n`;
     } else {
       output += `=========================================\n`;
@@ -1300,7 +1386,7 @@ export function exportSessionSubset(
 
       if (subset !== 'workflow' && session.timeline.length > 0) {
         output += `Timeline:\n`;
-        session.timeline.forEach(e => {
+        session.timeline.forEach((e) => {
           output += `${e.timestamp} [${e.offset}] [${e.module}] ${e.event} (${e.state}) - ${e.reason}\n`;
         });
         output += `\n`;
@@ -1308,7 +1394,7 @@ export function exportSessionSubset(
 
       if (subset !== 'timeline' && session.transitions.length > 0) {
         output += `Workflow Transitions:\n`;
-        session.transitions.forEach(t => {
+        session.transitions.forEach((t) => {
           output += `${t.timestamp} [${(t.elapsedTimeMs / 1000).toFixed(3)}s] ${t.previousState} -> ${t.nextState} | Caller: ${t.functionName} (${t.file}) | Reason: ${t.reason}\n`;
         });
         output += `\n`;
@@ -1331,7 +1417,7 @@ export function exportSessionSubset(
         output += `  Reason: ${session.upToDateEvent.reason}\n`;
         output += `  State transition: ${session.upToDateEvent.previousState} -> ${session.upToDateEvent.currentState}\n\n`;
       }
-      
+
       output += `\n\n`;
     }
   });
@@ -1341,7 +1427,11 @@ export function exportSessionSubset(
 
 export function interceptIllegalCall(functionName: string, reason: string) {
   const current = globalUpdateState.updateState;
-  const isInstalling = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(current);
+  const isInstalling = [
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING',
+  ].includes(current);
   if (!isInstalling) return;
 
   const caller = parseStackTrace();
@@ -1357,8 +1447,12 @@ export function interceptIllegalCall(functionName: string, reason: string) {
 
   const alertMsg = `ILLEGAL CALL DETECTED: ${functionName} called by ${caller.callerLine} in state ${current} on screen ${screen}. Reason: ${reason}`;
   console.error(`[Updater SECURITY] [HIGH SEVERITY] ${alertMsg}\nStack: ${caller.stackTrace}`);
-  
-  logTimelineEvent('SecurityGuard', 'ILLEGAL_CALL_DETECTED', `${alertMsg} | Stack: ${caller.stackTrace.slice(0, 300)}`);
+
+  logTimelineEvent(
+    'SecurityGuard',
+    'ILLEGAL_CALL_DETECTED',
+    `${alertMsg} | Stack: ${caller.stackTrace.slice(0, 300)}`
+  );
 
   if (typeof (window as any).logDiagnosticEvent === 'function') {
     (window as any).logDiagnosticEvent('HIGH_SEVERITY_DIAGNOSTIC', {
@@ -1366,7 +1460,7 @@ export function interceptIllegalCall(functionName: string, reason: string) {
       message: alertMsg,
       stackTrace: caller.stackTrace,
       screen,
-      state: current
+      state: current,
     });
   }
 }
@@ -1383,7 +1477,10 @@ export function getTimelineReport(): string {
   const active = getActiveSession();
   if (!active || active.timeline.length === 0) return 'No events recorded.';
   return active.timeline
-    .map(e => `[${e.offset}] [${e.module}] ${e.event} (State: ${e.state})${e.reason ? ` - ${e.reason}` : ''}${e.durationMs !== undefined ? ` [${e.durationMs}ms]` : ''}`)
+    .map(
+      (e) =>
+        `[${e.offset}] [${e.module}] ${e.event} (State: ${e.state})${e.reason ? ` - ${e.reason}` : ''}${e.durationMs !== undefined ? ` [${e.durationMs}ms]` : ''}`
+    )
     .join('\n');
 }
 
@@ -1395,22 +1492,22 @@ export function getTimelineReport(): string {
  * every lock set, and every lock clear. Used to prove the fix in production.
  */
 export interface InstallLockEvent {
-  timestamp: number;       // epoch ms
-  timeStr: string;         // HH:MM:SS.mmm
+  timestamp: number; // epoch ms
+  timeStr: string; // HH:MM:SS.mmm
   type:
-    | 'LOCK_SET'           // installationJustCompleted set to true
-    | 'LOCK_CLEARED'       // installationJustCompleted cleared by UI/caller
-    | 'LOCK_AUTO_CLEARED'  // installationJustCompleted cleared by 60s safety timer
-    | 'CHECK_BLOCKED'      // checkForUpdate() rejected due to lock
-    | 'STARTUP_BLOCKED'    // triggerUpdateCheck rejected due to lock
-    | 'CANCEL_BLOCKED'     // StartupCoordinator.cancel() suppressed due to lock
-    | 'RECOVERY_SKIPPED'   // enforceStartupRecovery reset skipped due to lock
-    | 'RACE_BLOCKED';      // triggerUpdateCheck awaited recovery promise to prevent race
-  caller: string;          // function + file from stack trace
-  state: string;           // Updater state at time of event
-  reason: string;          // human-readable reason string
-  trigger?: string;        // pipeline trigger if applicable
-  locked: boolean;         // value of isInstallationLocked() at event time
+    | 'LOCK_SET' // installationJustCompleted set to true
+    | 'LOCK_CLEARED' // installationJustCompleted cleared by UI/caller
+    | 'LOCK_AUTO_CLEARED' // installationJustCompleted cleared by 60s safety timer
+    | 'CHECK_BLOCKED' // checkForUpdate() rejected due to lock
+    | 'STARTUP_BLOCKED' // triggerUpdateCheck rejected due to lock
+    | 'CANCEL_BLOCKED' // StartupCoordinator.cancel() suppressed due to lock
+    | 'RECOVERY_SKIPPED' // enforceStartupRecovery reset skipped due to lock
+    | 'RACE_BLOCKED'; // triggerUpdateCheck awaited recovery promise to prevent race
+  caller: string; // function + file from stack trace
+  state: string; // Updater state at time of event
+  reason: string; // human-readable reason string
+  trigger?: string; // pipeline trigger if applicable
+  locked: boolean; // value of isInstallationLocked() at event time
 }
 
 /**
@@ -1441,7 +1538,9 @@ export function logInstallLockEvent(
         const stack = new Error().stack || '';
         const lines = stack.split('\n');
         caller = lines[2]?.trim() || 'unknown';
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     const event: InstallLockEvent = {
@@ -1461,10 +1560,14 @@ export function logInstallLockEvent(
     }
 
     // Mirror to the active session timeline for cross-reference in diagnostics report
-    logTimelineEvent('InstallationLock', type, `${reason}${extras?.trigger ? ` | trigger=${extras.trigger}` : ''} | caller=${caller}`);
-
-    console.log(`[InstallationLock] [${type}] ${reason} | State: ${globalUpdateState.updateState} | Caller: ${caller}`);
-  } catch { /* never throw from diagnostics */ }
+    logTimelineEvent(
+      'InstallationLock',
+      type,
+      `${reason}${extras?.trigger ? ` | trigger=${extras.trigger}` : ''} | caller=${caller}`
+    );
+  } catch {
+    /* never throw from diagnostics */
+  }
 }
 
 /**
@@ -1474,9 +1577,9 @@ export function getInstallLockReport(): string {
   if (installLockTimeline.length === 0) {
     return 'Installation lock timeline: (empty — no lock events recorded this session)';
   }
-  const lines = installLockTimeline.map(e =>
-    `[${e.timeStr}] [${e.type}] State: ${e.state} | ${e.reason}${e.trigger ? ` | trigger=${e.trigger}` : ''} | Caller: ${e.caller}`
+  const lines = installLockTimeline.map(
+    (e) =>
+      `[${e.timeStr}] [${e.type}] State: ${e.state} | ${e.reason}${e.trigger ? ` | trigger=${e.trigger}` : ''} | Caller: ${e.caller}`
   );
   return `=== Installation Lock Timeline (${installLockTimeline.length} events) ===\n${lines.join('\n')}`;
 }
-

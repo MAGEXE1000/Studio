@@ -1,5 +1,6 @@
+import { useSettingsStore } from '../../store/useSettingsStore';
 import { Capacitor } from '@capacitor/core';
-import { subscribeAuth, type AuthUser, signOut } from '../services/auth';
+import { authRepository, type AuthUser } from '../../repositories/AuthRepository';
 import { APP_VERSION } from '../startup/appVersion';
 import {
   getStableDeviceId,
@@ -9,8 +10,9 @@ import {
   sanitizeForFirestore as engineSanitize,
 } from './syncEngine';
 import { getActiveSyncProvider, initSyncBackends, disposeSyncBackends } from '../syncBackends/index';
-import { getAllTakes, saveTake, deleteTake as dbDeleteTake, type TakeRecord } from '../../vocalex/takesDb';
-import { getAllSessions, saveSession, deleteSession as dbDeleteSession, type LabSession, type LabLayer } from '../../vocalex/labSessionDb';
+import { vocalexRepository } from '../../repositories/VocalexRepository';
+import type { TakeRecord } from '../../repositories/VocalexRepository';
+import type { LabSession, LabLayer } from '../../repositories/VocalexRepository';
 import { useChordStore } from '../../store/useChordStore';
 import { secureReadLocal, secureWriteLocal } from '../utilities/security';
 import { logActivity } from '../diagnostics/activityLogger';
@@ -412,7 +414,6 @@ export function getSyncDiagnostics(): any {
   try {
     return getActiveSyncProvider().getDiagnostics();
   } catch (e) {
-    console.warn('[sync] failed to get diagnostics:', e);
     return {} as any;
   }
 }
@@ -425,7 +426,7 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
   notifyDiagnostics();
   try {
     const store = useChordStore.getState();
-    const settings = store.settings;
+    const settings = useSettingsStore.getState().settings;
     const now = Date.now();
     
     // 1. Write appearance settings
@@ -454,10 +455,7 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
       avatarIcon,
     });
     localStorage.setItem(`sync_last_local_update_profile`, now.toString());
-    
-    console.info('[sync] pushed local settings to cloud via provider');
   } catch (err: any) {
-    console.warn('[sync] push local settings failed:', err);
     lastSyncError = err.message || String(err);
   } finally {
     pendingWritesCount = Math.max(0, pendingWritesCount - 1);
@@ -479,8 +477,8 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
       
       // Update local profile
       if (profileData.displayName !== currentUser.displayName || profileData.photoURL !== currentUser.photoURL) {
-        const { updateLocalAuthUser } = await import('../services/auth');
-        updateLocalAuthUser({
+        
+        authRepository.updateLocalAuthUser({
           displayName: profileData.displayName,
           photoURL: profileData.photoURL,
         });
@@ -523,7 +521,7 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
       try {
         const nextTheme = appData.theme === 'AMOLED' ? 'dark' : (appData.theme || 'dark');
         const nextAmoled = appData.theme === 'AMOLED';
-        useChordStore.getState().updateSettings({
+        useSettingsStore.getState().updateSettings({
           theme: nextTheme as any,
           amoledMode: nextAmoled,
           accentColor: (appData.accentColor || 'blue') as any,
@@ -547,7 +545,7 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
         const automaticChecks = prefData.studioPreferences?.automaticChecks ?? true;
         const showWhatsNewAfterUpdate = prefData.studioPreferences?.showWhatsNewAfterUpdate ?? true;
 
-        useChordStore.getState().updateSettings({
+        useSettingsStore.getState().updateSettings({
           syncAcrossDevices: syncEnabled,
           
           
@@ -559,10 +557,7 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
       localStorage.setItem(`sync_last_local_update_preferences`, (prefData.updatedAt || 0).toString());
       lastPreferencesSyncMs = Date.now();
     }
-    
-    console.info('[sync] pulled cloud settings via provider');
   } catch (err: any) {
-    console.warn('[sync] pull cloud settings failed:', err);
     lastSyncError = err.message || String(err);
   } finally {
     notifyDiagnostics();
@@ -805,7 +800,6 @@ function setStatus(patch: Partial<SyncStatus>): void {
       // Only act if we're still syncing for the SAME epoch — auth
       // changes / detach already reset the state.
       if (status.phase === 'syncing' && epoch === armedEpoch) {
-        console.warn(`${LOG} watchdog: syncing stuck >${SYNCING_WATCHDOG_MS}ms, forcing idle`);
         status = { ...status, phase: 'idle', syncing: false, error: null };
         for (const l of listeners) {
           try { l(status); } catch { /* listener errors must not break the engine */ }
@@ -831,15 +825,13 @@ export function getSyncStatus(): SyncStatus { return status; }
 // ── Logging helpers (single point so it's easy to silence in prod if needed) ─
 
 const LOG = '[sync]';
-function logStart(reason: RunReason, mode: RunMode) { console.info(`${LOG} start (reason=${reason}, mode=${mode})`); }
+function logStart(reason: RunReason, mode: RunMode) { }
 function logSuccess(durationMs: number, pushed: number, pulled: number) {
-  console.info(`${LOG} success (duration=${durationMs}ms, pushed=${pushed}, pulled=${pulled})`);
 }
 function logFailure(durationMs: number, error: unknown) {
   const msg = (error as Error)?.message ?? String(error);
-  console.warn(`${LOG} failure (duration=${durationMs}ms, error=${msg})`);
 }
-function logTimeout(op: string, ms: number) { console.warn(`${LOG} timeout (op=${op}, after=${ms}ms)`); }
+function logTimeout(op: string, ms: number) { }
 
 // ── Timeout helpers ──────────────────────────────────────────────────────────
 
@@ -920,7 +912,6 @@ function getOrMigrateDeviceId(): string | null {
       const value = localStorage.getItem(key);
       if (value) {
         localStorage.setItem('studioDeviceId', value);
-        console.info(`[sync] Migrated legacy device ID "${value}" from key "${key}" to "studioDeviceId"`);
         return value;
       }
     }
@@ -1135,7 +1126,7 @@ const INDEXEDDB_SNAPSHOT_MS = 4_000;
 
 async function snapshotVocalexTakes(): Promise<TakeSyncRecord[] | null> {
   try {
-    const takes = await softTimeout(getAllTakes(), INDEXEDDB_SNAPSHOT_MS);
+    const takes = (await softTimeout(vocalexRepository.getAllTakes(), INDEXEDDB_SNAPSHOT_MS)) as any[];
     if (!takes) return null;
     if (takes.length === 0) return null;
     const records: TakeSyncRecord[] = [];
@@ -1160,14 +1151,14 @@ async function restoreVocalexTakes(records: TakeSyncRecord[]): Promise<void> {
     try {
       const audioBlob = base64ToBlob(record.audioB64);
       const { audioB64: _, ...rest } = record;
-      await saveTake({ ...rest, audioBlob });
+      await vocalexRepository.saveTake({ ...rest, audioBlob });
     } catch { /* skip corrupt record */ }
   }
 }
 
 async function snapshotVocalexLab(): Promise<SessionSyncRecord[] | null> {
   try {
-    const sessions = await softTimeout(getAllSessions(), INDEXEDDB_SNAPSHOT_MS);
+    const sessions = (await softTimeout(vocalexRepository.getAllSessions(), INDEXEDDB_SNAPSHOT_MS)) as any[];
     if (!sessions) return null;
     if (sessions.length === 0) return null;
     const records: SessionSyncRecord[] = [];
@@ -1205,7 +1196,7 @@ async function restoreVocalexLab(records: SessionSyncRecord[]): Promise<void> {
         const { audioB64, ...rest } = l;
         return { ...rest, audioBlob: base64ToBlob(audioB64) };
       });
-      await saveSession({ ...record, layers });
+      await vocalexRepository.saveSession({ ...record, layers });
     } catch { /* skip corrupt record */ }
   }
 }
@@ -1308,7 +1299,6 @@ export function mergeGroovexState(localRaw: string | null, cloudRaw: string): st
       version: cloudObj.version || localObj.version || 1,
     });
   } catch (err) {
-    console.warn('[sync] failed to merge groovex state:', err);
     return cloudRaw;
   }
 }
@@ -1400,7 +1390,6 @@ export async function clearVocalexDbs(): Promise<void> {
     const req2 = indexedDB.deleteDatabase('vocalex-lab');
     req2.onerror = () => console.warn('[sync] failed to delete vocalex-lab DB');
     req2.onsuccess = () => {
-      console.log('[sync] deleted vocalex-lab DB successfully');
       resolve();
     };
     setTimeout(resolve, 1000);
@@ -1532,7 +1521,6 @@ function mergeChordexState(localRaw: string | null, cloudRaw: string): string {
       version: cloudObj.version || localObj.version || 9,
     });
   } catch (err) {
-    console.warn('[sync] failed to merge chordex state:', err);
     return cloudRaw;
   }
 }
@@ -1613,7 +1601,6 @@ function mergeDrumexState(localRaw: string | null, cloudRaw: string): string {
       version: cloudObj.version || localObj.version || 1,
     });
   } catch (err) {
-    console.warn('[sync] failed to merge drumex state:', err);
     return cloudRaw;
   }
 }
@@ -1662,7 +1649,6 @@ function restoreProfile(raw: string) {
       }
     }
   } catch (err) {
-    console.warn('[sync] failed to restore profile:', err);
   }
 }
 
@@ -1683,7 +1669,6 @@ function restoreProfileCover(raw: string) {
       }
     }
   } catch (err) {
-    console.warn('[sync] failed to restore profile cover:', err);
   }
 }
 
@@ -1890,7 +1875,7 @@ async function collectPushWork(meta: Meta): Promise<Array<{ app: SyncAppKey; raw
 async function triggerAutoBackup(): Promise<void> {
   if (!currentUser) return;
 
-  const settings = useChordStore.getState().settings;
+  const settings = useSettingsStore.getState().settings;
   if (!settings.autoBackup) return;
 
   const frequency = settings.backupFrequency ?? 'daily'; // 'daily' | 'weekly' | 'monthly'
@@ -1912,13 +1897,9 @@ async function triggerAutoBackup(): Promise<void> {
     // Too soon to backup
     return;
   }
-
-  console.log(`[sync] Auto Backup triggered (frequency: ${frequency})`);
-
   try {
     await createCloudBackup(`auto_${frequency}`);
     localStorage.setItem(lastBackupKey, now.toString());
-    console.log(`[sync] Auto Backup saved successfully`);
     logActivity('backup', `Auto backup saved successfully`, 'Studio');
   } catch (err) {
     console.error('[sync] Auto Backup failed:', err);
@@ -2013,7 +1994,6 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
       const hasLocal = hasLocalData();
       const hasCloud = await checkCloudDataExists();
       if (hasLocal && hasCloud) {
-        console.info('[sync] Migration required: local and cloud data both exist.');
         setStatus({ showMigrationPrompt: true });
         
         // Wait for the user to make a choice
@@ -2024,8 +2004,7 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
         setStatus({ showMigrationPrompt: false });
 
         if (choice === 'notNow') {
-          console.info('[sync] Migration cancelled by user.');
-          useChordStore.getState().updateSettings({ syncAcrossDevices: false });
+          useSettingsStore.getState().updateSettings({ syncAcrossDevices: false });
           setStatus({ phase: 'idle', error: null });
           return;
         }
@@ -2033,13 +2012,10 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
         // Create a backup snapshot of local data first (safety first!)
         try {
           await createCloudBackup('pre_migration_backup');
-          console.info('[sync] Pre-migration local data backup created.');
         } catch (backupErr) {
-          console.warn('[sync] Pre-migration backup failed, continuing anyway:', backupErr);
         }
 
         if (choice === 'upload') {
-          console.info('[sync] Migration choice: upload (local wins)');
           const localMeta: Meta = {};
           const workToPush = await collectPushWork(localMeta);
           const pushResults = await Promise.allSettled(
@@ -2054,7 +2030,6 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
         }
 
         if (choice === 'download') {
-          console.info('[sync] Migration choice: download (cloud wins)');
           await clearLocalDataBeforeDownload();
           // Clear meta so we pull fresh
           localStorage.removeItem(SYNC_META_KEY);
@@ -2062,7 +2037,6 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
         }
 
         if (choice === 'merge') {
-          console.info('[sync] Migration choice: merge');
           // Standard pull-then-push merges automatically
         }
       }
@@ -2266,7 +2240,7 @@ function enqueueRun(reason: RunReason, mode: RunMode = 'push-only'): Promise<voi
 
   // Background ticks, visibilities, beforeunloads, and flush updates are gated by syncAcrossDevices setting.
   // Explicit manual triggers ('manual' and 'retry') and the critical login 'initial' pull must always run.
-  const syncEnabled = useChordStore.getState().settings.syncAcrossDevices;
+  const syncEnabled = useSettingsStore.getState().settings.syncAcrossDevices;
   if (!syncEnabled && reason !== 'manual' && reason !== 'retry' && reason !== 'initial') {
     return Promise.resolve();
   }
@@ -2404,18 +2378,16 @@ export function attachSyncEngine(): void {
   window.addEventListener('chordex:user-cover-changed', onCoverChanged);
 
   onOnline = () => {
-    console.info('[sync] network connection restored, triggering flush');
     void enqueueRun('manual', 'pull-then-push');
   };
   window.addEventListener('online', onOnline);
 
-  let lastSettings = useChordStore.getState().settings;
+  let lastSettings = useSettingsStore.getState().settings;
   unsubStoreSubscription = useChordStore.subscribe((state) => {
     if (isApplyingRemoteUpdate) return;
-    const settings = state.settings;
+    const settings = useSettingsStore.getState().settings;
     
     if (settings.syncBackendProvider !== lastSettings.syncBackendProvider) {
-      console.info('[sync] Provider changed dynamically, re-subscribing diagnostics');
       if (setupDiagSubscription) setupDiagSubscription();
       window.dispatchEvent(new CustomEvent('sync:provider-changed'));
     }
@@ -2446,7 +2418,6 @@ export function attachSyncEngine(): void {
           lastAppearanceWriteSuccess = new Date().toLocaleString();
           lastAppearanceWriteError = 'None';
         }).catch((err) => {
-          console.warn('[sync] failed to write appearance settings:', err);
           lastSyncError = err.message || String(err);
           lastAppearanceWriteError = err.message || String(err);
         }).finally(() => {
@@ -2474,7 +2445,6 @@ export function attachSyncEngine(): void {
           lastPreferencesWriteSuccess = new Date().toLocaleString();
           lastPreferencesWriteError = 'None';
         }).catch((err) => {
-          console.warn('[sync] failed to write preference settings:', err);
           lastSyncError = err.message || String(err);
           lastPreferencesWriteError = err.message || String(err);
         }).finally(() => {
@@ -2487,7 +2457,7 @@ export function attachSyncEngine(): void {
     lastSettings = settings;
   });
 
-  unsubAuth = subscribeAuth((u) => {
+  unsubAuth = authRepository.subscribeAuth((u) => {
     epoch += 1;
     const priorUser = currentUser;
     currentUser = u;
@@ -2564,18 +2534,15 @@ export function attachSyncEngine(): void {
           
           if (isRemoteChange) {
             if (remoteLast > localLast) {
-              console.info('[sync] applying remote profile update:', data);
               if (data.displayName !== u.displayName || data.photoURL !== u.photoURL) {
-                import('../services/auth').then(({ updateLocalAuthUser }) => {
-                  updateLocalAuthUser({
-                    displayName: data.displayName,
-                    photoURL: data.photoURL,
-                  });
-                  if (currentUser) {
-                    currentUser.displayName = data.displayName;
-                    currentUser.photoURL = data.photoURL;
-                  }
+                authRepository.updateLocalAuthUser({
+                  displayName: data.displayName,
+                  photoURL: data.photoURL,
                 });
+                if (currentUser) {
+                  currentUser.displayName = data.displayName;
+                  currentUser.photoURL = data.photoURL;
+                }
               }
               if (data.avatarIcon !== undefined) {
                 import('../utilities/userAvatar').then(({ setUserAvatar }) => {
@@ -2600,7 +2567,6 @@ export function attachSyncEngine(): void {
               localStorage.setItem(`sync_last_local_update_profile`, remoteLast.toString());
               lastProfileSyncMs = Date.now();
             } else if (localLast > remoteLast) {
-              console.info('[sync] Local profile is newer, uploading...');
               import('../utilities/userAvatar').then(({ getUserAvatar }) => {
                 const avatarIcon = getUserAvatar(u.uid);
                 provider.updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon }).catch(console.warn);
@@ -2612,7 +2578,6 @@ export function attachSyncEngine(): void {
           }
           notifyDiagnostics();
         } else {
-          console.info('[sync] Remote profile missing, uploading local profile as initial cloud state');
           import('../utilities/userAvatar').then(({ getUserAvatar }) => {
             const avatarIcon = getUserAvatar(u.uid);
             provider.updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon }).catch(console.warn);
@@ -2635,12 +2600,11 @@ export function attachSyncEngine(): void {
           
           if (isRemoteChange) {
             if (remoteLast > localLast) {
-              console.info('[sync] applying remote appearance update:', data);
               isApplyingRemoteUpdate = true;
               try {
                 const nextTheme = data.theme === 'AMOLED' ? 'dark' : (data.theme || 'dark');
                 const nextAmoled = data.theme === 'AMOLED';
-                useChordStore.getState().updateSettings({
+                useSettingsStore.getState().updateSettings({
                   theme: nextTheme as any,
                   amoledMode: nextAmoled,
                   accentColor: (data.accentColor || 'blue') as any,
@@ -2653,8 +2617,7 @@ export function attachSyncEngine(): void {
               localStorage.setItem(`sync_last_local_update_appearance`, remoteLast.toString());
               lastAppearanceSyncMs = Date.now();
             } else if (localLast > remoteLast) {
-              console.info('[sync] Local appearance is newer, uploading...');
-              const settings = useChordStore.getState().settings;
+              const settings = useSettingsStore.getState().settings;
               const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
               provider.updateAppearanceSettings({
                 theme: themeValue,
@@ -2670,8 +2633,7 @@ export function attachSyncEngine(): void {
           }
           notifyDiagnostics();
         } else {
-          console.info('[sync] Remote appearance missing, uploading local appearance as initial cloud state');
-          const settings = useChordStore.getState().settings;
+          const settings = useSettingsStore.getState().settings;
           const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
           provider.updateAppearanceSettings({
             theme: themeValue,
@@ -2694,10 +2656,9 @@ export function attachSyncEngine(): void {
           
           if (isRemoteChange) {
             if (remoteLast > localLast) {
-              console.info('[sync] applying remote preferences update:', data);
               isApplyingRemoteUpdate = true;
               try {
-                useChordStore.getState().updateSettings({
+                useSettingsStore.getState().updateSettings({
                   syncAcrossDevices: data.studioPreferences?.syncAcrossDevices ?? data.studioPreferences?.syncEnabled ?? true,
                   
                   
@@ -2709,8 +2670,7 @@ export function attachSyncEngine(): void {
               localStorage.setItem(`sync_last_local_update_preferences`, remoteLast.toString());
               lastPreferencesSyncMs = Date.now();
             } else if (localLast > remoteLast) {
-              console.info('[sync] Local preferences is newer, uploading...');
-              const settings = useChordStore.getState().settings;
+              const settings = useSettingsStore.getState().settings;
               provider.updatePreferences({
                 syncAcrossDevices: settings.syncAcrossDevices,
               }).catch(console.warn);
@@ -2721,8 +2681,7 @@ export function attachSyncEngine(): void {
           }
           notifyDiagnostics();
         } else {
-          console.info('[sync] Remote preferences missing, uploading local preferences as initial cloud state');
-          const settings = useChordStore.getState().settings;
+          const settings = useSettingsStore.getState().settings;
           provider.updatePreferences({
             syncAcrossDevices: settings.syncAcrossDevices,
           }).catch(console.warn);
@@ -2766,7 +2725,6 @@ export function attachSyncEngine(): void {
           if (epoch !== armedEpoch) return;
           if (status.phase === 'syncing') return;
           if (status.lastSyncedMs != null) return;
-          console.warn(`${LOG} never-stuck fallback: stamping lastSyncedMs after ${NEVER_STUCK_MS}ms with no completed sync`);
           setStatus({ phase: 'idle', lastSyncedMs: Date.now(), error: null });
         }, NEVER_STUCK_MS);
       }
@@ -2787,7 +2745,6 @@ export function attachSyncEngine(): void {
     if (document.visibilityState === 'hidden') {
       void enqueueRun('visibility', 'push-only');
     } else if (document.visibilityState === 'visible' && currentUser) {
-      console.info('[sync] Tab visible, registering device and syncing');
       void registerCurrentDevice(currentUser.uid, 'tab-visible');
       void enqueueRun('visibility', 'pull-then-push');
     }
@@ -2800,7 +2757,6 @@ export function attachSyncEngine(): void {
   import('@capacitor/app').then(({ App }) => {
     App.addListener('appStateChange', (state) => {
       if (state.isActive && currentUser) {
-        console.info('[sync] App resumed, registering device and syncing');
         void registerCurrentDevice(currentUser.uid, 'app-resume');
         void enqueueRun('visibility', 'pull-then-push');
       }
@@ -2808,7 +2764,6 @@ export function attachSyncEngine(): void {
       appStateListenerHandle = handle;
     });
   }).catch((err) => {
-    console.debug('[sync] App state listener not registered (not native)');
   });
 }
 

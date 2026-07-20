@@ -56,7 +56,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
                   <ActionButton
                     key={label}
                     onClick={fn}
-                    variant="secondary"
+                    variant={'secondary' as any}
                     className="h-8 !px-2.5"
                   >
                     <span className="material-symbols-outlined text-[15px]">{icon}</span>
@@ -65,7 +65,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
                 ))}
                 <ActionButton
                   onClick={() => callIframe('openPresetsPanel')}
-                  variant="secondary"
+                  variant={'secondary' as any}
                   className="h-8 !px-2.5"
                 >
                   <span className="material-symbols-outlined text-[15px]">save</span>
@@ -73,7 +73,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
                 </ActionButton>
                 <ActionButton
                   onClick={() => transitionToView('Export')}
-                  variant="secondary"
+                  variant={'secondary' as any}
                   className="h-8 !px-2.5"
                 >
                   <span className="material-symbols-outlined text-[15px]">picture_as_pdf</span>
@@ -86,7 +86,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
               <div className="flex gap-1.5">
                 <ActionButton
                   onClick={() => transitionToView('Editor')}
-                  variant="secondary"
+                  variant={'secondary' as any}
                   className="h-8 !px-2.5"
                 >
                   <span className="material-symbols-outlined text-[15px]">arrow_back</span>
@@ -94,13 +94,13 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
                 </ActionButton>
                 <ActionButton
                   onClick={() => callIframe('toggleExportOptions')}
-                  variant="secondary"
+                  variant={'secondary' as any}
                   className="h-8 !px-2.5"
                 >
                   <span className="material-symbols-outlined text-[15px]">tune</span>
                   Sections
                 </ActionButton>
-                <ActionButton onClick={openPdfSheet} variant="primary" className="h-8 !px-2.5">
+                <ActionButton onClick={openPdfSheet} variant={'primary' as any} className="h-8 !px-2.5">
                   <span className="material-symbols-outlined text-[15px]">download</span>
                   Get PDF
                 </ActionButton>

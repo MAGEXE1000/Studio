@@ -32,27 +32,45 @@ async function runNavigationCoreTests() {
     }
   };
 
-  const storePath = path.join(repoRoot, 'packages/studio-core/dist/src/store/useNavigationStore.js');
+  const storePath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/store/useNavigationStore.js'
+  );
   const storeUrl = `file://${storePath.replace(/\\/g, '/')}`;
   const { useNavigationStore } = await import(storeUrl);
 
-  const dispatcherPath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/NavigationDispatcher.js');
+  const dispatcherPath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/lib/navigation/NavigationDispatcher.js'
+  );
   const dispatcherUrl = `file://${dispatcherPath.replace(/\\/g, '/')}`;
   const { NavigationDispatcher } = await import(dispatcherUrl);
 
-  const coordinatorPath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/NavigationCoordinator.js');
+  const coordinatorPath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/lib/navigation/NavigationCoordinator.js'
+  );
   const coordinatorUrl = `file://${coordinatorPath.replace(/\\/g, '/')}`;
   const { NavigationCoordinator } = await import(coordinatorUrl);
 
-  const backPath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/BackDispatcher.js');
+  const backPath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/lib/navigation/BackDispatcher.js'
+  );
   const backUrl = `file://${backPath.replace(/\\/g, '/')}`;
   const { BackDispatcher } = await import(backUrl);
 
-  const gesturePath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/GestureDispatcher.js');
+  const gesturePath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/lib/navigation/GestureDispatcher.js'
+  );
   const gestureUrl = `file://${gesturePath.replace(/\\/g, '/')}`;
   const { GestureDispatcher } = await import(gestureUrl);
 
-  const transitionPath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/TransitionCoordinator.js');
+  const transitionPath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/lib/navigation/TransitionCoordinator.js'
+  );
   const transitionUrl = `file://${transitionPath.replace(/\\/g, '/')}`;
   const { TransitionCoordinator } = await import(transitionUrl);
 
@@ -76,7 +94,7 @@ async function runNavigationCoreTests() {
   assertTest('push adds route, applies defaults and does not block transitions', () => {
     resetStore();
     NavigationDispatcher.push({ app: 'chords' });
-    
+
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
     assert.strictEqual(state.history[1].app, 'chords');
@@ -116,19 +134,23 @@ async function runNavigationCoreTests() {
     NavigationDispatcher.push({ app: 'chords' });
     useNavigationStore.getState().setTransition(null, false);
 
+    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    useNavigationStore.getState().setTransition(null, false);
+
     assert.strictEqual(NavigationDispatcher.canGoBack(), true);
     NavigationDispatcher.pop();
 
     let state = useNavigationStore.getState();
-    assert.strictEqual(state.history.length, 1);
-    assert.deepStrictEqual(state.history[0], { app: 'hub', tab: 'home' });
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].page, 'library');
 
-    // Block popping past root
+    // Block popping past app root
     useNavigationStore.getState().setTransition(null, false);
     assert.strictEqual(NavigationDispatcher.canGoBack(), false);
     NavigationDispatcher.pop();
     state = useNavigationStore.getState();
-    assert.strictEqual(state.history.length, 1);
+    assert.strictEqual(state.history.length, 2);
   });
 
   // Test 5: popTo pops back to specific target
@@ -157,7 +179,7 @@ async function runNavigationCoreTests() {
 
     NavigationDispatcher.reset([
       { app: 'hub', tab: 'home' },
-      { app: 'vocalex', page: 'pitch' }
+      { app: 'vocalex', page: 'pitch' },
     ]);
 
     const state = useNavigationStore.getState();
@@ -174,7 +196,7 @@ async function runNavigationCoreTests() {
     NavigationDispatcher.push({
       app: 'vocalex',
       page: 'takes',
-      extraParam: 'corruptMe'
+      extraParam: 'corruptMe',
     });
 
     const state = useNavigationStore.getState();
@@ -221,6 +243,9 @@ async function runNavigationCoreTests() {
     NavigationDispatcher.push({ app: 'chords' });
     useNavigationStore.getState().setTransition(null, false);
 
+    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    useNavigationStore.getState().setTransition(null, false);
+
     GestureDispatcher.onGestureStart();
     let state = useNavigationStore.getState();
     assert.strictEqual(state.gestureState, 'swiping');
@@ -234,10 +259,11 @@ async function runNavigationCoreTests() {
     GestureDispatcher.onGestureCommit();
     state = useNavigationStore.getState();
     assert.strictEqual(state.gestureState, 'committed');
-    
+
     // Once committed, it should trigger pop (after timeout it goes to idle)
     state = useNavigationStore.getState();
-    assert.strictEqual(state.history.length, 1);
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].page, 'library');
   });
 
   // Test 10: TransitionCoordinator calculates ease curves
@@ -256,7 +282,7 @@ async function runNavigationCoreTests() {
     console.log(`| ${r.name} | ${r.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} | ${r.details} |`);
   }
 
-  const failed = results.filter(r => r.status === 'FAIL');
+  const failed = results.filter((r) => r.status === 'FAIL');
   if (failed.length > 0) {
     console.error(`\n❌ Navigation core regression tests failed: ${failed.length} failures.`);
     process.exit(1);
@@ -267,14 +293,13 @@ async function runNavigationCoreTests() {
 }
 
 function storeStateHasRoute(history, expected) {
-  return history.some((route) =>
-    route.app === expected.app &&
-    route.tab === expected.tab &&
-    route.page === expected.page
+  return history.some(
+    (route) =>
+      route.app === expected.app && route.tab === expected.tab && route.page === expected.page
   );
 }
 
-runNavigationCoreTests().catch(err => {
+runNavigationCoreTests().catch((err) => {
   console.error('Test runner encountered an uncaught error:', err);
   process.exit(1);
 });

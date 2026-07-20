@@ -239,7 +239,6 @@ export class PerformanceProfiler {
         });
         this.observer.observe({ entryTypes: ['longtask'] });
       } catch (e) {
-        console.warn('[Profiler] PerformanceObserver longtask not supported:', e);
       }
     }
   }
@@ -279,7 +278,8 @@ export class PerformanceProfiler {
   public getGPUInfo(): string {
     try {
       const canvas = document.createElement('canvas');
-      const gl = (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
+      const gl = (canvas.getContext('webgl') ||
+        canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
       if (gl) {
         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
         if (debugInfo) {
@@ -327,7 +327,7 @@ export class PerformanceProfiler {
         gpuLayerCount: 0,
         averageCallbackLatency: 0,
         packageInstallerLatency: 0,
-        updatePipelineDuration: 'N/A'
+        updatePipelineDuration: 'N/A',
       };
     }
 
@@ -338,7 +338,8 @@ export class PerformanceProfiler {
 
     // 2. Average FPS
     const totalDuration = performance.now() - this.startTime;
-    const averageFps = totalDuration > 0 ? Math.round((this.totalFrames * 1000) / totalDuration) : 0;
+    const averageFps =
+      totalDuration > 0 ? Math.round((this.totalFrames * 1000) / totalDuration) : 0;
 
     // 3. Min/Max FPS
     const sorted = [...this.frameTimes].sort((a, b) => a - b);
@@ -358,7 +359,8 @@ export class PerformanceProfiler {
 
     // 5. Frame Variance (Standard Deviation)
     const mean = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
-    const variance = this.frameTimes.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / this.frameTimes.length;
+    const variance =
+      this.frameTimes.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / this.frameTimes.length;
     const frameVariance = Math.sqrt(variance);
 
     // 6. Heap Memory statistics
@@ -390,7 +392,10 @@ export class PerformanceProfiler {
     else refreshRate = 60;
 
     // Performance 2.0 calculations
-    const cpuAvg = this.cpuSamples.length > 0 ? Math.round(this.cpuSamples.reduce((a, b) => a + b, 0) / this.cpuSamples.length) : 0;
+    const cpuAvg =
+      this.cpuSamples.length > 0
+        ? Math.round(this.cpuSamples.reduce((a, b) => a + b, 0) / this.cpuSamples.length)
+        : 0;
     const cpuPeak = this.cpuSamples.length > 0 ? Math.max(...this.cpuSamples) : 0;
 
     let memAvgStr = 'Unavailable';
@@ -402,14 +407,46 @@ export class PerformanceProfiler {
       memPeakStr = (peakMem / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    const jsAvg = this.jsThreadSamples.length > 0 ? parseFloat((this.jsThreadSamples.reduce((a, b) => a + b, 0) / this.jsThreadSamples.length).toFixed(1)) : 0;
-    const jsPeak = this.jsThreadSamples.length > 0 ? parseFloat(Math.max(...this.jsThreadSamples).toFixed(1)) : 0;
+    const jsAvg =
+      this.jsThreadSamples.length > 0
+        ? parseFloat(
+            (this.jsThreadSamples.reduce((a, b) => a + b, 0) / this.jsThreadSamples.length).toFixed(
+              1
+            )
+          )
+        : 0;
+    const jsPeak =
+      this.jsThreadSamples.length > 0
+        ? parseFloat(Math.max(...this.jsThreadSamples).toFixed(1))
+        : 0;
 
-    const uiAvg = this.uiThreadSamples.length > 0 ? parseFloat((this.uiThreadSamples.reduce((a, b) => a + b, 0) / this.uiThreadSamples.length).toFixed(1)) : 0;
-    const uiPeak = this.uiThreadSamples.length > 0 ? parseFloat(Math.max(...this.uiThreadSamples).toFixed(1)) : 0;
+    const uiAvg =
+      this.uiThreadSamples.length > 0
+        ? parseFloat(
+            (this.uiThreadSamples.reduce((a, b) => a + b, 0) / this.uiThreadSamples.length).toFixed(
+              1
+            )
+          )
+        : 0;
+    const uiPeak =
+      this.uiThreadSamples.length > 0
+        ? parseFloat(Math.max(...this.uiThreadSamples).toFixed(1))
+        : 0;
 
-    const avgCallbackLat = this.callbackLatencySamples.length > 0 ? Math.round(this.callbackLatencySamples.reduce((a, b) => a + b, 0) / this.callbackLatencySamples.length) : 0;
-    const instCallbackLat = this.installerLatencySamples.length > 0 ? Math.round(this.installerLatencySamples.reduce((a, b) => a + b, 0) / this.installerLatencySamples.length) : 0;
+    const avgCallbackLat =
+      this.callbackLatencySamples.length > 0
+        ? Math.round(
+            this.callbackLatencySamples.reduce((a, b) => a + b, 0) /
+              this.callbackLatencySamples.length
+          )
+        : 0;
+    const instCallbackLat =
+      this.installerLatencySamples.length > 0
+        ? Math.round(
+            this.installerLatencySamples.reduce((a, b) => a + b, 0) /
+              this.installerLatencySamples.length
+          )
+        : 0;
 
     let activeDuration = 'N/A';
     try {
@@ -418,7 +455,8 @@ export class PerformanceProfiler {
         if (activeSession.durationMs) {
           activeDuration = (activeSession.durationMs / 1000).toFixed(2) + 's';
         } else {
-          activeDuration = ((Date.now() - activeSession.startTimestamp) / 1000).toFixed(2) + 's (running)';
+          activeDuration =
+            ((Date.now() - activeSession.startTimestamp) / 1000).toFixed(2) + 's (running)';
         }
       }
     } catch (_) {}
@@ -440,8 +478,8 @@ export class PerformanceProfiler {
       heapGrowth: heapGrowthStr,
       gpuRenderer: this.getGPUInfo(),
       refreshRate,
-      mainThreadBlockingTotal: parseFloat((this.totalBlockingTime).toFixed(1)),
-      longestBlockingTask: parseFloat((this.longestBlockingTask).toFixed(1)),
+      mainThreadBlockingTotal: parseFloat(this.totalBlockingTime.toFixed(1)),
+      longestBlockingTask: parseFloat(this.longestBlockingTask.toFixed(1)),
       thermalState: 'Unavailable',
       batteryOptimized: 'Unavailable',
       cpuAverage: cpuAvg,
@@ -456,7 +494,7 @@ export class PerformanceProfiler {
       gpuLayerCount: this.getGPULayerCount(),
       averageCallbackLatency: avgCallbackLat,
       packageInstallerLatency: instCallbackLat,
-      updatePipelineDuration: activeDuration
+      updatePipelineDuration: activeDuration,
     };
   }
 
@@ -491,11 +529,14 @@ export class PerformanceProfiler {
       list.push({
         severity: 'Critical',
         title: 'Long Main-Thread Blocking Task',
-        description: 'A heavy JavaScript execution blocked the main UI thread, interrupting interactions and animations.',
+        description:
+          'A heavy JavaScript execution blocked the main UI thread, interrupting interactions and animations.',
         measured: `${metrics.longestBlockingTask.toFixed(1)} ms`,
         expected: '< 50.0 ms',
-        possibleCause: 'Heavy React rendering, synchronous localStorage operations, or complex data processing.',
-        suggestedInvestigation: 'Audit layout effects, chunk expensive array calculations, or introduce web workers.'
+        possibleCause:
+          'Heavy React rendering, synchronous localStorage operations, or complex data processing.',
+        suggestedInvestigation:
+          'Audit layout effects, chunk expensive array calculations, or introduce web workers.',
       });
     }
 
@@ -503,11 +544,14 @@ export class PerformanceProfiler {
       list.push({
         severity: 'Warning',
         title: 'High Jitter / Dropped Frames',
-        description: 'Frequent frame time variations detected. UI animations may feel visually stuttered.',
+        description:
+          'Frequent frame time variations detected. UI animations may feel visually stuttered.',
         measured: `${metrics.droppedFrames} dropped`,
         expected: '0 dropped',
-        possibleCause: 'React re-renders happening during active transitions, layout thrashing, or high main thread load.',
-        suggestedInvestigation: 'Verify useMemo/useCallback usage. Reduce React state writes during user scroll operations.'
+        possibleCause:
+          'React re-renders happening during active transitions, layout thrashing, or high main thread load.',
+        suggestedInvestigation:
+          'Verify useMemo/useCallback usage. Reduce React state writes during user scroll operations.',
       });
     }
 
@@ -515,11 +559,14 @@ export class PerformanceProfiler {
       list.push({
         severity: 'Warning',
         title: 'Event Loop Delay Spike',
-        description: 'The JavaScript event loop is overloaded, lagging asynchronous task execution.',
+        description:
+          'The JavaScript event loop is overloaded, lagging asynchronous task execution.',
         measured: `${metrics.eventLoopDelay.toFixed(1)} ms`,
         expected: '< 10.0 ms',
-        possibleCause: 'Synchronous blocking executions, heavy microtask queues, or excessive timers.',
-        suggestedInvestigation: 'Trace long-running callbacks. Avoid setInterval loops with heavy callback payloads.'
+        possibleCause:
+          'Synchronous blocking executions, heavy microtask queues, or excessive timers.',
+        suggestedInvestigation:
+          'Trace long-running callbacks. Avoid setInterval loops with heavy callback payloads.',
       });
     }
 
@@ -530,9 +577,11 @@ export class PerformanceProfiler {
         title: 'High Memory Pressure',
         description: 'Used JS heap is dangerously close to the browser memory allocation limit.',
         measured: `${(mem.usedJSHeapSize / (1024 * 1024)).toFixed(1)} MB`,
-        expected: `< ${(mem.jsHeapSizeLimit * 0.75 / (1024 * 1024)).toFixed(1)} MB`,
-        possibleCause: 'Memory leaks, accumulated global references, or heavy media/assets stored in memory buffers.',
-        suggestedInvestigation: 'Run memory profiles in Chrome DevTools to locate un-cleared intervals or detached DOM trees.'
+        expected: `< ${((mem.jsHeapSizeLimit * 0.75) / (1024 * 1024)).toFixed(1)} MB`,
+        possibleCause:
+          'Memory leaks, accumulated global references, or heavy media/assets stored in memory buffers.',
+        suggestedInvestigation:
+          'Run memory profiles in Chrome DevTools to locate un-cleared intervals or detached DOM trees.',
       });
     }
 

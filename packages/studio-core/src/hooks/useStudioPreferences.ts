@@ -62,10 +62,15 @@ export function useStudioPreferences() {
     };
   }, []);
 
-  const setPreference = <K extends keyof StudioPreferences>(key: K, value: StudioPreferences[K]) => {
+  const setPreference = <K extends keyof StudioPreferences>(
+    key: K,
+    value: StudioPreferences[K]
+  ) => {
     try {
       localStorage.setItem(PREF_KEYS[key], JSON.stringify(value));
-      window.dispatchEvent(new CustomEvent('studio:preferences-changed', { detail: { key, value } }));
+      window.dispatchEvent(
+        new CustomEvent('studio:preferences-changed', { detail: { key, value } })
+      );
     } catch (e) {
       console.error('Failed to save preference', key, value, e);
     }

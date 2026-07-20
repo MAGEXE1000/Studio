@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppKey } from '../../store/useChordStore';
+import type { AppKey } from '../../store/useSettingsStore';
 import { useBottomNavigationStore } from './useBottomNavigationStore.js';
 
 export type TransitionState =
@@ -46,14 +46,9 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       if (launchingApp === targetApp) {
         return true;
       }
-      
-      console.warn(`[TransitionEngine] Active transition (${state} -> ${launchingApp}) interrupted by request to ${targetApp}. Resetting...`);
       get().reset();
       state = 'IDLE';
     }
-
-    console.log(`[TransitionEngine] Requesting transition: IDLE -> PREPARING to ${targetApp}`);
-    
     // Clear any active safety watchdog
     const existing = (window as any).__transitionWatchdog;
     if (existing) {
@@ -63,7 +58,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
     
     // Set 4.5s safety watchdog timer (generous fallback)
     (window as any).__transitionWatchdog = setTimeout(() => {
-      console.warn(`[TransitionEngine] Watchdog triggered. Resetting to IDLE to prevent stuck screens.`);
       get().reset();
     }, 4500);
 
@@ -90,7 +84,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
   setAppPreloaded: (preloaded) => {
     const { state, logoFormed } = get();
-    console.log(`[TransitionEngine] setAppPreloaded(${preloaded}) | state: ${state}, logoFormed: ${logoFormed}`);
     if (state === 'IDLE') return;
 
     set({ appPreloaded: preloaded });
@@ -103,7 +96,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
   setLogoFormed: (formed) => {
     const { state, appPreloaded } = get();
-    console.log(`[TransitionEngine] setLogoFormed(${formed}) | state: ${state}, appPreloaded: ${appPreloaded}`);
     if (state === 'IDLE') return;
 
     set({ logoFormed: formed });
@@ -120,14 +112,11 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   startZoom: () => {
     const { state } = get();
     if (state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS') return;
-    
-    console.log(`[TransitionEngine] starting zoom transition from state ${state}`);
     set({ state: 'FORMATION_COMPLETE' });
     
     setTimeout(() => {
       const current = get();
       if (current.state === 'FORMATION_COMPLETE' && current.appPreloaded) {
-        console.log(`[TransitionEngine] Brief completion hold ended. Beginning zoom.`);
         set({ state: 'ZOOM_TRANSITION' });
       }
     }, 180); // 180ms brief completion hold
@@ -136,9 +125,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   completeTransition: () => {
     const { state } = get();
     if (state === 'IDLE' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE') return;
-    
-    console.log(`[TransitionEngine] completeTransition | Current state: ${state} -> OVERLAY_DISMISS`);
-    
     const existing = (window as any).__transitionWatchdog;
     if (existing) {
       clearTimeout(existing);
@@ -150,7 +136,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
     setTimeout(() => {
       set({ state: 'INTERACTION_ENABLE' });
       setTimeout(() => {
-        console.log(`[TransitionEngine] Transition complete. Returning to IDLE`);
         set({
           state: 'IDLE',
           launchingApp: null,
@@ -162,7 +147,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   },
 
   reset: () => {
-    console.log(`[TransitionEngine] Force reset transition engine to IDLE`);
     const existing = (window as any).__transitionWatchdog;
     if (existing) {
       clearTimeout(existing);

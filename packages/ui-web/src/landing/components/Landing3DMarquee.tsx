@@ -1,6 +1,6 @@
 import { useStudioPreferences } from '@workspace/studio-core';
 import React from 'react';
-import { 
+import {
   ChordexSongsMockup,
   ChordexLibraryMockup,
   ChordexChordsMockup,
@@ -8,7 +8,7 @@ import {
   StagexMockup,
   GroovexMockup,
   VocalexMockup,
-  PreferencesMockup 
+  PreferencesMockup,
 } from './StudioScreenMockups';
 
 export default function Landing3DMarquee() {
@@ -23,7 +23,7 @@ export default function Landing3DMarquee() {
     { name: 'Stagex Stage Plot', comp: StagexMockup },
     { name: 'Groovex Mixer', comp: GroovexMockup },
     { name: 'Vocalex Tuner', comp: VocalexMockup },
-    { name: 'Preferences', comp: PreferencesMockup }
+    { name: 'Preferences', comp: PreferencesMockup },
   ];
 
   // Duplicate for seamless loop
@@ -37,12 +37,12 @@ export default function Landing3DMarquee() {
 
       {/* Perspective view container */}
       <div className="w-full flex justify-center py-4" style={{ perspective: '1200px' }}>
-        <div 
-          className="flex gap-6 relative" 
+        <div
+          className="flex gap-6 relative"
           style={{
             transform: isReduced ? 'none' : 'rotateX(20deg) rotateY(-6deg) rotateZ(-4deg)',
             transformStyle: 'preserve-3d',
-            width: '100%'
+            width: '100%',
           }}
         >
           {/* Marquee Track */}
@@ -50,7 +50,7 @@ export default function Landing3DMarquee() {
             {list.map((item, idx) => {
               const Comp = item.comp;
               return (
-                <div 
+                <div
                   key={idx}
                   className="w-[240px] h-[160px] md:w-[300px] md:h-[200px] rounded-2xl bg-zinc-950 border border-zinc-900 p-2 flex flex-col justify-between shadow-2xl transition-all duration-300 hover:border-zinc-700 hover:scale-[1.02] flex-shrink-0"
                   style={{ transformStyle: 'preserve-3d' }}

@@ -25,7 +25,10 @@ function pickVoice(): SpeechSynthesisVoice | null {
 
   for (const test of ranked) {
     const match = voices.find(test);
-    if (match) { preferredVoice = match; return match; }
+    if (match) {
+      preferredVoice = match;
+      return match;
+    }
   }
 
   preferredVoice = voices[0];
@@ -62,11 +65,7 @@ export function speak(text: string, opts?: { rate?: number; pitch?: number; onEn
 }
 
 export function speakInstruction(instruction: string) {
-  const cleaned = instruction
-    .replace(/[↑↓→]/g, '')
-    .replace(/…/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const cleaned = instruction.replace(/[↑↓→]/g, '').replace(/…/g, '').replace(/\s+/g, ' ').trim();
   speak(cleaned, { rate: 0.88 });
 }
 

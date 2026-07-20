@@ -8,36 +8,40 @@ This document defines the release pipeline, git commit naming rules, and verific
 
 Chordex Studio enforces version parameters:
 
-* **`versionCode`**: Must be incremented by exactly `+1` on each release (e.g. from `183` to `184`). Reusing codes is strictly forbidden.
-* **`versionName`**: Uses semantic naming conventions (`Major.Minor.Patch`, e.g. `3.7.56`). Matches the git release tags.
-* **Sync Configuration**: Bumping the native build configurations inside `apps/studio-android/android/app/build.gradle` is synced automatically to `packages/studio-core/src/lib/appVersion.ts` using the version script:
+- **`versionCode`**: Must be incremented by exactly `+1` on each release (e.g. from `183` to `184`). Reusing codes is strictly forbidden.
+- **`versionName`**: Uses semantic naming conventions (`Major.Minor.Patch`, e.g. `3.7.56`). Matches the git release tags.
+- **Sync Configuration**: Bumping the native build configurations inside `apps/studio-android/android/app/build.gradle` is synced automatically to `packages/studio-core/src/lib/appVersion.ts` using the version script:
   ```bash
   node scripts/sync-version.mjs
   ```
 
 Source:
-* `apps/studio-android/android/app/build.gradle`
-* `apps/studio-android/scripts/sync-version.mjs`
+
+- `apps/studio-android/android/app/build.gradle`
+- `apps/studio-android/scripts/sync-version.mjs`
 
 ---
 
 ## 2. Git Workflow & Commit Rules
 
 ### Explicit Staging Only
-* Never use `git add .` or `git add -A`.
-* Stage target files explicitly using their path:
+
+- Never use `git add .` or `git add -A`.
+- Stage target files explicitly using their path:
   ```bash
   git add packages/ui-shared/src/components/DevToolsDashboard.tsx
   ```
 
 ### Commit Formatting
-Commits must conform to Semantic Commits specifications:
-* `feat(ui)`: New user interface features.
-* `fix(ota)`: Corrections to updater logic.
-* `refactor(core)`: Code cleanups, performance tuning, or hooks refactoring.
-* `chore(build)`: Build script edits, dependency bumps, or config changes.
 
-*Example*: `feat(ui): modernize Updater Diagnostics dashboard with Material 3 Google Stitch style layout`
+Commits must conform to Semantic Commits specifications:
+
+- `feat(ui)`: New user interface features.
+- `fix(ota)`: Corrections to updater logic.
+- `refactor(core)`: Code cleanups, performance tuning, or hooks refactoring.
+- `chore(build)`: Build script edits, dependency bumps, or config changes.
+
+_Example_: `feat(ui): modernize Updater Diagnostics dashboard with Material 3 Google Stitch style layout`
 
 ---
 
@@ -59,18 +63,20 @@ Deployments are manually triggered via the GitHub Actions user interface using t
 ```
 
 ### Steps
+
 1. **Trigger**: Navigate to Actions on GitHub, select **Android Release Pipeline**, and click **Run workflow**. Fill in the required inputs: `version_name`, `version_code`, and optional `note`.
 2. **Build Stage**: The runner launches `android-release.yml`, executing:
-   * Linters and unit testing suites.
-   * Compiles the React distribution bundles.
-   * Decodes base64 keystore credentials and compiles the release APK.
+   - Linters and unit testing suites.
+   - Compiles the React distribution bundles.
+   - Decodes base64 keystore credentials and compiles the release APK.
 3. **GitHub Release Stage**: Publishes a new release tag containing:
-   * Compiled signed APK (`studio-[version_name].apk`).
-   * Integrity checksum signature (`studio-[version_name].sha256`).
+   - Compiled signed APK (`studio-[version_name].apk`).
+   - Integrity checksum signature (`studio-[version_name].sha256`).
 4. **Hosting Distribution Stage**: Deploys the latest metadata files (`version.json` and `app-release.json`) directly to Firebase Hosting.
 
 Source:
-* `.github/workflows/release.yml`
+
+- `.github/workflows/release.yml`
 
 ---
 
@@ -78,14 +84,15 @@ Source:
 
 Before finalizing a release, complete the following verification steps:
 
-* [ ] **Public Metadata Verification**: Fetch metadata parameters:
-  * URL: `https://studio-30f44.web.app/version.json` -> verify version matches the tag.
-  * URL: `https://studio-30f44.web.app/app-release.json` -> verify `apkUrl`, `sha256`, and `versionCode` are correct.
-* [ ] **Updater Auto-Detect**: Launch an older app version and verify that it detects the new version, downloads it, and launches the install prompt.
-* [ ] **Regression Verification**: Ensure that offline database synchronization and backing tracks work correctly post-install.
+- [ ] **Public Metadata Verification**: Fetch metadata parameters:
+  - URL: `https://studio-30f44.web.app/version.json` -> verify version matches the tag.
+  - URL: `https://studio-30f44.web.app/app-release.json` -> verify `apkUrl`, `sha256`, and `versionCode` are correct.
+- [ ] **Updater Auto-Detect**: Launch an older app version and verify that it detects the new version, downloads it, and launches the install prompt.
+- [ ] **Regression Verification**: Ensure that offline database synchronization and backing tracks work correctly post-install.
 
 Source:
-* `packages/studio-core/src/lib/updater/index.ts`
+
+- `packages/studio-core/src/lib/updater/index.ts`
 
 ---
 
@@ -100,8 +107,9 @@ Web application compilation and deployment are managed via Netlify:
 - **Cache Invalidation**: Netlify deployment hooks clear standard CDN caches. Hashed files in `/assets/**` are marked as immutable for browser caching, while `/index.html` and service worker files (`/sw.js`) are configured with `no-store` headers to guarantee instant updates.
 
 Source:
-* [netlify.toml](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/netlify.toml)
-* [UPDATE_PIPELINE_NOTES.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/UPDATE_PIPELINE_NOTES.md#L7-L20)
+
+- [netlify.toml](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/netlify.toml)
+- [UPDATE_PIPELINE_NOTES.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/UPDATE_PIPELINE_NOTES.md#L7-L20)
 
 ---
 
@@ -118,8 +126,7 @@ When a critical bug is discovered in production:
 4.  **Cherry-pick / Merge**: Merge the hotfix branch back to `main` via PR, and cherry-pick to any active release branches.
 5.  **Trigger Release**: Manually trigger the release workflow on GitHub Actions. Incremented `versionCode` (+1) is mandatory.
 
-Source:
-* 
+Source: *
 
 ---
 
@@ -128,20 +135,23 @@ Source:
 Follow these steps to revert a deployment in case of critical production failures:
 
 ### A. Web Rollback (Netlify)
+
 If a web deployment introduces breaking regressions:
+
 1.  Navigate to the Netlify Dashboard > **Deploys**.
 2.  Select the last stable deploy from the history list.
 3.  Click **Preview** to verify, then click **Publish Deploy** to lock the production build to that previous stable revision.
 
 ### B. Android Rollback
+
 If a published APK update is broken, the update state machine will trigger rollback fallback recovery mechanisms:
+
 1.  **Client-Side Auto-Recovery**: If the app fails to boot or update successfully, the client registers `consecutiveFailures: 5` and transitions to Recovery Mode. This deletes the cached broken APK, resets providers, and prompts the user with diagnostics options.
 2.  **Server-Side Revocation**: To stop the rollout of a broken update immediately:
     - Update `app-release.json` on Firebase Hosting to point to the previous stable `versionCode`, `versionName`, and `apkUrl` hash.
     - Android clients fetching the metadata will see that their active version is equal to or greater than the target, aborting the download prompt.
 
-Source:
-* 
+Source: *
 
 ---
 

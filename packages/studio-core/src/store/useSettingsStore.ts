@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+import { applyThemeTokens } from '../lib/preferences/themeEngine';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
 import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n';
-import { secureReadLocal, secureWriteLocal } from '../lib/security';
+import { settingsRepository } from '../repositories/SettingsRepository';
 import type { Instrument } from '../data/chords';
 
 export type Theme = 'dark' | 'light' | 'system' | 'dynamic';
@@ -234,7 +235,7 @@ export const useSettingsStore = create<SettingsStore>()(
       migrate: (persistedState: any, version: number) => {
         if (version === 0) {
           try {
-            const raw = secureReadLocal('chord-explorer-storage-v3');
+            const raw = settingsRepository.readLegacyRawState();
             if (raw) {
               const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
               if (parsed && parsed.state) {
@@ -247,20 +248,29 @@ export const useSettingsStore = create<SettingsStore>()(
               }
             }
           } catch (e) {
-            console.warn('Failed to migrate old settings from chord-explorer-storage-v3', e);
           }
         }
         return persistedState;
       },
       storage: createJSONStorage(() => ({
-        getItem: (name) => secureReadLocal(name),
-        setItem: (name, value) => secureWriteLocal(name, value),
-        removeItem: (name) => {
-          if (typeof window !== 'undefined') {
-            window.localStorage.removeItem(name);
-          }
-        },
+        getItem: () => settingsRepository.readRawState(),
+        setItem: (_, value) => settingsRepository.writeRawState(value),
+        removeItem: () => settingsRepository.clearState(),
       })),
     }
   )
 );
+
+
+export const settingsController = {
+  updateSettings: (patch: Partial<AppSettings>) => {
+    useSettingsStore.getState().updateSettings(patch);
+    const updatedSettings = useSettingsStore.getState().settings;
+    if (patch.theme || patch.accentColor || patch.amoledMode !== undefined || patch.customAccentHue !== undefined || patch.displayDensity) {
+      applyThemeTokens(updatedSettings);
+    }
+  },
+  updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => {
+    useSettingsStore.getState().updatePerApp(apps, patch);
+  }
+};

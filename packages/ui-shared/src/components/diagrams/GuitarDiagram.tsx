@@ -27,22 +27,33 @@ const GuitarDiagram = memo(function GuitarDiagram({
   const frets = leftHanded ? [...rawFrets].reverse() : rawFrets;
   const fingers = leftHanded ? [...rawFingers].reverse() : rawFingers;
   const barres = leftHanded
-    ? chordData.barres.map(b => ({ fret: b.fret, fromString: 7 - b.toString, toString: 7 - b.fromString }))
+    ? chordData.barres.map((b) => ({
+        fret: b.fret,
+        fromString: 7 - b.toString,
+        toString: 7 - b.fromString,
+      }))
     : chordData.barres;
   const { baseFret } = chordData;
 
   const sizes = {
-    sm: { width: 130, height: 150, cellW: 18, cellH: 22, dotR: 6,  fontSize: 8,  headerH: 24 },
-    md: { width: 180, height: 210, cellW: 26, cellH: 30, dotR: 8,  fontSize: 10, headerH: 32 },
+    sm: { width: 130, height: 150, cellW: 18, cellH: 22, dotR: 6, fontSize: 8, headerH: 24 },
+    md: { width: 180, height: 210, cellW: 26, cellH: 30, dotR: 8, fontSize: 10, headerH: 32 },
     lg: { width: 240, height: 290, cellW: 36, cellH: 42, dotR: 10, fontSize: 12, headerH: 44 },
   };
 
   const { width, height, cellW, cellH, dotR, fontSize, headerH } = sizes[size];
 
   const numStrings = 6;
-  const positiveFrets = frets.filter(f => f > 0);
+  const positiveFrets = frets.filter((f) => f > 0);
   const maxFret = positiveFrets.length ? Math.max(...positiveFrets) : 1;
-  const numFrets = Math.max(5, maxFret - (baseFret > 1 ? baseFret : Math.max(1, positiveFrets.length ? Math.min(...positiveFrets) : 1)) + 1);
+  const numFrets = Math.max(
+    5,
+    maxFret -
+      (baseFret > 1
+        ? baseFret
+        : Math.max(1, positiveFrets.length ? Math.min(...positiveFrets) : 1)) +
+      1
+  );
   const startX = size === 'lg' ? 30 : size === 'md' ? 22 : 16;
   const startY = headerH + (size === 'lg' ? 14 : 10);
   const boardW = cellW * (numStrings - 1);
@@ -183,10 +194,8 @@ const GuitarDiagram = memo(function GuitarDiagram({
         const label = getNoteLabel(stringIdx);
 
         const stringNum = numStrings - stringIdx;
-        const isBarre = barres.some(b =>
-          b.fret === fret &&
-          stringNum >= b.toString &&
-          stringNum <= b.fromString
+        const isBarre = barres.some(
+          (b) => b.fret === fret && stringNum >= b.toString && stringNum <= b.fromString
         );
 
         return (
@@ -238,8 +247,26 @@ const GuitarDiagram = memo(function GuitarDiagram({
           const d = dotR * 0.48;
           return (
             <g key={`muted-${stringIdx}`}>
-              <line x1={cx - d} y1={cy - d} x2={cx + d} y2={cy + d} stroke="#ee7d77" strokeWidth={1.5} strokeLinecap="round" strokeOpacity={0.9} />
-              <line x1={cx + d} y1={cy - d} x2={cx - d} y2={cy + d} stroke="#ee7d77" strokeWidth={1.5} strokeLinecap="round" strokeOpacity={0.9} />
+              <line
+                x1={cx - d}
+                y1={cy - d}
+                x2={cx + d}
+                y2={cy + d}
+                stroke="#ee7d77"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeOpacity={0.9}
+              />
+              <line
+                x1={cx + d}
+                y1={cy - d}
+                x2={cx - d}
+                y2={cy + d}
+                stroke="#ee7d77"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeOpacity={0.9}
+              />
             </g>
           );
         }

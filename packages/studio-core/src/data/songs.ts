@@ -12,15 +12,15 @@ export type Genre =
 
 export interface ChordMarker {
   chord: string;
-  offset: number;      // Character index in the lyrics line
-  timestamp?: number;  // Optional start time in ms
+  offset: number; // Character index in the lyrics line
+  timestamp?: number; // Optional start time in ms
 }
 
 export interface LyricsLine {
   lyrics: string;
   chords: ChordMarker[];
-  timestamp?: number;  // Optional start time in ms
-  duration?: number;   // Optional duration in ms
+  timestamp?: number; // Optional start time in ms
+  duration?: number; // Optional duration in ms
 }
 
 export interface SongChartSection {
@@ -64,8 +64,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Am', 'C', 'G', 'F'],
     progressionLabel: 'i – bIII – bVII – bVI',
-    description: 'Enjambre’s breakout indie anthem. A driving rhythm with a haunting, melancholic chord progression.',
-    sections: []
+    description:
+      'Enjambre’s breakout indie anthem. A driving rhythm with a haunting, melancholic chord progression.',
+    sections: [],
   },
   {
     id: 'visita',
@@ -82,8 +83,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['C', 'Em', 'F', 'G'],
     progressionLabel: 'I – iii – IV – V',
-    description: 'A romantic indie pop track featuring a bright, optimistic chord sequence with vintage synthesizers.',
-    sections: []
+    description:
+      'A romantic indie pop track featuring a bright, optimistic chord sequence with vintage synthesizers.',
+    sections: [],
   },
   {
     id: 'mania-cardiaca',
@@ -100,8 +102,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Dm', 'A', 'F', 'G'],
     progressionLabel: 'i – V – bIII – IV',
-    description: 'A high-energy classic featuring driving keyboards and dramatic minor-key chord transitions.',
-    sections: []
+    description:
+      'A high-energy classic featuring driving keyboards and dramatic minor-key chord transitions.',
+    sections: [],
   },
   {
     id: 'camara-de-faltas',
@@ -118,8 +121,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['F#m', 'D', 'Bm', 'C#'],
     progressionLabel: 'i – bVI – iv – V',
-    description: 'A smooth, modern track with a groovy rhythm section and lush minor chord changes.',
-    sections: []
+    description:
+      'A smooth, modern track with a groovy rhythm section and lush minor chord changes.',
+    sections: [],
   },
   {
     id: 'somos-ajenos',
@@ -136,8 +140,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Em', 'C', 'Am', 'B'],
     progressionLabel: 'i – bVI – iv – V',
-    description: 'A dynamic synth-rock track exploring themes of alienation with a powerful, emotional minor chorus.',
-    sections: []
+    description:
+      'A dynamic synth-rock track exploring themes of alienation with a powerful, emotional minor chorus.',
+    sections: [],
   },
   {
     id: 'impacto',
@@ -154,8 +159,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['G', 'C', 'D', 'Em'],
     progressionLabel: 'I – IV – V – vi',
-    description: 'An upbeat, organ-driven classic with simple major-key chord changes that generate intense crowd energy.',
-    sections: []
+    description:
+      'An upbeat, organ-driven classic with simple major-key chord changes that generate intense crowd energy.',
+    sections: [],
   },
   {
     id: 'vida-en-el-espejo',
@@ -172,8 +178,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['A', 'C#m', 'D', 'Dm'],
     progressionLabel: 'I – iii – IV – iv',
-    description: 'A melodic, introspective track featuring a classic minor-IV resolution that highlights the nostalgic vocal melody.',
-    sections: []
+    description:
+      'A melodic, introspective track featuring a classic minor-IV resolution that highlights the nostalgic vocal melody.',
+    sections: [],
   },
   {
     id: 'elemento',
@@ -190,8 +197,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Fm', 'Db', 'Bbm', 'C'],
     progressionLabel: 'i – bVI – iv – V',
-    description: 'A heavy, dramatic song with driving guitar lines and dark, complex chord textures.',
-    sections: []
+    description:
+      'A heavy, dramatic song with driving guitar lines and dark, complex chord textures.',
+    sections: [],
   },
   {
     id: 'enemigo',
@@ -208,8 +216,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Bm', 'G', 'D', 'F#'],
     progressionLabel: 'i – bVI – bIII – V',
-    description: 'A tense, upbeat song with alternating synth patterns and sharp, staccato chord accents.',
-    sections: []
+    description:
+      'A tense, upbeat song with alternating synth patterns and sharp, staccato chord accents.',
+    sections: [],
   },
   {
     id: 'y-la-esperanza',
@@ -226,8 +235,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['C#m', 'A', 'E', 'B'],
     progressionLabel: 'i – bVI – bIII – bVII',
-    description: 'A modern, acoustic-mix track carrying themes of resilience with a bright, soaring chorus.',
-    sections: []
+    description:
+      'A modern, acoustic-mix track carrying themes of resilience with a bright, soaring chorus.',
+    sections: [],
   },
   {
     id: 'sabado-perpetuo',
@@ -244,8 +254,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['G#m', 'E', 'C#m', 'D#'],
     progressionLabel: 'i – bVI – iv – V',
-    description: 'An early indie-rock classic driven by sharp guitar parts, prominent bass, and dynamic chord builds.',
-    sections: []
+    description:
+      'An early indie-rock classic driven by sharp guitar parts, prominent bass, and dynamic chord builds.',
+    sections: [],
   },
   {
     id: 'secuaz',
@@ -262,8 +273,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['D', 'F#m', 'G', 'Gm'],
     progressionLabel: 'I – iii – IV – iv',
-    description: 'A laid-back, groovy track utilizing a major-to-minor IV modulation for a warm, nostalgic feel.',
-    sections: []
+    description:
+      'A laid-back, groovy track utilizing a major-to-minor IV modulation for a warm, nostalgic feel.',
+    sections: [],
   },
   {
     id: 'tercer-tipo',
@@ -280,8 +292,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['C', 'Am', 'Dm', 'G'],
     progressionLabel: 'I – vi – ii – V',
-    description: 'A retro-future synth-pop song utilizing a classic I–vi–ii–V progression with modern guitar styling.',
-    sections: []
+    description:
+      'A retro-future synth-pop song utilizing a classic I–vi–ii–V progression with modern guitar styling.',
+    sections: [],
   },
   {
     id: 'nueve',
@@ -298,8 +311,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Am', 'Dm', 'E', 'Am'],
     progressionLabel: 'i – iv – V – i',
-    description: 'A melancholic early work relying heavily on acoustic guitar picking and standard minor chord movements.',
-    sections: []
+    description:
+      'A melancholic early work relying heavily on acoustic guitar picking and standard minor chord movements.',
+    sections: [],
   },
   {
     id: 'de-lunes-a-lunes',
@@ -316,8 +330,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['F', 'Bb', 'C', 'Am'],
     progressionLabel: 'I – IV – V – iii',
-    description: 'A relaxed indie pop song about routine, using simple major scale changes for a comforting texture.',
-    sections: []
+    description:
+      'A relaxed indie pop song about routine, using simple major scale changes for a comforting texture.',
+    sections: [],
   },
   {
     id: 'rosa-nautica',
@@ -334,8 +349,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Em', 'G', 'D', 'C'],
     progressionLabel: 'i – bIII – bVII – bVI',
-    description: 'A dreamy, soaring song featuring lush background vocals and expansive guitar textures.',
-    sections: []
+    description:
+      'A dreamy, soaring song featuring lush background vocals and expansive guitar textures.',
+    sections: [],
   },
   {
     id: 'divergencia',
@@ -352,8 +368,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['A', 'D', 'E', 'F#m'],
     progressionLabel: 'I – IV – V – vi',
-    description: 'A danceable, high-tempo synth track with simple major power movements and classic hook melodies.',
-    sections: []
+    description:
+      'A danceable, high-tempo synth track with simple major power movements and classic hook melodies.',
+    sections: [],
   },
   {
     id: 'el-ultimo-tema',
@@ -370,8 +387,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['C', 'F', 'G', 'C'],
     progressionLabel: 'I – IV – V – I',
-    description: 'A quiet acoustic ballad meant to close live sets, featuring simple progressions and strong vocal harmonies.',
-    sections: []
+    description:
+      'A quiet acoustic ballad meant to close live sets, featuring simple progressions and strong vocal harmonies.',
+    sections: [],
   },
   {
     id: 'madrugada',
@@ -388,8 +406,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['G#m', 'D#', 'E', 'B'],
     progressionLabel: 'i – V – bVI – bIII',
-    description: 'A slow-burning introspective track that captures the quiet stillness of the early morning hours.',
-    sections: []
+    description:
+      'A slow-burning introspective track that captures the quiet stillness of the early morning hours.',
+    sections: [],
   },
   {
     id: 'relampago',
@@ -406,8 +425,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['F#m', 'D', 'A', 'E'],
     progressionLabel: 'i – bVI – bIII – bVII',
-    description: 'A fast-paced, high-energy rock song characterized by heavy guitar distortion and intense drum patterns.',
-    sections: []
+    description:
+      'A fast-paced, high-energy rock song characterized by heavy guitar distortion and intense drum patterns.',
+    sections: [],
   },
   {
     id: 'cobarde',
@@ -424,8 +444,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Am', 'Dm', 'G', 'C'],
     progressionLabel: 'i – iv – bVII – bIII',
-    description: 'A powerful indie ballad that starts softly and builds into an emotional vocal climax.',
-    sections: []
+    description:
+      'A powerful indie ballad that starts softly and builds into an emotional vocal climax.',
+    sections: [],
   },
   {
     id: 'ausencia-de-retorno',
@@ -442,8 +463,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Em', 'Am', 'C', 'B7'],
     progressionLabel: 'i – iv – bVI – V7',
-    description: 'A classic early track demonstrating the band’s signature blend of vintage and modern sounds.',
-    sections: []
+    description:
+      'A classic early track demonstrating the band’s signature blend of vintage and modern sounds.',
+    sections: [],
   },
   {
     id: 'fe-linea-de-frente',
@@ -460,8 +482,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Dm', 'Gm', 'C', 'F'],
     progressionLabel: 'i – iv – bVII – bIII',
-    description: 'An energetic early track featuring shifting structures and complex keyboard melodies.',
-    sections: []
+    description:
+      'An energetic early track featuring shifting structures and complex keyboard melodies.',
+    sections: [],
   },
   {
     id: 'nudo',
@@ -478,8 +501,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Bm', 'Em', 'A', 'F#m'],
     progressionLabel: 'i – iv – bVII – v',
-    description: 'An intimate, acoustic-heavy ballad built on arpeggiated guitar parts and dramatic dynamic swells.',
-    sections: []
+    description:
+      'An intimate, acoustic-heavy ballad built on arpeggiated guitar parts and dramatic dynamic swells.',
+    sections: [],
   },
   {
     id: 'espacio-vacio',
@@ -496,8 +520,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Am', 'F', 'C', 'G'],
     progressionLabel: 'i – bVI – bIII – bVII',
-    description: 'A spacious, retro-leaning song featuring sparse instrumentation and a deep, repeating groove.',
-    sections: []
+    description:
+      'A spacious, retro-leaning song featuring sparse instrumentation and a deep, repeating groove.',
+    sections: [],
   },
   {
     id: 'tulipanes',
@@ -514,8 +539,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['C', 'F', 'Am', 'G'],
     progressionLabel: 'I – IV – vi – V',
-    description: 'A bright acoustic-pop track with warm backing synthesizers and straightforward chord transitions.',
-    sections: []
+    description:
+      'A bright acoustic-pop track with warm backing synthesizers and straightforward chord transitions.',
+    sections: [],
   },
   {
     id: 'enredado',
@@ -532,8 +558,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Dm', 'Bb', 'F', 'C'],
     progressionLabel: 'i – bVI – bIII – bVII',
-    description: 'A driving, synthesizer-heavy track featuring fast chord changes and a punchy drum loop.',
-    sections: []
+    description:
+      'A driving, synthesizer-heavy track featuring fast chord changes and a punchy drum loop.',
+    sections: [],
   },
   {
     id: 'estentoreo',
@@ -550,8 +577,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Em', 'Cmaj7', 'Am7', 'B7'],
     progressionLabel: 'i – bVI7 – iv7 – V7',
-    description: 'A modern jazz-tinged indie rock track with complex bass movement and rich 7th chord voicings.',
-    sections: []
+    description:
+      'A modern jazz-tinged indie rock track with complex bass movement and rich 7th chord voicings.',
+    sections: [],
   },
   {
     id: 'hematoma',
@@ -568,8 +596,9 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['Am', 'E', 'F', 'C'],
     progressionLabel: 'i – V – bVI – bIII',
-    description: 'A tense, guitar-focused track with alternating clean chords and distorted power runs.',
-    sections: []
+    description:
+      'A tense, guitar-focused track with alternating clean chords and distorted power runs.',
+    sections: [],
   },
   {
     id: 'intruso',
@@ -586,7 +615,8 @@ export const ENJAMBRE_SONGS: SongChart[] = [
     availabilityStatus: 'available',
     progression: ['F#m', 'D', 'Bm', 'C#'],
     progressionLabel: 'i – bVI – iv – V',
-    description: 'A dramatic synth-rock track featuring shifting dynamic sections and heavy chord drops.',
-    sections: []
-  }
+    description:
+      'A dramatic synth-rock track featuring shifting dynamic sections and heavy chord drops.',
+    sections: [],
+  },
 ];

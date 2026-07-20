@@ -1,3 +1,4 @@
+import { NavigationDispatcher } from '@workspace/studio-core';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { useChordStore, globalUpdateState, useSettingsStore } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
@@ -653,11 +654,6 @@ export class ErrorBoundary extends Component<Props, State> {
       const duration = Date.now() - this.errorTimestamp;
       localStorage.setItem('studio_rootapp_last_error_duration', String(duration));
       localStorage.setItem('studio_rootapp_last_error_suppressed', 'true');
-
-      console.warn(
-        `[ErrorBoundary] RootApp error recovered successfully in ${duration}ms! Logging as RECOVERABLE_ROOTAPP_ERROR_DURING_RETURN.`
-      );
-
       try {
         // Update the last error boundary log to indicate it was suppressed and recovered
         const errorLogStr = localStorage.getItem('studio_rootapp_error_boundary_log') || '[]';

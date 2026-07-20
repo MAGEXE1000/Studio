@@ -37,7 +37,7 @@ Search the project for:
 
 ## 4. Shared-First Development
 
-Always ask: *"Can this become a shared implementation?"*
+Always ask: _"Can this become a shared implementation?"_
 
 If the answer is yes, implement it once. Every application should consume the shared implementation. Avoid per-app implementations unless absolutely necessary.
 
@@ -138,16 +138,16 @@ If the task includes a release:
 
 Always follow:
 
-| Principle | Description |
-|---|---|
-| **SOLID** | Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion |
-| **DRY** | Don't repeat yourself — one implementation, multiple consumers |
-| **KISS** | Keep it simple — avoid unnecessary abstractions |
-| **Clean Architecture** | Separation of concerns, dependency direction |
-| **Clean Code** | Readable, self-documenting, well-named |
-| **Composition over Duplication** | Compose shared primitives instead of duplicating logic |
-| **Shared-First** | Shared systems over per-app systems |
-| **Root-Cause Fixes** | Root-cause fixes over workarounds |
-| **Long-Term Maintainability** | Long-term maintainability over short-term speed |
+| Principle                        | Description                                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **SOLID**                        | Single responsibility, open/closed, Liskov substitution, interface segregation, dependency inversion |
+| **DRY**                          | Don't repeat yourself — one implementation, multiple consumers                                       |
+| **KISS**                         | Keep it simple — avoid unnecessary abstractions                                                      |
+| **Clean Architecture**           | Separation of concerns, dependency direction                                                         |
+| **Clean Code**                   | Readable, self-documenting, well-named                                                               |
+| **Composition over Duplication** | Compose shared primitives instead of duplicating logic                                               |
+| **Shared-First**                 | Shared systems over per-app systems                                                                  |
+| **Root-Cause Fixes**             | Root-cause fixes over workarounds                                                                    |
+| **Long-Term Maintainability**    | Long-term maintainability over short-term speed                                                      |
 
 The objective is to keep Livex unified, maintainable, scalable, and production-ready for years.

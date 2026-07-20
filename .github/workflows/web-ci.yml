@@ -38,7 +38,7 @@ jobs:
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      VITE_SYNC_BACKEND_PROVIDER: "supabase-realtime"
+      VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
 
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +57,12 @@ jobs:
 
       - name: Validate Documentation
         run: pnpm docs:validate
+
+      - name: Check Formatting
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Enforce Import Boundaries
         run: pnpm lint:imports

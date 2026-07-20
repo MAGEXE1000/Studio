@@ -12,7 +12,8 @@ Chordex Studio relies exclusively on **Firebase Authentication** for identity ma
 2.  **Email & Password**: Standard password authorization (`signInEmail`, `registerEmail`, `sendPasswordReset`).
 
 Source:
-* [auth.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/auth.ts#L1-L20)
+
+- [auth.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/auth.ts#L1-L20)
 
 ---
 
@@ -41,15 +42,19 @@ Because the application runs as both a native Android APK (under Capacitor) and 
 ```
 
 ### A. Web / PWA Flow
+
 Standard browser authentication uses the Firebase Web JS SDK directly. It attempts `signInWithPopup` first and falls back to `signInWithRedirect` if popup blockers prevent the window from opening.
 
 ### B. Native Android APK Flow
-The Firebase Web JS SDK's popup/redirect workflows fail inside Capacitor's Webview envelope because sessionStorage and initial states are lost on redirect. 
+
+The Firebase Web JS SDK's popup/redirect workflows fail inside Capacitor's Webview envelope because sessionStorage and initial states are lost on redirect.
+
 1.  **Native Plugin**: The app uses `@capacitor-firebase/authentication` in `skipNativeAuth: true` mode. It launches the native Google Sign-In SDK dialog to authenticate the user and obtain an `idToken`.
 2.  **JS SDK Bridge**: The native plugin passes the `idToken` to the javascript execution context, which logs in to the Firebase JS SDK via `signInWithCredential(GoogleAuthProvider.credential(idToken))`.
 
 Source:
-* [auth.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/auth.ts#L70-L157)
+
+- [auth.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/auth.ts#L70-L157)
 
 ---
 
@@ -66,8 +71,9 @@ Source:
 4.  **Logout**: `signOut()` executes the Firebase logout function (`fbSignOut`), clears local tokens via `setFirebaseIdToken(null)`, and invokes `clearSubscriptions()` to unsubscribe all Realtime channels.
 
 Source:
-* [auth.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/auth.ts#L42-L67)
-* [supabaseRealtime.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/supabaseRealtime.ts#L250-L295)
+
+- [auth.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/auth.ts#L42-L67)
+- [supabaseRealtime.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/supabaseRealtime.ts#L250-L295)
 
 ---
 
@@ -81,4 +87,5 @@ Source:
 - **Client Sanitization**: All client databases purge temporary caches upon provider or auth changes to prevent caching data across accounts.
 
 Source:
-* [AGENTS.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/AGENTS.md#L85-L90)
+
+- [AGENTS.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/AGENTS.md#L85-L90)

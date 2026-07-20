@@ -44,20 +44,20 @@ for (const pkg of pkgs) {
 const fileLinks = [
   {
     link: 'packages/ui-web/src/components/ChordexLogo.tsx',
-    target: 'packages/ui-shared/src/components/ChordexLogo.tsx'
+    target: 'packages/ui-shared/src/components/ChordexLogo.tsx',
   },
   {
     link: 'packages/ui-android/src/components/StudioProgressBar.tsx',
-    target: 'packages/ui-shared/src/components/StudioProgressBar.tsx'
+    target: 'packages/ui-shared/src/components/StudioProgressBar.tsx',
   },
   {
     link: 'packages/ui-android/src/components/StudioUpdateAuroraBackground.tsx',
-    target: 'packages/ui-shared/src/components/StudioUpdateAuroraBackground.tsx'
+    target: 'packages/ui-shared/src/components/StudioUpdateAuroraBackground.tsx',
   },
   {
     link: 'packages/ui-android/src/components/StudioCountUpPercentage.tsx',
-    target: 'packages/ui-shared/src/components/StudioCountUpPercentage.tsx'
-  }
+    target: 'packages/ui-shared/src/components/StudioCountUpPercentage.tsx',
+  },
 ];
 
 for (const entry of fileLinks) {

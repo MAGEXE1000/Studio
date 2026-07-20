@@ -1,6 +1,4 @@
-// Chordex feature — public API barrel
+// Chordex feature ï¿½ public API barrel
 export { default as ChordPanel } from './pages/ChordPanel';
 export { default as LibraryPanel } from './pages/LibraryPanel';
 export { default as SongsPanel } from './pages/SongsPanel';
-export * from './state/index';
-export * from './types/index';

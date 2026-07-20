@@ -13,63 +13,79 @@ const CONCEPTS: TransitionConcept[] = [
   {
     id: 'liquid-wave',
     name: 'Liquid Wave',
-    description: 'A beautiful diagonal bezier liquid wave clip-path sweep that glides across the screen.',
-    notes: 'Uses GPU-accelerated CSS clip-paths. Avoids main thread layout invalidations. Highly performant on WebView.'
+    description:
+      'A beautiful diagonal bezier liquid wave clip-path sweep that glides across the screen.',
+    notes:
+      'Uses GPU-accelerated CSS clip-paths. Avoids main thread layout invalidations. Highly performant on WebView.',
   },
   {
     id: 'glass-ripple',
     name: 'Glass Ripple',
-    description: 'A concentric ripple expanding from touch coordinates with a frosted glass refraction effect.',
-    notes: 'Leverages CSS backdrop-filter with scale transforms. Moderate GPU load due to dynamic blur calculations.'
+    description:
+      'A concentric ripple expanding from touch coordinates with a frosted glass refraction effect.',
+    notes:
+      'Leverages CSS backdrop-filter with scale transforms. Moderate GPU load due to dynamic blur calculations.',
   },
   {
     id: 'fluid-bloom',
     name: 'Fluid Bloom',
     description: 'A hardware-accelerated brightness bloom and chromatic saturation pulse reveal.',
-    notes: 'Combines CSS filters (brightness, contrast, saturate) with circular clip-paths. Outstanding frame pacing.'
+    notes:
+      'Combines CSS filters (brightness, contrast, saturate) with circular clip-paths. Outstanding frame pacing.',
   },
   {
     id: 'radial-flow',
     name: 'Radial Surface Flow',
-    description: 'A multi-layered swirling gradient circle expanding outward from the touch position.',
-    notes: 'Uses multi-stop radial gradient backgrounds on a GPU-composited overlay layer.'
+    description:
+      'A multi-layered swirling gradient circle expanding outward from the touch position.',
+    notes: 'Uses multi-stop radial gradient backgrounds on a GPU-composited overlay layer.',
   },
   {
     id: 'ink-spread',
     name: 'Dynamic Ink Spread',
-    description: 'An organic, ink-blot spread using SVG turbulence and gooey threshold matrix filters.',
-    notes: 'Computationally heavy. SVG feTurbulence filters require CPU rasterization on older WebView engines, resulting in minor jank.'
+    description:
+      'An organic, ink-blot spread using SVG turbulence and gooey threshold matrix filters.',
+    notes:
+      'Computationally heavy. SVG feTurbulence filters require CPU rasterization on older WebView engines, resulting in minor jank.',
   },
   {
     id: 'gradient-field',
     name: 'Expanding Gradient Field',
-    description: 'Shifting conic and radial gradients blending across the surface during transition.',
-    notes: 'Implements opacity cross-fades of pre-rendered gradient vectors to prevent runtime gradient recalculation.'
+    description:
+      'Shifting conic and radial gradients blending across the surface during transition.',
+    notes:
+      'Implements opacity cross-fades of pre-rendered gradient vectors to prevent runtime gradient recalculation.',
   },
   {
     id: 'chromatic-pulse',
     name: 'Soft Chromatic Pulse',
     description: 'A fast circular reveal that splits RGB channels momentarily before settling.',
-    notes: 'Duplicates the layer into three composited elements offset by color-matrix shifts. Medium fill cost.'
+    notes:
+      'Duplicates the layer into three composited elements offset by color-matrix shifts. Medium fill cost.',
   },
   {
     id: 'glass-morph',
     name: 'Glass Morph',
-    description: 'Heavily blurred frost-glass overlay sliding in and dissolving into the new theme.',
-    notes: 'Utilizes high-radius backdrop-filter blurs. Double-buffered layer increases memory usage during animation.'
+    description:
+      'Heavily blurred frost-glass overlay sliding in and dissolving into the new theme.',
+    notes:
+      'Utilizes high-radius backdrop-filter blurs. Double-buffered layer increases memory usage during animation.',
   },
   {
     id: 'energy-prop',
     name: 'Energy Propagation',
-    description: 'A glowing lightning-like neon ring propagating outward from the click with subtle sparks.',
-    notes: 'Draws a canvas-rendered neon ring overlay. Bypasses React updates for 60fps particle logic.'
+    description:
+      'A glowing lightning-like neon ring propagating outward from the click with subtle sparks.',
+    notes:
+      'Draws a canvas-rendered neon ring overlay. Bypasses React updates for 60fps particle logic.',
   },
   {
     id: 'diffusion',
     name: 'Surface Diffusion',
     description: 'A granular pixel noise/dither dissolve wave spreading across the screen.',
-    notes: 'Uses a dynamic CSS mask-image with dithered SVG patterns. Excellent retro dither aesthetic.'
-  }
+    notes:
+      'Uses a dynamic CSS mask-image with dithered SVG patterns. Excellent retro dither aesthetic.',
+  },
 ];
 
 interface MotionPlaygroundViewProps {
@@ -88,28 +104,28 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
     fps: 60,
     drops: 0,
     time: 0,
-    active: false
+    active: false,
   });
 
   const transitionFrameRef = useRef<number | null>(null);
 
-  const activeConcept = CONCEPTS.find(c => c.id === selectedConcept) || CONCEPTS[0];
+  const activeConcept = CONCEPTS.find((c) => c.id === selectedConcept) || CONCEPTS[0];
 
   const triggerTransition = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (isTransitioning) return;
-    
+
     // Capture relative coordinates inside the phone screen mockup
     const rect = e.currentTarget.getBoundingClientRect();
     const parentRect = e.currentTarget.parentElement?.getBoundingClientRect();
     if (parentRect) {
       setClickCoord({
         x: rect.left - parentRect.left + rect.width / 2,
-        y: rect.top - parentRect.top + rect.height / 2
+        y: rect.top - parentRect.top + rect.height / 2,
       });
     }
 
     setIsTransitioning(true);
-    setTelemetry(prev => ({ ...prev, active: true, time: 0, drops: 0, fps: 60 }));
+    setTelemetry((prev) => ({ ...prev, active: true, time: 0, drops: 0, fps: 60 }));
 
     const duration = 650; // ms
     const startTime = performance.now();
@@ -139,10 +155,10 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
           fps: calculatedFps,
           drops: jankCount,
           time: parseFloat(finalTime.toFixed(1)),
-          active: false
+          active: false,
         });
         setIsTransitioning(false);
-        setSimulatedTheme(prev => prev === 'light' ? 'dark' : 'light');
+        setSimulatedTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
       }
     };
 
@@ -158,22 +174,31 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--app-bg)' }}>
-      {/* HEADER */}
-      <div style={{
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-        paddingBottom: '16px',
-        paddingLeft: '20px',
-        paddingRight: '20px',
-        borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+    <div
+      style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
+        height: '100%',
         background: 'var(--app-bg)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
+      }}
+    >
+      {/* HEADER */}
+      <div
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingBottom: '16px',
+          paddingLeft: '20px',
+          paddingRight: '20px',
+          borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'var(--app-bg)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             onClick={onBack}
@@ -188,32 +213,56 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: 'var(--c-text-primary)'
+              color: 'var(--c-text-primary)',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+              arrow_back
+            </span>
           </button>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', margin: 0 }}>Theme Laboratory</h2>
-            <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>Flagship Transition Architect Playground</p>
+            <h2
+              style={{
+                fontSize: '18px',
+                fontWeight: 800,
+                color: 'var(--c-text-primary)',
+                margin: 0,
+              }}
+            >
+              Theme Laboratory
+            </h2>
+            <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>
+              Flagship Transition Architect Playground
+            </p>
           </div>
         </div>
       </div>
 
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '20px',
-        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 20
-      }}>
-        
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '20px',
+          paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 20,
+        }}
+      >
         {/* SELECT CONCEPT */}
-        <div style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--c-text-secondary)', letterSpacing: '0.05em' }}>
+        <div
+          style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 6 }}
+        >
+          <label
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              color: 'var(--c-text-secondary)',
+              letterSpacing: '0.05em',
+            }}
+          >
             Select Transition Concept
           </label>
           <select
@@ -229,78 +278,128 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
               fontSize: 14,
               fontWeight: 600,
               cursor: 'pointer',
-              outline: 'none'
+              outline: 'none',
             }}
           >
-            {CONCEPTS.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+            {CONCEPTS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
 
         {/* PREVIEW CONTAINER */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 16,
-          background: 'var(--app-surface-high)',
-          borderRadius: 24,
-          padding: 24,
-          border: '1px solid rgba(128,128,128,0.08)',
-          width: '100%',
-          maxWidth: 440,
-          boxSizing: 'border-box'
-        }}>
-          {/* Phone Aspect Viewport Mockup */}
-          <div style={{
-            position: 'relative',
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16,
+            background: 'var(--app-surface-high)',
+            borderRadius: 24,
+            padding: 24,
+            border: '1px solid rgba(128,128,128,0.08)',
             width: '100%',
-            maxWidth: 240,
-            aspectRatio: '9/16',
-            borderRadius: 32,
-            border: '6px solid #1a1a20',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
-            overflow: 'hidden',
-            background: simulatedTheme === 'dark' ? '#0a0a0c' : '#f8f9fa',
-            color: simulatedTheme === 'dark' ? '#ffffff' : '#111827',
-            transition: isTransitioning ? 'none' : 'background 300ms ease, color 300ms ease'
-          }}>
+            maxWidth: 440,
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Phone Aspect Viewport Mockup */}
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: 240,
+              aspectRatio: '9/16',
+              borderRadius: 32,
+              border: '6px solid #1a1a20',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+              overflow: 'hidden',
+              background: simulatedTheme === 'dark' ? '#0a0a0c' : '#f8f9fa',
+              color: simulatedTheme === 'dark' ? '#ffffff' : '#111827',
+              transition: isTransitioning ? 'none' : 'background 300ms ease, color 300ms ease',
+            }}
+          >
             {/* Simulated App Content Layout */}
-            <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, height: '100%', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+              style={{
+                padding: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+                height: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <span style={{ fontSize: 10, fontWeight: 700, opacity: 0.6 }}>LIVEX STUDIO</span>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>signal_cellular_alt</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  signal_cellular_alt
+                </span>
               </div>
 
               <div style={{ marginTop: 8 }}>
                 <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 2px' }}>Workspace</h4>
-                <p style={{ fontSize: 10, opacity: 0.6, margin: 0 }}>Simulated Laboratory Environment</p>
+                <p style={{ fontSize: 10, opacity: 0.6, margin: 0 }}>
+                  Simulated Laboratory Environment
+                </p>
               </div>
 
               {/* Cards Mockup */}
-              <div style={{
-                background: simulatedTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                borderRadius: 14,
-                padding: 12,
-                border: '1px solid rgba(128,128,128,0.08)'
-              }}>
+              <div
+                style={{
+                  background:
+                    simulatedTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                  borderRadius: 14,
+                  padding: 12,
+                  border: '1px solid rgba(128,128,128,0.08)',
+                }}
+              >
                 <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>Primary Core</div>
-                <div style={{ width: '80%', height: 6, borderRadius: 3, background: accent.from }} />
+                <div
+                  style={{ width: '80%', height: 6, borderRadius: 3, background: accent.from }}
+                />
               </div>
 
-              <div style={{
-                background: simulatedTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                borderRadius: 14,
-                padding: 12,
-                border: '1px solid rgba(128,128,128,0.08)',
-                flex: 1
-              }}>
+              <div
+                style={{
+                  background:
+                    simulatedTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                  borderRadius: 14,
+                  padding: 12,
+                  border: '1px solid rgba(128,128,128,0.08)',
+                  flex: 1,
+                }}
+              >
                 <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>AppTelemetry</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ height: 5, borderRadius: 2, background: 'rgba(128,128,128,0.2)', width: '90%' }} />
-                  <div style={{ height: 5, borderRadius: 2, background: 'rgba(128,128,128,0.2)', width: '70%' }} />
-                  <div style={{ height: 5, borderRadius: 2, background: 'rgba(128,128,128,0.2)', width: '85%' }} />
+                  <div
+                    style={{
+                      height: 5,
+                      borderRadius: 2,
+                      background: 'rgba(128,128,128,0.2)',
+                      width: '90%',
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: 5,
+                      borderRadius: 2,
+                      background: 'rgba(128,128,128,0.2)',
+                      width: '70%',
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: 5,
+                      borderRadius: 2,
+                      background: 'rgba(128,128,128,0.2)',
+                      width: '85%',
+                    }}
+                  />
                 </div>
               </div>
 
@@ -322,7 +421,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                   justifyContent: 'center',
                   cursor: 'pointer',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                  zIndex: 20
+                  zIndex: 20,
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
@@ -343,7 +442,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                     inset: 0,
                     zIndex: 10,
                     pointerEvents: 'none',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
                   }}
                 >
                   {/* CONCEPT 1: Liquid Wave */}
@@ -355,7 +454,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c'
+                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c',
                       }}
                     />
                   )}
@@ -376,7 +475,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                         background: 'rgba(255,255,255,0.15)',
                         backdropFilter: 'blur(16px)',
                         WebkitBackdropFilter: 'blur(16px)',
-                        border: '2px solid rgba(255,255,255,0.3)'
+                        border: '2px solid rgba(255,255,255,0.3)',
                       }}
                     />
                   )}
@@ -395,7 +494,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                         height: 80,
                         borderRadius: '50%',
                         background: accent.from,
-                        opacity: 0.8
+                        opacity: 0.8,
                       }}
                     />
                   )}
@@ -413,7 +512,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                         width: 100,
                         height: 100,
                         borderRadius: '50%',
-                        background: `radial-gradient(circle, ${accent.from} 0%, ${accent.to} 100%)`
+                        background: `radial-gradient(circle, ${accent.from} 0%, ${accent.to} 100%)`,
                       }}
                     />
                   )}
@@ -430,7 +529,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                         top: clickCoord.y - 50,
                         width: 100,
                         height: 100,
-                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c'
+                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c',
                       }}
                     />
                   )}
@@ -444,7 +543,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: `linear-gradient(135deg, ${accent.from} 0%, var(--app-bg) 100%)`
+                        background: `linear-gradient(135deg, ${accent.from} 0%, var(--app-bg) 100%)`,
                       }}
                     />
                   )}
@@ -464,7 +563,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                           height: 100,
                           borderRadius: '50%',
                           background: 'rgba(239, 68, 68, 0.4)',
-                          mixBlendMode: 'screen'
+                          mixBlendMode: 'screen',
                         }}
                       />
                       <motion.div
@@ -479,7 +578,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                           height: 100,
                           borderRadius: '50%',
                           background: 'rgba(59, 130, 246, 0.4)',
-                          mixBlendMode: 'screen'
+                          mixBlendMode: 'screen',
                         }}
                       />
                     </div>
@@ -489,13 +588,16 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                   {selectedConcept === 'glass-morph' && (
                     <motion.div
                       initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                      animate={{ opacity: [1, 1, 0], backdropFilter: ['blur(0px)', 'blur(20px)', 'blur(0px)'] }}
+                      animate={{
+                        opacity: [1, 1, 0],
+                        backdropFilter: ['blur(0px)', 'blur(20px)', 'blur(0px)'],
+                      }}
                       transition={{ duration: 0.65 }}
                       style={{
                         position: 'absolute',
                         inset: 0,
                         background: 'rgba(128,128,128,0.1)',
-                        WebkitBackdropFilter: 'blur(20px)'
+                        WebkitBackdropFilter: 'blur(20px)',
                       }}
                     />
                   )}
@@ -503,8 +605,16 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                   {/* CONCEPT 9: Energy Propagation */}
                   {selectedConcept === 'energy-prop' && (
                     <motion.div
-                      initial={{ scale: 0, border: '4px solid #3b82f6', boxShadow: '0 0 0px #3b82f6' }}
-                      animate={{ scale: 6, border: '1px solid #10b981', boxShadow: '0 0 20px #10b981' }}
+                      initial={{
+                        scale: 0,
+                        border: '4px solid #3b82f6',
+                        boxShadow: '0 0 0px #3b82f6',
+                      }}
+                      animate={{
+                        scale: 6,
+                        border: '1px solid #10b981',
+                        boxShadow: '0 0 20px #10b981',
+                      }}
                       transition={{ duration: 0.6, ease: 'easeOut' }}
                       style={{
                         position: 'absolute',
@@ -512,7 +622,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                         top: clickCoord.y - 50,
                         width: 100,
                         height: 100,
-                        borderRadius: '50%'
+                        borderRadius: '50%',
                       }}
                     />
                   )}
@@ -527,8 +637,9 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                         position: 'absolute',
                         inset: 0,
                         background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c',
-                        backgroundImage: 'radial-gradient(rgba(128,128,128,0.15) 1px, transparent 0)',
-                        backgroundSize: '8px 8px'
+                        backgroundImage:
+                          'radial-gradient(rgba(128,128,128,0.15) 1px, transparent 0)',
+                        backgroundSize: '8px 8px',
                       }}
                     />
                   )}
@@ -539,66 +650,129 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
         </div>
 
         {/* METRICS & DESCRIPTION CARD */}
-        <div style={{
-          width: '100%',
-          maxWidth: 440,
-          background: 'var(--app-surface-high)',
-          borderRadius: 20,
-          padding: 20,
-          border: '1px solid rgba(128,128,128,0.08)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          boxSizing: 'border-box'
-        }}>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 440,
+            background: 'var(--app-surface-high)',
+            borderRadius: 20,
+            padding: 20,
+            border: '1px solid rgba(128,128,128,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            boxSizing: 'border-box',
+          }}
+        >
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px' }}>
+            <h3
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px',
+              }}
+            >
               {activeConcept.name}
             </h3>
-            <p style={{ fontSize: 11.5, color: 'var(--c-text-secondary)', margin: 0, lineHeight: 1.4 }}>
+            <p
+              style={{
+                fontSize: 11.5,
+                color: 'var(--c-text-secondary)',
+                margin: 0,
+                lineHeight: 1.4,
+              }}
+            >
               {activeConcept.description}
             </p>
           </div>
 
           {/* Dynamic Telemetry Results */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 10,
-            borderTop: '1px solid rgba(128,128,128,0.08)',
-            paddingTop: 16
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 10,
+              borderTop: '1px solid rgba(128,128,128,0.08)',
+              paddingTop: 16,
+            }}
+          >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Performance</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Performance
+              </span>
               <strong style={{ fontSize: 14, color: telemetry.fps >= 58 ? '#10b981' : '#f59e0b' }}>
                 {telemetry.active ? 'Measuring...' : `${telemetry.fps} FPS`}
               </strong>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Frame Time</span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Frame Time
+              </span>
               <strong style={{ fontSize: 14, color: 'var(--c-text-primary)' }}>
                 {telemetry.active ? '...' : `${telemetry.time || '0.0'} ms`}
               </strong>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jank Drops</span>
-              <strong style={{ fontSize: 14, color: telemetry.drops > 0 ? '#ef4444' : 'var(--c-text-secondary)' }}>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Jank Drops
+              </span>
+              <strong
+                style={{
+                  fontSize: 14,
+                  color: telemetry.drops > 0 ? '#ef4444' : 'var(--c-text-secondary)',
+                }}
+              >
                 {telemetry.active ? '...' : telemetry.drops}
               </strong>
             </div>
           </div>
 
           {/* Implementation Notes */}
-          <div style={{
-            background: 'rgba(128, 128, 128, 0.04)',
-            borderRadius: 12,
-            padding: 12,
-            border: '1px solid rgba(128, 128, 128, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4
-          }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div
+            style={{
+              background: 'rgba(128, 128, 128, 0.04)',
+              borderRadius: 12,
+              padding: 12,
+              border: '1px solid rgba(128, 128, 128, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: 'var(--c-text-secondary)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Architecture Implementation Notes
             </span>
             <span style={{ fontSize: 11, color: 'var(--c-text-primary)', lineHeight: 1.4 }}>

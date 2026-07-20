@@ -123,7 +123,7 @@ export function initTracks(
   engine: AudioEngine,
   stems: { name: string; label: string; icon: string }[]
 ): TrackState[] {
-  engine.tracks = stems.map(s => ({
+  engine.tracks = stems.map((s) => ({
     name: s.name,
     label: s.label,
     icon: s.icon,
@@ -134,7 +134,7 @@ export function initTracks(
     source: null,
     gainNode: engine.ctx.createGain(),
   }));
-  engine.tracks.forEach(t => {
+  engine.tracks.forEach((t) => {
     const bus = DRUM_STEM_NAMES.has(t.name) ? engine.drumBus : engine.masterGain;
     t.gainNode!.connect(bus);
   });
@@ -152,7 +152,10 @@ export function setTrackBuffer(engine: AudioEngine, trackIndex: number, buffer: 
 
 export function play(engine: AudioEngine): void {
   if (engine.isPlaying) return;
-  if (engine._rampTimer) { clearTimeout(engine._rampTimer); engine._rampTimer = null; }
+  if (engine._rampTimer) {
+    clearTimeout(engine._rampTimer);
+    engine._rampTimer = null;
+  }
   stopSources(engine);
   const ctx = engine.ctx;
   if (ctx.state === 'suspended') ctx.resume();
@@ -161,7 +164,7 @@ export function play(engine: AudioEngine): void {
   engine.startTime = ctx.currentTime - offset;
   engine.isPlaying = true;
 
-  engine.tracks.forEach(track => {
+  engine.tracks.forEach((track) => {
     if (!track.buffer || !track.gainNode) return;
     const source = ctx.createBufferSource();
     source.buffer = track.buffer;
@@ -194,34 +197,48 @@ export function pause(engine: AudioEngine): void {
   engine.pauseOffset = getCurrentTime(engine);
   engine.isPlaying = false;
 
-  engine.tracks.forEach(track => {
+  engine.tracks.forEach((track) => {
     if (track.source) {
       try {
         track.source.playbackRate.cancelScheduledValues(ctx.currentTime);
-        track.source.playbackRate.setValueAtTime(track.source.playbackRate.value || 1.0, ctx.currentTime);
-        track.source.playbackRate.exponentialRampToValueAtTime(0.01, ctx.currentTime + rampDuration);
+        track.source.playbackRate.setValueAtTime(
+          track.source.playbackRate.value || 1.0,
+          ctx.currentTime
+        );
+        track.source.playbackRate.exponentialRampToValueAtTime(
+          0.01,
+          ctx.currentTime + rampDuration
+        );
       } catch {}
     }
   });
 
   if (engine._rampTimer) clearTimeout(engine._rampTimer);
-  engine._rampTimer = setTimeout(() => {
-    stopSources(engine);
-    engine._rampTimer = null;
-  }, rampDuration * 1000 + 50);
+  engine._rampTimer = setTimeout(
+    () => {
+      stopSources(engine);
+      engine._rampTimer = null;
+    },
+    rampDuration * 1000 + 50
+  );
 }
 
 export function stop(engine: AudioEngine): void {
-  if (engine._rampTimer) { clearTimeout(engine._rampTimer); engine._rampTimer = null; }
+  if (engine._rampTimer) {
+    clearTimeout(engine._rampTimer);
+    engine._rampTimer = null;
+  }
   stopSources(engine);
   engine.isPlaying = false;
   engine.pauseOffset = 0;
 }
 
 function stopSources(engine: AudioEngine): void {
-  engine.tracks.forEach(track => {
+  engine.tracks.forEach((track) => {
     if (track.source) {
-      try { track.source.stop(); } catch {}
+      try {
+        track.source.stop();
+      } catch {}
       track.source.disconnect();
       track.source = null;
     }
@@ -230,7 +247,7 @@ function stopSources(engine: AudioEngine): void {
 
 function startSourcesAtOffset(engine: AudioEngine, offset: number): void {
   const ctx = engine.ctx;
-  engine.tracks.forEach(track => {
+  engine.tracks.forEach((track) => {
     if (!track.buffer || !track.gainNode) return;
     const source = ctx.createBufferSource();
     source.buffer = track.buffer;
@@ -243,7 +260,9 @@ function startSourcesAtOffset(engine: AudioEngine, offset: number): void {
       source.onended = () => {
         if (engine.isPlaying) {
           const songPos = getCurrentTime(engine);
-          if (songPos >= engine.duration - 0.1) { stop(engine); }
+          if (songPos >= engine.duration - 0.1) {
+            stop(engine);
+          }
         }
       };
     }
@@ -253,7 +272,10 @@ function startSourcesAtOffset(engine: AudioEngine, offset: number): void {
 
 export function seek(engine: AudioEngine, time: number): void {
   const wasPlaying = engine.isPlaying;
-  if (engine._rampTimer) { clearTimeout(engine._rampTimer); engine._rampTimer = null; }
+  if (engine._rampTimer) {
+    clearTimeout(engine._rampTimer);
+    engine._rampTimer = null;
+  }
   if (wasPlaying) stopSources(engine);
   engine.pauseOffset = Math.max(0, Math.min(time, engine.duration));
   engine.isPlaying = false;
@@ -284,9 +306,11 @@ export function scrubSeek(engine: AudioEngine, delta: number): void {
   if (delta > 0.003) mult = 2.5;
   else if (delta < -0.003) mult = 0.2;
   else mult = 0.7;
-  engine.tracks.forEach(track => {
+  engine.tracks.forEach((track) => {
     if (track.source) {
-      try { track.source.playbackRate.setValueAtTime(mult, engine.ctx.currentTime); } catch {}
+      try {
+        track.source.playbackRate.setValueAtTime(mult, engine.ctx.currentTime);
+      } catch {}
     }
   });
 }
@@ -344,8 +368,8 @@ export function setMasterVolume(engine: AudioEngine, volume: number): void {
 }
 
 function applyMutesSolos(engine: AudioEngine): void {
-  const anySolo = engine.tracks.some(t => t.solo);
-  engine.tracks.forEach(track => {
+  const anySolo = engine.tracks.some((t) => t.solo);
+  engine.tracks.forEach((track) => {
     if (!track.gainNode) return;
     let effectiveVolume = track.volume;
     if (track.muted) effectiveVolume = 0;
@@ -365,7 +389,7 @@ export function getCurrentTime(engine: AudioEngine): number {
 
 export function destroyEngine(engine: AudioEngine): void {
   stop(engine);
-  engine.tracks.forEach(t => {
+  engine.tracks.forEach((t) => {
     if (t.gainNode) t.gainNode.disconnect();
   });
   engine.masterGain.disconnect();

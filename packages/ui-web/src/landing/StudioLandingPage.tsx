@@ -82,24 +82,27 @@ export default function StudioLandingPage({ navigateTo }: StudioLandingPageProps
 
   useEffect(() => {
     fetch('/app-release.json')
-      .then(r => {
+      .then((r) => {
         if (!r.ok) throw new Error(`HTTP error ${r.status}`);
         return r.json();
       })
-      .then(data => {
+      .then((data) => {
         setRelease({
           version: data.version || data.versionName || '3.6.28',
-          apkUrl: data.apkUrl || data.download_url || 'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.28/studio-3.6.28.apk',
-          apkSizeBytes: data.apkSizeBytes || 14125258
+          apkUrl:
+            data.apkUrl ||
+            data.download_url ||
+            'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.28/studio-3.6.28.apk',
+          apkSizeBytes: data.apkSizeBytes || 14125258,
         });
         setLoadingRelease(false);
       })
-      .catch(err => {
-        console.warn('Failed to fetch app-release.json, using fallback:', err);
+      .catch((err) => {
         setRelease({
           version: '3.6.28',
-          apkUrl: 'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.28/studio-3.6.28.apk',
-          apkSizeBytes: 14125258
+          apkUrl:
+            'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.28/studio-3.6.28.apk',
+          apkSizeBytes: 14125258,
         });
         setLoadingRelease(false);
       });
@@ -121,8 +124,8 @@ export default function StudioLandingPage({ navigateTo }: StudioLandingPageProps
                 introStep === 'logo-in'
                   ? { opacity: 1, scale: 1, filter: 'blur(0px)' }
                   : introStep === 'logo-hold'
-                  ? { opacity: 1, scale: 1, filter: 'blur(0px)' }
-                  : { opacity: 0, scale: 0.96, filter: 'blur(2px)' }
+                    ? { opacity: 1, scale: 1, filter: 'blur(0px)' }
+                    : { opacity: 0, scale: 0.96, filter: 'blur(2px)' }
               }
               transition={{ duration: introStep === 'logo-out' ? 0.5 : 0.55, ease: 'easeInOut' }}
               className="text-white flex flex-col items-center gap-4"
@@ -147,53 +150,53 @@ export default function StudioLandingPage({ navigateTo }: StudioLandingPageProps
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="min-h-screen bg-[#030303] text-[#f2f1ef] font-sans selection:bg-zinc-800/40 overflow-x-hidden"
       >
-      {/* Navbar */}
-      <LandingNavbar navigateTo={navigateTo} />
+        {/* Navbar */}
+        <LandingNavbar navigateTo={navigateTo} />
 
-      {/* Hero Section */}
-      <LandingHero navigateTo={navigateTo} apkUrl={release?.apkUrl} />
+        {/* Hero Section */}
+        <LandingHero navigateTo={navigateTo} apkUrl={release?.apkUrl} />
 
-      {/* MacBook Scroll Showcase */}
-      <section id="showcase" className="py-12 bg-[#030303] border-t border-zinc-900/60">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-xl md:text-3xl font-extrabold tracking-tight uppercase text-zinc-400 select-none">
-            A Live Music Suite in Your Hands
-          </h2>
-        </div>
-        <LandingMacbookScroll mockupName="chordLib" />
-      </section>
+        {/* MacBook Scroll Showcase */}
+        <section id="showcase" className="py-12 bg-[#030303] border-t border-zinc-900/60">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-xl md:text-3xl font-extrabold tracking-tight uppercase text-zinc-400 select-none">
+              A Live Music Suite in Your Hands
+            </h2>
+          </div>
+          <LandingMacbookScroll mockupName="chordLib" />
+        </section>
 
-      {/* App Bento Suite */}
-      <LandingAppSuite />
+        {/* App Bento Suite */}
+        <LandingAppSuite />
 
-      {/* Container Scroll Section */}
-      <LandingContainerScroll 
-        titleText="From songs to stage-ready workflows."
-        descriptionText="Start with songs and chords, plan your live setup, then practice with groove and vocal tools without leaving Studio."
-        mockupName="stage"
-      />
+        {/* Container Scroll Section */}
+        <LandingContainerScroll
+          titleText="From songs to stage-ready workflows."
+          descriptionText="Start with songs and chords, plan your live setup, then practice with groove and vocal tools without leaving Studio."
+          mockupName="stage"
+        />
 
-      {/* 3D Marquee Showcases */}
-      <Landing3DMarquee />
+        {/* 3D Marquee Showcases */}
+        <Landing3DMarquee />
 
-      {/* Core Technical Grid */}
-      <LandingFeatureGrid />
+        {/* Core Technical Grid */}
+        <LandingFeatureGrid />
 
-      {/* Downloads / Platforms Block */}
-      <LandingDownloads 
-        navigateTo={navigateTo} 
-        apkUrl={release?.apkUrl} 
-        apkVersion={release?.version} 
-        apkSizeBytes={release?.apkSizeBytes}
-        loadingRelease={loadingRelease}
-      />
+        {/* Downloads / Platforms Block */}
+        <LandingDownloads
+          navigateTo={navigateTo}
+          apkUrl={release?.apkUrl}
+          apkVersion={release?.version}
+          apkSizeBytes={release?.apkSizeBytes}
+          loadingRelease={loadingRelease}
+        />
 
-      {/* Footer */}
-      <LandingFooter 
-        navigateTo={navigateTo} 
-        apkUrl={release?.apkUrl} 
-        apkVersion={release?.version} 
-      />
+        {/* Footer */}
+        <LandingFooter
+          navigateTo={navigateTo}
+          apkUrl={release?.apkUrl}
+          apkVersion={release?.version}
+        />
       </motion.div>
     </>
   );

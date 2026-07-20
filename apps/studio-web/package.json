@@ -28,8 +28,11 @@
     "@supabase/supabase-js": "^2.110.2",
     "@tolgee/i18next": "^7.1.1",
     "@tolgee/react": "^7.1.1",
+    "@workspace/studio-core": "workspace:*",
+    "@workspace/ui-shared": "workspace:*",
+    "@workspace/ui-web": "workspace:*",
     "clsx": "catalog:",
-    "firebase": "^12.16.0",
+    "firebase": "12.16.0",
     "gsap": "^3.15.0",
     "i18next": "^26.3.6",
     "jspdf": "^4.2.1",
@@ -42,9 +45,6 @@
     "react-dom": "catalog:",
     "react-i18next": "^17.0.9",
     "tailwind-merge": "catalog:",
-    "zustand": "^5.0.14",
-    "@workspace/studio-core": "workspace:*",
-    "@workspace/ui-shared": "workspace:*",
-    "@workspace/ui-web": "workspace:*"
+    "zustand": "^5.0.14"
   }
 }

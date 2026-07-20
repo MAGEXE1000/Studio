@@ -2,9 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'motion/react';
 
 // Studio Sine Wave Logo SVG path
-export const StudioSinePath = "M 72 256 C 128 60 192 60 256 256 S 384 452 440 256";
+export const StudioSinePath = 'M 72 256 C 128 60 192 60 256 256 S 384 452 440 256';
 
-export type LaunchPreset = 'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
+export type LaunchPreset =
+  'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
 
 interface LaunchAnimationEngineProps {
   preset?: LaunchPreset;
@@ -31,7 +32,7 @@ export function LaunchAnimationEngine({
   // Telemetry frame tracking
   const frameTimes = useRef<number[]>([]);
   const lastTime = useRef<number>(0);
-  
+
   useEffect(() => {
     // Dismiss the index.html splash overlay only after React has mounted and drawn the initial overlay frame
     const intro = document.getElementById('intro');
@@ -50,7 +51,7 @@ export function LaunchAnimationEngine({
     }
     lastTime.current = performance.now();
     let frameId: number;
-    
+
     const trackFrame = (time: number) => {
       if (lastTime.current > 0) {
         const delta = time - lastTime.current;
@@ -60,7 +61,7 @@ export function LaunchAnimationEngine({
       lastTime.current = time;
       frameId = requestAnimationFrame(trackFrame);
     };
-    
+
     frameId = requestAnimationFrame(trackFrame);
     return () => {
       cancelAnimationFrame(frameId);
@@ -97,14 +98,10 @@ export function LaunchAnimationEngine({
   }, [stage, loopMode]);
 
   // Color variables based on theme
-  const bgColor = isAmoled 
-    ? '#000000' 
-    : isLight 
-      ? '#f8f9fa' 
-      : '#0a0a0c';
+  const bgColor = isAmoled ? '#000000' : isLight ? '#f8f9fa' : '#0a0a0c';
 
   const logoColor = isLight ? '#0f172a' : '#ffffff';
-  
+
   // Spring and zoom timing configurations
   const logoSpring = { type: 'spring' as const, stiffness: 380, damping: 26 };
 
@@ -122,7 +119,7 @@ export function LaunchAnimationEngine({
       onAnimationComplete={() => {
         if (canStartReveal && stage === 'reveal') {
           if (loopMode) {
-            setKey(prev => prev + 1);
+            setKey((prev) => prev + 1);
           } else {
             setStage('complete');
             if (onComplete) onComplete();
@@ -144,12 +141,22 @@ export function LaunchAnimationEngine({
         transformStyle: 'preserve-3d',
       }}
     >
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.7 }}
           animate={!canStartReveal ? { opacity: 1, scale: 1 } : { scale: 120, opacity: [1, 1, 0] }}
-          transition={!canStartReveal ? logoSpring : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
-          style={{ 
+          transition={
+            !canStartReveal ? logoSpring : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }
+          }
+          style={{
             zIndex: 3,
             willChange: 'transform, opacity',
             backfaceVisibility: 'hidden',
@@ -165,8 +172,16 @@ export function LaunchAnimationEngine({
               strokeLinecap="round"
               strokeLinejoin="round"
               initial={{ pathLength: skipIntro ? 1 : 0 }}
-              animate={!canStartReveal ? { pathLength: 1, strokeWidth: 44 } : { pathLength: 1, strokeWidth: 10 }}
-              transition={!canStartReveal ? { duration: skipIntro ? 0 : 0.6, ease: 'easeOut' } : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
+              animate={
+                !canStartReveal
+                  ? { pathLength: 1, strokeWidth: 44 }
+                  : { pathLength: 1, strokeWidth: 10 }
+              }
+              transition={
+                !canStartReveal
+                  ? { duration: skipIntro ? 0 : 0.6, ease: 'easeOut' }
+                  : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }
+              }
             />
           </svg>
         </motion.div>

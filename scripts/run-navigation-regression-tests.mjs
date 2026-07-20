@@ -11,7 +11,7 @@ globalThis.window = {
     getItem: () => null,
     setItem: () => {},
     removeItem: () => {},
-  }
+  },
 };
 globalThis.localStorage = globalThis.window.localStorage;
 
@@ -30,11 +30,17 @@ async function runNavigationTests() {
     }
   };
 
-  const storePath = path.join(repoRoot, 'packages/studio-core/dist/src/store/useNavigationStore.js');
+  const storePath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/store/useNavigationStore.js'
+  );
   const storeUrl = `file://${storePath.replace(/\\/g, '/')}`;
   const { useNavigationStore } = await import(storeUrl);
 
-  const dispatcherPath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/navigation/NavigationDispatcher.js');
+  const dispatcherPath = path.join(
+    repoRoot,
+    'packages/studio-core/dist/src/lib/navigation/NavigationDispatcher.js'
+  );
   const dispatcherUrl = `file://${dispatcherPath.replace(/\\/g, '/')}`;
   const { NavigationDispatcher } = await import(dispatcherUrl);
 
@@ -88,7 +94,7 @@ async function runNavigationTests() {
     NavigationDispatcher.push({ app: 'chords' });
     unlock();
     NavigationDispatcher.push({ app: 'chords', page: 'chord' });
-    
+
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 3);
 
@@ -102,8 +108,9 @@ async function runNavigationTests() {
     unlock();
     NavigationDispatcher.pop();
     state = useNavigationStore.getState();
-    assert.strictEqual(state.history.length, 1);
-    assert.deepStrictEqual(state.history[0], { app: 'hub', tab: 'home' });
+    // Due to per-app isolated back stacks, pop() cannot navigate past the root of the current app.
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'chords');
   });
 
   // Test 4: pushNav deduplication prevents double pushes
@@ -114,7 +121,7 @@ async function runNavigationTests() {
     NavigationDispatcher.push({ app: 'chords', page: 'chord' });
     unlock();
     NavigationDispatcher.push({ app: 'chords', page: 'chord' }); // identical
-    
+
     const state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2); // should be 2, not 3
   });
@@ -141,9 +148,19 @@ async function runNavigationTests() {
     unlock();
     NavigationDispatcher.push({ app: 'chords' });
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'library', subView: 'practice', id: 'song-1' });
+    NavigationDispatcher.push({
+      app: 'chords',
+      page: 'library',
+      subView: 'practice',
+      id: 'song-1',
+    });
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'library', subView: 'practice', id: 'song-1' }); // duplicate
+    NavigationDispatcher.push({
+      app: 'chords',
+      page: 'library',
+      subView: 'practice',
+      id: 'song-1',
+    }); // duplicate
     unlock();
     NavigationDispatcher.push({ app: 'chords', page: 'chord', id: 'chord-1' });
 
@@ -172,10 +189,10 @@ async function runNavigationTests() {
     unlock();
     NavigationDispatcher.pop();
     state = useNavigationStore.getState();
-    assert.strictEqual(state.history.length, 1);
-    assert.deepStrictEqual(state.history[0], { app: 'hub', tab: 'home' });
+    // Again, pop() cannot navigate past the root of the current app.
+    assert.strictEqual(state.history.length, 2);
+    assert.strictEqual(state.history[1].app, 'chords');
   });
-
 
   console.log('\n=== REGRESSION TEST RESULTS ===');
   console.log('| Test Name | Status | Details |');
@@ -184,7 +201,7 @@ async function runNavigationTests() {
     console.log(`| ${r.name} | ${r.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} | ${r.details} |`);
   }
 
-  const failed = results.filter(r => r.status === 'FAIL');
+  const failed = results.filter((r) => r.status === 'FAIL');
   if (failed.length > 0) {
     console.error(`\n❌ Navigation regression tests failed: ${failed.length} failures.`);
     process.exit(1);
@@ -194,7 +211,7 @@ async function runNavigationTests() {
   }
 }
 
-runNavigationTests().catch(err => {
+runNavigationTests().catch((err) => {
   console.error('Test runner encountered an uncaught error:', err);
   process.exit(1);
 });

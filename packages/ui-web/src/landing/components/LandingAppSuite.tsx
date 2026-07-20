@@ -1,10 +1,10 @@
 import { useStudioPreferences } from '@workspace/studio-core';
 import React from 'react';
 import { motion } from 'motion/react';
-import { 
-  ChordexFeatureSkeleton, 
-  StagexFeatureSkeleton, 
-  GroovexFeatureSkeleton 
+import {
+  ChordexFeatureSkeleton,
+  StagexFeatureSkeleton,
+  GroovexFeatureSkeleton,
 } from './StudioFeatureSkeletons';
 
 export default function LandingAppSuite() {
@@ -21,9 +21,9 @@ export default function LandingAppSuite() {
   };
 
   const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: isReduced ? 0 : 28 
+    hidden: {
+      opacity: 0,
+      y: isReduced ? 0 : 28,
     },
     visible: {
       opacity: 1,
@@ -57,10 +57,13 @@ export default function LandingAppSuite() {
   ];
 
   return (
-    <section id="suite" className="py-24 border-t border-zinc-900 bg-[#050508]/40 relative select-none">
+    <section
+      id="suite"
+      className="py-24 border-t border-zinc-900 bg-[#050508]/40 relative select-none"
+    >
       {/* Decorative background grid effect */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
-      
+
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header Block */}
         <div className="text-center max-w-3xl mx-auto mb-20">
@@ -68,12 +71,13 @@ export default function LandingAppSuite() {
             Built for focused music workflows.
           </h2>
           <p className="text-zinc-400 text-xs md:text-sm leading-relaxed max-w-2xl mx-auto landing-font-body">
-            Studio connects the core parts of a modern music workflow: organizing songs and chords, preparing stage layouts, and practicing with groove-focused tools.
+            Studio connects the core parts of a modern music workflow: organizing songs and chords,
+            preparing stage layouts, and practicing with groove-focused tools.
           </p>
         </div>
 
         {/* Features Grid */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -97,9 +101,7 @@ export default function LandingAppSuite() {
                 <h3 className="text-sm md:text-base font-bold text-white uppercase tracking-wider leading-snug landing-font-heading">
                   {title}
                 </h3>
-                <p className="text-xs text-zinc-400 leading-relaxed landing-font-body">
-                  {desc}
-                </p>
+                <p className="text-xs text-zinc-400 leading-relaxed landing-font-body">{desc}</p>
               </div>
             </motion.div>
           ))}

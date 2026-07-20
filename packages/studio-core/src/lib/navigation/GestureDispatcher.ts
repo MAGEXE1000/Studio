@@ -7,7 +7,6 @@ export class GestureDispatcher {
    */
   public static onGestureStart(): void {
     const timestamp = new Date().toISOString();
-    console.log(`[GestureDispatcher] [${timestamp}] onGestureStart`);
     useNavigationStore.getState().setGestureState('swiping', 0);
   }
 
@@ -16,7 +15,6 @@ export class GestureDispatcher {
    */
   public static onGestureProgress(progress: number): void {
     const clampedProgress = Math.max(0, Math.min(1, progress));
-    console.log(`[GestureDispatcher] [${new Date().toISOString()}] onGestureProgress | progress: ${clampedProgress}`);
     useNavigationStore.getState().setGestureState('swiping', clampedProgress);
   }
 
@@ -25,10 +23,8 @@ export class GestureDispatcher {
    */
   public static onGestureCancel(): void {
     const timestamp = new Date().toISOString();
-    console.log(`[GestureDispatcher] [${timestamp}] onGestureCancel`);
     useNavigationStore.getState().setGestureState('cancelled', 0);
     setTimeout(() => {
-      console.log(`[GestureDispatcher] [${new Date().toISOString()}] onGestureCancel completed`);
       useNavigationStore.getState().setGestureState('idle', 0);
     }, 200);
   }
@@ -38,19 +34,15 @@ export class GestureDispatcher {
    */
   public static onGestureCommit(): void {
     const timestamp = new Date().toISOString();
-    console.log(`[GestureDispatcher] [${timestamp}] onGestureCommit`);
     useNavigationStore.getState().setGestureState('committed', 1);
-    
+
     // Execute navigation pop
     if (NavigationDispatcher.canGoBack()) {
-      console.log(`[GestureDispatcher] [${timestamp}] Pop triggered via gesture commit`);
       NavigationDispatcher.pop();
     } else {
-      console.warn(`[GestureDispatcher] [${timestamp}] Pop ignored: cannot go back`);
     }
 
     setTimeout(() => {
-      console.log(`[GestureDispatcher] [${new Date().toISOString()}] onGestureCommit completed`);
       useNavigationStore.getState().setGestureState('idle', 0);
     }, 200);
   }

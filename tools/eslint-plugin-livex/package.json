@@ -1,0 +1,9 @@
+{
+  "name": "eslint-plugin-livex",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "description": "Custom ESLint rules for Livex architecture enforcement",
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  }
+}

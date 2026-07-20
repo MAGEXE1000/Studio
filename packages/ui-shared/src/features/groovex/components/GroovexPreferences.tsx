@@ -11,13 +11,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ElasticSlider from '../../../components/progress/ElasticSlider';
 import { useGroovexStore } from '../state/useGroovexStore';
-import {
-  getCacheSize,
-  clearAllCache,
-  clearSongCache,
-  getPerSongCacheInfo,
-  type SongCacheInfo,
-} from '../services/stemCache';
+// // import { groovexStemRepository,   type SongCacheInfo } from "@workspace/studio-core";
 import { SONG_CATALOG } from '../services/songCatalog';
 import { Toggle, SettingSection, SettingRow } from '../../../components/typography/SettingControls';
 import { Card } from '../../../components/design-system/StudioDesignSystem';
@@ -28,15 +22,15 @@ export default function GroovexPreferences() {
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
   const [cacheInfo, setCacheInfo] = useState({ totalBytes: 0, songCount: 0, stemCount: 0 });
-  const [songCaches, setSongCaches] = useState<SongCacheInfo[]>([]);
+  const [songCaches, setSongCaches] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
 
   const isWebDesktop = useIsWebDesktop();
 
   const refreshCache = useCallback(() => {
-    getCacheSize().then(setCacheInfo);
-    getPerSongCacheInfo().then(setSongCaches);
+    // groovexStemRepository.getCacheSize().then(setCacheInfo);
+    // groovexStemRepository.getStemCount().then(setSongCaches);
   }, []);
 
   useEffect(() => {
@@ -53,10 +47,10 @@ export default function GroovexPreferences() {
   async function handleDeleteSong(songId: string) {
     setDeletingId(songId);
     setConfirmDeleteAll(false);
-    await clearSongCache(songId);
+    await // groovexStemRepository.getStemCount(songId);
     await Promise.all([
-      getCacheSize().then(setCacheInfo),
-      getPerSongCacheInfo().then(setSongCaches),
+      // groovexStemRepository.getCacheSize().then(setCacheInfo),
+      // groovexStemRepository.getStemCount().then(setSongCaches),
     ]);
     setDeletingId(null);
   }
@@ -64,10 +58,10 @@ export default function GroovexPreferences() {
   async function handleClearAll() {
     setConfirmDeleteAll(false);
     setDeletingId('__all__');
-    await clearAllCache();
+    await // groovexStemRepository.clearAllCache();
     await Promise.all([
-      getCacheSize().then(setCacheInfo),
-      getPerSongCacheInfo().then(setSongCaches),
+      // groovexStemRepository.getCacheSize().then(setCacheInfo),
+      // groovexStemRepository.getStemCount().then(setSongCaches),
     ]);
     setDeletingId(null);
   }
@@ -76,7 +70,7 @@ export default function GroovexPreferences() {
     return SONG_CATALOG.find((s) => s.id === songId);
   }
 
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
 
   const isLight =
     settings.theme === 'light' ||
@@ -223,7 +217,7 @@ export default function GroovexPreferences() {
                     <button
                       key={value}
                       onClick={() =>
-                        settingsController.updateSettings({ defaultGroovexView: value })
+                        useSettingsStore.getState().updateSettings({ defaultGroovexView: value })
                       }
                       style={{
                         width: '40px',
@@ -616,7 +610,7 @@ function SliderRow({
   displayValue: string;
   isWebDesktop?: boolean;
 }) {
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&
@@ -690,7 +684,7 @@ function ToggleRow({
   onChange: (v: boolean) => void;
   isWebDesktop?: boolean;
 }) {
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&

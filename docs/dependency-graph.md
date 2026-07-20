@@ -1,3 +1,4 @@
+import { SpringPresets } from '@workspace/studio-core';
 # Livex Dependency Graph
 
 > **Principal Architect Document** · July 2026 · Version 4.2.4
@@ -53,14 +54,14 @@ graph TD
 
 ### Package Boundary Rules (Enforced in CI)
 
-| Package | Can Import From | Cannot Import From |
-|---|---|---|
-| `studio-core` | `lib/db`, `lib/api-*`, external deps | ❌ Any UI package |
-| `ui-shared` | `studio-core`, external deps | ❌ `ui-web`, `ui-android` |
-| `ui-web` | `ui-shared`, `studio-core` | ❌ `ui-android` |
-| `ui-android` | `ui-shared`, `studio-core` | ❌ `ui-web` |
-| `studio-web` (app) | `ui-web`, `ui-shared`, `studio-core` | ❌ `ui-android` |
-| `studio-android` (app) | `ui-android`, `ui-shared`, `studio-core` | ❌ `ui-web` |
+| Package                | Can Import From                          | Cannot Import From        |
+| ---------------------- | ---------------------------------------- | ------------------------- |
+| `studio-core`          | `lib/db`, `lib/api-*`, external deps     | ❌ Any UI package         |
+| `ui-shared`            | `studio-core`, external deps             | ❌ `ui-web`, `ui-android` |
+| `ui-web`               | `ui-shared`, `studio-core`               | ❌ `ui-android`           |
+| `ui-android`           | `ui-shared`, `studio-core`               | ❌ `ui-web`               |
+| `studio-web` (app)     | `ui-web`, `ui-shared`, `studio-core`     | ❌ `ui-android`           |
+| `studio-android` (app) | `ui-android`, `ui-shared`, `studio-core` | ❌ `ui-web`               |
 
 ---
 
@@ -145,13 +146,13 @@ graph TD
 
 ### Navigation Consumer Map
 
-| System | Hub | Chordex | Drumex | Groovex | Stagex | Vocalex |
-|---|---|---|---|---|---|---|
-| `useNavigationStore` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `NavigationDispatcher` | — | ✅ | ✅ | ✅ | ❌ | ✅ |
-| `useBackHandler` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `useBottomNavigationStore.setItems` | ❌ | ❓ | ✅ | ✅ | ✅ | ✅ |
-| `useScrollHide` | — | ✅ | ❌ | ❌ | ✅ | ✅ |
+| System                              | Hub | Chordex | Drumex | Groovex | Stagex | Vocalex |
+| ----------------------------------- | --- | ------- | ------ | ------- | ------ | ------- |
+| `useNavigationStore`                | ✅  | ✅      | ✅     | ✅      | ✅     | ✅      |
+| `NavigationDispatcher`              | —   | ✅      | ✅     | ✅      | ❌     | ✅      |
+| `useBackHandler`                    | ✅  | ✅      | ✅     | ✅      | ✅     | ✅      |
+| `useBottomNavigationStore.setItems` | ❌  | ❓      | ✅     | ✅      | ✅     | ✅      |
+| `useScrollHide`                     | —   | ✅      | ❌     | ❌      | ✅     | ✅      |
 
 ---
 
@@ -310,7 +311,7 @@ graph TD
 graph TD
     subgraph "Token Sources (CONFLICTING)"
         DT["designTokens.ts<br/>SpringPresets<br/>soft: {380,22,0.5}<br/>stiff: {500,25,0.4}<br/>expressive: {400,20,0.35}"]
-        AAS["AppAnimationSystem.tsx<br/>SPRING_PRESETS<br/>soft: {150,25,1.0}<br/>medium: {220,22,0.85}<br/>expressive: {320,18,0.70}"]
+        AAS["AppAnimationSystem.tsx<br/>SpringPresets<br/>soft: {150,25,1.0}<br/>medium: {220,22,0.85}<br/>expressive: {320,18,0.70}"]
     end
 
     subgraph "Inline Configs (NO IMPORTS)"
@@ -376,14 +377,14 @@ graph TD
 
 ## 8. Dead Dependencies
 
-| Dependency | Defined In | Imported By | Status |
-|---|---|---|---|
-| `designTokens.ts` `SpringPresets` | studio-core | ❌ Nothing | 🔴 Dead |
-| `designTokens.ts` `ColorTokens` | studio-core | ❌ Nothing | 🔴 Dead |
-| `designTokens.ts` `MotionTokens` | studio-core | ❌ Nothing | 🔴 Dead |
-| `designTokens.ts` `TypographyTokens` | studio-core | ❌ Nothing | 🔴 Dead |
-| `designTokens.ts` `SpacingTokens` | studio-core | ❌ Nothing | 🔴 Dead |
-| `designTokens.ts` `HapticTokens` | studio-core | ❌ Nothing | 🔴 Dead |
+| Dependency                           | Defined In  | Imported By   | Status         |
+| ------------------------------------ | ----------- | ------------- | -------------- |
+| `designTokens.ts` `SpringPresets`    | studio-core | ❌ Nothing    | 🔴 Dead        |
+| `designTokens.ts` `ColorTokens`      | studio-core | ❌ Nothing    | 🔴 Dead        |
+| `designTokens.ts` `MotionTokens`     | studio-core | ❌ Nothing    | 🔴 Dead        |
+| `designTokens.ts` `TypographyTokens` | studio-core | ❌ Nothing    | 🔴 Dead        |
+| `designTokens.ts` `SpacingTokens`    | studio-core | ❌ Nothing    | 🔴 Dead        |
+| `designTokens.ts` `HapticTokens`     | studio-core | ❌ Nothing    | 🔴 Dead        |
 | `store/useNavigationStore.ts` (shim) | studio-core | Via re-export | ⚠️ Legacy shim |
 
 > **Total dead token exports: 7 out of 9 token objects** — the design token system is 78% dead code at the export level.
@@ -392,12 +393,12 @@ graph TD
 
 ## 9. Duplicate Dependency Paths
 
-| Component | Path 1 | Path 2 | Issue |
-|---|---|---|---|
-| `useNavigationStore` | `studio-core/lib/navigation/useNavigationStore.ts` | `studio-core/store/useNavigationStore.ts` (shim) | Legacy re-export |
-| `useGroovexStore` | `ui-shared/features/groovex/state/useGroovexStore.ts` | `ui-shared/groovex/useGroovexStore.ts` (shim) | Duplicate path |
-| `StageCorePanel` | `ui-shared/features/stagex/pages/StageCorePanel.tsx` | `ui-android/components/StageCorePanel.tsx` | Platform fork |
-| `WebAppSectionDock` | `ui-shared/components/feature/WebAppSectionDock.tsx` | `ui-web/components/WebAppSectionDock.tsx` | Two files |
+| Component            | Path 1                                                | Path 2                                           | Issue            |
+| -------------------- | ----------------------------------------------------- | ------------------------------------------------ | ---------------- |
+| `useNavigationStore` | `studio-core/lib/navigation/useNavigationStore.ts`    | `studio-core/store/useNavigationStore.ts` (shim) | Legacy re-export |
+| `useGroovexStore`    | `ui-shared/features/groovex/state/useGroovexStore.ts` | `ui-shared/groovex/useGroovexStore.ts` (shim)    | Duplicate path   |
+| `StageCorePanel`     | `ui-shared/features/stagex/pages/StageCorePanel.tsx`  | `ui-android/components/StageCorePanel.tsx`       | Platform fork    |
+| `WebAppSectionDock`  | `ui-shared/components/feature/WebAppSectionDock.tsx`  | `ui-web/components/WebAppSectionDock.tsx`        | Two files        |
 
 ---
 
@@ -426,13 +427,13 @@ These are Zustand cross-store reads, not import cycles. They work because Zustan
 
 ## 11. Hidden Dependencies
 
-| Hidden Dependency | From | To | Nature |
-|---|---|---|---|
-| Stagex → iframe CSS | `StageCorePanel.tsx` | `stage-core/app.css` (118KB) | Runtime `<iframe>` load |
-| Stagex → iframe postMessage | `StageCorePanel.tsx` | Iframe `contentWindow` | DOM manipulation |
-| CSS custom properties | All components | Platform `index.css` | Runtime CSS cascade |
-| Lottie JSON files | Lottie components | `public/lottie/*.json` | Runtime fetch |
-| Google Fonts | `index.css` | fonts.googleapis.com | Network dependency |
+| Hidden Dependency           | From                 | To                           | Nature                  |
+| --------------------------- | -------------------- | ---------------------------- | ----------------------- |
+| Stagex → iframe CSS         | `StageCorePanel.tsx` | `stage-core/app.css` (118KB) | Runtime `<iframe>` load |
+| Stagex → iframe postMessage | `StageCorePanel.tsx` | Iframe `contentWindow`       | DOM manipulation        |
+| CSS custom properties       | All components       | Platform `index.css`         | Runtime CSS cascade     |
+| Lottie JSON files           | Lottie components    | `public/lottie/*.json`       | Runtime fetch           |
+| Google Fonts                | `index.css`          | fonts.googleapis.com         | Network dependency      |
 
 ---
 
@@ -442,17 +443,17 @@ These are Zustand cross-store reads, not import cycles. They work because Zustan
 
 **By category:**
 
-| Category | Count | Examples |
-|---|---|---|
-| Stores | 6 | useChordStore, useDrumStore, useNavigationStore, useBottomNavigationStore, useApplicationTransitionStore, useNotificationService |
-| Navigation | 9 | NavigationDispatcher, BackDispatcher, GestureDispatcher, etc. |
-| Hooks | 8 | useShallow, useIsWebDesktop, useBackHandler, useT, etc. |
-| Services | 12 | auth, firebase, sync, security, etc. |
-| Data | 5 | chords, progressions, songs, etc. |
-| Audio | 4 | guitarAudio, drumAudio, drumPlugins, etc. |
-| Updater | 8 | stateMachine, pipeline, diagnostics, etc. |
-| Tokens | 1 | designTokens (unused) |
-| Utilities | 10+ | utils, liquidGlass, transpose, etc. |
+| Category   | Count | Examples                                                                                                                         |
+| ---------- | ----- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Stores     | 6     | useChordStore, useDrumStore, useNavigationStore, useBottomNavigationStore, useApplicationTransitionStore, useNotificationService |
+| Navigation | 9     | NavigationDispatcher, BackDispatcher, GestureDispatcher, etc.                                                                    |
+| Hooks      | 8     | useShallow, useIsWebDesktop, useBackHandler, useT, etc.                                                                          |
+| Services   | 12    | auth, firebase, sync, security, etc.                                                                                             |
+| Data       | 5     | chords, progressions, songs, etc.                                                                                                |
+| Audio      | 4     | guitarAudio, drumAudio, drumPlugins, etc.                                                                                        |
+| Updater    | 8     | stateMachine, pipeline, diagnostics, etc.                                                                                        |
+| Tokens     | 1     | designTokens (unused)                                                                                                            |
+| Utilities  | 10+   | utils, liquidGlass, transpose, etc.                                                                                              |
 
 > ⚠️ **All 90 exports are in a flat namespace.** No sub-path exports exist. This makes it impossible to determine which subsystem a feature depends on from its import statement.
 
@@ -495,5 +496,5 @@ Replace flat `@workspace/studio-core` with sub-paths:
 
 ---
 
-> *This document must be updated whenever package dependencies change.*
-> *Last updated: July 2026*
+> _This document must be updated whenever package dependencies change._
+> _Last updated: July 2026_

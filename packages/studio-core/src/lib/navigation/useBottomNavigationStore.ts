@@ -27,7 +27,7 @@ export interface BottomNavigationStore {
   items: BottomNavItem[];
   isLight: boolean;
   debugLog: boolean;
-  
+
   // Actions
   setMotionState: (state: BottomNavMotionState) => void;
   setVisible: (visible: boolean) => void;
@@ -79,7 +79,6 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
   setDebugLog: (debugLog) => set({ debugLog }),
   logState: (action) => {
     if (get().debugLog) {
-      console.log(`[BottomNavigationController] ${action} | state: ${get().motionState}, visible: ${get().visible}, collapsed: ${get().collapsed}, switcherOpen: ${get().isSwitcherOpen}, itemsCount: ${get().items.length}`);
     }
-  }
+  },
 }));

@@ -1,7 +1,7 @@
 import { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UpdaterFlightRecorder } from '@workspace/studio-core';
-import { MOTION_DURATIONS, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
+import { UpdaterFlightRecorder, DurationPresets, EasingPresets } from '@workspace/studio-core';
+
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -53,7 +53,7 @@ export default memo(function StudioUpdateScreen({
     workflowId: null,
     eventType: 'StudioUpdateScreenRender',
     caller: 'StudioUpdateScreen',
-    reason: `Rendered StudioUpdateScreen with state: ${state} and progress: ${Math.round(progress * 100)}%`
+    reason: `Rendered StudioUpdateScreen with state: ${state} and progress: ${Math.round(progress * 100)}%`,
   });
 
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -85,10 +85,14 @@ export default memo(function StudioUpdateScreen({
     'completed',
   ].includes(state);
 
-  const isInstalling = ['installing', 'packageinstaller_visible', 'waitingForUserInstallConfirmation'].includes(state);
+  const isInstalling = [
+    'installing',
+    'packageinstaller_visible',
+    'waitingForUserInstallConfirmation',
+  ].includes(state);
 
   // Material 3 Emphasized motion curve (deceleration ease) from central Motion Engine
-  const emphasizedTransition = { duration: MOTION_DURATIONS.slow, ease: MOTION_EASINGS.emphasized };
+  const emphasizedTransition = { duration: DurationPresets.slow, ease: EasingPresets.emphasized };
 
   // Premium, high-performance CSS animation styles
   const customKeyframes = `
@@ -111,7 +115,7 @@ export default memo(function StudioUpdateScreen({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.decelerate }}
+      transition={{ duration: DurationPresets.fast, ease: EasingPresets.decelerate }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -149,7 +153,9 @@ export default memo(function StudioUpdateScreen({
             height: 38,
             borderRadius: '50%',
             background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-            border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.1)',
+            border: isLight
+              ? '1px solid rgba(0, 0, 0, 0.06)'
+              : '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -159,7 +165,9 @@ export default memo(function StudioUpdateScreen({
             transition: 'background-color 200ms ease',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+            close
+          </span>
         </motion.button>
       )}
 
@@ -177,7 +185,9 @@ export default memo(function StudioUpdateScreen({
           boxSizing: 'border-box',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: isLight ? '0 16px 36px rgba(0, 0, 0, 0.08)' : '0 24px 48px rgba(0, 0, 0, 0.45)',
+          boxShadow: isLight
+            ? '0 16px 36px rgba(0, 0, 0, 0.08)'
+            : '0 24px 48px rgba(0, 0, 0, 0.45)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -193,14 +203,23 @@ export default memo(function StudioUpdateScreen({
             width: 72,
             height: 72,
             borderRadius: '50%',
-            background: showSpinner ? (isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255, 255, 255, 0.03)') : `color-mix(in srgb, ${iconColor} 12%, ${isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(20, 20, 24, 0.85)'})`,
+            background: showSpinner
+              ? isLight
+                ? 'rgba(0,0,0,0.03)'
+                : 'rgba(255, 255, 255, 0.03)'
+              : `color-mix(in srgb, ${iconColor} 12%, ${isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(20, 20, 24, 0.85)'})`,
             border: `1.5px solid ${showSpinner ? (isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)') : `color-mix(in srgb, ${iconColor} 24%, transparent)`}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: showSpinner ? 'none' : `0 0 24px color-mix(in srgb, ${iconColor} 15%, transparent)`,
+            boxShadow: showSpinner
+              ? 'none'
+              : `0 0 24px color-mix(in srgb, ${iconColor} 15%, transparent)`,
             position: 'relative',
-            animation: (isInstalling && !reducedMotion) ? 'updater-pulse-subtle 2.5s ease-in-out infinite' : 'none',
+            animation:
+              isInstalling && !reducedMotion
+                ? 'updater-pulse-subtle 2.5s ease-in-out infinite'
+                : 'none',
             willChange: 'transform',
           }}
         >
@@ -228,8 +247,18 @@ export default memo(function StudioUpdateScreen({
                     willChange: 'transform',
                   }}
                 >
-                  <circle cx="12" cy="12" r="10" stroke={isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)'} strokeWidth={3} />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="url(#updater-spinner-grad)" strokeWidth={3} />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke={isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)'}
+                    strokeWidth={3}
+                  />
+                  <path
+                    d="M12 2a10 10 0 0 1 10 10"
+                    stroke="url(#updater-spinner-grad)"
+                    strokeWidth={3}
+                  />
                   <defs>
                     <linearGradient id="updater-spinner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" stopColor={accentFrom} />
@@ -238,11 +267,20 @@ export default memo(function StudioUpdateScreen({
                   </defs>
                 </svg>
               ) : iconName === 'github' ? (
-                <svg viewBox="0 0 24 24" width={30} height={30} fill={isLight ? 'rgba(0, 0, 0, 0.95)' : '#ffffff'} style={{ flexShrink: 0 }}>
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                <svg
+                  viewBox="0 0 24 24"
+                  width={30}
+                  height={30}
+                  fill={isLight ? 'rgba(0, 0, 0, 0.95)' : '#ffffff'}
+                  style={{ flexShrink: 0 }}
+                >
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                 </svg>
               ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: 34, color: iconColor }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 34, color: iconColor }}
+                >
                   {iconName}
                 </span>
               )}
@@ -261,7 +299,9 @@ export default memo(function StudioUpdateScreen({
               justifyContent: 'center',
               gap: 16,
               background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.03)',
-              border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
+              border: isLight
+                ? '1px solid rgba(0, 0, 0, 0.06)'
+                : '1px solid rgba(255, 255, 255, 0.06)',
               borderRadius: 16,
               padding: '12px 24px',
               width: '100%',
@@ -269,17 +309,59 @@ export default memo(function StudioUpdateScreen({
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: 10, textTransform: 'uppercase', color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: '0.05em', fontFamily: 'Manrope, sans-serif' }}>Current</span>
-              <span style={{ fontSize: 15, fontWeight: 700, color: isLight ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)', fontFamily: 'Inter, sans-serif' }}>{fromVersion}</span>
+              <span
+                style={{
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                Current
+              </span>
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: isLight ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {fromVersion}
+              </span>
             </div>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', color: accentFrom }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_forward</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                arrow_forward
+              </span>
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <span style={{ fontSize: 10, textTransform: 'uppercase', color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)', fontWeight: 700, letterSpacing: '0.05em', fontFamily: 'Manrope, sans-serif' }}>New</span>
-              <span style={{ fontSize: 15, fontWeight: 800, color: isLight ? 'rgba(0,0,0,0.95)' : '#ffffff', fontFamily: 'Inter, sans-serif' }}>{toVersion}</span>
+              <span
+                style={{
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                New
+              </span>
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: isLight ? 'rgba(0,0,0,0.95)' : '#ffffff',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                {toVersion}
+              </span>
             </div>
           </motion.div>
         )}
@@ -346,30 +428,51 @@ export default memo(function StudioUpdateScreen({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={emphasizedTransition}
-              style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8 }}
+              style={{
+                width: '100%',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  fontFamily: 'Manrope',
+                  color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)',
+                }}
+              >
                 <span>Installing update</span>
                 <span>In progress</span>
               </div>
-              <div style={{
-                width: '100%',
-                height: 6,
-                borderRadius: 3,
-                background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
-                overflow: 'hidden',
-                position: 'relative'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  width: '45%',
-                  background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
+              <div
+                style={{
+                  width: '100%',
+                  height: 6,
                   borderRadius: 3,
-                  animation: reducedMotion ? 'none' : 'updater-shimmer-fast 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1)',
-                  willChange: 'transform',
-                }} />
+                  background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    bottom: 0,
+                    width: '45%',
+                    background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
+                    borderRadius: 3,
+                    animation: reducedMotion
+                      ? 'none'
+                      : 'updater-shimmer-fast 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1)',
+                    willChange: 'transform',
+                  }}
+                />
               </div>
             </motion.div>
           )}
@@ -407,7 +510,14 @@ export default memo(function StudioUpdateScreen({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={emphasizedTransition}
-              style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8, overflow: 'hidden' }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                marginTop: 8,
+                overflow: 'hidden',
+              }}
             >
               {actionButtons}
             </motion.div>
@@ -423,7 +533,13 @@ export default memo(function StudioUpdateScreen({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={emphasizedTransition}
-              style={{ width: '100%', display: 'flex', flexDirection: 'column', marginTop: 12, overflow: 'hidden' }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                marginTop: 12,
+                overflow: 'hidden',
+              }}
             >
               {bottomSection}
             </motion.div>

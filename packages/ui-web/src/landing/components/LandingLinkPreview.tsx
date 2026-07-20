@@ -1,4 +1,11 @@
-import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from '@workspace/ui-shared';
+import {
+  StudioLogo,
+  ChordexLogo,
+  DrumexLogo,
+  StagexLogoIcon,
+  GroovexLogo,
+  VocalexLogo,
+} from '@workspace/ui-shared';
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'motion/react';
 
@@ -17,36 +24,68 @@ interface PreviewAppRowProps {
 
 function PreviewAppRow({ Logo, name, desc }: PreviewAppRowProps) {
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      width: '100%',
-      padding: '7px 10px',
-      background: 'rgba(255, 255, 255, 0.01)',
-      border: '1px solid rgba(255, 255, 255, 0.05)',
-      borderRadius: '8px',
-      marginBottom: '6px',
-      boxSizing: 'border-box',
-    }}>
-      <div style={{
-        width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-        background: 'rgba(255, 255, 255, 0.04)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#ffffff',
-      }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        width: '100%',
+        padding: '7px 10px',
+        background: 'rgba(255, 255, 255, 0.01)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '8px',
+        marginBottom: '6px',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: 6,
+          flexShrink: 0,
+          background: 'rgba(255, 255, 255, 0.04)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#ffffff',
+        }}
+      >
         <Logo size={14} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 10.5, fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.01em', lineHeight: 1.2 }}>
+        <p
+          style={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            color: '#ffffff',
+            margin: 0,
+            letterSpacing: '-0.01em',
+            lineHeight: 1.2,
+          }}
+        >
           {name}
         </p>
-        <p style={{ fontSize: 8, color: '#a1a1aa', margin: '1px 0 0', fontWeight: 500, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p
+          style={{
+            fontSize: 8,
+            color: '#a1a1aa',
+            margin: '1px 0 0',
+            fontWeight: 500,
+            lineHeight: 1.1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {desc}
         </p>
       </div>
-      <span className="material-symbols-outlined" style={{ fontSize: 13, color: '#52525b', flexShrink: 0 }}>
+      <span
+        className="material-symbols-outlined"
+        style={{ fontSize: 13, color: '#52525b', flexShrink: 0 }}
+      >
         chevron_right
       </span>
     </div>
@@ -57,29 +96,66 @@ function StudioHubPreviewCard() {
   return (
     <div className="w-full h-full bg-[#050505] text-[#ffffff] font-sans flex flex-col p-3 relative overflow-hidden select-none border border-zinc-900 rounded-lg">
       {/* Centered logo area */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0 16px' }}>
-        <div style={{ color: 'white', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '12px 0 16px',
+        }}
+      >
+        <div
+          style={{
+            color: 'white',
+            width: 32,
+            height: 32,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <StudioLogo size={32} />
         </div>
-        <p style={{ fontSize: 15, fontWeight: 800, margin: '6px 0 0', letterSpacing: '-0.03em', lineHeight: 1, color: '#ffffff', fontFamily: 'Manrope, sans-serif' }}>
+        <p
+          style={{
+            fontSize: 15,
+            fontWeight: 800,
+            margin: '6px 0 0',
+            letterSpacing: '-0.03em',
+            lineHeight: 1,
+            color: '#ffffff',
+            fontFamily: 'Manrope, sans-serif',
+          }}
+        >
           Studio
         </p>
       </div>
 
       {/* Combined welcome + apps card */}
-      <div style={{
-        width: '100%',
-        background: '#09090b',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '14px',
-        overflow: 'hidden',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
+      <div
+        style={{
+          width: '100%',
+          background: '#09090b',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         {/* Welcome header */}
         <div style={{ padding: '12px 14px 10px' }}>
-          <p style={{ fontSize: 13, fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.02em', fontFamily: 'Manrope, sans-serif' }}>
+          <p
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: '#ffffff',
+              margin: 0,
+              letterSpacing: '-0.02em',
+              fontFamily: 'Manrope, sans-serif',
+            }}
+          >
             Welcome back.
           </p>
           <p style={{ fontSize: 9.5, color: '#a1a1aa', margin: '3px 0 0', fontWeight: 500 }}>

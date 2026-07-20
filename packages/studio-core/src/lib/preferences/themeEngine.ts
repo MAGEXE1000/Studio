@@ -1,3 +1,4 @@
+import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { Capacitor } from '@capacitor/core';
 import { syncStatusBar } from '../platform/useStatusBar';
 import { ACCENT_COLORS } from '../../store/useSettingsStore';;

@@ -5,13 +5,13 @@ async function runProfiler() {
   console.log('Launching browser...');
   const browser = await puppeteer.launch({ headless: 'new' });
   const page = await browser.newPage();
-  
+
   // Inject FPS monitor and React Profiler data collection
   await page.evaluateOnNewDocument(() => {
     window.__FPS_DATA__ = [];
     let lastFrameTime = performance.now();
     let frameCount = 0;
-    
+
     function measureFPS() {
       const now = performance.now();
       frameCount++;
@@ -36,11 +36,11 @@ async function runProfiler() {
       fetchStart: nav?.fetchStart || 0,
       domInteractive: nav?.domInteractive || 0,
       domComplete: nav?.domComplete || 0,
-      firstPaint: paints.find(p => p.name === 'first-paint')?.startTime || 0,
-      firstContentfulPaint: paints.find(p => p.name === 'first-contentful-paint')?.startTime || 0
+      firstPaint: paints.find((p) => p.name === 'first-paint')?.startTime || 0,
+      firstContentfulPaint: paints.find((p) => p.name === 'first-contentful-paint')?.startTime || 0,
     };
   });
-  
+
   // 2. Initial Heap
   const initialHeap = await page.evaluate(() => {
     return performance.memory ? performance.memory.usedJSHeapSize : 0;
@@ -59,9 +59,14 @@ async function runProfiler() {
       await page.evaluate((appName) => {
         // Find a sidebar label or button with the app name
         const el = Array.from(document.querySelectorAll('*')).find(
-          e => (e.tagName === 'DIV' || e.tagName === 'BUTTON' || e.tagName === 'A' || e.tagName === 'SPAN') && 
-               e.innerText && e.innerText.trim() === appName &&
-               e.children.length === 0 // typically the text node container
+          (e) =>
+            (e.tagName === 'DIV' ||
+              e.tagName === 'BUTTON' ||
+              e.tagName === 'A' ||
+              e.tagName === 'SPAN') &&
+            e.innerText &&
+            e.innerText.trim() === appName &&
+            e.children.length === 0 // typically the text node container
         );
         if (el) {
           const t0 = performance.now();
@@ -70,7 +75,7 @@ async function runProfiler() {
         }
       }, app);
       // Wait for 1 second for render to complete
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       await page.evaluate((appName) => {
         if (window.__NAV_TIMINGS__[appName]) {
           window.__NAV_TIMINGS__[appName].end = performance.now();
@@ -93,29 +98,29 @@ async function runProfiler() {
 
   // 6. Get React Profiler Data
   const reactData = await page.evaluate(() => window.__REACT_PROFILE_DATA__ || []);
-  
+
   const navTimings = await page.evaluate(() => window.__NAV_TIMINGS__);
-  
+
   const report = {
     startup: {
       coldDomInteractive: startupTimings.domInteractive,
       firstPaint: startupTimings.firstPaint,
-      firstContentfulPaint: startupTimings.firstContentfulPaint
+      firstContentfulPaint: startupTimings.firstContentfulPaint,
     },
     memory: {
       initialHeapMB: initialHeap / (1024 * 1024),
       finalHeapMB: finalHeap / (1024 * 1024),
-      growthMB: (finalHeap - initialHeap) / (1024 * 1024)
+      growthMB: (finalHeap - initialHeap) / (1024 * 1024),
     },
     fps: {
       average: avgFps,
       minimum: minFps,
-      drops: fpsData.filter(f => f < 55).length
+      drops: fpsData.filter((f) => f < 55).length,
     },
     navigation: Object.fromEntries(
       Object.entries(navTimings).map(([k, v]) => [k, v.end - v.start])
     ),
-    reactProfiler: reactData
+    reactProfiler: reactData,
   };
 
   fs.writeFileSync('performance-benchmark.json', JSON.stringify(report, null, 2));

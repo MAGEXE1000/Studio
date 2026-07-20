@@ -102,7 +102,8 @@ const PianoDiagram = memo(function PianoDiagram({
         const bNoteIdx = keys.indexOf(blackNote);
         let bLabel = '';
         if (isBlackHighlighted) {
-          if (showIntervals && intervals.length > bNoteIdx && bNoteIdx >= 0) bLabel = intervals[bNoteIdx];
+          if (showIntervals && intervals.length > bNoteIdx && bNoteIdx >= 0)
+            bLabel = intervals[bNoteIdx];
           else if (showNoteNames) bLabel = NOTE_NAMES[blackNote].replace('#', '♯');
         }
 

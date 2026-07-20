@@ -2,7 +2,9 @@ import { useEffect, useRef } from 'react';
 
 export function useScrollFade() {
   const ref = useRef<HTMLDivElement>(null);
-  const currentClassRef = useRef<'fade-none' | 'fade-left' | 'fade-right' | 'fade-both'>('fade-none');
+  const currentClassRef = useRef<'fade-none' | 'fade-left' | 'fade-right' | 'fade-both'>(
+    'fade-none'
+  );
 
   const updateScrollFade = () => {
     const el = ref.current;
@@ -49,7 +51,7 @@ export function useScrollFade() {
       updateScrollFade();
     });
     resizeObserver.observe(el);
-    
+
     // Monitor changes in child nodes (e.g. dynamic genre chips loading)
     const mutationObserver = new MutationObserver(() => {
       updateScrollFade();

@@ -1,7 +1,7 @@
-import { type AccentColor } from '@workspace/studio-core';
+import { type AccentColor, SpringPresets } from '@workspace/studio-core';
 import React, { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { SPRING_PRESETS } from '../AppAnimationSystem';
+
 
 // ── Shared primitives used across SettingsPanel and HubSettings ────────────────
 
@@ -295,7 +295,7 @@ export function BentoSettingCard({
     <motion.button
       onClick={onPress}
       whileTap={{ scale: 0.975 }}
-      transition={SPRING_PRESETS.soft}
+      transition={SpringPresets.soft}
       className="btn-smooth bento-card outline-none"
       style={{
         display: 'flex',
@@ -435,7 +435,7 @@ export function BentoSettingRow({
     <motion.button
       onClick={onPress}
       whileTap={{ scale: 0.985 }}
-      transition={SPRING_PRESETS.soft}
+      transition={SpringPresets.soft}
       className="btn-smooth bento-card outline-none"
       style={{
         display: 'flex',

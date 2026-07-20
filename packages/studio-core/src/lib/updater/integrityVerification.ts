@@ -8,7 +8,10 @@ export async function verifyFileIntegrity(filePath: string, expectedHash: string
   updateGlobalState({ statusText: 'Verifying package' });
 
   const isValid = await verifyApkSha256(filePath, expectedHash);
-  void logProgressStage('SHA verified', isValid ? 'SHA validation successful' : 'SHA validation failed');
+  void logProgressStage(
+    'SHA verified',
+    isValid ? 'SHA validation successful' : 'SHA validation failed'
+  );
   updateDebugLogs.shaVerification = isValid ? 'SUCCESS' : 'FAILED';
 
   if (!isValid) {

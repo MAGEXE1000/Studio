@@ -76,7 +76,12 @@ export {
 export type { HealthStatus, InstallLockEvent } from './diagnostics';
 
 // Release metadata
-export { fetchRemoteVersion, versionJsonUrls, validateRemoteMetadata, logPipelineTrace } from './releaseMetadata';
+export {
+  fetchRemoteVersion,
+  versionJsonUrls,
+  validateRemoteMetadata,
+  logPipelineTrace,
+} from './releaseMetadata';
 export type { RemoteVersionInfo } from './releaseMetadata';
 
 // Version comparison
@@ -98,7 +103,13 @@ export { triggerNativeInstall, processLastInstallResult } from './installer';
 export { runSignatureMismatchRecovery, isRecovering, setIsRecovering } from './recovery';
 
 // Cache manager
-export { validateLocalApk, deleteLocalApk, getLocalApkPath, recordDismissal, shouldShowRecoveryReminder } from './cacheManager';
+export {
+  validateLocalApk,
+  deleteLocalApk,
+  getLocalApkPath,
+  recordDismissal,
+  shouldShowRecoveryReminder,
+} from './cacheManager';
 
 // Simulation
 export {
@@ -129,7 +140,12 @@ export { getUpdateHistory, logUpdateTransition } from './updateHistory';
 export type { UpdateHistoryEntry } from './updateHistory';
 
 // Install actions
-export { applyUpdateDirect, shareDownloadedApk, dismissUpdate, markUpdateSeen } from './installActions';
+export {
+  applyUpdateDirect,
+  shareDownloadedApk,
+  dismissUpdate,
+  markUpdateSeen,
+} from './installActions';
 
 // Core pipeline
 export {

@@ -15,11 +15,11 @@
  */
 
 export interface PitchShiftOptions {
-  humanize?:          number;   // 0–1
-  formantCorrection?: number;   // 0–1
+  humanize?: number; // 0–1
+  formantCorrection?: number; // 0–1
 }
 
-const GRAIN_SEC     = 0.040;
+const GRAIN_SEC = 0.04;
 const OVERLAP_RATIO = 0.5;
 const MIN_GRAIN_LEN = 64;
 
@@ -35,22 +35,22 @@ function hannWindow(n: number): Float32Array {
 }
 
 function shiftChannel(
-  input:      Float32Array,
+  input: Float32Array,
   sampleRate: number,
-  semitones:  number,
-  opts:       PitchShiftOptions = {},
+  semitones: number,
+  opts: PitchShiftOptions = {}
 ): Float32Array {
   const { humanize = 0, formantCorrection = 0 } = opts;
-  const ratio  = Math.pow(2, semitones / 12);
-  const inLen  = input.length;
-  const out    = new Float32Array(inLen);
+  const ratio = Math.pow(2, semitones / 12);
+  const inLen = input.length;
+  const out = new Float32Array(inLen);
 
   // Formant correction: enlarge grain for upward shifts so the spectral
   // envelope reads closer to its original position.
-  const fScale   = Math.pow(Math.abs(ratio), formantCorrection);
+  const fScale = Math.pow(Math.abs(ratio), formantCorrection);
   const grainLen = Math.max(MIN_GRAIN_LEN, Math.floor(GRAIN_SEC * sampleRate * fScale));
-  const hop      = Math.max(1, Math.floor(grainLen * OVERLAP_RATIO));
-  const win      = hannWindow(grainLen);
+  const hop = Math.max(1, Math.floor(grainLen * OVERLAP_RATIO));
+  const win = hannWindow(grainLen);
 
   const humanizeAmt = humanize * 0.04; // max ±4 % per grain
 
@@ -61,8 +61,8 @@ function shiftChannel(
     for (let i = 0; i < grainLen; i++) {
       const srcIdx = i * grainRatio;
       const intIdx = Math.floor(srcIdx);
-      const frac   = srcIdx - intIdx;
-      const a      = outPos + intIdx;
+      const frac = srcIdx - intIdx;
+      const a = outPos + intIdx;
       if (a + 1 >= inLen) break;
       const sample = input[a] * (1 - frac) + input[a + 1] * frac;
       out[outPos + i] += sample * win[i];
@@ -79,10 +79,10 @@ function shiftChannel(
 }
 
 export function pitchShiftBuffer(
-  audioCtx:  BaseAudioContext,
-  source:    AudioBuffer,
+  audioCtx: BaseAudioContext,
+  source: AudioBuffer,
   semitones: number,
-  opts:      PitchShiftOptions = {},
+  opts: PitchShiftOptions = {}
 ): AudioBuffer {
   const out = audioCtx.createBuffer(source.numberOfChannels, source.length, source.sampleRate);
   for (let c = 0; c < source.numberOfChannels; c++) {
@@ -115,23 +115,29 @@ export function bufferToMono(buf: AudioBuffer): Float32Array {
 /** Render a 16-bit PCM WAV blob from an AudioBuffer. */
 export function audioBufferToWavBlob(buf: AudioBuffer): Blob {
   const numCh = buf.numberOfChannels;
-  const sr    = buf.sampleRate;
-  const len   = buf.length;
-  const bps   = 2;
+  const sr = buf.sampleRate;
+  const len = buf.length;
+  const bps = 2;
   const block = numCh * bps;
   const dataSz = len * block;
-  const ab     = new ArrayBuffer(44 + dataSz);
-  const v      = new DataView(ab);
+  const ab = new ArrayBuffer(44 + dataSz);
+  const v = new DataView(ab);
 
   const ws = (off: number, s: string) => {
     for (let i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i));
   };
-  ws(0,  'RIFF'); v.setUint32(4, 36 + dataSz, true);
-  ws(8,  'WAVE'); ws(12, 'fmt ');
-  v.setUint32(16, 16, true); v.setUint16(20, 1, true);
-  v.setUint16(22, numCh, true); v.setUint32(24, sr, true);
-  v.setUint32(28, sr * block, true); v.setUint16(32, block, true);
-  v.setUint16(34, 16, true); ws(36, 'data');
+  ws(0, 'RIFF');
+  v.setUint32(4, 36 + dataSz, true);
+  ws(8, 'WAVE');
+  ws(12, 'fmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, numCh, true);
+  v.setUint32(24, sr, true);
+  v.setUint32(28, sr * block, true);
+  v.setUint16(32, block, true);
+  v.setUint16(34, 16, true);
+  ws(36, 'data');
   v.setUint32(40, dataSz, true);
 
   const channels: Float32Array[] = [];

@@ -6,7 +6,7 @@ export interface UpdaterSimulation {
   forceDowngrade: boolean;
   forceMandatoryUpdate: boolean;
   forceOptionalUpdate: boolean;
-  
+
   forceSignatureMismatch: boolean;
   forceShaFailure: boolean;
   forceMetadataFailure: boolean;
@@ -16,7 +16,7 @@ export interface UpdaterSimulation {
   forceRecoveryMode: boolean;
   forceResumeDownload: boolean;
   forceCachedApk: boolean;
-  
+
   // PackageInstaller Simulations
   forceInstallSuccess: boolean;
   forceInstallFailure: boolean;
@@ -38,7 +38,7 @@ export const updaterSimulation: UpdaterSimulation = {
   forceDowngrade: false,
   forceMandatoryUpdate: false,
   forceOptionalUpdate: false,
-  
+
   forceSignatureMismatch: false,
   forceShaFailure: false,
   forceMetadataFailure: false,
@@ -48,7 +48,7 @@ export const updaterSimulation: UpdaterSimulation = {
   forceRecoveryMode: false,
   forceResumeDownload: false,
   forceCachedApk: false,
-  
+
   forceInstallSuccess: false,
   forceInstallFailure: false,
   forceUserCancel: false,
@@ -90,9 +90,10 @@ export const rejectedTransitions: {
 }[] = [];
 
 export function getTransitionHistory() {
-  const events = typeof UpdaterFlightRecorder !== 'undefined' ? UpdaterFlightRecorder.getEvents() : [];
+  const events =
+    typeof UpdaterFlightRecorder !== 'undefined' ? UpdaterFlightRecorder.getEvents() : [];
   const history: any[] = [];
-  events.forEach(e => {
+  events.forEach((e) => {
     if (e.eventType === 'transitionToState' || e.eventType === 'fsmTransition') {
       history.push({
         from: e.previousState || 'IDLE',
@@ -114,15 +115,16 @@ export function getTransitionHistory() {
 }
 
 export function getRejectedTransitions() {
-  const events = typeof UpdaterFlightRecorder !== 'undefined' ? UpdaterFlightRecorder.getEvents() : [];
+  const events =
+    typeof UpdaterFlightRecorder !== 'undefined' ? UpdaterFlightRecorder.getEvents() : [];
   const rejected: any[] = [];
-  events.forEach(e => {
+  events.forEach((e) => {
     if (e.eventType === 'fsmTransitionRejected') {
       rejected.push({
         from: e.previousState || 'IDLE',
         attempted: e.newState || 'IDLE',
         reason: e.reason || 'None',
-        timestamp: e.timestamp
+        timestamp: e.timestamp,
       });
     }
   });
@@ -138,13 +140,11 @@ export function recordActivityLifecycle(stage: string) {
 export function addJsLog(msg: string) {
   const now = Date.now();
   jsLogs.push({ timestamp: now, message: msg });
-  console.log(`[Updater Sim] JS Log: ${msg}`);
 }
 
 export function addNativeLog(msg: string) {
   const now = Date.now();
   nativeLogs.push({ timestamp: now, message: msg });
-  console.log(`[Updater Sim] Native Log: ${msg}`);
 }
 
 function recordStateTransition(state: string, reason: string) {
@@ -176,7 +176,8 @@ export function triggerSimulatedStatus(status: number, message = '', progress = 
 
 export function isSimulationActive(): boolean {
   return !!(
-    (typeof localStorage !== 'undefined' && localStorage.getItem('studio:is_simulation_active') === 'true') ||
+    (typeof localStorage !== 'undefined' &&
+      localStorage.getItem('studio:is_simulation_active') === 'true') ||
     updaterSimulation.simulateDownload ||
     updaterSimulation.forceInstallSuccess ||
     updaterSimulation.forceInstallFailure ||

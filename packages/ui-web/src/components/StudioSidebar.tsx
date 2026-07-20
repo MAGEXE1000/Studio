@@ -44,7 +44,7 @@ export function SidebarProvider({
   const isMobile = false; // Strictly desktop web layout helper
 
   const toggleSidebar = useCallback(() => {
-    setOpen(prev => {
+    setOpen((prev) => {
       const next = !prev;
       try {
         localStorage.setItem('studio:sidebarOpen', String(next));
@@ -56,18 +56,23 @@ export function SidebarProvider({
   const state: 'expanded' | 'collapsed' = open ? 'expanded' : 'collapsed';
   const width = open ? '240px' : '0px';
 
-  const contextValue = useMemo(() => ({ state, open, setOpen, isMobile, toggleSidebar }), [state, open, isMobile, toggleSidebar]);
+  const contextValue = useMemo(
+    () => ({ state, open, setOpen, isMobile, toggleSidebar }),
+    [state, open, isMobile, toggleSidebar]
+  );
 
   return (
     <SidebarContext.Provider value={contextValue}>
       <div
         className={`flex w-full h-full min-h-[100dvh] overflow-hidden ${className}`}
-        style={{
-          '--sidebar-width': '240px',
-          '--sidebar-width-icon': '0px',
-          '--sidebar-current-width': width,
-          ...style,
-        } as React.CSSProperties}
+        style={
+          {
+            '--sidebar-width': '240px',
+            '--sidebar-width-icon': '0px',
+            '--sidebar-current-width': width,
+            ...style,
+          } as React.CSSProperties
+        }
         {...props}
       >
         {children}
@@ -124,7 +129,7 @@ export function Sidebar({
         borderWidth: {
           duration,
           ease: 'linear',
-        }
+        },
       }}
       style={{
         height: open ? 'calc(100dvh - 24px)' : '100dvh',
@@ -147,7 +152,7 @@ export function Sidebar({
           opacity: open ? 1 : 0,
         }}
         transition={{
-          duration: isReduced ? 0 : (open ? 0.18 : 0.08),
+          duration: isReduced ? 0 : open ? 0.18 : 0.08,
           ease: 'easeInOut',
         }}
         style={{
@@ -328,7 +333,8 @@ export function SidebarMenuButton({
           layoutId="sidebar-active-indicator"
           className="absolute left-1 w-1 h-5 rounded-full"
           style={{
-            background: 'linear-gradient(135deg, var(--studio-accent-from, #679cff), var(--studio-accent-to, #007aff))',
+            background:
+              'linear-gradient(135deg, var(--studio-accent-from, #679cff), var(--studio-accent-to, #007aff))',
           }}
           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
         />
@@ -389,7 +395,11 @@ export function SidebarInset({
   style?: React.CSSProperties;
 }) {
   return (
-    <main className={`flex-1 h-[100dvh] overflow-hidden relative ${className}`} style={style} {...props}>
+    <main
+      className={`flex-1 h-[100dvh] overflow-hidden relative ${className}`}
+      style={style}
+      {...props}
+    >
       {children}
     </main>
   );

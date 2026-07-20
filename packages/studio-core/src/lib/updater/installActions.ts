@@ -35,7 +35,7 @@ export async function shareDownloadedApk(): Promise<void> {
       title: 'Studio Update APK',
       text: 'Here is the latest update APK for Studio.',
       url: filePath,
-      dialogTitle: 'Share Studio Update'
+      dialogTitle: 'Share Studio Update',
     });
   } catch (err: any) {
     console.error('Failed to share APK:', err);
@@ -52,16 +52,16 @@ export function dismissUpdate(): void {
     workflowId: null,
     eventType: 'dismissUpdate',
     caller: 'installActions',
-    reason: `dismissUpdate called. Current state: ${globalUpdateState.updateState}`
+    reason: `dismissUpdate called. Current state: ${globalUpdateState.updateState}`,
   });
 
   // Hard guard: never reset state while the PackageInstaller is actively running.
   // This prevents any UI timer or accidental call from clearing installation locks
   // during an active install session.
-  const isBusy = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(globalUpdateState.updateState);
+  const isBusy = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(
+    globalUpdateState.updateState
+  );
   if (isBusy) {
-    console.warn(`[Updater] Rejecting dismissUpdate: installer is active (state: ${globalUpdateState.updateState}).`);
-    
     UpdaterFlightRecorder.record({
       thread: 'js',
       sessionId: null,
@@ -69,7 +69,7 @@ export function dismissUpdate(): void {
       eventType: 'dismissUpdateRejected',
       caller: 'installActions',
       reason: `dismissUpdate rejected because installer is active (state: ${globalUpdateState.updateState})`,
-      warning: 'DISMISS_REJECTED_ACTIVE_INSTALLER'
+      warning: 'DISMISS_REJECTED_ACTIVE_INSTALLER',
     });
     return;
   }

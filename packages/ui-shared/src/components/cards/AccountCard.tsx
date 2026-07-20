@@ -1,27 +1,4 @@
-import {
-  subscribeSyncStatus,
-  getSyncStatus,
-  type SyncStatus,
-  subscribeDevices,
-  deviceId,
-  revokeDeviceSession,
-  resolveMigration,
-  registerDevice,
-  registerCurrentDevice,
-  scheduleAccountDeletion,
-  disableAccount,
-  useT,
-  useChordStore,
-  useBackHandler,
-  useIsWebDesktop,
-  logActivity,
-  getActivityEmoji,
-  getFirebaseAuth,
-  APP_VERSION,
-  APP_COMMIT_SHA,
-  APP_BUILD_TIMESTAMP,
-  useSettingsStore,
-} from '@workspace/studio-core';
+import { subscribeSyncStatus, getSyncStatus, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP, useSettingsStore, userRepository } from "@workspace/studio-core";
 import { useEffect, useRef, useState } from 'react';
 import { DialogScaffold } from '../layout/StudioLayoutSystem';
 import { Button } from '../design-system/StudioDesignSystem';
@@ -31,29 +8,10 @@ import { Circle, Layers3, BadgeCheck, FlaskConical, ShieldCheck } from 'lucide-r
 import StudioSpinner from '../animata/progress/spinner';
 import AnimatedActionButton from '../animata/container/animated-border-trail';
 import StudioAuthCard from './StudioAuthCard';
-import {
-  isFirebaseConfigured,
-  signInGoogle,
-  signInEmail,
-  registerEmail,
-  signOut,
-  subscribeAuth,
-  updateDisplayName,
-  sendPasswordReset,
-  sendVerificationEmail,
-  isEmailVerified,
-  getSignInProviders,
-  type AuthUser,
-} from '@workspace/studio-core';
-import {
-  AVATAR_ICONS,
-  getUserAvatar,
-  setUserAvatar,
-  subscribeUserAvatar,
-  type AvatarIcon,
-} from '@workspace/studio-core';
+import { isFirebaseConfigured, type AuthUser, authRepository } from "@workspace/studio-core";
+import { AVATAR_ICONS, getUserAvatar, setUserAvatar, subscribeUserAvatar, type AvatarIcon } from "@workspace/studio-core";
 import StudioPricingSection from '../feature/StudioPricingSection';
-import { updateProfile } from 'firebase/auth';
+
 
 function compressAndResizeImage(file: File, maxWidth = 256, maxHeight = 256): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -112,15 +70,7 @@ async function selectAvatarIcon(user: AuthUser | null, icon: AvatarIcon | null) 
 }
 import { Capacitor } from '@capacitor/core';
 import { Toggle } from '../typography/SettingControls';
-import {
-  subscribeUserProfile,
-  isAdminUser,
-  isBetaTesterUser,
-  hasCoreAccessUser,
-  hasProAccessUser,
-  type UserProfile,
-  type UserRole,
-} from '@workspace/studio-core';
+import { subscribeUserProfile, isAdminUser, isBetaTesterUser, hasCoreAccessUser, hasProAccessUser, type UserProfile, type UserRole } from "@workspace/studio-core";
 
 const CLOUD_SYNC_FEATURE_ENABLED = false;
 
@@ -577,7 +527,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   useEffect(() => subscribeUserProfile(setProfile), []);
-  useEffect(() => subscribeAuth(setUser), []);
+  useEffect(() => authRepository.subscribeAuth(setUser), []);
   useEffect(() => subscribeSyncStatus(setSync), []);
   // Reset photo-failed flag when the user (or photo URL) changes so a
   // fresh sign-in gets a new shot at loading the picture.
@@ -651,7 +601,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
     setBusy(true);
     setErr(null);
     try {
-      await signInGoogle();
+      await authRepository.signInGoogle();
     } catch (e) {
       setErr(prettyErr(e, lang));
     } finally {
@@ -672,8 +622,8 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
     setBusy(true);
     setErr(null);
     try {
-      if (submitMode === 'email-signin') await signInEmail(submitEmail, submitPassword);
-      else await registerEmail(submitEmail, submitPassword, submitName || '');
+      if (submitMode === 'email-signin') await authRepository.signInEmail(submitEmail, submitPassword);
+      else await authRepository.registerEmail(submitEmail, submitPassword, submitName || '');
     } catch (e) {
       setErr(prettyErr(e, lang));
       throw e;
@@ -971,7 +921,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
   const [deleting, setDeleting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => subscribeAuth(setUser), []);
+  useEffect(() => authRepository.subscribeAuth(setUser), []);
 
   if (!isFirebaseConfigured || !user) return null;
 
@@ -998,7 +948,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
 
   async function doSignOut() {
     try {
-      await signOut();
+      await authRepository.signOut();
     } catch {
       /* noop */
     }
@@ -1012,10 +962,10 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
       // Soft-delete: schedule removal, keep all data intact for 7 days,
       // then sign the user out. Re-signing in shows the lockdown / restore
       // screen with a countdown.
-      await scheduleAccountDeletion(user.uid);
+      await userRepository.scheduleAccountDeletion(user.uid);
       closeSheet();
       try {
-        await signOut();
+        await authRepository.signOut();
       } catch {
         /* noop */
       }
@@ -1843,8 +1793,8 @@ export function AccountSettingsPage({
 
     let dbBytes = 0;
     try {
-      const { getCacheSize } = await import('../../groovex/stemCache');
-      const sizeInfo = await getCacheSize();
+      const { groovexStemRepository } = await import('@workspace/studio-core');
+      const sizeInfo = await groovexStemRepository.getCacheSize();
       dbBytes = sizeInfo.totalBytes;
     } catch (e) {
       console.warn(e);
@@ -1951,8 +1901,8 @@ export function AccountSettingsPage({
   async function doClearCache() {
     setClearingCache(true);
     try {
-      const { clearAllCache } = await import('../../groovex/stemCache');
-      await clearAllCache();
+      const { groovexStemRepository } = await import('@workspace/studio-core');
+      await groovexStemRepository.clearAllCache();
       showToast(lang === 'es' ? 'Caché de audio eliminada' : 'Audio cache cleared successfully');
       await refreshStorageSize();
     } catch (e) {
@@ -1963,7 +1913,7 @@ export function AccountSettingsPage({
     }
   }
 
-  useEffect(() => subscribeAuth(setUser), []);
+  useEffect(() => authRepository.subscribeAuth(setUser), []);
   useEffect(() => {
     const refresh = () => setAvatarIcon(getUserAvatar(user?.uid ?? null));
     refresh();
@@ -2034,10 +1984,10 @@ export function AccountSettingsPage({
 
   const initial = (user.displayName || user.email || '?').trim().charAt(0).toUpperCase();
   const effectivePhoto = customPhoto || (user.photoURL && !photoFailed ? user.photoURL : null);
-  const providers = getSignInProviders();
+  const providers = authRepository.getSignInProviders();
   const isEmailUser = providers.includes('password');
   const isGoogleUser = providers.includes('google.com');
-  const emailVerified = isEmailVerified();
+  const emailVerified = authRepository.isEmailVerified();
   const emailToConfirm = (user.email ?? '').trim().toLowerCase();
 
   const L =
@@ -2161,7 +2111,7 @@ export function AccountSettingsPage({
 
   async function doSignOut() {
     try {
-      await signOut();
+      await authRepository.signOut();
     } catch {
       /* noop */
     }
@@ -2172,10 +2122,10 @@ export function AccountSettingsPage({
     setBusy(true);
     setErr(null);
     try {
-      await disableAccount(user.uid);
+      await userRepository.disableAccount(user.uid);
       closeSheet();
       try {
-        await signOut();
+        await authRepository.signOut();
       } catch {
         /* noop */
       }
@@ -2191,10 +2141,10 @@ export function AccountSettingsPage({
     setBusy(true);
     setErr(null);
     try {
-      await scheduleAccountDeletion(user.uid);
+      await userRepository.scheduleAccountDeletion(user.uid);
       closeSheet();
       try {
-        await signOut();
+        await authRepository.signOut();
       } catch {
         /* noop */
       }
@@ -2210,7 +2160,7 @@ export function AccountSettingsPage({
     setBusy(true);
     setErr(null);
     try {
-      await updateDisplayName(nameInput);
+      await authRepository.updateDisplayName(nameInput);
       const { syncWriteProfileMain } = await import('@workspace/studio-core');
       await syncWriteProfileMain(nameInput, user.photoURL, avatarIcon);
       closeSheet();
@@ -2227,7 +2177,7 @@ export function AccountSettingsPage({
     setBusy(true);
     setErr(null);
     try {
-      await sendPasswordReset(user.email);
+      await authRepository.sendPasswordReset(user.email);
       closeSheet();
       showToast(L.passwordResetSent);
     } catch (e) {
@@ -2242,7 +2192,7 @@ export function AccountSettingsPage({
     setBusy(true);
     setErr(null);
     try {
-      await sendVerificationEmail();
+      await authRepository.sendVerificationEmail();
       closeSheet();
       showToast(L.verificationSent);
     } catch (e) {
@@ -2976,7 +2926,7 @@ export function AccountSettingsPage({
                   {lang === 'es' ? 'Proveedor de Autenticación' : 'Authentication Provider'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {getSignInProviders().includes('google.com') ? (
+                  {authRepository.getSignInProviders().includes('google.com') ? (
                     <GoogleIconSVG />
                   ) : (
                     <span
@@ -2995,8 +2945,8 @@ export function AccountSettingsPage({
                       textTransform: 'capitalize',
                     }}
                   >
-                    {getSignInProviders().length > 0
-                      ? getSignInProviders()
+                    {authRepository.getSignInProviders().length > 0
+                      ? authRepository.getSignInProviders()
                           .map((p) => p.replace('.com', ''))
                           .join(', ')
                       : 'Email & Password'}

@@ -23,7 +23,7 @@ class CentralizedSearchIndex {
   }
 
   public register(item: SearchableItem) {
-    const idx = this.items.findIndex(x => x.id === item.id);
+    const idx = this.items.findIndex((x) => x.id === item.id);
     if (idx >= 0) {
       this.items[idx] = item;
     } else {
@@ -46,7 +46,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Construye progresiones de acordes y estudia armonía',
       keywordsEn: ['chords', 'progressions', 'guitar', 'piano', 'scales'],
       keywordsEs: ['acordes', 'progresiones', 'guitarra', 'piano', 'escalas'],
-      target: { app: 'chords' }
+      target: { app: 'chords' },
     });
     this.register({
       id: 'app-drums',
@@ -57,7 +57,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Programa secuencias de batería y cuadrículas de ritmo',
       keywordsEn: ['drums', 'beats', 'sequencer', 'patterns'],
       keywordsEs: ['batería', 'ritmos', 'secuenciador', 'patrones'],
-      target: { app: 'drums' }
+      target: { app: 'drums' },
     });
     this.register({
       id: 'app-stage',
@@ -68,7 +68,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Consola de actuación en vivo y enrutamiento midi',
       keywordsEn: ['stage', 'performance', 'midi', 'routing'],
       keywordsEs: ['escenario', 'actuación', 'midi', 'enrutamiento'],
-      target: { app: 'stage' }
+      target: { app: 'stage' },
     });
     this.register({
       id: 'app-groovex',
@@ -79,7 +79,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Reproductor de groove de audio y sincro de tempo',
       keywordsEn: ['groove', 'player', 'mixer', 'tempo', 'sync'],
       keywordsEs: ['groove', 'reproductor', 'mezclador', 'tempo', 'sincronización'],
-      target: { app: 'groovex' }
+      target: { app: 'groovex' },
     });
     this.register({
       id: 'app-vocalex',
@@ -90,7 +90,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Rastreador de tono, entrenador vocal y coach de voz',
       keywordsEn: ['voice', 'vocal', 'pitch', 'trainer', 'singing'],
       keywordsEs: ['voz', 'vocal', 'tono', 'entrenador', 'canto'],
-      target: { app: 'vocalex' }
+      target: { app: 'vocalex' },
     });
 
     // Vocalex sub-pages
@@ -103,7 +103,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Entrena el tono de voz e intervalos de rango',
       keywordsEn: ['vocal', 'coach', 'trainer', 'singing', 'vocalex'],
       keywordsEs: ['vocal', 'entrenador', 'coach', 'canto', 'vocalex'],
-      target: { app: 'vocalex', page: 'coach' }
+      target: { app: 'vocalex', page: 'coach' },
     });
     this.register({
       id: 'vocalex-recorder',
@@ -114,7 +114,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Graba sesiones vocales y rastrea el historial de tono',
       keywordsEn: ['record', 'voice', 'recorder', 'mic', 'vocalex'],
       keywordsEs: ['grabar', 'voz', 'grabadora', 'micro', 'vocalex'],
-      target: { app: 'vocalex', page: 'recorder' }
+      target: { app: 'vocalex', page: 'recorder' },
     });
     this.register({
       id: 'vocalex-takes',
@@ -125,7 +125,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Ver tomas vocales grabadas recientemente y diagnósticos',
       keywordsEn: ['takes', 'history', 'recordings', 'vocalex'],
       keywordsEs: ['tomas', 'historial', 'grabaciones', 'vocalex'],
-      target: { app: 'vocalex', page: 'takes' }
+      target: { app: 'vocalex', page: 'takes' },
     });
 
     // 2. Settings Sections
@@ -138,7 +138,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Configura el espacio de trabajo y comportamientos de las apps',
       keywordsEn: ['preferences', 'layout', 'behavior', 'settings'],
       keywordsEs: ['preferencias', 'diseño', 'comportamiento', 'ajustes'],
-      target: { app: 'hub', tab: 'settings', page: 'general' }
+      target: { app: 'hub', tab: 'settings', page: 'general' },
     });
     this.register({
       id: 'setting-appearance',
@@ -149,7 +149,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Temas, modo oscuro, colores de acento y velocidades de animación',
       keywordsEn: ['theme', 'dark', 'light', 'colors', 'motion', 'animations'],
       keywordsEs: ['tema', 'oscuro', 'claro', 'colores', 'animaciones'],
-      target: { app: 'hub', tab: 'settings', page: 'appearance' }
+      target: { app: 'hub', tab: 'settings', page: 'appearance' },
     });
     this.register({
       id: 'setting-language',
@@ -160,7 +160,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Cambia el idioma de visualización entre inglés y español',
       keywordsEn: ['language', 'english', 'spanish', 'locale'],
       keywordsEs: ['idioma', 'inglés', 'español', 'lenguaje'],
-      target: { app: 'hub', tab: 'settings', page: 'language' }
+      target: { app: 'hub', tab: 'settings', page: 'language' },
     });
     this.register({
       id: 'setting-privacy',
@@ -171,7 +171,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Opciones de sincronización, claves de cifrado y almacenamiento local',
       keywordsEn: ['privacy', 'security', 'encryption', 'sync', 'backup'],
       keywordsEs: ['privacidad', 'seguridad', 'cifrado', 'sincronización', 'respaldo'],
-      target: { app: 'hub', tab: 'settings', page: 'privacy' }
+      target: { app: 'hub', tab: 'settings', page: 'privacy' },
     });
     this.register({
       id: 'setting-updater',
@@ -182,7 +182,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Buscar actualizaciones OTA e historial de lanzamientos',
       keywordsEn: ['update', 'ota', 'builds', 'updater'],
       keywordsEs: ['actualización', 'ota', 'versiones', 'actualizador'],
-      target: { app: 'hub', tab: 'settings', page: 'updater' }
+      target: { app: 'hub', tab: 'settings', page: 'updater' },
     });
     this.register({
       id: 'setting-developer',
@@ -193,7 +193,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Diagnóstico, registros de consola, controles de simulador',
       keywordsEn: ['developer', 'options', 'logs', 'diagnostics', 'simulation'],
       keywordsEs: ['desarrollador', 'opciones', 'registros', 'diagnóstico', 'simulación'],
-      target: { app: 'hub', tab: 'settings', page: 'developer' }
+      target: { app: 'hub', tab: 'settings', page: 'developer' },
     });
     this.register({
       id: 'setting-about',
@@ -204,7 +204,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Manifiesto de versión, credenciales y derechos de autor',
       keywordsEn: ['about', 'version', 'fingerprint', 'license'],
       keywordsEs: ['acerca de', 'versión', 'licencia', 'sistema'],
-      target: { app: 'hub', tab: 'settings', page: 'about' }
+      target: { app: 'hub', tab: 'settings', page: 'about' },
     });
     this.register({
       id: 'setting-help',
@@ -215,7 +215,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Preguntas frecuentes, guías y documentación',
       keywordsEn: ['help', 'faq', 'support', 'documentation', 'guides'],
       keywordsEs: ['ayuda', 'faq', 'soporte', 'documentación', 'guías'],
-      target: { app: 'hub', tab: 'settings', page: 'help-center' }
+      target: { app: 'hub', tab: 'settings', page: 'help-center' },
     });
 
     // 3. Menus / Pages
@@ -228,7 +228,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Navega de regreso al resumen del Hub principal',
       keywordsEn: ['home', 'hub', 'overview'],
       keywordsEs: ['inicio', 'hub', 'principal'],
-      target: { app: 'hub', tab: 'home' }
+      target: { app: 'hub', tab: 'home' },
     });
     this.register({
       id: 'menu-profile',
@@ -239,7 +239,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Edita el perfil de usuario, apodo y avatar',
       keywordsEn: ['profile', 'avatar', 'user', 'account', 'nickname'],
       keywordsEs: ['perfil', 'avatar', 'usuario', 'cuenta', 'apodo'],
-      target: { app: 'hub', tab: 'profile', page: 'profile' }
+      target: { app: 'hub', tab: 'profile', page: 'profile' },
     });
     this.register({
       id: 'menu-help',
@@ -250,7 +250,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Accede a la documentación y búsqueda de FAQ directamente',
       keywordsEn: ['help', 'support', 'tab'],
       keywordsEs: ['ayuda', 'soporte', 'pestaña'],
-      target: { app: 'hub', tab: 'help' }
+      target: { app: 'hub', tab: 'help' },
     });
 
     // 4. Actions
@@ -266,8 +266,8 @@ class CentralizedSearchIndex {
       target: {
         app: 'hub',
         tab: 'settings',
-        page: 'privacy'
-      }
+        page: 'privacy',
+      },
     });
   }
 }

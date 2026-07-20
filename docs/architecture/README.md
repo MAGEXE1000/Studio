@@ -15,50 +15,50 @@ This directory contains the complete engineering architecture knowledge base for
 
 ### Core Systems
 
-| Document | Description |
-|----------|-------------|
-| [overview.md](overview.md) | Project structure, workspace layout, build flow, entry points |
-| [apps.md](apps.md) | Sub-application registry, responsibilities, root screens, shared infrastructure |
-| [navigation.md](navigation.md) | Custom navigation system, route model, history stack, gestures |
-| [transition-engine.md](transition-engine.md) | Application transition state machine, lifecycle, safety watchdogs |
-| [bottom-navigation.md](bottom-navigation.md) | Bottom nav bar, motion states, item registration, scroll-hide |
-| [app-switcher.md](app-switcher.md) | App switching overlay, cross-store coordination, user flow |
-| [notification-service.md](notification-service.md) | In-app notification store, event publishers, persistence |
-| [theme-engine.md](theme-engine.md) | Theme transition engine, View Transitions API, chromatic bloom |
-| [design-system.md](design-system.md) | Design tokens, CSS properties, component library, platform adaptation |
-| [motion-system.md](motion-system.md) | Material 3 motion tokens, springs, easings, transition helpers |
-| [sync-engine.md](sync-engine.md) | Cloud sync state machine, Firestore, per-app strategy, safety guarantees |
-| [shared-ui.md](shared-ui.md) | Shared UI components, layout scaffolds, animation framework |
-| [performance.md](performance.md) | Startup pipeline, rendering, animation, memory, profiling |
+| Document                                           | Description                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [overview.md](overview.md)                         | Project structure, workspace layout, build flow, entry points                   |
+| [apps.md](apps.md)                                 | Sub-application registry, responsibilities, root screens, shared infrastructure |
+| [navigation.md](navigation.md)                     | Custom navigation system, route model, history stack, gestures                  |
+| [transition-engine.md](transition-engine.md)       | Application transition state machine, lifecycle, safety watchdogs               |
+| [bottom-navigation.md](bottom-navigation.md)       | Bottom nav bar, motion states, item registration, scroll-hide                   |
+| [app-switcher.md](app-switcher.md)                 | App switching overlay, cross-store coordination, user flow                      |
+| [notification-service.md](notification-service.md) | In-app notification store, event publishers, persistence                        |
+| [theme-engine.md](theme-engine.md)                 | Theme transition engine, View Transitions API, chromatic bloom                  |
+| [design-system.md](design-system.md)               | Design tokens, CSS properties, component library, platform adaptation           |
+| [motion-system.md](motion-system.md)               | Material 3 motion tokens, springs, easings, transition helpers                  |
+| [sync-engine.md](sync-engine.md)                   | Cloud sync state machine, Firestore, per-app strategy, safety guarantees        |
+| [shared-ui.md](shared-ui.md)                       | Shared UI components, layout scaffolds, animation framework                     |
+| [performance.md](performance.md)                   | Startup pipeline, rendering, animation, memory, profiling                       |
 
 ### Platform & Infrastructure
 
-| Document | Description |
-|----------|-------------|
-| [android.md](android.md) | Capacitor integration, native plugins, permissions, lifecycle |
-| [firebase.md](firebase.md) | Authentication, Firestore, Storage, Hosting, security rules |
-| [updater.md](updater.md) | OTA update pipeline, state machine, APK installation flow |
-| [release-pipeline.md](release-pipeline.md) | CI/CD, GitHub Actions, versioning, deployment |
-| [platform-separation.md](platform-separation.md) | Web vs Android file ownership, build boundaries |
-| [dependency-graph.md](dependency-graph.md) | Package relationships, service dependencies |
+| Document                                         | Description                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| [android.md](android.md)                         | Capacitor integration, native plugins, permissions, lifecycle |
+| [firebase.md](firebase.md)                       | Authentication, Firestore, Storage, Hosting, security rules   |
+| [updater.md](updater.md)                         | OTA update pipeline, state machine, APK installation flow     |
+| [release-pipeline.md](release-pipeline.md)       | CI/CD, GitHub Actions, versioning, deployment                 |
+| [platform-separation.md](platform-separation.md) | Web vs Android file ownership, build boundaries               |
+| [dependency-graph.md](dependency-graph.md)       | Package relationships, service dependencies                   |
 
 ### Sub-Application Modules
 
-| Document | Description |
-|----------|-------------|
-| [chordex.md](chordex.md) | Chord Explorer — library, diagrams, progressions |
-| [drumex.md](drumex.md) | Drum Machine — pattern editor, sequencer, kits |
-| [stagex.md](stagex.md) | Stage — performance view, iframe integration |
-| [groovex.md](groovex.md) | Groove Player — stem player, library, preferences |
+| Document                 | Description                                        |
+| ------------------------ | -------------------------------------------------- |
+| [chordex.md](chordex.md) | Chord Explorer — library, diagrams, progressions   |
+| [drumex.md](drumex.md)   | Drum Machine — pattern editor, sequencer, kits     |
+| [stagex.md](stagex.md)   | Stage — performance view, iframe integration       |
+| [groovex.md](groovex.md) | Groove Player — stem player, library, preferences  |
 | [vocalex.md](vocalex.md) | Vocal Training — pitch detection, recording, coach |
 
 ### Maintenance
 
-| Document | Description |
-|----------|-------------|
-| [technical-debt.md](technical-debt.md) | Large files, tight coupling, refactor opportunities |
+| Document                                       | Description                                          |
+| ---------------------------------------------- | ---------------------------------------------------- |
+| [technical-debt.md](technical-debt.md)         | Large files, tight coupling, refactor opportunities  |
 | [future-maintenance.md](future-maintenance.md) | Coding conventions, isolation rules, recommendations |
-| [migration_map.md](migration_map.md) | Migration plans and history |
+| [migration_map.md](migration_map.md)           | Migration plans and history                          |
 
 ## Quick Start for New Engineers
 

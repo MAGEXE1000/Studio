@@ -1,4 +1,5 @@
 import { useChordStore } from '../../store/useChordStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
 
 export type ActivityType =
   | 'app_launch'
@@ -23,7 +24,7 @@ export interface ActivityEvent {
 
 export function logActivity(type: ActivityType, title: string, subtitle?: string) {
   const store = useChordStore.getState();
-  const enabled = store.settings.activityHistoryEnabled !== false;
+  const enabled = useSettingsStore.getState().settings.activityHistoryEnabled !== false;
   if (!enabled) return;
 
   const newEvent: ActivityEvent = {

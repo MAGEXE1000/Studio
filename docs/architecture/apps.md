@@ -10,14 +10,14 @@ Document the responsibilities, entry points, root screens, and navigation owners
 
 ## Application Registry
 
-| App Key | Name | Root Screen | Entry Component |
-|---|---|---|---|
-| `hub` | Hub | Home | [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/hub/StudioHub.tsx) |
-| `chordex` | Chordex | Library | App.tsx wrapper |
-| `drumex` | Drumex | Main Editor | [DrumEditor.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/drumex/DrumEditor.tsx) |
-| `groovex` | Groovex | Home | [GroovexApp.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/groovex/GroovexApp.tsx) |
-| `stagex` | Stagex | Main Workspace | [StageCorePanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx) |
-| `vocalex` | Vocalex | Home | [VocalexApp.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/VocalexApp.tsx) |
+| App Key   | Name    | Root Screen    | Entry Component                                                                                                                                           |
+| --------- | ------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hub`     | Hub     | Home           | [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/hub/StudioHub.tsx)                  |
+| `chordex` | Chordex | Library        | App.tsx wrapper                                                                                                                                           |
+| `drumex`  | Drumex  | Main Editor    | [DrumEditor.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/drumex/DrumEditor.tsx)               |
+| `groovex` | Groovex | Home           | [GroovexApp.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/groovex/GroovexApp.tsx)              |
+| `stagex`  | Stagex  | Main Workspace | [StageCorePanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx) |
+| `vocalex` | Vocalex | Home           | [VocalexApp.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/VocalexApp.tsx)              |
 
 ---
 
@@ -26,6 +26,7 @@ Document the responsibilities, entry points, root screens, and navigation owners
 The central launcher, settings manager, and system dashboard.
 
 ### Responsibilities
+
 - Application launcher (home tab with app orbit)
 - Settings management (general, appearance, language, privacy, about, debug, developer)
 - Notification Center (Activity & Updates timeline)
@@ -34,10 +35,12 @@ The central launcher, settings manager, and system dashboard.
 - Developer tools access
 
 ### Navigation
+
 - **Tabs**: Home, Settings, Help
 - **Settings sub-pages**: general, appearance, language, privacy, about, debug, profile, release-notes, help-center, faq, terms, privacy-policy, bug-report, developer, notifications
 
 ### Key Stores
+
 - `useChordStore` (settings), `useNotificationService` (notifications)
 
 ---
@@ -47,6 +50,7 @@ The central launcher, settings manager, and system dashboard.
 Chord practice and learning suite.
 
 ### Responsibilities
+
 - Chord diagram display and interactive practice
 - Custom chord builder
 - Progression generator
@@ -54,10 +58,12 @@ Chord practice and learning suite.
 - Library management
 
 ### Navigation
+
 - **Root**: Library
 - Internal drill-down navigation for chord details, song view, custom builder, progression generator
 
 ### Key Stores
+
 - `useChordStore` (songs, chords, settings, custom chords)
 
 ---
@@ -67,16 +73,19 @@ Chord practice and learning suite.
 Drum pattern sequencer and beat programming tool.
 
 ### Responsibilities
+
 - Step sequencer grid editor
 - Drum pattern management
 - Beat programming with multiple instrument lanes
 - Tempo and time signature control
 
 ### Navigation
+
 - **Root**: Main Editor
 - Internal navigation for pattern selection, instrument settings
 
 ### Key Stores
+
 - `useDrumStore` (patterns, instruments, playback state)
 
 ---
@@ -86,16 +95,19 @@ Drum pattern sequencer and beat programming tool.
 Music playback and groove exploration.
 
 ### Responsibilities
+
 - Audio playback engine
 - Music library browsing
 - Groove exploration and favorites
 - Playback preferences
 
 ### Navigation
+
 - **Root**: Home
 - **Key screens**: Home, Player, Library, Preferences
 
 ### Key Stores
+
 - `useChordStore` (shared settings), Groovex-specific playback state
 
 ---
@@ -105,20 +117,24 @@ Music playback and groove exploration.
 DAW-style workspace for audio arrangement and stage element placement.
 
 ### Responsibilities
+
 - Canvas-based element placement and arrangement
 - History/undo system
 - Audio track layout
 - Element properties editing
 
 ### Navigation
+
 - **Root**: Main Workspace
 - Internal navigation for element inspector, history panel
 
 ### Special Considerations
+
 - On some platforms, lives in an iframe and communicates via `postMessage` for sync.
 - Has a dedicated Android variant in `packages/ui-android/src/components/StageCorePanel.tsx`.
 
 ### Key Stores
+
 - Internal state management, syncs via `postMessage` bridge
 
 ---
@@ -128,6 +144,7 @@ DAW-style workspace for audio arrangement and stage element placement.
 Vocal training, pitch detection, and recording studio.
 
 ### Responsibilities
+
 - Real-time pitch detection via `pitchYin` algorithm
 - Audio recording with take management
 - Takes panel with waveform visualization
@@ -135,14 +152,17 @@ Vocal training, pitch detection, and recording studio.
 - Lab sessions for structured practice
 
 ### Navigation
+
 - **Root**: Home
 - Internal navigation for recording view, takes panel, coach, lab sessions
 
 ### Storage
+
 - IndexedDB for takes and audio blobs (via `takesDb` and `labSessionDb`)
 - Audio blobs serialized as base64 for cloud sync
 
 ### Key Features
+
 - [RecordingView](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/RecordingView.tsx) — Real-time pitch visualization
 - [TakesPanel](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/TakesPanel.tsx) — Take management and playback
 - [CoachPanel](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/CoachPanel.tsx) — Vocal coaching UI

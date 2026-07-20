@@ -10,12 +10,12 @@ Provide smooth, interruptible, and deadlock-free animated transitions between Li
 
 ## Responsibilities
 
-| Responsibility | Owner |
-|---|---|
-| State machine lifecycle | [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) |
-| Visual animation rendering | [ApplicationTransitionEngine.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/launch/ApplicationTransitionEngine.tsx) |
-| Bottom nav cleanup on transition | Cross-store call to `useBottomNavigationStore.reset()` |
-| Safety watchdog | 4.5s `window.__transitionWatchdog` timer |
+| Responsibility                   | Owner                                                                                                                                                                            |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| State machine lifecycle          | [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) |
+| Visual animation rendering       | [ApplicationTransitionEngine.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/launch/ApplicationTransitionEngine.tsx)  |
+| Bottom nav cleanup on transition | Cross-store call to `useBottomNavigationStore.reset()`                                                                                                                           |
+| Safety watchdog                  | 4.5s `window.__transitionWatchdog` timer                                                                                                                                         |
 
 ## Architecture
 
@@ -65,30 +65,30 @@ sequenceDiagram
 
 ## Lifecycle
 
-| Phase | Duration | Description |
-|---|---|---|
-| IDLE | — | No transition active |
-| PREPARING | ~20ms | Clears bottom nav, sets watchdog, queues microtask |
-| LOGO_FORMATION | Variable | Waits for both `appPreloaded` and `logoFormed` |
-| FORMATION_COMPLETE | 180ms | Brief hold for visual rhythm |
-| ZOOM_TRANSITION | ~300ms | Zoom animation via Framer Motion |
-| OVERLAY_DISMISS | 250ms | Overlay fade-out |
-| INTERACTION_ENABLE | 50ms | Re-enables pointer events |
+| Phase              | Duration | Description                                        |
+| ------------------ | -------- | -------------------------------------------------- |
+| IDLE               | —        | No transition active                               |
+| PREPARING          | ~20ms    | Clears bottom nav, sets watchdog, queues microtask |
+| LOGO_FORMATION     | Variable | Waits for both `appPreloaded` and `logoFormed`     |
+| FORMATION_COMPLETE | 180ms    | Brief hold for visual rhythm                       |
+| ZOOM_TRANSITION    | ~300ms   | Zoom animation via Framer Motion                   |
+| OVERLAY_DISMISS    | 250ms    | Overlay fade-out                                   |
+| INTERACTION_ENABLE | 50ms     | Re-enables pointer events                          |
 
 ## Public API
 
-| Action | Signature | Description |
-|---|---|---|
-| `requestTransition` | `(targetApp: AppKey) => boolean` | Entry point. Resets in-flight transitions. Clears bottom nav. Sets 4.5s watchdog. |
-| `setAppPreloaded` | `(preloaded: boolean) => void` | Called when destination app assets load. Triggers zoom if both conditions met. |
-| `setLogoFormed` | `(formed: boolean) => void` | Called when logo animation completes. Triggers zoom if both conditions met. |
-| `completeTransition` | `() => void` | Called when zoom animation ends. Clears watchdog. Starts dismiss sequence. |
-| `reset` | `() => void` | Force-resets to IDLE. Clears watchdog and bottom nav store. |
+| Action               | Signature                        | Description                                                                       |
+| -------------------- | -------------------------------- | --------------------------------------------------------------------------------- |
+| `requestTransition`  | `(targetApp: AppKey) => boolean` | Entry point. Resets in-flight transitions. Clears bottom nav. Sets 4.5s watchdog. |
+| `setAppPreloaded`    | `(preloaded: boolean) => void`   | Called when destination app assets load. Triggers zoom if both conditions met.    |
+| `setLogoFormed`      | `(formed: boolean) => void`      | Called when logo animation completes. Triggers zoom if both conditions met.       |
+| `completeTransition` | `() => void`                     | Called when zoom animation ends. Clears watchdog. Starts dismiss sequence.        |
+| `reset`              | `() => void`                     | Force-resets to IDLE. Clears watchdog and bottom nav store.                       |
 
 ## Internal API
 
-| Action | Description |
-|---|---|
+| Action      | Description                                                                 |
+| ----------- | --------------------------------------------------------------------------- |
 | `startZoom` | Sets FORMATION_COMPLETE, then advances to ZOOM_TRANSITION after 180ms hold. |
 
 ## Design Decisions

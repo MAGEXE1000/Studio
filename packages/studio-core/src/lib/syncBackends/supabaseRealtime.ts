@@ -1,25 +1,11 @@
-import { Capacitor } from '@capacitor/core';
-import { 
-  SyncBackendProvider, 
-  UserProfile, 
-  AppearanceSettings, 
-  UserPreferences, 
-  SyncDiagnostics, 
-  Unsubscribe, 
-  ProbeListener, 
-  DevicesListener, 
-  ProfileListener, 
-  AppearanceListener, 
-  PreferencesListener, 
-  DiagnosticsListener,
-  SyncDevice,
-  ProbeDoc
-} from './types';
-import { supabase, isSupabaseConfigured, setFirebaseIdToken, getSupabaseConfigDetails, getFirebaseIdToken } from '../supabaseClient';
-import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage, getFirebaseProjectId, getFirebaseConfigDetails } from '../firebase';
-import { subscribeAuth } from '../auth';
-import { getStableDeviceId, getDeviceDetails, classifyDeviceSession } from '../syncEngine';
-import { APP_VERSION, APP_COMMIT_SHA } from '../appVersion';
+import { authRepository } from "../../index";
+import { Capacitor } from "@capacitor/core";
+import { SyncBackendProvider, UserProfile, AppearanceSettings, UserPreferences, SyncDiagnostics, Unsubscribe, ProbeListener, DevicesListener, ProfileListener, AppearanceListener, PreferencesListener, DiagnosticsListener, SyncDevice, ProbeDoc } from "./types";
+import { supabase, isSupabaseConfigured, setFirebaseIdToken, getSupabaseConfigDetails, getFirebaseIdToken } from "../supabaseClient";
+import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage, getFirebaseProjectId, getFirebaseConfigDetails } from "../firebase";
+
+import { getStableDeviceId, getDeviceDetails, classifyDeviceSession } from "../syncEngine";
+import { APP_VERSION, APP_COMMIT_SHA } from "../appVersion";
 
 export class SupabaseRealtimeProvider implements SyncBackendProvider {
   providerName = 'supabase-realtime';
@@ -28,7 +14,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
   private deviceId: string = 'unknown';
   private versionCode: number = 0;
   private unsubs: Unsubscribe[] = [];
-  
+
   // Callbacks
   private devicesCallbacks = new Set<DevicesListener>();
   private profileCallbacks = new Set<ProfileListener>();
@@ -202,7 +188,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     appearanceTable: 'user_appearance_settings',
     preferencesTable: 'user_preferences',
     versionCode: 0,
-    probeRowsReceived: 0
+    probeRowsReceived: 0,
   };
 
   private realtimeChannel: any = null;
@@ -212,16 +198,17 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     if (!e) return 'None';
     const errorMsg = e.message || String(e);
     const errorCode = e.code || 'None';
-    
-    const isJwtError = errorCode === 'PGRST301' || 
-                        errorMsg.includes('JWT') || 
-                        errorMsg.includes('JWK') || 
-                        errorMsg.includes('signature') || 
-                        errorMsg.includes('unauthenticated') ||
-                        errorMsg.toLowerCase().includes('jwt') ||
-                        errorMsg.toLowerCase().includes('invalid token') ||
-                        errorMsg.toLowerCase().includes('issuer');
-    
+
+    const isJwtError =
+      errorCode === 'PGRST301' ||
+      errorMsg.includes('JWT') ||
+      errorMsg.includes('JWK') ||
+      errorMsg.includes('signature') ||
+      errorMsg.includes('unauthenticated') ||
+      errorMsg.toLowerCase().includes('jwt') ||
+      errorMsg.toLowerCase().includes('invalid token') ||
+      errorMsg.toLowerCase().includes('issuer');
+
     if (isJwtError) {
       const jwtErrorStr = 'Supabase Third-Party Auth is not configured.';
       this.diagState.lastSupabaseAuthError = jwtErrorStr;
@@ -243,12 +230,11 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         this.versionCode = installedDetails.versionCode || 0;
         this.diagState.versionCode = this.versionCode;
       } catch (e) {
-        console.warn('[supabaseRealtime] Failed to load native version code:', e);
       }
     }
-    
+
     // Subscribe to Firebase Auth and dynamically acquire the token
-    const unsubAuth = subscribeAuth(async (user) => {
+    const unsubAuth = authRepository.subscribeAuth(async (user) => {
       if (user) {
         this.userId = user.uid;
         this.diagState.firebaseAuthUid = user.uid;
@@ -265,7 +251,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
           const token = await rawUser.getIdToken();
           setFirebaseIdToken(token);
           this.diagState.firestoreInitSource = 'firebase-auth-token-bridged';
-          
+
           // Setup Realtime Channels and Initial registration
           this.setupRealtimeAndPresence(user.uid);
           await this.registerCurrentDevice('init-auth');
@@ -276,7 +262,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
           const errorMsg = this.processError(e);
           this.updateDiag({
             syncEngineInitError: errorMsg,
-            syncEngineStatus: 'error'
+            syncEngineStatus: 'error',
           });
         }
       } else {
@@ -301,7 +287,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
   }
 
   async dispose(): Promise<void> {
-    this.unsubs.forEach(u => u());
+    this.unsubs.forEach((u) => u());
     this.unsubs = [];
     this.clearSubscriptions();
   }
@@ -329,10 +315,10 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     // Supabase Diagnostics mapping
     const uid = this.userId;
     const deviceId = this.deviceId;
-    
+
     // Check if client is actually ready and URL/Anon key are configured
     const clientReady = configDetails.supabaseClientReady;
-    
+
     // supabaseDbAvailable: Yes only if Supabase client exists AND can attempt a query (i.e. is ready). If client is not ready, it must be false/No.
     const supabaseDbAvailable = clientReady;
     const supabaseStorageAvailable = clientReady;
@@ -353,7 +339,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       supabaseDbAvailable,
       supabaseStorageAvailable,
       supabaseAuthStrategy: 'Third-Party Auth (Firebase Auth Token)',
-      
+
       probeTable: 'sync_probe',
       probeRowId: uid && deviceId ? `${uid}:${deviceId}` : 'N/A',
       devicesTable: 'user_devices',
@@ -366,22 +352,22 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       versionCode: this.versionCode,
     };
 
-    this.diagState = { 
-      ...this.diagState, 
-      ...firebaseDiag, 
-      ...supabaseDiag, 
+    this.diagState = {
+      ...this.diagState,
+      ...firebaseDiag,
+      ...supabaseDiag,
       ...configDetails, // Overwrite with actual supabaseClient config details
-      ...patch 
+      ...patch,
     } as SyncDiagnostics;
 
-    this.diagState.activeListenerCount = 
-      (this.devicesCallbacks.size > 0 ? 1 : 0) + 
-      (this.profileCallbacks.size > 0 ? 1 : 0) + 
-      (this.appearanceCallbacks.size > 0 ? 1 : 0) + 
-      (this.preferencesCallbacks.size > 0 ? 1 : 0) + 
+    this.diagState.activeListenerCount =
+      (this.devicesCallbacks.size > 0 ? 1 : 0) +
+      (this.profileCallbacks.size > 0 ? 1 : 0) +
+      (this.appearanceCallbacks.size > 0 ? 1 : 0) +
+      (this.preferencesCallbacks.size > 0 ? 1 : 0) +
       (this.probeCallbacks.size > 0 ? 1 : 0);
 
-    this.diagnosticsCallbacks.forEach(cb => cb(this.diagState as SyncDiagnostics));
+    this.diagnosticsCallbacks.forEach((cb) => cb(this.diagState as SyncDiagnostics));
   }
 
   private clearSubscriptions() {
@@ -410,61 +396,76 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
     try {
       // 1. Fetch user profile
-      const { data: profile, error: profileErr } = await supabase.from('user_profiles').select('*').eq('user_id', userId).maybeSingle();
+      const { data: profile, error: profileErr } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
       if (profileErr) throw profileErr;
       if (profile) {
         this.updateDiag({
           cloudDisplayName: profile.display_name || 'N/A',
           cloudPhotoURL: profile.photo_url || 'N/A',
           profileLastSnapshotAt: nowStr,
-          profileListenerStatus: 'active'
+          profileListenerStatus: 'active',
         });
         const mappedProfile: UserProfile = {
           displayName: profile.display_name,
           photoURL: profile.photo_url,
-          avatarIcon: profile.avatar_icon
+          avatarIcon: profile.avatar_icon,
         };
-        this.profileCallbacks.forEach(cb => cb(mappedProfile));
+        this.profileCallbacks.forEach((cb) => cb(mappedProfile));
       }
 
       // 2. Fetch appearance
-      const { data: appearance, error: appearanceErr } = await supabase.from('user_appearance_settings').select('*').eq('user_id', userId).maybeSingle();
+      const { data: appearance, error: appearanceErr } = await supabase
+        .from('user_appearance_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
       if (appearanceErr) throw appearanceErr;
       if (appearance) {
         this.updateDiag({
           cloudTheme: appearance.theme || 'N/A',
           cloudAccentColor: appearance.accent_color || 'N/A',
           appearanceLastSnapshotAt: nowStr,
-          appearanceListenerStatus: 'active'
+          appearanceListenerStatus: 'active',
         });
         const mappedAppearance: AppearanceSettings = {
           theme: appearance.theme,
           accentColor: appearance.accent_color,
           customAccentHue: Number(appearance.custom_accent_hue || 220),
           palette: appearance.palette,
-          language: appearance.language
+          language: appearance.language,
         };
-        this.appearanceCallbacks.forEach(cb => cb(mappedAppearance));
+        this.appearanceCallbacks.forEach((cb) => cb(mappedAppearance));
       }
 
       // 3. Fetch preferences
-      const { data: preferences, error: preferencesErr } = await supabase.from('user_preferences').select('*').eq('user_id', userId).maybeSingle();
+      const { data: preferences, error: preferencesErr } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
       if (preferencesErr) throw preferencesErr;
       if (preferences) {
         this.updateDiag({
           cloudPreferences: preferences.studio_preferences || null,
           preferencesLastSnapshotAt: nowStr,
-          preferencesListenerStatus: 'active'
+          preferencesListenerStatus: 'active',
         });
         const mappedPreferences: UserPreferences = {
           studioPreferences: preferences.studio_preferences,
-          modulePreferences: preferences.module_preferences
+          modulePreferences: preferences.module_preferences,
         };
-        this.preferencesCallbacks.forEach(cb => cb(mappedPreferences));
+        this.preferencesCallbacks.forEach((cb) => cb(mappedPreferences));
       }
 
       // 4. Fetch devices
-      const { data: devices, error: devicesErr } = await supabase.from('user_devices').select('*').eq('user_id', userId);
+      const { data: devices, error: devicesErr } = await supabase
+        .from('user_devices')
+        .select('*')
+        .eq('user_id', userId);
       if (devicesErr) throw devicesErr;
       if (devices) {
         const mappedDevices: SyncDevice[] = devices.map((d: any) => ({
@@ -486,34 +487,43 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
           signedIn: d.signed_in,
           currentSession: d.current_session,
           syncStatus: d.sync_status,
-          classification: classifyDeviceSession({
-            deviceId: d.device_id,
-            id: d.id,
-            lastActiveAt: d.last_active_at ? new Date(d.last_active_at).getTime() : 0,
-            signedIn: d.signed_in,
-            currentSession: d.current_session,
-            syncStatus: d.sync_status,
-          }, this.deviceId).classification,
-          classificationReason: classifyDeviceSession({
-            deviceId: d.device_id,
-            id: d.id,
-            lastActiveAt: d.last_active_at ? new Date(d.last_active_at).getTime() : 0,
-            signedIn: d.signed_in,
-            currentSession: d.current_session,
-            syncStatus: d.sync_status,
-          }, this.deviceId).reason
+          classification: classifyDeviceSession(
+            {
+              deviceId: d.device_id,
+              id: d.id,
+              lastActiveAt: d.last_active_at ? new Date(d.last_active_at).getTime() : 0,
+              signedIn: d.signed_in,
+              currentSession: d.current_session,
+              syncStatus: d.sync_status,
+            },
+            this.deviceId
+          ).classification,
+          classificationReason: classifyDeviceSession(
+            {
+              deviceId: d.device_id,
+              id: d.id,
+              lastActiveAt: d.last_active_at ? new Date(d.last_active_at).getTime() : 0,
+              signedIn: d.signed_in,
+              currentSession: d.current_session,
+              syncStatus: d.sync_status,
+            },
+            this.deviceId
+          ).reason,
         }));
         this.updateDiag({
           devices: mappedDevices,
           devicesLastSnapshotAt: nowStr,
           devicesSnapshotCount: devices.length,
-          devicesListenerStatus: 'active'
+          devicesListenerStatus: 'active',
         });
-        this.devicesCallbacks.forEach(cb => cb(mappedDevices));
+        this.devicesCallbacks.forEach((cb) => cb(mappedDevices));
       }
 
       // 5. Fetch probes
-      const { data: probes, error: probesErr } = await supabase.from('sync_probe').select('*').eq('user_id', userId);
+      const { data: probes, error: probesErr } = await supabase
+        .from('sync_probe')
+        .select('*')
+        .eq('user_id', userId);
       if (probesErr) throw probesErr;
       if (probes) {
         const mappedProbes: ProbeDoc[] = probes.map((p: any) => ({
@@ -525,12 +535,12 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
           buildType: p.build_type || 'Web',
           nonce: p.nonce || 'None',
           writtenAt: p.written_at ? new Date(p.written_at).getTime() : Date.now(),
-          updatedAt: p.updated_at ? new Date(p.updated_at).getTime() : Date.now()
+          updatedAt: p.updated_at ? new Date(p.updated_at).getTime() : Date.now(),
         }));
-        
-        const deviceIds = mappedProbes.map(p => p.deviceId);
-        const nonces = mappedProbes.map(p => p.nonce);
-        
+
+        const deviceIds = mappedProbes.map((p) => p.deviceId);
+        const nonces = mappedProbes.map((p) => p.nonce);
+
         this.updateDiag({
           probeDocs: mappedProbes,
           lastProbeSnapshotAt: nowStr,
@@ -538,23 +548,22 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
           probeRowsReceived: probes.length,
           probeDeviceIdsReceived: deviceIds,
           probeNoncesReceived: nonces,
-          androidProbeDetected: mappedProbes.some(p => p.platform === 'android'),
-          webProbeDetected: mappedProbes.some(p => p.platform === 'web'),
-          probeListenerStatus: 'active'
+          androidProbeDetected: mappedProbes.some((p) => p.platform === 'android'),
+          webProbeDetected: mappedProbes.some((p) => p.platform === 'web'),
+          probeListenerStatus: 'active',
         });
-        this.probeCallbacks.forEach(cb => cb(mappedProbes));
+        this.probeCallbacks.forEach((cb) => cb(mappedProbes));
       }
 
       this.updateDiag({
         lastSuccessfulSyncAt: nowStr,
-        dbAvailable: true
+        dbAvailable: true,
       });
     } catch (e: any) {
-      console.warn('[supabaseRealtime] Refetch data failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
         lastErrorCode: e.code || 'fetch-error',
-        lastErrorMessage: errorMsg
+        lastErrorMessage: errorMsg,
       });
     }
   }
@@ -569,33 +578,58 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       appearanceListenerStatus: 'attaching',
       preferencesListenerStatus: 'attaching',
       probeListenerStatus: 'attaching',
-      probeListenerAttachedAt: new Date().toLocaleString()
+      probeListenerAttachedAt: new Date().toLocaleString(),
     });
 
     // Initialize Realtime Channel
     this.realtimeChannel = supabase.channel(`sync-realtime:${userId}`);
 
     this.realtimeChannel
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_profiles', filter: `user_id=eq.${userId}` }, (payload: any) => {
-        this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-        this.refetchAllData(userId, 'realtime-user-profiles-event');
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_appearance_settings', filter: `user_id=eq.${userId}` }, (payload: any) => {
-        this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-        this.refetchAllData(userId, 'realtime-appearance-event');
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_preferences', filter: `user_id=eq.${userId}` }, (payload: any) => {
-        this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-        this.refetchAllData(userId, 'realtime-preferences-event');
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_devices', filter: `user_id=eq.${userId}` }, (payload: any) => {
-        this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-        this.refetchAllData(userId, 'realtime-devices-event');
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sync_probe', filter: `user_id=eq.${userId}` }, (payload: any) => {
-        this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-        this.refetchAllData(userId, 'realtime-probe-event');
-      })
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_profiles', filter: `user_id=eq.${userId}` },
+        (payload: any) => {
+          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
+          this.refetchAllData(userId, 'realtime-user-profiles-event');
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_appearance_settings',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
+          this.refetchAllData(userId, 'realtime-appearance-event');
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_preferences', filter: `user_id=eq.${userId}` },
+        (payload: any) => {
+          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
+          this.refetchAllData(userId, 'realtime-preferences-event');
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_devices', filter: `user_id=eq.${userId}` },
+        (payload: any) => {
+          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
+          this.refetchAllData(userId, 'realtime-devices-event');
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sync_probe', filter: `user_id=eq.${userId}` },
+        (payload: any) => {
+          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
+          this.refetchAllData(userId, 'realtime-probe-event');
+        }
+      )
       .subscribe((status: string) => {
         const isConnected = status === 'SUBSCRIBED';
         this.updateDiag({ realtimeConnected: isConnected });
@@ -616,7 +650,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       buttonActionStatus: 'pending',
       directWritePath: `debug_writes/${uid}/${deviceId}`,
       lastAction: 'Direct Supabase Write Test',
-      lastActionAt: nowStr
+      lastActionAt: nowStr,
     });
 
     if (!supabase || !uid) {
@@ -624,7 +658,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       this.updateDiag({
         directWriteResult: 'failed',
         directWriteError: errStr,
-        buttonActionStatus: 'error'
+        buttonActionStatus: 'error',
       });
       return { success: false, error: errStr };
     }
@@ -641,14 +675,18 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       nonce,
       test_name: 'direct-supabase-write-test',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     try {
       const { error: writeError } = await supabase.from('debug_writes').upsert(payload);
       if (writeError) throw writeError;
 
-      const { data: readData, error: readError } = await supabase.from('debug_writes').select('*').eq('id', `${uid}:${deviceId}`).maybeSingle();
+      const { data: readData, error: readError } = await supabase
+        .from('debug_writes')
+        .select('*')
+        .eq('id', `${uid}:${deviceId}`)
+        .maybeSingle();
       if (readError) throw readError;
 
       const duration = Date.now() - startTime;
@@ -660,16 +698,15 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         directReadBackSuccess: nowStr,
         directReadBackError: 'None',
         directReadBackData: JSON.stringify(readData),
-        buttonActionStatus: 'success'
+        buttonActionStatus: 'success',
       });
 
       return {
         success: true,
         durationMs: duration,
-        readBackData: JSON.stringify(readData)
+        readBackData: JSON.stringify(readData),
       };
     } catch (e: any) {
-      console.warn('[supabaseRealtime] Direct write test failed:', e);
       const duration = Date.now() - startTime;
       const errorMsg = this.processError(e);
       this.updateDiag({
@@ -677,7 +714,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         directWriteError: errorMsg,
         directWriteDurationMs: duration,
         directReadBackError: errorMsg,
-        buttonActionStatus: 'error'
+        buttonActionStatus: 'error',
       });
       return { success: false, error: errorMsg };
     }
@@ -693,7 +730,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       buttonActionStatus: 'pending',
       probeWritePath: `sync_probe/${uid}/${deviceId}`,
       lastAction: 'Send Supabase Sync Probe',
-      lastActionAt: nowStr
+      lastActionAt: nowStr,
     });
 
     if (!supabase || !uid) {
@@ -701,7 +738,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       this.updateDiag({
         lastProbeWriteError: errStr,
         probeResult: 'failed',
-        buttonActionStatus: 'error'
+        buttonActionStatus: 'error',
       });
       return { success: false, error: errStr };
     }
@@ -718,7 +755,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       build_type: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
       nonce,
       written_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     try {
@@ -729,7 +766,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         lastProbeWriteSuccess: nowStr,
         probeResult: 'success',
         lastProbeWriteError: 'None',
-        buttonActionStatus: 'success'
+        buttonActionStatus: 'success',
       });
 
       // Optimistic refresh
@@ -737,12 +774,11 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
       return { success: true, nonce };
     } catch (e: any) {
-      console.warn('[supabaseRealtime] Probe send failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
         lastProbeWriteError: errorMsg,
         probeResult: 'failed',
-        buttonActionStatus: 'error'
+        buttonActionStatus: 'error',
       });
       return { success: false, error: errorMsg };
     }
@@ -755,7 +791,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
     this.updateDiag({
       lastAction: 'Clear My Probe',
-      buttonActionStatus: 'pending'
+      buttonActionStatus: 'pending',
     });
 
     try {
@@ -788,7 +824,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       deviceRegistrationStatus: 'pending',
       lastDeviceRegistrationReason: reason,
       inFlightWriteStatus: true,
-      deviceWritePath: `user_devices/${uid}/${deviceId}`
+      deviceWritePath: `user_devices/${uid}/${deviceId}`,
     });
 
     if (!supabase || !uid) {
@@ -796,20 +832,23 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       this.updateDiag({
         lastDeviceWriteError: errStr,
         deviceRegistrationStatus: 'failed',
-        inFlightWriteStatus: false
+        inFlightWriteStatus: false,
       });
       return { success: false, error: errStr };
     }
 
     let currentRevision = 0;
     try {
-      const { data, error } = await supabase.from('user_devices').select('revision').eq('id', `${uid}:${deviceId}`).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_devices')
+        .select('revision')
+        .eq('id', `${uid}:${deviceId}`)
+        .maybeSingle();
       if (error) throw error;
       if (data) {
         currentRevision = Number(data.revision || 0);
       }
     } catch (e) {
-      console.warn('[supabaseRealtime] Failed to fetch device revision:', e);
     }
 
     const details = getDeviceDetails();
@@ -837,7 +876,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       updated_at: new Date().toISOString(),
       updated_by_device: deviceId,
       revision: currentRevision + 1,
-      schema_version: 'studio-sync-v1'
+      schema_version: 'studio-sync-v1',
     };
 
     try {
@@ -849,18 +888,17 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         lastDeviceWriteError: 'None',
         lastDeviceWriteDurationMs: Date.now() - startTime,
         deviceRegistrationStatus: 'registered',
-        inFlightWriteStatus: false
+        inFlightWriteStatus: false,
       });
 
       this.refetchAllData(uid, 'device-registered');
       return { success: true };
     } catch (e: any) {
-      console.warn('[supabaseRealtime] Device registration failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
         lastDeviceWriteError: errorMsg,
         deviceRegistrationStatus: 'failed',
-        inFlightWriteStatus: false
+        inFlightWriteStatus: false,
       });
       return { success: false, error: errorMsg };
     }
@@ -885,17 +923,16 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         last_seen_at: new Date().toISOString(),
         last_active_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        updated_by_device: deviceId
+        updated_by_device: deviceId,
       });
       if (error) throw error;
 
       this.updateDiag({
         lastHeartbeatSuccess: nowStr,
-        lastHeartbeatError: 'None'
+        lastHeartbeatError: 'None',
       });
       return { success: true };
     } catch (e: any) {
-      console.warn('[supabaseRealtime] Heartbeat failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({ lastHeartbeatError: errorMsg });
       return { success: false, error: errorMsg };
@@ -914,15 +951,20 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     if (!supabase || !uid) return null;
 
     try {
-      const { data, error } = await supabase.from('user_profiles').select('*').eq('user_id', uid).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', uid)
+        .maybeSingle();
       if (error) throw error;
-      return data ? {
-        displayName: data.display_name,
-        photoURL: data.photo_url,
-        avatarIcon: data.avatar_icon
-      } : null;
+      return data
+        ? {
+            displayName: data.display_name,
+            photoURL: data.photo_url,
+            avatarIcon: data.avatar_icon,
+          }
+        : null;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] getProfile failed:', e);
       this.processError(e);
       return null;
     }
@@ -935,13 +977,16 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
     let currentRevision = 0;
     try {
-      const { data, error } = await supabase.from('user_profiles').select('revision').eq('user_id', uid).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('revision')
+        .eq('user_id', uid)
+        .maybeSingle();
       if (error) throw error;
       if (data) {
         currentRevision = Number(data.revision || 0);
       }
     } catch (e) {
-      console.warn('[supabaseRealtime] Failed to fetch profile revision:', e);
     }
 
     const payload: any = {
@@ -949,7 +994,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       updated_at: new Date().toISOString(),
       updated_by_device: this.deviceId,
       revision: currentRevision + 1,
-      schema_version: 'studio-sync-v1'
+      schema_version: 'studio-sync-v1',
     };
 
     if (patch.displayName !== undefined) payload.display_name = patch.displayName;
@@ -963,16 +1008,15 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       this.updateDiag({
         lastProfileWriteSuccess: nowStr,
         lastProfileWriteError: 'None',
-        profileSyncResult: 'success'
+        profileSyncResult: 'success',
       });
 
       this.refetchAllData(uid, 'profile-update');
     } catch (e: any) {
-      console.warn('[supabaseRealtime] updateProfile failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
         lastProfileWriteError: errorMsg,
-        profileSyncResult: 'failed'
+        profileSyncResult: 'failed',
       });
       throw e;
     }
@@ -990,17 +1034,22 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     if (!supabase || !uid) return null;
 
     try {
-      const { data, error } = await supabase.from('user_appearance_settings').select('*').eq('user_id', uid).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_appearance_settings')
+        .select('*')
+        .eq('user_id', uid)
+        .maybeSingle();
       if (error) throw error;
-      return data ? {
-        theme: data.theme,
-        accentColor: data.accent_color,
-        customAccentHue: Number(data.custom_accent_hue || 220),
-        palette: data.palette,
-        language: data.language
-      } : null;
+      return data
+        ? {
+            theme: data.theme,
+            accentColor: data.accent_color,
+            customAccentHue: Number(data.custom_accent_hue || 220),
+            palette: data.palette,
+            language: data.language,
+          }
+        : null;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] getAppearanceSettings failed:', e);
       this.processError(e);
       return null;
     }
@@ -1013,13 +1062,16 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
     let currentRevision = 0;
     try {
-      const { data, error } = await supabase.from('user_appearance_settings').select('revision').eq('user_id', uid).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_appearance_settings')
+        .select('revision')
+        .eq('user_id', uid)
+        .maybeSingle();
       if (error) throw error;
       if (data) {
         currentRevision = Number(data.revision || 0);
       }
     } catch (e) {
-      console.warn('[supabaseRealtime] Failed to fetch appearance revision:', e);
     }
 
     const payload: any = {
@@ -1027,7 +1079,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       updated_at: new Date().toISOString(),
       updated_by_device: this.deviceId,
       revision: currentRevision + 1,
-      schema_version: 'studio-sync-v1'
+      schema_version: 'studio-sync-v1',
     };
 
     if (patch.theme !== undefined) payload.theme = patch.theme;
@@ -1043,16 +1095,15 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       this.updateDiag({
         lastAppearanceWriteSuccess: nowStr,
         lastAppearanceWriteError: 'None',
-        appearanceSyncResult: 'success'
+        appearanceSyncResult: 'success',
       });
 
       this.refetchAllData(uid, 'appearance-update');
     } catch (e: any) {
-      console.warn('[supabaseRealtime] updateAppearanceSettings failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
         lastAppearanceWriteError: errorMsg,
-        appearanceSyncResult: 'failed'
+        appearanceSyncResult: 'failed',
       });
       throw e;
     }
@@ -1070,14 +1121,19 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     if (!supabase || !uid) return null;
 
     try {
-      const { data, error } = await supabase.from('user_preferences').select('*').eq('user_id', uid).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', uid)
+        .maybeSingle();
       if (error) throw error;
-      return data ? {
-        studioPreferences: data.studio_preferences,
-        modulePreferences: data.module_preferences
-      } : null;
+      return data
+        ? {
+            studioPreferences: data.studio_preferences,
+            modulePreferences: data.module_preferences,
+          }
+        : null;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] getPreferences failed:', e);
       this.processError(e);
       return null;
     }
@@ -1090,13 +1146,16 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
     let currentRevision = 0;
     try {
-      const { data, error } = await supabase.from('user_preferences').select('revision').eq('user_id', uid).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('revision')
+        .eq('user_id', uid)
+        .maybeSingle();
       if (error) throw error;
       if (data) {
         currentRevision = Number(data.revision || 0);
       }
     } catch (e) {
-      console.warn('[supabaseRealtime] Failed to fetch preferences revision:', e);
     }
 
     try {
@@ -1107,21 +1166,20 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         updated_at: new Date().toISOString(),
         updated_by_device: this.deviceId,
         revision: currentRevision + 1,
-        schema_version: 'studio-sync-v1'
+        schema_version: 'studio-sync-v1',
       });
       if (error) throw error;
 
       this.updateDiag({
         lastPreferencesWriteSuccess: nowStr,
-        lastPreferencesWriteError: 'None'
+        lastPreferencesWriteError: 'None',
       });
 
       this.refetchAllData(uid, 'preferences-update');
     } catch (e: any) {
-      console.warn('[supabaseRealtime] updatePreferences failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
-        lastPreferencesWriteError: errorMsg
+        lastPreferencesWriteError: errorMsg,
       });
       throw e;
     }
@@ -1141,7 +1199,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     try {
       // 1. Upload to Supabase Storage Bucket 'avatars'
       const filePath = `${uid}/avatar.jpg`;
-      
+
       // Remove any pre-existing avatar first to prevent cache issues
       await supabase.storage.from('avatars').remove([filePath]);
 
@@ -1149,23 +1207,24 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         .from('avatars')
         .upload(filePath, file, {
           contentType: file.type || 'image/jpeg',
-          upsert: true
+          upsert: true,
         });
 
       if (uploadErr) throw uploadErr;
 
       // 2. Get Public URL
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
       // 3. Update the Profile document
       await this.updateProfile({ photoURL: publicUrl });
 
       return publicUrl;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] uploadProfilePhoto failed:', e);
       const errorMsg = this.processError(e);
       this.updateDiag({
-        lastPhotoUploadError: errorMsg
+        lastPhotoUploadError: errorMsg,
       });
       throw e;
     }
@@ -1185,11 +1244,10 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         current_session: false,
         sync_status: 'signedOut',
         last_seen_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
       if (error) throw error;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] unregisterDevice failed:', e);
       this.processError(e);
     }
   }
@@ -1208,13 +1266,12 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         current_session: false,
         sync_status: 'revoked',
         last_seen_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
       if (error) throw error;
 
       this.refetchAllData(uid, 'device-revoked');
     } catch (e: any) {
-      console.warn('[supabaseRealtime] revokeDeviceSession failed:', e);
       this.processError(e);
     }
   }
@@ -1233,11 +1290,15 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     if (!supabase || !uid) return false;
 
     try {
-      const { data, error } = await supabase.from('user_app_state').select('id').eq('user_id', uid).eq('app_key', appKey).maybeSingle();
+      const { data, error } = await supabase
+        .from('user_app_state')
+        .select('id')
+        .eq('user_id', uid)
+        .eq('app_key', appKey)
+        .maybeSingle();
       if (error) throw error;
       return !!data;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] checkCloudDataExists failed:', e);
       this.processError(e);
       return false;
     }
@@ -1253,11 +1314,10 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         device_id: this.deviceId,
         label,
         data,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       });
       if (error) throw error;
     } catch (e: any) {
-      console.warn('[supabaseRealtime] createCloudBackup failed:', e);
       this.processError(e);
     }
   }
@@ -1268,19 +1328,24 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
 
     try {
       for (const appKey of appKeys) {
-        const { error } = await supabase.from('user_app_state').delete().eq('user_id', uid).eq('app_key', appKey);
+        const { error } = await supabase
+          .from('user_app_state')
+          .delete()
+          .eq('user_id', uid)
+          .eq('app_key', appKey);
         if (error) throw error;
       }
       try {
         localStorage.removeItem('sync_meta');
       } catch (_) {}
     } catch (e: any) {
-      console.warn('[supabaseRealtime] deleteCloudData failed:', e);
       this.processError(e);
     }
   }
 
-  async pullAppState(appKey: string): Promise<{ body: any; updatedAt: any; deviceId: string; schemaVersion?: number } | null> {
+  async pullAppState(
+    appKey: string
+  ): Promise<{ body: any; updatedAt: any; deviceId: string; schemaVersion?: number } | null> {
     const uid = this.userId;
     if (!supabase || !uid) return null;
 
@@ -1299,16 +1364,18 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         body: data.body,
         updatedAt: data.updated_at ? new Date(data.updated_at).getTime() : Date.now(),
         deviceId: data.device_id,
-        schemaVersion: data.schema_version
+        schemaVersion: data.schema_version,
       };
     } catch (e: any) {
-      console.warn(`[supabaseRealtime] pullAppState failed for ${appKey}:`, e);
       this.processError(e);
       return null;
     }
   }
 
-  async pushAppState(appKey: string, data: { kind: string; body: any; deviceId: string; schemaVersion: number }): Promise<number> {
+  async pushAppState(
+    appKey: string,
+    data: { kind: string; body: any; deviceId: string; schemaVersion: number }
+  ): Promise<number> {
     const uid = this.userId;
     if (!supabase || !uid) throw new Error('Unauthenticated Session');
 
@@ -1321,7 +1388,7 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
         body: data.body,
         device_id: data.deviceId,
         schema_version: data.schemaVersion,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       const { data: insertedData, error } = await supabase
@@ -1333,7 +1400,6 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
       if (error) throw error;
       return insertedData?.updated_at ? new Date(insertedData.updated_at).getTime() : Date.now();
     } catch (e: any) {
-      console.warn(`[supabaseRealtime] pushAppState failed for ${appKey}:`, e);
       this.processError(e);
       throw e;
     }

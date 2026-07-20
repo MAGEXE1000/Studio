@@ -33,7 +33,9 @@ const FourStringDiagram = memo(function FourStringDiagram({
   const numStrings = fiveString && instrument === 'bass' ? 5 : 4;
   // Take the bottom numStrings from guitar (indices 0..numStrings-1)
   const frets = rawFrets.slice(0, numStrings);
-  const barres = chordData.barres.filter(b => b.fromString <= numStrings && b.toString <= numStrings);
+  const barres = chordData.barres.filter(
+    (b) => b.fromString <= numStrings && b.toString <= numStrings
+  );
   const baseFret = chordData.baseFret;
 
   const sizes = {
@@ -97,7 +99,8 @@ const FourStringDiagram = memo(function FourStringDiagram({
         fontWeight="700"
         letterSpacing="0.1em"
       >
-        {instrument.toUpperCase()} {fiveString && instrument === 'bass' ? '(5-string)' : '(4-string)'}
+        {instrument.toUpperCase()}{' '}
+        {fiveString && instrument === 'bass' ? '(5-string)' : '(4-string)'}
       </text>
 
       {/* Base fret label — right side */}
@@ -118,17 +121,27 @@ const FourStringDiagram = memo(function FourStringDiagram({
 
       {/* Nut */}
       {showNut && (
-        <rect x={startX - 1} y={startY - 4} width={boardW + 2} height={5} rx={2} fill="#acabaa" opacity={0.6} />
+        <rect
+          x={startX - 1}
+          y={startY - 4}
+          width={boardW + 2}
+          height={5}
+          rx={2}
+          fill="#acabaa"
+          opacity={0.6}
+        />
       )}
 
       {/* Fret lines */}
       {Array.from({ length: numFrets + 1 }).map((_, i) => (
         <line
           key={`fret-${i}`}
-          x1={startX} y1={startY + i * cellH}
-          x2={startX + boardW} y2={startY + i * cellH}
+          x1={startX}
+          y1={startY + i * cellH}
+          x2={startX + boardW}
+          y2={startY + i * cellH}
           stroke="#484848"
-          strokeOpacity={i === 0 ? (showNut ? 0 : 0.4) : 0.20}
+          strokeOpacity={i === 0 ? (showNut ? 0 : 0.4) : 0.2}
           strokeWidth={1}
         />
       ))}
@@ -137,8 +150,10 @@ const FourStringDiagram = memo(function FourStringDiagram({
       {Array.from({ length: numStrings }).map((_, i) => (
         <line
           key={`string-${i}`}
-          x1={startX + i * cellW} y1={startY}
-          x2={startX + i * cellW} y2={startY + boardH}
+          x1={startX + i * cellW}
+          y1={startY}
+          x2={startX + i * cellW}
+          y2={startY + boardH}
           stroke="#484848"
           strokeOpacity={0.25}
           strokeWidth={1 + (i === 0 ? 0.5 : 0)}
@@ -169,10 +184,15 @@ const FourStringDiagram = memo(function FourStringDiagram({
         const x2 = startX + (numStrings - Math.min(barre.toString, numStrings)) * cellW;
         const cy = startY + fretPos * cellH + cellH / 2;
         return (
-          <rect key={`barre-${bi}`}
-            x={Math.min(x1, x2)} y={cy - dotR}
-            width={Math.abs(x2 - x1)} height={dotR * 2}
-            rx={dotR} fill={`url(#${dotGradId})`} opacity={0.9}
+          <rect
+            key={`barre-${bi}`}
+            x={Math.min(x1, x2)}
+            y={cy - dotR}
+            width={Math.abs(x2 - x1)}
+            height={dotR * 2}
+            rx={dotR}
+            fill={`url(#${dotGradId})`}
+            opacity={0.9}
           />
         );
       })}
@@ -185,7 +205,9 @@ const FourStringDiagram = memo(function FourStringDiagram({
         const cy = startY + fretPos * cellH + cellH / 2;
         const label = getNoteLabel(stringIdx);
         const stringNum = numStrings - stringIdx;
-        const isBarre = barres.some(b => b.fret === fret && stringNum >= b.toString && stringNum <= b.fromString);
+        const isBarre = barres.some(
+          (b) => b.fret === fret && stringNum >= b.toString && stringNum <= b.fromString
+        );
 
         return (
           <g key={`dot-${stringIdx}`}>
@@ -196,7 +218,16 @@ const FourStringDiagram = memo(function FourStringDiagram({
               </>
             )}
             {label && (
-              <text x={cx} y={cy} fontSize={fontSize - 1} fill="#ffffff" textAnchor="middle" dominantBaseline="middle" fontWeight="bold" fontFamily="Inter, sans-serif">
+              <text
+                x={cx}
+                y={cy}
+                fontSize={fontSize - 1}
+                fill="#ffffff"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontWeight="bold"
+                fontFamily="Inter, sans-serif"
+              >
                 {label}
               </text>
             )}
@@ -209,13 +240,42 @@ const FourStringDiagram = memo(function FourStringDiagram({
         const cx = startX + stringIdx * cellW;
         const cy = startY - 16;
         if (fret === 0) {
-          return <circle key={`open-${stringIdx}`} cx={cx} cy={cy} r={dotR * 0.6} fill="none" stroke="#acabaa" strokeWidth={1.5} strokeOpacity={0.7} />;
+          return (
+            <circle
+              key={`open-${stringIdx}`}
+              cx={cx}
+              cy={cy}
+              r={dotR * 0.6}
+              fill="none"
+              stroke="#acabaa"
+              strokeWidth={1.5}
+              strokeOpacity={0.7}
+            />
+          );
         } else if (fret === -1) {
           const d = dotR * 0.5;
           return (
             <g key={`muted-${stringIdx}`}>
-              <line x1={cx - d} y1={cy - d} x2={cx + d} y2={cy + d} stroke="#ee7d77" strokeWidth={1.5} strokeLinecap="round" strokeOpacity={0.9} />
-              <line x1={cx + d} y1={cy - d} x2={cx - d} y2={cy + d} stroke="#ee7d77" strokeWidth={1.5} strokeLinecap="round" strokeOpacity={0.9} />
+              <line
+                x1={cx - d}
+                y1={cy - d}
+                x2={cx + d}
+                y2={cy + d}
+                stroke="#ee7d77"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeOpacity={0.9}
+              />
+              <line
+                x1={cx + d}
+                y1={cy - d}
+                x2={cx - d}
+                y2={cy + d}
+                stroke="#ee7d77"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeOpacity={0.9}
+              />
             </g>
           );
         }

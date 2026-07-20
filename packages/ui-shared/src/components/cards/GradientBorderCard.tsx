@@ -19,8 +19,8 @@ export default function GradientBorderCard({
   className,
   ...rest
 }: GradientBorderCardProps) {
-  const br   = typeof borderRadius === 'number' ? `${borderRadius}px`     : borderRadius;
-  const ibr  = typeof borderRadius === 'number' ? `${borderRadius - 1}px` : br;
+  const br = typeof borderRadius === 'number' ? `${borderRadius}px` : borderRadius;
+  const ibr = typeof borderRadius === 'number' ? `${borderRadius - 1}px` : br;
 
   return (
     <div
@@ -32,7 +32,7 @@ export default function GradientBorderCard({
         className="gb-inner"
         style={{
           borderRadius: ibr,
-          ...(innerBg ? { '--gb-inner-bg': innerBg } as CSSProperties : {}),
+          ...(innerBg ? ({ '--gb-inner-bg': innerBg } as CSSProperties) : {}),
           ...innerStyle,
         }}
       >

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 
 interface StudioCountUpPercentageProps {
   value: number; // raw value, can be 0-100 or 0-1 (we'll detect and handle both!)
@@ -22,11 +22,11 @@ export default function StudioCountUpPercentage({
   const renderedPctRef = useRef<number>(0);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setReducedMotion(mediaQuery.matches);
     const listener = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mediaQuery.addEventListener("change", listener);
-    return () => mediaQuery.removeEventListener("change", listener);
+    mediaQuery.addEventListener('change', listener);
+    return () => mediaQuery.removeEventListener('change', listener);
   }, []);
 
   useEffect(() => {
@@ -50,10 +50,10 @@ export default function StudioCountUpPercentage({
     const animateCount = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
-      
+
       // Butter-smooth cubic ease-out curve
       const easeOut = 1 - Math.pow(1 - progress, 3);
-      
+
       const current = Math.round(startVal + (endVal - startVal) * easeOut);
       setCurrentPct(current);
       renderedPctRef.current = current;
@@ -76,7 +76,7 @@ export default function StudioCountUpPercentage({
   }, [targetPct, reducedMotion]);
 
   return (
-    <span className={className} style={{ fontFamily: "inherit", fontWeight: "inherit", ...style }}>
+    <span className={className} style={{ fontFamily: 'inherit', fontWeight: 'inherit', ...style }}>
       {currentPct}
     </span>
   );

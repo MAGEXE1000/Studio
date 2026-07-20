@@ -6,14 +6,14 @@ Provides a centralized, animated bottom navigation bar for mobile/hybrid interfa
 
 ## Responsibilities
 
-| Concern | Owner |
-|---|---|
-| Global navigation state (visibility, collapse, items, motion) | [useBottomNavigationStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useBottomNavigationStore.ts) |
-| Scroll-driven hide/reveal + watchdog recovery | [navScroll.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/navScroll.ts) |
-| State synchronization and platform gating | [BottomNavigationController.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/BottomNavigationController.tsx) |
-| Rendering, capsule animation, pointer scrubbing | [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx) |
-| CSS transform/transition helpers | [navStyles.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/navStyles.ts) |
-| Cross-store cleanup at transition boundaries | [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) |
+| Concern                                                       | Owner                                                                                                                                                                            |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Global navigation state (visibility, collapse, items, motion) | [useBottomNavigationStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useBottomNavigationStore.ts)           |
+| Scroll-driven hide/reveal + watchdog recovery                 | [navScroll.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/navScroll.ts)                                         |
+| State synchronization and platform gating                     | [BottomNavigationController.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/BottomNavigationController.tsx)           |
+| Rendering, capsule animation, pointer scrubbing               | [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx)                         |
+| CSS transform/transition helpers                              | [navStyles.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/navStyles.ts)                                               |
+| Cross-store cleanup at transition boundaries                  | [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) |
 
 ## Architecture
 
@@ -63,12 +63,12 @@ graph TB
 
 ## Dependencies
 
-| Dependency | Package | Used For |
-|---|---|---|
-| `zustand` | `studio-core` | `useBottomNavigationStore`, `useApplicationTransitionStore` |
-| `motion/react` | `ui-shared` | Spring animations, `useMotionValue`, `useTransform`, `animate` |
-| `@workspace/studio-core` | `ui-shared` | Store access, scroll hooks, navigation dispatcher |
-| Material Symbols | `ui-shared` | Icon font for string-based `BottomNavItem.icon` values |
+| Dependency               | Package       | Used For                                                       |
+| ------------------------ | ------------- | -------------------------------------------------------------- |
+| `zustand`                | `studio-core` | `useBottomNavigationStore`, `useApplicationTransitionStore`    |
+| `motion/react`           | `ui-shared`   | Spring animations, `useMotionValue`, `useTransform`, `animate` |
+| `@workspace/studio-core` | `ui-shared`   | Store access, scroll hooks, navigation dispatcher              |
+| Material Symbols         | `ui-shared`   | Icon font for string-based `BottomNavItem.icon` values         |
 
 ## Data Flow
 
@@ -144,11 +144,11 @@ sequenceDiagram
 
 Acts as the **synchronization bridge** between reactive hooks and the Zustand store. It does not render UI directly — it delegates to `SharedNavigationBar`.
 
-| Effect | Trigger | Store Action |
-|---|---|---|
-| `hidden` changed | `useNavHidden()` | `setVisible(!hidden)` |
-| `collapsed` changed | `useNavCollapsed()` | `setCollapsed(collapsed)` |
-| `scrollOffset` changed | `useNavScrollOffset()` | `setMotionState('Scrolling' \| 'Hidden' \| 'Idle')` |
+| Effect                    | Trigger                         | Store Action                                                                |
+| ------------------------- | ------------------------------- | --------------------------------------------------------------------------- |
+| `hidden` changed          | `useNavHidden()`                | `setVisible(!hidden)`                                                       |
+| `collapsed` changed       | `useNavCollapsed()`             | `setCollapsed(collapsed)`                                                   |
+| `scrollOffset` changed    | `useNavScrollOffset()`          | `setMotionState('Scrolling' \| 'Hidden' \| 'Idle')`                         |
 | `transitionState` changed | `useApplicationTransitionStore` | `setMotionState('ReturningToHub' \| 'Transitioning' \| 'Idle' \| 'Hidden')` |
 
 ### navScroll.ts — Scroll-Hide Engine
@@ -159,15 +159,15 @@ Module-level singletons manage `hidden`, `collapsed`, and `scrollOffset` states 
 
 **Key APIs:**
 
-| Function | Description |
-|---|---|
-| `setNavHidden(boolean)` | Programmatic full-hide (e.g., preset editor, modals). 4-second auto-show timer if not locked. |
-| `setNavCollapsed(boolean)` | Scroll-driven collapse. Sets `data-nav-collapsed` attribute on `<html>`. |
-| `setNavScrollOffset(number)` | Progressive 0–1 offset for intermediate slide translation. Clamped. |
-| `setNavLocked(boolean)` | Prevents show/expand while locked. Unlocking auto-resets both hidden and collapsed. |
-| `resetNav()` | Full reset: unlocks, un-hides, un-collapses, zeroes scroll offset. |
-| `useScrollHide(ref, dep?)` | React hook. Binds scroll listener to a `ref`. Scroll-down → collapse, scroll-up → expand. Jitter filter at 2px. Progressive offset ratio: `dy / 75`. |
-| `onStateChanged()` | Self-healing watchdog. Checks for orphaned collapsed/hidden states and auto-recovers. |
+| Function                     | Description                                                                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setNavHidden(boolean)`      | Programmatic full-hide (e.g., preset editor, modals). 4-second auto-show timer if not locked.                                                        |
+| `setNavCollapsed(boolean)`   | Scroll-driven collapse. Sets `data-nav-collapsed` attribute on `<html>`.                                                                             |
+| `setNavScrollOffset(number)` | Progressive 0–1 offset for intermediate slide translation. Clamped.                                                                                  |
+| `setNavLocked(boolean)`      | Prevents show/expand while locked. Unlocking auto-resets both hidden and collapsed.                                                                  |
+| `resetNav()`                 | Full reset: unlocks, un-hides, un-collapses, zeroes scroll offset.                                                                                   |
+| `useScrollHide(ref, dep?)`   | React hook. Binds scroll listener to a `ref`. Scroll-down → collapse, scroll-up → expand. Jitter filter at 2px. Progressive offset ratio: `dy / 75`. |
+| `onStateChanged()`           | Self-healing watchdog. Checks for orphaned collapsed/hidden states and auto-recovers.                                                                |
 
 **Global event bindings** (initialized at module load on `window`):
 
@@ -185,25 +185,25 @@ Module-level singletons manage `hidden`, `collapsed`, and `scrollOffset` states 
 
 #### State Shape
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `motionState` | `BottomNavMotionState` | `'Idle'` | Current animation/interaction phase |
-| `visible` | `boolean` | `true` | Programmatic visibility flag |
-| `collapsed` | `boolean` | `false` | Scroll-driven collapse flag |
-| `isSwitcherOpen` | `boolean` | `false` | App switcher overlay is showing |
-| `items` | `BottomNavItem[]` | `[]` | Currently registered navigation items |
-| `isLight` | `boolean` | `false` | Light theme variant |
-| `debugLog` | `boolean` | `true` | Console logging for state transitions |
+| Field            | Type                   | Default  | Description                           |
+| ---------------- | ---------------------- | -------- | ------------------------------------- |
+| `motionState`    | `BottomNavMotionState` | `'Idle'` | Current animation/interaction phase   |
+| `visible`        | `boolean`              | `true`   | Programmatic visibility flag          |
+| `collapsed`      | `boolean`              | `false`  | Scroll-driven collapse flag           |
+| `isSwitcherOpen` | `boolean`              | `false`  | App switcher overlay is showing       |
+| `items`          | `BottomNavItem[]`      | `[]`     | Currently registered navigation items |
+| `isLight`        | `boolean`              | `false`  | Light theme variant                   |
+| `debugLog`       | `boolean`              | `true`   | Console logging for state transitions |
 
 #### BottomNavItem
 
 ```typescript
 interface BottomNavItem {
-  key: string;                        // Unique identifier
-  icon: string | React.JSX.Element;   // Material Symbol name OR JSX component
-  label: string;                      // Accessibility label
-  isActive: boolean;                  // Whether this item is currently selected
-  onClick: () => void;                // Tap handler
+  key: string; // Unique identifier
+  icon: string | React.JSX.Element; // Material Symbol name OR JSX component
+  label: string; // Accessibility label
+  isActive: boolean; // Whether this item is currently selected
+  onClick: () => void; // Tap handler
 }
 ```
 
@@ -211,16 +211,16 @@ interface BottomNavItem {
 
 All actions perform **dedup checks** — they no-op if the new value equals the current value.
 
-| Action | Side Effect |
-|---|---|
-| `setMotionState(state)` | Logs `prev -> next` transition |
-| `setVisible(visible)` | Auto-derives `motionState` → `'Visible'` or `'Hidden'` |
-| `setCollapsed(collapsed)` | Auto-derives `motionState` → `'Hidden'` or `'Visible'` |
-| `setSwitcherOpen(open)` | Auto-derives `motionState` → `'SwitchingApp'` or `'Visible'` |
-| `setItems(items)` | Direct set, no dedup (array identity) |
-| `setIsLight(isLight)` | Direct set |
-| `setDebugLog(enabled)` | Direct set |
-| `logState(action)` | Logs full state snapshot to console when `debugLog` is true |
+| Action                    | Side Effect                                                  |
+| ------------------------- | ------------------------------------------------------------ |
+| `setMotionState(state)`   | Logs `prev -> next` transition                               |
+| `setVisible(visible)`     | Auto-derives `motionState` → `'Visible'` or `'Hidden'`       |
+| `setCollapsed(collapsed)` | Auto-derives `motionState` → `'Hidden'` or `'Visible'`       |
+| `setSwitcherOpen(open)`   | Auto-derives `motionState` → `'SwitchingApp'` or `'Visible'` |
+| `setItems(items)`         | Direct set, no dedup (array identity)                        |
+| `setIsLight(isLight)`     | Direct set                                                   |
+| `setDebugLog(enabled)`    | Direct set                                                   |
+| `logState(action)`        | Logs full state snapshot to console when `debugLog` is true  |
 
 ## Internal API
 
@@ -248,6 +248,7 @@ The active highlight is a **dynamic SVG Bezier path** computed reactively from t
 - `pressureOffset` — 4px inset on press-down, spring-released on pointer-up
 
 **Geometry constants:**
+
 - Height `H = 38px`
 - Corner radius `R = 19px` (half-height, full pill shape)
 - Minimum width clamp: `if (rightX - leftX < H)` → pad both edges equally to `H`
@@ -256,37 +257,37 @@ The min-width clamp prevents the capsule from collapsing into a vertical lemon s
 
 #### Pointer Interaction Model
 
-| Phase | Behavior |
-|---|---|
-| `pointerdown` | Captures pointer. Starts 200ms press timer. Applies `pressureOffset` spring (4px). Sets `motionState → 'Dragging'`. |
-| Hold ≥ 200ms | Enters scrubbing mode. Haptic feedback (15ms vibrate). Pill snaps to pointer position. |
-| Drag > 10px | Enters scrubbing mode early (before timer). Pill follows pointer with velocity-based skew. Haptic tick on item boundary crossings (5ms vibrate). |
+| Phase                   | Behavior                                                                                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pointerdown`           | Captures pointer. Starts 200ms press timer. Applies `pressureOffset` spring (4px). Sets `motionState → 'Dragging'`.                                               |
+| Hold ≥ 200ms            | Enters scrubbing mode. Haptic feedback (15ms vibrate). Pill snaps to pointer position.                                                                            |
+| Drag > 10px             | Enters scrubbing mode early (before timer). Pill follows pointer with velocity-based skew. Haptic tick on item boundary crossings (5ms vibrate).                  |
 | `pointerup` (scrubbing) | Snaps pill to nearest item center via spring. Invokes `onClick()` of the landing item if it differs from the original active item. Resets `motionState → 'Idle'`. |
-| `pointerup` (tap) | Computes clicked item from pointer position. Invokes `onClick()`. |
-| `pointercancel` | Snaps pill back to original active item. Full spring reset. |
+| `pointerup` (tap)       | Computes clicked item from pointer position. Invokes `onClick()`.                                                                                                 |
+| `pointercancel`         | Snaps pill back to original active item. Full spring reset.                                                                                                       |
 
 #### Spring Configuration
 
-| Animation | Stiffness | Damping | Mass |
-|---|---|---|---|
-| Pill snap to active tab | 380 | 22 | 0.5 |
-| Container show/hide | 380 | 24 | 0.35 |
-| Skew reset | 400 | 20 | — |
-| Pressure offset reset | 400 | 20 | — |
-| Pressure offset apply | 500 | 25 | — |
+| Animation               | Stiffness | Damping | Mass |
+| ----------------------- | --------- | ------- | ---- |
+| Pill snap to active tab | 380       | 22      | 0.5  |
+| Container show/hide     | 380       | 24      | 0.35 |
+| Skew reset              | 400       | 20      | —    |
+| Pressure offset reset   | 400       | 20      | —    |
+| Pressure offset apply   | 500       | 25      | —    |
 
 #### App Switcher Overlay
 
 When `isSwitcherOpen === true`, the bar replaces the current sub-app's items with a hardcoded list of 6 app entries:
 
-| Key | Label | Icon Component |
-|---|---|---|
-| `hub` | Hub | `StudioLogo` |
-| `chords` | Chordex | `ChordexLogo` |
-| `drums` | Drumex | `DrumexLogo` |
-| `stage` | Stagex | `StagexLogoIcon` |
-| `groovex` | Groovex | `GroovexLogo` |
-| `vocalex` | Vocalex | `VocalexLogo` |
+| Key       | Label   | Icon Component   |
+| --------- | ------- | ---------------- |
+| `hub`     | Hub     | `StudioLogo`     |
+| `chords`  | Chordex | `ChordexLogo`    |
+| `drums`   | Drumex  | `DrumexLogo`     |
+| `stage`   | Stagex  | `StagexLogoIcon` |
+| `groovex` | Groovex | `GroovexLogo`    |
+| `vocalex` | Vocalex | `VocalexLogo`    |
 
 Selection triggers `NavigationDispatcher.push({ app: key })` + `useChordStore.updateSettings({ appMode: key })`.
 
@@ -305,11 +306,11 @@ Supports both string icons (Material Symbols with `FILL` variation toggle) and J
 
 [navStyles.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/navStyles.ts)
 
-| Export | Description |
-|---|---|
-| `SHARED_NAV_TRANSITION` | CSS transition string: `transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1)` + border-radius, background, border, box-shadow |
-| `getSharedNavTransform(hidden, collapsed, entered?)` | Returns CSS `transform` string. Hidden → full offscreen. Collapsed → `scaleX(0.33) scaleY(0.045)`. Normal → identity. |
-| `getSharedNavOpacity(hidden, collapsed, entered?)` | Returns `0` before entry, `1` otherwise. |
+| Export                                               | Description                                                                                                             |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `SHARED_NAV_TRANSITION`                              | CSS transition string: `transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1)` + border-radius, background, border, box-shadow |
+| `getSharedNavTransform(hidden, collapsed, entered?)` | Returns CSS `transform` string. Hidden → full offscreen. Collapsed → `scaleX(0.33) scaleY(0.045)`. Normal → identity.   |
+| `getSharedNavOpacity(hidden, collapsed, entered?)`   | Returns `0` before entry, `1` otherwise.                                                                                |
 
 ## Shared Components
 
@@ -356,17 +357,17 @@ stateDiagram-v2
 
 ### State Descriptions
 
-| State | Trigger | Behavior |
-|---|---|---|
-| `Idle` | Default / resting | Bar fully visible, no animations in flight |
-| `Scrolling` | `scrollOffset` between 0 and 1 | Bar partially translated downward |
-| `Hidden` | `visible=false` or `collapsed=true` or `scrollOffset=1` | Bar fully offscreen (translateY 150px) |
-| `Visible` | `setVisible(true)` or `setCollapsed(false)` | Bar animating into view (transient before `Idle`) |
-| `Dragging` | `pointerdown` on the bar | Pointer captured, pill following finger |
-| `SwitchingApp` | `setSwitcherOpen(true)` | App switcher items rendered instead of sub-app items |
-| `ReturningToHub` | Transition active with `launchingApp === 'hub'` | Specialized transition state for hub return |
-| `Transitioning` | Transition active (non-hub target) | Bar hidden during app-to-app animation |
-| `Restoring` | Watchdog self-healing | Recovery from stuck hidden/collapsed state |
+| State            | Trigger                                                 | Behavior                                             |
+| ---------------- | ------------------------------------------------------- | ---------------------------------------------------- |
+| `Idle`           | Default / resting                                       | Bar fully visible, no animations in flight           |
+| `Scrolling`      | `scrollOffset` between 0 and 1                          | Bar partially translated downward                    |
+| `Hidden`         | `visible=false` or `collapsed=true` or `scrollOffset=1` | Bar fully offscreen (translateY 150px)               |
+| `Visible`        | `setVisible(true)` or `setCollapsed(false)`             | Bar animating into view (transient before `Idle`)    |
+| `Dragging`       | `pointerdown` on the bar                                | Pointer captured, pill following finger              |
+| `SwitchingApp`   | `setSwitcherOpen(true)`                                 | App switcher items rendered instead of sub-app items |
+| `ReturningToHub` | Transition active with `launchingApp === 'hub'`         | Specialized transition state for hub return          |
+| `Transitioning`  | Transition active (non-hub target)                      | Bar hidden during app-to-app animation               |
+| `Restoring`      | Watchdog self-healing                                   | Recovery from stuck hidden/collapsed state           |
 
 ### Auto-Derived Transitions
 
@@ -381,16 +382,16 @@ Several store actions automatically derive `motionState`:
 
 ## Design Decisions
 
-| Decision | Rationale |
-|---|---|
-| **Module-level singletons for scroll state** (`navScroll.ts`) | Scroll listeners fire at 60Hz+. React state updates per-frame would cause excessive re-renders. Module-level variables with manual listener sets provide O(1) updates. |
-| **Dedup guards on all store actions** | Prevents redundant Zustand notifications and avoids infinite loops from bidirectional sync (controller ↔ store). |
-| **Synchronous cross-store cleanup in `requestTransition()`** | Prevents ghost UI from the previous app's bottom nav appearing during transition animations. See [bottom-navigation-overlap.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/bottom-navigation-overlap.md). |
-| **SVG Bezier path for active capsule** (not CSS border-radius) | Enables velocity-based skew deformation, per-corner radius variation, and pressure squeeze — impossible with CSS alone. |
-| **Min-width clamp at `H` (38px) for capsule** | Prevents lemon deformation when 6+ items compress per-item width below capsule height. See [app-switcher-capsule-deformation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/app-switcher-capsule-deformation.md). |
-| **Controller returns `null` on desktop web** | The bottom navigation is a mobile pattern. Desktop uses sidebar navigation. Threshold: `768px` width and non-Capacitor. |
-| **Hardcoded switcher app list** | The set of apps is fixed and known at build time. Dynamic discovery would add complexity for no benefit. |
-| **Haptic feedback on scrub boundaries** | Provides tactile confirmation of item traversal during drag, critical for eyes-free operation. |
+| Decision                                                       | Rationale                                                                                                                                                                                                                                            |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Module-level singletons for scroll state** (`navScroll.ts`)  | Scroll listeners fire at 60Hz+. React state updates per-frame would cause excessive re-renders. Module-level variables with manual listener sets provide O(1) updates.                                                                               |
+| **Dedup guards on all store actions**                          | Prevents redundant Zustand notifications and avoids infinite loops from bidirectional sync (controller ↔ store).                                                                                                                                     |
+| **Synchronous cross-store cleanup in `requestTransition()`**   | Prevents ghost UI from the previous app's bottom nav appearing during transition animations. See [bottom-navigation-overlap.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/bottom-navigation-overlap.md).         |
+| **SVG Bezier path for active capsule** (not CSS border-radius) | Enables velocity-based skew deformation, per-corner radius variation, and pressure squeeze — impossible with CSS alone.                                                                                                                              |
+| **Min-width clamp at `H` (38px) for capsule**                  | Prevents lemon deformation when 6+ items compress per-item width below capsule height. See [app-switcher-capsule-deformation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/app-switcher-capsule-deformation.md). |
+| **Controller returns `null` on desktop web**                   | The bottom navigation is a mobile pattern. Desktop uses sidebar navigation. Threshold: `768px` width and non-Capacitor.                                                                                                                              |
+| **Hardcoded switcher app list**                                | The set of apps is fixed and known at build time. Dynamic discovery would add complexity for no benefit.                                                                                                                                             |
+| **Haptic feedback on scrub boundaries**                        | Provides tactile confirmation of item traversal during drag, critical for eyes-free operation.                                                                                                                                                       |
 
 ## Known Constraints
 

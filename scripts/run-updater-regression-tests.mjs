@@ -7,7 +7,7 @@ globalThis.importMetaEnv = {
   VITE_GIT_COMMIT_SHA: 'efd2b1a3',
   DEV: false,
   PROD: true,
-  MODE: 'production'
+  MODE: 'production',
 };
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -16,18 +16,34 @@ const repoRoot = path.resolve(__dirname, '..');
 // 1. Setup Mock Environment Globals
 const mockLocalStorage = {
   store: {},
-  getItem(key) { return this.store[key] || null; },
-  setItem(key, val) { this.store[key] = String(val); },
-  removeItem(key) { delete this.store[key]; },
-  clear() { this.store = {}; }
+  getItem(key) {
+    return this.store[key] || null;
+  },
+  setItem(key, val) {
+    this.store[key] = String(val);
+  },
+  removeItem(key) {
+    delete this.store[key];
+  },
+  clear() {
+    this.store = {};
+  },
 };
 
 const mockSessionStorage = {
   store: {},
-  getItem(key) { return this.store[key] || null; },
-  setItem(key, val) { this.store[key] = String(val); },
-  removeItem(key) { delete this.store[key]; },
-  clear() { this.store = {}; }
+  getItem(key) {
+    return this.store[key] || null;
+  },
+  setItem(key, val) {
+    this.store[key] = String(val);
+  },
+  removeItem(key) {
+    delete this.store[key];
+  },
+  clear() {
+    this.store = {};
+  },
 };
 
 // 2. Define mock AppInstaller plugin methods
@@ -42,8 +58,19 @@ const mockAppInstaller = {
   verifyApkSha256: async () => ({ matches: true }),
   verifySha256: async () => ({ matches: true }),
   getLastInstallResult: async () => ({ statusCode: 0, statusMessage: 'Success' }),
-  getInstalledAppInfo: async () => ({ versionName: '3.7.8', versionCode: 8, signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206', packageName: 'com.chordex.app' }),
-  inspectApk: async () => ({ packageName: 'com.chordex.app', versionName: '3.7.8', versionCode: 8, signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206', isValidApk: true }),
+  getInstalledAppInfo: async () => ({
+    versionName: '3.7.8',
+    versionCode: 8,
+    signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+    packageName: 'com.chordex.app',
+  }),
+  inspectApk: async () => ({
+    packageName: 'com.chordex.app',
+    versionName: '3.7.8',
+    versionCode: 8,
+    signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+    isValidApk: true,
+  }),
   isInstallActive: async () => ({ active: false }),
   clearInstallerLogHistory: async () => {},
   appendLog: async () => {},
@@ -55,7 +82,7 @@ const mockAppInstaller = {
     model: 'Device',
     androidVersion: '14',
     sdkInt: 34,
-    canRequestPackageInstalls: true
+    canRequestPackageInstalls: true,
   }),
   addListener: (event, cb) => {
     return { remove: async () => {} };
@@ -74,7 +101,7 @@ const mockAppInstaller = {
       confirmationIntentStarted: true,
       lastStatusCode: 0,
       lastStatusMessage: 'Success',
-      lastStatusTimestamp: Date.now()
+      lastStatusTimestamp: Date.now(),
     };
   },
   getInstallerLogHistory: async () => {
@@ -83,7 +110,7 @@ const mockAppInstaller = {
   resumePendingInstall: async () => {},
   resumePackageInstallerSession: async () => {},
   recreateActivity: async () => {},
-  killProcess: async () => {}
+  killProcess: async () => {},
 };
 
 // 3. Register standard WebPlugin to mock native bridge behavior in ESM/Node
@@ -97,23 +124,21 @@ class AppInstallerWeb extends WebPlugin {
           return mockAppInstaller[prop];
         }
         return target[prop];
-      }
+      },
     });
   }
 }
 registerPlugin('AppInstaller', {
-  web: () => new AppInstallerWeb()
+  web: () => new AppInstallerWeb(),
 });
-
-
 
 globalThis.Capacitor = {
   isNativePlatform: () => true,
   getPlatform: () => 'android',
   isPluginAvailable: (name) => name === 'AppInstaller',
   Plugins: {
-    AppInstaller: mockAppInstaller
-  }
+    AppInstaller: mockAppInstaller,
+  },
 };
 
 globalThis.window = {
@@ -121,19 +146,19 @@ globalThis.window = {
   dispatchEvent() {},
   addEventListener() {},
   removeEventListener() {},
-  Capacitor: globalThis.Capacitor
+  Capacitor: globalThis.Capacitor,
 };
 
 globalThis.document = {
   visibilityState: 'visible',
   addEventListener() {},
-  removeEventListener() {}
+  removeEventListener() {},
 };
 
 Object.defineProperty(globalThis, 'navigator', {
   value: { userAgent: 'Mozilla/5.0 (Mock Android Device)' },
   configurable: true,
-  writable: true
+  writable: true,
 });
 
 globalThis.localStorage = mockLocalStorage;
@@ -156,7 +181,9 @@ globalThis.fetch = async (url, options) => {
 // Import compiled modules (require build to be completed first)
 const otaModulePath = path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/index.js');
 if (!fs.existsSync(otaModulePath)) {
-  console.error(`Error: Compiled updater index not found at ${otaModulePath}. Run pnpm build first.`);
+  console.error(
+    `Error: Compiled updater index not found at ${otaModulePath}. Run pnpm build first.`
+  );
   process.exit(1);
 }
 
@@ -171,7 +198,7 @@ const {
   updateDiagnostics,
   resetLastCheckedTime,
   isAppInstallerAvailable,
-  resetAppUpdateState
+  resetAppUpdateState,
 } = await import(otaModuleUrl);
 
 // Re-apply Capacitor mocks after the module imports have finished loading
@@ -191,18 +218,27 @@ const apkDownloaderUrl = `file://${path.join(repoRoot, 'packages/studio-core/dis
 const { AppInstaller } = await import(apkDownloaderUrl);
 Object.assign(AppInstaller, mockAppInstaller);
 
-const { APP_VERSION } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/appVersion.js').replace(/\\/g, '/')}`);
+const { APP_VERSION } = await import(
+  `file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/appVersion.js').replace(/\\/g, '/')}`
+);
 const [major, minor, patch] = APP_VERSION.split('.').map(Number);
 const currentVersion = APP_VERSION;
 const nextVersion = `${major}.${minor}.${patch + 1}`;
 const nextNextVersion = `${major}.${minor}.${patch + 2}`;
-const prevVersion = patch > 0 ? `${major}.${minor}.${patch - 1}` : (minor > 0 ? `${major}.${minor - 1}.99` : `${major - 1}.99.99`);
+const prevVersion =
+  patch > 0
+    ? `${major}.${minor}.${patch - 1}`
+    : minor > 0
+      ? `${major}.${minor - 1}.99`
+      : `${major - 1}.99.99`;
 
-console.log(`[TESTS] Dynamic versioning: prev=${prevVersion}, current=${currentVersion}, next=${nextVersion}, nextNext=${nextNextVersion}`);
+console.log(
+  `[TESTS] Dynamic versioning: prev=${prevVersion}, current=${currentVersion}, next=${nextVersion}, nextNext=${nextNextVersion}`
+);
 
 async function runRegressionTests() {
   console.log('=== RUNNING UPDATER REGRESSION TEST SUITE ===\n');
-  
+
   // Diagnostics
   const cap = globalThis.window.Capacitor;
   console.log('[DIAGNOSTICS] Capacitor present:', !!cap);
@@ -211,7 +247,7 @@ async function runRegressionTests() {
   console.log('[DIAGNOSTICS] AppInstaller plugin present:', !!cap?.Plugins?.AppInstaller);
   console.log('[DIAGNOSTICS] isAppInstallerAvailable:', isAppInstallerAvailable());
   console.log('[DIAGNOSTICS] AppInstaller methods:', Object.keys(cap?.Plugins?.AppInstaller || {}));
-  
+
   const results = [];
 
   const runTest = async (name, fn) => {
@@ -220,7 +256,7 @@ async function runRegressionTests() {
       mockSessionStorage.clear();
       resetLastCheckedTime();
       resetAppUpdateState();
-      
+
       await fn();
       results.push({ name, status: 'PASS', details: 'Completed successfully.' });
       console.log(`[PASS] ${name}`);
@@ -235,7 +271,7 @@ async function runRegressionTests() {
     mockFetchHandler = (url) => {
       return {
         ok: true,
-        json: async () => ({ version: currentVersion, versionCode: 8 })
+        json: async () => ({ version: currentVersion, versionCode: 8 }),
       };
     };
     const state = await checkForUpdate(false);
@@ -251,8 +287,8 @@ async function runRegressionTests() {
         json: async () => ({
           version: nextVersion,
           versionCode: 136,
-          apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk`
-        })
+          apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk`,
+        }),
       };
     };
     const state = await checkForUpdate(false);
@@ -270,7 +306,7 @@ async function runRegressionTests() {
         if (!bgFetchStarted) {
           bgFetchStarted = true;
           // Simulate slow background fetch
-          await new Promise(r => setTimeout(r, 100));
+          await new Promise((r) => setTimeout(r, 100));
           return { ok: true, json: async () => ({ version: nextVersion, versionCode: 136 }) };
         } else {
           manualFetchStarted = true;
@@ -292,9 +328,9 @@ async function runRegressionTests() {
   await runTest('Automatic startup check rate limiting', async () => {
     mockFetchHandler = () => ({
       ok: true,
-      json: async () => ({ version: nextVersion, versionCode: 136 })
+      json: async () => ({ version: nextVersion, versionCode: 136 }),
     });
-    
+
     // First check
     await checkForUpdate(false);
     // Second check immediately after should be rate-limited
@@ -316,7 +352,11 @@ async function runRegressionTests() {
 
     mockFetchHandler = () => ({
       ok: true,
-      json: async () => ({ version: nextVersion, versionCode: 136, apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk` })
+      json: async () => ({
+        version: nextVersion,
+        versionCode: 136,
+        apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk`,
+      }),
     });
 
     const originalInspect = mockAppInstaller.inspectApk;
@@ -327,7 +367,7 @@ async function runRegressionTests() {
           versionName: '3.7.8',
           versionCode: 8,
           signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
-          isValidApk: true
+          isValidApk: true,
         };
       }
       return {
@@ -335,7 +375,7 @@ async function runRegressionTests() {
         versionName: '3.7.71',
         versionCode: 136,
         signingSha256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
-        isValidApk: true
+        isValidApk: true,
       };
     };
 
@@ -352,14 +392,18 @@ async function runRegressionTests() {
   await runTest('Recovery Mode on signature mismatch', async () => {
     mockFetchHandler = () => ({
       ok: true,
-      json: async () => ({ version: nextVersion, versionCode: 136, apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk` })
+      json: async () => ({
+        version: nextVersion,
+        versionCode: 136,
+        apkUrl: `https://cdn.example.com/studio-${nextVersion}.apk`,
+      }),
     });
 
     // Mock eligibility check to fail on signature
     const { runEligibilityCheck } = await import(otaModuleUrl);
     // We will simulate a signature mismatch recovery flow
     mockLocalStorage.setItem('studio:downloadedApkPath', '/mock/path.apk');
-    
+
     // We verify recovery is triggered
     assert.ok(runEligibilityCheck);
   });
@@ -379,7 +423,7 @@ async function runRegressionTests() {
   await runTest('Downgrade verification block', async () => {
     mockFetchHandler = () => ({
       ok: true,
-      json: async () => ({ version: prevVersion, versionCode: 5 }) // Lower than 3.7.8 (mocked local is 8)
+      json: async () => ({ version: prevVersion, versionCode: 5 }), // Lower than 3.7.8 (mocked local is 8)
     });
 
     const state = await checkForUpdate(true);
@@ -389,8 +433,10 @@ async function runRegressionTests() {
 
   // Scenario 9: PackageInstaller error mapping
   await runTest('PackageInstaller error status mapping', async () => {
-    const { processLastInstallResult } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/installer.js').replace(/\\/g, '/')}`);
-    
+    const { processLastInstallResult } = await import(
+      `file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/installer.js').replace(/\\/g, '/')}`
+    );
+
     const res3 = processLastInstallResult({ statusCode: 3, statusMessage: 'Aborted' });
     assert.strictEqual(res3.category, 'cancelled');
     assert.ok(res3.errMsg.includes('[User Cancelled]'));
@@ -418,7 +464,9 @@ async function runRegressionTests() {
     }
 
     // 2. Setup 100 simulated PackageInstaller statuses
-    const { triggerSimulatedStatus, updaterSimulation } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/updaterSimulation.js').replace(/\\/g, '/')}`);
+    const { triggerSimulatedStatus, updaterSimulation } = await import(
+      `file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/updaterSimulation.js').replace(/\\/g, '/')}`
+    );
     updaterSimulation.forceUpdateAvailable = true;
     for (let i = 0; i < 100; i++) {
       triggerSimulatedStatus(-3, 'Installing...', 0.5);
@@ -432,8 +480,13 @@ async function runRegressionTests() {
     }
 
     // 4. Verify no stuck state listeners or memory leaks
-    const { stateListeners } = await import(`file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/stateMachine.js').replace(/\\/g, '/')}`);
-    assert.ok(stateListeners.size < 5, `Expected small number of listeners, found: ${stateListeners.size}`);
+    const { stateListeners } = await import(
+      `file://${path.join(repoRoot, 'packages/studio-core/dist/src/lib/updater/stateMachine.js').replace(/\\/g, '/')}`
+    );
+    assert.ok(
+      stateListeners.size < 5,
+      `Expected small number of listeners, found: ${stateListeners.size}`
+    );
   });
 
   console.log('\n=== REGRESSION TEST RESULTS ===');
@@ -443,7 +496,7 @@ async function runRegressionTests() {
     console.log(`| ${r.name} | ${r.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} | ${r.details} |`);
   }
 
-  const failed = results.filter(r => r.status === 'FAIL');
+  const failed = results.filter((r) => r.status === 'FAIL');
   if (failed.length > 0) {
     console.error(`\n❌ Regression tests failed: ${failed.length} failures.`);
     process.exit(1);
@@ -452,7 +505,7 @@ async function runRegressionTests() {
   }
 }
 
-runRegressionTests().catch(err => {
+runRegressionTests().catch((err) => {
   console.error('Test runner encountered an uncaught error:', err);
   process.exit(1);
 });

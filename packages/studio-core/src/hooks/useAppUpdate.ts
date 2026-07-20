@@ -11,9 +11,22 @@ import { APP_VERSION, compareSemver } from '../lib/startup/appVersion';
 import { nativeSet, NATIVE_PREFS } from '../lib/platform/nativePrefs';
 import { useChordStore } from '../store/useChordStore';
 import { type CentralizedUpdateState } from '../lib/updater/stateMachine';
-import { stateListeners, globalUpdateState, updateGlobalState, transitionToState } from '../lib/updater/stateMachine';
-import { runUpdaterHealthCheck, getDiagnosticsReport, type HealthStatus } from '../lib/updater/diagnostics';
-import { recordDismissal, shouldShowRecoveryReminder, deleteLocalApk } from '../lib/updater/cacheManager';
+import {
+  stateListeners,
+  globalUpdateState,
+  updateGlobalState,
+  transitionToState,
+} from '../lib/updater/stateMachine';
+import {
+  runUpdaterHealthCheck,
+  getDiagnosticsReport,
+  type HealthStatus,
+} from '../lib/updater/diagnostics';
+import {
+  recordDismissal,
+  shouldShowRecoveryReminder,
+  deleteLocalApk,
+} from '../lib/updater/cacheManager';
 import { downloadAndInstallGitHubApk } from '../lib/updater/downloadManager';
 import { runSignatureMismatchRecovery } from '../lib/updater/recovery';
 import { detectJustUpdated, writeLastSeen } from '../lib/updater/versionManager';
@@ -25,7 +38,12 @@ import {
   initializeGlobalUpdateListeners,
   checkAndCleanCache,
 } from '../lib/updater/pipeline';
-import { dismissUpdate, markUpdateSeen, applyUpdateDirect, shareDownloadedApk } from '../lib/updater/installActions';
+import {
+  dismissUpdate,
+  markUpdateSeen,
+  applyUpdateDirect,
+  shareDownloadedApk,
+} from '../lib/updater/installActions';
 import { getUpdateHistory, logUpdateTransition } from '../lib/updater/updateHistory';
 
 export interface AppUpdateHookResult extends CentralizedUpdateState {

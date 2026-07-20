@@ -12,9 +12,9 @@ Studio uses a multi-target release pipeline: **Web** deploys to Netlify, **Andro
 
 ```typescript
 const NATIVE_VERSION = '4.0.84';
-const WEB_VERSION    = '4.0.84';
-const APP_VERSION    = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
-const APP_VERSION_TAG  = 'Beta';
+const WEB_VERSION = '4.0.84';
+const APP_VERSION = Capacitor.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
+const APP_VERSION_TAG = 'Beta';
 const APP_VERSION_DATE = '2026-07-15';
 ```
 
@@ -34,6 +34,7 @@ This runs as a **prebuild** hook in both `studio-android` and `studio-web` to sy
 ### Semver Utilities
 
 `appVersion.ts` exports strict semver parsing:
+
 - `parseAndNormalizeVersion()` — strict validation
 - `parseSemver()` — extract major.minor.patch
 - `normalizeSemver()` — pad to consistent format
@@ -48,6 +49,7 @@ pnpm build:web
 ```
 
 Pipeline:
+
 1. `sync-version.mjs` — sync versions across packages
 2. `vite build` — bundle with production config
 3. Output: `dist/web/`
@@ -61,6 +63,7 @@ pnpm build:android:web
 ```
 
 Pipeline:
+
 1. `sync-version.mjs` — sync versions
 2. `vite build` — bundle for Android WebView
 3. Output: `dist/android-web/` (Capacitor `webDir`)
@@ -72,6 +75,7 @@ pnpm build:android
 ```
 
 Pipeline:
+
 1. Build web assets (`pnpm build:android:web`)
 2. `npx cap sync android` — copy web assets into native project
 3. Gradle `assembleRelease` — compile, sign, and package APK
@@ -94,12 +98,12 @@ Debug keystore is **checked into the repository** to ensure consistent SHA-1 fin
 
 Environment variables (from GitHub Secrets in CI):
 
-| Variable | Purpose |
-|----------|---------|
-| `ANDROID_KEYSTORE_BASE64` | Base64-encoded production keystore |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | Key alias |
-| `ANDROID_KEY_PASSWORD` | Key password |
+| Variable                    | Purpose                            |
+| --------------------------- | ---------------------------------- |
+| `ANDROID_KEYSTORE_BASE64`   | Base64-encoded production keystore |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password                  |
+| `ANDROID_KEY_ALIAS`         | Key alias                          |
+| `ANDROID_KEY_PASSWORD`      | Key password                       |
 
 The signing certificate SHA-256 fingerprint is stored as `PRODUCTION_SIGNING_SHA256` in `appVersion.ts` for runtime verification.
 
@@ -107,16 +111,17 @@ The signing certificate SHA-256 fingerprint is stored as `PRODUCTION_SIGNING_SHA
 
 ### Firebase Hosting
 
-| File | Purpose | Cache |
-|------|---------|-------|
-| `version.json` | Lightweight version manifest | `no-cache` |
-| `app-release.json` | Full release manifest with URLs and SHA-256 | `no-cache` |
-| `ota/*.apk` | APK files | `immutable, 1 year` |
-| `assets/**` | Static web assets | `immutable, 1 year` |
+| File               | Purpose                                     | Cache               |
+| ------------------ | ------------------------------------------- | ------------------- |
+| `version.json`     | Lightweight version manifest                | `no-cache`          |
+| `app-release.json` | Full release manifest with URLs and SHA-256 | `no-cache`          |
+| `ota/*.apk`        | APK files                                   | `immutable, 1 year` |
+| `assets/**`        | Static web assets                           | `immutable, 1 year` |
 
 ### GitHub Releases
 
 APK files published as GitHub Release assets:
+
 - Pattern: `Studio {version}.apk`
 - API: `https://api.github.com/repos/MAGEXE1000/Studio/releases`
 
@@ -150,13 +155,13 @@ graph TD
 
 The `scripts/` directory contains 52+ scripts for build, test, release, and CI automation:
 
-| Category | Examples |
-|----------|---------|
-| Version management | `sync-version.mjs`, version bumping |
-| Release | `verify-release-signatures.mjs`, APK upload |
-| Build | Various Vite/Capacitor build helpers |
-| Testing | Test runners, validation scripts |
-| CI/CD | GitHub Actions helpers |
+| Category           | Examples                                    |
+| ------------------ | ------------------------------------------- |
+| Version management | `sync-version.mjs`, version bumping         |
+| Release            | `verify-release-signatures.mjs`, APK upload |
+| Build              | Various Vite/Capacitor build helpers        |
+| Testing            | Test runners, validation scripts            |
+| CI/CD              | GitHub Actions helpers                      |
 
 ## OTA Update Distribution
 

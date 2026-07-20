@@ -1,4 +1,4 @@
-import { useScrollHide, getChordById, getAllChords, getRelatedChords, suggestNextChord, useChordStore, ACCENT_COLORS, useT, useBackHandler, setBackHandler, playChord, stopChordPlayback, type GuitarChordData, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, type ActivePanel } from '@workspace/studio-core';
+import { useScrollHide, getChordById, getAllChords, getRelatedChords, suggestNextChord, useChordStore, ACCENT_COLORS, useT, useBackHandler, setBackHandler, playChord, stopChordPlayback, type GuitarChordData, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, type ActivePanel, useSettingsStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
@@ -13,55 +13,89 @@ import ProgressionGenerator from '../../../components/feature/ProgressionGenerat
 import MusicNotesLottie from '../../../components/lottie/MusicNotesLottie';
 import { useScrollFade } from '../../../components/typography/ScrollFade';
 
-function RelatedPlayBtn({ guitar, accent, isLight }: {
+function RelatedPlayBtn({
+  guitar,
+  accent,
+  isLight,
+}: {
   guitar: GuitarChordData;
   accent: { from: string; to: string; mid: string };
   isLight?: boolean;
 }) {
   const [playing, setPlaying] = useState(false);
-  const handlePlay = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (playing) { stopChordPlayback(); setPlaying(false); return; }
-    setPlaying(true);
-    playChord(guitar);
-    setTimeout(() => setPlaying(false), 2800);
-  }, [guitar, playing]);
+  const handlePlay = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (playing) {
+        stopChordPlayback();
+        setPlaying(false);
+        return;
+      }
+      setPlaying(true);
+      playChord(guitar);
+      setTimeout(() => setPlaying(false), 2800);
+    },
+    [guitar, playing]
+  );
 
   return (
     <button
       aria-label="Play chord"
       onClick={handlePlay}
       style={{
-        width: 24, height: 24, borderRadius: '50%',
-        background: playing ? `${accent.from}30` : (isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)'),
-        border: 'none', cursor: 'pointer', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', padding: 0,
+        width: 24,
+        height: 24,
+        borderRadius: '50%',
+        background: playing
+          ? `${accent.from}30`
+          : isLight
+            ? 'rgba(0,0,0,0.06)'
+            : 'rgba(255,255,255,0.07)',
+        border: 'none',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
         transition: 'background 200ms ease',
       }}
     >
-      <span className="material-symbols-outlined" style={{
-        fontSize: '13px',
-        color: playing ? accent.from : 'var(--c-text-secondary)',
-        fontVariationSettings: "'FILL' 1",
-        transition: 'color 200ms ease',
-      }}>{playing ? 'stop' : 'play_arrow'}</span>
+      <span
+        className="material-symbols-outlined"
+        style={{
+          fontSize: '13px',
+          color: playing ? accent.from : 'var(--c-text-secondary)',
+          fontVariationSettings: "'FILL' 1",
+          transition: 'color 200ms ease',
+        }}
+      >
+        {playing ? 'stop' : 'play_arrow'}
+      </span>
     </button>
   );
 }
 
 export default function ChordPanel() {
   const isWebDesktop = useIsWebDesktop();
-  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
-  const selectedChordId = (currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '') ? currentRoute.id || null : null);
-  const activePanel = (currentRoute.app === 'chords' && currentRoute.page ? currentRoute.page as ActivePanel : 'library');
-  const settings = useChordStore(useShallow(s => s.settings));
-  const toggleFavorite = useChordStore(useShallow(s => s.toggleFavorite));
-  const isFavorite = useChordStore(useShallow(s => s.isFavorite));
-  const addToProgression = useChordStore(useShallow(s => s.addToProgression));
-  const currentProgressionChords = useChordStore(useShallow(s => s.currentProgressionChords));
-  const recentChords = useChordStore(useShallow(s => s.recentChords));
-  
+  const currentRoute = useNavigationStore(useShallow((s) => s.history[s.history.length - 1])) || {
+    app: 'hub',
+  };
+  const selectedChordId =
+    currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '')
+      ? currentRoute.id || null
+      : null;
+  const activePanel =
+    currentRoute.app === 'chords' && currentRoute.page
+      ? (currentRoute.page as ActivePanel)
+      : 'library';
+  const settings = useSettingsStore(useShallow((s) => s.settings));
+  const toggleFavorite = useChordStore(useShallow((s) => s.toggleFavorite));
+  const isFavorite = useChordStore(useShallow((s) => s.isFavorite));
+  const addToProgression = useChordStore(useShallow((s) => s.addToProgression));
+  const currentProgressionChords = useChordStore(useShallow((s) => s.currentProgressionChords));
+  const recentChords = useChordStore(useShallow((s) => s.recentChords));
+
   const selectChord = useCallback((chordId: string | null) => {
     if (chordId === null) {
       NavigationDispatcher.pop();
@@ -69,8 +103,8 @@ export default function ChordPanel() {
       NavigationDispatcher.push({ app: 'chords', page: 'chord', id: chordId });
     }
   }, []);
-  const trackChordUsage = useChordStore(useShallow(s => s.trackChordUsage));
-  const setLibraryActiveType = useChordStore(useShallow(s => s.setLibraryActiveType));
+  const trackChordUsage = useChordStore(useShallow((s) => s.trackChordUsage));
+  const setLibraryActiveType = useChordStore(useShallow((s) => s.setLibraryActiveType));
   const setActivePanel = useCallback((panel: ActivePanel) => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   }, []);
@@ -82,9 +116,15 @@ export default function ChordPanel() {
   const [saving, setSaving] = useState(false);
   const [progName, setProgName] = useState('');
   const [hoveredCatIndex, setHoveredCatIndex] = useState<number | null>(null);
-  
-  const showFinder = currentRoute.app === 'chords' && currentRoute.page === 'chord' && currentRoute.subView === 'finder';
-  const showGenerator = currentRoute.app === 'chords' && currentRoute.page === 'chord' && currentRoute.subView === 'generator';
+
+  const showFinder =
+    currentRoute.app === 'chords' &&
+    currentRoute.page === 'chord' &&
+    currentRoute.subView === 'finder';
+  const showGenerator =
+    currentRoute.app === 'chords' &&
+    currentRoute.page === 'chord' &&
+    currentRoute.subView === 'generator';
   const setShowFinder = useCallback((val: boolean) => {
     if (val) {
       NavigationDispatcher.push({ app: 'chords', page: 'chord', subView: 'finder' });
@@ -128,29 +168,40 @@ export default function ChordPanel() {
         transposeState: useChordStore.getState().transpositions,
         finderOpen: showFinderRef.current,
         generatorOpen: showGeneratorRef.current,
-        playingState: chordPlayingRef.current ? 'playing' : 'stopped'
-      })
+        playingState: chordPlayingRef.current ? 'playing' : 'stopped',
+      }),
     });
     return () => {
       unregisterDebugProvider('chordex');
     };
   }, []);
 
-
-
   const chord = selectedChordId ? getChordById(selectedChordId) : null;
 
   const handlePlayChord = useCallback(() => {
     if (!chord) return;
-    if (chordPlaying) { stopChordPlayback(); setChordPlaying(false); return; }
+    if (chordPlaying) {
+      stopChordPlayback();
+      setChordPlaying(false);
+      return;
+    }
     setChordPlaying(true);
     playChord(chord.guitar);
     setTimeout(() => setChordPlaying(false), 2800);
   }, [chord, chordPlaying]);
   const favorite = chord ? isFavorite(chord.id) : false;
-  const accent = ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ?? ACCENT_COLORS.blue;
-  const chordsVis = settings.perApp?.chords ?? { theme: settings.theme ?? 'dark', amoledMode: settings.amoledMode ?? false };
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const accent =
+    ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ??
+    ACCENT_COLORS.blue;
+  const chordsVis = settings.perApp?.chords ?? {
+    theme: settings.theme ?? 'dark',
+    amoledMode: settings.amoledMode ?? false,
+  };
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
 
   const getPanelClass = (padding: string = 'p-6') => {
     return isWebDesktop
@@ -170,7 +221,14 @@ export default function ChordPanel() {
     if (settings.instrument === 'guitar') {
       return <GuitarDiagram chordData={c.guitar} {...props} leftHanded={settings.leftHanded} />;
     } else if (settings.instrument === 'bass') {
-      return <FourStringDiagram chordData={c.guitar} {...props} instrument={settings.instrument} fiveString={settings.bassFiveString} />;
+      return (
+        <FourStringDiagram
+          chordData={c.guitar}
+          {...props}
+          instrument={settings.instrument}
+          fiveString={settings.bassFiveString}
+        />
+      );
     } else {
       return <PianoDiagram chordData={c.piano} {...props} />;
     }
@@ -184,24 +242,28 @@ export default function ChordPanel() {
   }, [chord?.id]);
 
   const relatedChords = useMemo(
-    () => (chord && settings.chordAssistant && settings.assistantSmartSuggestions)
-      ? getRelatedChords(chord).slice(0, 4) : [],
+    () =>
+      chord && settings.chordAssistant && settings.assistantSmartSuggestions
+        ? getRelatedChords(chord).slice(0, 4)
+        : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chord?.id, settings.chordAssistant, settings.assistantSmartSuggestions],
+    [chord?.id, settings.chordAssistant, settings.assistantSmartSuggestions]
   );
   const progressionChords = useMemo(
-    () => currentProgressionChords.map(id => getChordById(id)).filter(Boolean),
-    [currentProgressionChords],
+    () => currentProgressionChords.map((id) => getChordById(id)).filter(Boolean),
+    [currentProgressionChords]
   );
   const suggestions = useMemo(
-    () => (settings.chordAssistant && settings.assistantProgressionTips)
-      ? suggestNextChord(progressionChords as any).slice(0, 5) : [],
+    () =>
+      settings.chordAssistant && settings.assistantProgressionTips
+        ? suggestNextChord(progressionChords as any).slice(0, 5)
+        : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [progressionChords, settings.chordAssistant, settings.assistantProgressionTips],
+    [progressionChords, settings.chordAssistant, settings.assistantProgressionTips]
   );
 
   const recentList = recentChords
-    .map(id => getChordById(id))
+    .map((id) => getChordById(id))
     .filter(Boolean)
     .slice(0, 6) as NonNullable<ReturnType<typeof getChordById>>[];
 
@@ -217,49 +279,61 @@ export default function ChordPanel() {
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
     const day = today.getDate();
-    const hash = (year * 367) + (month * 31) + day;
+    const hash = year * 367 + month * 31 + day;
     return chords[Math.abs(hash) % chords.length];
   }, []);
 
   const [dailyPlaying, setDailyPlaying] = useState(false);
 
-  const handlePlayDaily = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!dailyChord) return;
-    if (dailyPlaying) {
-      stopChordPlayback();
-      setDailyPlaying(false);
-      return;
-    }
-    setDailyPlaying(true);
-    playChord(dailyChord.guitar);
-    setTimeout(() => setDailyPlaying(false), 2800);
-  }, [dailyChord, dailyPlaying]);
+  const handlePlayDaily = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!dailyChord) return;
+      if (dailyPlaying) {
+        stopChordPlayback();
+        setDailyPlaying(false);
+        return;
+      }
+      setDailyPlaying(true);
+      playChord(dailyChord.guitar);
+      setTimeout(() => setDailyPlaying(false), 2800);
+    },
+    [dailyChord, dailyPlaying]
+  );
 
   const isSpanish = settings.language === 'es';
 
   const getPracticeTip = (c: typeof dailyChord, isSp: boolean) => {
-    if (!c) return "";
+    if (!c) return '';
     const tipsEn: Record<string, string> = {
-      major: "Major chords sound bright and happy. Focus on clean fingering for all active strings.",
-      minor: "Minor chords carry a sad or reflective mood. Ensure the minor third note rings out clearly.",
-      dom7: "Dominant 7th chords create tension that wants to resolve back to the tonic (I) chord.",
-      maj7: "Major 7th chords have a dreamy, jazz-like quality. Make sure the major seventh interval is heard.",
-      min7: "Minor 7th chords offer a mellow, sophisticated sound. Perfect for jazz, neo-soul, and lo-fi.",
-      sus4: "Suspended chords build anticipation. Try resolving it immediately to the standard major chord.",
-      sus2: "Suspended 2 chords sound open and modern. Excellent for atmospheric acoustic strumming."
+      major:
+        'Major chords sound bright and happy. Focus on clean fingering for all active strings.',
+      minor:
+        'Minor chords carry a sad or reflective mood. Ensure the minor third note rings out clearly.',
+      dom7: 'Dominant 7th chords create tension that wants to resolve back to the tonic (I) chord.',
+      maj7: 'Major 7th chords have a dreamy, jazz-like quality. Make sure the major seventh interval is heard.',
+      min7: 'Minor 7th chords offer a mellow, sophisticated sound. Perfect for jazz, neo-soul, and lo-fi.',
+      sus4: 'Suspended chords build anticipation. Try resolving it immediately to the standard major chord.',
+      sus2: 'Suspended 2 chords sound open and modern. Excellent for atmospheric acoustic strumming.',
     };
     const tipsEs: Record<string, string> = {
-      major: "Los acordes mayores suenan brillantes y alegres. Enfócate en una digitación limpia en todas las cuerdas.",
-      minor: "Los acordes menores transmiten una sensación triste o reflexiva. Asegúrate de que la tercera menor suene clara.",
-      dom7: "Los acordes de séptima dominante crean tensión que se resuelve regresando al acorde tónico (I).",
-      maj7: "Los acordes de séptima mayor tienen una cualidad de ensueño y jazz. Asegúrate de escuchar la séptima mayor.",
-      min7: "Los acordes de séptima menor ofrecen un sonido suave y sofisticado. Perfecto para jazz y lo-fi.",
-      sus4: "Los acordes suspendidos crean anticipación. Intenta resolverlo inmediatamente a un acorde mayor estándar.",
-      sus2: "Los acordes suspendidos 2 suenan abiertos y modernos. Excelente para rasgueo acústico atmosférico."
+      major:
+        'Los acordes mayores suenan brillantes y alegres. Enfócate en una digitación limpia en todas las cuerdas.',
+      minor:
+        'Los acordes menores transmiten una sensación triste o reflexiva. Asegúrate de que la tercera menor suene clara.',
+      dom7: 'Los acordes de séptima dominante crean tensión que se resuelve regresando al acorde tónico (I).',
+      maj7: 'Los acordes de séptima mayor tienen una cualidad de ensueño y jazz. Asegúrate de escuchar la séptima mayor.',
+      min7: 'Los acordes de séptima menor ofrecen un sonido suave y sofisticado. Perfecto para jazz y lo-fi.',
+      sus4: 'Los acordes suspendidos crean anticipación. Intenta resolverlo inmediatamente a un acorde mayor estándar.',
+      sus2: 'Los acordes suspendidos 2 suenan abiertos y modernos. Excelente para rasgueo acústico atmosférico.',
     };
     const tips = isSp ? tipsEs : tipsEn;
-    return tips[c.type] || (isSp ? "Practica la transición fluida a esta forma desde otros acordes en tu progresión." : "Practice transitioning smoothly to this shape from other chords in your progression.");
+    return (
+      tips[c.type] ||
+      (isSp
+        ? 'Practica la transición fluida a esta forma desde otros acordes en tu progresión.'
+        : 'Practice transitioning smoothly to this shape from other chords in your progression.')
+    );
   };
 
   const QUICK_CATS = [
@@ -268,42 +342,42 @@ export default function ChordPanel() {
       icon: 'wb_sunny',
       label: isSpanish ? 'Mayor' : 'Major',
       desc: isSpanish ? 'Brillante, alegre, fundacional.' : 'Bright, happy, foundational.',
-      color: '#679cff'
+      color: '#679cff',
     },
     {
       type: 'minor' as const,
       icon: 'dark_mode',
       label: isSpanish ? 'Menor' : 'Minor',
       desc: isSpanish ? 'Melancólico y emocional.' : 'Moody & emotional.',
-      color: '#bb5551'
+      color: '#bb5551',
     },
     {
       type: '7th' as const,
       icon: 'electric_bolt',
       label: isSpanish ? '7ma Dominante' : 'Dominant 7th',
       desc: isSpanish ? 'Columna del jazz y blues.' : 'Jazz & blues backbone.',
-      color: '#9d9da6'
+      color: '#9d9da6',
     },
     {
       type: 'maj7' as const,
       icon: 'stars',
       label: isSpanish ? '7ma Mayor' : 'Major 7th',
       desc: isSpanish ? 'Exuberante y de ensueño.' : 'Lush & dreamy.',
-      color: '#679cff'
+      color: '#679cff',
     },
     {
       type: 'min7' as const,
       icon: 'nightlight',
       label: isSpanish ? '7ma Menor' : 'Minor 7th',
       desc: isSpanish ? 'Suave e introspectivo.' : 'Smooth & introspective.',
-      color: '#bb5551'
+      color: '#bb5551',
     },
     {
       type: 'sus4' as const,
       icon: 'hourglass_empty',
       label: isSpanish ? 'Suspendido' : 'Suspended',
       desc: isSpanish ? 'Tensión suspendida.' : 'Suspended tension.',
-      color: '#2dd4bf'
+      color: '#2dd4bf',
     },
   ];
 
@@ -311,7 +385,10 @@ export default function ChordPanel() {
     if (!dailyChord) return null;
     if (Capacitor.isNativePlatform()) {
       return (
-        <div className="flex flex-col h-full bg-surface-container-lowest text-on-surface select-none" style={{ position: 'relative' }}>
+        <div
+          className="flex flex-col h-full bg-surface-container-lowest text-on-surface select-none"
+          style={{ position: 'relative' }}
+        >
           {/* Top App Bar Header */}
           <header className="w-full top-0 sticky z-50 bg-surface/80 backdrop-blur-md">
             <div className="flex items-center justify-between px-4 h-16 w-full max-w-2xl mx-auto">
@@ -332,13 +409,20 @@ export default function ChordPanel() {
           {/* Scrollable content container */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32">
             <main className="max-w-2xl mx-auto px-4 space-y-6 mt-2">
-              
               {/* Hero: Chord of the Day */}
               <section className="bg-surface-container rounded-xxl p-6 border border-white/5 shadow-xl relative overflow-hidden group mb-6">
                 <div className="relative z-10 flex flex-col items-center">
                   {/* Chord Diagram Container */}
                   <div className="bg-black/40 rounded-xl p-4 mb-6 backdrop-blur-sm border border-white/5">
-                    <div style={{ width: 140, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        width: 140,
+                        height: 160,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       {renderChordDiagram(dailyChord, 'md')}
                     </div>
                   </div>
@@ -352,15 +436,20 @@ export default function ChordPanel() {
                       {dailyChord.name}
                     </h2>
                     <p className="text-on-surface-variant font-body-lg">
-                      {dailyChord.notes.join(' — ')} • <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
+                      {dailyChord.notes.join(' — ')} •{' '}
+                      <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
                     </p>
                   </div>
 
                   {/* Practice Tip */}
                   <div className="mt-6 w-full bg-surface-container-high/50 rounded-xl p-4 border-l-4 border-secondary flex gap-3 items-start">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">lightbulb</span>
+                    <span className="material-symbols-outlined text-secondary text-[20px]">
+                      lightbulb
+                    </span>
                     <p className="text-on-surface-variant font-body-md text-left">
-                      <span className="text-secondary font-bold">{isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}</span>
+                      <span className="text-secondary font-bold">
+                        {isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}
+                      </span>
                       {getPracticeTip(dailyChord, isSpanish)}
                     </p>
                   </div>
@@ -371,10 +460,19 @@ export default function ChordPanel() {
                       onClick={handlePlayDaily}
                       className="flex-1 min-w-[100px] h-12 bg-primary text-on-primary rounded-full font-label-lg flex items-center justify-center gap-2 active:scale-95 transition-transform font-bold"
                     >
-                      <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined }}>
+                      <span
+                        className="material-symbols-outlined text-[20px]"
+                        style={{ fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined }}
+                      >
                         {dailyPlaying ? 'stop' : 'play_arrow'}
                       </span>
-                      {dailyPlaying ? (isSpanish ? 'Detener' : 'Stop') : (isSpanish ? 'Escuchar' : 'Listen')}
+                      {dailyPlaying
+                        ? isSpanish
+                          ? 'Detener'
+                          : 'Stop'
+                        : isSpanish
+                          ? 'Escuchar'
+                          : 'Listen'}
                     </button>
 
                     <button
@@ -392,7 +490,9 @@ export default function ChordPanel() {
                     >
                       <span
                         className={`material-symbols-outlined ${isFavorite(dailyChord.id) ? 'text-error' : ''}`}
-                        style={{ fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined }}
+                        style={{
+                          fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined,
+                        }}
                       >
                         favorite
                       </span>
@@ -419,9 +519,13 @@ export default function ChordPanel() {
                     <span className="material-symbols-outlined text-white text-[28px]">search</span>
                   </div>
                   <div className="relative z-10 text-left">
-                    <h3 className="font-headline font-bold text-headline-lg-mobile text-white">{t.chordFinder.openFinder}</h3>
+                    <h3 className="font-headline font-bold text-headline-lg-mobile text-white">
+                      {t.chordFinder.openFinder}
+                    </h3>
                     <p className="text-white/80 font-body-md">
-                      {isSpanish ? 'Busca e identifica acordes por notas o en el diapasón.' : 'Search and identify chords by notes or on the fretboard.'}
+                      {isSpanish
+                        ? 'Busca e identifica acordes por notas o en el diapasón.'
+                        : 'Search and identify chords by notes or on the fretboard.'}
                     </p>
                   </div>
                 </div>
@@ -432,12 +536,21 @@ export default function ChordPanel() {
                   className="bento-card bg-surface-container-high rounded-xxl p-6 h-48 flex flex-col justify-end relative overflow-hidden cursor-pointer group text-left"
                 >
                   <div className="absolute top-4 right-4 text-secondary group-hover:rotate-12 transition-transform">
-                    <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                    <span
+                      className="material-symbols-outlined text-[32px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      auto_awesome
+                    </span>
                   </div>
                   <div className="relative z-10 text-left">
-                    <h3 className="font-headline font-bold text-headline-lg-mobile text-on-surface">{isSpanish ? 'Generador' : 'Generator'}</h3>
+                    <h3 className="font-headline font-bold text-headline-lg-mobile text-on-surface">
+                      {isSpanish ? 'Generador' : 'Generator'}
+                    </h3>
                     <p className="text-on-surface-variant font-body-md">
-                      {isSpanish ? 'Genera progresiones armónicas en cualquier escala musical.' : 'Generate harmonic progressions in any musical scale.'}
+                      {isSpanish
+                        ? 'Genera progresiones armónicas en cualquier escala musical.'
+                        : 'Generate harmonic progressions in any musical scale.'}
                     </p>
                   </div>
                 </div>
@@ -466,7 +579,10 @@ export default function ChordPanel() {
                           className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                           style={{ background: `${cat.color}15` }}
                         >
-                          <span className="material-symbols-outlined text-[20px]" style={{ color: cat.color }}>
+                          <span
+                            className="material-symbols-outlined text-[20px]"
+                            style={{ color: cat.color }}
+                          >
                             {cat.icon || 'music_note'}
                           </span>
                         </div>
@@ -481,23 +597,15 @@ export default function ChordPanel() {
                   })}
                 </div>
               </div>
-
             </main>
           </div>
 
           {/* Modal sheets */}
           {showFinder && (
-            <CustomChordBuilder
-              accent={accent}
-              mode="find"
-              onClose={() => setShowFinder(false)}
-            />
+            <CustomChordBuilder accent={accent} mode="find" onClose={() => setShowFinder(false)} />
           )}
           {showGenerator && (
-            <ProgressionGenerator
-              accent={accent}
-              onClose={() => setShowGenerator(false)}
-            />
+            <ProgressionGenerator accent={accent} onClose={() => setShowGenerator(false)} />
           )}
         </div>
       );
@@ -505,7 +613,9 @@ export default function ChordPanel() {
 
     return (
       <div className="flex flex-col h-full app-bg" style={{ position: 'relative' }}>
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           @keyframes m3-fade-in-up {
             from {
               opacity: 0;
@@ -659,79 +769,101 @@ export default function ChordPanel() {
               gap: 16px;
             }
           }
-        ` }} />
-        
+        `,
+          }}
+        />
 
-
-        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto no-scrollbar pb-32"
+          style={{ paddingTop: isWebDesktop ? '20px' : '0' }}
+        >
           <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
-            
             {/* Chord of the Day Premium Hero Card */}
             {dailyChord && (
               <div className="m3-hero-card m3-animate-fade-up" style={{ animationDelay: '60ms' }}>
                 {/* Accent Mesh Glow */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-60px',
-                  right: '-60px',
-                  width: '200px',
-                  height: '200px',
-                  background: `radial-gradient(circle, ${accent.from}18 0%, transparent 70%)`,
-                  pointerEvents: 'none',
-                  zIndex: 0
-                }} />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-60px',
+                    right: '-60px',
+                    width: '200px',
+                    height: '200px',
+                    background: `radial-gradient(circle, ${accent.from}18 0%, transparent 70%)`,
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
 
                 <div className="m3-hero-body" style={{ zIndex: 1 }}>
                   <div className="m3-hero-info">
-                    <span style={{
-                      fontSize: '9px',
-                      fontWeight: 900,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.18em',
-                      color: accent.from,
-                      background: `${accent.from}15`,
-                      padding: '5px 12px',
-                      borderRadius: '99px',
-                      fontFamily: 'var(--font-headline)',
-                      display: 'inline-block'
-                    }}>
+                    <span
+                      style={{
+                        fontSize: '9px',
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.18em',
+                        color: accent.from,
+                        background: `${accent.from}15`,
+                        padding: '5px 12px',
+                        borderRadius: '99px',
+                        fontFamily: 'var(--font-headline)',
+                        display: 'inline-block',
+                      }}
+                    >
                       {isSpanish ? 'Acorde del Día' : 'Chord of the Day'}
                     </span>
-                    
-                    <h3 style={{
-                      fontSize: '38px',
-                      fontWeight: 900,
-                      margin: '16px 0 6px',
-                      color: 'var(--c-text-primary)',
-                      fontFamily: 'var(--font-headline)',
-                      letterSpacing: '-0.03em',
-                      lineHeight: '1.1'
-                    }} className="truncate">
+
+                    <h3
+                      style={{
+                        fontSize: '38px',
+                        fontWeight: 900,
+                        margin: '16px 0 6px',
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'var(--font-headline)',
+                        letterSpacing: '-0.03em',
+                        lineHeight: '1.1',
+                      }}
+                      className="truncate"
+                    >
                       {dailyChord.name}
                     </h3>
-                    
-                    <p style={{
-                      fontSize: '14px',
-                      color: 'var(--c-text-secondary)',
-                      margin: '0 0 16px 0',
-                      fontFamily: 'var(--font-body)',
-                      fontWeight: 500
-                    }} className="truncate">
-                      {dailyChord.notes.join(' - ')} • <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
+
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: 'var(--c-text-secondary)',
+                        margin: '0 0 16px 0',
+                        fontFamily: 'var(--font-body)',
+                        fontWeight: 500,
+                      }}
+                      className="truncate"
+                    >
+                      {dailyChord.notes.join(' - ')} •{' '}
+                      <span style={{ textTransform: 'capitalize' }}>{dailyChord.type}</span>
                     </p>
 
-                    <div style={{
-                      background: isLight ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.015)',
-                      borderRadius: '16px',
-                      padding: '12px 18px',
-                      fontSize: '12.5px',
-                      color: 'var(--c-text-secondary)',
-                      lineHeight: '1.6',
-                      borderLeft: `4px solid ${accent.from}`,
-                      fontFamily: 'var(--font-body)',
-                      textAlign: 'left'
-                    }}>
-                      <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800 }}>
+                    <div
+                      style={{
+                        background: isLight ? 'rgba(0,0,0,0.015)' : 'rgba(255,255,255,0.015)',
+                        borderRadius: '16px',
+                        padding: '12px 18px',
+                        fontSize: '12.5px',
+                        color: 'var(--c-text-secondary)',
+                        lineHeight: '1.6',
+                        borderLeft: `4px solid ${accent.from}`,
+                        fontFamily: 'var(--font-body)',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <strong
+                        style={{
+                          color: 'var(--c-text-primary)',
+                          fontFamily: 'var(--font-headline)',
+                          fontWeight: 800,
+                        }}
+                      >
                         {isSpanish ? 'Tip de práctica: ' : 'Practice Tip: '}
                       </strong>
                       {getPracticeTip(dailyChord, isSpanish)}
@@ -746,7 +878,16 @@ export default function ChordPanel() {
                 </div>
 
                 {/* Hero Card Actions Row */}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', zIndex: 1, marginTop: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    zIndex: 1,
+                    marginTop: '8px',
+                  }}
+                >
                   <button
                     onClick={handlePlayDaily}
                     style={{
@@ -758,21 +899,35 @@ export default function ChordPanel() {
                       height: '46px',
                       borderRadius: '16px',
                       background: dailyPlaying ? `${accent.from}25` : 'var(--app-surface-high)',
-                      border: dailyPlaying ? `1px solid ${accent.from}50` : `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
+                      border: dailyPlaying
+                        ? `1px solid ${accent.from}50`
+                        : `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
                       color: dailyPlaying ? accent.from : 'var(--c-text-primary)',
                       fontSize: '13px',
                       fontWeight: 800,
                       cursor: 'pointer',
                       fontFamily: 'var(--font-headline)',
                       transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
-                      minWidth: '100px'
+                      minWidth: '100px',
                     }}
                     className="btn-smooth"
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined }}>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '18px',
+                        fontVariationSettings: dailyPlaying ? "'FILL' 1" : undefined,
+                      }}
+                    >
                       {dailyPlaying ? 'stop' : 'play_arrow'}
                     </span>
-                    {dailyPlaying ? (isSpanish ? 'Detener' : 'Stop') : (isSpanish ? 'Escuchar' : 'Listen')}
+                    {dailyPlaying
+                      ? isSpanish
+                        ? 'Detener'
+                        : 'Stop'
+                      : isSpanish
+                        ? 'Escuchar'
+                        : 'Listen'}
                   </button>
 
                   <button
@@ -792,7 +947,9 @@ export default function ChordPanel() {
                     className="btn-smooth"
                     title={isSpanish ? 'Agregar a la progresión' : 'Add to progression'}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      add
+                    </span>
                   </button>
 
                   <button
@@ -801,8 +958,12 @@ export default function ChordPanel() {
                       height: '46px',
                       width: '46px',
                       borderRadius: '16px',
-                      background: isFavorite(dailyChord.id) ? 'rgba(238,125,119,0.15)' : 'var(--app-surface-high)',
-                      border: isFavorite(dailyChord.id) ? '1px solid rgba(238,125,119,0.3)' : `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
+                      background: isFavorite(dailyChord.id)
+                        ? 'rgba(238,125,119,0.15)'
+                        : 'var(--app-surface-high)',
+                      border: isFavorite(dailyChord.id)
+                        ? '1px solid rgba(238,125,119,0.3)'
+                        : `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
                       color: isFavorite(dailyChord.id) ? '#ee7d77' : 'var(--c-text-primary)',
                       display: 'flex',
                       alignItems: 'center',
@@ -812,7 +973,13 @@ export default function ChordPanel() {
                     className="btn-smooth"
                     title={isSpanish ? 'Favorito' : 'Favorite'}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined }}>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: '20px',
+                        fontVariationSettings: isFavorite(dailyChord.id) ? "'FILL' 1" : undefined,
+                      }}
+                    >
                       favorite
                     </span>
                   </button>
@@ -833,7 +1000,7 @@ export default function ChordPanel() {
                       justifyContent: 'center',
                       cursor: 'pointer',
                       boxShadow: `0 4px 12px ${accent.to}35`,
-                      fontFamily: 'var(--font-headline)'
+                      fontFamily: 'var(--font-headline)',
                     }}
                     className="btn-smooth"
                   >
@@ -844,28 +1011,54 @@ export default function ChordPanel() {
             )}
 
             {/* Primary Action Cards Section (Prioritized Actions) */}
-            <div className="m3-actions-layout m3-animate-fade-up" style={{ animationDelay: '120ms' }}>
-              <button
-                onClick={() => setShowFinder(true)}
-                className="m3-action-card-primary"
-              >
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '14px',
-                  background: 'rgba(255,255,255,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#fff' }}>search</span>
+            <div
+              className="m3-actions-layout m3-animate-fade-up"
+              style={{ animationDelay: '120ms' }}
+            >
+              <button onClick={() => setShowFinder(true)} className="m3-action-card-primary">
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '14px',
+                    background: 'rgba(255,255,255,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: '22px', color: '#fff' }}
+                  >
+                    search
+                  </span>
                 </div>
                 <div>
-                  <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'var(--font-headline)', color: '#fff', letterSpacing: '-0.01em' }}>
+                  <h4
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      margin: '0 0 4px 0',
+                      fontFamily: 'var(--font-headline)',
+                      color: '#fff',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
                     {t.chordFinder.openFinder}
                   </h4>
-                  <p style={{ fontSize: '11px', margin: 0, color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-body)', lineHeight: '1.4' }}>
-                    {isSpanish ? 'Busca e identifica acordes por notas o en el diapasón.' : 'Search and identify chords by notes or on the fretboard.'}
+                  <p
+                    style={{
+                      fontSize: '11px',
+                      margin: 0,
+                      color: 'rgba(255,255,255,0.8)',
+                      fontFamily: 'var(--font-body)',
+                      lineHeight: '1.4',
+                    }}
+                  >
+                    {isSpanish
+                      ? 'Busca e identifica acordes por notas o en el diapasón.'
+                      : 'Search and identify chords by notes or on the fretboard.'}
                   </p>
                 </div>
               </button>
@@ -877,7 +1070,9 @@ export default function ChordPanel() {
                 style={{
                   flex: 1,
                   display: 'block',
-                  background: isLight ? 'var(--c-surface-card, #f8f9fa)' : 'var(--c-surface-card, rgba(255, 255, 255, 0.03))',
+                  background: isLight
+                    ? 'var(--c-surface-card, #f8f9fa)'
+                    : 'var(--c-surface-card, rgba(255, 255, 255, 0.03))',
                   border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)'}`,
                   borderRadius: '24px',
                   cursor: 'pointer',
@@ -886,24 +1081,53 @@ export default function ChordPanel() {
                   width: '100%',
                 }}
               >
-                <div className="m3-action-card-secondary" style={{ border: 'none', height: '100%', padding: '24px', margin: 0 }}>
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '14px',
-                    background: `${accent.from}15`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '22px', color: accent.from }}>auto_awesome</span>
+                <div
+                  className="m3-action-card-secondary"
+                  style={{ border: 'none', height: '100%', padding: '24px', margin: 0 }}
+                >
+                  <div
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '14px',
+                      background: `${accent.from}15`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: '22px', color: accent.from }}
+                    >
+                      auto_awesome
+                    </span>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 4px 0', fontFamily: 'var(--font-headline)', color: 'var(--c-text-primary)', letterSpacing: '-0.01em' }}>
+                    <h4
+                      style={{
+                        fontSize: '18px',
+                        fontWeight: 800,
+                        margin: '0 0 4px 0',
+                        fontFamily: 'var(--font-headline)',
+                        color: 'var(--c-text-primary)',
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
                       {isSpanish ? 'Generador' : 'Generator'}
                     </h4>
-                    <p style={{ fontSize: '11px', margin: 0, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', lineHeight: '1.4' }}>
-                      {isSpanish ? 'Genera progresiones armónicas en cualquier escala musical.' : 'Generate harmonic progressions in any musical scale.'}
+                    <p
+                      style={{
+                        fontSize: '11px',
+                        margin: 0,
+                        color: 'var(--c-text-secondary)',
+                        fontFamily: 'var(--font-body)',
+                        lineHeight: '1.4',
+                      }}
+                    >
+                      {isSpanish
+                        ? 'Genera progresiones armónicas en cualquier escala musical.'
+                        : 'Generate harmonic progressions in any musical scale.'}
                     </p>
                   </div>
                 </div>
@@ -912,16 +1136,18 @@ export default function ChordPanel() {
 
             {/* Quick Categories Section */}
             <div className="m3-animate-fade-up" style={{ animationDelay: '180ms' }}>
-              <h4 style={{
-                fontSize: '11px',
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                letterSpacing: '0.15em',
-                color: 'var(--c-text-secondary)',
-                marginBottom: '16px',
-                fontFamily: 'var(--font-headline)',
-                textAlign: 'left'
-              }}>
+              <h4
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.15em',
+                  color: 'var(--c-text-secondary)',
+                  marginBottom: '16px',
+                  fontFamily: 'var(--font-headline)',
+                  textAlign: 'left',
+                }}
+              >
                 {isSpanish ? 'Categorías Rápidas' : 'Quick Categories'}
               </h4>
               <div className="m3-categories-layout">
@@ -938,35 +1164,57 @@ export default function ChordPanel() {
                       }}
                       className="m3-category-card btn-smooth"
                       style={{
-                        background: isHovered 
-                          ? (isLight ? 'rgba(0,0,0,0.035)' : 'rgba(255,255,255,0.055)')
+                        background: isHovered
+                          ? isLight
+                            ? 'rgba(0,0,0,0.035)'
+                            : 'rgba(255,255,255,0.055)'
                           : undefined,
                         borderColor: isHovered ? `${cat.color}60` : undefined,
                         boxShadow: isHovered ? `0 6px 20px ${cat.color}15` : undefined,
-                        animationDelay: `${200 + idx * 40}ms`
+                        animationDelay: `${200 + idx * 40}ms`,
                       }}
                     >
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '14px',
-                        background: `${cat.color}15`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: '6px',
-                      }}>
-                        <span className="material-symbols-outlined" style={{
-                          fontSize: '20px',
-                          color: cat.color,
-                        }}>
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '14px',
+                          background: `${cat.color}15`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: '20px',
+                            color: cat.color,
+                          }}
+                        >
                           {cat.icon || 'music_note'}
                         </span>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: '14px', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', letterSpacing: '-0.01em' }}>
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          fontSize: '14px',
+                          color: 'var(--c-text-primary)',
+                          fontFamily: 'var(--font-headline)',
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
                         {cat.label}
                       </div>
-                      <div style={{ fontSize: '11.5px', color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', lineHeight: '1.4' }}>
+                      <div
+                        style={{
+                          fontSize: '11.5px',
+                          color: 'var(--c-text-secondary)',
+                          fontFamily: 'var(--font-body)',
+                          lineHeight: '1.4',
+                        }}
+                      >
                         {cat.desc}
                       </div>
                     </button>
@@ -974,22 +1222,14 @@ export default function ChordPanel() {
                 })}
               </div>
             </div>
-
           </div>
         </div>
-        
+
         {showFinder && (
-          <CustomChordBuilder
-            accent={accent}
-            mode="find"
-            onClose={() => setShowFinder(false)}
-          />
+          <CustomChordBuilder accent={accent} mode="find" onClose={() => setShowFinder(false)} />
         )}
         {showGenerator && (
-          <ProgressionGenerator
-            accent={accent}
-            onClose={() => setShowGenerator(false)}
-          />
+          <ProgressionGenerator accent={accent} onClose={() => setShowGenerator(false)} />
         )}
       </div>
     );
@@ -1004,17 +1244,29 @@ export default function ChordPanel() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden app-bg">
-
-
       {/* Scrollable content */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-32 spring-in" style={{ paddingTop: isWebDesktop ? '20px' : '0' }}>
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto no-scrollbar pb-32 spring-in"
+        style={{ paddingTop: isWebDesktop ? '20px' : '0' }}
+      >
         {/* Hero chord card */}
         <div
           className={`${getPanelClass('p-6')} relative overflow-hidden`}
-          style={isWebDesktop ? { position: 'relative' } : { background: 'var(--app-surface)', transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)' }}
+          style={
+            isWebDesktop
+              ? { position: 'relative' }
+              : {
+                  background: 'var(--app-surface)',
+                  transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
+                }
+          }
         >
           <div className="absolute top-5 right-6">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)' }}>
+            <p
+              className="text-[10px] font-bold uppercase tracking-[0.2em]"
+              style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)' }}
+            >
               {t.chord.instruments[settings.instrument]}
             </p>
           </div>
@@ -1022,11 +1274,22 @@ export default function ChordPanel() {
           <div className="mt-2 mb-6">
             <h2
               className="font-extrabold tracking-tighter leading-none"
-              style={{ fontSize: 'clamp(3rem, 12vw, 4.5rem)', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}
+              style={{
+                fontSize: 'clamp(3rem, 12vw, 4.5rem)',
+                color: 'var(--c-text-primary)',
+                fontFamily: 'var(--font-headline)',
+              }}
             >
               {chord.name.replace(/\s/g, '')}
             </h2>
-            <p className="mt-2" style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontFamily: 'var(--font-body)' }}>
+            <p
+              className="mt-2"
+              style={{
+                color: 'var(--c-text-secondary)',
+                fontSize: '14px',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
               {notesStr} ({typeStr})
             </p>
           </div>
@@ -1034,7 +1297,10 @@ export default function ChordPanel() {
           {/* Diagram */}
           <div
             className="rounded-2xl p-6 flex justify-center items-center"
-            style={{ background: 'var(--app-surface-lowest)', transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)' }}
+            style={{
+              background: 'var(--app-surface-lowest)',
+              transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
+            }}
           >
             {renderDiagram('lg')}
           </div>
@@ -1050,10 +1316,16 @@ export default function ChordPanel() {
                 borderRadius: '9999px',
                 fontFamily: 'var(--font-headline)',
                 fontSize: '14px',
-                transition: 'background-color 200ms ease, color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition:
+                  'background-color 200ms ease, color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}>{chordPlaying ? 'stop' : 'play_arrow'}</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '20px', fontVariationSettings: "'FILL' 1" }}
+              >
+                {chordPlaying ? 'stop' : 'play_arrow'}
+              </span>
             </button>
             <button
               data-testid="add-to-progression"
@@ -1068,7 +1340,9 @@ export default function ChordPanel() {
                 boxShadow: `0 4px 20px ${accent.to}40`,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                add
+              </span>
               {t.chord.addToProgression}
             </button>
             <button
@@ -1081,12 +1355,17 @@ export default function ChordPanel() {
                 borderRadius: '9999px',
                 fontFamily: 'var(--font-headline)',
                 fontSize: '14px',
-                transition: 'background-color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition:
+                  'background-color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
               }}
             >
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: '22px', fontVariationSettings: favorite ? "'FILL' 1" : "'FILL' 0", transition: 'font-variation-settings 300ms ease' }}
+                style={{
+                  fontSize: '22px',
+                  fontVariationSettings: favorite ? "'FILL' 1" : "'FILL' 0",
+                  transition: 'font-variation-settings 300ms ease',
+                }}
               >
                 favorite
               </span>
@@ -1101,74 +1380,187 @@ export default function ChordPanel() {
             className="btn-smooth flex items-center gap-3 w-full"
             style={{ textAlign: 'left' }}
           >
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
-              background: `${accent.from}18`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px', color: accent.from }}>search</span>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                flexShrink: 0,
+                background: `${accent.from}18`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: '20px', color: accent.from }}
+              >
+                search
+              </span>
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: '14px', color: 'var(--c-text-primary)' }}>{t.chordFinder.openFinder}</p>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--c-text-secondary)', marginTop: '2px' }}>{t.chordFinder.subtitle}</p>
+              <p
+                style={{
+                  fontFamily: 'var(--font-headline)',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  color: 'var(--c-text-primary)',
+                }}
+              >
+                {t.chordFinder.openFinder}
+              </p>
+              <p
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '12px',
+                  color: 'var(--c-text-secondary)',
+                  marginTop: '2px',
+                }}
+              >
+                {t.chordFinder.subtitle}
+              </p>
             </div>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--c-text-muted)' }}>chevron_right</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: '18px', color: 'var(--c-text-muted)' }}
+            >
+              chevron_right
+            </span>
           </button>
         </div>
 
         {/* Voicings & Variations — gated on Smart Suggestions */}
         {settings.chordAssistant && settings.assistantSmartSuggestions && (
-        <div className={getPanelClass('p-6')}>
-          <h3 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>
-            {t.chord.voicings}
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {relatedChords.slice(0, 2).map(related => (
-              <div
-                key={related.id}
-                className="card-hover text-left p-4"
-                style={{ background: 'var(--app-surface-high)', borderRadius: '0.75rem', position: 'relative' }}
-              >
-                <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}>
-                  <RelatedPlayBtn guitar={related.guitar} accent={accent} isLight={isLight} />
-                </div>
-                <button
-                  data-testid={`related-chord-${related.id}`}
-                  onClick={() => selectChord(related.id)}
-                  style={{ background: 'none', border: 'none', padding: 0, width: '100%', textAlign: 'left', cursor: 'pointer' }}
+          <div className={getPanelClass('p-6')}>
+            <h3
+              className="text-[10px] font-bold uppercase tracking-widest mb-5"
+              style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+            >
+              {t.chord.voicings}
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {relatedChords.slice(0, 2).map((related) => (
+                <div
+                  key={related.id}
+                  className="card-hover text-left p-4"
+                  style={{
+                    background: 'var(--app-surface-high)',
+                    borderRadius: '0.75rem',
+                    position: 'relative',
+                  }}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="font-bold" style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontSize: '13px' }}>{related.name}</span>
+                  <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}>
+                    <RelatedPlayBtn guitar={related.guitar} accent={accent} isLight={isLight} />
                   </div>
-                  <div style={{ background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)', borderRadius: '0.5rem', padding: '6px 6px 3px', transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)' }}>
-                    <ChordDiagram data={related.guitar} accentFrom={accent.from} />
-                  </div>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{related.type}</p>
-                </button>
-              </div>
-            ))}
+                  <button
+                    data-testid={`related-chord-${related.id}`}
+                    onClick={() => selectChord(related.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <span
+                        className="font-bold"
+                        style={{
+                          color: 'var(--c-text-primary)',
+                          fontFamily: 'var(--font-headline)',
+                          fontSize: '13px',
+                        }}
+                      >
+                        {related.name}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                        borderRadius: '0.5rem',
+                        padding: '6px 6px 3px',
+                        transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
+                      }}
+                    >
+                      <ChordDiagram data={related.guitar} accentFrom={accent.from} />
+                    </div>
+                    <p
+                      className="mt-2 text-[10px] font-bold uppercase tracking-wider"
+                      style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+                    >
+                      {related.type}
+                    </p>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
         )}
 
         {/* Harmonic Context */}
         <div className={getPanelClass('p-6')}>
-          <h3 className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>
+          <h3
+            className="text-[10px] font-bold uppercase tracking-widest mb-5"
+            style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+          >
             {t.chord.harmonicContext}
           </h3>
           <div className="space-y-5">
             {[
-              ...(settings.chordAssistant && settings.assistantProgressionTips ? [{ icon: 'analytics', label: t.chord.commonlyFollowedBy, value: suggestions.slice(0, 3).map(s => s.name).join(', ') || t.chord.exploreLibrary }] : []),
+              ...(settings.chordAssistant && settings.assistantProgressionTips
+                ? [
+                    {
+                      icon: 'analytics',
+                      label: t.chord.commonlyFollowedBy,
+                      value:
+                        suggestions
+                          .slice(0, 3)
+                          .map((s) => s.name)
+                          .join(', ') || t.chord.exploreLibrary,
+                    },
+                  ]
+                : []),
               { icon: 'piano', label: t.chord.intervalSpacing, value: chord.intervals.join(' - ') },
-              ...(settings.instrument === 'guitar' ? [{ icon: 'settings_input_component', label: t.chord.fingering, value: chord.guitar.frets.map(f => f === -1 ? 'x' : f === 0 ? 'O' : f).join(' - ') }] : []),
+              ...(settings.instrument === 'guitar'
+                ? [
+                    {
+                      icon: 'settings_input_component',
+                      label: t.chord.fingering,
+                      value: chord.guitar.frets
+                        .map((f) => (f === -1 ? 'x' : f === 0 ? 'O' : f))
+                        .join(' - '),
+                    },
+                  ]
+                : []),
             ].map(({ icon, label, value }) => (
               <div key={label} className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full flex-none flex items-center justify-center" style={{ background: 'var(--app-surface-low)' }}>
-                  <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: '20px' }}>{icon}</span>
+                <div
+                  className="w-10 h-10 rounded-full flex-none flex items-center justify-center"
+                  style={{ background: 'var(--app-surface-low)' }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ color: accent.from, fontSize: '20px' }}
+                  >
+                    {icon}
+                  </span>
                 </div>
                 <div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>{label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{value}</p>
+                  <p
+                    className="font-bold text-sm"
+                    style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}
+                  >
+                    {label}
+                  </p>
+                  <p
+                    className="text-xs mt-0.5"
+                    style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+                  >
+                    {value}
+                  </p>
                 </div>
               </div>
             ))}
@@ -1179,7 +1571,12 @@ export default function ChordPanel() {
         {progressionChords.length > 0 && (
           <div className={getPanelClass('p-6')}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{t.chord.currentProgression}</h3>
+              <h3
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+              >
+                {t.chord.currentProgression}
+              </h3>
               <div className="flex items-center gap-3">
                 <button
                   data-testid="open-generator-header"
@@ -1188,7 +1585,9 @@ export default function ChordPanel() {
                   style={{ color: accent.from, fontFamily: 'var(--font-headline)' }}
                   title="Generate a new progression"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>auto_awesome</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
+                    auto_awesome
+                  </span>
                   Generate
                 </button>
                 <button
@@ -1202,22 +1601,37 @@ export default function ChordPanel() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mb-4">
-              {progressionChords.map((c, i) => c && (
-                <button
-                  key={`${c.id}-${i}`}
-                  data-testid={`prog-chord-${i}`}
-                  onClick={() => useChordStore.getState().removeFromProgression(i)}
-                  className="btn-smooth px-4 py-2 font-medium text-sm"
-                  style={{ background: 'var(--app-surface-high)', color: 'var(--c-text-primary)', borderRadius: '9999px', fontFamily: 'var(--font-headline)' }}
-                  title={t.chord.tapToRemove}
-                >
-                  {c.name}
-                </button>
-              ))}
+              {progressionChords.map(
+                (c, i) =>
+                  c && (
+                    <button
+                      key={`${c.id}-${i}`}
+                      data-testid={`prog-chord-${i}`}
+                      onClick={() => useChordStore.getState().removeFromProgression(i)}
+                      className="btn-smooth px-4 py-2 font-medium text-sm"
+                      style={{
+                        background: 'var(--app-surface-high)',
+                        color: 'var(--c-text-primary)',
+                        borderRadius: '9999px',
+                        fontFamily: 'var(--font-headline)',
+                      }}
+                      title={t.chord.tapToRemove}
+                    >
+                      {c.name}
+                    </button>
+                  )
+              )}
               <button
                 onClick={handleAddToProgression}
                 className="btn-smooth px-4 py-2 font-medium text-sm"
-                style={{ background: 'transparent', color: 'var(--c-text-secondary)', borderRadius: '9999px', border: '1px dashed rgba(72,72,72,0.4)', fontFamily: 'var(--font-headline)', fontSize: '13px' }}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--c-text-secondary)',
+                  borderRadius: '9999px',
+                  border: '1px dashed rgba(72,72,72,0.4)',
+                  fontFamily: 'var(--font-headline)',
+                  fontSize: '13px',
+                }}
               >
                 + {chord.name.replace(/\s/g, '')}
               </button>
@@ -1227,7 +1641,12 @@ export default function ChordPanel() {
                 data-testid="save-progression-btn"
                 onClick={() => setSaving(true)}
                 className="btn-smooth w-full py-2.5 font-bold text-sm"
-                style={{ background: 'var(--app-surface-high)', color: accent.from, borderRadius: '9999px', fontFamily: 'var(--font-headline)' }}
+                style={{
+                  background: 'var(--app-surface-high)',
+                  color: accent.from,
+                  borderRadius: '9999px',
+                  fontFamily: 'var(--font-headline)',
+                }}
               >
                 {t.chord.saveProgression}
               </button>
@@ -1236,21 +1655,42 @@ export default function ChordPanel() {
                 <input
                   autoFocus
                   value={progName}
-                  onChange={e => setProgName(e.target.value)}
+                  onChange={(e) => setProgName(e.target.value)}
                   placeholder={t.chord.namePlaceholder}
                   data-testid="progression-name-input"
                   className="flex-1 py-2.5 px-4 text-sm outline-none"
-                  style={{ background: 'var(--app-surface-low)', color: 'var(--c-text-primary)', borderRadius: '9999px', border: '1px solid rgba(72,72,72,0.15)', fontFamily: 'var(--font-body)' }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && progName.trim()) { useChordStore.getState().saveProgression(progName.trim()); setSaving(false); setProgName(''); }
+                  style={{
+                    background: 'var(--app-surface-low)',
+                    color: 'var(--c-text-primary)',
+                    borderRadius: '9999px',
+                    border: '1px solid rgba(72,72,72,0.15)',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && progName.trim()) {
+                      useChordStore.getState().saveProgression(progName.trim());
+                      setSaving(false);
+                      setProgName('');
+                    }
                     if (e.key === 'Escape') setSaving(false);
                   }}
                 />
                 <button
-                  onClick={() => { if (progName.trim()) { useChordStore.getState().saveProgression(progName.trim()); setSaving(false); setProgName(''); } }}
+                  onClick={() => {
+                    if (progName.trim()) {
+                      useChordStore.getState().saveProgression(progName.trim());
+                      setSaving(false);
+                      setProgName('');
+                    }
+                  }}
                   data-testid="save-progression-confirm"
                   className="btn-smooth px-5 py-2.5 font-bold text-sm"
-                  style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`, color: 'white', borderRadius: '9999px', fontFamily: 'var(--font-headline)' }}
+                  style={{
+                    background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                    color: 'white',
+                    borderRadius: '9999px',
+                    fontFamily: 'var(--font-headline)',
+                  }}
                 >
                   {t.chord.save}
                 </button>
@@ -1262,32 +1702,64 @@ export default function ChordPanel() {
         {/* Recent Chords */}
         {recentList.length > 0 && (
           <div className={getPanelClass('p-6')}>
-            <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{t.chord.recentChords}</h3>
+            <h3
+              className="text-[10px] font-bold uppercase tracking-widest mb-4"
+              style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+            >
+              {t.chord.recentChords}
+            </h3>
             <div className="scroll-fade-container">
-              <div className={`scroll-fade-content flex gap-2 overflow-x-auto no-scrollbar pb-1 ${recentFadeClass}`} ref={recentScrollRef}>
-                {recentList.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => selectChord(c.id)}
-                  className="btn-smooth flex-none"
-                  style={{
-                    width: '76px',
-                    padding: '9px 8px 7px',
-                    background: selectedChordId === c.id ? `${accent.to}20` : 'var(--app-surface-high)',
-                    borderRadius: '1rem',
-                    border: selectedChordId === c.id ? `1.5px solid ${accent.to}33` : '1px solid rgba(72,72,72,0.1)',
-                    display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '5px',
-                    transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  }}
-                >
-                  <p style={{ color: selectedChordId === c.id ? accent.from : 'var(--c-text-primary)', fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: '12px', letterSpacing: '-0.02em', lineHeight: 1, textAlign: 'left' }}>
-                    {c.name.replace(/\s/g, '')}
-                  </p>
-                  <div style={{ background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)', borderRadius: '0.5rem', padding: '4px 4px 2px' }}>
-                    <ChordDiagram data={c.guitar} accentFrom={accent.from} />
-                  </div>
-                </button>
-              ))}
+              <div
+                className={`scroll-fade-content flex gap-2 overflow-x-auto no-scrollbar pb-1 ${recentFadeClass}`}
+                ref={recentScrollRef}
+              >
+                {recentList.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => selectChord(c.id)}
+                    className="btn-smooth flex-none"
+                    style={{
+                      width: '76px',
+                      padding: '9px 8px 7px',
+                      background:
+                        selectedChordId === c.id ? `${accent.to}20` : 'var(--app-surface-high)',
+                      borderRadius: '1rem',
+                      border:
+                        selectedChordId === c.id
+                          ? `1.5px solid ${accent.to}33`
+                          : '1px solid rgba(72,72,72,0.1)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'stretch',
+                      gap: '5px',
+                      transition:
+                        'background-color 200ms ease, border-color 200ms ease, color 200ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
+                  >
+                    <p
+                      style={{
+                        color: selectedChordId === c.id ? accent.from : 'var(--c-text-primary)',
+                        fontFamily: 'var(--font-headline)',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1,
+                        textAlign: 'left',
+                      }}
+                    >
+                      {c.name.replace(/\s/g, '')}
+                    </p>
+                    <div
+                      style={{
+                        background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                        borderRadius: '0.5rem',
+                        padding: '4px 4px 2px',
+                      }}
+                    >
+                      <ChordDiagram data={c.guitar} accentFrom={accent.from} />
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -1299,18 +1771,11 @@ export default function ChordPanel() {
 
       {/* Chord Finder modal */}
       {showFinder && (
-        <CustomChordBuilder
-          accent={accent}
-          mode="find"
-          onClose={() => setShowFinder(false)}
-        />
+        <CustomChordBuilder accent={accent} mode="find" onClose={() => setShowFinder(false)} />
       )}
       {/* Progression Generator modal */}
       {showGenerator && (
-        <ProgressionGenerator
-          accent={accent}
-          onClose={() => setShowGenerator(false)}
-        />
+        <ProgressionGenerator accent={accent} onClose={() => setShowGenerator(false)} />
       )}
     </div>
   );
@@ -1318,14 +1783,18 @@ export default function ChordPanel() {
 
 function SavedProgressions({ accent }: { accent: { from: string; to: string; mid: string } }) {
   const isWebDesktop = useIsWebDesktop();
-  const settings = useChordStore(useShallow(s => s.settings));
-  const progressions = useChordStore(useShallow(s => s.progressions));
-  const loadProgression = useChordStore(useShallow(s => s.loadProgression));
-  const deleteProgression = useChordStore(useShallow(s => s.deleteProgression));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
+  const progressions = useChordStore(useShallow((s) => s.progressions));
+  const loadProgression = useChordStore(useShallow((s) => s.loadProgression));
+  const deleteProgression = useChordStore(useShallow((s) => s.deleteProgression));
   const t = useT();
   if (progressions.length === 0) return null;
 
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
   const getPanelClass = (padding: string = 'p-6') => {
     return isWebDesktop
       ? `mx-4 mt-4 rounded-xl border ${padding} ${isLight ? 'bg-white/80 border-zinc-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)]' : 'border-zinc-900 bg-zinc-950/40'}`
@@ -1334,19 +1803,63 @@ function SavedProgressions({ accent }: { accent: { from: string; to: string; mid
 
   return (
     <div className={getPanelClass('p-6')}>
-      <h3 className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{t.chord.savedProgressions}</h3>
+      <h3
+        className="text-[10px] font-bold uppercase tracking-widest mb-4"
+        style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+      >
+        {t.chord.savedProgressions}
+      </h3>
       <div className="space-y-3">
-        {progressions.map(prog => {
-          const chordNames = prog.chords.map(id => getChordById(id)?.name?.replace(/\s/g, '') || '?').join(' → ');
+        {progressions.map((prog) => {
+          const chordNames = prog.chords
+            .map((id) => getChordById(id)?.name?.replace(/\s/g, '') || '?')
+            .join(' → ');
           return (
-            <div key={prog.id} className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--app-surface-high)', borderRadius: '0.75rem' }}>
+            <div
+              key={prog.id}
+              className="flex items-center justify-between px-4 py-3"
+              style={{ background: 'var(--app-surface-high)', borderRadius: '0.75rem' }}
+            >
               <div className="flex-1 min-w-0 mr-4">
-                <p className="font-bold text-sm truncate" style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>{prog.name}</p>
-                <p className="text-xs truncate mt-0.5" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}>{chordNames}</p>
+                <p
+                  className="font-bold text-sm truncate"
+                  style={{ color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}
+                >
+                  {prog.name}
+                </p>
+                <p
+                  className="text-xs truncate mt-0.5"
+                  style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)' }}
+                >
+                  {chordNames}
+                </p>
               </div>
               <div className="flex items-center gap-3">
-                <button data-testid={`load-prog-${prog.id}`} onClick={() => loadProgression(prog.id)} className="btn-smooth" style={{ color: accent.from, fontFamily: 'var(--font-headline)', fontSize: '12px', fontWeight: 700 }}>{t.chord.load}</button>
-                <button data-testid={`del-prog-${prog.id}`} onClick={() => deleteProgression(prog.id)} className="btn-smooth" style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-headline)', fontSize: '18px' }}>×</button>
+                <button
+                  data-testid={`load-prog-${prog.id}`}
+                  onClick={() => loadProgression(prog.id)}
+                  className="btn-smooth"
+                  style={{
+                    color: accent.from,
+                    fontFamily: 'var(--font-headline)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {t.chord.load}
+                </button>
+                <button
+                  data-testid={`del-prog-${prog.id}`}
+                  onClick={() => deleteProgression(prog.id)}
+                  className="btn-smooth"
+                  style={{
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'var(--font-headline)',
+                    fontSize: '18px',
+                  }}
+                >
+                  ×
+                </button>
               </div>
             </div>
           );

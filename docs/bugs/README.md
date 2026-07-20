@@ -14,24 +14,24 @@ This directory is the **permanent engineering knowledge base** for all significa
 
 ## Rules
 
-* Every significant bug gets its own markdown document.
-* Documents must follow the standard template (see [TEMPLATE.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/TEMPLATE.md)).
-* When a bug is resolved, update its document immediately — do not defer.
-* When a similar bug appears, read the existing documentation first.
-* Cross-reference related bugs using markdown links.
+- Every significant bug gets its own markdown document.
+- Documents must follow the standard template (see [TEMPLATE.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/TEMPLATE.md)).
+- When a bug is resolved, update its document immediately — do not defer.
+- When a similar bug appears, read the existing documentation first.
+- Cross-reference related bugs using markdown links.
 
 ---
 
 ## Bug Index
 
-| Document | Area | Severity | Status |
-|---|---|---|---|
-| [hub-transition-black-screen.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/hub-transition-black-screen.md) | Navigation / Transitions | Critical | Resolved (v4.2.1) |
-| [bottom-navigation-overlap.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/bottom-navigation-overlap.md) | Navigation / UI | High | Resolved (v4.2.4) |
-| [back-navigation-cross-app.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/back-navigation-cross-app.md) | Navigation / History | High | Resolved (v4.2.4) |
-| [app-switcher-capsule-deformation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/app-switcher-capsule-deformation.md) | Bottom Navigation / UI | Medium | Resolved (v4.2.1) |
-| [theme-transition-jank.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/theme-transition-jank.md) | Theme Engine / Performance | Medium | Resolved (v4.2.1) |
-| [notification-center-scope-error.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/notification-center-scope-error.md) | Hub / TypeScript | Low | Resolved (v4.2.4) |
+| Document                                                                                                                                                 | Area                       | Severity | Status            |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------- | ----------------- |
+| [hub-transition-black-screen.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/hub-transition-black-screen.md)           | Navigation / Transitions   | Critical | Resolved (v4.2.1) |
+| [bottom-navigation-overlap.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/bottom-navigation-overlap.md)               | Navigation / UI            | High     | Resolved (v4.2.4) |
+| [back-navigation-cross-app.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/back-navigation-cross-app.md)               | Navigation / History       | High     | Resolved (v4.2.4) |
+| [app-switcher-capsule-deformation.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/app-switcher-capsule-deformation.md) | Bottom Navigation / UI     | Medium   | Resolved (v4.2.1) |
+| [theme-transition-jank.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/theme-transition-jank.md)                       | Theme Engine / Performance | Medium   | Resolved (v4.2.1) |
+| [notification-center-scope-error.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/notification-center-scope-error.md)   | Hub / TypeScript           | Low      | Resolved (v4.2.4) |
 
 ---
 

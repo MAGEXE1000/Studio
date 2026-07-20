@@ -28,10 +28,15 @@ function getNoiseBuffer(): AudioBuffer {
 
 export function stopVoice() {
   for (const osc of activeOscs) {
-    try { osc.stop(); osc.disconnect(); } catch {}
+    try {
+      osc.stop();
+      osc.disconnect();
+    } catch {}
   }
   for (const n of activeNodes) {
-    try { n.disconnect(); } catch {}
+    try {
+      n.disconnect();
+    } catch {}
   }
   activeOscs = [];
   activeNodes = [];
@@ -44,102 +49,102 @@ interface FormantDef {
 }
 
 const VOWEL_FORMANTS: Record<string, FormantDef[]> = {
-  'mm': [
+  mm: [
     { freq: 250, bw: 80, gain: 1.0 },
     { freq: 2500, bw: 300, gain: 0.12 },
     { freq: 3500, bw: 400, gain: 0.04 },
   ],
-  'ah': [
+  ah: [
     { freq: 780, bw: 120, gain: 1.0 },
     { freq: 1200, bw: 150, gain: 0.55 },
     { freq: 2600, bw: 200, gain: 0.12 },
   ],
-  'ee': [
+  ee: [
     { freq: 280, bw: 80, gain: 1.0 },
     { freq: 2250, bw: 150, gain: 0.45 },
     { freq: 2900, bw: 200, gain: 0.18 },
   ],
-  'eh': [
+  eh: [
     { freq: 520, bw: 90, gain: 1.0 },
     { freq: 1800, bw: 140, gain: 0.4 },
     { freq: 2500, bw: 180, gain: 0.12 },
   ],
-  'oh': [
+  oh: [
     { freq: 480, bw: 100, gain: 1.0 },
     { freq: 750, bw: 120, gain: 0.65 },
     { freq: 2700, bw: 200, gain: 0.06 },
   ],
-  'oo': [
+  oo: [
     { freq: 310, bw: 70, gain: 1.0 },
     { freq: 900, bw: 120, gain: 0.35 },
     { freq: 2300, bw: 180, gain: 0.06 },
   ],
-  'uh': [
+  uh: [
     { freq: 620, bw: 90, gain: 1.0 },
     { freq: 1200, bw: 130, gain: 0.4 },
     { freq: 2400, bw: 180, gain: 0.1 },
   ],
-  'la': [
+  la: [
     { freq: 700, bw: 110, gain: 1.0 },
     { freq: 1100, bw: 140, gain: 0.5 },
     { freq: 2600, bw: 180, gain: 0.1 },
   ],
-  'na': [
+  na: [
     { freq: 540, bw: 100, gain: 1.0 },
     { freq: 1350, bw: 150, gain: 0.45 },
     { freq: 2500, bw: 180, gain: 0.1 },
   ],
-  'ng': [
+  ng: [
     { freq: 280, bw: 70, gain: 1.0 },
     { freq: 2300, bw: 250, gain: 0.2 },
     { freq: 3100, bw: 300, gain: 0.06 },
   ],
-  'nay': [
+  nay: [
     { freq: 350, bw: 80, gain: 1.0 },
     { freq: 2050, bw: 150, gain: 0.45 },
     { freq: 2800, bw: 180, gain: 0.14 },
   ],
-  'ya': [
+  ya: [
     { freq: 730, bw: 110, gain: 1.0 },
     { freq: 1200, bw: 140, gain: 0.5 },
     { freq: 2700, bw: 180, gain: 0.1 },
   ],
-  'da': [
+  da: [
     { freq: 700, bw: 100, gain: 1.0 },
     { freq: 1050, bw: 130, gain: 0.5 },
     { freq: 2500, bw: 180, gain: 0.1 },
   ],
-  'ha': [
+  ha: [
     { freq: 780, bw: 120, gain: 1.0 },
     { freq: 1100, bw: 140, gain: 0.5 },
     { freq: 2600, bw: 190, gain: 0.1 },
   ],
-  'ga': [
+  ga: [
     { freq: 740, bw: 110, gain: 1.0 },
     { freq: 1150, bw: 140, gain: 0.48 },
     { freq: 2600, bw: 180, gain: 0.1 },
   ],
-  'ba': [
+  ba: [
     { freq: 700, bw: 110, gain: 1.0 },
     { freq: 1100, bw: 140, gain: 0.5 },
     { freq: 2500, bw: 180, gain: 0.1 },
   ],
-  'ma': [
+  ma: [
     { freq: 580, bw: 90, gain: 1.0 },
     { freq: 1100, bw: 140, gain: 0.38 },
     { freq: 2600, bw: 180, gain: 0.08 },
   ],
-  'goh': [
+  goh: [
     { freq: 480, bw: 100, gain: 1.0 },
     { freq: 750, bw: 120, gain: 0.6 },
     { freq: 2700, bw: 200, gain: 0.06 },
   ],
-  'nee': [
+  nee: [
     { freq: 300, bw: 70, gain: 1.0 },
     { freq: 2200, bw: 150, gain: 0.45 },
     { freq: 2900, bw: 200, gain: 0.16 },
   ],
-  'mah': [
+  mah: [
     { freq: 700, bw: 100, gain: 1.0 },
     { freq: 1050, bw: 130, gain: 0.42 },
     { freq: 2600, bw: 180, gain: 0.08 },
@@ -423,9 +428,7 @@ export function playNoteVoice(targetNote: string, durationSec: number, syllable?
   const freq = NOTE_FREQ[note];
   if (!freq) return;
 
-  const isTrill = syllable
-    ? /brr|rrr|trill/i.test(syllable)
-    : false;
+  const isTrill = syllable ? /brr|rrr|trill/i.test(syllable) : false;
 
   playVoice({
     freq,

@@ -1,3 +1,4 @@
+import { DurationPresets, EasingPresets } from '@workspace/studio-core';
 # Performance Architecture
 
 ## Overview
@@ -8,16 +9,16 @@ Studio employs multiple performance strategies across rendering, animation, lazy
 
 The startup coordinator (`startupCoordinator.ts`, 888 lines) orchestrates a 7-phase boot sequence:
 
-| Phase | Name | Timeout | Purpose |
-|-------|------|---------|---------|
-| 1 | Native initialization | 5s | Capacitor platform detection, boot timings |
-| 2 | Theme initialization | 5s | Apply theme tokens, start store sync subscription |
-| 3 | Navigation initialization | 5s | Restore last session or set default app |
-| — | Intro splash | 2.5s | Waits for `studio-intro-done` custom DOM event |
-| 5 | Hub initialization | 5s | Mount Hub DOM, await 2× rAF for paint |
-| 4 | Updater initialization | 10s | Post-hub updater setup |
-| 6 | Background services | 15s | Supabase auth, UI preloading, audio seeds, temp cleanup |
-| 7 | Developer tools | 5s | Failsafe recovery handlers |
+| Phase | Name                      | Timeout | Purpose                                                 |
+| ----- | ------------------------- | ------- | ------------------------------------------------------- |
+| 1     | Native initialization     | 5s      | Capacitor platform detection, boot timings              |
+| 2     | Theme initialization      | 5s      | Apply theme tokens, start store sync subscription       |
+| 3     | Navigation initialization | 5s      | Restore last session or set default app                 |
+| —     | Intro splash              | 2.5s    | Waits for `studio-intro-done` custom DOM event          |
+| 5     | Hub initialization        | 5s      | Mount Hub DOM, await 2× rAF for paint                   |
+| 4     | Updater initialization    | 10s     | Post-hub updater setup                                  |
+| 6     | Background services       | 15s     | Supabase auth, UI preloading, audio seeds, temp cleanup |
+| 7     | Developer tools           | 5s      | Failsafe recovery handlers                              |
 
 ### Startup Safety Features
 
@@ -31,11 +32,12 @@ The startup coordinator (`startupCoordinator.ts`, 888 lines) orchestrates a 7-ph
 ### Native Boot Timings
 
 Injected from Android into WebView:
+
 ```javascript
 window.__nativeBootTimings = {
-  processStart,    // Process.getStartElapsedRealtime()
-  onCreate,        // SystemClock.elapsedRealtime() at onCreate
-  webViewInit      // SystemClock.elapsedRealtime() at WebView init
+  processStart, // Process.getStartElapsedRealtime()
+  onCreate, // SystemClock.elapsedRealtime() at onCreate
+  webViewInit, // SystemClock.elapsedRealtime() at WebView init
 };
 ```
 
@@ -70,9 +72,9 @@ import { useShallow } from 'zustand';
 
 // Only re-renders when selectedChordId or favorites change
 const { selectedChordId, favorites } = useChordStore(
-  useShallow(state => ({
+  useShallow((state) => ({
     selectedChordId: state.selectedChordId,
-    favorites: state.favorites
+    favorites: state.favorites,
   }))
 );
 ```
@@ -91,8 +93,8 @@ persist(stateCreator, {
     settings: state.settings,
     favorites: state.favorites,
     // Exclude: functions, volatile UI state, instFX
-  })
-})
+  }),
+});
 ```
 
 ## Animation Performance
@@ -100,44 +102,56 @@ persist(stateCreator, {
 Animations are optimized to run smoothly on mobile WebViews by prioritizing GPU-accelerated properties, hardware layer promotion, and centralized scheduling.
 
 ### Centralized Easing & Token Mapping
-By moving to centralized M3 tokens in the `AppAnimationSystem` (e.g., `MOTION_DURATIONS` and `MOTION_EASINGS`), we ensure the browser's style calculation cache is highly hit, avoiding layout recalculation during transitions.
+
+By moving to centralized M3 tokens in the `AppAnimationSystem` (e.g., `DurationPresets` and `EasingPresets`), we ensure the browser's style calculation cache is highly hit, avoiding layout recalculation during transitions.
 
 ### Hardware Acceleration (GPU Layer Promotion)
+
 To prevent repaints on heavy page loads, animated components (such as buttons, cards, and floating action buttons) explicitly promote themselves to their own compositor layer:
+
 - Utilizes `willChange: 'transform'` or `willChange: 'transform, opacity'`.
 - Leverages hardware-accelerated CSS properties (`transform`, `opacity`, `scale`) rather than animating properties that trigger layout flow (`top`, `margin`, `width`, `height`).
 
 ### Layout Projection Optimization
+
 The `SegmentedControl` sliding background utilizes Framer Motion's `layoutId` layout projection:
+
 - Animating layout boundaries is typically expensive, but using `layoutId` ensures the browser runs FLIP calculations (First, Last, Invert, Play).
 - This calculates start/end states once, applying translation and scale adjustments on the GPU without triggering costly layout reflows for neighboring grid/flex elements.
 - Unique `layoutId` values are assigned per control instance to segment layout projection recalculations and avoid cross-contamination.
 
 ### Reduced Motion Support
+
 All animated elements centrally respect accessibility flags via `usePrefersReducedMotion()`. When active:
+
 - Standard motion curves are disabled.
 - Transitions either execute instantly (0ms) or switch directly to simple opacity changes to prevent motion-induced discomfort.
 
 ### Animation Speed Scaling
+
 Dynamic speed scaling allows the user to accelerate UI transitions.
+
 ```typescript
 function useAnimationSpeed(): number {
   // Returns multiplier: 0.6 for fast (animates 40% faster), 1.0 for normal
-  const { animationSpeed } = useChordStore(s => s.settings);
+  const { animationSpeed } = useChordStore((s) => s.settings);
   return animationSpeed === 'fast' ? 0.6 : 1.0;
 }
 ```
+
 All duration tokens are dynamically multiplied by this coefficient before evaluation in Framer Motion wrappers.
 
 ### Transition Coordination
+
 `AnimationCoordinator` (singleton) dispatches custom events to prevent overlapping transitions and thrashing:
+
 ```typescript
 AnimationCoordinator.startTransition('page-change');
 // → dispatches 'studio:transition-start' on window
 // → after duration, dispatches 'studio:transition-end'
 ```
-This is used to defer expensive audio engine actions until the current animation frame completes.
 
+This is used to defer expensive audio engine actions until the current animation frame completes.
 
 ## Scroll-Hide Navigation
 
@@ -167,27 +181,23 @@ Both Android and Web entry points clean up service workers on version change:
 
 ```typescript
 // Unregister all service workers
-navigator.serviceWorker.getRegistrations().then(regs =>
-  regs.forEach(r => r.unregister())
-);
+navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
 // Clear cache storage
-caches.keys().then(names =>
-  names.forEach(name => caches.delete(name))
-);
+caches.keys().then((names) => names.forEach((name) => caches.delete(name)));
 ```
 
 This prevents stale cached assets from interfering with OTA updates.
 
 ## Memory Considerations
 
-| Pattern | Memory Impact |
-|---------|---------------|
-| Keep-alive panels | Higher — all visited panels stay in DOM |
-| Lazy loading | Lower — components load on demand |
-| Zustand partialize | Lower — only essential state persisted |
-| Encrypted storage | Higher — encryption buffers |
-| Lottie animations | Higher — JSON animation data in memory |
-| Audio sample pool | Higher — decoded audio buffers cached |
+| Pattern            | Memory Impact                           |
+| ------------------ | --------------------------------------- |
+| Keep-alive panels  | Higher — all visited panels stay in DOM |
+| Lazy loading       | Lower — components load on demand       |
+| Zustand partialize | Lower — only essential state persisted  |
+| Encrypted storage  | Higher — encryption buffers             |
+| Lottie animations  | Higher — JSON animation data in memory  |
+| Audio sample pool  | Higher — decoded audio buffers cached   |
 
 ## Known Performance Risks
 

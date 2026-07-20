@@ -17,33 +17,141 @@ const IGNORE_FILES = new Set([
 ]);
 
 const MATERIAL_ICONS = new Set([
-  'check', 'add', 'delete', 'close', 'arrow_back', 'play_arrow', 'volume_up',
-  'swap_horiz', 'tune', 'graphic_eq', 'edit', 'video_library', 'add_circle',
-  'science', 'sort', 'mic', 'mic_off', 'insights', 'gavel', 'policy', 'bug_report',
-  'info', 'terminal', 'download', 'settings', 'palette', 'language', 'account_circle',
-  'contact_support', 'article', 'install_desktop', 'keyboard', 'tune', 'schema',
-  'dashboard', 'psychology', 'search', 'cancel', 'done', 'save', 'warning', 'info',
-  'error', 'help', 'menu', 'more_vert', 'more_horiz', 'chevron_right', 'chevron_left',
-  'expand_more', 'expand_less', 'star', 'star_border', 'bookmark', 'bookmark_border',
-  'lock', 'lock_open', 'person', 'email', 'phone', 'cloud', 'cloud_done', 'cloud_off',
-  'sync', 'refresh', 'history', 'arrow_upward', 'arrow_downward', 'share', 'reply',
-  'send', 'mic_none', 'volume_down', 'volume_mute', 'volume_off', 'skip_next',
-  'skip_previous', 'pause', 'stop', 'fast_forward', 'fast_rewind', 'loop', 'shuffle',
-  'playlist_add', 'playlist_add_check', 'queue_music', 'music_note', 'album',
-  'radio', 'hearing', 'speed', 'timer', 'alarm', 'watch', 'calendar_today',
-  'event', 'map', 'pin_drop', 'room', 'home', 'work', 'school', 'local_cafe',
-  'local_bar', 'restaurant', 'shopping_cart', 'store', 'credit_card', 'attach_file',
-  'attach_money', 'euro_symbol', 'insert_drive_file', 'description', 'folder',
-  'folder_open', 'create_new_folder', 'image', 'photo_camera', 'videocam',
-  'camera_alt', 'mic_external_on', 'piano', 'music_video', 'lyrics', 'format_list_bulleted'
+  'check',
+  'add',
+  'delete',
+  'close',
+  'arrow_back',
+  'play_arrow',
+  'volume_up',
+  'swap_horiz',
+  'tune',
+  'graphic_eq',
+  'edit',
+  'video_library',
+  'add_circle',
+  'science',
+  'sort',
+  'mic',
+  'mic_off',
+  'insights',
+  'gavel',
+  'policy',
+  'bug_report',
+  'info',
+  'terminal',
+  'download',
+  'settings',
+  'palette',
+  'language',
+  'account_circle',
+  'contact_support',
+  'article',
+  'install_desktop',
+  'keyboard',
+  'tune',
+  'schema',
+  'dashboard',
+  'psychology',
+  'search',
+  'cancel',
+  'done',
+  'save',
+  'warning',
+  'info',
+  'error',
+  'help',
+  'menu',
+  'more_vert',
+  'more_horiz',
+  'chevron_right',
+  'chevron_left',
+  'expand_more',
+  'expand_less',
+  'star',
+  'star_border',
+  'bookmark',
+  'bookmark_border',
+  'lock',
+  'lock_open',
+  'person',
+  'email',
+  'phone',
+  'cloud',
+  'cloud_done',
+  'cloud_off',
+  'sync',
+  'refresh',
+  'history',
+  'arrow_upward',
+  'arrow_downward',
+  'share',
+  'reply',
+  'send',
+  'mic_none',
+  'volume_down',
+  'volume_mute',
+  'volume_off',
+  'skip_next',
+  'skip_previous',
+  'pause',
+  'stop',
+  'fast_forward',
+  'fast_rewind',
+  'loop',
+  'shuffle',
+  'playlist_add',
+  'playlist_add_check',
+  'queue_music',
+  'music_note',
+  'album',
+  'radio',
+  'hearing',
+  'speed',
+  'timer',
+  'alarm',
+  'watch',
+  'calendar_today',
+  'event',
+  'map',
+  'pin_drop',
+  'room',
+  'home',
+  'work',
+  'school',
+  'local_cafe',
+  'local_bar',
+  'restaurant',
+  'shopping_cart',
+  'store',
+  'credit_card',
+  'attach_file',
+  'attach_money',
+  'euro_symbol',
+  'insert_drive_file',
+  'description',
+  'folder',
+  'folder_open',
+  'create_new_folder',
+  'image',
+  'photo_camera',
+  'videocam',
+  'camera_alt',
+  'mic_external_on',
+  'piano',
+  'music_video',
+  'lyrics',
+  'format_list_bulleted',
 ]);
 
-const ATTRIBUTE_REGEX = /\b(placeholder|label|title|aria-label|description|text|header|subject|body|message)\s*=\s*["']([^"'{<>]+[a-zA-Z]{2,}[^"'{<>]*?)["']/g;
+const ATTRIBUTE_REGEX =
+  /\b(placeholder|label|title|aria-label|description|text|header|subject|body|message)\s*=\s*["']([^"'{<>]+[a-zA-Z]{2,}[^"'{<>]*?)["']/g;
 const JSX_TEXT_REGEX = />([^<{>\r\n]*?[a-zA-Z]{3,}[^<{>\r\n]*?)</g;
 const LANG_CHECK_REGEX = /\b(language|lang)\s*===?\s*['"]es['"]/g;
 
 // Static string arrays/objects outside components (declared with const/let/var outside function declarations)
-const STATIC_DECLARATION_REGEX = /^(?:const|let|var)\s+([A-Z_0-9]+|[a-zA-Z]+Options|[a-zA-Z]+Labels|[a-zA-Z]+Items|[a-zA-Z]+Data)\b[\s\S]*?=[\s\S]*?(?:\[[\s\S]*?\{[\s\S]*?["'][a-zA-Z]{3,}["'][\s\S]*?\}[\s\S]*?\]|\{[\s\S]*?["'][a-zA-Z]{3,}["'][\s\S]*?\})/gm;
+const STATIC_DECLARATION_REGEX =
+  /^(?:const|let|var)\s+([A-Z_0-9]+|[a-zA-Z]+Options|[a-zA-Z]+Labels|[a-zA-Z]+Items|[a-zA-Z]+Data)\b[\s\S]*?=[\s\S]*?(?:\[[\s\S]*?\{[\s\S]*?["'][a-zA-Z]{3,}["'][\s\S]*?\}[\s\S]*?\]|\{[\s\S]*?["'][a-zA-Z]{3,}["'][\s\S]*?\})/gm;
 
 let totalIssues = 0;
 const results = [];
@@ -54,9 +162,7 @@ function scanFile(filePath) {
   const fileIssues = [];
 
   // Remove single line and block comments to avoid false positives
-  const cleanContent = content
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*/g, '');
+  const cleanContent = content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*/g, '');
 
   // 1. Check for hardcoded attributes
   let match;
@@ -68,7 +174,7 @@ function scanFile(filePath) {
     if (value.startsWith('/') || value.includes('://')) continue;
     if (/^[a-z]+[A-Z]/.test(value) && !value.includes(' ')) continue; // camelCase key
     if (MATERIAL_ICONS.has(value.toLowerCase().trim())) continue;
-    
+
     // Find line number
     const lineNum = content.substring(0, match.index).split('\n').length;
     fileIssues.push({
@@ -118,8 +224,8 @@ function scanFile(filePath) {
     // Check if the declaration contains t( or useT
     if (fullDecl.includes('t(') || fullDecl.includes('.t(')) continue;
     // Filter out obviously safe ones
-    if (name.toUpperCase() === name && !fullDecl.includes(' ') && fullDecl.length < 200) continue; 
-    
+    if (name.toUpperCase() === name && !fullDecl.includes(' ') && fullDecl.length < 200) continue;
+
     const lineNum = content.substring(0, staticMatch.index).split('\n').length;
     fileIssues.push({
       type: 'Static Non-Reactive Constant',

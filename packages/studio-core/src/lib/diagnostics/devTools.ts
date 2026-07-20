@@ -1,3 +1,4 @@
+import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { useChordStore } from '../../store/useChordStore';
 import { useSettingsStore } from '../../store/useSettingsStore';;
 
@@ -284,7 +285,7 @@ export function addLog(level: 'info' | 'warn' | 'error', module: string, ...args
 
   const id = Math.random().toString(36).substring(2, 9);
   const isDevModeSafe =
-    typeof useChordStore !== 'undefined' && useChordStore?.getState?.()?.settings?.developerMode;
+    typeof useChordStore !== 'undefined' && useSettingsStore?.getState?.()?.settings?.developerMode;
   const source = isDevModeSafe ? getCallerSource() : 'unknown';
   const isFirestore =
     msg.includes('@firebase/firestore') || msg.toLowerCase().includes('firestore');

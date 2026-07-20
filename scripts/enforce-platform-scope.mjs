@@ -24,21 +24,31 @@ if (!targetPlatform || !['web', 'apk', 'shared'].includes(targetPlatform)) {
   process.exit(1);
 }
 
-console.log(`=== RUNNING PLATFORM SCOPE CHECK FOR: ${targetPlatform.toUpperCase()} (Base: ${diffBase}) ===`);
+console.log(
+  `=== RUNNING PLATFORM SCOPE CHECK FOR: ${targetPlatform.toUpperCase()} (Base: ${diffBase}) ===`
+);
 
 // 1. Get changed files relative to diffBase
 let changedFiles = [];
 try {
-  const diffOutput = execSync(`git diff --name-only ${diffBase}...HEAD`, { encoding: 'utf8', cwd: repoRoot }).trim();
+  const diffOutput = execSync(`git diff --name-only ${diffBase}...HEAD`, {
+    encoding: 'utf8',
+    cwd: repoRoot,
+  }).trim();
   if (diffOutput) {
     changedFiles = diffOutput.split('\n');
   }
 } catch (e) {
-  console.warn('Warning: Could not diff against origin/main. Checking unstaged/staged files instead.');
+  console.warn(
+    'Warning: Could not diff against origin/main. Checking unstaged/staged files instead.'
+  );
   try {
-    const statusOutput = execSync('git status --porcelain', { encoding: 'utf8', cwd: repoRoot }).trim();
+    const statusOutput = execSync('git status --porcelain', {
+      encoding: 'utf8',
+      cwd: repoRoot,
+    }).trim();
     if (statusOutput) {
-      changedFiles = statusOutput.split('\n').map(line => line.substring(3).trim());
+      changedFiles = statusOutput.split('\n').map((line) => line.substring(3).trim());
     }
   } catch (err) {
     console.error('Error: Failed to obtain list of changed files.', err.message);
@@ -47,48 +57,42 @@ try {
 }
 
 // Filter out deleted files if they don't exist
-changedFiles = changedFiles.filter(f => f.trim() !== '');
+changedFiles = changedFiles.filter((f) => f.trim() !== '');
 
 // Check for repository-wide infrastructure/CI/workflow/workspace changes
-const hasInfraChanges = changedFiles.some(f => 
-  f.startsWith('.github/') || 
-  f.startsWith('scripts/') || 
-  f === 'package.json' || 
-  f === 'pnpm-workspace.yaml' ||
-  f === 'pnpm-lock.yaml'
+const hasInfraChanges = changedFiles.some(
+  (f) =>
+    f.startsWith('.github/') ||
+    f.startsWith('scripts/') ||
+    f === 'package.json' ||
+    f === 'pnpm-workspace.yaml' ||
+    f === 'pnpm-lock.yaml'
 );
 
 if (hasInfraChanges) {
-  console.log('\x1b[32m✓ Infrastructure/CI/Workspace changes detected. Bypassing platform scope check.\x1b[0m');
+  console.log(
+    '\x1b[32m✓ Infrastructure/CI/Workspace changes detected. Bypassing platform scope check.\x1b[0m'
+  );
   process.exit(0);
 }
 
 console.log(`Auditing ${changedFiles.length} changed files...`);
 
 const ownershipMap = {
-  web: [
-    /^apps\/studio-web\//,
-    /^packages\/ui-web\//
-  ],
-  apk: [
-    /^apps\/studio-android\//,
-    /^packages\/ui-android\//
-  ],
-  shared: [
-    /^packages\/studio-core\//,
-    /^packages\/ui-shared\//
-  ]
+  web: [/^apps\/studio-web\//, /^packages\/ui-web\//],
+  apk: [/^apps\/studio-android\//, /^packages\/ui-android\//],
+  shared: [/^packages\/studio-core\//, /^packages\/ui-shared\//],
 };
 
 let violations = [];
 
-changedFiles.forEach(file => {
+changedFiles.forEach((file) => {
   let owner = 'other';
-  if (ownershipMap.web.some(regex => regex.test(file))) {
+  if (ownershipMap.web.some((regex) => regex.test(file))) {
     owner = 'web';
-  } else if (ownershipMap.apk.some(regex => regex.test(file))) {
+  } else if (ownershipMap.apk.some((regex) => regex.test(file))) {
     owner = 'apk';
-  } else if (ownershipMap.shared.some(regex => regex.test(file))) {
+  } else if (ownershipMap.shared.some((regex) => regex.test(file))) {
     owner = 'shared';
   }
 
@@ -101,8 +105,10 @@ changedFiles.forEach(file => {
 });
 
 if (violations.length > 0) {
-  console.error(`\x1b[31mPlatform Scope Check Failed: Found ${violations.length} boundary violations!\x1b[0m`);
-  violations.forEach(v => {
+  console.error(
+    `\x1b[31mPlatform Scope Check Failed: Found ${violations.length} boundary violations!\x1b[0m`
+  );
+  violations.forEach((v) => {
     console.error(`  - \x1b[33m${v.file}\x1b[0m (Owner: ${v.owner.toUpperCase()}): ${v.reason}`);
   });
   process.exit(1);

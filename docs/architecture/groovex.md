@@ -69,21 +69,22 @@ A small Zustand store dedicated to Groovex module state. This is the only featur
 
 ## Dependencies
 
-| Dependency | Source | Purpose |
-|------------|--------|---------|
-| `useChordStore` | studio-core | App settings, theme |
-| `NavigationDispatcher` | studio-core | Navigation |
-| `useGroovexStore` | Local state | Module-specific state |
-| `SharedNavigationContainer` | ui-shared | Panel transitions |
-| `AppModeMenuLogo` | ui-shared | App logo |
-| `WebAppSectionDock` | ui-shared | Web section dock |
-| `navStyles` | ui-shared | Shared nav styling |
+| Dependency                  | Source      | Purpose               |
+| --------------------------- | ----------- | --------------------- |
+| `useChordStore`             | studio-core | App settings, theme   |
+| `NavigationDispatcher`      | studio-core | Navigation            |
+| `useGroovexStore`           | Local state | Module-specific state |
+| `SharedNavigationContainer` | ui-shared   | Panel transitions     |
+| `AppModeMenuLogo`           | ui-shared   | App logo              |
+| `WebAppSectionDock`         | ui-shared   | Web section dock      |
+| `navStyles`                 | ui-shared   | Shared nav styling    |
 
 ## Navigation
 
 Uses `SharedNavigationContainer` with `VIEW_ORDER: ['library', 'player', 'preferences']`.
 
 Entry via:
+
 ```
 NavigationDispatcher.push({ app: 'groovex' })
 NavigationDispatcher.push({ app: 'groovex', page: 'library' })

@@ -1,3 +1,4 @@
+import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { Capacitor } from '@capacitor/core';
 import { useChordStore } from '../../store/useChordStore';
 import { useSettingsStore } from '../../store/useSettingsStore';;
@@ -58,7 +59,6 @@ class StartupCoordinatorClass {
   });
 
   notifyHubMounted() {
-    console.log('[StartupCoordinator] Hub DOM mounted notification received.');
     if (this.hubMountedResolver) {
       this.hubMountedResolver();
     }
@@ -156,9 +156,6 @@ class StartupCoordinatorClass {
     let attempt = 0;
     while (attempt <= maxRetries) {
       if (this.currentRunId !== runId) {
-        console.warn(
-          `[StartupCoordinator] Phase ${phaseId} execution cancelled due to active run ID change.`
-        );
         return false;
       }
       try {
@@ -173,7 +170,6 @@ class StartupCoordinatorClass {
       } catch (err: any) {
         attempt++;
         phase.retryCount = attempt;
-        console.warn(`[StartupCoordinator] Phase ${phaseId} failed (attempt ${attempt}):`, err);
         if (attempt > maxRetries) {
           phase.status = 'failed';
           phase.result = 'failure';
@@ -194,9 +190,6 @@ class StartupCoordinatorClass {
     this.isCompleted = false;
     this.cancellationReason = '';
     const runId = this.currentRunId;
-
-    console.log(`[StartupCoordinator] Starting boot pipeline run ${runId}`);
-
     // Setup lifecycle event registration
     this.setupLifecycleListeners();
 
@@ -206,9 +199,6 @@ class StartupCoordinatorClass {
     // Phase 1: Native initialization
     const p1Success = await this.executePhase('1', 5000, async () => {
       const isNative = Capacitor.isNativePlatform();
-      console.log(
-        `[StartupCoordinator] Native check: Capacitor.isNativePlatform()=${Capacitor.isNativePlatform()}`
-      );
       if (typeof window !== 'undefined') {
         (window as any).__nativeBootTimings = {
           checked: true,
@@ -229,14 +219,11 @@ class StartupCoordinatorClass {
     // Phase 3: Navigation initialization & Preloading
     const p3Success = await this.executePhase('3', 5000, async () => {
       const storeState = useChordStore.getState();
-      const settings = storeState.settings;
+      const settings = useSettingsStore.getState().settings;
 
       // Restore last session check
       if (!settings.restoreLastSession) {
         const defaultApp = settings.startupApp || 'hub';
-        console.log(
-          `[StartupCoordinator] restoreLastSession is false. Resetting appMode to ${defaultApp}.`
-        );
         NavigationDispatcher.openApp(defaultApp);
 
         const { useNavigationStore } = await import('../../store/useNavigationStore');
@@ -273,7 +260,6 @@ class StartupCoordinatorClass {
       onHubShow();
 
       // Await the Hub mounting notification
-      console.log('[StartupCoordinator] Phase 5: Awaiting Hub DOM mount...');
       await this.hubMountedPromise;
 
       // Await two requestAnimationFrames to ensure it has painted and the first frame is committed
@@ -284,15 +270,8 @@ class StartupCoordinatorClass {
           });
         });
       });
-      console.log('[StartupCoordinator] Phase 5: Hub DOM fully mounted and painted.');
-
       if (typeof window !== 'undefined' && (window as any).__bootTimings) {
         (window as any).__bootTimings.hubVisible = performance.now();
-        console.log(
-          '[LivexBoot] Hub fully visible: ' +
-            (window as any).__bootTimings.hubVisible.toFixed(2) +
-            'ms'
-        );
       }
 
       // Set complete gate to true (enables Updater listener checks)
@@ -337,9 +316,6 @@ class StartupCoordinatorClass {
         if (!resolved) {
           resolved = true;
           window.removeEventListener('studio-intro-done', handleIntro);
-          console.warn(
-            '[StartupCoordinator] Safety timeout reached waiting for studio-intro-done event.'
-          );
           resolve();
         }
       }, 2500);
@@ -373,7 +349,6 @@ class StartupCoordinatorClass {
           const {
             data: { session: currentSession },
           } = await supabase.auth.getSession();
-          console.log('[StartupCoordinator] Supabase session loaded:', !!currentSession);
         }
       } catch (err) {
         console.error('[StartupCoordinator] Supabase session retrieval error:', err);
@@ -386,16 +361,10 @@ class StartupCoordinatorClass {
       ) {
         if ('requestIdleCallback' in window) {
           (window as any).requestIdleCallback(() => {
-            console.log(
-              '[StartupCoordinator] Triggering eager preloading of UI packages (idle)...'
-            );
             (window as any).__preloadUIModules();
           });
         } else {
           setTimeout(() => {
-            console.log(
-              '[StartupCoordinator] Triggering eager preloading of UI packages (deferred)...'
-            );
             (window as any).__preloadUIModules();
           }, 500);
         }
@@ -432,9 +401,6 @@ class StartupCoordinatorClass {
           document.querySelector('[data-livex-hub-root="true"]') ||
           document.getElementById('hub-root');
         if (checkRoot) return;
-        console.warn(
-          `[StartupCoordinator Failsafe] Hub DOM not mounted at ${checkpointName}! Running active recovery...`
-        );
         if (typeof (window as any).__forceRerenderApp === 'function') {
           (window as any).__forceRerenderApp();
         }
@@ -444,9 +410,6 @@ class StartupCoordinatorClass {
 
   // --- Cancellation and Cleanup Methods ---
   cancel(reason: string) {
-    console.log(
-      `[StartupCoordinator] Cancelling startup run ${this.currentRunId}. Reason: ${reason}`
-    );
     this.currentRunId++; // Invalidate running executePhase promises
     this.cancellationReason = reason;
     this.isStarted = false;
@@ -515,8 +478,8 @@ class StartupCoordinatorClass {
   private startStoreSync() {
     if (this.storeUnsubscribe) return;
     this.storeUnsubscribe = useChordStore.subscribe((state, prevState) => {
-      if (state.settings === prevState.settings) return;
-      this.syncSettings(state.settings);
+      if (false /* settings moved */) return;
+      ;
     });
   }
 
@@ -598,17 +561,11 @@ class StartupCoordinatorClass {
               // even during an active installation — we must never reset startup then.
               if (!this.isCompleted) {
                 if (isInstallationLocked()) {
-                  console.log(
-                    '[StartupCoordinator] App backgrounded mid-boot but installation is locked. NOT cancelling startup.'
-                  );
                   logInstallLockEvent(
                     'CANCEL_BLOCKED',
                     'StartupCoordinator.cancel() suppressed: app backgrounded during active installation'
                   );
                 } else {
-                  console.warn(
-                    '[StartupCoordinator] App backgrounded mid-boot! Cancelling startup.'
-                  );
                   this.cancel('app_backgrounded');
                 }
               }
@@ -635,7 +592,6 @@ class StartupCoordinatorClass {
         autoCheck &&
         (typeof document === 'undefined' || document.visibilityState === 'visible')
       ) {
-        console.log('[StartupCoordinator] Triggering periodic update check...');
         void this.triggerUpdateCheck('polling', 'periodic foreground poll');
       }
     }, POLL_INTERVAL);
@@ -650,7 +606,6 @@ class StartupCoordinatorClass {
 
   private handleLifecycleEvent(type: string, trigger: string, reason: string, payload?: any) {
     if (!this.isCompleted) {
-      console.log(`[StartupCoordinator] Queuing lifecycle event during boot: type=${type}`);
       this.queuedEvents.push({ type, trigger, reason, payload });
       this.notify();
       return;
@@ -670,9 +625,6 @@ class StartupCoordinatorClass {
       ['UPDATE_AVAILABLE', 'RECOVERY', 'FETCH_APK_INFORMATION'].includes(otaState);
 
     if (isUpdatePendingOrActive) {
-      console.log(
-        `[StartupCoordinator] Suppressing lifecycle event (${type}): Update pipeline is completely isolated during active sessions (state=${otaState}).`
-      );
       return;
     }
 
@@ -696,8 +648,6 @@ class StartupCoordinatorClass {
     this.pendingLifecycleEvents = [];
 
     const types = events.map((e) => e.type);
-    console.log(`[StartupCoordinator] Processing coalesced lifecycle events: ${types.join(', ')}`);
-
     const hasTriggerEvent = events.some(
       (evt) =>
         evt.type === 'visibilitychange' ||
@@ -730,9 +680,6 @@ class StartupCoordinatorClass {
       // Post-install session guard — blocks ALL lifecycle-triggered update checks
       if (isPostInstallSessionActive()) {
         const info = getPostInstallSessionInfo();
-        console.log(
-          `[StartupCoordinator] Aborting triggerUpdateCheck (trigger=${trigger}): post-install session is active. storedVersion=${info.storedVersion}, elapsed=${info.elapsed}ms`
-        );
         logInstallLockEvent(
           'STARTUP_BLOCKED',
           `triggerUpdateCheck blocked: post-install session active. storedVersion=${info.storedVersion}`,
@@ -756,9 +703,6 @@ class StartupCoordinatorClass {
       // ─── Race-prevention gate ────────────────────────────────────────────
       const recoveryPromise = getInstallRecoveryPromise();
       if (recoveryPromise) {
-        console.log(
-          `[StartupCoordinator] Awaiting in-flight install recovery before update check (trigger=${trigger})...`
-        );
         logInstallLockEvent(
           'RACE_BLOCKED',
           `triggerUpdateCheck yielded to installRecoveryPromise: trigger=${trigger}, reason=${reason}`,
@@ -775,17 +719,11 @@ class StartupCoordinatorClass {
         });
 
         await recoveryPromise;
-        console.log(
-          `[StartupCoordinator] Install recovery resolved. Proceeding with isInstallationLocked() check (trigger=${trigger}).`
-        );
       }
       // ─────────────────────────────────────────────────────────────────────
 
       // Use isInstallationLocked()
       if (isInstallationLocked()) {
-        console.log(
-          `[StartupCoordinator] Aborting triggerUpdateCheck (trigger=${trigger}): installation is locked (isInstallationLocked=true)`
-        );
         logInstallLockEvent(
           'STARTUP_BLOCKED',
           `triggerUpdateCheck blocked: trigger=${trigger}, reason=${reason}`,
@@ -812,10 +750,6 @@ class StartupCoordinatorClass {
         'INSTALL_CANCELLED',
       ].includes(otaState);
       if (isUpdating) {
-        console.log(
-          `[StartupCoordinator] Aborting triggerUpdateCheck: updater is active (state: ${otaState})`
-        );
-
         UpdaterFlightRecorder.record({
           thread: 'js',
           sessionId: null,
@@ -854,10 +788,6 @@ class StartupCoordinatorClass {
   }
 
   private flushQueuedEvents() {
-    console.log(
-      `[StartupCoordinator] Flushing queued lifecycle events (count=${this.queuedEvents.length}).`
-    );
-
     const hasTriggerEvent = this.queuedEvents.some(
       (evt) =>
         evt.type === 'visibilitychange' ||
@@ -878,9 +808,6 @@ class StartupCoordinatorClass {
     // which queues events — flushing those queued events must not start a new check
     // that races with the completion callback and shows "Studio is up to date".
     if (isInstallationLocked()) {
-      console.log(
-        '[StartupCoordinator] flushQueuedEvents: skipping update check — installation is locked.'
-      );
       logInstallLockEvent(
         'STARTUP_BLOCKED',
         'flushQueuedEvents: startup update check skipped due to installation lock',
@@ -890,12 +817,8 @@ class StartupCoordinatorClass {
     }
 
     if (hasTriggerEvent) {
-      console.log(
-        '[StartupCoordinator] Triggering single update check from queued lifecycle triggers.'
-      );
       void this.triggerUpdateCheck('queued_lifecycle', 'flushed boot events');
     } else {
-      console.log('[StartupCoordinator] Triggering initial update check on startup completion.');
       void this.triggerUpdateCheck('startup', 'app_boot_complete');
     }
   }
@@ -923,7 +846,6 @@ class StartupCoordinatorClass {
         document.querySelector('[data-livex-hub-root="true"]') ||
         document.getElementById('hub-root');
       if (!hubDom) {
-        console.warn('[Watchdog] Startup marked completed but Hub DOM is missing. Stalled!');
         this.triggerRecovery('HUB_DOM_MISSING_AFTER_COMPLETION');
       } else {
         // Clear watchdog once successfully booted and DOM is verified
@@ -947,9 +869,6 @@ class StartupCoordinatorClass {
       const budget = phase.timeout || 5000;
       // Stalled if elapsed time exceeds phase budget by more than 1.5x
       if (elapsed > budget * 1.5) {
-        console.warn(
-          `[Watchdog] Startup stalled in Phase ${activePhaseId} (${phase.name}). Elapsed: ${elapsed.toFixed(0)}ms (Budget: ${budget}ms)`
-        );
         this.triggerRecovery(`STALLED_IN_PHASE_${activePhaseId}`);
       }
     }

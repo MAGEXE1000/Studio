@@ -1,1 +1,1 @@
-export { default } from './feature/StageCorePanel';
+export { default } from '../features/stagex/pages/StageCorePanel';

@@ -42,8 +42,10 @@ export interface NotificationItem {
 
 export interface NotificationServiceStore {
   notifications: NotificationItem[];
-  
-  publish: (notification: Omit<NotificationItem, 'id' | 'timestamp' | 'read' | 'dismissed'>) => void;
+
+  publish: (
+    notification: Omit<NotificationItem, 'id' | 'timestamp' | 'read' | 'dismissed'>
+  ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   dismiss: (id: string) => void;
@@ -62,11 +64,12 @@ export const useNotificationService = create<NotificationServiceStore>()(
           category: 'tip',
           priority: 'low',
           title: 'Welcome to Livex Studio',
-          subtitle: 'Explore the newly unified design language, tabs navigation, and theme configurations in settings.',
+          subtitle:
+            'Explore the newly unified design language, tabs navigation, and theme configurations in settings.',
           icon: 'info',
           read: false,
           dismissed: false,
-        }
+        },
       ],
 
       publish: (notification) => {
@@ -79,7 +82,6 @@ export const useNotificationService = create<NotificationServiceStore>()(
           read: false,
           dismissed: false,
         };
-        console.log(`[NotificationService] Published notification: ${newItem.title} | category: ${newItem.category}`);
         set((state) => ({
           notifications: [newItem, ...state.notifications],
         }));
@@ -87,9 +89,7 @@ export const useNotificationService = create<NotificationServiceStore>()(
 
       markAsRead: (id) => {
         set((state) => ({
-          notifications: state.notifications.map((n) =>
-            n.id === id ? { ...n, read: true } : n
-          ),
+          notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
         }));
       },
 

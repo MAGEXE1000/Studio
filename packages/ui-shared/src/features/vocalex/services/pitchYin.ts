@@ -17,7 +17,7 @@ let detector: PitchDetector<Float32Array> | null = null;
 export function detectPitch(
   buffer: Float32Array,
   sampleRate: number,
-  clarityThreshold = 0.80,
+  clarityThreshold = 0.8
 ): PitchResult | null {
   if (!detector || detector.inputLength !== buffer.length) {
     detector = PitchDetector.forFloat32Array(buffer.length);

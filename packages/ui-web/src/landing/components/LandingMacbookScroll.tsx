@@ -11,7 +11,7 @@ export default function LandingMacbookScroll({ mockupName = 'hub' }: LandingMacb
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start end', 'end start']
+    offset: ['start end', 'end start'],
   });
 
   const { preferences } = useStudioPreferences();
@@ -22,16 +22,16 @@ export default function LandingMacbookScroll({ mockupName = 'hub' }: LandingMacb
   const rotateX = useSpring(rotateXTransform, { stiffness: 100, damping: 22 });
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="w-full flex flex-col items-center justify-center py-12 overflow-hidden"
       style={{ perspective: '1500px', transformStyle: 'preserve-3d' }}
     >
-      <div 
+      <div
         className="relative flex flex-col items-center select-none"
         style={{
           transform: 'rotateX(15deg) translateY(0px)',
-          transformStyle: 'preserve-3d'
+          transformStyle: 'preserve-3d',
         }}
       >
         {/* LAPTOP LID */}
@@ -40,7 +40,7 @@ export default function LandingMacbookScroll({ mockupName = 'hub' }: LandingMacb
             transformOrigin: 'bottom center',
             transformStyle: 'preserve-3d',
             rotateX: isReduced ? -10 : rotateX,
-            zIndex: 2
+            zIndex: 2,
           }}
           className="relative w-[320px] h-[200px] sm:w-[520px] sm:h-[330px] md:w-[680px] md:h-[430px] rounded-t-xl bg-[#09090b] border-[8px] sm:border-[12px] md:border-[16px] border-[#1d1d1f] shadow-2xl overflow-hidden flex flex-col"
         >
@@ -48,7 +48,7 @@ export default function LandingMacbookScroll({ mockupName = 'hub' }: LandingMacb
           <div className="absolute inset-0 flex flex-col">
             {/* Camera */}
             <div className="absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-zinc-800 z-10" />
-            
+
             {/* Screen Content */}
             <div className="flex-1 w-full h-full overflow-hidden bg-black relative">
               {renderMockupByName(mockupName)}
@@ -56,7 +56,9 @@ export default function LandingMacbookScroll({ mockupName = 'hub' }: LandingMacb
 
             {/* Bottom bezel bar */}
             <div className="h-4 sm:h-5 md:h-6 bg-[#1d1d1f] w-full flex items-center justify-center border-t border-black/25">
-              <span className="text-[5px] sm:text-[7px] font-bold text-zinc-500 tracking-wider uppercase">Studio Dashboard</span>
+              <span className="text-[5px] sm:text-[7px] font-bold text-zinc-500 tracking-wider uppercase">
+                Studio Dashboard
+              </span>
             </div>
           </div>
         </motion.div>
@@ -65,11 +67,11 @@ export default function LandingMacbookScroll({ mockupName = 'hub' }: LandingMacb
         <div className="w-[324px] h-[6px] sm:w-[526px] sm:h-[10px] md:w-[686px] md:h-[12px] bg-[#121213] rounded-b-sm border-t border-black/30 z-10 relative" />
 
         {/* KEYBOARD DECK */}
-        <div 
+        <div
           className="w-[340px] h-[8px] sm:w-[550px] sm:h-[12px] md:w-[720px] md:h-[14px] bg-[#2d2d30] border-t border-l border-r border-[#3a3a3c] rounded-b-xl relative shadow-2xl flex flex-col"
           style={{
             transformOrigin: 'top center',
-            transform: 'rotateX(0deg)'
+            transform: 'rotateX(0deg)',
           }}
         >
           {/* Trackpad notch */}

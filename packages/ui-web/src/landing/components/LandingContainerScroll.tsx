@@ -9,15 +9,15 @@ interface LandingContainerScrollProps {
   mockupName?: string;
 }
 
-export default function LandingContainerScroll({ 
-  titleText, 
-  descriptionText, 
-  mockupName = 'stage' 
+export default function LandingContainerScroll({
+  titleText,
+  descriptionText,
+  mockupName = 'stage',
 }: LandingContainerScrollProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start end', 'end start']
+    offset: ['start end', 'end start'],
   });
 
   const { preferences } = useStudioPreferences();
@@ -37,12 +37,12 @@ export default function LandingContainerScroll({
   const steps = [
     { id: 'chordSongs', label: '1. Songs', desc: 'Organize setlists and chord sheets' },
     { id: 'chordLib', label: '2. Chords', desc: 'Explore chords and fingering' },
-    { id: 'stage', label: '3. Stage', desc: 'Design stage plots and tech riders' }
+    { id: 'stage', label: '3. Stage', desc: 'Design stage plots and tech riders' },
   ];
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="w-full flex flex-col items-center py-20 px-6 overflow-hidden bg-[#030303]"
       style={{ perspective: '1000px' }}
     >
@@ -59,15 +59,15 @@ export default function LandingContainerScroll({
 
         {/* Step Switcher */}
         <div className="mb-4 flex flex-wrap justify-center gap-1.5 p-1.5 bg-[#0a0a0c] border border-zinc-900 rounded-xl max-w-md w-full">
-          {steps.map(step => {
+          {steps.map((step) => {
             const isActive = activeStep === step.id;
             return (
               <button
                 key={step.id}
                 onClick={() => setActiveStep(step.id as any)}
                 className={`flex-1 min-w-[90px] px-3 py-2 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer border-none outline-none ${
-                  isActive 
-                    ? 'bg-zinc-100 text-[#030303] shadow-md shadow-white/5' 
+                  isActive
+                    ? 'bg-zinc-100 text-[#030303] shadow-md shadow-white/5'
                     : 'text-zinc-500 hover:text-zinc-300 bg-transparent'
                 }`}
               >
@@ -80,7 +80,7 @@ export default function LandingContainerScroll({
         {/* Active Step Subtext */}
         <div className="mb-8 h-4 text-center">
           <span className="text-[9px] md:text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
-            {steps.find(s => s.id === activeStep)?.desc}
+            {steps.find((s) => s.id === activeStep)?.desc}
           </span>
         </div>
 
@@ -90,7 +90,7 @@ export default function LandingContainerScroll({
             rotateX: isReduced ? 0 : rotateX,
             scale: isReduced ? 1 : scale,
             y: isReduced ? 0 : translateY,
-            transformStyle: 'preserve-3d'
+            transformStyle: 'preserve-3d',
           }}
           className="w-full border border-zinc-800 bg-zinc-950 p-2 sm:p-4 rounded-2xl md:rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative"
         >

@@ -59,6 +59,5 @@ export function logUpdateTransition(
     history.unshift(entry);
     localStorage.setItem('studio:updaterHistory', JSON.stringify(history.slice(0, 50)));
   } catch (err) {
-    console.warn('[Updater] Failed to write update history:', err);
   }
 }

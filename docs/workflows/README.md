@@ -6,10 +6,10 @@ This directory contains the mandatory engineering workflows that govern all deve
 
 ## Contents
 
-| Document | Description |
-|---|---|
-| [global-engineering-workflow.md](global-engineering-workflow.md) | The 12-step mandatory workflow for every task |
-| [architectural-invariant.md](architectural-invariant.md) | Shared-first development rule and system registry |
+| Document                                                         | Description                                       |
+| ---------------------------------------------------------------- | ------------------------------------------------- |
+| [global-engineering-workflow.md](global-engineering-workflow.md) | The 12-step mandatory workflow for every task     |
+| [architectural-invariant.md](architectural-invariant.md)         | Shared-first development rule and system registry |
 
 ## Rules
 

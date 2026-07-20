@@ -12,9 +12,8 @@ export default function ReportPreview({
   nativeDeviceInfo,
   nativeInstallerDetails,
   localApkDetails,
-  nativeLogsList
+  nativeLogsList,
 }: ReportPreviewProps) {
-  
   const reportText = generateFullEngineeringReport(
     nativeDeviceInfo,
     nativeInstallerDetails,

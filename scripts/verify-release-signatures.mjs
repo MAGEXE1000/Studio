@@ -14,7 +14,9 @@ if (!fs.existsSync(appVersionPath)) {
   process.exit(1);
 }
 const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
-const expectedSigMatch = appVersionSrc.match(/export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/);
+const expectedSigMatch = appVersionSrc.match(
+  /export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/
+);
 if (!expectedSigMatch) {
   console.error('âœ— Unable to parse PRODUCTION_SIGNING_SHA256 from appVersion.ts');
   process.exit(1);
@@ -25,11 +27,13 @@ console.log(`Authoritative production fingerprint: ${EXPECTED_FINGERPRINT}`);
 // 2. Scan firebase-public/apk/ for all APKs
 const apkDir = path.join(repoRoot, 'firebase-public/apk');
 if (!fs.existsSync(apkDir)) {
-  console.log('âœ“ No firebase-public/apk directory found. Skipping deployment signatures validation.');
+  console.log(
+    'âœ“ No firebase-public/apk directory found. Skipping deployment signatures validation.'
+  );
   process.exit(0);
 }
 
-const files = fs.readdirSync(apkDir).filter(f => f.endsWith('.apk'));
+const files = fs.readdirSync(apkDir).filter((f) => f.endsWith('.apk'));
 if (files.length === 0) {
   console.log('âœ“ No release APK files found in firebase-public/apk.');
   process.exit(0);
@@ -42,9 +46,9 @@ for (const file of files) {
   console.log(`Verifying: ${file}...`);
 
   // Run keytool to print certificate fingerprints
-  const keytoolResult = spawnSync('keytool', [
-    '-printcert', '-jarfile', filePath
-  ], { encoding: 'utf8' });
+  const keytoolResult = spawnSync('keytool', ['-printcert', '-jarfile', filePath], {
+    encoding: 'utf8',
+  });
 
   if (keytoolResult.status !== 0) {
     console.error(`âœ— Keytool verification failed for APK: ${file}`);
@@ -67,7 +71,9 @@ for (const file of files) {
     console.error(`::error::âœ— SIGNATURE MISMATCH DETECTED for APK: ${file}`);
     console.error(`  Expected: ${EXPECTED_FINGERPRINT}`);
     console.error(`  Found:    ${fingerprint}`);
-    console.error(`\nCRITICAL ERROR: Refusing to publish or deploy. This APK was signed with the wrong key!`);
+    console.error(
+      `\nCRITICAL ERROR: Refusing to publish or deploy. This APK was signed with the wrong key!`
+    );
     process.exit(1);
   }
   console.log(`  âœ“ Signature matches production exactly.`);
@@ -75,4 +81,3 @@ for (const file of files) {
 
 console.log('âœ“ All release APK signature verifications passed successfully!');
 process.exit(0);
-

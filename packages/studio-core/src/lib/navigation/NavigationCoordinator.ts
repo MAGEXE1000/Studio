@@ -1,5 +1,6 @@
 import { type NavigationRoute, type NavigationHistory } from './navigationTypes';
 import { useChordStore } from '../../store/useChordStore.js';
+import { useSettingsStore } from '../../store/useSettingsStore.js';;
 
 export class NavigationCoordinator {
   /**
@@ -16,7 +17,7 @@ export class NavigationCoordinator {
       type: route.type,
     };
 
-    const settings = useChordStore.getState().settings;
+    const settings = useSettingsStore.getState().settings;
 
     if (nextRoute.app === 'chords' && !nextRoute.page) {
       nextRoute.page = settings.defaultTab || 'library';
@@ -24,14 +25,13 @@ export class NavigationCoordinator {
       nextRoute.page = settings.defaultGroovexView || 'library';
     } else if (nextRoute.app === 'vocalex' && !nextRoute.page) {
       const vTab = settings.defaultVocalexTab as any;
-      nextRoute.page = vTab === 'practice' || vTab === 'vocalLab' || vTab === 'pitch' ? 'coach' : (vTab || 'coach');
+      nextRoute.page =
+        vTab === 'practice' || vTab === 'vocalLab' || vTab === 'pitch' ? 'coach' : vTab || 'coach';
     } else if (nextRoute.app === 'drums' && !nextRoute.page) {
       nextRoute.page = settings.defaultDrumTab || 'songs';
     } else if (nextRoute.app === 'stage' && !nextRoute.page) {
       nextRoute.page = settings.defaultStageView || 'Editor';
     }
-
-    console.log(`[NavigationCoordinator] [${timestamp}] resolveDefaultRoute | Input: ${JSON.stringify(route)} -> Resolved: ${JSON.stringify(nextRoute)}`);
     return nextRoute;
   }
 
@@ -45,11 +45,9 @@ export class NavigationCoordinator {
     savedPage?: string | null
   ): NavigationHistory {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationCoordinator] [${timestamp}] restoreLastSession | rememberSession: ${rememberSession}, savedApp: ${savedApp}, savedTab: ${savedTab}, savedPage: ${savedPage}`);
     const defaultHistory: NavigationHistory = [{ app: 'hub', tab: 'home' }];
 
     if (!rememberSession || !savedApp || savedApp === 'hub') {
-      console.log(`[NavigationCoordinator] [${timestamp}] restoreLastSession -> Using default history`);
       return defaultHistory;
     }
 
@@ -61,7 +59,6 @@ export class NavigationCoordinator {
 
     const resolved = this.resolveDefaultRoute(appRoute);
     const resultHistory = [...defaultHistory, resolved];
-    console.log(`[NavigationCoordinator] [${timestamp}] restoreLastSession -> Restored history: ${JSON.stringify(resultHistory)}`);
     return resultHistory;
   }
 }

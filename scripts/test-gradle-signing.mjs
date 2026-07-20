@@ -38,7 +38,7 @@ const caseAEnv = {
   CI: 'true',
   ANDROID_KEYSTORE_PASSWORD: '',
   ANDROID_KEY_PASSWORD: '',
-  ANDROID_KEY_ALIAS: ''
+  ANDROID_KEY_ALIAS: '',
 };
 delete caseAEnv.STUDIO_PRODUCTION_RELEASE;
 
@@ -54,7 +54,11 @@ if (resA.status !== 0) {
   console.error('stdout:', resA.stdout?.toString());
   console.error('stderr:', resA.stderr?.toString());
 }
-assert.strictEqual(resA.status, 0, 'Case A should succeed configuration check without production signing secrets.');
+assert.strictEqual(
+  resA.status,
+  0,
+  'Case A should succeed configuration check without production signing secrets.'
+);
 console.log('✓ Case A passed (PR CI debug configuration successfully processed).');
 
 // Case B: Explicit production release without secrets (must fail closed)
@@ -64,7 +68,7 @@ const caseBEnv = {
   STUDIO_PRODUCTION_RELEASE: 'true',
   ANDROID_KEYSTORE_PASSWORD: '',
   ANDROID_KEY_PASSWORD: '',
-  ANDROID_KEY_ALIAS: ''
+  ANDROID_KEY_ALIAS: '',
 };
 
 const resB = spawnSync(gradlew, ['help'], {
@@ -78,36 +82,50 @@ if (resB.status === 0) {
   console.error('stdout:', resB.stdout?.toString());
   console.error('stderr:', resB.stderr?.toString());
 }
-assert.notStrictEqual(resB.status, 0, 'Case B should fail configuration check when STUDIO_PRODUCTION_RELEASE=true but signing secrets are missing.');
+assert.notStrictEqual(
+  resB.status,
+  0,
+  'Case B should fail configuration check when STUDIO_PRODUCTION_RELEASE=true but signing secrets are missing.'
+);
 console.log('✓ Case B passed (Production release without secrets correctly failed closed).');
 
 // Case C: Production release with wrong signer
 console.log('Testing Case C: Production release signature validation (fail-closed)...');
 // If we have a local debug APK, we can mock validate-app-installer test
-const apkPath = path.join(repoRoot, 'apps/studio-android/android/app/build/outputs/apk/debug/app-debug.apk');
+const apkPath = path.join(
+  repoRoot,
+  'apps/studio-android/android/app/build/outputs/apk/debug/app-debug.apk'
+);
 if (fs.existsSync(apkPath)) {
   // Copy the debug APK temporarily to the release folder path checked by validate-app-installer
-  const releaseApkDir = path.join(repoRoot, 'apps/studio-android/android/app/build/outputs/apk/release');
+  const releaseApkDir = path.join(
+    repoRoot,
+    'apps/studio-android/android/app/build/outputs/apk/release'
+  );
   if (!fs.existsSync(releaseApkDir)) {
     fs.mkdirSync(releaseApkDir, { recursive: true });
   }
   const tempReleaseApkPath = path.join(releaseApkDir, 'app-release.apk');
   fs.copyFileSync(apkPath, tempReleaseApkPath);
-  
+
   try {
     const caseCEnv = {
       ...process.env,
       STUDIO_PRODUCTION_RELEASE: 'true',
-      RELEASE_TYPE: 'apk'
+      RELEASE_TYPE: 'apk',
     };
-    
+
     const resC = spawnSync('node', ['scripts/validate-app-installer.mjs'], {
       cwd: path.join(repoRoot, 'apps/studio-android'),
       env: caseCEnv,
       shell: process.platform === 'win32',
     });
-    
-    assert.notStrictEqual(resC.status, 0, 'Case C should fail validation when release APK is signed with a non-production key (e.g. debug key).');
+
+    assert.notStrictEqual(
+      resC.status,
+      0,
+      'Case C should fail validation when release APK is signed with a non-production key (e.g. debug key).'
+    );
     console.log('✓ Case C passed (Invalid production signer fingerprint correctly rejected).');
   } finally {
     try {

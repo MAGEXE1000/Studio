@@ -16,12 +16,10 @@ export async function runSignatureMismatchRecovery(
 ): Promise<boolean> {
   // Hard guard: prevent re-entry while already recovering
   if (isRecovering) {
-    console.warn('[Updater Recovery] Recovery already in progress. Rejecting re-entry.');
     return false;
   }
 
   const callId = nextJsCallId();
-  console.log(`[INSTRUMENTATION] runSignatureMismatchRecovery ENTER Call #${callId}`);
   void logProgressStage('[INSTRUMENTATION] runSignatureMismatchRecovery ENTER', `Call #${callId}`);
 
   isRecovering = true;
@@ -53,7 +51,9 @@ export async function runSignatureMismatchRecovery(
       steps.push(`Retry Installation: Failed (${e.message || String(e)})`);
     }
   } else {
-    steps.push(`Revalidate APK: Failed (Reason: ${updateDebugLogs.eligibilityReason || 'unknown'})`);
+    steps.push(
+      `Revalidate APK: Failed (Reason: ${updateDebugLogs.eligibilityReason || 'unknown'})`
+    );
   }
 
   // Stage 2: Recreate PackageInstaller session
@@ -84,7 +84,7 @@ export async function runSignatureMismatchRecovery(
   try {
     const { Filesystem } = await import('@capacitor/filesystem');
     await Filesystem.deleteFile({
-      path: filePath
+      path: filePath,
     }).catch(() => {});
     steps.push('Old APK cache cleared');
 
@@ -102,7 +102,9 @@ export async function runSignatureMismatchRecovery(
         isRecovering = false;
         return true;
       } else {
-        steps.push(`Post-download validation: Failed (Reason: ${updateDebugLogs.eligibilityReason || 'unknown'})`);
+        steps.push(
+          `Post-download validation: Failed (Reason: ${updateDebugLogs.eligibilityReason || 'unknown'})`
+        );
       }
     } else {
       steps.push('Post-download validation: Failed (No new file path)');

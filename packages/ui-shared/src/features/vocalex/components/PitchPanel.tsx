@@ -1,4 +1,4 @@
-import { useT, createAudioContext, useChordStore } from '@workspace/studio-core';
+import { useT, createAudioContext, useChordStore, useSettingsStore } from '@workspace/studio-core';
 import { Capacitor } from '@capacitor/core';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { detectPitch, type PitchResult } from '../services/pitchYin';
@@ -13,7 +13,10 @@ function centsToColor(cents: number): string {
   return '#ef4444';
 }
 
-function centsToLabel(cents: number, labels: { inTune: string; close: string; offKey: string }): string {
+function centsToLabel(
+  cents: number,
+  labels: { inTune: string; close: string; offKey: string }
+): string {
   const abs = Math.abs(cents);
   if (abs <= 5) return labels.inTune;
   if (abs <= 15) return labels.close;
@@ -26,7 +29,7 @@ function centsToNeedleRotation(cents: number): number {
 
 export default function PitchPanel({ active: panelActive = true }: { active?: boolean }) {
   const t = useT();
-  const language = useChordStore(s => s.settings.language);
+  const language = useSettingsStore((s) => s.settings.language);
   const [listening, setListening] = useState(false);
   const [result, setResult] = useState<PitchResult | null>(null);
   const [history, setHistory] = useState<PitchResult[]>([]);
@@ -61,7 +64,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       return;
     }
 
-    const raw = detectPitch(buf, ctx.sampleRate, 0.80);
+    const raw = detectPitch(buf, ctx.sampleRate, 0.8);
     if (raw) {
       if (smoothedFreqRef.current === 0) {
         smoothedFreqRef.current = raw.frequency;
@@ -76,7 +79,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       smoothed.cents = (midiNote - roundedMidi) * 100;
 
       setResult(smoothed);
-      setHistory(prev => {
+      setHistory((prev) => {
         const next = [...prev, smoothed];
         return next.length > HISTORY_LEN * 3 ? next.slice(-HISTORY_LEN * 2) : next;
       });
@@ -113,11 +116,14 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
         });
       } catch (constraintsErr) {
-        console.debug('[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
+        console.debug(
+          '[PitchPanel] getUserMedia with constraints failed, falling back to simple audio:',
+          constraintsErr
+        );
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
       if (!activeRef.current) {
-        stream.getTracks().forEach(t => t.stop());
+        stream.getTracks().forEach((t) => t.stop());
         return;
       }
       streamRef.current = stream;
@@ -132,7 +138,12 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       smoothedFreqRef.current = 0;
       rafRef.current = requestAnimationFrame(detectLoop);
     } catch (err: unknown) {
-      if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.message === 'microphone_permission_denied')) {
+      if (
+        err instanceof Error &&
+        (err.name === 'NotAllowedError' ||
+          err.name === 'PermissionDeniedError' ||
+          err.message === 'microphone_permission_denied')
+      ) {
         console.debug('[PitchPanel] startListening: Microphone permission was denied by user.');
         setPermError('microphone_permission_denied');
       } else {
@@ -147,7 +158,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   const stopListening = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = 0;
-    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current?.getTracks().forEach((t) => t.stop());
     audioCtxRef.current?.close();
     audioCtxRef.current = null;
     analyserRef.current = null;
@@ -165,23 +176,25 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    
+
     let appStateListener: any;
-    import('@capacitor/app').then(({ App }) => {
-      appStateListener = App.addListener('appStateChange', ({ isActive }) => {
-        console.log(`[PitchPanel] App state changed. isActive: ${isActive}`);
-        if (!isActive) {
-          wasListeningBeforeBackground.current = !!audioCtxRef.current;
-          stopListening();
-        } else {
-          if (activeRef.current && wasListeningBeforeBackground.current) {
-            startListening();
+    import('@capacitor/app')
+      .then(({ App }) => {
+        appStateListener = App.addListener('appStateChange', ({ isActive }) => {
+          console.log(`[PitchPanel] App state changed. isActive: ${isActive}`);
+          if (!isActive) {
+            wasListeningBeforeBackground.current = !!audioCtxRef.current;
+            stopListening();
+          } else {
+            if (activeRef.current && wasListeningBeforeBackground.current) {
+              startListening();
+            }
           }
-        }
+        });
+      })
+      .catch((err) => {
+        console.info('[PitchPanel] Capacitor App plugin not available:', err);
       });
-    }).catch(err => {
-      console.info('[PitchPanel] Capacitor App plugin not available:', err);
-    });
 
     return () => {
       if (appStateListener) {
@@ -193,7 +206,7 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
   useEffect(() => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      streamRef.current?.getTracks().forEach(t => t.stop());
+      streamRef.current?.getTracks().forEach((t) => t.stop());
       audioCtxRef.current?.close();
     };
   }, []);
@@ -205,40 +218,70 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
 
   const active = listening && result !== null;
   const needleRot = centsToNeedleRotation(active ? result!.cents : 0);
-  const statusColor = active ? centsToColor(result!.cents) : (listening ? '#007aff' : 'rgba(120,120,120,0.3)');
+  const statusColor = active
+    ? centsToColor(result!.cents)
+    : listening
+      ? '#007aff'
+      : 'rgba(120,120,120,0.3)';
   const statusLabel = active ? centsToLabel(result!.cents, t.vocalex) : '';
 
   const barHeights = [40, 60, 85, 70, 95, 50, 30, 65, 80, 45, 20, 55];
-  const barColors  = [false, true, true, true, true];
+  const barColors = [false, true, true, true, true];
 
   return (
-    <div className="spring-in" style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      padding: '0 24px 24px', gap: 0, minHeight: '100%',
-    }}>
-
+    <div
+      className="spring-in"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '0 24px 24px',
+        gap: 0,
+        minHeight: '100%',
+      }}
+    >
       {/* ── Pitch Monitor ── */}
-      <div style={{
-        width: '100%', maxWidth: 360,
-        aspectRatio: '1', position: 'relative',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        marginBottom: 24,
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(circle, rgba(0,122,255,0.05) 0%, transparent 70%)',
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-          pointerEvents: 'none',
-        }} />
-
-        <svg viewBox="0 0 100 100"
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 360,
+          aspectRatio: '1',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 24,
+        }}
+      >
+        <div
           style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-          }}>
-          <circle cx="50" cy="50" r="45" fill="none"
-            stroke="rgba(72,72,72,0.15)" strokeWidth="0.5" />
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(circle, rgba(0,122,255,0.05) 0%, transparent 70%)',
+            borderRadius: '50%',
+            filter: 'blur(60px)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <svg
+          viewBox="0 0 100 100"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          <circle
+            cx="50"
+            cy="50"
+            r="45"
+            fill="none"
+            stroke="rgba(72,72,72,0.15)"
+            strokeWidth="0.5"
+          />
 
           {(() => {
             const r = 45;
@@ -258,141 +301,272 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
 
             return (
               <>
-                <circle cx="50" cy="50" r={r} fill="none"
-                  stroke="#ef4444" strokeWidth="3" opacity="0.45"
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={r}
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth="3"
+                  opacity="0.45"
                   strokeDasharray={`${(redDeg / 360) * C} ${C - (redDeg / 360) * C}`}
                   strokeLinecap="round"
-                  transform={`rotate(${-90 + redLeftStart} 50 50)`} />
-                <circle cx="50" cy="50" r={r} fill="none"
-                  stroke="#ef4444" strokeWidth="3" opacity="0.45"
+                  transform={`rotate(${-90 + redLeftStart} 50 50)`}
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={r}
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth="3"
+                  opacity="0.45"
                   strokeDasharray={`${redLen} ${C - redLen}`}
                   strokeLinecap="round"
-                  transform={`rotate(${-90 + redRightStart} 50 50)`} />
+                  transform={`rotate(${-90 + redRightStart} 50 50)`}
+                />
 
-                <circle cx="50" cy="50" r={r} fill="none"
-                  stroke="#eab308" strokeWidth="3" opacity="0.55"
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={r}
+                  fill="none"
+                  stroke="#eab308"
+                  strokeWidth="3"
+                  opacity="0.55"
                   strokeDasharray={`${yellowLen} ${C - yellowLen}`}
                   strokeLinecap="round"
-                  transform={`rotate(${-90 + yellowLeftStart} 50 50)`} />
-                <circle cx="50" cy="50" r={r} fill="none"
-                  stroke="#eab308" strokeWidth="3" opacity="0.55"
+                  transform={`rotate(${-90 + yellowLeftStart} 50 50)`}
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={r}
+                  fill="none"
+                  stroke="#eab308"
+                  strokeWidth="3"
+                  opacity="0.55"
                   strokeDasharray={`${yellowLen} ${C - yellowLen}`}
                   strokeLinecap="round"
-                  transform={`rotate(${-90 + yellowRightStart} 50 50)`} />
+                  transform={`rotate(${-90 + yellowRightStart} 50 50)`}
+                />
 
-                <circle cx="50" cy="50" r={r} fill="none"
-                  stroke="#34d399" strokeWidth="4" opacity="0.8"
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={r}
+                  fill="none"
+                  stroke="#34d399"
+                  strokeWidth="4"
+                  opacity="0.8"
                   strokeDasharray={`${greenLen} ${C - greenLen}`}
                   strokeLinecap="round"
-                  transform={`rotate(${-90 + greenStart} 50 50)`} />
+                  transform={`rotate(${-90 + greenStart} 50 50)`}
+                />
               </>
             );
           })()}
         </svg>
 
-        <div style={{
-          position: 'absolute', top: 0, left: '50%',
-          transform: `translateX(-50%) rotate(${needleRot}deg)`,
-          transformOrigin: '50% 50cqw',
-          width: 6, height: 48,
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          transition: 'transform 80ms cubic-bezier(0.4,0,0.2,1)',
-          zIndex: 2,
-        }}>
-          <div style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: statusColor,
-            boxShadow: `0 0 8px ${statusColor}99`,
-            transition: 'background 150ms ease, box-shadow 150ms ease',
-          }} />
-          <div style={{
-            width: 2, flex: 1,
-            background: `linear-gradient(to bottom, ${statusColor}, transparent)`,
-            transition: 'background 150ms ease',
-          }} />
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: `translateX(-50%) rotate(${needleRot}deg)`,
+            transformOrigin: '50% 50cqw',
+            width: 6,
+            height: 48,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            transition: 'transform 80ms cubic-bezier(0.4,0,0.2,1)',
+            zIndex: 2,
+          }}
+        >
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: statusColor,
+              boxShadow: `0 0 8px ${statusColor}99`,
+              transition: 'background 150ms ease, box-shadow 150ms ease',
+            }}
+          />
+          <div
+            style={{
+              width: 2,
+              flex: 1,
+              background: `linear-gradient(to bottom, ${statusColor}, transparent)`,
+              transition: 'background 150ms ease',
+            }}
+          />
         </div>
 
         <div style={{ textAlign: 'center', zIndex: 1, position: 'relative' }}>
-          <p style={{
-            fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 500,
-            color: 'var(--vx-text-2)', letterSpacing: '0.2em', marginBottom: 8,
-          }}>{t.vocalex.currentNote}</p>
-          <h1 style={{
-            fontFamily: 'var(--font-headline)',
-            fontSize: 96, fontWeight: 800,
-            color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.08)',
-            lineHeight: 1, letterSpacing: '-0.04em',
-            margin: 0,
-            transition: 'color 200ms ease',
-          }}>
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 12,
+              fontWeight: 500,
+              color: 'var(--vx-text-2)',
+              letterSpacing: '0.2em',
+              marginBottom: 8,
+            }}
+          >
+            {t.vocalex.currentNote}
+          </p>
+          <h1
+            style={{
+              fontFamily: 'var(--font-headline)',
+              fontSize: 96,
+              fontWeight: 800,
+              color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.08)',
+              lineHeight: 1,
+              letterSpacing: '-0.04em',
+              margin: 0,
+              transition: 'color 200ms ease',
+            }}
+          >
             {active ? `${result!.noteName}${result!.octave}` : '—'}
           </h1>
-          {(active && statusLabel) && (
+          {active && statusLabel && (
             <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
-              <span style={{
-                fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
-                color: statusColor,
-                padding: '4px 14px', borderRadius: 9999,
-                background: `${statusColor}1a`,
-                border: `1px solid ${statusColor}33`,
-              }}>{statusLabel}</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: statusColor,
+                  padding: '4px 14px',
+                  borderRadius: 9999,
+                  background: `${statusColor}1a`,
+                  border: `1px solid ${statusColor}33`,
+                }}
+              >
+                {statusLabel}
+              </span>
             </div>
           )}
         </div>
       </div>
 
       {/* ── Bento Grid ── */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
-        width: '100%', maxWidth: 360,
-      }}>
-        <div style={{
-          background: 'var(--vx-card-2)', borderRadius: 12, padding: '16px 18px',
-          borderLeft: '2px solid #007aff',
-        }}>
-          <p style={{
-            fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
-            color: 'var(--vx-text-2)', letterSpacing: '0.14em', textTransform: 'uppercase',
-            margin: '0 0 4px',
-          }}>{t.vocalex.frequency}</p>
-          <p style={{
-            fontFamily: 'var(--font-headline)', fontSize: 24, fontWeight: 700,
-            color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.1)',
-            margin: 0, transition: 'color 200ms ease',
-          }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 12,
+          width: '100%',
+          maxWidth: 360,
+        }}
+      >
+        <div
+          style={{
+            background: 'var(--vx-card-2)',
+            borderRadius: 12,
+            padding: '16px 18px',
+            borderLeft: '2px solid #007aff',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 10,
+              fontWeight: 700,
+              color: 'var(--vx-text-2)',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              margin: '0 0 4px',
+            }}
+          >
+            {t.vocalex.frequency}
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--font-headline)',
+              fontSize: 24,
+              fontWeight: 700,
+              color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.1)',
+              margin: 0,
+              transition: 'color 200ms ease',
+            }}
+          >
             {active ? result!.frequency.toFixed(2) : '—'}
-            {active && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--vx-text-2)', marginLeft: 4 }}>Hz</span>}
+            {active && (
+              <span
+                style={{ fontSize: 14, fontWeight: 400, color: 'var(--vx-text-2)', marginLeft: 4 }}
+              >
+                Hz
+              </span>
+            )}
           </p>
         </div>
 
-        <div style={{
-          background: 'var(--vx-card-2)', borderRadius: 12, padding: '16px 18px',
-        }}>
-          <p style={{
-            fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700,
-            color: 'var(--vx-text-2)', letterSpacing: '0.14em', textTransform: 'uppercase',
-            margin: '0 0 4px',
-          }}>{t.vocalex.precision}</p>
-          <p style={{
-            fontFamily: 'var(--font-headline)', fontSize: 24, fontWeight: 700,
-            color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.1)',
-            margin: 0, transition: 'color 200ms ease',
-          }}>
+        <div
+          style={{
+            background: 'var(--vx-card-2)',
+            borderRadius: 12,
+            padding: '16px 18px',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 10,
+              fontWeight: 700,
+              color: 'var(--vx-text-2)',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              margin: '0 0 4px',
+            }}
+          >
+            {t.vocalex.precision}
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--font-headline)',
+              fontSize: 24,
+              fontWeight: 700,
+              color: active ? 'var(--vx-text)' : 'rgba(231,229,228,0.1)',
+              margin: 0,
+              transition: 'color 200ms ease',
+            }}
+          >
             {active ? (result!.cents >= 0 ? '+' : '') + result!.cents.toFixed(1) : '—'}
-            {active && <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--vx-text-2)', marginLeft: 4 }}>cents</span>}
+            {active && (
+              <span
+                style={{ fontSize: 14, fontWeight: 400, color: 'var(--vx-text-2)', marginLeft: 4 }}
+              >
+                cents
+              </span>
+            )}
           </p>
         </div>
 
-        <div style={{
-          gridColumn: '1 / -1',
-          background: 'var(--vx-edge)', borderRadius: 12, padding: 16,
-          height: 96, position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-            height: '100%', gap: 4, opacity: active ? 0.8 : 0.5,
-            transition: 'opacity 300ms ease',
-          }}>
+        <div
+          style={{
+            gridColumn: '1 / -1',
+            background: 'var(--vx-edge)',
+            borderRadius: 12,
+            padding: 16,
+            height: 96,
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              height: '100%',
+              gap: 4,
+              opacity: active ? 0.8 : 0.5,
+              transition: 'opacity 300ms ease',
+            }}
+          >
             {Array.from({ length: HISTORY_LEN }, (_, i) => {
               const entry = history[history.length - HISTORY_LEN + i];
               let h: number;
@@ -408,41 +582,71 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
               }
 
               return (
-                <div key={i} style={{
-                  flex: 1, height: `${h}%`, borderRadius: 9999,
-                  background: bg,
-                  transition: 'height 100ms ease, background 100ms ease',
-                }} />
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    height: `${h}%`,
+                    borderRadius: 9999,
+                    background: bg,
+                    transition: 'height 100ms ease, background 100ms ease',
+                  }}
+                />
               );
             })}
           </div>
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, var(--vx-edge), transparent)',
-            pointerEvents: 'none',
-          }} />
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, var(--vx-edge), transparent)',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
       </div>
 
       {/* ── Action Buttons ── */}
-      <div style={{
-        display: 'flex', gap: 12, width: '100%', maxWidth: 360, marginTop: 20,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          width: '100%',
+          maxWidth: 360,
+          marginTop: 20,
+        }}
+      >
         <button
           onClick={handleReset}
           style={{
             flex: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            height: 48, borderRadius: 12,
-            background: 'var(--vx-input-2)', border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            height: 48,
+            borderRadius: 12,
+            background: 'var(--vx-input-2)',
+            border: 'none',
             color: 'var(--vx-text-5)',
-            fontSize: 14, fontWeight: 700,
+            fontSize: 14,
+            fontWeight: 700,
             fontFamily: 'var(--font-body)',
             cursor: 'pointer',
           }}
         >
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          <svg
+            width={16}
+            height={16}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M1 4v6h6" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
           </svg>
           {t.vocalex.reset}
         </button>
@@ -451,12 +655,19 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           onClick={listening ? stopListening : startListening}
           style={{
             flex: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            height: 48, borderRadius: 12,
-            background: listening ? 'rgba(239,68,68,0.15)' : 'linear-gradient(135deg, #679cff, #007aff)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            height: 48,
+            borderRadius: 12,
+            background: listening
+              ? 'rgba(239,68,68,0.15)'
+              : 'linear-gradient(135deg, #679cff, #007aff)',
             border: listening ? '1px solid rgba(239,68,68,0.3)' : 'none',
             color: listening ? '#ef4444' : '#fff',
-            fontSize: 14, fontWeight: 700,
+            fontSize: 14,
+            fontWeight: 700,
             fontFamily: 'var(--font-body)',
             cursor: 'pointer',
             boxShadow: listening ? 'none' : '0 4px 16px rgba(0,122,255,0.2)',
@@ -465,12 +676,16 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
         >
           {listening ? (
             <>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>mic_off</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                mic_off
+              </span>
               {t.vocalex.tunerStop}
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>mic</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                mic
+              </span>
               {t.vocalex.tunerStart}
             </>
           )}
@@ -478,15 +693,29 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
       </div>
 
       {permError && (
-        <div style={{
-          padding: '14px 16px', borderRadius: 12, marginTop: 12,
-          background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-          color: '#ef4444', fontSize: 12, fontFamily: 'var(--font-body)',
-          textAlign: 'center', maxWidth: 360, width: '100%',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10
-        }}>
+        <div
+          style={{
+            padding: '14px 16px',
+            borderRadius: 12,
+            marginTop: 12,
+            background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            color: '#ef4444',
+            fontSize: 12,
+            fontFamily: 'var(--font-body)',
+            textAlign: 'center',
+            maxWidth: 360,
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
           <span style={{ fontWeight: 500, lineHeight: 1.4 }}>
-            {permError.includes('NotAllowedError') || permError.includes('Permission denied') || permError.includes('denied')
+            {permError.includes('NotAllowedError') ||
+            permError.includes('Permission denied') ||
+            permError.includes('denied')
               ? t.vocalex.tunerMicRequired
               : permError}
           </span>
@@ -501,10 +730,15 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
                 }
               }}
               style={{
-                padding: '8px 16px', borderRadius: 8,
-                background: '#ef4444', border: 'none',
-                color: '#fff', fontSize: 12, fontWeight: 700,
-                fontFamily: 'var(--font-body)', cursor: 'pointer',
+                padding: '8px 16px',
+                borderRadius: 8,
+                background: '#ef4444',
+                border: 'none',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'var(--font-body)',
+                cursor: 'pointer',
                 boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
                 transition: 'background 150ms ease',
               }}
@@ -518,10 +752,15 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
                 startListening();
               }}
               style={{
-                padding: '8px 16px', borderRadius: 8,
-                background: '#ef4444', border: 'none',
-                color: '#fff', fontSize: 12, fontWeight: 700,
-                fontFamily: 'var(--font-body)', cursor: 'pointer',
+                padding: '8px 16px',
+                borderRadius: 8,
+                background: '#ef4444',
+                border: 'none',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'var(--font-body)',
+                cursor: 'pointer',
                 boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
                 transition: 'background 150ms ease',
               }}

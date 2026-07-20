@@ -48,7 +48,7 @@ The transition state machine had a **deadlock condition** between two prerequisi
 1. `appPreloaded` — set when the target app's assets finish loading.
 2. `logoFormed` — set when the logo entry animation completes.
 
-The state machine required both flags to be `true` while in the `LOGO_FORMATION` state to advance to `ZOOMING`. However, if `appPreloaded` resolved *before* the machine entered `LOGO_FORMATION` (which happened during rapid taps), the flag was set and consumed during `PREPARING`, and the machine would wait forever for a second `appPreloaded` signal that never came.
+The state machine required both flags to be `true` while in the `LOGO_FORMATION` state to advance to `ZOOMING`. However, if `appPreloaded` resolved _before_ the machine entered `LOGO_FORMATION` (which happened during rapid taps), the flag was set and consumed during `PREPARING`, and the machine would wait forever for a second `appPreloaded` signal that never came.
 
 Additionally, calling `requestTransition()` while a previous transition was still in-flight did not reset the state machine, causing the new transition to be silently dropped.
 
@@ -66,7 +66,7 @@ Additionally, calling `requestTransition()` while a previous transition was stil
 ## Successful Solution
 
 1. **Force Escape Hatch**: Modified `requestTransition()` to detect if the state is not `IDLE` and force-call `reset()` synchronously before initiating the new transition. This prevents overlapping transitions.
-2. **Dual-State Advancement Guard**: Updated both `setAppPreloaded` and `setLogoFormed` to check if *both* conditions are satisfied regardless of the current state (`PREPARING` or `LOGO_FORMATION`), advancing immediately when ready.
+2. **Dual-State Advancement Guard**: Updated both `setAppPreloaded` and `setLogoFormed` to check if _both_ conditions are satisfied regardless of the current state (`PREPARING` or `LOGO_FORMATION`), advancing immediately when ready.
 3. **Watchdog Safety Timer**: Added a 1.5-second `setTimeout` fallback inside `ApplicationTransitionEngine.tsx` that force-calls `completeTransition()` if the animation callbacks fail to trigger.
 
 ## Files Modified

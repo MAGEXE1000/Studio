@@ -169,7 +169,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
       btn.onclick = () => {
         useChordStore
           .getState()
-          .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
+          .settingsController.updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
         const a2 =
           ACCENT_COLORS[
@@ -971,7 +971,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           }
         }
       } catch (e) {
-        console.warn('Screen orientation lock/unlock failed:', e);
       }
     })();
 
@@ -1135,7 +1134,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
       // Set up ACK timeout
       const timeout = setTimeout(() => {
-        console.warn(`[Diagnostics] No ACK received for command: ${fn} (msgId: ${msgId})`);
         logDiagnostic(`[ERROR] No ACK for ${fn}`);
         updateStagexDiagnostics({
           timeoutCount: getStagexDiagnostics().timeoutCount + 1,
@@ -1189,7 +1187,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     try {
       doc = iframe.contentDocument || iframe.contentWindow?.document || null;
     } catch (e) {
-      console.warn('[Test] Cannot access iframe document directly due to origin restrictions:', e);
     }
 
     if (!doc) {

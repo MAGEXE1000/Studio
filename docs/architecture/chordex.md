@@ -64,28 +64,28 @@ Uses `useChordStore` from `@workspace/studio-core` (881 lines, 33 KB):
 
 ### Key State
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `selectedChordId` | `string \| null` | Currently viewed chord |
-| `settings` | `AppSettings` | ~50 app-wide settings fields |
-| `favorites` | `string[]` | Favorited chord IDs |
-| `recentChords` | `string[]` | Recently viewed chords |
-| `progressions` | `Progression[]` | Saved chord progressions |
-| `currentProgressionChords` | `string[]` | Active progression builder |
-| `presets` | `SongPreset[]` | Song presets |
-| `customChords` | `CustomChord[]` | User-created chords |
-| `chordUsage` | `Record<string, number>` | Usage analytics per chord |
-| `libraryActiveType` | `string` | Active type filter in library |
-| `lastSession` | `Record<AppKey, object>` | Per-app session restore data |
+| Field                      | Type                     | Purpose                       |
+| -------------------------- | ------------------------ | ----------------------------- |
+| `selectedChordId`          | `string \| null`         | Currently viewed chord        |
+| `settings`                 | `AppSettings`            | ~50 app-wide settings fields  |
+| `favorites`                | `string[]`               | Favorited chord IDs           |
+| `recentChords`             | `string[]`               | Recently viewed chords        |
+| `progressions`             | `Progression[]`          | Saved chord progressions      |
+| `currentProgressionChords` | `string[]`               | Active progression builder    |
+| `presets`                  | `SongPreset[]`           | Song presets                  |
+| `customChords`             | `CustomChord[]`          | User-created chords           |
+| `chordUsage`               | `Record<string, number>` | Usage analytics per chord     |
+| `libraryActiveType`        | `string`                 | Active type filter in library |
+| `lastSession`              | `Record<AppKey, object>` | Per-app session restore data  |
 
 ### Key Actions
 
-| Action | Purpose |
-|--------|---------|
-| `selectChord(id)` | Navigate to chord detail |
-| `trackChordUsage(id)` | Increment usage counter |
-| `toggleFavorite(id)` | Add/remove from favorites |
-| `updateSettings(partial)` | Update app settings |
+| Action                       | Purpose                        |
+| ---------------------------- | ------------------------------ |
+| `selectChord(id)`            | Navigate to chord detail       |
+| `trackChordUsage(id)`        | Increment usage counter        |
+| `toggleFavorite(id)`         | Add/remove from favorites      |
+| `updateSettings(partial)`    | Update app settings            |
 | `setLastSession(app, state)` | Save session state for restore |
 
 ### Persistence
@@ -97,23 +97,23 @@ Uses `useChordStore` from `@workspace/studio-core` (881 lines, 33 KB):
 
 ## Dependencies
 
-| Dependency | Source | Purpose |
-|------------|--------|---------|
-| `getChordById` | studio-core | Chord data lookup |
-| `getAllChords` | studio-core | Full chord database (48 KB) |
-| `getRelatedChords` | studio-core | Related chord suggestions |
-| `suggestNextChord` | studio-core | AI-style next chord suggestion |
-| `useChordStore` | studio-core | State management |
-| `ACCENT_COLORS` | studio-core | Theme accent colors |
-| `NavigationDispatcher` | studio-core | Navigation |
-| `useNavigationStore` | studio-core | Navigation state |
-| `renderChordDiagram` | Local utility | Chord diagram rendering |
-| `GuitarDiagram` | ui-shared | Guitar fretboard component |
-| `PianoDiagram` | ui-shared | Piano keyboard component |
-| `FourStringDiagram` | ui-shared | Bass/ukulele fretboard |
-| `CustomChordBuilder` | ui-shared | Chord finder modal |
-| `ProgressionGenerator` | ui-shared | Progression generator modal |
-| `@capacitor/core` | Capacitor | Platform detection |
+| Dependency             | Source        | Purpose                        |
+| ---------------------- | ------------- | ------------------------------ |
+| `getChordById`         | studio-core   | Chord data lookup              |
+| `getAllChords`         | studio-core   | Full chord database (48 KB)    |
+| `getRelatedChords`     | studio-core   | Related chord suggestions      |
+| `suggestNextChord`     | studio-core   | AI-style next chord suggestion |
+| `useChordStore`        | studio-core   | State management               |
+| `ACCENT_COLORS`        | studio-core   | Theme accent colors            |
+| `NavigationDispatcher` | studio-core   | Navigation                     |
+| `useNavigationStore`   | studio-core   | Navigation state               |
+| `renderChordDiagram`   | Local utility | Chord diagram rendering        |
+| `GuitarDiagram`        | ui-shared     | Guitar fretboard component     |
+| `PianoDiagram`         | ui-shared     | Piano keyboard component       |
+| `FourStringDiagram`    | ui-shared     | Bass/ukulele fretboard         |
+| `CustomChordBuilder`   | ui-shared     | Chord finder modal             |
+| `ProgressionGenerator` | ui-shared     | Progression generator modal    |
+| `@capacitor/core`      | Capacitor     | Platform detection             |
 
 ## Navigation
 
@@ -128,12 +128,12 @@ NavigationDispatcher.push({ app: 'chords', page: 'settings' })
 
 ## Static Data
 
-| File | Size | Content |
-|------|------|---------|
-| `data/chords.ts` | 48.8 KB | Complete chord definitions |
-| `data/progressions.ts` | 111 KB | Progression templates |
-| `data/progressionsEs.ts` | 32 KB | Spanish progression names |
-| `data/songs.ts` | 17 KB | Song data |
+| File                     | Size    | Content                    |
+| ------------------------ | ------- | -------------------------- |
+| `data/chords.ts`         | 48.8 KB | Complete chord definitions |
+| `data/progressions.ts`   | 111 KB  | Progression templates      |
+| `data/progressionsEs.ts` | 32 KB   | Spanish progression names  |
+| `data/songs.ts`          | 17 KB   | Song data                  |
 
 ## Known Limitations
 

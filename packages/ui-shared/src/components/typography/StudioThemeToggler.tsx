@@ -25,13 +25,7 @@ import { flushSync } from 'react-dom';
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export type TransitionVariant =
-  | 'circle'
-  | 'square'
-  | 'triangle'
-  | 'diamond'
-  | 'hexagon'
-  | 'rectangle'
-  | 'star';
+  'circle' | 'square' | 'triangle' | 'diamond' | 'hexagon' | 'rectangle' | 'star';
 
 export interface StudioThemeTogglerProps {
   currentTheme: Theme;
@@ -55,9 +49,9 @@ type LabelKey = 'system' | 'light' | 'dark' | 'amoled';
 
 const OPTIONS: { theme: Theme; amoled: boolean; icon: string; key: LabelKey; def: string }[] = [
   { theme: 'system', amoled: false, icon: 'brightness_auto', key: 'system', def: 'System' },
-  { theme: 'light',  amoled: false, icon: 'light_mode',      key: 'light',  def: 'Light'  },
-  { theme: 'dark',   amoled: false, icon: 'dark_mode',       key: 'dark',   def: 'Dark'   },
-  { theme: 'dark',   amoled: true,  icon: 'contrast',        key: 'amoled', def: 'AMOLED' },
+  { theme: 'light', amoled: false, icon: 'light_mode', key: 'light', def: 'Light' },
+  { theme: 'dark', amoled: false, icon: 'dark_mode', key: 'dark', def: 'Dark' },
+  { theme: 'dark', amoled: true, icon: 'contrast', key: 'amoled', def: 'AMOLED' },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -71,23 +65,19 @@ export default function StudioThemeToggler({
   variant = 'circle',
   duration = 500,
 }: StudioThemeTogglerProps) {
+  const handleSelect = useCallback(
+    (btn: HTMLButtonElement, newTheme: Theme, newAmoled: boolean) => {
+      const alreadyActive = newAmoled ? currentAmoled : newTheme === currentTheme && !currentAmoled;
+      if (alreadyActive) return;
 
-  const handleSelect = useCallback((
-    btn: HTMLButtonElement,
-    newTheme: Theme,
-    newAmoled: boolean,
-  ) => {
-    const alreadyActive = newAmoled
-      ? currentAmoled
-      : newTheme === currentTheme && !currentAmoled;
-    if (alreadyActive) return;
+      const root = document.documentElement;
+      const isTransitioning = root.dataset.studioThemeVt === 'active';
+      if (isTransitioning) return;
 
-    const root = document.documentElement;
-    const isTransitioning = root.dataset.studioThemeVt === 'active';
-    if (isTransitioning) return;
-
-    onChange(newTheme, newAmoled);
-  }, [currentTheme, currentAmoled, onChange]);
+      onChange(newTheme, newAmoled);
+    },
+    [currentTheme, currentAmoled, onChange]
+  );
 
   return (
     <div
@@ -98,9 +88,7 @@ export default function StudioThemeToggler({
       }}
     >
       {OPTIONS.map((opt, i) => {
-        const isActive = opt.amoled
-          ? currentAmoled
-          : currentTheme === opt.theme && !currentAmoled;
+        const isActive = opt.amoled ? currentAmoled : currentTheme === opt.theme && !currentAmoled;
         const label = labels?.[opt.key] ?? opt.def;
 
         return (
@@ -120,7 +108,8 @@ export default function StudioThemeToggler({
               flexDirection: 'column',
               alignItems: 'center',
               gap: 6,
-              transition: 'background 200ms ease, border-color 200ms ease, transform 160ms cubic-bezier(0.34,1.56,0.64,1)',
+              transition:
+                'background 200ms ease, border-color 200ms ease, transform 160ms cubic-bezier(0.34,1.56,0.64,1)',
               cursor: 'pointer',
               transform: isActive ? 'scale(1.04)' : 'scale(1)',
               WebkitTapHighlightColor: 'transparent',

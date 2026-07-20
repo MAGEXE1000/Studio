@@ -40,13 +40,7 @@ type ProgressRootProps = React.HTMLAttributes<HTMLDivElement> & {
   children?: React.ReactNode;
 };
 
-function ProgressRoot({
-  value = 0,
-  max = 100,
-  children,
-  style,
-  ...props
-}: ProgressRootProps) {
+function ProgressRoot({ value = 0, max = 100, children, style, ...props }: ProgressRootProps) {
   const clamped = Math.max(0, Math.min(max, value));
   const contextValue = useMemo(() => ({ value: clamped }), [clamped]);
   return (

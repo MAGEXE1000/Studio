@@ -1,21 +1,22 @@
-import { createRoot } from "react-dom/client";
-import { lazy, Suspense, useState, useEffect } from "react";
-import { TolgeeProvider } from "@tolgee/react";
-import App from "./App";
+import { createRoot } from 'react-dom/client';
+import { lazy, Suspense, useState, useEffect } from 'react';
+import { TolgeeProvider } from '@tolgee/react';
+import App from './App';
 import {
   tolgee,
   seedAudioAssets,
   NATIVE_VERSION,
-  initDevToolsFramework
-} from "@workspace/studio-core";
-import { Capacitor } from "@capacitor/core";
-import "./index.css";
-const LazyEmergencyOverlay = lazy(() => import("./EmergencyDebugOverlay"));
+  initDevToolsFramework,
+} from '@workspace/studio-core';
+import { Capacitor } from '@capacitor/core';
+import './index.css';
+const LazyEmergencyOverlay = lazy(() => import('./EmergencyDebugOverlay'));
 
 function EmergencyDebugOverlayWrapper() {
   const [shouldRender, setShouldRender] = useState(() => {
     if (typeof window === 'undefined') return false;
-    const isDebugModeEnabled = localStorage.getItem('studio_debug_mode') === 'true' ||
+    const isDebugModeEnabled =
+      localStorage.getItem('studio_debug_mode') === 'true' ||
       (window as any).__studio_debug_mode === true;
     const hasUnviewedFailed = localStorage.getItem('studio_failed_navigation_unviewed') === 'true';
     return isDebugModeEnabled || hasUnviewedFailed;
@@ -25,7 +26,10 @@ function EmergencyDebugOverlayWrapper() {
     (window as any).__openEmergencyOverlay = (targetTab?: string) => {
       setShouldRender(true);
       setTimeout(() => {
-        if (typeof (window as any).__openEmergencyOverlay === 'function' && (window as any).__openEmergencyOverlay !== openEmergencyStub) {
+        if (
+          typeof (window as any).__openEmergencyOverlay === 'function' &&
+          (window as any).__openEmergencyOverlay !== openEmergencyStub
+        ) {
           (window as any).__openEmergencyOverlay(targetTab);
         }
       }, 50);
@@ -60,7 +64,7 @@ setTimeout(() => {
   void seedAudioAssets();
 }, 8000);
 
-const UpdateIndicator = lazy(() => import("@workspace/ui-shared/src/components/UpdateIndicator"));
+const UpdateIndicator = lazy(() => import('@workspace/ui-shared/src/components/UpdateIndicator'));
 
 function GlobalOverlays() {
   const [ready, setReady] = useState(false);
@@ -81,7 +85,7 @@ function RootAppContainer() {
 
   useEffect(() => {
     (window as any).__forceRerenderApp = () => {
-      setAppKey(prev => prev + 1);
+      setAppKey((prev) => prev + 1);
     };
     return () => {
       delete (window as any).__forceRerenderApp;
@@ -93,18 +97,18 @@ function RootAppContainer() {
 
 // Create the emergency overlay root synchronously directly under document.body before mount
 if (typeof document !== 'undefined') {
-  let overlayRoot = document.getElementById("livex-emergency-overlay-root");
+  let overlayRoot = document.getElementById('livex-emergency-overlay-root');
   if (!overlayRoot) {
-    overlayRoot = document.createElement("div");
-    overlayRoot.id = "livex-emergency-overlay-root";
-    overlayRoot.style.position = "fixed";
-    overlayRoot.style.inset = "0";
-    overlayRoot.style.zIndex = "2147483647";
-    overlayRoot.style.isolation = "isolate";
-    overlayRoot.style.pointerEvents = "none";
-    overlayRoot.style.transform = "translateZ(0)";
-    overlayRoot.style.contain = "none";
-    overlayRoot.style.background = "transparent";
+    overlayRoot = document.createElement('div');
+    overlayRoot.id = 'livex-emergency-overlay-root';
+    overlayRoot.style.position = 'fixed';
+    overlayRoot.style.inset = '0';
+    overlayRoot.style.zIndex = '2147483647';
+    overlayRoot.style.isolation = 'isolate';
+    overlayRoot.style.pointerEvents = 'none';
+    overlayRoot.style.transform = 'translateZ(0)';
+    overlayRoot.style.contain = 'none';
+    overlayRoot.style.background = 'transparent';
     document.body.appendChild(overlayRoot);
   }
 }
@@ -112,29 +116,30 @@ if (typeof document !== 'undefined') {
 // Log React bootstrap start time
 if (typeof window !== 'undefined' && (window as any).__bootTimings) {
   (window as any).__bootTimings.reactBootstrapStart = performance.now();
-  console.log("[LivexBoot] React bootstrap started: " + (window as any).__bootTimings.reactBootstrapStart.toFixed(2) + "ms");
 }
 
 // Mount React immediately (native splash screen takes care of hiding visual load transitions)
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <>
     <RootAppContainer />
     <GlobalOverlays />
     <EmergencyDebugOverlayWrapper />
-  </>,
+  </>
 );
 
 // Defer cache migration and service worker unregistration by 6 seconds to prevent I/O blocking during startup
 setTimeout(() => {
   // Clean up all service workers since they are not supported in native wrappers.
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then((regs) => {
-      regs.forEach((reg) => {
-        void reg.unregister();
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((regs) => {
+        regs.forEach((reg) => {
+          void reg.unregister();
+        });
+      })
+      .catch((err) => {
       });
-    }).catch((err) => {
-      console.warn('[sw] Failed to clean up service workers:', err);
-    });
   }
 
   // Clear Web Cache Storage on native platform version change.
@@ -143,14 +148,16 @@ setTimeout(() => {
     const lastVersion = localStorage.getItem(LAST_NATIVE_VERSION_KEY);
     if (lastVersion !== NATIVE_VERSION) {
       if (typeof caches !== 'undefined' && typeof caches.keys === 'function') {
-        caches.keys().then((keys) => {
-          return Promise.all(keys.map((key) => caches.delete(key)));
-        }).then(() => {
-          console.log('[Cache Migration] Cleared all Web asset caches successfully.');
-          localStorage.setItem(LAST_NATIVE_VERSION_KEY, NATIVE_VERSION);
-        }).catch((err) => {
-          console.warn('[Cache Migration] Failed to clear caches:', err);
-        });
+        caches
+          .keys()
+          .then((keys) => {
+            return Promise.all(keys.map((key) => caches.delete(key)));
+          })
+          .then(() => {
+            localStorage.setItem(LAST_NATIVE_VERSION_KEY, NATIVE_VERSION);
+          })
+          .catch((err) => {
+          });
       } else {
         localStorage.setItem(LAST_NATIVE_VERSION_KEY, NATIVE_VERSION);
       }

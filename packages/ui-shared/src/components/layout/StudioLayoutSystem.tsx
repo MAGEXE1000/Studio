@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MOTION_EASINGS, SPRING_PRESETS } from '../../navigation/AppAnimationSystem';
-import { useScrollHide } from '@workspace/studio-core';
+
+import { useScrollHide, SpringPresets } from '@workspace/studio-core';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
@@ -224,7 +224,10 @@ export function SettingsScaffold({
           </div>
         )}
       </div>
-      <ScrollScaffold bottomSpacing={false} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }}>
+      <ScrollScaffold
+        bottomSpacing={false}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }}
+      >
         {children}
       </ScrollScaffold>
     </div>
@@ -241,13 +244,7 @@ export interface DialogScaffoldProps {
   footer?: React.ReactNode;
 }
 
-export function DialogScaffold({
-  open,
-  onClose,
-  title,
-  children,
-  footer,
-}: DialogScaffoldProps) {
+export function DialogScaffold({ open, onClose, title, children, footer }: DialogScaffoldProps) {
   const { isLargeScreen } = useLayoutMetrics();
 
   return (
@@ -278,7 +275,12 @@ export function DialogScaffold({
               overflow: 'hidden',
             }}
           >
-            <ProgressiveBlur direction="bottom" blurLayers={5} maxBlur={12} className="absolute inset-0" />
+            <ProgressiveBlur
+              direction="bottom"
+              blurLayers={5}
+              maxBlur={12}
+              className="absolute inset-0"
+            />
           </motion.div>
 
           {/* Dialog Body */}
@@ -286,13 +288,15 @@ export function DialogScaffold({
             initial={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
             animate={isLargeScreen ? { scale: 1, opacity: 1 } : { y: 0 }}
             exit={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
-            transition={isLargeScreen ? SPRING_PRESETS.expressive : SPRING_PRESETS.medium}
+            transition={isLargeScreen ? SpringPresets.expressive : SpringPresets.medium}
             style={{
               position: 'relative',
               width: '100%',
               maxWidth: '480px',
               backgroundColor: 'var(--c-surface-highest)',
-              borderRadius: isLargeScreen ? 'var(--radius-2xl)' : 'var(--radius-3xl) var(--radius-3xl) 0 0',
+              borderRadius: isLargeScreen
+                ? 'var(--radius-2xl)'
+                : 'var(--radius-3xl) var(--radius-3xl) 0 0',
               border: `1px solid var(--c-border)`,
               boxShadow: 'var(--elevation-high)',
               overflow: 'hidden',
@@ -307,8 +311,22 @@ export function DialogScaffold({
           >
             {/* Top Indicator handle for bottom sheet */}
             {!isLargeScreen && (
-              <div style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-                <div style={{ width: '40px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--c-border)' }} />
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: '8px 0',
+                }}
+              >
+                <div
+                  style={{
+                    width: '40px',
+                    height: '4px',
+                    borderRadius: '2px',
+                    backgroundColor: 'var(--c-border)',
+                  }}
+                />
               </div>
             )}
 
@@ -323,7 +341,14 @@ export function DialogScaffold({
                   justifyContent: 'space-between',
                 }}
               >
-                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, fontFamily: 'var(--font-headline)' }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: '16px',
+                    fontWeight: 800,
+                    fontFamily: 'var(--font-headline)',
+                  }}
+                >
                   {title}
                 </h3>
                 <button
@@ -390,19 +415,13 @@ export interface HubScaffoldProps {
   children: React.ReactNode;
 }
 
-export function HubScaffold({
-  toolbar,
-  bottomNavigation,
-  children,
-}: HubScaffoldProps) {
+export function HubScaffold({ toolbar, bottomNavigation, children }: HubScaffoldProps) {
   const { isLargeScreen } = useLayoutMetrics();
 
   return (
     <ScreenScaffold safeAreaTop={false} safeAreaBottom={false}>
       {/* Fixed top toolbar */}
-      <div style={{ flexShrink: 0, zIndex: 10 }}>
-        {toolbar}
-      </div>
+      <div style={{ flexShrink: 0, zIndex: 10 }}>{toolbar}</div>
 
       {/* Main dashboard viewport grid */}
       <div
@@ -419,11 +438,7 @@ export function HubScaffold({
       </div>
 
       {/* Optional bottom navigation */}
-      {bottomNavigation && (
-        <div style={{ flexShrink: 0, zIndex: 10 }}>
-          {bottomNavigation}
-        </div>
-      )}
+      {bottomNavigation && <div style={{ flexShrink: 0, zIndex: 10 }}>{bottomNavigation}</div>}
     </ScreenScaffold>
   );
 }
@@ -436,11 +451,7 @@ export interface SubAppScaffoldProps {
   onReady?: () => void;
 }
 
-export function SubAppScaffold({
-  appKey,
-  children,
-  onReady,
-}: SubAppScaffoldProps) {
+export function SubAppScaffold({ appKey, children, onReady }: SubAppScaffoldProps) {
   return (
     <div
       className="app-sub-app-container"

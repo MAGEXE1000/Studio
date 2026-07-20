@@ -10,12 +10,12 @@ Provide a single source of truth for user-facing notifications, with persistent 
 
 ## Responsibilities
 
-| Responsibility | Owner |
-|---|---|
-| Notification store & persistence | [NotificationService.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/notifications/NotificationService.ts) |
-| Update event publishing | [stateMachine.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/updater/stateMachine.ts) |
-| Auth & sync event publishing | [App.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/src/App.tsx) |
-| Timeline UI rendering | [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/hub/StudioHub.tsx) `renderNotificationCenterContent()` |
+| Responsibility                   | Owner                                                                                                                                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Notification store & persistence | [NotificationService.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/notifications/NotificationService.ts)              |
+| Update event publishing          | [stateMachine.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/updater/stateMachine.ts)                                  |
+| Auth & sync event publishing     | [App.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/src/App.tsx)                                                               |
+| Timeline UI rendering            | [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/hub/StudioHub.tsx) `renderNotificationCenterContent()` |
 
 ## Architecture
 
@@ -60,17 +60,17 @@ graph TD
 
 ## Lifecycle
 
-| Event | Notification Published |
-|---|---|
-| Update available | `app_update` — "Update Available" with version info |
-| Download starts | `ota_update` — "Downloading Update" |
-| Verification complete | `download_complete` — "Download Verified" |
-| Install ready | `install_ready` — "Ready to Install" with "Install Now" action |
-| Install failed | `install_failed` — "Installation Failed" |
-| User signs in | `account_event` — "Signed In" with email |
-| User signs out | `account_event` — "Signed Out" |
-| Sync success | `sync_event` — "Settings Synced" |
-| Sync failure | `sync_event` — "Sync Failed" |
+| Event                 | Notification Published                                         |
+| --------------------- | -------------------------------------------------------------- |
+| Update available      | `app_update` — "Update Available" with version info            |
+| Download starts       | `ota_update` — "Downloading Update"                            |
+| Verification complete | `download_complete` — "Download Verified"                      |
+| Install ready         | `install_ready` — "Ready to Install" with "Install Now" action |
+| Install failed        | `install_failed` — "Installation Failed"                       |
+| User signs in         | `account_event` — "Signed In" with email                       |
+| User signs out        | `account_event` — "Signed Out"                                 |
+| Sync success          | `sync_event` — "Settings Synced"                               |
+| Sync failure          | `sync_event` — "Sync Failed"                                   |
 
 ## Public API
 
@@ -78,10 +78,20 @@ graph TD
 
 ```typescript
 type NotificationCategory =
-  | 'app_update' | 'ota_update' | 'download_complete' | 'install_ready'
-  | 'install_failed' | 'whats_new' | 'release_notes' | 'sync_event'
-  | 'backup_event' | 'cloud_event' | 'account_event' | 'tip'
-  | 'feature_announcement' | 'system_message';
+  | 'app_update'
+  | 'ota_update'
+  | 'download_complete'
+  | 'install_ready'
+  | 'install_failed'
+  | 'whats_new'
+  | 'release_notes'
+  | 'sync_event'
+  | 'backup_event'
+  | 'cloud_event'
+  | 'account_event'
+  | 'tip'
+  | 'feature_announcement'
+  | 'system_message';
 
 type NotificationPriority = 'low' | 'normal' | 'high';
 
@@ -108,14 +118,14 @@ interface NotificationItem {
 
 ### Store Actions
 
-| Action | Description |
-|---|---|
+| Action                  | Description                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- |
 | `publish(notification)` | Creates notification with auto-generated ID and timestamp. Prepends to array. |
-| `markAsRead(id)` | Sets `read: true` for matching notification. |
-| `markAllAsRead()` | Sets `read: true` for all notifications. |
-| `dismiss(id)` | Sets `dismissed: true` (soft delete). |
-| `clearAll()` | Empties the notifications array. |
-| `getUnreadCount()` | Returns count where `!read && !dismissed`. |
+| `markAsRead(id)`        | Sets `read: true` for matching notification.                                  |
+| `markAllAsRead()`       | Sets `read: true` for all notifications.                                      |
+| `dismiss(id)`           | Sets `dismissed: true` (soft delete).                                         |
+| `clearAll()`            | Empties the notifications array.                                              |
+| `getUnreadCount()`      | Returns count where `!read && !dismissed`.                                    |
 
 ## Design Decisions
 

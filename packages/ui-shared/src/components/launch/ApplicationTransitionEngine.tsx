@@ -19,9 +19,9 @@ export function ApplicationTransitionEngine({
   isLight = false,
   isAmoled = false,
 }: TransitionEngineProps) {
-  const state = useApplicationTransitionStore(s => s.state);
-  const setLogoFormed = useApplicationTransitionStore(s => s.setLogoFormed);
-  const completeTransition = useApplicationTransitionStore(s => s.completeTransition);
+  const state = useApplicationTransitionStore((s) => s.state);
+  const setLogoFormed = useApplicationTransitionStore((s) => s.setLogoFormed);
+  const completeTransition = useApplicationTransitionStore((s) => s.completeTransition);
 
   const isHub = appKey === 'hub';
 
@@ -37,12 +37,12 @@ export function ApplicationTransitionEngine({
     return () => clearTimeout(timer);
   }, [isHub, setLogoFormed]);
 
-  const startZoom = state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
+  const startZoom =
+    state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
 
   useEffect(() => {
     if (startZoom) {
       const timer = setTimeout(() => {
-        console.warn(`[ApplicationTransitionEngine] Animation complete callback timed out. Triggering completeTransition fallback.`);
         completeTransition();
       }, 1500);
       return () => clearTimeout(timer);
@@ -50,14 +50,10 @@ export function ApplicationTransitionEngine({
     return () => {};
   }, [startZoom, completeTransition]);
 
-  const bgColor = isAmoled
-    ? '#000000'
-    : isLight
-      ? '#f8f9fa'
-      : '#0a0a0c';
+  const bgColor = isAmoled ? '#000000' : isLight ? '#f8f9fa' : '#0a0a0c';
 
   const baseColor = isLight ? '#1f2937' : '#ffffff';
-  
+
   // App Specific Colors
   const appColors: Record<AppKey, string> = {
     hub: '#3b82f6',
@@ -137,7 +133,7 @@ export function ApplicationTransitionEngine({
             {[
               { cx: 2.5, cy: 5.5, delay: 0.45 },
               { cx: 10.5, cy: 5.5, delay: 0.52 },
-              { cx: 6.5, cy: 10.5, delay: 0.60 },
+              { cx: 6.5, cy: 10.5, delay: 0.6 },
             ].map((dot, idx) => (
               <motion.circle
                 key={`dot-${idx}`}
@@ -214,7 +210,12 @@ export function ApplicationTransitionEngine({
                   fill={baseColor}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ delay: 0.3 + i * 0.05, type: 'spring', stiffness: 300, damping: 14 }}
+                  transition={{
+                    delay: 0.3 + i * 0.05,
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 14,
+                  }}
                 />
               );
             })}
@@ -390,7 +391,7 @@ export function ApplicationTransitionEngine({
               { x1: 8, y1: 1, x2: 8, y2: 5, originY: 0, delay: 0.3 },
               { x1: 8, y1: 11, x2: 8, y2: 15, originY: 1, delay: 0.35 },
               { x1: 1, y1: 8, x2: 5, y2: 8, originX: 0, delay: 0.4 },
-              { x1: 11, y1: 8, x2: 15, y2: 8, originX: 1, delay: 0.45 }
+              { x1: 11, y1: 8, x2: 15, y2: 8, originX: 1, delay: 0.45 },
             ].map((lineProps, idx) => (
               <motion.line
                 key={`line-${idx}`}

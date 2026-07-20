@@ -1,23 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  useChordStore,
-  ACCENT_COLORS,
-  useIsWebDesktop,
-  useStudioPreferences,
-  logActivity,
-  resetNav,
-  setNavHidden,
-  setNavLocked,
-  NavigationDispatcher,
-  useNavigationStore,
-  type ActivePanel,
-  navDiagnosticsRegistry,
-  type AppKey,
-  useApplicationTransitionStore,
-  ThemeTransitionEngine
-} from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useStudioPreferences, logActivity, resetNav, setNavHidden, setNavLocked, NavigationDispatcher, useNavigationStore, type ActivePanel, navDiagnosticsRegistry, type AppKey, useApplicationTransitionStore, ThemeTransitionEngine, useSettingsStore } from '@workspace/studio-core';
 
 import {
   SmartLoading,
@@ -33,19 +17,20 @@ import {
   GroovexLogo,
   VocalexLogo,
   AppEntryTransition,
-  LibraryPanel,
-  ChordPanel,
-  SettingsPanel,
-  SongsPanel,
-  DrumEditor,
-  GroovexApp,
-  VocalexApp,
-  StageCorePanel,
   ErrorBoundary,
   SharedNavigationContainer,
   ScreenScaffold,
-  ApplicationTransitionEngine
+  ApplicationTransitionEngine,
 } from '@workspace/ui-shared';
+
+const LibraryPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel })));
+const ChordPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.ChordPanel })));
+const SettingsPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel })));
+const SongsPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.SongsPanel })));
+const DrumEditor = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.DrumEditor })));
+const GroovexApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.GroovexApp })));
+const VocalexApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.VocalexApp })));
+const StageCorePanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.StageCorePanel })));
 
 import {
   WebSidebarLayout,
@@ -53,12 +38,14 @@ import {
   SidebarInset,
   useSidebar,
   WebAppSectionDock,
-  StudioLandingPage
+  StudioLandingPage,
 } from '@workspace/ui-web';
 
-import "./index.css";
+import './index.css';
 
-const StudioHub = lazy(() => import('@workspace/ui-shared').then(m => ({ default: m.StudioHub })));
+const StudioHub = lazy(() =>
+  import('@workspace/ui-shared').then((m) => ({ default: m.StudioHub }))
+);
 
 function SidebarHoverSync({ hoverShowSidebar }: { hoverShowSidebar: boolean }) {
   const { setOpen } = useSidebar();
@@ -71,16 +58,41 @@ function SidebarHoverSync({ hoverShowSidebar }: { hoverShowSidebar: boolean }) {
 type AccountState =
   | { phase: 'unknown' }
   | { phase: 'signedOut' }
-  | { phase: 'active'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } }
-  | { phase: 'pending'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }; scheduledAtMs: number }
-  | { phase: 'disabled'; user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null } };
+  | {
+      phase: 'active';
+      user: {
+        uid: string;
+        email: string | null;
+        displayName: string | null;
+        photoURL: string | null;
+      };
+    }
+  | {
+      phase: 'pending';
+      user: {
+        uid: string;
+        email: string | null;
+        displayName: string | null;
+        photoURL: string | null;
+      };
+      scheduledAtMs: number;
+    }
+  | {
+      phase: 'disabled';
+      user: {
+        uid: string;
+        email: string | null;
+        displayName: string | null;
+        photoURL: string | null;
+      };
+    };
 
 const NAV_ORDER = ['songs', 'library', 'settings'] as const;
 const ALL_PANELS = ['library', 'songs', 'settings'] as const;
 
 const AppReadyNotifier = memo(function AppReadyNotifier({
   app,
-  onReady
+  onReady,
 }: {
   app: AppKey;
   onReady: (app: AppKey) => void;
@@ -104,14 +116,15 @@ const AppReadyNotifier = memo(function AppReadyNotifier({
 });
 
 export default function App() {
-  const activePanel = useNavigationStore(s => {
+  const activePanel = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    return (last?.app === 'chords' && last.page ? last.page as ActivePanel : 'library');
+    return last?.app === 'chords' && last.page ? (last.page as ActivePanel) : 'library';
   });
   const setActivePanel = (panel: ActivePanel) => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   };
-  const { settings, activePresetId, updateSettings } = useChordStore();
+  const { activePresetId } = useChordStore();
+  const { settings, updateSettings } = useSettingsStore();
   const { preferences } = useStudioPreferences();
 
   const {
@@ -119,7 +132,7 @@ export default function App() {
     launchingApp,
     appPreloaded,
     requestTransition,
-    setAppPreloaded
+    setAppPreloaded,
   } = useApplicationTransitionStore();
 
   const splashVisible = transitionState !== 'IDLE';
@@ -127,7 +140,13 @@ export default function App() {
 
   // Global theme transition listener
   useEffect(() => {
-    (window as any).__triggerThemeTransition = (nextTheme: string, amoled: boolean, x: number, y: number, updateFn: () => void) => {
+    (window as any).__triggerThemeTransition = (
+      nextTheme: string,
+      amoled: boolean,
+      x: number,
+      y: number,
+      updateFn: () => void
+    ) => {
       ThemeTransitionEngine.startTransition({
         nextTheme,
         amoled,
@@ -157,12 +176,15 @@ export default function App() {
     }
   }, [settings.appMode, requestTransition, setAppPreloaded]);
 
-  const handleAppPreloaded = useCallback((app: AppKey) => {
-    if (useChordStore.getState().settings.appMode !== app) return;
-    setAppPreloaded(true);
-  }, [setAppPreloaded]);
+  const handleAppPreloaded = useCallback(
+    (app: AppKey) => {
+      if (useSettingsStore.getState().settings.appMode !== app) return;
+      setAppPreloaded(true);
+    },
+    [setAppPreloaded]
+  );
 
-  const routeApp = useNavigationStore(s => s.history[s.history.length - 1]?.app ?? 'hub');
+  const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);
@@ -172,19 +194,21 @@ export default function App() {
     const settingsApp = settings.appMode || 'hub';
 
     if (routeApp !== settingsApp) {
-      const routeChanged = lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
-      const settingsChanged = lastSyncedSettingsAppRef.current !== null && settingsApp !== lastSyncedSettingsAppRef.current;
+      const routeChanged =
+        lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
+      const settingsChanged =
+        lastSyncedSettingsAppRef.current !== null &&
+        settingsApp !== lastSyncedSettingsAppRef.current;
 
       if (routeChanged && !settingsChanged) {
-        console.log(`[Sync-Web] Navigation route changed: ${settingsApp} -> ${routeApp}. Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
       } else if (settingsChanged && !routeChanged) {
-        console.log(`[Sync-Web] Settings appMode changed: ${routeApp} -> ${settingsApp}. Updating navigation dispatcher.`);
         if (settingsApp === 'hub') {
           NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
         } else {
           const currentHistory = useNavigationStore.getState().history;
-          const isCurrentlySubApp = currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
+          const isCurrentlySubApp =
+            currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
           if (isCurrentlySubApp) {
             NavigationDispatcher.replace({ app: settingsApp as any });
           } else {
@@ -192,7 +216,6 @@ export default function App() {
           }
         }
       } else {
-        console.log(`[Sync-Web] Resolving sync drift: ${settingsApp} -> ${routeApp} (authoritative). Updating settings.appMode.`);
         updateSettings({ appMode: routeApp as any });
       }
     }
@@ -201,41 +224,44 @@ export default function App() {
     lastSyncedSettingsAppRef.current = settingsApp;
   }, [routeApp, settings.appMode, updateSettings]);
 
-  const returnToStudioHub = useCallback((isSwipeSuccess = false) => {
-    // 1. Close active modals/sheets/overlays
-    window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
-    window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
-    document.querySelectorAll('.modal-backdrop, .overlay').forEach(el => {
-      if (el.id !== 'update-fade-overlay') {
-        el.remove();
-      }
-    });
-    document.documentElement.classList.remove('has-modal-open');
-
-    // 2. Set transition active lock
-    (window as any).studioTransitionActive = true;
-
-    // Reset Hub's zoom/opacity animation state immediately so it starts fading in as the sub-app exits
-    window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
-
-    // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
-    updateSettings({ appMode: 'hub' });
-    NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
-    
-    // Reset nested views to defaults if rememberLastAppSection is disabled
-    if (!preferences.rememberLastAppSection) {
-      const storeState = useChordStore.getState();
-      storeState.setLastSession({
-        vocalexTab: 'coach',
-        drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
-        stagexView: storeState.settings.defaultStageView ?? 'Editor',
+  const returnToStudioHub = useCallback(
+    (isSwipeSuccess = false) => {
+      // 1. Close active modals/sheets/overlays
+      window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
+      window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
+      document.querySelectorAll('.modal-backdrop, .overlay').forEach((el) => {
+        if (el.id !== 'update-fade-overlay') {
+          el.remove();
+        }
       });
-    }
+      document.documentElement.classList.remove('has-modal-open');
 
-    setTimeout(() => {
-      (window as any).studioTransitionActive = false;
-    }, 280);
-  }, [updateSettings, preferences.rememberLastAppSection]);
+      // 2. Set transition active lock
+      (window as any).studioTransitionActive = true;
+
+      // Reset Hub's zoom/opacity animation state immediately so it starts fading in as the sub-app exits
+      window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
+
+      // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
+      updateSettings({ appMode: 'hub' });
+      NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
+
+      // Reset nested views to defaults if rememberLastAppSection is disabled
+      if (!preferences.rememberLastAppSection) {
+        const storeState = useChordStore.getState();
+        storeState.setLastSession({
+          vocalexTab: 'coach',
+          drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
+          stagexView: storeState.settings.defaultStageView ?? 'Editor',
+        });
+      }
+
+      setTimeout(() => {
+        (window as any).studioTransitionActive = false;
+      }, 280);
+    },
+    [updateSettings, preferences.rememberLastAppSection]
+  );
 
   const returnToStudioHubRef = useRef(returnToStudioHub);
   useEffect(() => {
@@ -269,10 +295,9 @@ export default function App() {
         set(val) {
           useNavigationStore.getState().setTransition(null, !!val);
         },
-        configurable: true
+        configurable: true,
       });
     } catch (e) {
-      console.warn('Failed to defineProperty studioTransitionActive', e);
     }
     return () => {
       try {
@@ -313,7 +338,7 @@ export default function App() {
     } else {
       document.documentElement.classList.add('app-route');
       document.documentElement.classList.remove('landing-route');
-      
+
       const intro = document.getElementById('intro');
       if (intro && (window as any).__introReturnedEarly) {
         intro.style.transition = 'opacity 500ms ease-out';
@@ -389,10 +414,12 @@ export default function App() {
     const initAuth = async () => {
       try {
         const { supabase } = await import('@workspace/studio-core');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const {
+          data: { session: currentSession },
+        } = await supabase.auth.getSession();
         if (!active) return;
         setSession(currentSession);
-        
+
         if (currentSession?.user) {
           const { getAccountDoc } = await import('@workspace/studio-core');
           const doc = await getAccountDoc(currentSession.user.id);
@@ -402,7 +429,7 @@ export default function App() {
             setAccountState({
               phase: 'pending',
               user: currentSession.user as any,
-              scheduledAtMs: status.scheduledAtMs || Date.now()
+              scheduledAtMs: status.scheduledAtMs || Date.now(),
             });
           } else if (status.status === 'disabled') {
             setAccountState({ phase: 'disabled', user: currentSession.user as any });
@@ -419,7 +446,9 @@ export default function App() {
     };
 
     initAuth();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const appMode = settings.appMode || 'hub';
@@ -470,15 +499,12 @@ export default function App() {
 
   useEffect(() => {
     const timestamp = new Date().toISOString();
-    console.log(`[SubApp] [${timestamp}] State Update | appMode: ${appMode}, isSubAppActive: ${isSubAppActive}, stableKey: ${stableKey}`);
     if (isSubAppActive) {
-      console.log(`[SubApp] [${timestamp}] Mount | app: ${stableKey}, activePanel: ${activePanel}`);
       return () => {
-        console.log(`[SubApp] [${new Date().toISOString()}] Unmount | app: ${stableKey}`);
         // Clean up modals, backdrops, sheets, and overlays when unmounting any sub-app
         window.dispatchEvent(new CustomEvent('studio:close-all-sheets'));
         window.dispatchEvent(new CustomEvent('studio:close-all-modals'));
-        document.querySelectorAll('.modal-backdrop, .overlay').forEach(el => {
+        document.querySelectorAll('.modal-backdrop, .overlay').forEach((el) => {
           if (el.id !== 'update-fade-overlay') {
             el.remove();
           }
@@ -496,7 +522,15 @@ export default function App() {
   return (
     <SidebarProvider>
       <SidebarHoverSync hoverShowSidebar={hoverShowSidebar} />
-      <div style={{ display: 'flex', width: '100vw', height: '100dvh', overflow: 'hidden', background: 'var(--app-bg)' }}>
+      <div
+        style={{
+          display: 'flex',
+          width: '100vw',
+          height: '100dvh',
+          overflow: 'hidden',
+          background: 'var(--app-bg)',
+        }}
+      >
         {isWebDesktop && (
           <div
             onMouseEnter={handleSidebarMouseEnter}
@@ -506,7 +540,7 @@ export default function App() {
             <WebSidebarLayout shouldHideSidebar={shouldHideSidebar} />
           </div>
         )}
-        
+
         <SidebarInset>
           {isWebDesktop && !hoverShowSidebar && (
             <div
@@ -556,88 +590,160 @@ export default function App() {
                 }}
               >
                 {stableKey === 'groovex' && (
-                  <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <div
+                    className="app-sub-app-container"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                    }}
+                  >
                     <ErrorBoundary moduleName="Groovex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<GroovexAppSkeleton />} />}>
+                      <Suspense
+                        fallback={<SmartLoading fallbackSkeleton={<GroovexAppSkeleton />} />}
+                      >
                         <AppReadyNotifier app="groovex" onReady={handleAppPreloaded} />
-                        <AppEntryTransition><GroovexApp /></AppEntryTransition>
+                        <AppEntryTransition>
+                          <GroovexApp />
+                        </AppEntryTransition>
                       </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
 
                 {stableKey === 'vocalex' && (
-                  <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <div
+                    className="app-sub-app-container"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                    }}
+                  >
                     <ErrorBoundary moduleName="Vocalex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<VocalexTakesSkeleton />} />}>
+                      <Suspense
+                        fallback={<SmartLoading fallbackSkeleton={<VocalexTakesSkeleton />} />}
+                      >
                         <AppReadyNotifier app="vocalex" onReady={handleAppPreloaded} />
-                        <AppEntryTransition><VocalexApp /></AppEntryTransition>
+                        <AppEntryTransition>
+                          <VocalexApp />
+                        </AppEntryTransition>
                       </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
 
                 {stableKey === 'stage' && (
-                  <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <div
+                    className="app-sub-app-container"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                    }}
+                  >
                     <ErrorBoundary moduleName="Stagex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<StagexPanelSkeleton />} />}>
+                      <Suspense
+                        fallback={<SmartLoading fallbackSkeleton={<StagexPanelSkeleton />} />}
+                      >
                         <AppReadyNotifier app="stage" onReady={handleAppPreloaded} />
-                        <AppEntryTransition><StageCorePanel /></AppEntryTransition>
+                        <AppEntryTransition>
+                          <StageCorePanel />
+                        </AppEntryTransition>
                       </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
 
                 {stableKey === 'drums' && (
-                  <div className="app-sub-app-container" style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <div
+                    className="app-sub-app-container"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                    }}
+                  >
                     <ErrorBoundary moduleName="Drumex">
-                      <Suspense fallback={<SmartLoading fallbackSkeleton={<DrumEditorSkeleton />} />}>
+                      <Suspense
+                        fallback={<SmartLoading fallbackSkeleton={<DrumEditorSkeleton />} />}
+                      >
                         <AppReadyNotifier app="drums" onReady={handleAppPreloaded} />
-                        <AppEntryTransition><DrumEditor /></AppEntryTransition>
+                        <AppEntryTransition>
+                          <DrumEditor />
+                        </AppEntryTransition>
                       </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
 
                 {stableKey === 'chords' && (
-                  <div className="app-sub-app-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden', userSelect: 'none', background: 'var(--app-bg)' }}>
-                    <ScreenScaffold safeAreaTop={!isWebDesktop} safeAreaBottom={false} className="app-bg">
+                  <div
+                    className="app-sub-app-container"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                      userSelect: 'none',
+                      background: 'var(--app-bg)',
+                    }}
+                  >
+                    <ScreenScaffold
+                      safeAreaTop={!isWebDesktop}
+                      safeAreaBottom={false}
+                      className="app-bg"
+                    >
                       <AppReadyNotifier app="chords" onReady={handleAppPreloaded} />
                       <AppEntryTransition
                         className="flex flex-col w-full overflow-hidden select-none"
-                        style={{
-                          position: 'relative',
-                          height: '100%',
-                        } as React.CSSProperties}
+                        style={
+                          {
+                            position: 'relative',
+                            height: '100%',
+                          } as React.CSSProperties
+                        }
                       >
-                        <div 
-                          style={{ 
-                            display: 'flex', 
-                            flexDirection: (isWebDesktop && isLargeDesktop) ? 'row' : 'column', 
-                            flex: 1, 
-                            width: '100%', 
-                            height: '100%', 
-                            overflow: 'hidden' 
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: isWebDesktop && isLargeDesktop ? 'row' : 'column',
+                            flex: 1,
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden',
                           }}
                         >
                           {isWebDesktop && (
-                            <WebAppSectionDock 
-                              app="chords" 
-                              activeSection={cachedPanel} 
-                              onChangeSection={setActivePanel} 
+                            <WebAppSectionDock
+                              app="chords"
+                              activeSection={cachedPanel}
+                              onChangeSection={setActivePanel}
                             />
                           )}
-                          <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
+                          <div
+                            className="flex-1 overflow-hidden relative"
+                            style={{ contain: 'strict' }}
+                          >
                             <ErrorBoundary moduleName="Chordex">
-                              <Suspense fallback={<SmartLoading fallbackSkeleton={<ChordexPanelSkeleton />} />}>
+                              <Suspense
+                                fallback={
+                                  <SmartLoading fallbackSkeleton={<ChordexPanelSkeleton />} />
+                                }
+                              >
                                 <SharedNavigationContainer
                                   activeView={cachedPanel}
                                   viewOrder={ALL_PANELS}
                                 >
                                   {(panel) => (
                                     <>
-                                      {panel === 'library'  && <LibraryPanel />}
-                                      {panel === 'songs'    && <SongsPanel />}
+                                      {panel === 'library' && <LibraryPanel />}
+                                      {panel === 'songs' && <SongsPanel />}
                                       {panel === 'settings' && <SettingsPanel />}
                                     </>
                                   )}
@@ -662,7 +768,12 @@ export default function App() {
             appKey={launchingApp}
             preloaded={appPreloaded}
             onComplete={() => {}}
-            isLight={settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches)}
+            isLight={
+              settings.theme === 'light' ||
+              (settings.theme === 'system' &&
+                typeof window !== 'undefined' &&
+                window.matchMedia('(prefers-color-scheme: light)').matches)
+            }
             isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
           />
         )}

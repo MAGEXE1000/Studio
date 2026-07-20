@@ -53,7 +53,9 @@ for (const file of EXPECTED_FILES) {
     const content = readFileSync(fullPath, 'utf-8');
     const lines = content.split('\n').length;
     const sizeKB = (Buffer.byteLength(content, 'utf-8') / 1024).toFixed(1);
-    console.log(`  ✅ ${file.padEnd(28)} ${lines.toString().padStart(4)} lines  ${sizeKB.padStart(6)} KB`);
+    console.log(
+      `  ✅ ${file.padEnd(28)} ${lines.toString().padStart(4)} lines  ${sizeKB.padStart(6)} KB`
+    );
   } else {
     console.log(`  ❌ ${file} — MISSING`);
     errors++;
@@ -63,9 +65,7 @@ console.log();
 
 // 2. Check for unexpected files
 console.log('─── Checking for unexpected files ───');
-const actualFiles = readdirSync(DOCS_DIR).filter(
-  (f) => f.endsWith('.md') && !f.startsWith('.')
-);
+const actualFiles = readdirSync(DOCS_DIR).filter((f) => f.endsWith('.md') && !f.startsWith('.'));
 const unexpected = actualFiles.filter((f) => !EXPECTED_FILES.includes(f));
 if (unexpected.length === 0) {
   console.log('  ✅ No unexpected .md files found');

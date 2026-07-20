@@ -28,18 +28,18 @@ Studio/
 
 ## Workspace Packages
 
-| Package | Name | Version | Role |
-|---------|------|---------|------|
-| `apps/studio-android` | `@workspace/studio-android` | 4.0.84 | Android Capacitor shell |
-| `apps/studio-web` | `@workspace/studio-web` | 4.0.84 | Web SPA shell |
-| `packages/studio-core` | `@workspace/studio-core` | 4.0.83 | Business logic & state |
-| `packages/ui-shared` | `@workspace/ui-shared` | 4.0.83 | Shared React components |
-| `packages/ui-android` | `@workspace/ui-android` | 4.0.83 | Android UI wrapper |
-| `packages/ui-web` | `@workspace/ui-web` | 4.0.83 | Web UI wrapper |
-| `lib/api-spec` | — | — | OpenAPI specification |
-| `lib/api-zod` | — | — | Generated Zod schemas |
-| `lib/api-client-react` | — | — | Generated React Query hooks |
-| `lib/db` | — | — | Drizzle ORM layer |
+| Package                | Name                        | Version | Role                        |
+| ---------------------- | --------------------------- | ------- | --------------------------- |
+| `apps/studio-android`  | `@workspace/studio-android` | 4.0.84  | Android Capacitor shell     |
+| `apps/studio-web`      | `@workspace/studio-web`     | 4.0.84  | Web SPA shell               |
+| `packages/studio-core` | `@workspace/studio-core`    | 4.0.83  | Business logic & state      |
+| `packages/ui-shared`   | `@workspace/ui-shared`      | 4.0.83  | Shared React components     |
+| `packages/ui-android`  | `@workspace/ui-android`     | 4.0.83  | Android UI wrapper          |
+| `packages/ui-web`      | `@workspace/ui-web`         | 4.0.83  | Web UI wrapper              |
+| `lib/api-spec`         | —                           | —       | OpenAPI specification       |
+| `lib/api-zod`          | —                           | —       | Generated Zod schemas       |
+| `lib/api-client-react` | —                           | —       | Generated React Query hooks |
+| `lib/db`               | —                           | —       | Drizzle ORM layer           |
 
 ## Dependency Flow
 
@@ -63,6 +63,7 @@ graph TD
 ```
 
 **Strict rules enforced by CI:**
+
 - Web app **cannot** import `ui-android`
 - Android app **cannot** import `ui-web`
 - `studio-core` **cannot** import from any UI package
@@ -150,6 +151,7 @@ The Web entry point (30 lines) is minimal:
 ## Capacitor Integration
 
 **Configuration** (`apps/studio-android/capacitor.config.ts`):
+
 - `appId`: `com.chordex.app`
 - `appName`: `Studio`
 - `webDir`: `../../dist/android-web`
@@ -158,23 +160,24 @@ The Web entry point (30 lines) is minimal:
 
 ## Key Technology Stack
 
-| Category | Technology | Version |
-|----------|-----------|---------|
-| Language | TypeScript | ~5.7.2 |
-| UI Framework | React | 19.2.7 |
-| Bundler | Vite | 8.1.4 |
-| State Management | Zustand | 5.0.14 |
-| Animation | Framer Motion (`motion`) | 12.42.2 |
-| Styling | Tailwind CSS | 4.3.2 |
-| Native Shell | Capacitor | 8.4.1 |
-| Backend (Auth) | Firebase | 12.16.0 |
-| Backend (Data) | Supabase JS | 2.110.2 |
-| Internationalization | i18next + Tolgee | — |
-| Package Manager | pnpm | catalog-based |
+| Category             | Technology               | Version       |
+| -------------------- | ------------------------ | ------------- |
+| Language             | TypeScript               | ~5.7.2        |
+| UI Framework         | React                    | 19.2.7        |
+| Bundler              | Vite                     | 8.1.4         |
+| State Management     | Zustand                  | 5.0.14        |
+| Animation            | Framer Motion (`motion`) | 12.42.2       |
+| Styling              | Tailwind CSS             | 4.3.2         |
+| Native Shell         | Capacitor                | 8.4.1         |
+| Backend (Auth)       | Firebase                 | 12.16.0       |
+| Backend (Data)       | Supabase JS              | 2.110.2       |
+| Internationalization | i18next + Tolgee         | —             |
+| Package Manager      | pnpm                     | catalog-based |
 
 ## TypeScript Configuration
 
 Shared via `tsconfig.base.json`:
+
 - `target`: ES2022, `module`: ESNext, `moduleResolution`: bundler
 - `strictNullChecks`: true, `alwaysStrict`: true
 - `strictFunctionTypes`: false, `noImplicitAny`: false (relaxed)

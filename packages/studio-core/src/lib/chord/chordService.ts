@@ -6,16 +6,16 @@ import { Capacitor, CapacitorHttp } from '@capacitor/core';
 
 export interface NormalizedChordMarker {
   chord: string;
-  offset: number;          // character offset in lyrics line
-  timestamp?: number;      // absolute start time in ms
+  offset: number; // character offset in lyrics line
+  timestamp?: number; // absolute start time in ms
 }
 
 export interface NormalizedLyricsLine {
   lyrics: string;
   chords: NormalizedChordMarker[];
   lineIndex: number;
-  timestamp?: number;      // start time in ms
-  duration?: number;       // duration in ms
+  timestamp?: number; // start time in ms
+  duration?: number; // duration in ms
 }
 
 export interface NormalizedSection {
@@ -31,9 +31,9 @@ export interface NormalizedChordChart {
   capo?: number;
   tuning?: string;
   sections: NormalizedSection[];
-  source: string;          // e.g. 'builtin', 'user', 'lrclib'
+  source: string; // e.g. 'builtin', 'user', 'lrclib'
   licenseInfo?: string;
-  confidence: number;      // 0.0 to 1.0
+  confidence: number; // 0.0 to 1.0
   chartStatus: 'verified' | 'user' | 'provider' | 'unavailable';
   importDiagnostics?: string[];
 }
@@ -60,19 +60,19 @@ export class BuiltInChordProvider implements ChordChartProvider {
     if (!sections) return null;
 
     let lineCounter = 0;
-    const normalizedSections: NormalizedSection[] = sections.map(sec => ({
+    const normalizedSections: NormalizedSection[] = sections.map((sec) => ({
       name: sec.name,
-      lines: sec.lines.map(line => ({
+      lines: sec.lines.map((line) => ({
         lyrics: line.lyrics,
         lineIndex: lineCounter++,
         timestamp: line.timestamp,
         duration: line.duration,
-        chords: (line.chords || []).map(c => ({
+        chords: (line.chords || []).map((c) => ({
           chord: c.chord,
           offset: c.offset,
-          timestamp: c.timestamp
-        }))
-      }))
+          timestamp: c.timestamp,
+        })),
+      })),
     }));
 
     return {
@@ -85,7 +85,7 @@ export class BuiltInChordProvider implements ChordChartProvider {
       source: this.id,
       licenseInfo: this.licenseInfo,
       confidence: 1.0,
-      chartStatus: 'verified'
+      chartStatus: 'verified',
     };
   }
 }
@@ -105,19 +105,19 @@ export class UserImportedChordProvider implements ChordChartProvider {
     try {
       const parsedSections: SongChartSection[] = JSON.parse(saved);
       let lineCounter = 0;
-      const normalizedSections: NormalizedSection[] = parsedSections.map(sec => ({
+      const normalizedSections: NormalizedSection[] = parsedSections.map((sec) => ({
         name: sec.name,
-        lines: sec.lines.map(line => ({
+        lines: sec.lines.map((line) => ({
           lyrics: line.lyrics,
           lineIndex: lineCounter++,
           timestamp: line.timestamp,
           duration: line.duration,
-          chords: (line.chords || []).map(c => ({
+          chords: (line.chords || []).map((c) => ({
             chord: c.chord,
             offset: c.offset,
-            timestamp: c.timestamp
-          }))
-        }))
+            timestamp: c.timestamp,
+          })),
+        })),
       }));
 
       return {
@@ -130,7 +130,7 @@ export class UserImportedChordProvider implements ChordChartProvider {
         source: this.id,
         licenseInfo: this.licenseInfo,
         confidence: 1.0,
-        chartStatus: 'user'
+        chartStatus: 'user',
       };
     } catch (_) {
       return null;
@@ -147,14 +147,14 @@ function mapLyricsResultToSections(result: LyricsResult): NormalizedSection[] {
       chords: [],
       lineIndex: lineCounter++,
       timestamp: line.timestamp,
-      duration: line.duration
+      duration: line.duration,
     }));
     return [{ name: 'Lyrics (Synced)', lines }];
   } else if (result.plainLyrics) {
     const lines = result.plainLyrics.split('\n').map((lineText: string) => ({
       lyrics: lineText.trim() || ' ',
       chords: [],
-      lineIndex: lineCounter++
+      lineIndex: lineCounter++,
     }));
     return [{ name: 'Lyrics', lines }];
   }
@@ -186,10 +186,10 @@ export class OpenChordChartsProvider implements ChordChartProvider {
   async searchChart(song: SongChart): Promise<NormalizedChordChart | null> {
     const enabledProviders = ['lrclib'];
     const preferSynced = true;
-    
+
     const result = await fetchLyricsOnline(song.title, song.artist, {
       preferSynced,
-      enabledProviders
+      enabledProviders,
     });
 
     if (!result) return null;
@@ -205,7 +205,7 @@ export class OpenChordChartsProvider implements ChordChartProvider {
       source: result.provider,
       licenseInfo: this.licenseInfo,
       confidence: result.confidence,
-      chartStatus: 'unavailable' // No chords in LRCLIB lyrics, marks as unavailable
+      chartStatus: 'unavailable', // No chords in LRCLIB lyrics, marks as unavailable
     };
   }
 }
@@ -215,7 +215,7 @@ export const CHORD_PROVIDERS: ChordChartProvider[] = [
   new UserImportedChordProvider(),
   new BuiltInChordProvider(),
   new OpenChordProApiProvider(),
-  new OpenChordChartsProvider()
+  new OpenChordChartsProvider(),
 ];
 
 // Clean a chord name to look up in the library
@@ -230,7 +230,7 @@ export function validateChord(chordName: string): boolean {
   try {
     let found = getChordByName(clean);
     if (found) return true;
-    
+
     // Fallback for slash chords: validate base chord
     const slashIdx = clean.indexOf('/');
     if (slashIdx !== -1) {
@@ -243,7 +243,10 @@ export function validateChord(chordName: string): boolean {
 }
 
 // Coordinates the provider search strategy, validates and caches results
-export async function getChordChart(song: SongChart, forceRefresh = false): Promise<NormalizedChordChart | null> {
+export async function getChordChart(
+  song: SongChart,
+  forceRefresh = false
+): Promise<NormalizedChordChart | null> {
   // 1. Check User-Imported Provider first (highest priority)
   const userProvider = new UserImportedChordProvider();
   const userChart = await userProvider.searchChart(song);
@@ -302,12 +305,11 @@ export async function getChordChart(song: SongChart, forceRefresh = false): Prom
 
 // Helper to sanitize and validate chord names in a chart
 function validateChartChords(chart: NormalizedChordChart): void {
-  chart.sections.forEach(sec => {
-    sec.lines.forEach(line => {
-      line.chords.forEach(c => {
+  chart.sections.forEach((sec) => {
+    sec.lines.forEach((line) => {
+      line.chords.forEach((c) => {
         c.chord = c.chord.trim();
         if (!validateChord(c.chord)) {
-          console.warn(`[ChordService] Invalid/Unknown chord: ${c.chord} in song ${chart.title}`);
         }
       });
     });
@@ -332,8 +334,9 @@ async function fetchHtmlContent(url: string): Promise<string> {
       const response = await CapacitorHttp.get({
         url,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
-        }
+          'User-Agent':
+            'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+        },
       });
       return response.data;
     } catch (err: any) {
@@ -342,8 +345,9 @@ async function fetchHtmlContent(url: string): Promise<string> {
   } else {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
     });
     if (!response.ok) {
       throw new Error(`HTTP fetch failed with status ${response.status}`);
@@ -362,7 +366,9 @@ function decodeHtmlEntities(str: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
   decoded = decoded.replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(Number(dec)));
-  decoded = decoded.replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
+  decoded = decoded.replace(/&#x([0-9a-fA-F]+);/g, (match, hex) =>
+    String.fromCharCode(parseInt(hex, 16))
+  );
   return decoded;
 }
 
@@ -388,7 +394,7 @@ function parseCifraClubChordsFromLine(lineText: string): NormalizedChordMarker[]
     if (inTag) {
       continue;
     }
-    
+
     if (i >= 3 && lineText.substring(i - 3, i) === '<b>') {
       let chordText = '';
       let j = i;
@@ -400,7 +406,7 @@ function parseCifraClubChordsFromLine(lineText: string): NormalizedChordMarker[]
       const normalizedChord = normalizeChordName(parsedChord);
       chords.push({
         chord: normalizedChord || parsedChord,
-        offset: visualIndex
+        offset: visualIndex,
       });
       i = j - 1;
       visualIndex += chordText.length;
@@ -437,7 +443,7 @@ function parseCifraStyleHtml(
 
   for (let i = 0; i < rawLines.length; i++) {
     const lineText = rawLines[i];
-    
+
     const sectionMatch = lineText.match(/^\[([^\]]+)\]/);
     if (sectionMatch) {
       if (currentSection.lines.length > 0) {
@@ -460,14 +466,15 @@ function parseCifraStyleHtml(
     const hasBoldChords = lineText.includes('<b>');
     if (hasBoldChords) {
       const nextLineText = rawLines[i + 1] !== undefined ? rawLines[i + 1] : '';
-      const isNextLineSectionOrChords = nextLineText.match(/^\[([^\]]+)\]/) || nextLineText.includes('<b>');
-      
+      const isNextLineSectionOrChords =
+        nextLineText.match(/^\[([^\]]+)\]/) || nextLineText.includes('<b>');
+
       if (isNextLineSectionOrChords || nextLineText.trim() === '') {
         const chords = parseCifraClubChordsFromLine(lineText);
         currentSection.lines.push({
           lyrics: ' ',
           chords,
-          lineIndex: lineCounter++
+          lineIndex: lineCounter++,
         });
       } else {
         const chords = parseCifraClubChordsFromLine(lineText);
@@ -475,17 +482,24 @@ function parseCifraStyleHtml(
         currentSection.lines.push({
           lyrics: cleanLyrics || ' ',
           chords,
-          lineIndex: lineCounter++
+          lineIndex: lineCounter++,
         });
         i++;
       }
     } else {
       const cleanLyrics = decodeHtmlEntities(lineText.replace(/<[^>]*>/g, '').trim());
-      if (cleanLyrics && !cleanLyrics.startsWith('E|') && !cleanLyrics.startsWith('B|') && !cleanLyrics.startsWith('G|') && !cleanLyrics.startsWith('D|') && !cleanLyrics.startsWith('A|')) {
+      if (
+        cleanLyrics &&
+        !cleanLyrics.startsWith('E|') &&
+        !cleanLyrics.startsWith('B|') &&
+        !cleanLyrics.startsWith('G|') &&
+        !cleanLyrics.startsWith('D|') &&
+        !cleanLyrics.startsWith('A|')
+      ) {
         currentSection.lines.push({
           lyrics: cleanLyrics,
           chords: [],
-          lineIndex: lineCounter++
+          lineIndex: lineCounter++,
         });
       }
     }
@@ -506,21 +520,26 @@ function parseCifraStyleHtml(
     licenseInfo,
     confidence: 0.95,
     chartStatus: 'user',
-    importDiagnostics
+    importDiagnostics,
   };
 }
 
 export class CifraClubImporter implements ChartUrlImporter {
   id = 'cifraclub';
   name = 'Cifra Club';
-  supportedHosts = ['cifraclub.com.br', 'www.cifraclub.com.br', 'cifraclub.com', 'www.cifraclub.com'];
+  supportedHosts = [
+    'cifraclub.com.br',
+    'www.cifraclub.com.br',
+    'cifraclub.com',
+    'www.cifraclub.com',
+  ];
   supportStatus = 'supported' as const;
   supportDescription = 'Full chord-over-lyrics import';
 
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return this.supportedHosts.some(h => hostname === h || hostname.endsWith('.' + h));
+      return this.supportedHosts.some((h) => hostname === h || hostname.endsWith('.' + h));
     } catch (_) {
       return false;
     }
@@ -528,27 +547,35 @@ export class CifraClubImporter implements ChartUrlImporter {
 
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
     const html = await fetchHtmlContent(url);
-    
+
     let title = song.title;
-    const titleMatch = html.match(/<h1 class="t1">([\s\S]+?)<\/h1>/) || html.match(/<title>([\s\S]+?) - Cifra Club<\/title>/);
+    const titleMatch =
+      html.match(/<h1 class="t1">([\s\S]+?)<\/h1>/) ||
+      html.match(/<title>([\s\S]+?) - Cifra Club<\/title>/);
     if (titleMatch) {
       title = decodeHtmlEntities(titleMatch[1].split(' - ')[0].trim());
     }
 
     let artist = song.artist;
-    const artistMatch = html.match(/<a class="t3"[\s\S]*?>([\s\S]+?)<\/a>/) || html.match(/<title>[\s\S]+? - ([\s\S]+?) - Cifra Club<\/title>/);
+    const artistMatch =
+      html.match(/<a class="t3"[\s\S]*?>([\s\S]+?)<\/a>/) ||
+      html.match(/<title>[\s\S]+? - ([\s\S]+?) - Cifra Club<\/title>/);
     if (artistMatch) {
       artist = decodeHtmlEntities(artistMatch[1].trim());
     }
 
     let key = song.key || 'C';
-    const keyMatch = html.match(/Tom:\s*<b>([^<]+)<\/b>/) || html.match(/id="cifra_tom"[\s\S]*?>[\s\S]*?<b>([^<]+)<\/b>/);
+    const keyMatch =
+      html.match(/Tom:\s*<b>([^<]+)<\/b>/) ||
+      html.match(/id="cifra_tom"[\s\S]*?>[\s\S]*?<b>([^<]+)<\/b>/);
     if (keyMatch) {
       key = keyMatch[1].trim();
     }
 
     let capo: number | undefined = undefined;
-    const capoMatch = html.match(/Capo:\s*<b>(?:sem|no|na)?\s*(\d+)/i) || html.match(/class="cifra-capo"[\s\S]*?>[\s\S]*?<b>([^<]+)<\/b>/);
+    const capoMatch =
+      html.match(/Capo:\s*<b>(?:sem|no|na)?\s*(\d+)/i) ||
+      html.match(/class="cifra-capo"[\s\S]*?>[\s\S]*?<b>([^<]+)<\/b>/);
     if (capoMatch) {
       const parsed = parseInt(capoMatch[1] || capoMatch[2] || '', 10);
       if (!isNaN(parsed)) capo = parsed;
@@ -563,7 +590,11 @@ export class CifraClubImporter implements ChartUrlImporter {
       let match;
       while ((match = contentRegex.exec(html)) !== null) {
         const escapedVal = match[1];
-        if (escapedVal.includes('[Intro]') || escapedVal.includes('Parte') || escapedVal.includes('\\u003cb\\u003e')) {
+        if (
+          escapedVal.includes('[Intro]') ||
+          escapedVal.includes('Parte') ||
+          escapedVal.includes('\\u003cb\\u003e')
+        ) {
           try {
             preContent = JSON.parse('"' + escapedVal + '"');
             importDiagnostics.push('Succeeded using Strategy: Cifra Club Apollo State JSON');
@@ -576,16 +607,22 @@ export class CifraClubImporter implements ChartUrlImporter {
               .replace(/\\u003c/g, '<')
               .replace(/\\u003e/g, '>')
               .replace(/\\u003d/g, '=');
-            importDiagnostics.push('Succeeded using Strategy: Cifra Club Apollo State JSON (Manual Decode)');
+            importDiagnostics.push(
+              'Succeeded using Strategy: Cifra Club Apollo State JSON (Manual Decode)'
+            );
             break;
           }
         }
       }
       if (!preContent) {
-        importDiagnostics.push('Failed Strategy: Cifra Club Apollo State JSON (Target content not found in state)');
+        importDiagnostics.push(
+          'Failed Strategy: Cifra Club Apollo State JSON (Target content not found in state)'
+        );
       }
     } catch (e: any) {
-      importDiagnostics.push(`Failed Strategy: Cifra Club Apollo State JSON (Error: ${e.message || e})`);
+      importDiagnostics.push(
+        `Failed Strategy: Cifra Club Apollo State JSON (Error: ${e.message || e})`
+      );
     }
 
     // Strategy 2: Resilient Pre Tag
@@ -596,10 +633,14 @@ export class CifraClubImporter implements ChartUrlImporter {
           preContent = preMatch[1];
           importDiagnostics.push('Succeeded using Strategy: Cifra Club Resilient Pre Tag');
         } else {
-          importDiagnostics.push('Failed Strategy: Cifra Club Resilient Pre Tag (No pre tag matches found)');
+          importDiagnostics.push(
+            'Failed Strategy: Cifra Club Resilient Pre Tag (No pre tag matches found)'
+          );
         }
       } catch (e: any) {
-        importDiagnostics.push(`Failed Strategy: Cifra Club Resilient Pre Tag (Error: ${e.message || e})`);
+        importDiagnostics.push(
+          `Failed Strategy: Cifra Club Resilient Pre Tag (Error: ${e.message || e})`
+        );
       }
     }
 
@@ -611,7 +652,9 @@ export class CifraClubImporter implements ChartUrlImporter {
           preContent = divMatch[1];
           importDiagnostics.push('Succeeded using Strategy: Cifra Container Div');
         } else {
-          importDiagnostics.push('Failed Strategy: Cifra Container Div (No cifra_cnt class containing bold tags found)');
+          importDiagnostics.push(
+            'Failed Strategy: Cifra Container Div (No cifra_cnt class containing bold tags found)'
+          );
         }
       } catch (e: any) {
         importDiagnostics.push(`Failed Strategy: Cifra Container Div (Error: ${e.message || e})`);
@@ -619,11 +662,23 @@ export class CifraClubImporter implements ChartUrlImporter {
     }
 
     if (!preContent) {
-      const errorMsg = 'Failed to extract chords and lyrics from Cifra Club page. Tried multiple extraction strategies:\n' + importDiagnostics.join('\n');
+      const errorMsg =
+        'Failed to extract chords and lyrics from Cifra Club page. Tried multiple extraction strategies:\n' +
+        importDiagnostics.join('\n');
       throw new Error(errorMsg);
     }
-    
-    return parseCifraStyleHtml(preContent, song, 'cifraclub', 'User-imported from Cifra Club', importDiagnostics, title, artist, key, capo);
+
+    return parseCifraStyleHtml(
+      preContent,
+      song,
+      'cifraclub',
+      'User-imported from Cifra Club',
+      importDiagnostics,
+      title,
+      artist,
+      key,
+      capo
+    );
   }
 }
 
@@ -637,7 +692,7 @@ export class EChordsImporter implements ChartUrlImporter {
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return this.supportedHosts.some(h => hostname === h || hostname.endsWith('.' + h));
+      return this.supportedHosts.some((h) => hostname === h || hostname.endsWith('.' + h));
     } catch (_) {
       return false;
     }
@@ -646,9 +701,10 @@ export class EChordsImporter implements ChartUrlImporter {
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
     const html = await fetchHtmlContent(url);
     const importDiagnostics: string[] = ['Detected E-Chords URL'];
-    
+
     let title = song.title;
-    const titleMatch = html.match(/<h1>([\s\S]+?)<\/h1>/i) || html.match(/<title>([\s\S]+?)<\/title>/i);
+    const titleMatch =
+      html.match(/<h1>([\s\S]+?)<\/h1>/i) || html.match(/<title>([\s\S]+?)<\/title>/i);
     if (titleMatch) {
       title = decodeHtmlEntities(titleMatch[1].split(' chords')[0].split(' Chords')[0].trim());
     }
@@ -660,20 +716,22 @@ export class EChordsImporter implements ChartUrlImporter {
     }
 
     let key = song.key || 'C';
-    const keyMatch = html.match(/Key:\s*<span[^>]*>([^<]+)<\/span>/i) || html.match(/Tom:\s*<span[^>]*>([^<]+)<\/span>/i);
+    const keyMatch =
+      html.match(/Key:\s*<span[^>]*>([^<]+)<\/span>/i) ||
+      html.match(/Tom:\s*<span[^>]*>([^<]+)<\/span>/i);
     if (keyMatch) {
       key = keyMatch[1].trim();
     }
 
     let preContent = '';
-    
+
     // Strategy 1: Find <pre id="core">
     const preCoreMatch = html.match(/<pre[^>]*id="core"[^>]*>([\s\S]+?)<\/pre>/i);
     if (preCoreMatch) {
       preContent = preCoreMatch[1];
       importDiagnostics.push('Succeeded using Strategy: E-Chords Pre Core');
     }
-    
+
     // Strategy 2: Fall back to standard pre tags
     if (!preContent) {
       const preMatch = html.match(/<pre[^>]*>([\s\S]+?)<\/pre>/i);
@@ -682,16 +740,27 @@ export class EChordsImporter implements ChartUrlImporter {
         importDiagnostics.push('Succeeded using Strategy: Generic Pre Tag');
       }
     }
-    
+
     if (!preContent) {
-      throw new Error('E-Chords page loaded, but no preformatted chords block was found. Try copying and pasting manually.');
+      throw new Error(
+        'E-Chords page loaded, but no preformatted chords block was found. Try copying and pasting manually.'
+      );
     }
-    
+
     let normalizedContent = preContent
       .replace(/<u>([\s\S]+?)<\/u>/gi, '<b>$1</b>')
       .replace(/<span>([\s\S]+?)<\/span>/gi, '<b>$1</b>');
-      
-    return parseCifraStyleHtml(normalizedContent, song, 'echords', 'User-imported from E-Chords', importDiagnostics, title, artist, key);
+
+    return parseCifraStyleHtml(
+      normalizedContent,
+      song,
+      'echords',
+      'User-imported from E-Chords',
+      importDiagnostics,
+      title,
+      artist,
+      key
+    );
   }
 }
 
@@ -748,18 +817,20 @@ export class SongsterrImporter implements ChartUrlImporter {
   supportedHosts = ['songsterr.com', 'www.songsterr.com'];
   supportStatus = 'limited' as const;
   supportDescription = 'Tab/progression only, no lyric-aligned import';
-  
+
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return this.supportedHosts.some(h => hostname === h || hostname.endsWith('.' + h));
+      return this.supportedHosts.some((h) => hostname === h || hostname.endsWith('.' + h));
     } catch (_) {
       return false;
     }
   }
 
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
-    throw new Error('Songsterr does not provide lyric-aligned chord sheets for this page. It is a tab and playback tracking site. Please try a manual paste or another source.');
+    throw new Error(
+      'Songsterr does not provide lyric-aligned chord sheets for this page. It is a tab and playback tracking site. Please try a manual paste or another source.'
+    );
   }
 }
 
@@ -769,18 +840,20 @@ export class ChordifyImporter implements ChartUrlImporter {
   supportedHosts = ['chordify.net', 'www.chordify.net'];
   supportStatus = 'limited' as const;
   supportDescription = 'Progression-grid only, no lyric-aligned import';
-  
+
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return this.supportedHosts.some(h => hostname === h || hostname.endsWith('.' + h));
+      return this.supportedHosts.some((h) => hostname === h || hostname.endsWith('.' + h));
     } catch (_) {
       return false;
     }
   }
 
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
-    throw new Error('Chordify is a progression-grid only site. It does not provide lyric-aligned chord sheets. Please try a manual paste or another source.');
+    throw new Error(
+      'Chordify is a progression-grid only site. It does not provide lyric-aligned chord sheets. Please try a manual paste or another source.'
+    );
   }
 }
 
@@ -790,18 +863,20 @@ export class ChordUImporter implements ChartUrlImporter {
   supportedHosts = ['chordu.com', 'www.chordu.com'];
   supportStatus = 'limited' as const;
   supportDescription = 'Progression-grid only, no lyric-aligned import';
-  
+
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return this.supportedHosts.some(h => hostname === h || hostname.endsWith('.' + h));
+      return this.supportedHosts.some((h) => hostname === h || hostname.endsWith('.' + h));
     } catch (_) {
       return false;
     }
   }
 
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
-    throw new Error('ChordU is a progression-grid only site. It does not provide lyric-aligned chord sheets. Please try a manual paste or another source.');
+    throw new Error(
+      'ChordU is a progression-grid only site. It does not provide lyric-aligned chord sheets. Please try a manual paste or another source.'
+    );
   }
 }
 
@@ -811,18 +886,20 @@ export class UltimateGuitarImporter implements ChartUrlImporter {
   supportedHosts = ['ultimate-guitar.com', 'www.ultimate-guitar.com'];
   supportStatus = 'blocked' as const;
   supportDescription = 'Often blocked by Cloudflare anti-bot protection';
-  
+
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return this.supportedHosts.some(h => hostname === h || hostname.endsWith('.' + h));
+      return this.supportedHosts.some((h) => hostname === h || hostname.endsWith('.' + h));
     } catch (_) {
       return false;
     }
   }
 
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
-    throw new Error('Ultimate Guitar is currently blocked for direct import due to Cloudflare anti-bot protection. Please open the page in your browser, copy the chart, and use Paste Manually.');
+    throw new Error(
+      'Ultimate Guitar is currently blocked for direct import due to Cloudflare anti-bot protection. Please open the page in your browser, copy the chart, and use Paste Manually.'
+    );
   }
 }
 
@@ -832,18 +909,24 @@ export class GuitarTunaImporter implements ChartUrlImporter {
   supportedHosts = ['guitartuna.com', 'www.guitartuna.com'];
   supportStatus = 'unsupported' as const;
   supportDescription = 'No public chart importer available';
-  
+
   canHandle(url: string): boolean {
     try {
       const hostname = new URL(url).hostname.toLowerCase();
-      return hostname === 'guitartuna.com' || hostname.endsWith('.guitartuna.com') || url.includes('guitartuna');
+      return (
+        hostname === 'guitartuna.com' ||
+        hostname.endsWith('.guitartuna.com') ||
+        url.includes('guitartuna')
+      );
     } catch (_) {
       return false;
     }
   }
 
   async importFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
-    throw new Error('GuitarTuna does not have a public chart page or parser available. Please try a manual paste or another source.');
+    throw new Error(
+      'GuitarTuna does not have a public chart page or parser available. Please try a manual paste or another source.'
+    );
   }
 }
 
@@ -856,7 +939,7 @@ function parseChordProLine(lineText: string): { lyrics: string; chords: Normaliz
   let lyrics = '';
   const chords: NormalizedChordMarker[] = [];
   let i = 0;
-  
+
   while (i < lineText.length) {
     const char = lineText[i];
     if (char === '[') {
@@ -867,7 +950,7 @@ function parseChordProLine(lineText: string): { lyrics: string; chords: Normaliz
           const normalizedChord = normalizeChordName(chordName);
           chords.push({
             chord: normalizedChord || chordName,
-            offset: lyrics.length
+            offset: lyrics.length,
           });
         }
         i = closeIdx + 1;
@@ -884,15 +967,22 @@ function isChordsLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
   if (trimmed.match(/^[a-gA-G]?\|/)) return false;
-  
+
   const tokens = trimmed.split(/\s+/);
   if (tokens.length === 0) return false;
-  
+
   let validChords = 0;
   for (const tok of tokens) {
     const cleanTok = tok.replace(/[()\[\]]/g, '').trim();
     if (!cleanTok) continue;
-    if (validateChord(cleanTok) || cleanTok === '—' || cleanTok.match(/^[I|V|i|v|x|v]+$/) || ['intro', 'verse', 'chorus', 'bridge', 'solo', 'outro', 'refrão'].includes(cleanTok.toLowerCase())) {
+    if (
+      validateChord(cleanTok) ||
+      cleanTok === '—' ||
+      cleanTok.match(/^[I|V|i|v|x|v]+$/) ||
+      ['intro', 'verse', 'chorus', 'bridge', 'solo', 'outro', 'refrão'].includes(
+        cleanTok.toLowerCase()
+      )
+    ) {
       validChords++;
     }
   }
@@ -909,7 +999,7 @@ function parseChordsFromLine(lineText: string): NormalizedChordMarker[] {
       const normalizedChord = normalizeChordName(chordName);
       chords.push({
         chord: normalizedChord || chordName,
-        offset: match.index
+        offset: match.index,
       });
     }
   }
@@ -923,12 +1013,12 @@ function cleanHtmlToPlainText(html: string): string {
     .replace(/<\/p>/gi, '\n')
     .replace(/<\/div>/gi, '\n')
     .replace(/<\/tr>/gi, '\n');
-  
+
   const preMatch = html.match(/<pre>([\s\S]+?)<\/pre>/i);
   if (preMatch) {
     text = preMatch[1];
   }
-  
+
   text = text.replace(/<[^>]*>/g, '');
   return decodeHtmlEntities(text);
 }
@@ -939,7 +1029,7 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
   const sections: NormalizedSection[] = [];
   let currentSection: NormalizedSection = { name: 'Intro/Verse', lines: [] };
   let lineCounter = 0;
-  
+
   let title = song.title;
   let artist = song.artist;
   let key = song.key || 'C';
@@ -949,7 +1039,7 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
     for (const rawLine of rawLines) {
       const trimmed = rawLine.trim();
       if (!trimmed) continue;
-      
+
       if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
         const content = trimmed.substring(1, trimmed.length - 1).trim();
         const colonIdx = content.indexOf(':');
@@ -966,7 +1056,7 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
         }
         continue;
       }
-      
+
       if (trimmed.startsWith('{start_of_chorus}') || trimmed.startsWith('{soc}')) {
         if (currentSection.lines.length > 0) sections.push(currentSection);
         currentSection = { name: 'Chorus', lines: [] };
@@ -975,12 +1065,12 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
       if (trimmed.startsWith('{end_of_chorus}') || trimmed.startsWith('{eoc}')) {
         continue;
       }
-      
+
       const { lyrics, chords } = parseChordProLine(rawLine);
       currentSection.lines.push({
         lyrics: lyrics || ' ',
         chords,
-        lineIndex: lineCounter++
+        lineIndex: lineCounter++,
       });
     }
   } else {
@@ -1000,30 +1090,37 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
 
       if (isChordsLine(lineText)) {
         const nextLineText = rawLines[i + 1] !== undefined ? rawLines[i + 1] : '';
-        const isNextLineSectionOrChords = nextLineText.trim().match(/^\[([^\]]+)\]/) || isChordsLine(nextLineText);
-        
+        const isNextLineSectionOrChords =
+          nextLineText.trim().match(/^\[([^\]]+)\]/) || isChordsLine(nextLineText);
+
         if (isNextLineSectionOrChords || nextLineText.trim() === '') {
           const chords = parseChordsFromLine(lineText);
           currentSection.lines.push({
             lyrics: ' ',
             chords,
-            lineIndex: lineCounter++
+            lineIndex: lineCounter++,
           });
         } else {
           const chords = parseChordsFromLine(lineText);
           currentSection.lines.push({
             lyrics: nextLineText.trimEnd() || ' ',
             chords,
-            lineIndex: lineCounter++
+            lineIndex: lineCounter++,
           });
           i++;
         }
       } else {
-        if (!trimmed.startsWith('E|') && !trimmed.startsWith('B|') && !trimmed.startsWith('G|') && !trimmed.startsWith('D|') && !trimmed.startsWith('A|')) {
+        if (
+          !trimmed.startsWith('E|') &&
+          !trimmed.startsWith('B|') &&
+          !trimmed.startsWith('G|') &&
+          !trimmed.startsWith('D|') &&
+          !trimmed.startsWith('A|')
+        ) {
           currentSection.lines.push({
             lyrics: lineText.trimEnd() || ' ',
             chords: [],
-            lineIndex: lineCounter++
+            lineIndex: lineCounter++,
           });
         }
       }
@@ -1044,7 +1141,7 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
     source: 'imported',
     licenseInfo: 'User imported raw text / ChordPro',
     confidence: 0.8,
-    chartStatus: 'user'
+    chartStatus: 'user',
   };
 }
 
@@ -1057,17 +1154,20 @@ export const URL_IMPORTERS: ChartUrlImporter[] = [
   new ChordUImporter(),
   new UltimateGuitarImporter(),
   new GuitarTunaImporter(),
-  new GenericPreformattedImporter()
+  new GenericPreformattedImporter(),
 ];
 
-export async function importChartFromUrl(url: string, song: SongChart): Promise<NormalizedChordChart> {
+export async function importChartFromUrl(
+  url: string,
+  song: SongChart
+): Promise<NormalizedChordChart> {
   try {
     new URL(url);
   } catch (_) {
     throw new Error('Invalid URL format. Please paste a valid web address.');
   }
 
-  const parser = URL_IMPORTERS.find(p => p.canHandle(url));
+  const parser = URL_IMPORTERS.find((p) => p.canHandle(url));
   if (!parser) {
     throw new Error('No compatible importer found for this website.');
   }

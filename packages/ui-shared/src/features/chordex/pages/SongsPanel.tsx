@@ -4264,7 +4264,7 @@ export default function SongsPanel() {
     app: 'hub',
   };
   const activePanel = currentRoute.app === 'chords' ? currentRoute.page || 'library' : 'library';
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
   const transpositions = useChordStore(useShallow((s) => s.transpositions));
   const customChords = useChordStore(useShallow((s) => s.customChords));
   const setActivePreset = useChordStore(useShallow((s) => s.setActivePreset));
@@ -5207,7 +5207,7 @@ export default function SongsPanel() {
                 </button>
               )}
               <button
-                onClick={() => settingsController.updateSettings({ preferFlats: !preferFlats })}
+                onClick={() => useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })}
                 className="btn-smooth"
                 title={preferFlats ? t.songs.usingFlats : t.songs.usingSharps}
                 style={{

@@ -9,6 +9,7 @@ Studio uses Firebase for **authentication**, **Firestore** (legacy sync backend)
 Firebase is initialized in `packages/studio-core/src/lib/services/firebase.ts` (295 lines).
 
 **Two-layer configuration:**
+
 1. Environment variables (`VITE_FIREBASE_*`) — override for CI/dev
 2. Bundled `firebase.config.json` — fallback
 
@@ -18,20 +19,20 @@ Firebase is initialized in `packages/studio-core/src/lib/services/firebase.ts` (
 
 ### Exports
 
-| Function | Purpose |
-|----------|---------|
-| `subscribeAuth(callback)` | Subscribe to auth state changes (callback registry pattern) |
-| `signInGoogle()` | Google Sign-In (dual path: native vs web) |
-| `signInEmail(email, password)` | Email/password sign-in |
-| `registerEmail(email, password)` | Email registration |
-| `signOut()` | Sign out |
-| `deleteAccount()` | Account deletion |
-| `getCurrentEmail()` | Current user email |
-| `updateDisplayName(name)` | Update display name |
-| `sendPasswordReset(email)` | Send password reset email |
-| `sendVerificationEmail()` | Send email verification |
-| `isEmailVerified()` | Check verification status |
-| `getSignInProviders()` | List available sign-in methods |
+| Function                         | Purpose                                                     |
+| -------------------------------- | ----------------------------------------------------------- |
+| `subscribeAuth(callback)`        | Subscribe to auth state changes (callback registry pattern) |
+| `signInGoogle()`                 | Google Sign-In (dual path: native vs web)                   |
+| `signInEmail(email, password)`   | Email/password sign-in                                      |
+| `registerEmail(email, password)` | Email registration                                          |
+| `signOut()`                      | Sign out                                                    |
+| `deleteAccount()`                | Account deletion                                            |
+| `getCurrentEmail()`              | Current user email                                          |
+| `updateDisplayName(name)`        | Update display name                                         |
+| `sendPasswordReset(email)`       | Send password reset email                                   |
+| `sendVerificationEmail()`        | Send email verification                                     |
+| `isEmailVerified()`              | Check verification status                                   |
+| `getSignInProviders()`           | List available sign-in methods                              |
 
 ### Google Sign-In Architecture
 
@@ -72,8 +73,8 @@ Firestore is only initialized when `syncBackendProvider === 'firebase-firestore-
 const db = initializeFirestore(app, {
   experimentalAutoDetectLongPolling: true,
   localCache: persistentLocalCache({
-    tabManager: persistentMultipleTabManager()
-  })
+    tabManager: persistentMultipleTabManager(),
+  }),
 });
 ```
 
@@ -98,11 +99,11 @@ Users can only read/write their own `/users/{userId}` document and all sub-paths
 
 ### Data Model
 
-| Path | Purpose |
-|------|---------|
-| `/users/{uid}` | User profile root |
+| Path                        | Purpose                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| `/users/{uid}`              | User profile root                                            |
 | `/users/{uid}/meta/account` | Account deletion state (soft-delete with 7-day grace period) |
-| `/users/{uid}/**` | All user data (sync state, preferences, etc.) |
+| `/users/{uid}/**`           | All user data (sync state, preferences, etc.)                |
 
 ## Storage
 
@@ -132,6 +133,7 @@ service firebase.storage {
 ```
 
 **Constraints:**
+
 - All reads require authentication
 - Avatar: ≤ 2 MB, image only, JPG/WebP only
 - General user files: ≤ 5 MB, image only
@@ -141,28 +143,28 @@ service firebase.storage {
 
 ### Structure
 
-| Public Dir | Purpose |
-|------------|---------|
+| Public Dir         | Purpose                   |
+| ------------------ | ------------------------- |
 | `firebase-public/` | Primary hosting directory |
 
 ### Caching Headers
 
-| Path | Cache Control |
-|------|---------------|
-| `/` | `no-cache` |
-| `/assets/**` | `immutable, max-age=31536000` (1 year) |
-| `/version.json` | `no-cache` |
-| `/app-release.json` | `no-cache` |
-| `/ota/**` | `immutable, max-age=31536000` |
-| `*.apk` | Content-Type: `application/vnd.android.package-archive` |
+| Path                | Cache Control                                           |
+| ------------------- | ------------------------------------------------------- |
+| `/`                 | `no-cache`                                              |
+| `/assets/**`        | `immutable, max-age=31536000` (1 year)                  |
+| `/version.json`     | `no-cache`                                              |
+| `/app-release.json` | `no-cache`                                              |
+| `/ota/**`           | `immutable, max-age=31536000`                           |
+| `*.apk`             | Content-Type: `application/vnd.android.package-archive` |
 
 ### APK Serving
 
 Redirects for APK downloads:
 
-| Rule | Target |
-|------|--------|
-| `/apk/studio-latest.apk` | GitHub Releases (v4.0.31, status 302) |
+| Rule                       | Target                                        |
+| -------------------------- | --------------------------------------------- |
+| `/apk/studio-latest.apk`   | GitHub Releases (v4.0.31, status 302)         |
 | `/apk/studio-:version.apk` | GitHub Releases (dynamic version, status 302) |
 
 ### Predeploy Hook
@@ -228,9 +230,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     headers: {
       get Authorization() {
         return `Bearer ${firebaseIdToken}`;
-      }
-    }
-  }
+      },
+    },
+  },
 });
 ```
 
@@ -249,6 +251,7 @@ graph TD
 ```
 
 Both providers implement `SyncBackendProvider` interface (30+ methods, 337 lines of types):
+
 - Direct write testing, sync probes, device registration, heartbeat
 - Profile/appearance/preferences CRUD with real-time subscriptions
 - Photo upload, device management, cloud backup

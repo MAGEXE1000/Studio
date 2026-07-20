@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useChordStore } from '../../store/useChordStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
 import i18n from '../i18n-lib/i18nSetup';
 import type { Translations } from '../i18n-lib/i18n';
 
@@ -127,6 +128,6 @@ function buildTranslations(lang: string): Translations {
 }
 
 export function useT(): Translations {
-  const language = useChordStore(s => s.settings.language);
+  const language = useSettingsStore(s => s.settings.language);
   return useMemo(() => buildTranslations(language), [language]);
 }

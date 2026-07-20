@@ -18,17 +18,25 @@ self.addEventListener('install', () => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.map((k) => caches.delete(k)));
-    await self.registration.unregister();
-    const clients = await self.clients.matchAll({ type: 'window' });
-    clients.forEach((client) => {
-      try { client.navigate(client.url); } catch { /* navigate may be blocked; reload-on-message fallback below */ }
-    });
-  })());
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      await self.registration.unregister();
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((client) => {
+        try {
+          client.navigate(client.url);
+        } catch {
+          /* navigate may be blocked; reload-on-message fallback below */
+        }
+      });
+    })()
+  );
 });
 
 // Pass-through fetch — no caching while the SW is briefly active before
 // unregistering. Once unregistered, this handler is never called again.
-self.addEventListener('fetch', () => { /* intentional no-op */ });
+self.addEventListener('fetch', () => {
+  /* intentional no-op */
+});

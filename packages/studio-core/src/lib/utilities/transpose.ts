@@ -5,16 +5,39 @@
  */
 
 export const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
-export const CHROMATIC_FLATS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'] as const;
+export const CHROMATIC_FLATS = [
+  'C',
+  'Db',
+  'D',
+  'Eb',
+  'E',
+  'F',
+  'Gb',
+  'G',
+  'Ab',
+  'A',
+  'Bb',
+  'B',
+] as const;
 
 /** Map any root (sharp or flat) to a 0–11 chromatic index. */
 const ROOT_TO_IDX: Record<string, number> = {
-  C: 0, 'C#': 1, Db: 1,
-  D: 2, 'D#': 3, Eb: 3,
+  C: 0,
+  'C#': 1,
+  Db: 1,
+  D: 2,
+  'D#': 3,
+  Eb: 3,
   E: 4,
-  F: 5, 'F#': 6, Gb: 6,
-  G: 7, 'G#': 8, Ab: 8,
-  A: 9, 'A#': 10, Bb: 10,
+  F: 5,
+  'F#': 6,
+  Gb: 6,
+  G: 7,
+  'G#': 8,
+  Ab: 8,
+  A: 9,
+  'A#': 10,
+  Bb: 10,
   B: 11,
 };
 
@@ -31,7 +54,7 @@ export function transposeChordId(id: string, semitones: number): string {
   const type = id.slice(hyphen + 1);
   const idx = ROOT_TO_IDX[root];
   if (idx === undefined) return id;
-  const newIdx = ((idx + semitones) % 12 + 12) % 12;
+  const newIdx = (((idx + semitones) % 12) + 12) % 12;
   return `${CHROMATIC[newIdx]}-${type}`;
 }
 
@@ -49,7 +72,7 @@ function idxToRoot(idx: number, preferFlats: boolean): string {
 function transposeRoot(root: string, semitones: number, preferFlats: boolean): string {
   const idx = ROOT_TO_IDX[root];
   if (idx === undefined) return root;
-  const newIdx = ((idx + semitones) % 12 + 12) % 12;
+  const newIdx = (((idx + semitones) % 12) + 12) % 12;
   return idxToRoot(newIdx, preferFlats);
 }
 

@@ -25,6 +25,7 @@ All web assets are served via Netlify. The caching rules are defined in `netlify
 Historically, Studio registered a service worker (`sw.js` and later `sw-push.js` for background push notifications). If a service worker is deleted from the server (returns `404`), browsers continue to run the old cached service worker indefinitely.
 
 To cleanly remove these service workers and clear browser caches:
+
 - Both `/sw.js` and `/sw-push.js` exist on the server as **self-destructing service workers**.
 - On installation, they call `self.skipWaiting()` to activate immediately.
 - On activation, they delete all keys in the browser's `caches` storage, unregister themselves, and reload active client pages.
@@ -34,5 +35,6 @@ To cleanly remove these service workers and clear browser caches:
 ## 3. Web Auto-Updater (Optional Client-Side Check)
 
 To ensure clients running an older bundle can recover if their browser cached the page before these rules were implemented:
+
 - `index.html` checks for updates and reloads if critical assets return `404` or mismatch.
 - However, with `no-store` headers configured on `**`, this script is redundant and can be removed to reduce client-side code complexity.

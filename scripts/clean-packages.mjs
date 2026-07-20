@@ -13,14 +13,14 @@ const androidToKeep = [
   'UpdateIndicator.tsx',
   'UpdateDiagnosticsSheet.tsx',
   'StudioUpdateScreen.tsx',
-  'DownloadIcon.tsx'
+  'DownloadIcon.tsx',
 ];
 
 const webToKeep = [
   'WebSidebarLayout.tsx',
   'StudioSidebar.tsx',
   'WebAppSectionDock.tsx',
-  'WebDesignSystem.tsx'
+  'WebDesignSystem.tsx',
 ];
 
 function cleanDirectory(dir, keepList) {

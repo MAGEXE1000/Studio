@@ -51,31 +51,31 @@ Uses `useDrumStore` from `@workspace/studio-core` (859 lines, 35 KB):
 
 ### Key State
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `patterns` | `DrumPattern[]` | All drum patterns |
-| `activePatternId` | `string` | Currently editing pattern |
-| `soundMap` | `Record` | Instrument → sample mapping |
-| `volumeMap` | `Record` | Per-instrument volume |
-| `masterVolume` | `number` | Master output volume |
-| `kitType` | `KitType` | Active kit (15 options) |
-| `activeInstruments` | `DrumInstrument[]` | Visible instruments |
-| `drumSongs` | `DrumSong[]` | Song arrangements |
-| `instFX` | `Record` | Per-instrument effects |
-| `instPlugins` | `Record` | Per-instrument plugins |
-| `drumPrefs` | `DrumPrefs` | Module preferences |
-| `grooves` | `GrooveEntry[]` | Tagged grooves |
+| Field               | Type               | Purpose                     |
+| ------------------- | ------------------ | --------------------------- |
+| `patterns`          | `DrumPattern[]`    | All drum patterns           |
+| `activePatternId`   | `string`           | Currently editing pattern   |
+| `soundMap`          | `Record`           | Instrument → sample mapping |
+| `volumeMap`         | `Record`           | Per-instrument volume       |
+| `masterVolume`      | `number`           | Master output volume        |
+| `kitType`           | `KitType`          | Active kit (15 options)     |
+| `activeInstruments` | `DrumInstrument[]` | Visible instruments         |
+| `drumSongs`         | `DrumSong[]`       | Song arrangements           |
+| `instFX`            | `Record`           | Per-instrument effects      |
+| `instPlugins`       | `Record`           | Per-instrument plugins      |
+| `drumPrefs`         | `DrumPrefs`        | Module preferences          |
+| `grooves`           | `GrooveEntry[]`    | Tagged grooves              |
 
 ### Key Types
 
-| Type | Fields |
-|------|--------|
+| Type             | Fields                                                               |
+| ---------------- | -------------------------------------------------------------------- |
 | `DrumInstrument` | 10 instruments (kick, snare, hihat, clap, tom1–3, crash, ride, perc) |
-| `KitType` | 15 kits |
-| `DrumHit` | `{ velocity, variation }` |
-| `DrumMeasure` | Steps × instruments grid |
-| `DrumPattern` | Name, BPM, swing, time signature, measures |
-| `DrumSong` | Ordered pattern IDs with repeats |
+| `KitType`        | 15 kits                                                              |
+| `DrumHit`        | `{ velocity, variation }`                                            |
+| `DrumMeasure`    | Steps × instruments grid                                             |
+| `DrumPattern`    | Name, BPM, swing, time signature, measures                           |
+| `DrumSong`       | Ordered pattern IDs with repeats                                     |
 
 ### Persistence
 
@@ -86,20 +86,20 @@ Uses `useDrumStore` from `@workspace/studio-core` (859 lines, 35 KB):
 
 ## Dependencies
 
-| Dependency | Source | Purpose |
-|------------|--------|---------|
-| `useDrumStore` | studio-core | Drum state management |
-| `DRUM_LIBRARY` | studio-core | Sample library metadata |
-| `drumScheduler` | studio-core | Audio playback scheduler |
-| `samplePool` | studio-core | Audio sample pool |
-| `loadDrumSamples` | studio-core | Sample loading |
-| `NavigationDispatcher` | studio-core | Navigation |
-| `ElasticSlider` | ui-shared | Velocity/volume controls |
-| `SharedNavigationContainer` | ui-shared | Sub-view transitions |
-| `EmptyStateLottie` | ui-shared | Empty state animation |
-| `DialogScaffold` | ui-shared | Modal dialogs |
-| `ScreenScaffold` | ui-shared | Page layout |
-| `AppModeMenuLogo` | ui-shared | App logo |
+| Dependency                  | Source      | Purpose                  |
+| --------------------------- | ----------- | ------------------------ |
+| `useDrumStore`              | studio-core | Drum state management    |
+| `DRUM_LIBRARY`              | studio-core | Sample library metadata  |
+| `drumScheduler`             | studio-core | Audio playback scheduler |
+| `samplePool`                | studio-core | Audio sample pool        |
+| `loadDrumSamples`           | studio-core | Sample loading           |
+| `NavigationDispatcher`      | studio-core | Navigation               |
+| `ElasticSlider`             | ui-shared   | Velocity/volume controls |
+| `SharedNavigationContainer` | ui-shared   | Sub-view transitions     |
+| `EmptyStateLottie`          | ui-shared   | Empty state animation    |
+| `DialogScaffold`            | ui-shared   | Modal dialogs            |
+| `ScreenScaffold`            | ui-shared   | Page layout              |
+| `AppModeMenuLogo`           | ui-shared   | App logo                 |
 
 ## Navigation
 

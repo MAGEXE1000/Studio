@@ -62,10 +62,7 @@ export default function InkThemeOverlay({
     const TAIL_R = 10;
 
     // Calculate max radius needed to cover the entire screen from the bottom impact point (startX, H)
-    const maxRadius = Math.max(
-      Math.hypot(startX, H),
-      Math.hypot(W - startX, H)
-    ) + 100;
+    const maxRadius = Math.max(Math.hypot(startX, H), Math.hypot(W - startX, H)) + 100;
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
@@ -118,11 +115,11 @@ export default function InkThemeOverlay({
         // Phase 3: Fall - Drop detaches and free-falls
         const progress = (elapsed - t_swell - t_hang) / t_fall;
         const easeProgress = progress * progress * progress; // cubic in
-        
+
         const startYPos = startY + 36;
         const endYPos = H;
         const currentY = startYPos + (endYPos - startYPos) * easeProgress;
-        
+
         // Stretch math
         const stretchLen = 30 * progress;
         const headY = currentY;

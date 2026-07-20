@@ -2,6 +2,7 @@ import { getFirebaseDb, getFirebaseAuth, incrementFirestoreListeners, decrementF
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { adminUIDs } from './adminConfig';
 import { useChordStore } from '../../store/useChordStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
 
 export type UserRole = 'free' | 'core' | 'pro' | 'beta_tester' | 'admin';
 
@@ -63,7 +64,7 @@ export function syncProfileListener(authUser: { uid: string; email: string | nul
     return;
   }
   
-  const providerKey = useChordStore.getState().settings?.syncBackendProvider;
+  const providerKey = useSettingsStore.getState().settings?.syncBackendProvider;
   if (providerKey !== 'firebase-firestore-legacy') {
     const isAdminBypass = adminUIDs.includes(authUser.uid);
     const defaultProfile: UserProfile = {
@@ -112,7 +113,6 @@ export function syncProfileListener(authUser: { uid: string; email: string | nul
         await setDoc(userRef, defaultProfile, { merge: true });
       } catch (err: any) {
         setFirestoreLastError(err.message || String(err));
-        console.warn('[Profile] Initial write failed:', err);
       } finally {
         decrementFirestoreWrites();
       }
@@ -136,7 +136,6 @@ export function syncProfileListener(authUser: { uid: string; email: string | nul
     }
   }, (err) => {
     setFirestoreLastError(err.message || String(err));
-    console.warn('[Profile] Firestore listener error (using memory fallback):', err);
     // Fallback on error to ensure operational resilience
     notifyProfileChange({
       uid: authUser.uid,
@@ -154,9 +153,9 @@ export function syncProfileListener(authUser: { uid: string; email: string | nul
 }
 
 // ── Dynamic Provider Change Subscription ──
-let lastProvider = useChordStore.getState().settings.syncBackendProvider;
+let lastProvider = useSettingsStore.getState().settings.syncBackendProvider;
 useChordStore.subscribe((state) => {
-  const currentProvider = state.settings.syncBackendProvider;
+  const currentProvider = useSettingsStore.getState().settings.syncBackendProvider;
   if (currentProvider !== lastProvider) {
     lastProvider = currentProvider;
     const auth = getFirebaseAuth();

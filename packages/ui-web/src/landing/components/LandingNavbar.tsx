@@ -7,7 +7,7 @@ interface LandingNavbarProps {
   navigateTo: (path: string) => void;
 }
 
-export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
+export default function LandingNavbar({}: LandingNavbarProps) {
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;
   const [activeSection, setActiveSection] = useState<string>('');
@@ -22,16 +22,16 @@ export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
 
   useEffect(() => {
     const sectionIds = ['suite', 'showcase', 'features', 'downloads'];
-    
+
     const handleScroll = () => {
       const scrollPos = window.scrollY + 200; // offset for navbar height
-      
+
       // If at the top of the page, highlight nothing
       if (window.scrollY < 100) {
         setActiveSection('');
         return;
       }
-      
+
       // Find current section
       let current = '';
       for (const id of sectionIds) {
@@ -45,12 +45,12 @@ export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
           }
         }
       }
-      
+
       // If we are at the bottom of the page, default to downloads
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 50) {
         current = 'downloads';
       }
-      
+
       if (current) {
         setActiveSection(current);
       }
@@ -65,7 +65,7 @@ export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
     { id: 'suite', label: 'Suite' },
     { id: 'showcase', label: 'Showcase' },
     { id: 'features', label: 'Features' },
-    { id: 'downloads', label: 'Downloads' }
+    { id: 'downloads', label: 'Downloads' },
   ];
 
   return (
@@ -75,7 +75,7 @@ export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
           <div className="text-white flex-shrink-0">
             <StudioLogo size={28} />
           </div>
-          <span 
+          <span
             className="font-extrabold text-base tracking-tight text-white"
             style={{ fontFamily: 'Manrope, sans-serif', letterSpacing: '-0.02em' }}
           >
@@ -87,9 +87,9 @@ export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
           {navItems.map((item) => {
             const isActive = activeSection === item.id;
             return (
-              <a 
+              <a
                 key={item.id}
-                href={`#${item.id}`} 
+                href={`#${item.id}`}
                 onClick={(e) => handleScrollTo(e, item.id)}
                 className={`relative px-4 py-1.5 rounded-full transition-colors duration-200 ${
                   isActive ? 'text-white' : 'hover:text-zinc-200'
@@ -99,7 +99,9 @@ export default function LandingNavbar({ navigateTo }: LandingNavbarProps) {
                   <motion.span
                     layoutId="activeLandingTab"
                     className="absolute inset-0 bg-zinc-800/40 border border-zinc-800/60 rounded-full -z-10"
-                    transition={isReduced ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 30 }}
+                    transition={
+                      isReduced ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 30 }
+                    }
                   />
                 )}
                 {item.label}

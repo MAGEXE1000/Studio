@@ -1,22 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { type AppKey } from '@workspace/studio-core';
-import { ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from '../icons/ChordexLogo';
+import {
+  ChordexLogo,
+  DrumexLogo,
+  StagexLogoIcon,
+  GroovexLogo,
+  VocalexLogo,
+} from '../icons/ChordexLogo';
 
 interface SmartLoadingProps {
   fallbackSkeleton?: React.ReactNode;
   subtleLoading?: React.ReactNode;
-  delayMs?: number;      // threshold for showing subtle loading (150ms)
-  skeletonMs?: number;  // threshold for showing full skeleton (400ms)
+  delayMs?: number; // threshold for showing subtle loading (150ms)
+  skeletonMs?: number; // threshold for showing full skeleton (400ms)
   app?: AppKey;
 }
 
 export function AppLoadingScreen({ app }: { app: AppKey }) {
   const logos = {
-    chords: { Logo: ChordexLogo, name: 'Chordex', desc: 'Preparing chord theory engine...', color: '#a855f7' },
+    chords: {
+      Logo: ChordexLogo,
+      name: 'Chordex',
+      desc: 'Preparing chord theory engine...',
+      color: '#a855f7',
+    },
     drums: { Logo: DrumexLogo, name: 'Drumex', desc: 'Loading drum patterns...', color: '#ec4899' },
-    stage: { Logo: StagexLogoIcon, name: 'Stagex', desc: 'Initializing 3D stage setup...', color: '#3b82f6' },
-    groovex: { Logo: GroovexLogo, name: 'Groovex', desc: 'Loading audio channels...', color: '#10b981' },
-    vocalex: { Logo: VocalexLogo, name: 'Vocalex', desc: 'Preparing vocal recorder...', color: '#f59e0b' },
+    stage: {
+      Logo: StagexLogoIcon,
+      name: 'Stagex',
+      desc: 'Initializing 3D stage setup...',
+      color: '#3b82f6',
+    },
+    groovex: {
+      Logo: GroovexLogo,
+      name: 'Groovex',
+      desc: 'Loading audio channels...',
+      color: '#10b981',
+    },
+    vocalex: {
+      Logo: VocalexLogo,
+      name: 'Vocalex',
+      desc: 'Preparing vocal recorder...',
+      color: '#f59e0b',
+    },
   };
 
   const config = logos[app] || logos.chords;
@@ -48,14 +74,16 @@ export function AppLoadingScreen({ app }: { app: AppKey }) {
         }
       `}</style>
       <div
-        style={{
-          '--shadow-color': config.color,
-          animation: 'pulse-logo 2s infinite ease-in-out',
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        } as any}
+        style={
+          {
+            '--shadow-color': config.color,
+            animation: 'pulse-logo 2s infinite ease-in-out',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          } as any
+        }
       >
         <Logo size={80} />
       </div>

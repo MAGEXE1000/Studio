@@ -10,12 +10,12 @@ Provide instant access to all Livex applications from any screen via a single ta
 
 ## Responsibilities
 
-| Responsibility | Owner |
-|---|---|
-| Switcher open/close state | `useBottomNavigationStore.isSwitcherOpen` |
-| Switcher trigger button | [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx) |
-| App icon grid rendering | [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx) |
-| Transition orchestration | [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) |
+| Responsibility            | Owner                                                                                                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Switcher open/close state | `useBottomNavigationStore.isSwitcherOpen`                                                                                                                                        |
+| Switcher trigger button   | [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx)                         |
+| App icon grid rendering   | [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx)                         |
+| Transition orchestration  | [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) |
 
 ## Architecture
 
@@ -64,7 +64,7 @@ sequenceDiagram
     Bar->>BNS: setSwitcherOpen(true)
     Note over BNS: motionState → SwitchingApp
     BNS-->>Overlay: Render overlay (stagger animation)
-    
+
     User->>Overlay: Tap Stagex icon
     Overlay->>TS: requestTransition('stagex')
     TS->>BNS: reset() [close switcher, hide bar]
@@ -76,14 +76,14 @@ sequenceDiagram
 
 ## App Keys
 
-| Key | Application | Icon |
-|---|---|---|
-| `hub` | Hub (Home) | `home` |
-| `chordex` | Chordex (Chords) | `music_note` |
-| `drumex` | Drumex (Drums) | `drum` |
+| Key       | Application       | Icon          |
+| --------- | ----------------- | ------------- |
+| `hub`     | Hub (Home)        | `home`        |
+| `chordex` | Chordex (Chords)  | `music_note`  |
+| `drumex`  | Drumex (Drums)    | `drum`        |
 | `groovex` | Groovex (Grooves) | `queue_music` |
-| `stagex` | Stagex (Stage) | `dashboard` |
-| `vocalex` | Vocalex (Vocals) | `mic` |
+| `stagex`  | Stagex (Stage)    | `dashboard`   |
+| `vocalex` | Vocalex (Vocals)  | `mic`         |
 
 ## Lifecycle
 

@@ -28,6 +28,7 @@ Do not write or modify code when diagnosing a defect. Always follow this 10-step
 ```
 
 ### Process Details
+
 1. **Understand Problem**: Document observed symptoms, app states, battery, and storage profiles.
 2. **Gather Evidence**: Fetch native console logs, transition history logs, and device configurations.
 3. **Read Related Architecture**: Study the codebase design files (e.g. `capgoUpdater.ts` or `otaUpdate.ts`) before editing.
@@ -40,7 +41,8 @@ Do not write or modify code when diagnosing a defect. Always follow this 10-step
 10. **Document & Report**: Update the relevant engineering docs and push changes to the repository.
 
 Source:
-* `AGENTS.md`
+
+- `AGENTS.md`
 
 ---
 
@@ -49,21 +51,27 @@ Source:
 To inspect client operations, the app integrates diagnostic reporting overlays inside the developer panel.
 
 ### Log Tracing Arrays
-* **`stateTimeline`**: Records state machine transitions.
-* **`jsLogs`**: Captures frontend React console warnings, errors, and informational logs.
-* **`nativeLogsList`**: Records Android PackageInstaller callback responses and system events.
+
+- **`stateTimeline`**: Records state machine transitions.
+- **`jsLogs`**: Captures frontend React console warnings, errors, and informational logs.
+- **`nativeLogsList`**: Records Android PackageInstaller callback responses and system events.
 
 ### Snapshot Generation
+
 Copy buttons inside the DevTools panel compile reports via `generateFullEngineeringReport()` to export system states.
 
 To prevent transaction failures inside the Android OS Clipboard service (which caps transactional IPC payloads), the dashboard UI limits clipboard copy operations to a maximum of `400,000` characters:
+
 ```typescript
 if (text.length > 400000) {
   textToCopy = text.substring(text.length - 400000);
-  textToCopy = `[WARNING: Report truncated to the last 400,000 characters due to Android clipboard size limits]\n\n...[TRUNCATED]...\n\n` + textToCopy;
+  textToCopy =
+    `[WARNING: Report truncated to the last 400,000 characters due to Android clipboard size limits]\n\n...[TRUNCATED]...\n\n` +
+    textToCopy;
 }
 ```
 
 Source:
-* `packages/ui-shared/src/components/DevToolsDashboard.tsx`
-* `packages/studio-core/src/lib/updater/diagnostics.ts`
+
+- `packages/ui-shared/src/components/DevToolsDashboard.tsx`
+- `packages/studio-core/src/lib/updater/diagnostics.ts`

@@ -6,7 +6,9 @@ export async function copyToClipboard(text: string, label: string = 'Content'): 
   let wasTruncated = false;
 
   if (text.length > maxLen) {
-    textToCopy = `[WARNING: Report truncated to the last 400,000 characters due to Android clipboard size limits]\n\n...[TRUNCATED]...\n\n` + text.substring(text.length - maxLen);
+    textToCopy =
+      `[WARNING: Report truncated to the last 400,000 characters due to Android clipboard size limits]\n\n...[TRUNCATED]...\n\n` +
+      text.substring(text.length - maxLen);
     wasTruncated = true;
   }
 
@@ -14,25 +16,25 @@ export async function copyToClipboard(text: string, label: string = 'Content'): 
   if (isNative() && typeof AppInstaller?.copyToClipboard === 'function') {
     try {
       await AppInstaller.copyToClipboard({ text: textToCopy });
-      return wasTruncated 
-        ? `${label} copied (truncated to 400k characters)` 
+      return wasTruncated
+        ? `${label} copied (truncated to 400k characters)`
         : `${label} copied to clipboard!`;
     } catch (err) {
-      console.warn('[Clipboard] Android native custom copy failed:', err);
     }
   }
 
-
-
   // 3. Try standard Web Clipboard API
-  if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+  if (
+    typeof navigator !== 'undefined' &&
+    navigator.clipboard &&
+    typeof navigator.clipboard.writeText === 'function'
+  ) {
     try {
       await navigator.clipboard.writeText(textToCopy);
-      return wasTruncated 
-        ? `${label} copied (truncated to 400k characters)` 
+      return wasTruncated
+        ? `${label} copied (truncated to 400k characters)`
         : `${label} copied to clipboard!`;
     } catch (err) {
-      console.warn('[Clipboard] Web Clipboard writeText failed:', err);
     }
   }
 
@@ -54,13 +56,13 @@ export async function copyToClipboard(text: string, label: string = 'Content'): 
       document.body.appendChild(textarea);
       textarea.focus();
       textarea.select();
-      
+
       const successful = document.execCommand('copy');
       document.body.removeChild(textarea);
-      
+
       if (successful) {
-        return wasTruncated 
-          ? `${label} copied (truncated to 400k characters)` 
+        return wasTruncated
+          ? `${label} copied (truncated to 400k characters)`
           : `${label} copied to clipboard!`;
       }
     } catch (err) {

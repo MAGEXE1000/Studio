@@ -17,17 +17,17 @@ const packagesToUpdate = {
   '@supabase/supabase-js': '^2.110.2',
   '@tolgee/i18next': '^7.1.1',
   '@tolgee/react': '^7.1.1',
-  'firebase': '^12.16.0',
-  'typescript': '~5.7.2',
-  'prettier': '^3.9.5',
+  firebase: '^12.16.0',
+  typescript: '~5.7.2',
+  prettier: '^3.9.5',
   '@aws-sdk/client-s3': '^3.1085.0',
   'adm-zip': '^0.6.0',
-  'archiver': '^8.0.0',
-  'i18next': '^26.3.6',
+  archiver: '^8.0.0',
+  i18next: '^26.3.6',
   'react-i18next': '^17.0.9',
-  'zustand': '^5.0.14',
+  zustand: '^5.0.14',
   'material-symbols': '^0.45.7',
-  'motion': '^12.42.2'
+  motion: '^12.42.2',
 };
 
 function findPackageJsons(dir, fileList = []) {
@@ -51,14 +51,14 @@ for (const fullPath of packageJsonPaths) {
   try {
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     let modified = false;
-    
+
     for (const section of ['dependencies', 'devDependencies']) {
       if (data[section]) {
         for (const dep in data[section]) {
           if (packagesToUpdate[dep]) {
             if (data[section][dep] !== packagesToUpdate[dep]) {
-                data[section][dep] = packagesToUpdate[dep];
-                modified = true;
+              data[section][dep] = packagesToUpdate[dep];
+              modified = true;
             }
           }
         }
@@ -69,5 +69,5 @@ for (const fullPath of packageJsonPaths) {
       fs.writeFileSync(fullPath, JSON.stringify(data, null, 2) + '\n');
       console.log(`Updated ${path.relative(rootDir, fullPath)}`);
     }
-  } catch(e) {}
+  } catch (e) {}
 }

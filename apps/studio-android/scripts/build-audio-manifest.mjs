@@ -22,7 +22,7 @@ if (!fs.existsSync(drumsDir)) {
   console.warn('build-audio-manifest: ⚠ public/drums/ missing — writing empty manifest.');
   fs.writeFileSync(
     outPath,
-    JSON.stringify({ generatedAt: new Date().toISOString(), files: [] }, null, 2) + '\n',
+    JSON.stringify({ generatedAt: new Date().toISOString(), files: [] }, null, 2) + '\n'
   );
   process.exit(0);
 }
@@ -38,10 +38,7 @@ function walk(dir) {
       // path.relative gives `drums/realistic/.../foo.opus` on POSIX
       // and `drums\realistic\...` on Windows; normalise to forward
       // slashes so the manifest is portable.
-      const rel = path
-        .relative(path.join(root, 'public'), full)
-        .split(path.sep)
-        .join('/');
+      const rel = path.relative(path.join(root, 'public'), full).split(path.sep).join('/');
       files.push(`/${rel}`);
     }
   }
@@ -58,5 +55,5 @@ const manifest = {
 };
 fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2) + '\n');
 console.log(
-  `build-audio-manifest: ✓ wrote ${path.relative(root, outPath)} (${files.length} files)`,
+  `build-audio-manifest: ✓ wrote ${path.relative(root, outPath)} (${files.length} files)`
 );

@@ -75,10 +75,19 @@ export default function ElasticSlider({
   function onKeyDown(e: React.KeyboardEvent) {
     if (disabled) return;
     const s = step || (max - min) / 100;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); onChange(snap(value + s)); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); onChange(snap(value - s)); }
-    else if (e.key === 'Home') { e.preventDefault(); onChange(min); }
-    else if (e.key === 'End') { e.preventDefault(); onChange(max); }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      onChange(snap(value + s));
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      onChange(snap(value - s));
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      onChange(min);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      onChange(max);
+    }
   }
 
   return (
@@ -110,31 +119,48 @@ export default function ElasticSlider({
       }}
     >
       {/* Track background */}
-      <div style={{
-        position: 'absolute', left: 0, right: 0,
-        height: 4, borderRadius: 9999,
-        background: trackColor, overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0,
-          width: `${pct}%`, borderRadius: 9999, background: accentColor,
-          transition: dragging ? 'none' : 'width 60ms ease-out',
-        }} />
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          height: 4,
+          borderRadius: 9999,
+          background: trackColor,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: `${pct}%`,
+            borderRadius: 9999,
+            background: accentColor,
+            transition: dragging ? 'none' : 'width 60ms ease-out',
+          }}
+        />
       </div>
 
       {/* Thumb */}
-      <div style={{
-        position: 'absolute',
-        left: `${pct}%`,
-        transform: `translateX(-50%) scale(${dragging ? 1.35 : 1})`,
-        width: 16, height: 16, borderRadius: '50%',
-        background: accentColor,
-        boxShadow: dragging
-          ? `0 0 0 5px color-mix(in srgb, ${accentColor} 20%, transparent), 0 2px 6px rgba(0,0,0,0.25)`
-          : '0 1px 4px rgba(0,0,0,0.25)',
-        transition: 'transform 160ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 160ms ease',
-        pointerEvents: 'none',
-      }} />
+      <div
+        style={{
+          position: 'absolute',
+          left: `${pct}%`,
+          transform: `translateX(-50%) scale(${dragging ? 1.35 : 1})`,
+          width: 16,
+          height: 16,
+          borderRadius: '50%',
+          background: accentColor,
+          boxShadow: dragging
+            ? `0 0 0 5px color-mix(in srgb, ${accentColor} 20%, transparent), 0 2px 6px rgba(0,0,0,0.25)`
+            : '0 1px 4px rgba(0,0,0,0.25)',
+          transition: 'transform 160ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 160ms ease',
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   );
 }

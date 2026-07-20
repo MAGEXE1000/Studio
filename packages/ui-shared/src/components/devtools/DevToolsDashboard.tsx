@@ -791,7 +791,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     'modal',
     () => {
       if (subView !== 'dashboard') {
-        console.log(`[BackDispatcher] Back handler triggered for subView: ${subView}`);
         handleSubViewBack();
         return true;
       }
@@ -900,7 +899,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               const parsedLogs = JSON.parse(historyRes.logs);
               setNativeLogsList(Array.isArray(parsedLogs) ? parsedLogs : []);
             } catch (e) {
-              console.warn('Failed to parse installer log history:', e);
             }
           }
         }
@@ -914,7 +912,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               if (isMountedRef.current) setLocalApkDetails(apkDet);
             }
           } catch (err) {
-            console.warn('Failed to inspect APK:', err);
           }
         } else {
           if (isMountedRef.current) setLocalApkDetails(null);
@@ -922,7 +919,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       }
       triggerSimRender();
     } catch (err) {
-      console.warn('Failed to refresh updater diagnostics:', err);
     }
   };
 
@@ -1082,7 +1078,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   const otaStatus = updateDebugLogs.updateDecision || 'Idle';
 
-  const currentApp = currentApp || 'hub';
+  const currentApp = useNavigationStore(s => s.history[s.history.length - 1]?.app) || 'hub';
   useEffect(() => {
     if (currentApp !== 'hub' && currentApp !== lastAppRef.current) {
       lastAppRef.current = currentApp;
@@ -1942,7 +1938,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
           <button
             onClick={() => {
-              console.log('BUTTON PRESSED:\nBack to Developer Panel');
               addJsLog('BUTTON PRESSED:\nBack to Developer Panel');
               handleGoBack();
             }}
@@ -6254,7 +6249,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         <div
                           onClick={() => {
                             const next = !settings.developerMode;
-                            settingsController.updateSettings({ developerMode: next });
+                            useSettingsStore.getState().updateSettings({ developerMode: next });
                             showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                           }}
                           style={{
@@ -6312,7 +6307,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           <div
                             onClick={() => {
                               const next = !settings.developerMode;
-                              settingsController.updateSettings({ developerMode: next });
+                              useSettingsStore.getState().updateSettings({ developerMode: next });
                               showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                             }}
                             style={{
@@ -6444,7 +6439,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                             <div
                               onClick={() => {
                                 const next = !settings.developerMode;
-                                settingsController.updateSettings({ developerMode: next });
+                                useSettingsStore.getState().updateSettings({ developerMode: next });
                                 showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                               }}
                               style={{

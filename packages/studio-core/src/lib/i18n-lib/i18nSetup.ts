@@ -43,14 +43,10 @@ const apiKey = import.meta.env.VITE_APP_TOLGEE_API_KEY as string | undefined;
 if (apiKey) {
   tolgeeConfig.apiKey = apiKey;
   tolgeeConfig.apiUrl =
-    (import.meta.env.VITE_APP_TOLGEE_API_URL as string | undefined) ??
-    'https://app.tolgee.io';
+    (import.meta.env.VITE_APP_TOLGEE_API_URL as string | undefined) ?? 'https://app.tolgee.io';
 }
 
-export const tolgee = Tolgee()
-  .use(DevTools())
-  .use(FormatSimple())
-  .init(tolgeeConfig);
+export const tolgee = Tolgee().use(DevTools()).use(FormatSimple()).init(tolgeeConfig);
 
 // Defer running tolgee active listeners/translators to clear JS thread during start
 setTimeout(() => {

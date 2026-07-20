@@ -7,15 +7,8 @@
   },
   "hosting": {
     "public": "firebase-public",
-    "predeploy": [
-      "node scripts/verify-release-signatures.mjs"
-    ],
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**",
-      "**/*.apk"
-    ],
+    "predeploy": ["node scripts/verify-release-signatures.mjs"],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.apk"],
     "rewrites": [
       {
         "source": "**",

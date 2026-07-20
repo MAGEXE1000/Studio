@@ -1,12 +1,12 @@
-import { useChordStore } from '@workspace/studio-core';
+import { useChordStore, useSettingsStore } from '@workspace/studio-core';
 import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import { DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
+import { DurationPresets, SpringPresets } from '@workspace/studio-core';
 
 // Helper to check if reduced motion is preferred by the system or settings
 export function usePrefersReducedMotion() {
-  const speed = useChordStore((state) => state.settings?.animationSpeed);
+  const speed = useSettingsStore((state) => state.settings?.animationSpeed);
   if (speed === 'reduced') return true;
   if (speed === 'normal' || speed === 'fast') return false;
   return (
@@ -16,7 +16,7 @@ export function usePrefersReducedMotion() {
 
 // Helper to check the animation duration speed coefficient
 export function useAnimationSpeed() {
-  const speed = useChordStore((state) => state.settings?.animationSpeed);
+  const speed = useSettingsStore((state) => state.settings?.animationSpeed);
   return speed === 'fast' ? 0.6 : 1.0;
 }
 
@@ -39,9 +39,9 @@ export const AnimationCoordinator = {
     }
     const duration = this.getDuration(durationPreset, speedSetting);
     if (preset === 'spring') {
-      return { ...EasingPresets.spring, duration };
+      return { ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any, duration };
     }
-    return { ease: EasingPresets.standard, duration };
+    return { type: "spring", stiffness: 220, damping: 22, mass: 0.85, duration };
   },
 
   startTransition(durationMs: number = 300) {
@@ -117,7 +117,7 @@ export function PageTransition({
   className = '',
 }: PageTransitionProps) {
   const prefersReduced = usePrefersReducedMotion();
-  const settings = useChordStore((s) => s.settings);
+  const settings = useSettingsStore((s) => s.settings);
 
   if (prefersReduced) {
     return (
@@ -200,7 +200,7 @@ export function AppEntryTransition({
   className?: string;
 }) {
   const prefersReduced = usePrefersReducedMotion();
-  const settings = useChordStore((s) => s.settings);
+  const settings = useSettingsStore((s) => s.settings);
 
   if (prefersReduced) {
     return (
@@ -291,7 +291,7 @@ export function StaggeredReveal({
             initial={{ opacity: 0, y: 12, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
-              ...EasingPresets.spring,
+              ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any,
               delay,
             }}
             style={{
@@ -393,7 +393,7 @@ export function AnimatedAppHeader({
               initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{
-                ...EasingPresets.spring,
+                ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any,
                 delay,
               }}
               style={{
@@ -413,7 +413,7 @@ export function AnimatedAppHeader({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            ...EasingPresets.spring,
+            ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any,
             delay:
               delayOffset +
               Math.min(0.35, chars.length * (staggerInterval / 1000) * speedScale + 0.05),
@@ -465,7 +465,7 @@ export function FadeThroughTransition({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.92 }}
           transition={{
-            ease: EasingPresets.emphasized,
+            type: "spring", stiffness: 400, damping: 20, mass: 0.35,
             duration: DurationPresets.normal * speedScale,
           }}
         >
@@ -534,7 +534,7 @@ export function SharedAxisTransition({
           exit="exit"
           variants={variants}
           transition={{
-            ease: EasingPresets.standard,
+            type: "spring", stiffness: 220, damping: 22, mass: 0.85,
             duration: DurationPresets.normal * speedScale,
           }}
         >
@@ -580,7 +580,7 @@ export function ContainerTransform({
       className={className}
       style={{ ...style, willChange: 'transform, opacity' }}
       transition={{
-        ...SpringPresets.medium,
+        ...{ type: "spring", stiffness: 220, damping: 22, mass: 0.85 } as any as any,
       }}
       onClick={onClick}
     >

@@ -7,5 +7,5 @@ export function formatBytes(bytes?: number): string {
 export const SPRING_CONFIGS = {
   slow: { stiffness: 80, damping: 20 },
   normal: { stiffness: 120, damping: 18 },
-  fast: { stiffness: 150, damping: 15 }
+  fast: { stiffness: 150, damping: 15 },
 };

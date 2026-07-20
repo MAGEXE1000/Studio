@@ -130,7 +130,7 @@ export function secureReadLocal(key: string, userUid = 'guest_user'): string | n
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
-    
+
     // Check if it matches our encrypted format: "salt:hex"
     if (raw.length > 9 && raw.charAt(8) === ':') {
       const cryptoKey = deriveUserKey(userUid);

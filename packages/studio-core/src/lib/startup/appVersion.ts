@@ -28,7 +28,10 @@ import { logVersionTransformation } from '../updater/versionLogger';
 
 export const NATIVE_VERSION = '4.2.4';
 export const WEB_VERSION = '4.2.4';
-const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
+const cap =
+  (typeof window !== 'undefined' && (window as any).Capacitor) ||
+  (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
+  Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
 /** Optional pre-release tag rendered in the UI (e.g. "Beta", "RC"). */
@@ -42,8 +45,14 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 export const APP_VERSION_DATE = '2026-07-20';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
-export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'a1b2c3d4';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/20/2026, 2:33:00 AM CST';
+export const APP_COMMIT_SHA =
+  typeof import.meta !== 'undefined' && (import.meta as any).env
+    ? (import.meta as any).env.VITE_GIT_COMMIT_SHA
+    : 'a1b2c3d4';
+export const APP_BUILD_TIMESTAMP =
+  typeof import.meta !== 'undefined' && (import.meta as any).env
+    ? (import.meta as any).env.VITE_BUILD_TIMESTAMP
+    : '7/20/2026, 2:33:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -75,10 +84,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.",
-      "Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.",
-      "Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.",
-      "Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
+      'Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.',
+      'Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.',
+      'Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.',
+      'Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.',
     ],
   },
 ];
@@ -87,27 +96,26 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
  *  by `ChangelogSheet` based on `settings.language`. */
 export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
-    heading: "Novedades",
+    heading: 'Novedades',
     items: [
-      "Servicio de notificaciones persistente y centralizado para actualizaciones del sistema, sincronización y autenticación.",
-      "Pestaña de Centro de Notificaciones dedicada con feed animado y botones de acción interactivos.",
-      "Pila de navegación de retroceso aislada por aplicación, impidiendo el retorno inesperado al Hub.",
-      "Limpieza síncrona de diseño en transiciones de aplicaciones para evitar superposiciones de menús.",
+      'Servicio de notificaciones persistente y centralizado para actualizaciones del sistema, sincronización y autenticación.',
+      'Pestaña de Centro de Notificaciones dedicada con feed animado y botones de acción interactivos.',
+      'Pila de navegación de retroceso aislada por aplicación, impidiendo el retorno inesperado al Hub.',
+      'Limpieza síncrona de diseño en transiciones de aplicaciones para evitar superposiciones de menús.',
     ],
   },
 ];
 
-
 /** German version of the current changelog. */
 export const APP_CHANGELOG_SECTIONS_DE: ChangelogSection[] = [
   {
-    heading: "Behoben",
+    heading: 'Behoben',
     items: [
-      "Optimierte Startanimation durch Zwischenspeichern von Dimensionen und Logo-Offsets.",
-      "Vergrößerte Klickbereiche für Stagex-Objekte und Deaktivierung grauer Tipp-Overlays.",
-      "Umgestaltung des Stagex-Verlaufspanels in ein responsives Bottom-Sheet für Mobilgeräte.",
-      "Universelle Wischgeste-Zurück-Navigation für Overlays, Presets und Verlauf in Stagex.",
-      "Neugestaltung der App-Update-Fortschrittsanzeige mit automatischer Hintergrundinstallation.",
+      'Optimierte Startanimation durch Zwischenspeichern von Dimensionen und Logo-Offsets.',
+      'Vergrößerte Klickbereiche für Stagex-Objekte und Deaktivierung grauer Tipp-Overlays.',
+      'Umgestaltung des Stagex-Verlaufspanels in ein responsives Bottom-Sheet für Mobilgeräte.',
+      'Universelle Wischgeste-Zurück-Navigation für Overlays, Presets und Verlauf in Stagex.',
+      'Neugestaltung der App-Update-Fortschrittsanzeige mit automatischer Hintergrundinstallation.',
     ],
   },
 ];
@@ -158,7 +166,9 @@ export function parseAndNormalizeVersion(raw: string | null | undefined): string
     logVersionTransformation('parseAndNormalizeVersion', raw, null);
     return null;
   }
-  const match = raw.match(/[vV]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?/);
+  const match = raw.match(
+    /[vV]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?/
+  );
   if (!match) {
     logVersionTransformation('parseAndNormalizeVersion', raw, null);
     return null;
@@ -179,7 +189,7 @@ export function parseSemver(raw: string | null | undefined): ParsedSemver | null
   }
 
   const m = clean.match(
-    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/,
+    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/
   );
   if (!m) {
     logVersionTransformation('parseSemver', raw, null);
@@ -212,7 +222,7 @@ export function parseSemver(raw: string | null | undefined): ParsedSemver | null
  */
 export function normalizeSemver(raw: string | null | undefined): [number, number, number] | null {
   const p = parseSemver(raw);
-  const resultObj = p ? [p.major, p.minor, p.patch] as [number, number, number] : null;
+  const resultObj = p ? ([p.major, p.minor, p.patch] as [number, number, number]) : null;
   logVersionTransformation('normalizeSemver', raw, resultObj ? JSON.stringify(resultObj) : null);
   return resultObj;
 }
@@ -305,9 +315,10 @@ export function useAppVersion(): {
       changelog: APP_CHANGELOG,
       sections: APP_CHANGELOG_SECTIONS,
     }),
-    [],
+    []
   );
 }
 
 /** Authoritative expected production signing certificate SHA-256 fingerprint. */
-export const PRODUCTION_SIGNING_SHA256 = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+export const PRODUCTION_SIGNING_SHA256 =
+  '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';

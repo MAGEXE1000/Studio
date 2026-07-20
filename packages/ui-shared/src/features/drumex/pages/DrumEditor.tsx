@@ -3021,7 +3021,7 @@ const VISIBLE_BATCH = 20;
 
 // â”€â”€ DrumEditor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function DrumEditor() {
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
 
   const isWebDesktop = useIsWebDesktop();
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
@@ -3171,7 +3171,7 @@ export default function DrumEditor() {
       const page = lastRoute.page;
       if (page === 'songs' || page === 'patterns' || page === 'prefs') return page as DrumTab;
     }
-    const st = useChordStore.getState();
+    const st = useSettingsStore.getState();
     if (st.settings.restoreLastSession) {
       const last = st.lastSession?.drumexTab;
       if (last === 'songs' || last === 'patterns' || last === 'prefs') return last;

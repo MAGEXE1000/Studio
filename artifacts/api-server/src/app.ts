@@ -1,9 +1,9 @@
-import express, { type Express } from "express";
-import path from "path";
-import cors from "cors";
-import pinoHttp from "pino-http";
-import router from "./routes";
-import { logger } from "./lib/logger";
+import express, { type Express } from 'express';
+import path from 'path';
+import cors from 'cors';
+import pinoHttp from 'pino-http';
+import router from './routes';
+import { logger } from './lib/logger';
 
 const app: Express = express();
 
@@ -15,7 +15,7 @@ app.use(
         return {
           id: req.id,
           method: req.method,
-          url: req.url?.split("?")[0],
+          url: req.url?.split('?')[0],
         };
       },
       res(res) {
@@ -24,23 +24,26 @@ app.use(
         };
       },
     },
-  }),
+  })
 );
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/stems", express.static(path.join(__dirname, "..", "public", "stems"), {
-  maxAge: "1d",
-  etag: true,
-  lastModified: true,
-  setHeaders(res, filePath) {
-    if (filePath.endsWith('.ogg')) {
-      res.setHeader('Content-Type', 'audio/ogg');
-    }
-  },
-}));
+app.use(
+  '/api/stems',
+  express.static(path.join(__dirname, '..', 'public', 'stems'), {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('.ogg')) {
+        res.setHeader('Content-Type', 'audio/ogg');
+      }
+    },
+  })
+);
 
-app.use("/api", router);
+app.use('/api', router);
 
 export default app;

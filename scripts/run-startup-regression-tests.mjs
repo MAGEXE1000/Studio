@@ -27,11 +27,20 @@ async function runStartupRegressionTests() {
     const content = fs.readFileSync(indexPath, 'utf8');
 
     // Assert intro element exists
-    assert.ok(content.includes('id="intro"'), 'Splash screen container #intro not found in index.html');
+    assert.ok(
+      content.includes('id="intro"'),
+      'Splash screen container #intro not found in index.html'
+    );
 
     // Assert that active/complex timing or loops have been removed
-    assert.ok(!content.includes('checkReadyToDismiss'), 'Active ready-to-dismiss check still present in index.html');
-    assert.ok(content.includes('reactMounted'), 'Splash screen is not coordinated with React mount via reactMounted() check');
+    assert.ok(
+      !content.includes('checkReadyToDismiss'),
+      'Active ready-to-dismiss check still present in index.html'
+    );
+    assert.ok(
+      content.includes('reactMounted'),
+      'Splash screen is not coordinated with React mount via reactMounted() check'
+    );
   });
 
   // Test 2: App.tsx Startup State Machine Removal & Decoupled Loader
@@ -40,23 +49,41 @@ async function runStartupRegressionTests() {
     const content = fs.readFileSync(appPath, 'utf8');
 
     // Assert that transitionStartupState and startupState are NOT present
-    assert.ok(!content.includes('transitionStartupState'), 'React startup state machine transition function transitionStartupState is still present in App.tsx');
-    assert.ok(!content.includes('startupState'), 'startupState state variable is still present in App.tsx');
+    assert.ok(
+      !content.includes('transitionStartupState'),
+      'React startup state machine transition function transitionStartupState is still present in App.tsx'
+    );
+    assert.ok(
+      !content.includes('startupState'),
+      'startupState state variable is still present in App.tsx'
+    );
 
     // Assert that React listens to the studio-intro-done event
-    assert.ok(content.includes('studio-intro-done'), 'App.tsx is not listening to the studio-intro-done event to trigger preflight checks');
+    assert.ok(
+      content.includes('studio-intro-done'),
+      'App.tsx is not listening to the studio-intro-done event to trigger preflight checks'
+    );
   });
 
   // Test 3: Authoritative Success Model Check
   assertTest('UpdateIndicator.tsx authoritative success checks', () => {
-    const updatePath = path.join(repoRoot, 'packages/ui-shared/src/components/update/UpdateIndicator.tsx');
+    const updatePath = path.join(
+      repoRoot,
+      'packages/ui-shared/src/components/update/UpdateIndicator.tsx'
+    );
     const content = fs.readFileSync(updatePath, 'utf8');
 
     // Assert that getLastInstallResult is not used on boot (success screen removed)
-    assert.ok(!content.includes('getLastInstallResult()'), 'getLastInstallResult() is still used in UI causing startup success modal triggers');
+    assert.ok(
+      !content.includes('getLastInstallResult()'),
+      'getLastInstallResult() is still used in UI causing startup success modal triggers'
+    );
 
     // Assert that clearInstallerLogHistory is called on Done click
-    assert.ok(content.includes('clearInstallerLogHistory()'), 'clearInstallerLogHistory() not invoked on Done button click');
+    assert.ok(
+      content.includes('clearInstallerLogHistory()'),
+      'clearInstallerLogHistory() not invoked on Done button click'
+    );
   });
 
   console.log('\n=== REGRESSION TEST RESULTS ===');
@@ -66,7 +93,7 @@ async function runStartupRegressionTests() {
     console.log(`| ${r.name} | ${r.status === 'PASS' ? '✅ PASS' : '❌ FAIL'} | ${r.details} |`);
   }
 
-  const failed = results.filter(r => r.status === 'FAIL');
+  const failed = results.filter((r) => r.status === 'FAIL');
   if (failed.length > 0) {
     console.error(`\n❌ Startup/Updater regression tests failed: ${failed.length} failures.`);
     process.exit(1);
@@ -75,7 +102,7 @@ async function runStartupRegressionTests() {
   }
 }
 
-runStartupRegressionTests().catch(err => {
+runStartupRegressionTests().catch((err) => {
   console.error('Test runner encountered an uncaught error:', err);
   process.exit(1);
 });

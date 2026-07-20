@@ -7,7 +7,11 @@ interface ProductionActionsProps {
   addJsLog: (msg: string) => void;
 }
 
-export default function ProductionActions({ showToast, triggerRefresh, addJsLog }: ProductionActionsProps) {
+export default function ProductionActions({
+  showToast,
+  triggerRefresh,
+  addJsLog,
+}: ProductionActionsProps) {
   const [checking, setChecking] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -27,7 +31,9 @@ export default function ProductionActions({ showToast, triggerRefresh, addJsLog 
       showToast(`${label} Succeeded!`);
     } catch (err: any) {
       const elapsed = Date.now() - start;
-      addJsLog(`[Action Failed] ${label} failed after ${elapsed}ms. Error: ${err?.message || String(err)}`);
+      addJsLog(
+        `[Action Failed] ${label} failed after ${elapsed}ms. Error: ${err?.message || String(err)}`
+      );
       showToast(`${label} Failed: ${err?.message || String(err)}`);
     } finally {
       setLoadingState(false);
@@ -38,15 +44,19 @@ export default function ProductionActions({ showToast, triggerRefresh, addJsLog 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {/* Check for Updates */}
-      <button 
+      <button
         disabled={checking || downloading || completing}
-        onClick={() => runAction('Check for Updates', setChecking, async () => {
-          await checkForUpdate(true, 'dev_tools', 'Check for Updates button tapped');
-        })}
+        onClick={() =>
+          runAction('Check for Updates', setChecking, async () => {
+            await checkForUpdate(true, 'dev_tools', 'Check for Updates button tapped');
+          })
+        }
         className="bg-black hover:bg-white/5 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
-          <span className={`material-symbols-outlined ${checking ? 'animate-spin' : ''}`}>refresh</span>
+          <span className={`material-symbols-outlined ${checking ? 'animate-spin' : ''}`}>
+            refresh
+          </span>
         </div>
         <div>
           <span className="block font-bold text-on-surface">Check for Updates</span>
@@ -55,15 +65,19 @@ export default function ProductionActions({ showToast, triggerRefresh, addJsLog 
       </button>
 
       {/* Download APK */}
-      <button 
+      <button
         disabled={checking || downloading || completing}
-        onClick={() => runAction('Download APK', setDownloading, async () => {
-          await downloadUpdate('Download APK button tapped');
-        })}
+        onClick={() =>
+          runAction('Download APK', setDownloading, async () => {
+            await downloadUpdate('Download APK button tapped');
+          })
+        }
         className="bg-black hover:bg-white/5 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
-          <span className={`material-symbols-outlined ${downloading ? 'animate-bounce' : ''}`}>download</span>
+          <span className={`material-symbols-outlined ${downloading ? 'animate-bounce' : ''}`}>
+            download
+          </span>
         </div>
         <div>
           <span className="block font-bold text-on-surface">Download APK</span>
@@ -72,21 +86,25 @@ export default function ProductionActions({ showToast, triggerRefresh, addJsLog 
       </button>
 
       {/* Complete Flow */}
-      <button 
+      <button
         disabled={checking || downloading || completing}
-        onClick={() => runAction('Complete Flow', setCompleting, async () => {
-          const checkRes = await checkForUpdate(true, 'dev_tools', 'Complete Flow button tapped');
-          if (checkRes.updateAvailable) {
-            await downloadUpdate('Complete Flow');
-            await applyUpdate('Complete Flow');
-          } else {
-            showToast('No update available.');
-          }
-        })}
+        onClick={() =>
+          runAction('Complete Flow', setCompleting, async () => {
+            const checkRes = await checkForUpdate(true, 'dev_tools', 'Complete Flow button tapped');
+            if (checkRes.updateAvailable) {
+              await downloadUpdate('Complete Flow');
+              await applyUpdate('Complete Flow');
+            } else {
+              showToast('No update available.');
+            }
+          })
+        }
         className="bg-tertiary hover:brightness-110 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full text-left outline-none shadow-xl active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-          <span className={`material-symbols-outlined ${completing ? 'animate-pulse' : ''}`}>play_arrow</span>
+          <span className={`material-symbols-outlined ${completing ? 'animate-pulse' : ''}`}>
+            play_arrow
+          </span>
         </div>
         <div>
           <span className="block font-bold text-white">Complete Flow</span>

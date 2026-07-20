@@ -33,7 +33,6 @@ export class TransitionCoordinator {
           return 'cubic-bezier(0.16, 1, 0.3, 1)'; // Premium ultra-smooth decelerate
       }
     })();
-    console.log(`[TransitionCoordinator] [${new Date().toISOString()}] getTransitionEasing | type: ${activeType} -> curve: ${curve}`);
     return curve;
   }
 
@@ -46,7 +45,6 @@ export class TransitionCoordinator {
       if (speed === 'fast') return 200;
       return 300;
     })();
-    console.log(`[TransitionCoordinator] [${new Date().toISOString()}] getTransitionDuration | speed: ${speed} -> duration: ${duration}`);
     return duration;
   }
 }

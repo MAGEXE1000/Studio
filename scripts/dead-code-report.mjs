@@ -19,7 +19,7 @@ const EXCLUDED_DIRS = new Set([
   'artifacts',
   'scratch',
   'screenshots',
-  '.firebase'
+  '.firebase',
 ]);
 
 const srcFiles = [];
@@ -31,7 +31,7 @@ function scanDirectory(dir) {
   const list = fs.readdirSync(dir);
   for (const file of list) {
     const fullPath = path.join(dir, file);
-    
+
     // Check symlinks
     let stat;
     try {
@@ -48,7 +48,12 @@ function scanDirectory(dir) {
       }
     } else {
       const relPath = path.relative(workspaceRoot, fullPath).replace(/\\/g, '/');
-      if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx')) {
+      if (
+        file.endsWith('.ts') ||
+        file.endsWith('.tsx') ||
+        file.endsWith('.js') ||
+        file.endsWith('.jsx')
+      ) {
         srcFiles.push({ path: relPath, basename: file });
       }
     }
@@ -59,9 +64,9 @@ console.log('Scanning source files...');
 scanDirectory(workspaceRoot);
 
 // Parse exports and imports from each source file
-srcFiles.forEach(file => {
+srcFiles.forEach((file) => {
   const content = fs.readFileSync(path.join(workspaceRoot, file.path), 'utf8');
-  
+
   // Extract imports
   const importRegex = /import\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]/g;
   let match;
@@ -85,7 +90,8 @@ srcFiles.forEach(file => {
 
   // Extract exports (e.g. export const myVar, export function myFun, export default)
   const exports = [];
-  const exportRegex = /export\s+(const|let|var|function|class|type|interface|enum)\s+([a-zA-Z0-9_$]+)/g;
+  const exportRegex =
+    /export\s+(const|let|var|function|class|type|interface|enum)\s+([a-zA-Z0-9_$]+)/g;
   let expMatch;
   while ((expMatch = exportRegex.exec(content)) !== null) {
     exports.push(expMatch[2]);
@@ -105,17 +111,21 @@ const entryPoints = new Set([
   'apps/studio-web/src/main.tsx',
   'apps/studio-web/src/index.css',
   'apps/studio-android/src/main.tsx',
-  'apps/studio-android/src/index.css'
+  'apps/studio-android/src/index.css',
 ]);
 
-srcFiles.forEach(file => {
-  if (entryPoints.has(file.path) || file.path.startsWith('scripts/') || file.path.startsWith('supabase/')) {
+srcFiles.forEach((file) => {
+  if (
+    entryPoints.has(file.path) ||
+    file.path.startsWith('scripts/') ||
+    file.path.startsWith('supabase/')
+  ) {
     return;
   }
   // Check if file path is in importTargets
   const normalizedPath = file.path;
   let isImported = false;
-  
+
   for (const target of importTargets) {
     if (normalizedPath.endsWith(target) || target.endsWith(normalizedPath)) {
       isImported = true;
@@ -131,17 +141,17 @@ srcFiles.forEach(file => {
 // Identify potential unused exports
 // Search if the exported term is mentioned in any OTHER source file
 const unusedExports = [];
-Object.keys(exportMap).forEach(filePath => {
+Object.keys(exportMap).forEach((filePath) => {
   const exports = exportMap[filePath];
-  exports.forEach(exp => {
+  exports.forEach((exp) => {
     if (exp === 'default') return; // Skip default export checking
-    
+
     let isUsed = false;
     // Check all other source files
     for (const file of srcFiles) {
       if (file.path === filePath) continue;
       const fileContent = fs.readFileSync(path.join(workspaceRoot, file.path), 'utf8');
-      
+
       // Simple regex match for the term (word boundaries)
       const wordRegex = new RegExp(`\\b${exp}\\b`);
       if (wordRegex.test(fileContent)) {
@@ -165,9 +175,12 @@ This report catalogs potential unused files, unused exports, and unreferenced ut
 
 ## 1. Potential Unused Source Files (Zero incoming imports)
 These files do not appear to be imported by any other source files inside the workspace:
-${unusedFiles.length > 0
-  ? unusedFiles.map(f => `*   [${f}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f})`).join('\n')
-  : '*   *None detected! All files have active references.*'
+${
+  unusedFiles.length > 0
+    ? unusedFiles
+        .map((f) => `*   [${f}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f})`)
+        .join('\n')
+    : '*   *None detected! All files have active references.*'
 }
 
 Source:
@@ -177,9 +190,15 @@ Source:
 
 ## 2. Potential Unused Exports
 These symbols are exported but do not appear to be referenced in any other files:
-${unusedExports.length > 0
-  ? unusedExports.map(e => `*   **${e.term}** in [${e.file}](file:///${workspaceRoot.replace(/\\/g, '/')}/${e.file})`).join('\n')
-  : '*   *None detected! All exported modules are actively used.*'
+${
+  unusedExports.length > 0
+    ? unusedExports
+        .map(
+          (e) =>
+            `*   **${e.term}** in [${e.file}](file:///${workspaceRoot.replace(/\\/g, '/')}/${e.file})`
+        )
+        .join('\n')
+    : '*   *None detected! All exported modules are actively used.*'
 }
 
 Source:

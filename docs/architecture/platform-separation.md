@@ -9,6 +9,7 @@ This document describes the architectural separation of the **Studio Web** and *
 To support independent release cycles, separate build pipelines, and prevent platform-specific layouts or code from leaking into incorrect targets, the repository has been reorganized into a monorepo structure using `pnpm`.
 
 ### Core Goals
+
 - **Independent Build/Deploy**: Android work must never trigger Netlify web builds, and web changes must not affect native Android APKs.
 - **Strict UI Boundaries**: Web-specific UI layouts and native Android-specific UI elements reside in separate, non-overlapping modules.
 - **Independent Versioning**: Studio Web is versioned at `4.x.y` and Studio Android at `3.x.y` (versionName) / `6x` (versionCode) without conflicts.
@@ -46,7 +47,7 @@ graph TD
   apps/studio-web --> packages/ui-web
   apps/studio-web --> packages/ui-shared
   apps/studio-web --> packages/studio-core
-  
+
   apps/studio-android --> packages/ui-android
   apps/studio-android --> packages/ui-shared
   apps/studio-android --> packages/studio-core
@@ -61,6 +62,7 @@ graph TD
 ```
 
 ### Forbidden Import Rules
+
 1. **Web App (`apps/studio-web`)** cannot import from `packages/ui-android`.
 2. **Android App (`apps/studio-android`)** cannot import from `packages/ui-web`.
 3. **Core (`packages/studio-core`)** cannot import from `ui-web`, `ui-android`, or `ui-shared` (it remains strictly UI-less).
@@ -73,9 +75,11 @@ graph TD
 Versions are managed via `scripts/version-manager.mjs` using separate CLI commands:
 
 - **Web Application**:
+
   ```bash
   pnpm version:web -- <version>
   ```
+
   Updates `apps/studio-web/package.json` and updates `WEB_VERSION` in `packages/studio-core/src/lib/appVersion.ts`.
 
 - **Android Application**:
@@ -89,11 +93,13 @@ Versions are managed via `scripts/version-manager.mjs` using separate CLI comman
 ## 5. CI/CD & Build Pipelines
 
 ### CI Workflows
+
 - **Web CI (`web-ci.yml`)**: Triggered by changes in web app, shared packages, or root configs. Runs typechecking and building for web.
 - **Android CI (`android-ci.yml`)**: Triggered by changes in Android app, shared packages, or native directory. Runs typechecking, WebView compilation, and Capacitor syncing.
 - **Android Release (`android-release.yml`)**: Compiles signed production APKs, uploads them to GitHub Releases, and publishes the metadata updates JSON (`app-release.json`, `version.json`) to Firebase Hosting.
 
 ### Netlify Ignore Script
+
 Netlify deployments are gated by `scripts/netlify-ignore.mjs`. The script analyzes changes between the current commit and the cached commit. If modifications are restricted only to Android-specific files (e.g. `apps/studio-android/**`, `packages/ui-android/**`, etc.), the Netlify build is skipped, saving build minutes and avoiding unnecessary deploys.
 
 ---

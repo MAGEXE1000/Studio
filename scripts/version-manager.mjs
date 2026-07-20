@@ -45,13 +45,17 @@ function updateWeb(version) {
 
 function updateAndroid(versionName, versionCode) {
   if (!parseSemver(versionName)) {
-    console.error(`Error: Invalid Android versionName format "${versionName}". Must be strict X.Y.Z semver.`);
+    console.error(
+      `Error: Invalid Android versionName format "${versionName}". Must be strict X.Y.Z semver.`
+    );
     process.exit(1);
   }
 
   const code = parseInt(versionCode, 10);
   if (isNaN(code) || code <= 0) {
-    console.error(`Error: Invalid Android versionCode "${versionCode}". Must be a positive integer.`);
+    console.error(
+      `Error: Invalid Android versionCode "${versionCode}". Must be a positive integer.`
+    );
     process.exit(1);
   }
 
@@ -82,14 +86,16 @@ function updateAndroid(versionName, versionCode) {
   const gradlePath = path.join(repoRoot, 'apps/studio-android/android/app/build.gradle');
   if (fs.existsSync(gradlePath)) {
     let gradle = fs.readFileSync(gradlePath, 'utf8');
-    
+
     // Update versionCode
     gradle = gradle.replace(/versionCode\s+\d+/, `versionCode ${code}`);
     // Update versionName
     gradle = gradle.replace(/versionName\s+["']([^"']+)["']/, `versionName "${versionName}"`);
-    
+
     fs.writeFileSync(gradlePath, gradle, 'utf8');
-    console.log(`✓ Updated apps/studio-android/android/app/build.gradle (versionName: ${versionName}, versionCode: ${code})`);
+    console.log(
+      `✓ Updated apps/studio-android/android/app/build.gradle (versionName: ${versionName}, versionCode: ${code})`
+    );
   } else {
     console.warn(`⚠ Gradle file not found at ${gradlePath}. Skip native file update.`);
   }
@@ -109,12 +115,12 @@ if (platform === 'web') {
 } else if (platform === 'android') {
   const nameIndex = args.indexOf('--name');
   const codeIndex = args.indexOf('--code');
-  
+
   if (nameIndex === -1 || codeIndex === -1 || !args[nameIndex + 1] || !args[codeIndex + 1]) {
     console.error('Usage: pnpm version:android --name <versionName> --code <versionCode>');
     process.exit(1);
   }
-  
+
   updateAndroid(args[nameIndex + 1], args[codeIndex + 1]);
 } else {
   console.error('Error: Unknown platform. Must be "web" or "android".');

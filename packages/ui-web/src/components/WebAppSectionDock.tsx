@@ -6,8 +6,7 @@ import {
   APP_SECTIONS,
   useStudioPreferences,
   useSettingsStore,
-  DurationPresets,
-  EasingPresets,
+  SpringPresets,
 } from '@workspace/studio-core';
 import React, { useRef, useState } from 'react';
 import {
@@ -79,10 +78,10 @@ function DockItem({
       <AnimatePresence>
         {isHovered && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.85 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6, scale: 0.9 }}
-            transition={{ duration: DurationPresets.fast, ease: EasingPresets.decelerate }}
+            transition={SpringPresets.soft}
             style={{
               position: 'absolute',
               bottom: '100%',

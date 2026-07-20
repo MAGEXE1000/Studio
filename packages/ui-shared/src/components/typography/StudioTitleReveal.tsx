@@ -82,7 +82,9 @@ export default function StudioTitleReveal({
     if (!targets || targets.length === 0) {
       gsap.set(el, { opacity: 1 });
       onComplete?.();
-      return () => { split.revert(); };
+      return () => {
+        split.revert();
+      };
     }
 
     // GPU acceleration + initial hidden state
@@ -114,8 +116,13 @@ export default function StudioTitleReveal({
     // ── startOnView mode: IntersectionObserver ────────────────────────────────
     if (startOnView) {
       const observer = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) { play(); observer.disconnect(); } },
-        { threshold: 0.1 },
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            play();
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.1 }
       );
       io = observer;
       observer.observe(el);

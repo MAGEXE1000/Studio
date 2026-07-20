@@ -4,7 +4,8 @@ import crypto from 'node:crypto';
 
 async function verify() {
   const apkUrl = 'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.75/studio-3.6.75.apk';
-  const shaUrl = 'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.75/studio-3.6.75.apk.sha256';
+  const shaUrl =
+    'https://github.com/MAGEXE1000/Studio/releases/download/v3.6.75/studio-3.6.75.apk.sha256';
 
   console.log('Downloading remote .sha256 content...');
   const shaRes = await fetch(shaUrl);

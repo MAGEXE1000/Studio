@@ -1,40 +1,8 @@
-import {
-  useChordStore,
-  ACCENT_COLORS,
-  useT,
-  subscribeAuth,
-  signOut,
-  type AuthUser,
-  useAppUpdate,
-  APP_VERSION_LABEL,
-  useStudioPreferences,
-  useNavigationStore,
-  NavigationDispatcher,
-  useSettingsStore,
-} from '@workspace/studio-core';
-import {
-  StudioLogo,
-  ChordexLogo,
-  DrumexLogo,
-  StagexLogoIcon,
-  GroovexLogo,
-  VocalexLogo,
-} from '@workspace/ui-shared';
+import { useChordStore, ACCENT_COLORS, useT, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher, useSettingsStore, authRepository } from "@workspace/studio-core";
+import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from "@workspace/ui-shared";
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import {
-  useSidebar,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarRail,
-} from './StudioSidebar';
+import { motion, AnimatePresence } from "motion/react";
+import { useSidebar, Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarRail } from "./StudioSidebar";
 
 function SidebarLabel({ children, open }: { children: React.ReactNode; open: boolean }) {
   const { preferences } = useStudioPreferences();
@@ -133,7 +101,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
 
   // Subscribe to Authentication state
   useEffect(() => {
-    return subscribeAuth((user) => {
+    return authRepository.subscribeAuth((user) => {
       setAuthUser(user);
     });
   }, []);
@@ -534,7 +502,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                           />
                           <button
                             onClick={() => {
-                              signOut();
+                              authRepository.signOut();
                               setShowProfileMenu(false);
                             }}
                             style={{ ...profileMenuBtnStyle, color: '#ef4444' }}

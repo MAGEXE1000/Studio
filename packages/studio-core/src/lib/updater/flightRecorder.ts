@@ -34,7 +34,7 @@ const SEVERITY_VALUES = {
   INFO: 2,
   WARN: 3,
   ERROR: 4,
-  FATAL: 5
+  FATAL: 5,
 };
 
 export class UpdaterFlightRecorder {
@@ -60,11 +60,10 @@ export class UpdaterFlightRecorder {
         if (seq) {
           this.globalSequenceCounter = parseInt(seq, 10);
         } else if (this.events.length > 0) {
-          this.globalSequenceCounter = Math.max(...this.events.map(e => e.sequenceId || 0));
+          this.globalSequenceCounter = Math.max(...this.events.map((e) => e.sequenceId || 0));
         }
       }
     } catch (e) {
-      console.warn('[FlightRecorder] Failed to load persisted events:', e);
     }
     this.loaded = true;
   }
@@ -76,7 +75,6 @@ export class UpdaterFlightRecorder {
         localStorage.setItem(SEQUENCE_KEY, String(this.globalSequenceCounter));
       }
     } catch (e) {
-      console.warn('[FlightRecorder] Failed to persist events:', e);
     }
   }
 
@@ -90,15 +88,15 @@ export class UpdaterFlightRecorder {
 
   private static prune() {
     const cutOff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
-    
+
     // 1. Filter out items older than 7 days
-    let filtered = this.events.filter(e => e.timestamp >= cutOff);
+    let filtered = this.events.filter((e) => e.timestamp >= cutOff);
 
     // 2. Clean up expired sessions (keep only the 10 most recent sessions to give more room)
-    const sessionIds = Array.from(new Set(filtered.map(e => e.sessionId).filter(Boolean)));
+    const sessionIds = Array.from(new Set(filtered.map((e) => e.sessionId).filter(Boolean)));
     if (sessionIds.length > 10) {
       const activeSessionsToKeep = sessionIds.slice(sessionIds.length - 10);
-      filtered = filtered.filter(e => !e.sessionId || activeSessionsToKeep.includes(e.sessionId));
+      filtered = filtered.filter((e) => !e.sessionId || activeSessionsToKeep.includes(e.sessionId));
     }
 
     // 3. Limit to MAX_EVENTS count
@@ -128,9 +126,11 @@ export class UpdaterFlightRecorder {
     return this.severityLevel;
   }
 
-  public static record(event: Omit<FlightRecorderEvent, 'timestamp' | 'sequenceId'> & { timestamp?: number }) {
+  public static record(
+    event: Omit<FlightRecorderEvent, 'timestamp' | 'sequenceId'> & { timestamp?: number }
+  ) {
     this.load();
-    
+
     const eventSeverity = event.severity || 'INFO';
     if (SEVERITY_VALUES[eventSeverity] < SEVERITY_VALUES[this.severityLevel]) {
       return; // Skip logs below the active severity threshold
@@ -146,7 +146,15 @@ export class UpdaterFlightRecorder {
     if (!inferredCategory) {
       const et = eventType.toLowerCase();
       if (thread === 'native' || et.includes('packageinstaller')) inferredCategory = 'NATIVE';
-      else if (et.includes('appstate') || et.includes('lifecycle') || et.includes('focus') || et.includes('blur') || et.includes('visibility') || et.includes('resume')) inferredCategory = 'LIFECYCLE';
+      else if (
+        et.includes('appstate') ||
+        et.includes('lifecycle') ||
+        et.includes('focus') ||
+        et.includes('blur') ||
+        et.includes('visibility') ||
+        et.includes('resume')
+      )
+        inferredCategory = 'LIFECYCLE';
       else if (et.includes('state') || et.includes('transition')) inferredCategory = 'STATE';
       else if (et.includes('ui') || et.includes('render')) inferredCategory = 'UI';
       else inferredCategory = 'PIPELINE';
@@ -160,26 +168,31 @@ export class UpdaterFlightRecorder {
       ...event,
       thread: event.thread || thread,
       eventType: event.eventType || eventType,
-      caller: event.caller || caller
+      caller: event.caller || caller,
     };
 
     // Deduplicate / aggregate progress and lifecycle events to prevent excessive noise
     const lastEvent = this.events[this.events.length - 1];
     const isProgress = fullEvent.eventType.toLowerCase().includes('progress');
-    const isLifecycle = fullEvent.eventType === 'appStateChange' || fullEvent.eventType.toLowerCase().includes('lifecycle');
-    
-    if (lastEvent && (
-      (lastEvent.eventType === fullEvent.eventType &&
-       lastEvent.newState === fullEvent.newState &&
-       lastEvent.previousState === fullEvent.previousState &&
-       lastEvent.caller === fullEvent.caller &&
-       lastEvent.error === fullEvent.error &&
-       lastEvent.warning === fullEvent.warning &&
-       lastEvent.category === fullEvent.category &&
-       lastEvent.thread === fullEvent.thread) ||
-      (isProgress && lastEvent.eventType.toLowerCase().includes('progress')) ||
-      (isLifecycle && (lastEvent.eventType === 'appStateChange' || lastEvent.eventType.toLowerCase().includes('lifecycle')))
-    )) {
+    const isLifecycle =
+      fullEvent.eventType === 'appStateChange' ||
+      fullEvent.eventType.toLowerCase().includes('lifecycle');
+
+    if (
+      lastEvent &&
+      ((lastEvent.eventType === fullEvent.eventType &&
+        lastEvent.newState === fullEvent.newState &&
+        lastEvent.previousState === fullEvent.previousState &&
+        lastEvent.caller === fullEvent.caller &&
+        lastEvent.error === fullEvent.error &&
+        lastEvent.warning === fullEvent.warning &&
+        lastEvent.category === fullEvent.category &&
+        lastEvent.thread === fullEvent.thread) ||
+        (isProgress && lastEvent.eventType.toLowerCase().includes('progress')) ||
+        (isLifecycle &&
+          (lastEvent.eventType === 'appStateChange' ||
+            lastEvent.eventType.toLowerCase().includes('lifecycle'))))
+    ) {
       lastEvent.count = (lastEvent.count || 1) + 1;
       lastEvent.timestamp = fullEvent.timestamp;
       lastEvent.reason = fullEvent.reason;
@@ -198,7 +211,6 @@ export class UpdaterFlightRecorder {
     // Log to JS console
     const warningText = fullEvent.warning ? ` [WARNING: ${fullEvent.warning}]` : '';
     const errorText = fullEvent.error ? ` [ERROR: ${fullEvent.error}]` : '';
-    console.log(`[FlightRecorder] [${fullEvent.sequenceId}] [${fullEvent.severity}] [${fullEvent.category}] [${fullEvent.thread.toUpperCase()}] ${fullEvent.eventType} | ${fullEvent.caller} | ${fullEvent.reason || 'None'}${warningText}${errorText}`);
   }
 
   public static getEvents(): FlightRecorderEvent[] {
@@ -209,16 +221,16 @@ export class UpdaterFlightRecorder {
   public static compileFullReport(): string {
     this.load();
     const sorted = [...this.events].sort((a, b) => a.sequenceId - b.sequenceId);
-    let out = "=== FLIGHT RECORDER REAL RUNTIME TRACE ===\n";
+    let out = '=== FLIGHT RECORDER REAL RUNTIME TRACE ===\n';
     out += `Total Events: ${sorted.length}\n`;
     out += `Time Range: ${sorted.length > 0 ? new Date(sorted[0].timestamp).toISOString() : 'N/A'} to ${sorted.length > 0 ? new Date(sorted[sorted.length - 1].timestamp).toISOString() : 'N/A'}\n`;
-    out += "--------------------------------------------------\n";
-    
+    out += '--------------------------------------------------\n';
+
     if (sorted.length === 0) {
-      out += "No events recorded.\n";
+      out += 'No events recorded.\n';
       return out;
     }
-    
+
     let baseTime = sorted[0].timestamp;
     for (const ev of sorted) {
       const timeStr = new Date(ev.timestamp).toISOString();
@@ -227,16 +239,17 @@ export class UpdaterFlightRecorder {
       const sev = (ev.severity || 'INFO').padEnd(5, ' ');
       const cat = (ev.category || 'UNKNOWN').padEnd(10, ' ');
       const thr = ev.thread.toUpperCase().padEnd(6, ' ');
-      
+
       out += `[${timeStr}] (+${elapsed}ms) [Seq:${ev.sequenceId}] [${sev}] [${cat}] [${thr}] ${ev.caller} -> ${ev.eventType}${countStr}\n`;
       if (ev.reason) out += `    Reason:  ${ev.reason}\n`;
       if (ev.details) out += `    Details: ${ev.details}\n`;
-      if (ev.previousState || ev.newState) out += `    State:   ${ev.previousState || 'N/A'} -> ${ev.newState || 'N/A'}\n`;
+      if (ev.previousState || ev.newState)
+        out += `    State:   ${ev.previousState || 'N/A'} -> ${ev.newState || 'N/A'}\n`;
       if (ev.error) out += `    ERROR:   ${ev.error}\n`;
       if (ev.warning) out += `    WARN:    ${ev.warning}\n`;
       if (ev.stack) out += `    Stack:   ${ev.stack}\n`;
     }
-    out += "==================================================\n";
+    out += '==================================================\n';
     return out;
   }
 

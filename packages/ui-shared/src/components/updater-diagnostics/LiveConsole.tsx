@@ -13,10 +13,12 @@ export default function LiveConsole({
   nativeLogsList,
   clearNativeLogsList,
   showToast,
-  addJsLog
+  addJsLog,
 }: LiveConsoleProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterMode, setFilterMode] = useState<'all' | 'js' | 'native' | 'state' | 'errors' | 'warnings'>('all');
+  const [filterMode, setFilterMode] = useState<
+    'all' | 'js' | 'native' | 'state' | 'errors' | 'warnings'
+  >('all');
   const [autoScroll, setAutoScroll] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -25,28 +27,33 @@ export default function LiveConsole({
 
   // Generate unified timeline
   const unifiedTimeline = useMemo(() => {
-    const list: Array<{ time: number; type: 'js' | 'native' | 'state'; text: string; details?: string }> = [];
+    const list: Array<{
+      time: number;
+      type: 'js' | 'native' | 'state';
+      text: string;
+      details?: string;
+    }> = [];
 
-    jsLogs.forEach(log => {
+    jsLogs.forEach((log) => {
       list.push({ time: log.timestamp, type: 'js', text: log.message });
     });
 
-    nativeLogsList.forEach(log => {
+    nativeLogsList.forEach((log) => {
       const time = log.timestamp || Date.now();
       list.push({
         time,
         type: 'native',
         text: log.stage || 'Native Step',
-        details: `${log.message || ''} ${log.explanation || ''}`
+        details: `${log.message || ''} ${log.explanation || ''}`,
       });
     });
 
-    stateTimeline.forEach(t => {
+    stateTimeline.forEach((t) => {
       list.push({
         time: t.timestamp,
         type: 'state',
         text: `State Transition: ${t.state}`,
-        details: `Reason: ${t.reason}`
+        details: `Reason: ${t.reason}`,
       });
     });
 
@@ -58,20 +65,34 @@ export default function LiveConsole({
     let list = unifiedTimeline;
 
     if (filterMode === 'js') {
-      list = list.filter(e => e.type === 'js');
+      list = list.filter((e) => e.type === 'js');
     } else if (filterMode === 'native') {
-      list = list.filter(e => e.type === 'native');
+      list = list.filter((e) => e.type === 'native');
     } else if (filterMode === 'state') {
-      list = list.filter(e => e.type === 'state');
+      list = list.filter((e) => e.type === 'state');
     } else if (filterMode === 'errors') {
-      list = list.filter(e => e.text.toLowerCase().includes('error') || e.text.toLowerCase().includes('fail') || (e.details && (e.details.toLowerCase().includes('error') || e.details.toLowerCase().includes('fail'))));
+      list = list.filter(
+        (e) =>
+          e.text.toLowerCase().includes('error') ||
+          e.text.toLowerCase().includes('fail') ||
+          (e.details &&
+            (e.details.toLowerCase().includes('error') || e.details.toLowerCase().includes('fail')))
+      );
     } else if (filterMode === 'warnings') {
-      list = list.filter(e => e.text.toLowerCase().includes('warn') || (e.details && e.details.toLowerCase().includes('warn')));
+      list = list.filter(
+        (e) =>
+          e.text.toLowerCase().includes('warn') ||
+          (e.details && e.details.toLowerCase().includes('warn'))
+      );
     }
 
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      list = list.filter(e => e.text.toLowerCase().includes(query) || (e.details && e.details.toLowerCase().includes(query)));
+      list = list.filter(
+        (e) =>
+          e.text.toLowerCase().includes(query) ||
+          (e.details && e.details.toLowerCase().includes(query))
+      );
     }
 
     return list;
@@ -86,7 +107,7 @@ export default function LiveConsole({
 
   const handleCopyLogs = async () => {
     let txt = `=== LIVE CONSOLE LOGS ===\n`;
-    filteredTimeline.forEach(e => {
+    filteredTimeline.forEach((e) => {
       const timeStr = new Date(e.time).toLocaleTimeString();
       txt += `[${timeStr}] [${e.type.toUpperCase()}] ${e.text} ${e.details ? ` - ${e.details}` : ''}\n`;
     });
@@ -107,10 +128,12 @@ export default function LiveConsole({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xs font-black text-on-surface-variant uppercase tracking-widest px-1">Live Logs</h2>
+        <h2 className="text-xs font-black text-on-surface-variant uppercase tracking-widest px-1">
+          Live Logs
+        </h2>
         <div className="flex gap-2">
           {/* Clear Logs */}
-          <button 
+          <button
             onClick={handleClearLogs}
             className="p-2 text-on-surface-variant hover:text-on-surface transition-colors outline-none"
             title="Clear logs"
@@ -118,7 +141,7 @@ export default function LiveConsole({
             <span className="material-symbols-outlined text-sm text-red-400">delete_sweep</span>
           </button>
           {/* Copy Logs */}
-          <button 
+          <button
             onClick={handleCopyLogs}
             className="p-2 text-on-surface-variant hover:text-on-surface transition-colors outline-none"
             title="Copy logs"
@@ -132,16 +155,21 @@ export default function LiveConsole({
         {/* Search Bar Header */}
         <div className="flex items-center gap-3 p-3 bg-black border-b border-outline-variant/5">
           <div className="flex-1 flex items-center gap-2 bg-[#161616] px-3 py-1.5 rounded-lg border border-outline-variant/10">
-            <span className="material-symbols-outlined text-sm text-on-surface-variant">search</span>
-            <input 
-              className="bg-transparent border-none text-xs text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 w-full font-mono outline-none" 
-              placeholder="Search logs..." 
+            <span className="material-symbols-outlined text-sm text-on-surface-variant">
+              search
+            </span>
+            <input
+              className="bg-transparent border-none text-xs text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 w-full font-mono outline-none"
+              placeholder="Search logs..."
               type="text"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-on-surface-variant hover:text-on-surface">
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-on-surface-variant hover:text-on-surface"
+              >
                 <span className="material-symbols-outlined text-xs">close</span>
               </button>
             )}
@@ -150,13 +178,13 @@ export default function LiveConsole({
 
         {/* Filter Category Row */}
         <div className="flex gap-1 overflow-x-auto px-3 py-2 bg-black border-b border-outline-variant/5 scrollbar-none">
-          {(['all', 'js', 'native', 'state', 'errors', 'warnings'] as const).map(mode => (
+          {(['all', 'js', 'native', 'state', 'errors', 'warnings'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setFilterMode(mode)}
               className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-colors outline-none whitespace-nowrap ${
-                filterMode === mode 
-                  ? 'bg-tertiary text-on-tertiary-fixed' 
+                filterMode === mode
+                  ? 'bg-tertiary text-on-tertiary-fixed'
                   : 'bg-[#161616] text-on-surface-variant hover:bg-white/10'
               }`}
             >
@@ -166,7 +194,7 @@ export default function LiveConsole({
         </div>
 
         {/* Timeline Log Viewport */}
-        <div 
+        <div
           ref={scrollContainerRef}
           className="flex-1 p-4 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-2 bg-black"
         >
@@ -180,15 +208,25 @@ export default function LiveConsole({
               let badgeColor = 'text-blue-400';
               if (e.type === 'native') badgeColor = 'text-green-400';
               if (e.type === 'state') badgeColor = 'text-purple-400';
-              
+
               return (
-                <div key={idx} className="flex gap-3 items-start border-b border-outline-variant/5 pb-1">
+                <div
+                  key={idx}
+                  className="flex gap-3 items-start border-b border-outline-variant/5 pb-1"
+                >
                   <span className="text-on-surface-variant/40 shrink-0 select-none">{timeStr}</span>
-                  <span className={`${badgeColor} shrink-0 uppercase font-bold text-[9px] tracking-wide select-none`}>
+                  <span
+                    className={`${badgeColor} shrink-0 uppercase font-bold text-[9px] tracking-wide select-none`}
+                  >
                     [{e.type}]
                   </span>
                   <span className="text-[#e7e5e4] word-break-all select-text">
-                    {e.text} {e.details ? <span className="text-on-surface-variant/50">({e.details})</span> : ''}
+                    {e.text}{' '}
+                    {e.details ? (
+                      <span className="text-on-surface-variant/50">({e.details})</span>
+                    ) : (
+                      ''
+                    )}
                   </span>
                 </div>
               );
@@ -198,16 +236,20 @@ export default function LiveConsole({
 
         {/* Auto Scroll footer */}
         <div className="px-3 py-2 bg-surface-container-high/50 border-t border-outline-variant/5 flex justify-end items-center gap-2">
-          <span className="text-[10px] text-on-surface-variant font-bold uppercase">Auto Scroll</span>
-          <button 
-            onClick={() => setAutoScroll(prev => !prev)}
+          <span className="text-[10px] text-on-surface-variant font-bold uppercase">
+            Auto Scroll
+          </span>
+          <button
+            onClick={() => setAutoScroll((prev) => !prev)}
             className={`w-7 h-4 rounded-full flex items-center px-0.5 transition-colors ${
               autoScroll ? 'bg-tertiary' : 'bg-surface-container-highest'
             }`}
           >
-            <div className={`w-3 h-3 bg-white rounded-full transition-transform ${
-              autoScroll ? 'translate-x-3' : 'translate-x-0'
-            }`} />
+            <div
+              className={`w-3 h-3 bg-white rounded-full transition-transform ${
+                autoScroll ? 'translate-x-3' : 'translate-x-0'
+              }`}
+            />
           </button>
         </div>
       </div>

@@ -15,7 +15,7 @@ import { BackDispatcher, type BackPriority } from './BackDispatcher';
 export function useBackHandler(
   priority: BackPriority,
   fn: () => boolean,
-  deps: unknown[] = [],
+  deps: unknown[] = []
 ): void {
   useEffect(() => {
     return BackDispatcher.register(priority, fn);

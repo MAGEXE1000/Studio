@@ -58,8 +58,8 @@ Added a duplicate `useNotificationService` selector hook call inside the `HubSet
 
 ```typescript
 // Inside HubSettings (line ~3200)
-const unreadCount = useNotificationService(s =>
-  s.notifications.filter(n => !n.read && !n.dismissed).length
+const unreadCount = useNotificationService(
+  (s) => s.notifications.filter((n) => !n.read && !n.dismissed).length
 );
 ```
 

@@ -54,9 +54,7 @@ function verifyPathExists(filePath, docFile, lineNum) {
   const cleanUrl = normalizedPath.split('#')[0];
 
   // Resolve to absolute path on disk (relative to workspace root)
-  const absolutePath = path.isAbsolute(cleanUrl) 
-    ? cleanUrl 
-    : path.resolve(workspaceRoot, cleanUrl);
+  const absolutePath = path.isAbsolute(cleanUrl) ? cleanUrl : path.resolve(workspaceRoot, cleanUrl);
 
   if (!fs.existsSync(absolutePath)) {
     logIssue(
@@ -176,12 +174,15 @@ function validateFile(absoluteFilePath) {
       { pattern: /\btbd\b/i, name: 'TBD' },
       { pattern: /\bcoming soon\b/i, name: 'Coming Soon' },
       { pattern: /\bcoming_soon\b/i, name: 'Coming Soon' },
-      { pattern: /\bplaceholder\b/i, name: 'Placeholder example' }
+      { pattern: /\bplaceholder\b/i, name: 'Placeholder example' },
     ];
 
-    placeholders.forEach(p => {
+    placeholders.forEach((p) => {
       // Allow the documentation_validation document itself to list the strings for explanation
-      if (relativeDocPath.endsWith('documentation_validation.md') || relativeDocPath.endsWith('report_templates.md')) {
+      if (
+        relativeDocPath.endsWith('documentation_validation.md') ||
+        relativeDocPath.endsWith('report_templates.md')
+      ) {
         return;
       }
       if (p.pattern.test(line)) {
@@ -203,7 +204,14 @@ function validateFile(absoluteFilePath) {
       const url = linkMatch[2].trim();
 
       // Skip external, mailto, anchor or dummy urls
-      if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('mailto:') || url.startsWith('#') || url === 'url' || url === 'path') {
+      if (
+        url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('mailto:') ||
+        url.startsWith('#') ||
+        url === 'url' ||
+        url === 'path'
+      ) {
         continue;
       }
 
@@ -250,25 +258,25 @@ console.log('--- Starting Documentation Validation ---');
 const mdFiles = [
   ...getMdFilesRecursive(docsDir),
   ...getMdFilesRecursive(knowledgeDir),
-  ...getMdFilesRecursive(sessionLogsDir)
+  ...getMdFilesRecursive(sessionLogsDir),
 ];
 
-mdFiles.forEach(file => {
+mdFiles.forEach((file) => {
   allDocs.push(path.normalize(file));
 });
 
 // 2. Validate content and extract links
-allDocs.forEach(file => {
+allDocs.forEach((file) => {
   validateFile(file);
 });
 
 // 3. Detect and report orphan files
 const ignoredOrphans = new Set([
   path.normalize(path.join(docsDir, 'engineering_guide.md')).toLowerCase(),
-  path.normalize(path.join(docsDir, 'architecture/internal-index.md')).toLowerCase()
+  path.normalize(path.join(docsDir, 'architecture/internal-index.md')).toLowerCase(),
 ]);
 
-allDocs.forEach(file => {
+allDocs.forEach((file) => {
   const normalizedFile = file.toLowerCase();
   if (ignoredOrphans.has(normalizedFile)) return;
   if (!docLinkTargets.has(normalizedFile)) {
@@ -285,17 +293,21 @@ allDocs.forEach(file => {
 
 console.log(`Scanned ${allDocs.length} documentation files.\n`);
 
-const errors = issues.filter(i => i.level === 'ERROR');
-const warnings = issues.filter(i => i.level === 'WARNING');
+const errors = issues.filter((i) => i.level === 'ERROR');
+const warnings = issues.filter((i) => i.level === 'WARNING');
 
 if (issues.length === 0) {
-  console.log('✓ Validation passed! All file references exist and no placeholders or orphans were found.');
+  console.log(
+    '✓ Validation passed! All file references exist and no placeholders or orphans were found.'
+  );
   process.exit(0);
 }
 
-console.log(`Found ${issues.length} issues (${errors.length} errors, ${warnings.length} warnings):\n`);
+console.log(
+  `Found ${issues.length} issues (${errors.length} errors, ${warnings.length} warnings):\n`
+);
 
-issues.forEach(i => {
+issues.forEach((i) => {
   console.log(`[${i.level}] File: ${i.document} (Line ${i.line})`);
   console.log(`      Problem: ${i.problem}`);
   console.log(`      Fix:     ${i.correction}\n`);

@@ -16,12 +16,13 @@ function checkFolder(folderPath, rules, relativeRoot) {
     if (!/\.(ts|tsx|js|jsx|mjs)$/.test(file)) continue;
 
     const content = fs.readFileSync(file, 'utf8');
-    const importRegex = /(?:import\s+(?:[\w*\s{},]*\s+from\s+)?['"]([^'"]+)['"]|import\(['"]([^'"]+)['"]\))/g;
+    const importRegex =
+      /(?:import\s+(?:[\w*\s{},]*\s+from\s+)?['"]([^'"]+)['"]|import\(['"]([^'"]+)['"]\))/g;
     let match;
 
     while ((match = importRegex.exec(content)) !== null) {
       const importPath = match[1] || match[2];
-      
+
       for (const rule of rules) {
         if (rule.pattern.test(importPath)) {
           console.error(`✗ Violation in ${path.relative(repoRoot, file)}:`);
@@ -57,27 +58,30 @@ const rules = {
   webApp: [
     {
       pattern: /@workspace\/ui-android|ui-android/i,
-      description: "Web application cannot import from ui-android"
-    }
+      description: 'Web application cannot import from ui-android',
+    },
   ],
   androidApp: [
     {
       pattern: /@workspace\/ui-web|ui-web/i,
-      description: "Android application cannot import from ui-web"
-    }
+      description: 'Android application cannot import from ui-web',
+    },
   ],
   core: [
     {
-      pattern: /@workspace\/ui-web|ui-web|@workspace\/ui-android|ui-android|@workspace\/ui-shared|ui-shared/i,
-      description: "studio-core cannot import from platform UI packages or ui-shared"
-    }
+      pattern:
+        /@workspace\/ui-web|ui-web|@workspace\/ui-android|ui-android|@workspace\/ui-shared|ui-shared/i,
+      description: 'studio-core cannot import from platform UI packages or ui-shared',
+    },
   ],
   uiShared: [
     {
-      pattern: /@workspace\/ui-web|ui-web|@workspace\/ui-android|ui-android|BottomNav|UpdateIndicator/i,
-      description: "ui-shared cannot import from platform UI packages or Capacitor-native navigation"
-    }
-  ]
+      pattern:
+        /@workspace\/ui-web|ui-web|@workspace\/ui-android|ui-android|BottomNav|UpdateIndicator/i,
+      description:
+        'ui-shared cannot import from platform UI packages or Capacitor-native navigation',
+    },
+  ],
 };
 
 checkFolder(path.join(repoRoot, 'apps/studio-web'), rules.webApp);

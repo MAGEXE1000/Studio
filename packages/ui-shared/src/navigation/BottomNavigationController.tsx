@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { 
-  useNavHidden, 
-  useNavCollapsed, 
-  useNavScrollOffset, 
-  useBottomNavigationStore, 
-  useApplicationTransitionStore 
+import {
+  useNavHidden,
+  useNavCollapsed,
+  useNavScrollOffset,
+  useBottomNavigationStore,
+  useApplicationTransitionStore,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
 
@@ -12,9 +12,9 @@ export function BottomNavigationController() {
   const hidden = useNavHidden();
   const collapsed = useNavCollapsed();
   const scrollOffset = useNavScrollOffset();
-  const transitionState = useApplicationTransitionStore(s => s.state);
-  const launchingApp = useApplicationTransitionStore(s => s.launchingApp);
-  
+  const transitionState = useApplicationTransitionStore((s) => s.state);
+  const launchingApp = useApplicationTransitionStore((s) => s.launchingApp);
+
   const { visible, items, setCollapsed, setVisible, setMotionState } = useBottomNavigationStore();
 
   // Sync programmatic visibility and collapse states
@@ -46,17 +46,15 @@ export function BottomNavigationController() {
         setMotionState('Transitioning');
       }
     } else {
-      setMotionState(hidden ? 'Hidden' : (collapsed ? 'Hidden' : 'Idle'));
+      setMotionState(hidden ? 'Hidden' : collapsed ? 'Hidden' : 'Idle');
     }
   }, [transitionState, launchingApp, hidden, collapsed, setMotionState]);
 
   // Filter out rendering on Desktop web views
-  const isWeb = typeof window !== 'undefined' && !((window as any).Capacitor?.isNativePlatform?.());
+  const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor?.isNativePlatform?.();
   if (isWeb && typeof window !== 'undefined' && window.innerWidth > 768) {
     return null;
   }
 
-  return (
-    <SharedNavigationBar />
-  );
+  return <SharedNavigationBar />;
 }

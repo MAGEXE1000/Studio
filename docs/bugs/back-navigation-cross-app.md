@@ -34,7 +34,7 @@ Each sub-application owns its own isolated navigation stack. Once the user reach
 
 ## Observed Behavior
 
-The navigation system used a single global `history` array. The `isRootRouteOnly()` guard checked `history.length <= 1`, which meant Back was only blocked when the *entire* history stack (across all apps) had a single entry. If the user had visited multiple apps, the total history length was always > 1, so Back kept popping across app boundaries.
+The navigation system used a single global `history` array. The `isRootRouteOnly()` guard checked `history.length <= 1`, which meant Back was only blocked when the _entire_ history stack (across all apps) had a single entry. If the user had visited multiple apps, the total history length was always > 1, so Back kept popping across app boundaries.
 
 ## Affected Systems
 

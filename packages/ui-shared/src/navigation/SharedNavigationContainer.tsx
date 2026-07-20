@@ -1,13 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigationStore } from '@workspace/studio-core';
 
-const KeepAliveView = React.memo(({ viewId, show, renderView }: { viewId: string, show: boolean, renderView: (id: string) => React.ReactNode }) => {
-  return <>{renderView(viewId)}</>;
-}, (prev, next) => {
-  // Skip rendering if the view was hidden and remains hidden
-  if (!prev.show && !next.show) return true;
-  return false;
-});
+const KeepAliveView = React.memo(
+  ({
+    viewId,
+    show,
+    renderView,
+  }: {
+    viewId: string;
+    show: boolean;
+    renderView: (id: string) => React.ReactNode;
+  }) => {
+    return <>{renderView(viewId)}</>;
+  },
+  (prev, next) => {
+    // Skip rendering if the view was hidden and remains hidden
+    if (!prev.show && !next.show) return true;
+    return false;
+  }
+);
 
 interface SharedNavigationContainerProps {
   activeView: string;
@@ -48,18 +59,18 @@ export function SharedNavigationContainer({
   const [visitedViews, setVisitedViews] = useState<Set<string>>(() => {
     const s = new Set([activeView]);
     if (preMountViews) {
-      preMountViews.forEach(v => s.add(v));
+      preMountViews.forEach((v) => s.add(v));
     }
     return s;
   });
-  
+
   // Track transition states mapping: viewId -> state class
   const [viewStates, setViewStates] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {
       [activeView]: 'm3-nav-active',
     };
     if (preMountViews) {
-      preMountViews.forEach(v => {
+      preMountViews.forEach((v) => {
         if (v !== activeView) {
           initial[v] = 'm3-nav-hidden';
         }
@@ -68,8 +79,8 @@ export function SharedNavigationContainer({
     return initial;
   });
 
-  const transitionType = useNavigationStore(s => s.transitionType);
-  
+  const transitionType = useNavigationStore((s) => s.transitionType);
+
   const prevActiveViewRef = useRef<string>(activeView);
   const transitionTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
   const animationFrameRef = useRef<any>(null);
@@ -77,24 +88,30 @@ export function SharedNavigationContainer({
   // Temporary development-mode assertions for transition stability
   if (process.env.NODE_ENV !== 'production') {
     const states = Object.values(viewStates);
-    const activeCount = states.filter(s => s === 'm3-nav-active').length;
-    const exitingCount = states.filter(s => s.startsWith('m3-nav-exit')).length;
-    const enteringCount = states.filter(s => s.startsWith('m3-nav-enter')).length;
+    const activeCount = states.filter((s) => s === 'm3-nav-active').length;
+    const exitingCount = states.filter((s) => s.startsWith('m3-nav-exit')).length;
+    const enteringCount = states.filter((s) => s.startsWith('m3-nav-enter')).length;
 
     if (activeCount > 1) {
-      throw new Error(`[Assertion Failure] Multiple active views detected in SharedNavigationContainer: ${JSON.stringify(viewStates)}`);
+      throw new Error(
+        `[Assertion Failure] Multiple active views detected in SharedNavigationContainer: ${JSON.stringify(viewStates)}`
+      );
     }
     if (exitingCount > 1) {
-      throw new Error(`[Assertion Failure] Multiple exiting views detected: ${JSON.stringify(viewStates)}`);
+      throw new Error(
+        `[Assertion Failure] Multiple exiting views detected: ${JSON.stringify(viewStates)}`
+      );
     }
     if (enteringCount > 1) {
-      throw new Error(`[Assertion Failure] Multiple entering views detected: ${JSON.stringify(viewStates)}`);
+      throw new Error(
+        `[Assertion Failure] Multiple entering views detected: ${JSON.stringify(viewStates)}`
+      );
     }
   }
 
   // Keep visited views in the DOM (keep-alive)
   useEffect(() => {
-    setVisitedViews(prev => {
+    setVisitedViews((prev) => {
       if (prev.has(activeView)) return prev;
       const next = new Set(prev);
       next.add(activeView);
@@ -150,13 +167,13 @@ export function SharedNavigationContainer({
     nextStates[activeView] = enterState;
 
     // 3. Immediately hide other views to avoid overlap or performance overhead
-    Object.keys(viewStates).forEach(vId => {
+    Object.keys(viewStates).forEach((vId) => {
       if (vId !== activeView && vId !== prevActive) {
         nextStates[vId] = 'm3-nav-hidden';
       }
     });
 
-    setViewStates(prev => ({
+    setViewStates((prev) => ({
       ...prev,
       ...nextStates,
     }));
@@ -164,7 +181,7 @@ export function SharedNavigationContainer({
     // 4. Force styles recalculation and animate entering view
     animationFrameRef.current = safeRaf(() => {
       animationFrameRef.current = safeRaf(() => {
-        setViewStates(prev => ({
+        setViewStates((prev) => ({
           ...prev,
           [activeView]: 'm3-nav-active',
         }));
@@ -174,7 +191,7 @@ export function SharedNavigationContainer({
 
     // 5. Hide exiting view after transition duration finishes
     transitionTimersRef.current[prevActive] = setTimeout(() => {
-      setViewStates(prev => {
+      setViewStates((prev) => {
         if (prev[prevActive] === exitState) {
           return {
             ...prev,
@@ -185,7 +202,6 @@ export function SharedNavigationContainer({
       });
       delete transitionTimersRef.current[prevActive];
     }, 300);
-
   }, [activeView, direction, viewOrder, transitionType]);
 
   useEffect(() => {
@@ -193,17 +209,19 @@ export function SharedNavigationContainer({
       if (animationFrameRef.current !== null) {
         safeCaf(animationFrameRef.current);
       }
-      Object.values(transitionTimersRef.current).forEach(t => clearTimeout(t));
+      Object.values(transitionTimersRef.current).forEach((t) => clearTimeout(t));
     };
   }, []);
 
   const renderList = viewOrder
-    ? viewOrder.filter(viewId => visitedViews.has(viewId))
+    ? viewOrder.filter((viewId) => visitedViews.has(viewId))
     : Array.from(visitedViews);
 
   return (
     <div className={`m3-nav-container ${className}`} style={style}>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .m3-nav-container {
           position: relative;
           width: 100%;
@@ -259,16 +277,15 @@ export function SharedNavigationContainer({
         .m3-nav-hidden {
           display: none !important;
         }
-      ` }} />
-      {renderList.map(viewId => {
+      `,
+        }}
+      />
+      {renderList.map((viewId) => {
         const stateClass = viewStates[viewId] || 'm3-nav-hidden';
         const show = stateClass !== 'm3-nav-hidden';
 
         return (
-          <div
-            key={viewId}
-            className={`m3-nav-panel ${stateClass}`}
-          >
+          <div key={viewId} className={`m3-nav-panel ${stateClass}`}>
             <KeepAliveView viewId={viewId} show={show} renderView={children} />
           </div>
         );

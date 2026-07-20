@@ -15,9 +15,8 @@ export default function DiagnosticsStack({
   nativeInstallerDetails,
   localApkDetails,
   nativeLogsList,
-  showToast
+  showToast,
 }: DiagnosticsStackProps) {
-
   const triggerCopy = async (type: 'all' | 'section' | 'summary' | 'tech') => {
     const fullReport = generateUnifiedReport(
       'Updater',
@@ -32,8 +31,8 @@ export default function DiagnosticsStack({
 
     if (type === 'summary') {
       const lines = fullReport.split('\n');
-      const healthIndex = lines.findIndex(l => l.includes('Overall Health'));
-      const problemsIndex = lines.findIndex(l => l.includes('Detected Problems'));
+      const healthIndex = lines.findIndex((l) => l.includes('Overall Health'));
+      const problemsIndex = lines.findIndex((l) => l.includes('Detected Problems'));
       if (healthIndex !== -1 && problemsIndex !== -1) {
         textToCopy = lines.slice(healthIndex - 1, problemsIndex - 1).join('\n');
       }
@@ -42,9 +41,13 @@ export default function DiagnosticsStack({
       const lines = fullReport.split('\n');
       const startPattern = 'Updater Analysis';
       let sectionContent = '';
-      const startIndex = lines.findIndex(l => l.toLowerCase().includes(startPattern.toLowerCase()));
+      const startIndex = lines.findIndex((l) =>
+        l.toLowerCase().includes(startPattern.toLowerCase())
+      );
       if (startIndex !== -1) {
-        const nextHeaderIndex = lines.findIndex((l, idx) => idx > startIndex && l.startsWith('====') && !l.includes('Report'));
+        const nextHeaderIndex = lines.findIndex(
+          (l, idx) => idx > startIndex && l.startsWith('====') && !l.includes('Report')
+        );
         if (nextHeaderIndex !== -1) {
           sectionContent = lines.slice(startIndex - 1, nextHeaderIndex - 1).join('\n');
         } else {
@@ -55,7 +58,7 @@ export default function DiagnosticsStack({
       label = 'Updater Section';
     } else if (type === 'tech') {
       const lines = fullReport.split('\n');
-      const appendixIndex = lines.findIndex(l => l.includes('Technical Appendix'));
+      const appendixIndex = lines.findIndex((l) => l.includes('Technical Appendix'));
       if (appendixIndex !== -1) {
         textToCopy = lines.slice(appendixIndex - 1).join('\n');
       }
@@ -73,21 +76,24 @@ export default function DiagnosticsStack({
   return (
     <div className="space-y-3 bg-black">
       {/* Copy Everything */}
-      <button 
+      <button
         onClick={() => triggerCopy('all')}
         className="w-full bg-black hover:bg-white/5 flex items-center justify-between p-4 rounded-xl cursor-pointer transition-colors border border-outline-variant/10 text-left outline-none group active:scale-[0.99]"
       >
         <div className="flex flex-col gap-1 pr-4">
           <span className="font-bold text-sm text-tertiary">Copy Everything</span>
           <span className="text-[11px] text-on-surface-variant leading-relaxed">
-            Copies complete diagnostics report including logs, update system state and device information.
+            Copies complete diagnostics report including logs, update system state and device
+            information.
           </span>
         </div>
-        <span className="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">content_copy</span>
+        <span className="material-symbols-outlined text-tertiary group-hover:scale-110 transition-transform">
+          content_copy
+        </span>
       </button>
 
       {/* Copy Section */}
-      <button 
+      <button
         onClick={() => triggerCopy('section')}
         className="w-full bg-black hover:bg-white/5 flex items-center justify-between p-4 rounded-xl cursor-pointer transition-colors border border-outline-variant/10 text-left outline-none group active:scale-[0.99]"
       >
@@ -97,11 +103,13 @@ export default function DiagnosticsStack({
             Copies the specific Updater diagnostics segment from the report.
           </span>
         </div>
-        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">content_copy</span>
+        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">
+          content_copy
+        </span>
       </button>
 
       {/* Copy Summary */}
-      <button 
+      <button
         onClick={() => triggerCopy('summary')}
         className="w-full bg-black hover:bg-white/5 flex items-center justify-between p-4 rounded-xl cursor-pointer transition-colors border border-outline-variant/10 text-left outline-none group active:scale-[0.99]"
       >
@@ -111,11 +119,13 @@ export default function DiagnosticsStack({
             Copies the short human-readable status summary and overall health details.
           </span>
         </div>
-        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">content_copy</span>
+        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">
+          content_copy
+        </span>
       </button>
 
       {/* Copy Technical Data */}
-      <button 
+      <button
         onClick={() => triggerCopy('tech')}
         className="w-full bg-black hover:bg-white/5 flex items-center justify-between p-4 rounded-xl cursor-pointer transition-colors border border-outline-variant/10 text-left outline-none group active:scale-[0.99]"
       >
@@ -125,7 +135,9 @@ export default function DiagnosticsStack({
             Copies the raw console and native installer log dumps.
           </span>
         </div>
-        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">content_copy</span>
+        <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">
+          content_copy
+        </span>
       </button>
     </div>
   );

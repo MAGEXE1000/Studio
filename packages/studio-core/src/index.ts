@@ -43,10 +43,10 @@ export * from './lib/useLiquidGlassNav';
 export * from './lib/userAvatar';
 export * from './lib/useStatusBar';
 export * from './lib/useT';
-export * from './lib/utils';
+export * from './lib/utilities';
 export * from './lib/syncBackends/index';
-export * from './vocalex/labSessionDb';
-export * from './vocalex/takesDb';
+
+
 export { type Language, default as translations } from './lib/i18n';
 export * from './lib/devTools';
 export * from './lib/lyricsService';
@@ -91,6 +91,15 @@ export * from './lib/notifications/NotificationService';
 export * from './store/useSettingsStore';
 
 // NEW SERVICES AND CONTROLLERS
-export * from './services/SettingsService';
-export * from './controllers/SettingsController';
-export * from './controllers/SyncController';
+
+export * from './repositories/VocalexRepository';
+
+export * from './repositories/GroovexStemRepository';
+
+export * from './repositories/AuthRepository';
+export * from './repositories/UserRepository';
+
+export * from './store/useSettingsStore';
+export * from './repositories/VocalexRepository';
+export * from './repositories/AuthRepository';
+

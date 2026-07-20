@@ -9,5 +9,8 @@ console.log('Total id tags in progressions.ts:', matches ? matches.length : 0);
 // Find the Wonderwall definition to see how it looks
 const wonderwallIdx = content.indexOf('wonderwall');
 if (wonderwallIdx !== -1) {
-  console.log('Wonderwall surrounding code:\n', content.substring(wonderwallIdx - 100, wonderwallIdx + 400));
+  console.log(
+    'Wonderwall surrounding code:\n',
+    content.substring(wonderwallIdx - 100, wonderwallIdx + 400)
+  );
 }

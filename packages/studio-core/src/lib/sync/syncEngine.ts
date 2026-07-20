@@ -8,7 +8,14 @@ export function getStableDeviceId(): string {
   if (cachedDeviceId) return cachedDeviceId;
 
   // Search legacy keys
-  const legacyKeys = ['studioDeviceId', 'chordex_device_id', 'chordexDeviceId', 'appDeviceId', 'deviceId', 'previousDeviceId'];
+  const legacyKeys = [
+    'studioDeviceId',
+    'chordex_device_id',
+    'chordexDeviceId',
+    'appDeviceId',
+    'deviceId',
+    'previousDeviceId',
+  ];
   for (const k of legacyKeys) {
     try {
       const val = localStorage.getItem(k);
@@ -22,19 +29,22 @@ export function getStableDeviceId(): string {
 
   // Generate new stable ID
   const platform = Capacitor.isNativePlatform() ? 'android' : 'web';
-  const randomUUID = typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `gen-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
-  
+  const randomUUID =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `gen-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
+
   cachedDeviceId = `${platform}-${randomUUID}`;
   try {
     localStorage.setItem('studioDeviceId', cachedDeviceId);
   } catch {}
 
   if (Capacitor.isNativePlatform()) {
-    import('@capacitor/preferences').then(({ Preferences }) => {
-      Preferences.set({ key: 'studioDeviceId', value: cachedDeviceId! }).catch(() => {});
-    }).catch(() => {});
+    import('@capacitor/preferences')
+      .then(({ Preferences }) => {
+        Preferences.set({ key: 'studioDeviceId', value: cachedDeviceId! }).catch(() => {});
+      })
+      .catch(() => {});
   }
 
   return cachedDeviceId;
@@ -126,7 +136,8 @@ export function getDeviceDetails() {
 
   if (isNativeApp) {
     technicalName = `Studio Android / ${manufacturer !== 'N/A' ? manufacturer + ' ' : ''}${modelClean}`;
-    shortName = friendlyName || (manufacturer !== 'N/A' ? `${manufacturer} ${modelClean}` : modelClean);
+    shortName =
+      friendlyName || (manufacturer !== 'N/A' ? `${manufacturer} ${modelClean}` : modelClean);
     displayName = `${shortName}`;
   } else {
     technicalName = `Studio Web / ${browser} on ${os}`;
@@ -134,13 +145,21 @@ export function getDeviceDetails() {
     displayName = `${browser} on ${os}`;
   }
 
-  return { shortName, displayName, technicalName, browser, os, model: modelClean, manufacturer, userAgent: ua };
+  return {
+    shortName,
+    displayName,
+    technicalName,
+    browser,
+    os,
+    model: modelClean,
+    manufacturer,
+    userAgent: ua,
+  };
 }
 
 // Helper to scan for undefined properties recursively in development/diagnostics
 function scanForUndefined(val: any, path = '') {
   if (val === undefined) {
-    console.warn(`[syncEngine] Undefined value found at path: ${path || 'root'}`);
     return;
   }
   if (val === null || typeof val !== 'object') return;
@@ -149,7 +168,7 @@ function scanForUndefined(val: any, path = '') {
   if (val.constructor?.name === 'Timestamp' || val.constructor?.name === 'FieldValue') return;
   if (typeof Blob !== 'undefined' && val instanceof Blob) return;
   if (typeof File !== 'undefined' && val instanceof File) return;
-  
+
   if (Array.isArray(val)) {
     val.forEach((item, index) => {
       scanForUndefined(item, `${path}[${index}]`);
@@ -198,12 +217,12 @@ function sanitizeValue(val: any): any {
   if (typeof File !== 'undefined' && val instanceof File) {
     return val;
   }
-  
+
   // Array: convert undefined array elements to null
   if (Array.isArray(val)) {
-    return val.map(item => item === undefined ? null : sanitizeValue(item));
+    return val.map((item) => (item === undefined ? null : sanitizeValue(item)));
   }
-  
+
   // Plain object: remove undefined fields from objects, and sanitize values
   const res: any = {};
   for (const key in val) {
@@ -218,7 +237,10 @@ function sanitizeValue(val: any): any {
 }
 
 // ── Session Classification ──
-export function classifyDeviceSession(data: any, currentDeviceId: string): { classification: string; reason: string } {
+export function classifyDeviceSession(
+  data: any,
+  currentDeviceId: string
+): { classification: string; reason: string } {
   if (!data) return { classification: 'unknown', reason: 'No document data available' };
   const docId = data.deviceId || data.id || 'Unknown';
 
@@ -228,19 +250,34 @@ export function classifyDeviceSession(data: any, currentDeviceId: string): { cla
   }
 
   // Calculate active diff
-  const lastActive = data.lastActiveAt ? (typeof data.lastActiveAt.toMillis === 'function' ? data.lastActiveAt.toMillis() : data.lastActiveAt) : 0;
+  const lastActive = data.lastActiveAt
+    ? typeof data.lastActiveAt.toMillis === 'function'
+      ? data.lastActiveAt.toMillis()
+      : data.lastActiveAt
+    : 0;
   const now = Date.now();
   const diffMinutes = (now - lastActive) / 60000;
-  const isCurrentlyActive = (diffMinutes <= 2 && data.syncStatus === 'active');
-  const isRecentlyActive = (diffMinutes <= 1440); // 24 hours
+  const isCurrentlyActive = diffMinutes <= 2 && data.syncStatus === 'active';
+  const isRecentlyActive = diffMinutes <= 1440; // 24 hours
 
   // 2. activeRemote
-  if (isCurrentlyActive && data.signedIn !== false && data.syncStatus !== 'signedOut' && data.syncStatus !== 'revoked') {
+  if (
+    isCurrentlyActive &&
+    data.signedIn !== false &&
+    data.syncStatus !== 'signedOut' &&
+    data.syncStatus !== 'revoked'
+  ) {
     return { classification: 'activeRemote', reason: 'Active remote device' };
   }
 
   // 3. recentRemote
-  if (isRecentlyActive && data.signedIn !== false && data.syncStatus !== 'signedOut' && data.syncStatus !== 'revoked' && lastActive > 0) {
+  if (
+    isRecentlyActive &&
+    data.signedIn !== false &&
+    data.syncStatus !== 'signedOut' &&
+    data.syncStatus !== 'revoked' &&
+    lastActive > 0
+  ) {
     return { classification: 'recentRemote', reason: 'Recently active remote device' };
   }
 

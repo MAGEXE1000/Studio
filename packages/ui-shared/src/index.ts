@@ -1,3 +1,4 @@
+import { DurationPresets, SpringPresets } from '@workspace/studio-core';
 // Export everything from ui-shared
 export { default as AppSpinner } from './components/AppSpinner';
 export { default as ElasticSlider } from './components/ElasticSlider';
@@ -17,14 +18,14 @@ export { default as GuitarDiagram } from './components/GuitarDiagram';
 export { default as FourStringDiagram } from './components/FourStringDiagram';
 export { default as ChordDiagram } from './components/ChordDiagram';
 export * from './components/StudioSkeleton';
-export { default as LibraryPanel } from './panels/LibraryPanel';
-export { default as ChordPanel } from './panels/ChordPanel';
+export { LibraryPanel } from './features/chordex';
+export { ChordPanel } from './features/chordex';
 export { default as SettingsPanel } from './panels/SettingsPanel';
-export { default as SongsPanel } from './panels/SongsPanel';
-export { default as DrumEditor } from './panels/DrumEditor';
-export { default as GroovexApp } from './groovex/GroovexApp';
-export { default as VocalexApp } from './vocalex/VocalexApp';
-export { default as StageCorePanel } from './components/StageCorePanel';
+export { SongsPanel } from './features/chordex';
+export { DrumEditor } from './features/drumex';
+export { GroovexApp } from './features/groovex';
+export { VocalexApp } from './features/vocalex';
+export { StageCorePanel } from './features/stagex';
 export { default as StudioHub } from './components/StudioHub';
 export * from './components/NavIcons';
 export * from './navigation/AppAnimationSystem';
@@ -63,7 +64,7 @@ export { default as VinylLottie } from './components/lottie/VinylLottie';
 // UI
 export * from './components/ui/encrypted-text';
 
-export { useGroovexStore } from './groovex/useGroovexStore';
+export { useGroovexStore } from './features/groovex';
 export { AppModeMenuLogo } from './components/AppModeMenuLogo';
 export { default as WebAppSectionDock } from './components/WebAppSectionDock';
 export { default as DevToolsDashboard } from './components/DevToolsDashboard';

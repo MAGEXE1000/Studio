@@ -1,29 +1,4 @@
-import {
-  APP_VERSION,
-  isNative,
-  updateDiagnostics,
-  updateDebugLogs,
-  activityLifecycleTimeline,
-  getTransitionHistory,
-  getRejectedTransitions,
-  getErrors,
-  getLogs,
-  getPerfStats,
-  getStagexDiagnostics,
-  useNavigationStore,
-  PerformanceProfiler,
-  getUpdateSessions,
-  getActiveSession,
-  isInstallationLocked,
-  isPostInstallSessionActive,
-  globalUpdateState,
-  updaterSimulation,
-  stateListeners,
-  UpdaterFlightRecorder,
-  isSimulationActive,
-  shouldUseAndroidApkUpdater,
-  useChordStore
-} from '@workspace/studio-core';
+import { APP_VERSION, isNative, updateDiagnostics, updateDebugLogs, activityLifecycleTimeline, getTransitionHistory, getRejectedTransitions, getErrors, getLogs, getPerfStats, getStagexDiagnostics, useNavigationStore, PerformanceProfiler, getUpdateSessions, getActiveSession, isInstallationLocked, isPostInstallSessionActive, globalUpdateState, updaterSimulation, stateListeners, UpdaterFlightRecorder, isSimulationActive, shouldUseAndroidApkUpdater, useChordStore, useSettingsStore } from '@workspace/studio-core';
 
 export interface DiagnosticsData {
   appVersion: string;
@@ -83,7 +58,7 @@ export function buildDiagnosticDataObject(
       versionCode: devInfo.versionCode !== undefined ? String(devInfo.versionCode) : 'N/A',
       storageAvailable: devInfo.storageAvailable || updateDiagnostics?.storageAvailable || 'N/A',
       networkState: devInfo.networkState || updateDiagnostics?.networkState || 'N/A',
-      batteryLevel: devInfo.battery !== undefined ? devInfo.battery : 'N/A'
+      batteryLevel: devInfo.battery !== undefined ? devInfo.battery : 'N/A',
     },
     errors: getErrors() || [],
     perfStats: perf ? Array.from(perf.entries()).map(([k, v]) => ({ component: k, ...v })) : [],
@@ -95,7 +70,7 @@ export function buildDiagnosticDataObject(
     stateTransitions: transitionHistory || [],
     rejectedTransitions: rejectedTransitions || [],
     localApkDetails: localApkDetails || null,
-    nativeLogs: nativeLogsList || []
+    nativeLogs: nativeLogsList || [],
   };
 }
 
@@ -118,22 +93,30 @@ export function generateUnifiedReport(
   localApkDetails: any,
   nativeLogsList: any[]
 ): string {
-  const data = buildDiagnosticDataObject(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
-  
+  const data = buildDiagnosticDataObject(
+    nativeDeviceInfo,
+    nativeInstallerDetails,
+    localApkDetails,
+    nativeLogsList
+  );
+
   // Calculate dynamic health score
   let healthScore = 100;
   const criticalDeductions = data.errors.length * 15;
-  const warningLogs = data.logs.filter(l => l.level === 'warn');
+  const warningLogs = data.logs.filter((l) => l.level === 'warn');
   const warningDeductions = warningLogs.length * 5;
-  
+
   // Get real performance metrics for score calculations
   const profiler = PerformanceProfiler.getInstance();
   const perfMetrics = profiler.getMetrics();
   const perfScore = profiler.getScore(perfMetrics);
   const perfDeductions = Math.max(0, 100 - perfScore);
-  
-  healthScore = Math.max(0, Math.min(100, healthScore - criticalDeductions - warningDeductions - perfDeductions));
-  
+
+  healthScore = Math.max(
+    0,
+    Math.min(100, healthScore - criticalDeductions - warningDeductions - perfDeductions)
+  );
+
   let overallStatus = 'Normal';
   if (healthScore < 50) overallStatus = 'Critical';
   else if (healthScore < 75) overallStatus = 'Attention Required';
@@ -162,7 +145,9 @@ export function generateUnifiedReport(
   sections.push(`Warnings Logged:  ${warningLogs.length}`);
   sections.push(`Errors Logged:    ${data.errors.length}`);
   sections.push(`Performance:      ${perfScore}/100`);
-  sections.push(`Navigation State: ${useNavigationStore.getState().isTransitioning ? 'LOCKED' : 'STABLE'}`);
+  sections.push(
+    `Navigation State: ${useNavigationStore.getState().isTransitioning ? 'LOCKED' : 'STABLE'}`
+  );
   sections.push(`Updater State:    ${data.updateDebugLogs.downloadStatus || 'IDLE'}`);
   sections.push(`Storage Info:     ${data.device.storageAvailable}`);
   sections.push('');
@@ -172,11 +157,17 @@ export function generateUnifiedReport(
   sections.push('                     Summary                      ');
   sections.push('==================================================');
   if (healthScore >= 90) {
-    sections.push(`The application is operating normally. All core systems are stable with no major errors recorded.`);
+    sections.push(
+      `The application is operating normally. All core systems are stable with no major errors recorded.`
+    );
   } else if (healthScore >= 70) {
-    sections.push(`The application is operational. Some warning logs and/or minor performance jitter were detected, but no critical crashes occurred.`);
+    sections.push(
+      `The application is operational. Some warning logs and/or minor performance jitter were detected, but no critical crashes occurred.`
+    );
   } else {
-    sections.push(`CRITICAL ALERT: Multiple system issues or rendering locks have compromised application health. Immediate developer investigation is recommended.`);
+    sections.push(
+      `CRITICAL ALERT: Multiple system issues or rendering locks have compromised application health. Immediate developer investigation is recommended.`
+    );
   }
   sections.push('');
 
@@ -184,12 +175,21 @@ export function generateUnifiedReport(
   sections.push('==================================================');
   sections.push('                Detected Problems                 ');
   sections.push('==================================================');
-  
+
   // Group problems
-  const problems: { severity: string; title: string; desc: string; cause: string; inv: string; mod: string; time: string; freq: number }[] = [];
-  
+  const problems: {
+    severity: string;
+    title: string;
+    desc: string;
+    cause: string;
+    inv: string;
+    mod: string;
+    time: string;
+    freq: number;
+  }[] = [];
+
   // Parse errors
-  data.errors.forEach(err => {
+  data.errors.forEach((err) => {
     problems.push({
       severity: 'Critical',
       title: err.message.split('\n')[0].substring(0, 60),
@@ -198,13 +198,13 @@ export function generateUnifiedReport(
       inv: 'Examine stack trace in the Technical Appendix.',
       mod: err.module || 'Runtime',
       time: new Date(err.timestamp || Date.now()).toLocaleTimeString(),
-      freq: 1
+      freq: 1,
     });
   });
 
   // Parse performance warnings
   const perfWarnings = profiler.getWarnings(perfMetrics);
-  perfWarnings.forEach(w => {
+  perfWarnings.forEach((w) => {
     problems.push({
       severity: w.severity,
       title: w.title,
@@ -213,13 +213,13 @@ export function generateUnifiedReport(
       inv: w.suggestedInvestigation,
       mod: 'Performance',
       time: new Date().toLocaleTimeString(),
-      freq: 1
+      freq: 1,
     });
   });
 
   // Parse warning logs (collapse duplicates)
-  const collapsedWarnings: Record<string, typeof warningLogs[0] & { count: number }> = {};
-  warningLogs.forEach(w => {
+  const collapsedWarnings: Record<string, (typeof warningLogs)[0] & { count: number }> = {};
+  warningLogs.forEach((w) => {
     const key = w.module + ':' + w.message;
     if (collapsedWarnings[key]) {
       collapsedWarnings[key].count++;
@@ -228,7 +228,7 @@ export function generateUnifiedReport(
     }
   });
 
-  Object.values(collapsedWarnings).forEach(w => {
+  Object.values(collapsedWarnings).forEach((w) => {
     problems.push({
       severity: 'Warning',
       title: w.message.split('\n')[0].substring(0, 60),
@@ -237,13 +237,13 @@ export function generateUnifiedReport(
       inv: `Trace source file: ${w.source}. Check application settings/state.`,
       mod: w.module,
       time: new Date(w.timestamp).toLocaleTimeString(),
-      freq: w.count
+      freq: w.count,
     });
   });
 
   if (problems.length > 0) {
     problems.sort((a, b) => (a.severity === 'Critical' ? -1 : 1));
-    problems.forEach(p => {
+    problems.forEach((p) => {
       sections.push(`[${p.severity}] ${p.title}`);
       sections.push(`  • Description:    ${p.desc}`);
       sections.push(`  • Possible Cause: ${p.cause}`);
@@ -263,31 +263,55 @@ export function generateUnifiedReport(
   sections.push('               Performance Analysis               ');
   sections.push('==================================================');
   if (!module || module === 'Performance') {
-    sections.push(`Frame Rate:          ${perfMetrics.currentFps} FPS (Avg: ${metricsLabel(perfMetrics.averageFps)} FPS, Min: ${metricsLabel(perfMetrics.minFps)} FPS, Max: ${metricsLabel(perfMetrics.maxFps)} FPS)`);
+    sections.push(
+      `Frame Rate:          ${perfMetrics.currentFps} FPS (Avg: ${metricsLabel(perfMetrics.averageFps)} FPS, Min: ${metricsLabel(perfMetrics.minFps)} FPS, Max: ${metricsLabel(perfMetrics.maxFps)} FPS)`
+    );
     sections.push(`CPU Avg / Peak:      ${perfMetrics.cpuAverage}% / ${perfMetrics.cpuPeak}%`);
     sections.push(`Memory Avg / Peak:   ${perfMetrics.memoryAverage} / ${perfMetrics.memoryPeak}`);
-    sections.push(`JS Thread Avg/Peak:  ${perfMetrics.jsThreadAverage} ms / ${perfMetrics.jsThreadPeak} ms`);
-    sections.push(`UI Thread Avg/Peak:  ${perfMetrics.uiThreadAverage} ms / ${perfMetrics.uiThreadPeak} ms`);
+    sections.push(
+      `JS Thread Avg/Peak:  ${perfMetrics.jsThreadAverage} ms / ${perfMetrics.jsThreadPeak} ms`
+    );
+    sections.push(
+      `UI Thread Avg/Peak:  ${perfMetrics.uiThreadAverage} ms / ${perfMetrics.uiThreadPeak} ms`
+    );
     sections.push(`1% Low FPS:          ${metricsLabel(perfMetrics.low1PercentFps)} FPS`);
-    sections.push(`Frame Time:          ${perfMetrics.frameTime} ms (Variance: ${perfMetrics.frameVariance} ms)`);
-    sections.push(`Pacing Metrics:      ${perfMetrics.droppedFrames} dropped frames, ${perfMetrics.longFrames} long frames, ${perfMetrics.veryLongFrames} very long frames`);
+    sections.push(
+      `Frame Time:          ${perfMetrics.frameTime} ms (Variance: ${perfMetrics.frameVariance} ms)`
+    );
+    sections.push(
+      `Pacing Metrics:      ${perfMetrics.droppedFrames} dropped frames, ${perfMetrics.longFrames} long frames, ${perfMetrics.veryLongFrames} very long frames`
+    );
     sections.push(`Event Loop Lag:      ${perfMetrics.eventLoopDelay} ms delay`);
-    sections.push(`Heap Size / Used:    ${perfMetrics.heapSize} / ${perfMetrics.usedHeap} (Growth Rate: ${perfMetrics.heapGrowth})`);
+    sections.push(
+      `Heap Size / Used:    ${perfMetrics.heapSize} / ${perfMetrics.usedHeap} (Growth Rate: ${perfMetrics.heapGrowth})`
+    );
     sections.push(`GPU Layer Count:     ${perfMetrics.gpuLayerCount} active composition layers`);
     sections.push(`GPU Renderer:        ${perfMetrics.gpuRenderer}`);
     sections.push(`Refresh Rate:        ${perfMetrics.refreshRate} Hz`);
-    sections.push(`Callback Latency:    Avg JS: ${perfMetrics.averageCallbackLatency} ms | PackageInstaller: ${perfMetrics.packageInstallerLatency} ms`);
+    sections.push(
+      `Callback Latency:    Avg JS: ${perfMetrics.averageCallbackLatency} ms | PackageInstaller: ${perfMetrics.packageInstallerLatency} ms`
+    );
     sections.push(`Pipeline Duration:   ${perfMetrics.updatePipelineDuration}`);
-    sections.push(`Main Thread Blocks:  ${perfMetrics.mainThreadBlockingTotal} ms total (Longest task: ${perfMetrics.longestBlockingTask} ms)`);
-    sections.push(`Renders / Layouts:   Renders: ${data.updateDebugLogs.renderCount || 0} | Paints: ${data.updateDebugLogs.paintCount || 0} | Layouts: ${data.updateDebugLogs.layoutCount || 0}`);
+    sections.push(
+      `Main Thread Blocks:  ${perfMetrics.mainThreadBlockingTotal} ms total (Longest task: ${perfMetrics.longestBlockingTask} ms)`
+    );
+    sections.push(
+      `Renders / Layouts:   Renders: ${data.updateDebugLogs.renderCount || 0} | Paints: ${data.updateDebugLogs.paintCount || 0} | Layouts: ${data.updateDebugLogs.layoutCount || 0}`
+    );
     sections.push('');
     sections.push('Performance Plain-Language Summary:');
     if (perfScore >= 90) {
-      sections.push('The rendering pipeline is operating smoothly at target display frame rate. Frame intervals are highly stable.');
+      sections.push(
+        'The rendering pipeline is operating smoothly at target display frame rate. Frame intervals are highly stable.'
+      );
     } else if (perfScore >= 70) {
-      sections.push('The rendering pipeline is mostly stable, but some heavy frames or minor main thread blocks were recorded.');
+      sections.push(
+        'The rendering pipeline is mostly stable, but some heavy frames or minor main thread blocks were recorded.'
+      );
     } else {
-      sections.push('CRITICAL PERFORMANCE STUTTERS: Repeated layout recalculations or long blocking tasks are causing noticeable interface jank.');
+      sections.push(
+        'CRITICAL PERFORMANCE STUTTERS: Repeated layout recalculations or long blocking tasks are causing noticeable interface jank.'
+      );
     }
   } else {
     sections.push('Performance metrics skipped in this module report.');
@@ -300,16 +324,24 @@ export function generateUnifiedReport(
   sections.push('==================================================');
   if (!module || module === 'Apps' || module === 'System') {
     const navState = useNavigationStore.getState();
-    sections.push(`Current Route App:  ${navState.history[navState.history.length - 1]?.app || 'hub'}`);
-    sections.push(`Current Route Tab:  ${navState.history[navState.history.length - 1]?.tab || 'home'}`);
-    sections.push(`Current Route Page: ${navState.history[navState.history.length - 1]?.page || 'none'}`);
+    sections.push(
+      `Current Route App:  ${navState.history[navState.history.length - 1]?.app || 'hub'}`
+    );
+    sections.push(
+      `Current Route Tab:  ${navState.history[navState.history.length - 1]?.tab || 'home'}`
+    );
+    sections.push(
+      `Current Route Page: ${navState.history[navState.history.length - 1]?.page || 'none'}`
+    );
     sections.push(`Transition Lock:    ${navState.isTransitioning ? 'LOCKED' : 'UNLOCKED'}`);
     sections.push(`History Stack Depth:${navState.history.length} screens`);
     sections.push(`Gesture State:      ${navState.gestureState || 'idle'}`);
     sections.push('');
     sections.push('Navigation Trace History:');
     navState.history.forEach((h, idx) => {
-      sections.push(`  [${idx + 1}] App: ${h.app}, Tab: ${h.tab || 'none'}, Page: ${h.page || 'none'}`);
+      sections.push(
+        `  [${idx + 1}] App: ${h.app}, Tab: ${h.tab || 'none'}, Page: ${h.page || 'none'}`
+      );
     });
   } else {
     sections.push('Navigation analysis skipped in this module report.');
@@ -321,13 +353,21 @@ export function generateUnifiedReport(
   sections.push('                 Updater Analysis                 ');
   sections.push('==================================================');
   if (!module || module === 'Updater' || module === 'System') {
-    sections.push(`Local APK Package:  ${localApkDetails ? localApkDetails.packageName : 'No package downloaded'}`);
+    sections.push(
+      `Local APK Package:  ${localApkDetails ? localApkDetails.packageName : 'No package downloaded'}`
+    );
     sections.push(`Local APK Version:  ${localApkDetails ? localApkDetails.versionName : 'N/A'}`);
-    sections.push(`Signature Status:   ${localApkDetails?.isValidApk ? 'VERIFIED (Valid signature)' : 'UNVERIFIED'}`);
-    sections.push(`Update Decision:    ${data.updateDebugLogs.updateDecision || 'No check performed'}`);
+    sections.push(
+      `Signature Status:   ${localApkDetails?.isValidApk ? 'VERIFIED (Valid signature)' : 'UNVERIFIED'}`
+    );
+    sections.push(
+      `Update Decision:    ${data.updateDebugLogs.updateDecision || 'No check performed'}`
+    );
     sections.push(`Decision Reason:    ${data.updateDebugLogs.updateDecisionReason || 'N/A'}`);
     sections.push(`Download Status:    ${data.updateDebugLogs.downloadStatus || 'IDLE'}`);
-    sections.push(`Installation State: ${nativeInstallerDetails ? nativeInstallerDetails.sessionState : 'No active session'}`);
+    sections.push(
+      `Installation State: ${nativeInstallerDetails ? nativeInstallerDetails.sessionState : 'No active session'}`
+    );
   } else {
     sections.push('Updater analysis skipped in this module report.');
   }
@@ -337,9 +377,10 @@ export function generateUnifiedReport(
   sections.push('==================================================');
   sections.push('                  Logs Analysis                   ');
   sections.push('==================================================');
-  
-  const logGroups: Record<string, { level: string; msg: string; count: number; source: string }> = {};
-  data.logs.forEach(log => {
+
+  const logGroups: Record<string, { level: string; msg: string; count: number; source: string }> =
+    {};
+  data.logs.forEach((log) => {
     const key = log.module + ':' + log.message;
     if (logGroups[key]) {
       logGroups[key].count++;
@@ -349,18 +390,22 @@ export function generateUnifiedReport(
   });
 
   const parsedLogs = Object.values(logGroups);
-  const infoLogs = parsedLogs.filter(l => l.level === 'info');
-  const warnLogs = parsedLogs.filter(l => l.level === 'warn');
-  const errLogs = parsedLogs.filter(l => l.level === 'error');
+  const infoLogs = parsedLogs.filter((l) => l.level === 'info');
+  const warnLogs = parsedLogs.filter((l) => l.level === 'warn');
+  const errLogs = parsedLogs.filter((l) => l.level === 'error');
 
-  sections.push(`Log Summary: Info: ${infoLogs.length} events, Warnings: ${warnLogs.length} events, Errors: ${errLogs.length} events`);
+  sections.push(
+    `Log Summary: Info: ${infoLogs.length} events, Warnings: ${warnLogs.length} events, Errors: ${errLogs.length} events`
+  );
   sections.push('');
   sections.push('Logs Conclusions:');
   if (errLogs.length > 0) {
     sections.push('• Critical runtime errors were recorded. Check the stack traces immediately.');
   }
   if (warnLogs.length > 3) {
-    sections.push('• High warning volume detected. This might cause memory overhead or performance jank.');
+    sections.push(
+      '• High warning volume detected. This might cause memory overhead or performance jank.'
+    );
   }
   if (errLogs.length === 0 && warnLogs.length === 0) {
     sections.push('• Event logging is clean. No warnings or errors detected.');
@@ -374,15 +419,21 @@ export function generateUnifiedReport(
   let recsCount = 0;
   if (data.errors.length > 0) {
     recsCount++;
-    sections.push(`${recsCount}. Resolve the unhandled runtime exceptions in the Technical Appendix.`);
+    sections.push(
+      `${recsCount}. Resolve the unhandled runtime exceptions in the Technical Appendix.`
+    );
   }
   if (perfScore < 85) {
     recsCount++;
-    sections.push(`${recsCount}. Audit components in rendering performance view. Implement memoization to stabilize frame rates.`);
+    sections.push(
+      `${recsCount}. Audit components in rendering performance view. Implement memoization to stabilize frame rates.`
+    );
   }
   if (warningLogs.length > 5) {
     recsCount++;
-    sections.push(`${recsCount}. Investigate warning loops in module logs to eliminate diagnostic noise.`);
+    sections.push(
+      `${recsCount}. Investigate warning loops in module logs to eliminate diagnostic noise.`
+    );
   }
   if (recsCount === 0) {
     sections.push('No actionable recommendations. Keep up the good work!');
@@ -395,8 +446,10 @@ export function generateUnifiedReport(
   sections.push('==================================================');
   sections.push('--- JavaScript Console Log Dump ---');
   if (data.logs.length > 0) {
-    data.logs.slice(-50).forEach(log => {
-      sections.push(`[${new Date(log.timestamp).toLocaleTimeString()}] [${log.level.toUpperCase()}] [${log.module}] ${log.message}`);
+    data.logs.slice(-50).forEach((log) => {
+      sections.push(
+        `[${new Date(log.timestamp).toLocaleTimeString()}] [${log.level.toUpperCase()}] [${log.module}] ${log.message}`
+      );
     });
   } else {
     sections.push('No JavaScript logs in buffer.');
@@ -404,8 +457,10 @@ export function generateUnifiedReport(
   sections.push('');
   sections.push('--- Android Native Installer Log Dump ---');
   if (data.nativeLogs.length > 0) {
-    data.nativeLogs.slice(-50).forEach(log => {
-      sections.push(`[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${translateSentinel(log.stage, 'Installer')}] Status: ${log.status} - Message: ${translateSentinel(log.message, 'No message')}`);
+    data.nativeLogs.slice(-50).forEach((log) => {
+      sections.push(
+        `[${new Date(log.timestamp || Date.now()).toLocaleTimeString()}] [${translateSentinel(log.stage, 'Installer')}] Status: ${log.status} - Message: ${translateSentinel(log.message, 'No message')}`
+      );
     });
   } else {
     sections.push('No native logs in buffer.');
@@ -425,7 +480,13 @@ export function generateFullEngineeringReport(
   localApkDetails: any,
   nativeLogsList: any[]
 ): string {
-  return generateUnifiedReport(undefined, nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+  return generateUnifiedReport(
+    undefined,
+    nativeDeviceInfo,
+    nativeInstallerDetails,
+    localApkDetails,
+    nativeLogsList
+  );
 }
 
 export function generateCopyEverythingReport(
@@ -434,7 +495,12 @@ export function generateCopyEverythingReport(
   localApkDetails: any,
   nativeLogsList: any[]
 ): string {
-  const data = buildDiagnosticDataObject(nativeDeviceInfo, nativeInstallerDetails, localApkDetails, nativeLogsList);
+  const data = buildDiagnosticDataObject(
+    nativeDeviceInfo,
+    nativeInstallerDetails,
+    localApkDetails,
+    nativeLogsList
+  );
   const transitionHistory = getTransitionHistory();
   const rejectedTransitions = getRejectedTransitions();
   const activeSession = getActiveSession();
@@ -447,10 +513,13 @@ export function generateCopyEverythingReport(
   // Overall Health Score calculation
   let healthScore = 100;
   const criticalDeductions = data.errors.length * 15;
-  const warningLogs = data.logs.filter(l => l.level === 'warn');
+  const warningLogs = data.logs.filter((l) => l.level === 'warn');
   const warningDeductions = warningLogs.length * 5;
   const perfDeductions = Math.max(0, 100 - perfScore);
-  healthScore = Math.max(0, Math.min(100, healthScore - criticalDeductions - warningDeductions - perfDeductions));
+  healthScore = Math.max(
+    0,
+    Math.min(100, healthScore - criticalDeductions - warningDeductions - perfDeductions)
+  );
   let overallStatus = 'Normal';
   if (healthScore < 50) overallStatus = 'Critical';
   else if (healthScore < 75) overallStatus = 'Attention Required';
@@ -581,11 +650,11 @@ export function generateCopyEverythingReport(
   report += `| Flag / Parameter | Value | Description |\n`;
   report += `|---|---|---|\n`;
   report += `| APK Channel Enabled | ${shouldUseAndroidApkUpdater() ? 'YES' : 'NO'} | Android APK update strategy status |\n`;
-  report += `| Developer Settings Mode | ${useChordStore.getState().settings.developerMode ? 'ACTIVE' : 'INACTIVE'} | Admin dashboard console visibility |\n`;
+  report += `| Developer Settings Mode | ${useSettingsStore.getState().settings.developerMode ? 'ACTIVE' : 'INACTIVE'} | Admin dashboard console visibility |\n`;
   report += `| Simulation Active Flag | ${isSimulationActive() ? 'YES' : 'NO'} | Simulation flag toggle status |\n`;
   report += `| Log Filter Severity | ${UpdaterFlightRecorder.getSeverityLevel()} | Current flight recorder logging limit |\n`;
   report += `\n`;
-  
+
   report += `### Active Simulation Overrides\n`;
   report += `| Override Flag | Status | Description |\n`;
   report += `|---|---|---|\n`;
@@ -604,17 +673,17 @@ export function generateCopyEverythingReport(
   // ==========================================
   report += `## 8. LIFECYCLE & EVENT LOGS\n`;
   report += `### Lifecycle Event Counters\n`;
-  report += `*   **Resume Events**: ${data.activityLifecycle.filter(e => e.stage === 'RESUME').length}\n`;
-  report += `*   **Pause Events**: ${data.activityLifecycle.filter(e => e.stage === 'PAUSE').length}\n`;
-  report += `*   **Focus Events**: ${data.activityLifecycle.filter(e => e.stage === 'FOCUS').length}\n`;
-  report += `*   **Visibility Changes**: ${data.activityLifecycle.filter(e => e.stage === 'VISIBILITY_CHANGE').length}\n\n`;
+  report += `*   **Resume Events**: ${data.activityLifecycle.filter((e) => e.stage === 'RESUME').length}\n`;
+  report += `*   **Pause Events**: ${data.activityLifecycle.filter((e) => e.stage === 'PAUSE').length}\n`;
+  report += `*   **Focus Events**: ${data.activityLifecycle.filter((e) => e.stage === 'FOCUS').length}\n`;
+  report += `*   **Visibility Changes**: ${data.activityLifecycle.filter((e) => e.stage === 'VISIBILITY_CHANGE').length}\n\n`;
 
   report += `### Active State Machine Listeners\n`;
   report += `*   **Registered State Observers**: ${stateListeners.size}\n\n`;
 
   report += `### Console Diagnostic Errors (${data.errors.length} logged)\n`;
   if (data.errors.length > 0) {
-    data.errors.slice(-10).forEach(e => {
+    data.errors.slice(-10).forEach((e) => {
       report += `*   **[${new Date(e.timestamp).toLocaleTimeString()}]** \`${e.message}\`\n`;
     });
   } else {
@@ -628,21 +697,24 @@ export function generateCopyEverythingReport(
   report += `## 9. FLIGHT RECORDER LOGS\n`;
   const frEvents = UpdaterFlightRecorder.getEvents();
   if (frEvents.length > 0) {
-    frEvents.slice().reverse().forEach(e => {
-      const timeStr = new Date(e.timestamp).toLocaleTimeString();
-      report += `\`[${timeStr}] [${e.severity || 'INFO'}] [${e.thread.toUpperCase()}] ${e.eventType}\`\n`;
-      report += `> Caller: ${e.caller} | Reason: ${e.reason || 'None'}\n`;
-      if (e.previousState || e.newState) {
-        report += `> State change: ${e.previousState} &rarr; ${e.newState}\n`;
-      }
-      if (e.count && e.count > 1) {
-        report += `> Repetition count: aggregated ${e.count} events\n`;
-      }
-      if (e.error || e.warning) {
-        report += `> Alert: Error: ${e.error || 'N/A'} | Warning: ${e.warning || 'N/A'}\n`;
-      }
-      report += `\n`;
-    });
+    frEvents
+      .slice()
+      .reverse()
+      .forEach((e) => {
+        const timeStr = new Date(e.timestamp).toLocaleTimeString();
+        report += `\`[${timeStr}] [${e.severity || 'INFO'}] [${e.thread.toUpperCase()}] ${e.eventType}\`\n`;
+        report += `> Caller: ${e.caller} | Reason: ${e.reason || 'None'}\n`;
+        if (e.previousState || e.newState) {
+          report += `> State change: ${e.previousState} &rarr; ${e.newState}\n`;
+        }
+        if (e.count && e.count > 1) {
+          report += `> Repetition count: aggregated ${e.count} events\n`;
+        }
+        if (e.error || e.warning) {
+          report += `> Alert: Error: ${e.error || 'N/A'} | Warning: ${e.warning || 'N/A'}\n`;
+        }
+        report += `\n`;
+      });
   } else {
     report += `*No Flight Recorder log traces generated.*\n\n`;
   }
@@ -694,7 +766,7 @@ export function generateCopyEverythingReport(
       report += `| Elapsed | State | Step Event | Detail |\n`;
       report += `|---|---|---|---|\n`;
       if (s.timeline && s.timeline.length > 0) {
-        s.timeline.forEach(t => {
+        s.timeline.forEach((t) => {
           report += `| ${t.offset} | ${t.state} | ${t.event} | ${t.reason || '—'} |\n`;
         });
       } else {

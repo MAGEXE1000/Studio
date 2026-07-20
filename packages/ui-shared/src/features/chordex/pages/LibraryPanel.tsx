@@ -376,7 +376,7 @@ export default function LibraryPanel() {
       : 'library';
   const recentChords = useChordStore(useShallow((s) => s.recentChords));
   const favorites = useChordStore(useShallow((s) => s.favorites));
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
 
   const toggleFavorite = useChordStore(useShallow((s) => s.toggleFavorite));
   const addToProgression = useChordStore(useShallow((s) => s.addToProgression));
@@ -744,7 +744,7 @@ export default function LibraryPanel() {
                   <button
                     key={t.value}
                     onClick={() => {
-                      settingsController.updateSettings({ tuning: t.value });
+                      useSettingsStore.getState().updateSettings({ tuning: t.value });
                       setShowTuningMenu(false);
                     }}
                     className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex justify-between items-center transition-all ${isCurrent ? 'bg-zinc-800 text-white font-bold' : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-white'}`}

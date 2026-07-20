@@ -42,7 +42,9 @@ export function versionJsonUrls(): string[] {
     return [`${override}${sep}t=${t}`];
   }
 
-  const remoteBase = (import.meta.env.VITE_APK_BASE_URL as string | undefined)?.replace(/\/$/, '') || 'https://studio-30f44.web.app';
+  const remoteBase =
+    (import.meta.env.VITE_APK_BASE_URL as string | undefined)?.replace(/\/$/, '') ||
+    'https://studio-30f44.web.app';
   const urls: string[] = [];
 
   if (Capacitor.isNativePlatform()) {
@@ -51,16 +53,10 @@ export function versionJsonUrls(): string[] {
     const localBase = import.meta.env.BASE_URL || '/';
     urls.push(`${localBase}version.json?t=${t}`);
   }
-  
-  console.debug(`[Updater DIAGNOSTICS] Generated urls to fetch:`, urls);
-
   return urls;
 }
 
-async function fetchOne(
-  url: string,
-  signal: AbortSignal,
-): Promise<RemoteVersionInfo | null> {
+async function fetchOne(url: string, signal: AbortSignal): Promise<RemoteVersionInfo | null> {
   try {
     const res = await fetch(url, {
       method: 'GET',
@@ -71,7 +67,6 @@ async function fetchOne(
       const errStr = `HTTP Error ${res.status}`;
       if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = errStr;
       if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = errStr;
-      console.info(`[AppUpdater] Metadata fetch failed for URL: ${url}. ${errStr}`);
       return null;
     }
     const text = await res.text();
@@ -90,14 +85,12 @@ async function fetchOne(
       const errStr = 'Malformed JSON response';
       if (isVersionJson) updateDebugLogs.fetchedVersionJson = errStr;
       if (isAppRelease) updateDebugLogs.fetchedAppReleaseJson = errStr;
-      console.info(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
     if (!json || typeof json !== 'object') {
       const errStr = 'Malformed JSON response';
       if (isVersionJson) updateDebugLogs.fetchedVersionJson = errStr;
       if (isAppRelease) updateDebugLogs.fetchedAppReleaseJson = errStr;
-      console.info(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
     const obj = json as Record<string, unknown>;
@@ -106,48 +99,128 @@ async function fetchOne(
       const errStr = 'Missing or invalid version field in JSON';
       if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = errStr;
       if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = errStr;
-      console.info(`[AppUpdater] Metadata integrity failed for URL: ${url}. ${errStr}`);
       return null;
     }
-    
+
     if (url.includes('version.json')) {
       updateDebugLogs.fetchedVersionJson = normalizedVersion;
     } else if (url.includes('app-release.json')) {
       updateDebugLogs.fetchedAppReleaseJson = normalizedVersion;
     }
 
-    const changelog = typeof obj.description === 'string' ? obj.description : (typeof obj.changelog === 'string' ? obj.changelog : undefined);
-    const downloadUrl = typeof obj.downloadUrl === 'string' ? obj.downloadUrl : (typeof obj.apk_download_url === 'string' ? obj.apk_download_url : undefined);
-    const updateType = (obj.update_type === 'updater' || obj.update_type === 'apk' || obj.update_type === 'both' || obj.update_type === 'none') 
-      ? obj.update_type 
-      : ((obj.updateType === 'updater' || obj.updateType === 'apk' || obj.updateType === 'both' || obj.updateType === 'none') ? obj.updateType : undefined);
-    const apkUrl = typeof obj.download_url === 'string' ? obj.download_url : (typeof obj.apkUrl === 'string' ? obj.apkUrl : undefined);
-    const apkSha256 = typeof obj.sha256 === 'string' ? obj.sha256 : (typeof obj.apkSha256 === 'string' ? obj.apkSha256 : undefined);
-    const manualApkUrl = typeof obj.manual_download_url === 'string' ? obj.manual_download_url : (typeof obj.manualApkUrl === 'string' ? obj.manualApkUrl : undefined);
-    const fallbackApkUrl = typeof obj.fallback_download_url === 'string' ? obj.fallback_download_url : (typeof obj.fallbackApkUrl === 'string' ? obj.fallbackApkUrl : undefined);
-    
+    const changelog =
+      typeof obj.description === 'string'
+        ? obj.description
+        : typeof obj.changelog === 'string'
+          ? obj.changelog
+          : undefined;
+    const downloadUrl =
+      typeof obj.downloadUrl === 'string'
+        ? obj.downloadUrl
+        : typeof obj.apk_download_url === 'string'
+          ? obj.apk_download_url
+          : undefined;
+    const updateType =
+      obj.update_type === 'updater' ||
+      obj.update_type === 'apk' ||
+      obj.update_type === 'both' ||
+      obj.update_type === 'none'
+        ? obj.update_type
+        : obj.updateType === 'updater' ||
+            obj.updateType === 'apk' ||
+            obj.updateType === 'both' ||
+            obj.updateType === 'none'
+          ? obj.updateType
+          : undefined;
+    const apkUrl =
+      typeof obj.download_url === 'string'
+        ? obj.download_url
+        : typeof obj.apkUrl === 'string'
+          ? obj.apkUrl
+          : undefined;
+    const apkSha256 =
+      typeof obj.sha256 === 'string'
+        ? obj.sha256
+        : typeof obj.apkSha256 === 'string'
+          ? obj.apkSha256
+          : undefined;
+    const manualApkUrl =
+      typeof obj.manual_download_url === 'string'
+        ? obj.manual_download_url
+        : typeof obj.manualApkUrl === 'string'
+          ? obj.manualApkUrl
+          : undefined;
+    const fallbackApkUrl =
+      typeof obj.fallback_download_url === 'string'
+        ? obj.fallback_download_url
+        : typeof obj.fallbackApkUrl === 'string'
+          ? obj.fallbackApkUrl
+          : undefined;
+
     const reinstallRequired = !!(obj.reinstallRequired || obj.reinstall_required);
     const signatureChanged = !!(obj.signatureChanged || obj.signature_changed);
-    const previousSignatureSha256 = typeof obj.previousSignatureSha256 === 'string' ? obj.previousSignatureSha256 : (typeof obj.previous_signature_sha256 === 'string' ? obj.previous_signature_sha256 : undefined);
-    const newSignatureSha256 = typeof obj.newSignatureSha256 === 'string' ? obj.newSignatureSha256 : (typeof obj.new_signature_sha256 === 'string' ? obj.new_signature_sha256 : undefined);
-    const installMode = (obj.installMode === 'reinstall-required' || obj.install_mode === 'reinstall-required') ? 'reinstall-required' : undefined;
-    const packageName = typeof obj.packageName === 'string' ? obj.packageName : (typeof obj.package_name === 'string' ? obj.package_name : undefined);
-    const signatures = typeof obj.signatures === 'string' ? obj.signatures : (typeof obj.signature === 'string' ? obj.signature : undefined);
-    
-    const requiredApkVersion = typeof obj.required_apk_version === 'string'
-      ? obj.required_apk_version
-      : (typeof obj.requiredApkVersion === 'string' ? obj.requiredApkVersion : undefined);
-    const requiredVersionCode = typeof obj.required_version_code === 'number'
-      ? obj.required_version_code
-      : (typeof obj.requiredVersionCode === 'number' ? obj.requiredVersionCode : (typeof obj.required_version_code === 'string' ? parseInt(obj.required_version_code, 10) : (typeof obj.requiredVersionCode === 'string' ? parseInt(obj.requiredVersionCode, 10) : undefined)));
-    const versionCode = typeof obj.versionCode === 'number'
-      ? obj.versionCode
-      : (typeof obj.version_code === 'number' ? obj.version_code : (typeof obj.versionCode === 'string' ? parseInt(obj.versionCode, 10) : (typeof obj.version_code === 'string' ? parseInt(obj.version_code, 10) : undefined)));
+    const previousSignatureSha256 =
+      typeof obj.previousSignatureSha256 === 'string'
+        ? obj.previousSignatureSha256
+        : typeof obj.previous_signature_sha256 === 'string'
+          ? obj.previous_signature_sha256
+          : undefined;
+    const newSignatureSha256 =
+      typeof obj.newSignatureSha256 === 'string'
+        ? obj.newSignatureSha256
+        : typeof obj.new_signature_sha256 === 'string'
+          ? obj.new_signature_sha256
+          : undefined;
+    const installMode =
+      obj.installMode === 'reinstall-required' || obj.install_mode === 'reinstall-required'
+        ? 'reinstall-required'
+        : undefined;
+    const packageName =
+      typeof obj.packageName === 'string'
+        ? obj.packageName
+        : typeof obj.package_name === 'string'
+          ? obj.package_name
+          : undefined;
+    const signatures =
+      typeof obj.signatures === 'string'
+        ? obj.signatures
+        : typeof obj.signature === 'string'
+          ? obj.signature
+          : undefined;
+
+    const requiredApkVersion =
+      typeof obj.required_apk_version === 'string'
+        ? obj.required_apk_version
+        : typeof obj.requiredApkVersion === 'string'
+          ? obj.requiredApkVersion
+          : undefined;
+    const requiredVersionCode =
+      typeof obj.required_version_code === 'number'
+        ? obj.required_version_code
+        : typeof obj.requiredVersionCode === 'number'
+          ? obj.requiredVersionCode
+          : typeof obj.required_version_code === 'string'
+            ? parseInt(obj.required_version_code, 10)
+            : typeof obj.requiredVersionCode === 'string'
+              ? parseInt(obj.requiredVersionCode, 10)
+              : undefined;
+    const versionCode =
+      typeof obj.versionCode === 'number'
+        ? obj.versionCode
+        : typeof obj.version_code === 'number'
+          ? obj.version_code
+          : typeof obj.versionCode === 'string'
+            ? parseInt(obj.versionCode, 10)
+            : typeof obj.version_code === 'string'
+              ? parseInt(obj.version_code, 10)
+              : undefined;
 
     let parsedReleaseNotes: string[] | StructuredReleaseNotes | undefined = undefined;
     if (obj.releaseNotes) {
       if (Array.isArray(obj.releaseNotes)) {
-        parsedReleaseNotes = obj.releaseNotes.filter((item: any) => typeof item === 'string') as string[];
+        parsedReleaseNotes = obj.releaseNotes.filter(
+          (item: any) => typeof item === 'string'
+        ) as string[];
       } else if (typeof obj.releaseNotes === 'object') {
         const rnObj = obj.releaseNotes as any;
         const notesObj: StructuredReleaseNotes = {};
@@ -155,13 +228,17 @@ async function fetchOne(
           notesObj.added = rnObj.added.filter((item: any) => typeof item === 'string') as string[];
         }
         if (Array.isArray(rnObj.improved)) {
-          notesObj.improved = rnObj.improved.filter((item: any) => typeof item === 'string') as string[];
+          notesObj.improved = rnObj.improved.filter(
+            (item: any) => typeof item === 'string'
+          ) as string[];
         }
         if (Array.isArray(rnObj.fixed)) {
           notesObj.fixed = rnObj.fixed.filter((item: any) => typeof item === 'string') as string[];
         }
         if (Array.isArray(rnObj.changed)) {
-          notesObj.changed = rnObj.changed.filter((item: any) => typeof item === 'string') as string[];
+          notesObj.changed = rnObj.changed.filter(
+            (item: any) => typeof item === 'string'
+          ) as string[];
         }
         if (notesObj.added || notesObj.improved || notesObj.fixed || notesObj.changed) {
           parsedReleaseNotes = notesObj;
@@ -191,9 +268,12 @@ async function fetchOne(
       installMode,
       packageName,
       signatures,
-      apkSizeBytes: typeof obj.apkSizeBytes === 'number'
-        ? obj.apkSizeBytes
-        : (typeof obj.apkSizeBytes === 'string' ? parseInt(obj.apkSizeBytes, 10) : undefined),
+      apkSizeBytes:
+        typeof obj.apkSizeBytes === 'number'
+          ? obj.apkSizeBytes
+          : typeof obj.apkSizeBytes === 'string'
+            ? parseInt(obj.apkSizeBytes, 10)
+            : undefined,
     };
 
     if (!validateRemoteMetadata(resultObj)) {
@@ -207,8 +287,8 @@ async function fetchOne(
   } catch (err) {
     const errMsg = err instanceof Error ? err.message : String(err);
     if (url.includes('version.json')) updateDebugLogs.fetchedVersionJson = `Error: ${errMsg}`;
-    if (url.includes('app-release.json')) updateDebugLogs.fetchedAppReleaseJson = `Error: ${errMsg}`;
-    console.info(`[AppUpdater] Metadata parsing exception for URL: ${url}. ${errMsg}`);
+    if (url.includes('app-release.json'))
+      updateDebugLogs.fetchedAppReleaseJson = `Error: ${errMsg}`;
     return null;
   }
 }
@@ -216,11 +296,13 @@ async function fetchOne(
 export function logPipelineTrace(caller: string, stage: string, input: any, output: any) {
   const timestamp = new Date().toISOString();
   const state = globalUpdateState?.updateState || 'UNKNOWN';
-  const sessionId = activeUpdateSession ? String(activeUpdateSession.sessionId) : (globalUpdateState?.sessionId ? String(globalUpdateState.sessionId) : 'N/A');
-  
+  const sessionId = activeUpdateSession
+    ? String(activeUpdateSession.sessionId)
+    : globalUpdateState?.sessionId
+      ? String(globalUpdateState.sessionId)
+      : 'N/A';
+
   const logMsg = `[PIPELINE_TRACE] [${timestamp}] [Session:${sessionId}] [State:${state}] [Caller:${caller}] [Stage:${stage}] | Input: ${typeof input === 'object' ? JSON.stringify(input) : input} | Output: ${typeof output === 'object' ? JSON.stringify(output) : output}`;
-  console.log(logMsg);
-  
   // Also push to the Flight Recorder so it is captured in the diagnostic copy everything report
   try {
     UpdaterFlightRecorder.record({
@@ -231,7 +313,7 @@ export function logPipelineTrace(caller: string, stage: string, input: any, outp
       caller: caller,
       category: 'PIPELINE',
       reason: `${stage} trace`,
-      details: JSON.stringify({ input, output, timestamp, state })
+      details: JSON.stringify({ input, output, timestamp, state }),
     });
   } catch (e) {
     // ignore
@@ -254,24 +336,33 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
   const caller = 'fetchLatestFromGitHub';
   const url = 'https://api.github.com/repos/MAGEXE1000/Studio/releases';
   logPipelineTrace(caller, 'HTTP_REQUEST_URL', { url }, 'N/A');
-  
+
   try {
     const res = await fetch(url, {
       signal,
       headers: {
-        'Accept': 'application/vnd.github.v3+json'
-      }
+        Accept: 'application/vnd.github.v3+json',
+      },
     });
-    
-    logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { status: res.status, statusText: res.statusText });
-    
+
+    logPipelineTrace(
+      caller,
+      'HTTP_RESPONSE',
+      { url },
+      { status: res.status, statusText: res.statusText }
+    );
+
     if (!res.ok) {
-      console.info(`[AppUpdater] GitHub releases fetch failed: HTTP ${res.status}`);
       return null;
     }
-    
+
     const text = await res.text();
-    logPipelineTrace(caller, 'RAW_JSON', { url }, { rawLength: text.length, sample: text.slice(0, 200) });
+    logPipelineTrace(
+      caller,
+      'RAW_JSON',
+      { url },
+      { rawLength: text.length, sample: text.slice(0, 200) }
+    );
     logRawSource('github-releases', text);
 
     const releases = JSON.parse(text) as GitHubRelease[];
@@ -286,11 +377,11 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
 
     for (const r of releases) {
       if (r.assets && Array.isArray(r.assets)) {
-        const foundApk = r.assets.find(a => a.name.toLowerCase().endsWith('.apk'));
+        const foundApk = r.assets.find((a) => a.name.toLowerCase().endsWith('.apk'));
         if (foundApk) {
           targetRelease = r;
           apkAsset = foundApk;
-          shaAsset = r.assets.find(a => a.name.toLowerCase().endsWith('.sha256')) || null;
+          shaAsset = r.assets.find((a) => a.name.toLowerCase().endsWith('.sha256')) || null;
           break;
         }
       }
@@ -332,7 +423,6 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
           }
         }
       } catch (shaErr) {
-        console.info('[AppUpdater] Failed to fetch SHA-256 asset from GitHub (offline fallback or CORS):', shaErr);
       }
     }
 
@@ -349,20 +439,17 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
       platform: 'github',
       updateType: 'apk',
       tag_name: targetRelease.tag_name,
-      name: targetRelease.name || `Studio v${version}`
+      name: targetRelease.name || `Studio v${version}`,
     };
 
     logPipelineTrace(caller, 'RELEASE_METADATA_OBJECT', { source: 'github' }, info);
     return info;
   } catch (err) {
-    console.info('[AppUpdater] Exception in fetchLatestFromGitHub:', err);
     return null;
   }
 }
 
-export async function fetchRemoteVersion(
-  signal?: AbortSignal,
-): Promise<RemoteVersionInfo | null> {
+export async function fetchRemoteVersion(signal?: AbortSignal): Promise<RemoteVersionInfo | null> {
   const caller = 'fetchRemoteVersion';
   const urls = versionJsonUrls();
   const ctrl = signal ? null : new AbortController();
@@ -385,7 +472,12 @@ export async function fetchRemoteVersion(
               if (resolved || completed) return;
               if (res) {
                 logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { status: 200 });
-                logPipelineTrace(caller, 'RELEASE_METADATA_OBJECT', { source: 'firebase', url }, res);
+                logPipelineTrace(
+                  caller,
+                  'RELEASE_METADATA_OBJECT',
+                  { source: 'firebase', url },
+                  res
+                );
                 resolved = true;
                 completed = true;
                 resolve(res);
@@ -399,7 +491,12 @@ export async function fetchRemoteVersion(
               }
             })
             .catch((err) => {
-              logPipelineTrace(caller, 'HTTP_RESPONSE', { url }, { error: err?.message || String(err) });
+              logPipelineTrace(
+                caller,
+                'HTTP_RESPONSE',
+                { url },
+                { error: err?.message || String(err) }
+              );
               if (resolved || completed) return;
               failedCount++;
               if (failedCount === total) {
@@ -410,42 +507,52 @@ export async function fetchRemoteVersion(
         });
       });
     } catch (e) {
-      console.log('[AppUpdater] Firebase metadata fetch error:', e);
     }
   }
 
   // If Firebase version info is fetched successfully, return immediately (avoiding rate-limiting & CORS GitHub calls)
   if (firebaseRes && firebaseRes.version) {
-    console.info(`[AppUpdater] fetchRemoteVersion returned (Firebase):`, firebaseRes);
     return firebaseRes;
   }
 
   // 2. Fallback path: Query GitHub releases (only if Firebase is offline/failed)
-  console.info('[AppUpdater] Firebase manifest unavailable, querying GitHub API as fallback...');
   let githubRes: RemoteVersionInfo | null = null;
   try {
     githubRes = await fetchLatestFromGitHub(sig);
   } catch (err) {
-    console.info('[AppUpdater] Fallback GitHub query exception:', err);
   }
 
   const finalRemote = firebaseRes || githubRes;
-  console.info(`[AppUpdater] fetchRemoteVersion returned:`, finalRemote);
   return finalRemote;
 }
 
 export function validateRemoteMetadata(remote: RemoteVersionInfo | null): boolean {
   if (!remote) return false;
-  
+
   const versionName = remote.version;
   const rawVersionCode = remote.versionCode;
-  const versionCode = typeof rawVersionCode === 'number' ? rawVersionCode : (typeof rawVersionCode === 'string' ? parseInt(rawVersionCode, 10) : undefined);
-  
-  const tag = remote.platform === 'github' ? (remote as any).tag_name : (remote.version ? `v${remote.version}` : undefined);
-  const releaseName = remote.platform === 'github' ? (remote as any).name : (remote.version ? `Studio v${remote.version}` : undefined);
+  const versionCode =
+    typeof rawVersionCode === 'number'
+      ? rawVersionCode
+      : typeof rawVersionCode === 'string'
+        ? parseInt(rawVersionCode, 10)
+        : undefined;
+
+  const tag =
+    remote.platform === 'github'
+      ? (remote as any).tag_name
+      : remote.version
+        ? `v${remote.version}`
+        : undefined;
+  const releaseName =
+    remote.platform === 'github'
+      ? (remote as any).name
+      : remote.version
+        ? `Studio v${remote.version}`
+        : undefined;
 
   const isNativeCheck = Capacitor.isNativePlatform();
-  
+
   let isVerNameValid = false;
   let isVerCodeValid = false;
   let isTagValid = false;
@@ -471,7 +578,12 @@ export function validateRemoteMetadata(remote: RemoteVersionInfo | null): boolea
   }
 
   if (isNativeCheck) {
-    if (versionCode !== undefined && typeof versionCode === 'number' && !isNaN(versionCode) && versionCode > 0) {
+    if (
+      versionCode !== undefined &&
+      typeof versionCode === 'number' &&
+      !isNaN(versionCode) &&
+      versionCode > 0
+    ) {
       isVerCodeValid = true;
     }
   } else {
@@ -479,13 +591,15 @@ export function validateRemoteMetadata(remote: RemoteVersionInfo | null): boolea
   }
 
   if (!isVerNameValid || !isVerCodeValid || !isTagValid || !isReleaseNameValid) {
-    console.error(`[AppUpdater] [METADATA REJECTED] Validation failure: ` +
-      `versionName: "${versionName}" (${isVerNameValid ? 'VALID' : 'INVALID'}), ` +
-      `versionCode: ${versionCode} (${isVerCodeValid ? 'VALID' : 'INVALID'}), ` +
-      `tag: "${tag}" (${isTagValid ? 'VALID' : 'INVALID'}), ` +
-      `releaseName: "${releaseName}" (${isReleaseNameValid ? 'VALID' : 'INVALID'})`);
+    console.error(
+      `[AppUpdater] [METADATA REJECTED] Validation failure: ` +
+        `versionName: "${versionName}" (${isVerNameValid ? 'VALID' : 'INVALID'}), ` +
+        `versionCode: ${versionCode} (${isVerCodeValid ? 'VALID' : 'INVALID'}), ` +
+        `tag: "${tag}" (${isTagValid ? 'VALID' : 'INVALID'}), ` +
+        `releaseName: "${releaseName}" (${isReleaseNameValid ? 'VALID' : 'INVALID'})`
+    );
     return false;
   }
-  
+
   return true;
 }

@@ -77,14 +77,14 @@ function triggerUpdate() {
   }
   isUpdating = true;
   needsReRender = false;
-  
+
   let loopCount = 0;
   do {
     needsReRender = false;
     hookIndex = 0;
     SharedNavigationContainer(currentProps);
     currentRenderCount++;
-    
+
     // Run effects
     for (let i = 0; i < hooks.length; i++) {
       const hook = hooks[i];
@@ -100,7 +100,7 @@ function triggerUpdate() {
             }
           }
         }
-        
+
         if (shouldRun) {
           if (typeof hook.cleanup === 'function') {
             hook.cleanup();
@@ -115,7 +115,7 @@ function triggerUpdate() {
       throw new Error('Infinite loop detected in React mock hooks runtime');
     }
   } while (needsReRender);
-  
+
   isUpdating = false;
 }
 
@@ -131,7 +131,7 @@ const mockReact = {
           let resolved = typeof nextVal === 'function' ? nextVal(hooks[idx].val) : nextVal;
           hooks[idx].val = resolved;
           triggerUpdate();
-        }
+        },
       };
     }
     return [hooks[idx].val, hooks[idx].setter];
@@ -144,7 +144,7 @@ const mockReact = {
         cb,
         deps,
         prevDeps: null,
-        cleanup: null
+        cleanup: null,
       };
     } else {
       hooks[idx].cb = cb; // Make sure new closure is captured
@@ -156,7 +156,7 @@ const mockReact = {
     if (hooks[idx] === undefined) {
       hooks[idx] = {
         type: 'ref',
-        current: initialValue
+        current: initialValue,
       };
     }
     return hooks[idx];
@@ -174,9 +174,12 @@ globalThis.mockNavigationStoreState = {
 async function runTests() {
   console.log('=== STARTING PROGRAMMATIC TRANSITION ENGINE VALIDATION ===');
 
-  const containerModulePath = path.join(repoRoot, 'packages/ui-shared/dist/src/navigation/SharedNavigationContainer.js');
+  const containerModulePath = path.join(
+    repoRoot,
+    'packages/ui-shared/dist/src/navigation/SharedNavigationContainer.js'
+  );
   const containerModuleUrl = `file://${containerModulePath.replace(/\\/g, '/')}`;
-  
+
   const mod = await import(containerModuleUrl);
   SharedNavigationContainer = mod.SharedNavigationContainer;
 
@@ -195,7 +198,7 @@ async function runTests() {
     renderComponent({
       activeView: initialView,
       viewOrder,
-      children: childrenMock
+      children: childrenMock,
     });
   };
 
@@ -214,18 +217,18 @@ async function runTests() {
   renderComponent({
     activeView: 'tab2',
     viewOrder,
-    children: childrenMock
+    children: childrenMock,
   });
-  
+
   // Transition should start: tab1 exits to left, tab2 enters from right
   assert.strictEqual(getViewStates().tab1, 'm3-nav-exit-left');
   assert.strictEqual(getViewStates().tab2, 'm3-nav-enter-right');
-  
+
   // Flush Rafs to activate tab2 transition
   flushRafs();
   assert.strictEqual(getViewStates().tab2, 'm3-nav-active');
   assert.strictEqual(getViewStates().tab1, 'm3-nav-exit-left');
-  
+
   // Advance time to complete transition (300ms)
   advanceTime(300);
   assert.strictEqual(getViewStates().tab1, 'm3-nav-hidden');
@@ -238,7 +241,7 @@ async function runTests() {
   renderComponent({
     activeView: 'tab1',
     viewOrder,
-    children: childrenMock
+    children: childrenMock,
   });
   assert.strictEqual(getViewStates().tab2, 'm3-nav-exit-right');
   assert.strictEqual(getViewStates().tab1, 'm3-nav-enter-left');
@@ -254,7 +257,7 @@ async function runTests() {
   renderComponent({
     activeView: 'tab1',
     viewOrder,
-    children: childrenMock
+    children: childrenMock,
   });
   // Switch to the same view should not change state classes
   assert.strictEqual(getViewStates().tab1, 'm3-nav-active');
@@ -263,33 +266,33 @@ async function runTests() {
   // Test 5: Rapid Switches Stress Test
   console.log('Test 5: Rapid switches stress test (Tab 1 -> Tab 2 -> Tab 3 in 5ms)...');
   resetComponentState('tab1');
-  
+
   // Move 1 -> 2
   renderComponent({
     activeView: 'tab2',
     viewOrder,
-    children: childrenMock
+    children: childrenMock,
   });
   assert.strictEqual(getViewStates().tab1, 'm3-nav-exit-left');
   assert.strictEqual(getViewStates().tab2, 'm3-nav-enter-right');
-  
+
   // Quickly move to 3 before 1 -> 2 finishes
   renderComponent({
     activeView: 'tab3',
     viewOrder,
-    children: childrenMock
+    children: childrenMock,
   });
-  
+
   // Tab 1 should be immediately set to hidden to prevent stacked overlaps
   assert.strictEqual(getViewStates().tab1, 'm3-nav-hidden');
   // Tab 2 (which was entering) is now exiting to the left
   assert.strictEqual(getViewStates().tab2, 'm3-nav-exit-left');
   // Tab 3 is entering from the right
   assert.strictEqual(getViewStates().tab3, 'm3-nav-enter-right');
-  
+
   flushRafs();
   assert.strictEqual(getViewStates().tab3, 'm3-nav-active');
-  
+
   advanceTime(300);
   assert.strictEqual(getViewStates().tab2, 'm3-nav-hidden');
   assert.strictEqual(getViewStates().tab3, 'm3-nav-active');
@@ -301,20 +304,20 @@ async function runTests() {
   renderComponent({
     activeView: 'tab2',
     viewOrder,
-    children: childrenMock
+    children: childrenMock,
   });
-  
+
   // Verify timer is set
   assert.ok(Object.keys(mockTimers).length > 0);
   assert.ok(Object.keys(mockRafs).length > 0);
-  
+
   // Trigger cleanup effect
   const cleanupEffectIndex = 7;
   const cleanupFn = hooks[cleanupEffectIndex].cleanup;
   if (typeof cleanupFn === 'function') {
     cleanupFn();
   }
-  
+
   // All frame schedules and timers should be cleared
   assert.strictEqual(Object.keys(mockRafs).length, 0);
   assert.strictEqual(Object.keys(mockTimers).length, 0);
@@ -323,7 +326,7 @@ async function runTests() {
   console.log('\x1b[32m=== ALL TRANSITION ENGINE UNIT VALIDATION TESTS PASSED ===\x1b[0m');
 }
 
-runTests().catch(err => {
+runTests().catch((err) => {
   console.error('\x1b[31m=== TRANSITION ENGINE VALIDATION FAILED ===\x1b[0m');
   console.error(err.stack || err);
   process.exit(1);

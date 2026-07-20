@@ -1,0 +1,284 @@
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/manrope/700.css';
+@import '@fontsource/manrope/800.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/700.css';
+/* Material Symbols font is loaded dynamically (subsetted) via a <link>
+   in index.html — only the icons actually used by the app are fetched
+   (~10–30 KB) instead of the full 3.8 MB local woff2. The
+   .material-symbols-outlined class lower in this file provides the
+   element styling; the @font-face comes from Google Fonts. */
+@import 'tailwindcss';
+
+@source "../../../packages/ui-shared/src/**/*.tsx";
+@source "../../../packages/studio-core/src/**/*.ts";
+
+/* ── Gradient Border System ─────────────────────────────────────────────────
+   @property must live at the top level (outside any @layer / @media).
+   Used by .gb-wrap (wrapper pattern) and .gb-border-ring (overlay pattern). */
+@property --gb-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Animata AnimatedBorderTrail — registered @property so conic-gradient can
+   actually animate (without registration the browser treats it as a discrete
+   value and no transition/animation fires). */
+@property --border-trail-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-surface: var(--app-bg);
+  --color-surface-dim: var(--app-bg);
+  --color-surface-container-lowest: var(--app-surface-lowest);
+  --color-surface-container-low: var(--app-surface-low);
+  --color-surface-container: var(--app-surface);
+  --color-surface-container-high: var(--app-surface-high);
+  --color-surface-container-highest: var(--app-surface-highest);
+  --color-surface-bright: #2c2c2c;
+  --color-surface-variant: #252626;
+  --color-on-surface: #e7e5e4;
+  --color-on-surface-variant: #acabaa;
+  --color-on-background: #e7e5e4;
+  --color-background: var(--app-bg);
+  --color-outline: #767575;
+  --color-outline-variant: #484848;
+  --color-tertiary: var(--studio-accent-from);
+  --color-tertiary-container: var(--studio-accent-to);
+  --color-on-tertiary: #001f4a;
+  --color-secondary: #9d9da6;
+  --color-secondary-container: #3a3b42;
+  --color-primary: #c6c6c7;
+  --color-primary-container: #454747;
+  --color-error: #ee7d77;
+  --color-error-dim: #bb5551;
+  --color-error-container: #7f2927;
+
+  --font-headline: 'Manrope', sans-serif;
+  --font-label: 'Inter', sans-serif;
+  --font-sans: 'Manrope', sans-serif;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-full: 9999px;
+}
+
+/* ===== Typed CSS custom properties — enables native color animation ===== */
+@property --app-bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #0e0e0e;
+}
+@property --app-surface-lowest {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #000000;
+}
+@property --app-surface-low {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #131313;
+}
+@property --app-surface {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #191a1a;
+}
+@property --app-surface-high {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #1f2020;
+}
+@property --app-surface-highest {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #252626;
+}
+
+/* ===== AMOLED-aware CSS Custom Properties ===== */
+/* Register custom properties so they can be CSS-transitioned */
+@property --c-text-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #e7e5e4;
+}
+@property --c-text-secondary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #acabaa;
+}
+@property --c-text-muted {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #484848;
+}
+
+:root {
+  --studio-accent-from: var(--accent-from, #679cff);
+  --studio-accent-to: var(--accent-to, #007aff);
+  --studio-accent-mid: var(--accent-mid, #4d8ef7);
+  --studio-accent: var(--accent-to, #007aff);
+  --studio-accent-rgb: var(--accent-to-rgb, 0, 122, 255);
+  --studio-accent-gradient: linear-gradient(
+    135deg,
+    var(--studio-accent-from),
+    var(--studio-accent-to)
+  );
+  --studio-accent-soft: color-mix(in srgb, var(--studio-accent-to) 12%, transparent);
+  --studio-accent-glow: 0 4px 20px color-mix(in srgb, var(--studio-accent-to) 25%, transparent);
+  --studio-accent-border: color-mix(in srgb, var(--studio-accent-to) 30%, transparent);
+
+  --app-surface-lowest: #000000;
+  --app-surface-low: #131313;
+  --app-surface: #191a1a;
+  --app-surface-high: #1f2020;
+  --app-surface-highest: #252626;
+
+  --c-text-primary: #e7e5e4;
+  --c-text-secondary: #acabaa;
+  --c-text-muted: #484848;
+
+  --add-bar-border: 1px dashed rgba(255, 255, 255, 0.14);
+
+  /* ============================================================
+     Studio Standardized Motion Tokens (Sprint 10)
+     ============================================================ */
+  --motion-speed-scale: 1;
+  --motion-duration-short: calc(180ms * var(--motion-speed-scale));
+  --motion-duration-medium: calc(300ms * var(--motion-speed-scale));
+  --motion-duration-long: calc(450ms * var(--motion-speed-scale));
+
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  --motion-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+
+  --motion-panel-dur: var(--motion-duration-medium);
+  --motion-panel-exit-dur: var(--motion-duration-medium);
+  --panel-dur: var(--motion-duration-medium);
+  --panel-exit-dur: var(--motion-duration-medium);
+
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.04);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.07);
+  --sidebar-bg: rgba(15, 15, 15, 0.7);
+  --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --popover-bg: rgba(18, 18, 18, 0.75);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --profile-avatar-bg: rgba(255, 255, 255, 0.08);
+  --profile-avatar-color: #ffffff;
+  --profile-avatar-border: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  --hub-card-bg: rgba(255, 255, 255, 0.01);
+  --hub-card-pressed-bg: rgba(255, 255, 255, 0.04);
+  --hub-card-border: rgba(255, 255, 255, 0.06);
+  --hub-card-icon-bg: rgba(255, 255, 255, 0.04);
+  --hub-card-icon-border: rgba(255, 255, 255, 0.08);
+
+  /* Animate the variables themselves — every consumer transitions for free */
+  transition:
+    --app-bg 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --app-surface-lowest 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --app-surface-low 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --app-surface 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --app-surface-high 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --app-surface-highest 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-text-primary 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-text-secondary 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    --c-text-muted 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root.amoled {
+  --app-bg: #000000;
+  --app-surface-lowest: #000000;
+  --app-surface-low: #030303;
+  --app-surface: #080808;
+  --app-surface-high: #0d0d0d;
+  --app-surface-highest: #121212;
+  --sidebar-bg: rgba(0, 0, 0, 0.7);
+  --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  --popover-bg: rgba(0, 0, 0, 0.75);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  --profile-avatar-bg: rgba(255, 255, 255, 0.08);
+  --profile-avatar-color: #ffffff;
+  --profile-avatar-border: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  --hub-card-bg: rgba(255, 255, 255, 0.01);
+  --hub-card-pressed-bg: rgba(255, 255, 255, 0.04);
+  --hub-card-border: rgba(255, 255, 255, 0.06);
+  --hub-card-icon-bg: rgba(255, 255, 255, 0.04);
+  --hub-card-icon-border: rgba(255, 255, 255, 0.08);
+}
+
+:root.light.amoled {
+  --app-bg: #ffffff;
+  --app-surface-lowest: #f0f0f0;
+  --app-surface-low: #f4f4f4;
+  --app-surface: #f7f7f7;
+  --app-surface-high: #fafafa;
+  --app-surface-highest: #ffffff;
+  --sidebar-bg: rgba(255, 255, 255, 0.75);
+  --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --popover-bg: rgba(255, 255, 255, 0.8);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --profile-avatar-bg: rgba(0, 0, 0, 0.06);
+  --profile-avatar-color: var(--c-text-primary);
+  --profile-avatar-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --hub-card-bg: rgba(0, 0, 0, 0.01);
+  --hub-card-pressed-bg: rgba(0, 0, 0, 0.04);
+  --hub-card-border: rgba(0, 0, 0, 0.08);
+  --hub-card-icon-bg: rgba(0, 0, 0, 0.03);
+  --hub-card-icon-border: rgba(0, 0, 0, 0.06);
+}
+
+/* ===== Light Theme ===== */
+:root.light {
+  color-scheme: light;
+
+  --app-bg: #f4f4f5;
+  --app-surface-lowest: #e4e4e7;
+  --app-surface-low: #ececed;
+  --app-surface: #f4f4f5;
+  --app-surface-high: #fafafa;
+  --app-surface-highest: #ffffff;
+
+  --c-text-primary: #18181b;
+  --c-text-secondary: #52525b;
+  --c-text-muted: #71717a;
+
+  --add-bar-border: 1px dashed rgba(0, 0, 0, 0.22);
+
+  --sidebar-hover-bg: rgba(0, 0, 0, 0.04);
+  --sidebar-active-bg: rgba(0, 0, 0, 0.07);
+  --sidebar-bg: rgba(255, 255, 255, 0.75);
+  --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --popover-bg: rgba(255, 255, 255, 0.8);
+  --popover-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --profile-avatar-bg: rgba(0, 0, 0, 0.06);
+  --profile-avatar-color: var(--c-text-primary);
+  --profile-avatar-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  --hub-card-bg: rgba(0, 0, 0, 0.01);
+  --hub-card-pressed-bg: rgba(0, 0, 0, 0.04);
+  --hub-card-border: rgba(0, 0, 0, 0.08);
+  --hub-card-icon-bg: rgba(0, 0, 0, 0.03);
+  --hub-card-icon-border: rgba(0, 0, 0, 0.06);
+}
+
+}
+
+/* ============================================================
+   Vocalex theme tokens — used by PracticePanel / PitchPanel /
+   LabPanel / TakesPanel. Defined here (not inline) so the white
+   theme can override them in one place. Attribute selectors over
+   inline hexes proved unreliable; using CSS vars is bulletproof.
+   ============================================================ */
+:root {

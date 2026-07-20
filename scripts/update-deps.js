@@ -17,24 +17,24 @@ const packagesToUpdate = {
   '@supabase/supabase-js': '^2.110.2',
   '@tolgee/i18next': '^7.1.1',
   '@tolgee/react': '^7.1.1',
-  'firebase': '^12.16.0',
-  'typescript': '~7.0.2',
-  'prettier': '^3.9.5',
+  firebase: '^12.16.0',
+  typescript: '~7.0.2',
+  prettier: '^3.9.5',
   '@aws-sdk/client-s3': '^3.1085.0',
   'adm-zip': '^0.6.0',
-  'archiver': '^8.0.0',
-  'i18next': '^26.3.6',
+  archiver: '^8.0.0',
+  i18next: '^26.3.6',
   'react-i18next': '^17.0.9',
-  'zustand': '^5.0.14',
+  zustand: '^5.0.14',
   'material-symbols': '^0.45.7',
-  'motion': '^12.42.2'
+  motion: '^12.42.2',
 };
 
 const packageJsonPaths = [
   'package.json',
   'apps/studio-android/package.json',
   'apps/studio-web/package.json',
-  'packages/studio-core/package.json'
+  'packages/studio-core/package.json',
 ];
 
 for (const p of packageJsonPaths) {
@@ -42,7 +42,7 @@ for (const p of packageJsonPaths) {
   if (fs.existsSync(fullPath)) {
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     let modified = false;
-    
+
     for (const section of ['dependencies', 'devDependencies']) {
       if (data[section]) {
         for (const dep in data[section]) {

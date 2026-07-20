@@ -9,7 +9,13 @@ export interface VocalInsight {
 }
 
 export interface VocalAnalysis {
-  pitchTimeline: { time: number; frequency: number; noteName: string; octave: number; cents: number }[];
+  pitchTimeline: {
+    time: number;
+    frequency: number;
+    noteName: string;
+    octave: number;
+    cents: number;
+  }[];
   avgFrequency: number;
   lowestNote: string;
   highestNote: string;
@@ -98,13 +104,19 @@ export function analyzeAudio(audioBuffer: AudioBuffer, labels: AnalysisLabels): 
       pitchTrend: 'stable',
       silencePercent: totalSamples > 0 ? Math.round((silentSamples / totalSamples) * 100) : 100,
       insights: [
-        { icon: 'info', title: labels.noPitchTitle, value: '', detail: labels.noPitchDetail, color: '#acabaa' },
+        {
+          icon: 'info',
+          title: labels.noPitchTitle,
+          value: '',
+          detail: labels.noPitchDetail,
+          color: '#acabaa',
+        },
       ],
     };
   }
 
-  const frequencies = timeline.map(t => t.frequency);
-  const centsArr = timeline.map(t => t.cents);
+  const frequencies = timeline.map((t) => t.frequency);
+  const centsArr = timeline.map((t) => t.cents);
 
   const avgFrequency = frequencies.reduce((a, b) => a + b, 0) / frequencies.length;
   const avgCents = centsArr.reduce((a, b) => a + b, 0) / centsArr.length;
@@ -121,15 +133,17 @@ export function analyzeAudio(audioBuffer: AudioBuffer, labels: AnalysisLabels): 
   const lowestNote = `${NOTE_NAMES[((lowestMidi % 12) + 12) % 12]}${Math.floor(lowestMidi / 12) - 1}`;
   const highestNote = `${NOTE_NAMES[((highestMidi % 12) + 12) % 12]}${Math.floor(highestMidi / 12) - 1}`;
 
-  const centsDiffs = centsArr.map(c => Math.abs(c));
+  const centsDiffs = centsArr.map((c) => Math.abs(c));
   const avgAbsCents = centsDiffs.reduce((a, b) => a + b, 0) / centsDiffs.length;
   const stabilityPercent = Math.max(0, Math.min(100, Math.round(100 - avgAbsCents * 2)));
 
   const halfLen = Math.floor(timeline.length / 2);
   const firstHalfAvg = timeline.slice(0, halfLen).reduce((s, t) => s + t.cents, 0) / halfLen;
-  const secondHalfAvg = timeline.slice(halfLen).reduce((s, t) => s + t.cents, 0) / (timeline.length - halfLen);
+  const secondHalfAvg =
+    timeline.slice(halfLen).reduce((s, t) => s + t.cents, 0) / (timeline.length - halfLen);
   const drift = secondHalfAvg - firstHalfAvg;
-  const pitchTrend: 'flat' | 'sharp' | 'stable' = drift < -5 ? 'flat' : drift > 5 ? 'sharp' : 'stable';
+  const pitchTrend: 'flat' | 'sharp' | 'stable' =
+    drift < -5 ? 'flat' : drift > 5 ? 'sharp' : 'stable';
 
   const silencePercent = totalSamples > 0 ? Math.round((silentSamples / totalSamples) * 100) : 0;
 
@@ -137,45 +151,59 @@ export function analyzeAudio(audioBuffer: AudioBuffer, labels: AnalysisLabels): 
 
   if (stabilityPercent >= 80) {
     insights.push({
-      icon: 'verified', title: labels.pitchStability, value: `${stabilityPercent}%`,
+      icon: 'verified',
+      title: labels.pitchStability,
+      value: `${stabilityPercent}%`,
       detail: labels.stabilityExcellent,
       color: '#34d399',
     });
   } else if (stabilityPercent >= 60) {
     insights.push({
-      icon: 'tune', title: labels.pitchStability, value: `${stabilityPercent}%`,
+      icon: 'tune',
+      title: labels.pitchStability,
+      value: `${stabilityPercent}%`,
       detail: labels.stabilityGood,
       color: '#eab308',
     });
   } else {
     insights.push({
-      icon: 'music_note', title: labels.pitchStability, value: `${stabilityPercent}%`,
+      icon: 'music_note',
+      title: labels.pitchStability,
+      value: `${stabilityPercent}%`,
       detail: labels.stabilityPractice,
       color: '#ef4444',
     });
   }
 
   insights.push({
-    icon: 'straighten', title: labels.vocalRange, value: `${rangeSemitones} ${labels.semitones}`,
+    icon: 'straighten',
+    title: labels.vocalRange,
+    value: `${rangeSemitones} ${labels.semitones}`,
     detail: `${lowestNote} ${labels.rangeTo} ${highestNote}. ${rangeSemitones >= 12 ? labels.rangeWide : rangeSemitones >= 6 ? labels.rangeModerate : labels.rangeNarrow}`,
     color: '#007aff',
   });
 
   if (pitchTrend === 'flat') {
     insights.push({
-      icon: 'trending_down', title: labels.pitchTrend, value: labels.driftingFlat,
+      icon: 'trending_down',
+      title: labels.pitchTrend,
+      value: labels.driftingFlat,
       detail: labels.driftingFlatDetail,
       color: '#f97316',
     });
   } else if (pitchTrend === 'sharp') {
     insights.push({
-      icon: 'trending_up', title: labels.pitchTrend, value: labels.driftingSharp,
+      icon: 'trending_up',
+      title: labels.pitchTrend,
+      value: labels.driftingSharp,
       detail: labels.driftingSharpDetail,
       color: '#f97316',
     });
   } else {
     insights.push({
-      icon: 'check_circle', title: labels.pitchTrend, value: labels.stableTrend,
+      icon: 'check_circle',
+      title: labels.pitchTrend,
+      value: labels.stableTrend,
       detail: labels.stableTrendDetail,
       color: '#34d399',
     });
@@ -183,15 +211,21 @@ export function analyzeAudio(audioBuffer: AudioBuffer, labels: AnalysisLabels): 
 
   if (silencePercent > 40) {
     insights.push({
-      icon: 'air', title: labels.breathGaps, value: `${silencePercent}%`,
+      icon: 'air',
+      title: labels.breathGaps,
+      value: `${silencePercent}%`,
       detail: labels.breathGapsDetail,
       color: '#eab308',
     });
   }
 
-  const inTunePercent = Math.round((centsArr.filter(c => Math.abs(c) <= 10).length / centsArr.length) * 100);
+  const inTunePercent = Math.round(
+    (centsArr.filter((c) => Math.abs(c) <= 10).length / centsArr.length) * 100
+  );
   insights.push({
-    icon: 'target', title: labels.inTuneRate, value: `${inTunePercent}%`,
+    icon: 'target',
+    title: labels.inTuneRate,
+    value: `${inTunePercent}%`,
     detail: `${inTunePercent >= 80 ? labels.inTuneExcellent : inTunePercent >= 50 ? labels.inTuneDecent : labels.inTunePractice}`,
     color: inTunePercent >= 80 ? '#34d399' : inTunePercent >= 50 ? '#eab308' : '#ef4444',
   });

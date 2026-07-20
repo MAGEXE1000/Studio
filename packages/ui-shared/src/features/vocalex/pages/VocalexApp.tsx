@@ -17,6 +17,7 @@ import {
   useScrollHide,
   useBottomNavigationStore,
   useSettingsStore,
+  vocalexRepository,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
@@ -27,7 +28,7 @@ import {
 } from '../../../navigation/SharedNavigationBar';
 
 import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
-import { subscribeVocalexBack } from '../utilities/headerBack';
+import { subscribeVocalexBack } from '../utils/headerBack';
 import {
   SHARED_NAV_TRANSITION,
   getSharedNavTransform,
@@ -159,13 +160,13 @@ export default function VocalexApp() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isWebDesktop]);
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
   const t = useT();
   const vt = t.vocalex as any;
   // Restore last-visited Vocalex tab so a refresh / app-switch lands the
   // user where they left off. Falls back to defaultVocalexTab.
   const initialVocalexTab: VocalexPanel = (() => {
-    const s = useChordStore.getState();
+    const s = useSettingsStore.getState();
     if (!s.settings.restoreLastSession) {
       const def = s.settings.defaultVocalexTab as any;
       return def === 'practice' || def === 'vocalLab' || def === 'pitch' ? 'coach' : def || 'coach';
@@ -189,8 +190,7 @@ export default function VocalexApp() {
   }, [activeTab]);
 
   const handleRecordingComplete = async (take: any) => {
-    const { saveTake } = await import('@workspace/studio-core');
-    await saveTake(take);
+    await vocalexRepository.saveTake(take);
     NavigationDispatcher.push({ app: 'vocalex', page: 'takes', subView: 'detail', id: take.id });
   };
 
@@ -469,7 +469,7 @@ export default function VocalexApp() {
 }
 
 function VocalexPreferences() {
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
 
   const t = useT();
   const vt = t.vocalex as any;
@@ -557,7 +557,7 @@ function VocalexPreferences() {
               return (
                 <button
                   key={value}
-                  onClick={() => settingsController.updateSettings({ defaultVocalexTab: value })}
+                  onClick={() => useSettingsStore.getState().updateSettings({ defaultVocalexTab: value })}
                   title={label}
                   className="btn-smooth"
                   style={{

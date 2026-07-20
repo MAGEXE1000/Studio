@@ -1,16 +1,27 @@
-import { getAllSessions, saveSession, deleteSession, createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, getAllTakes, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher, vocalexRepository } from "@workspace/studio-core";
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ElasticSlider from '../../../components/progress/ElasticSlider';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import MicWavesLottie from '../../../components/lottie/MicWavesLottie';
-import { setVocalexBack } from '../utilities/headerBack';
+import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
 
-const SESSION_ICONS = ['graphic_eq', 'layers', 'multiline_chart', 'equalizer', 'tune', 'mic', 'queue_music', 'stacked_line_chart'];
-function randomIcon() { return SESSION_ICONS[Math.floor(Math.random() * SESSION_ICONS.length)]; }
+const SESSION_ICONS = [
+  'graphic_eq',
+  'layers',
+  'multiline_chart',
+  'equalizer',
+  'tune',
+  'mic',
+  'queue_music',
+  'stacked_line_chart',
+];
+function randomIcon() {
+  return SESSION_ICONS[Math.floor(Math.random() * SESSION_ICONS.length)];
+}
 function formatDate(ts: number, months: readonly string[]): string {
   const d = new Date(ts);
   return `${months[d.getMonth()]} ${d.getDate()}`;
@@ -84,7 +95,10 @@ function useLabAnimStyle() {
     const s = document.createElement('style');
     s.textContent = LAB_ANIM_CSS;
     document.head.appendChild(s);
-    return () => { s.remove(); injected.current = false; };
+    return () => {
+      s.remove();
+      injected.current = false;
+    };
   }, []);
 }
 
@@ -114,7 +128,12 @@ interface TrackNodes {
   effectOutputGain: GainNode;
 }
 
-function connectEffectChain(ctx: AudioContext, effects: TrackEffect[], input: AudioNode, output: AudioNode) {
+function connectEffectChain(
+  ctx: AudioContext,
+  effects: TrackEffect[],
+  input: AudioNode,
+  output: AudioNode
+) {
   const nodes: AudioNode[] = [];
   let current = input;
   for (const fx of effects) {
@@ -208,105 +227,226 @@ function connectEffectChain(ctx: AudioContext, effects: TrackEffect[], input: Au
 
 function disconnectNodes(nodes: AudioNode[]) {
   for (const n of nodes) {
-    try { n.disconnect(); } catch {}
-    if (n instanceof OscillatorNode) { try { n.stop(); } catch {} }
+    try {
+      n.disconnect();
+    } catch {}
+    if (n instanceof OscillatorNode) {
+      try {
+        n.stop();
+      } catch {}
+    }
   }
 }
 
 function rebuildTrackEffects(ctx: AudioContext, track: TrackNodes, effects: TrackEffect[]) {
-  try { track.effectInputGain.disconnect(); } catch {}
+  try {
+    track.effectInputGain.disconnect();
+  } catch {}
   disconnectNodes(track.effectNodes);
-  try { track.effectOutputGain.disconnect(); } catch {}
+  try {
+    track.effectOutputGain.disconnect();
+  } catch {}
 
-  track.effectNodes = connectEffectChain(ctx, effects, track.effectInputGain, track.effectOutputGain);
+  track.effectNodes = connectEffectChain(
+    ctx,
+    effects,
+    track.effectInputGain,
+    track.effectOutputGain
+  );
   track.effectOutputGain.connect(track.pannerNode);
 }
 
-function EffectSlider({ label, value, min, max, step, onChange, accentColor }: {
-  label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void; accentColor?: string;
+function EffectSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  accentColor,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (v: number) => void;
+  accentColor?: string;
 }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      animation: 'lab-fx-row-in 250ms cubic-bezier(0.22,1,0.36,1) both',
-    }}>
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--vx-text-3)', minWidth: 48, textTransform: 'capitalize' }}>{label}</span>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        animation: 'lab-fx-row-in 250ms cubic-bezier(0.22,1,0.36,1) both',
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: 10,
+          color: 'var(--vx-text-3)',
+          minWidth: 48,
+          textTransform: 'capitalize',
+        }}
+      >
+        {label}
+      </span>
       <ElasticSlider
-        min={min} max={max} step={step} value={value}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
         onChange={onChange}
         accentColor={accentColor || 'var(--studio-accent)'}
         style={{ flex: 1 }}
       />
-      <span style={{
-        fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--vx-text-4)', minWidth: 28, textAlign: 'right',
-        transition: 'color 150ms ease',
-      }}>{value.toFixed(step < 1 ? 1 : 0)}</span>
+      <span
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: 9,
+          color: 'var(--vx-text-4)',
+          minWidth: 28,
+          textAlign: 'right',
+          transition: 'color 150ms ease',
+        }}
+      >
+        {value.toFixed(step < 1 ? 1 : 0)}
+      </span>
     </div>
   );
 }
 
-function EffectRow({ effect, onChange, index }: { effect: TrackEffect; onChange: (e: TrackEffect) => void; index: number }) {
+function EffectRow({
+  effect,
+  onChange,
+  index,
+}: {
+  effect: TrackEffect;
+  onChange: (e: TrackEffect) => void;
+  index: number;
+}) {
   const t = useT();
   const meta = getEffectLabel(effect.type, t);
   const [expanded, setExpanded] = useState(false);
   const paramEntries = Object.entries(effect.params);
   const RANGES: Record<string, [number, number, number]> = {
-    mix: [0, 1, 0.05], decay: [0.5, 5, 0.1], time: [0.05, 1, 0.05],
-    feedback: [0, 0.9, 0.05], rate: [0.1, 5, 0.1], depth: [0, 1, 0.05],
-    amount: [0, 1, 0.05], frequency: [20, 12000, 10], q: [0.1, 10, 0.1],
+    mix: [0, 1, 0.05],
+    decay: [0.5, 5, 0.1],
+    time: [0.05, 1, 0.05],
+    feedback: [0, 0.9, 0.05],
+    rate: [0.1, 5, 0.1],
+    depth: [0, 1, 0.05],
+    amount: [0, 1, 0.05],
+    frequency: [20, 12000, 10],
+    q: [0.1, 10, 0.1],
   };
 
   return (
-    <div style={{
-      background: 'var(--vx-deep)', borderRadius: 10, overflow: 'hidden',
-      animation: `lab-fx-row-in 300ms cubic-bezier(0.22,1,0.36,1) ${index * 40}ms both`,
-      transition: 'box-shadow 200ms ease',
-      boxShadow: effect.enabled ? '0 0 12px rgba(103,156,255,0.05)' : 'none',
-    }}>
-      <div onClick={() => setExpanded(!expanded)} style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', cursor: 'pointer',
-        transition: 'background 150ms ease',
-        background: expanded ? '#121313' : 'transparent',
-      }}>
+    <div
+      style={{
+        background: 'var(--vx-deep)',
+        borderRadius: 10,
+        overflow: 'hidden',
+        animation: `lab-fx-row-in 300ms cubic-bezier(0.22,1,0.36,1) ${index * 40}ms both`,
+        transition: 'box-shadow 200ms ease',
+        boxShadow: effect.enabled ? '0 0 12px rgba(103,156,255,0.05)' : 'none',
+      }}
+    >
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 10px',
+          cursor: 'pointer',
+          transition: 'background 150ms ease',
+          background: expanded ? '#121313' : 'transparent',
+        }}
+      >
         <button
-          onClick={e => { e.stopPropagation(); onChange({ ...effect, enabled: !effect.enabled }); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange({ ...effect, enabled: !effect.enabled });
+          }}
           style={{
-            width: 18, height: 18, borderRadius: 4, border: 'none', cursor: 'pointer',
+            width: 18,
+            height: 18,
+            borderRadius: 4,
+            border: 'none',
+            cursor: 'pointer',
             background: effect.enabled ? 'var(--studio-accent)' : 'var(--vx-input)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             transition: 'background 200ms ease, transform 150ms cubic-bezier(0.34,1.56,0.64,1)',
             transform: effect.enabled ? 'scale(1)' : 'scale(0.9)',
           }}
         >
-          {effect.enabled && <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#fff' }}>check</span>}
+          {effect.enabled && (
+            <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#fff' }}>
+              check
+            </span>
+          )}
         </button>
-        <span className="material-symbols-outlined" style={{
-          fontSize: 14,
-          color: effect.enabled ? 'var(--studio-accent)' : 'var(--vx-text-4)',
-          transition: 'color 200ms ease',
-        }}>{meta.icon}</span>
-        <span style={{
-          fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 600,
-          color: effect.enabled ? 'var(--vx-text)' : 'var(--vx-text-3)', flex: 1,
-          transition: 'color 200ms ease',
-        }}>{meta.label}</span>
-        <span className="material-symbols-outlined" style={{
-          fontSize: 14, color: 'var(--vx-text-4)',
-          transform: expanded ? 'rotate(180deg)' : 'rotate(0)',
-          transition: 'transform 300ms cubic-bezier(0.34,1.56,0.64,1)',
-        }}>expand_more</span>
+        <span
+          className="material-symbols-outlined"
+          style={{
+            fontSize: 14,
+            color: effect.enabled ? 'var(--studio-accent)' : 'var(--vx-text-4)',
+            transition: 'color 200ms ease',
+          }}
+        >
+          {meta.icon}
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 11,
+            fontWeight: 600,
+            color: effect.enabled ? 'var(--vx-text)' : 'var(--vx-text-3)',
+            flex: 1,
+            transition: 'color 200ms ease',
+          }}
+        >
+          {meta.label}
+        </span>
+        <span
+          className="material-symbols-outlined"
+          style={{
+            fontSize: 14,
+            color: 'var(--vx-text-4)',
+            transform: expanded ? 'rotate(180deg)' : 'rotate(0)',
+            transition: 'transform 300ms cubic-bezier(0.34,1.56,0.64,1)',
+          }}
+        >
+          expand_more
+        </span>
       </div>
-      <div style={{
-        overflow: 'hidden',
-        maxHeight: expanded ? 300 : 0,
-        opacity: expanded ? 1 : 0,
-        transition: 'max-height 350ms cubic-bezier(0.22,1,0.36,1), opacity 250ms ease',
-      }}>
+      <div
+        style={{
+          overflow: 'hidden',
+          maxHeight: expanded ? 300 : 0,
+          opacity: expanded ? 1 : 0,
+          transition: 'max-height 350ms cubic-bezier(0.22,1,0.36,1), opacity 250ms ease',
+        }}
+      >
         <div style={{ padding: '4px 10px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {paramEntries.map(([key, val]) => {
             const [mn, mx, st] = RANGES[key] || [0, 1, 0.1];
-            return <EffectSlider key={key} label={key} value={val} min={mn} max={mx} step={st}
-              onChange={v => onChange({ ...effect, params: { ...effect.params, [key]: v } })} />;
+            return (
+              <EffectSlider
+                key={key}
+                label={key}
+                value={val}
+                min={mn}
+                max={mx}
+                step={st}
+                onChange={(v) => onChange({ ...effect, params: { ...effect.params, [key]: v } })}
+              />
+            );
           })}
         </div>
       </div>
@@ -314,9 +454,20 @@ function EffectRow({ effect, onChange, index }: { effect: TrackEffect; onChange:
   );
 }
 
-function TrackChannel({ layer, hasSolo, onUpdate, onDelete, onHarmonize, isPlaying }: {
-  layer: LabLayer; hasSolo: boolean; onUpdate: (l: LabLayer) => void; onDelete: () => void;
-  onHarmonize: () => void; isPlaying: boolean;
+function TrackChannel({
+  layer,
+  hasSolo,
+  onUpdate,
+  onDelete,
+  onHarmonize,
+  isPlaying,
+}: {
+  layer: LabLayer;
+  hasSolo: boolean;
+  onUpdate: (l: LabLayer) => void;
+  onDelete: () => void;
+  onHarmonize: () => void;
+  isPlaying: boolean;
 }) {
   const t = useT();
   const [showFx, setShowFx] = useState(false);
@@ -333,165 +484,360 @@ function TrackChannel({ layer, hasSolo, onUpdate, onDelete, onHarmonize, isPlayi
   };
 
   return (
-    <div style={{
-      background: 'var(--vx-card)', borderRadius: 14, padding: '14px 16px',
-      border: `1px solid ${isPlaying ? 'var(--studio-accent-border)' : 'var(--vx-edge)'}`,
-      transition: 'border-color 300ms ease, box-shadow 300ms ease',
-      boxShadow: isPlaying ? 'var(--studio-accent-glow)' : 'none',
-    }}>
+    <div
+      style={{
+        background: 'var(--vx-card)',
+        borderRadius: 14,
+        padding: '14px 16px',
+        border: `1px solid ${isPlaying ? 'var(--studio-accent-border)' : 'var(--vx-edge)'}`,
+        transition: 'border-color 300ms ease, box-shadow 300ms ease',
+        boxShadow: isPlaying ? 'var(--studio-accent-glow)' : 'none',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 8, background: 'var(--vx-deep)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <span className="material-symbols-outlined" style={{
-            fontSize: 16, color: isMuted ? 'var(--vx-text-4)' : accent,
-            transition: 'color 200ms ease',
-          }}>{SOURCE_ICONS[layer.sourceType] || 'mic'}</span>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            background: 'var(--vx-deep)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: 16,
+              color: isMuted ? 'var(--vx-text-4)' : accent,
+              transition: 'color 200ms ease',
+            }}
+          >
+            {SOURCE_ICONS[layer.sourceType] || 'mic'}
+          </span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {editName ? (
-            <input value={name} onChange={e => setName(e.target.value)} onBlur={saveName}
-              onKeyDown={e => e.key === 'Enter' && saveName()} autoFocus
-              style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 13, color: 'var(--vx-text)', background: 'none', border: 'none', borderBottom: '1px solid var(--studio-accent)', outline: 'none', padding: 0, width: '100%' }} />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={saveName}
+              onKeyDown={(e) => e.key === 'Enter' && saveName()}
+              autoFocus
+              style={{
+                fontFamily: 'var(--font-headline)',
+                fontWeight: 700,
+                fontSize: 13,
+                color: 'var(--vx-text)',
+                background: 'none',
+                border: 'none',
+                borderBottom: '1px solid var(--studio-accent)',
+                outline: 'none',
+                padding: 0,
+                width: '100%',
+              }}
+            />
           ) : (
-            <p onClick={() => setEditName(true)} style={{
-              fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 13,
-              color: isMuted ? 'var(--vx-text-4)' : 'var(--vx-text)', margin: 0, cursor: 'pointer',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              transition: 'color 200ms ease',
-            }}>{layer.name}</p>
+            <p
+              onClick={() => setEditName(true)}
+              style={{
+                fontFamily: 'var(--font-headline)',
+                fontWeight: 700,
+                fontSize: 13,
+                color: isMuted ? 'var(--vx-text-4)' : 'var(--vx-text)',
+                margin: 0,
+                cursor: 'pointer',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                transition: 'color 200ms ease',
+              }}
+            >
+              {layer.name}
+            </p>
           )}
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--vx-text-4)', margin: '1px 0 0' }}>
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 9,
+              color: 'var(--vx-text-4)',
+              margin: '1px 0 0',
+            }}
+          >
             {formatDur(layer.durationMs)} · {layer.sourceType}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-          <button onClick={() => onUpdate({ ...layer, muted: !layer.muted })} style={{
-            width: 26, height: 26, borderRadius: 6, border: 'none', cursor: 'pointer',
-            background: layer.muted ? '#7f2927' : 'var(--vx-input)',
-            fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800,
-            color: layer.muted ? '#ff9993' : 'var(--vx-text-3)',
-            transition: 'background 200ms ease, color 200ms ease, transform 100ms ease',
-          }}
-            onPointerDown={e => (e.currentTarget.style.transform = 'scale(0.9)')}
-            onPointerUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-            onPointerLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-          >M</button>
-          <button onClick={() => onUpdate({ ...layer, solo: !layer.solo })} style={{
-            width: 26, height: 26, borderRadius: 6, cursor: 'pointer',
-            background: layer.solo ? '#f59e0b22' : 'var(--vx-input)',
-            fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 800,
-            color: layer.solo ? '#f59e0b' : 'var(--vx-text-3)',
-            border: layer.solo ? '1px solid #f59e0b40' : '1px solid transparent',
-            transition: 'background 200ms ease, color 200ms ease, border-color 200ms ease, transform 100ms ease',
-          }}
-            onPointerDown={e => (e.currentTarget.style.transform = 'scale(0.9)')}
-            onPointerUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-            onPointerLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-          >S</button>
+          <button
+            onClick={() => onUpdate({ ...layer, muted: !layer.muted })}
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 6,
+              border: 'none',
+              cursor: 'pointer',
+              background: layer.muted ? '#7f2927' : 'var(--vx-input)',
+              fontFamily: 'var(--font-body)',
+              fontSize: 9,
+              fontWeight: 800,
+              color: layer.muted ? '#ff9993' : 'var(--vx-text-3)',
+              transition: 'background 200ms ease, color 200ms ease, transform 100ms ease',
+            }}
+            onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+            onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          >
+            M
+          </button>
+          <button
+            onClick={() => onUpdate({ ...layer, solo: !layer.solo })}
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 6,
+              cursor: 'pointer',
+              background: layer.solo ? '#f59e0b22' : 'var(--vx-input)',
+              fontFamily: 'var(--font-body)',
+              fontSize: 9,
+              fontWeight: 800,
+              color: layer.solo ? '#f59e0b' : 'var(--vx-text-3)',
+              border: layer.solo ? '1px solid #f59e0b40' : '1px solid transparent',
+              transition:
+                'background 200ms ease, color 200ms ease, border-color 200ms ease, transform 100ms ease',
+            }}
+            onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+            onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          >
+            S
+          </button>
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <span className="material-symbols-outlined" style={{
-          fontSize: 14, color: 'var(--vx-text-4)',
-          transition: 'color 150ms ease',
-          ...(isMuted ? {} : { color: '#5a5a5a' }),
-        }}>volume_up</span>
+        <span
+          className="material-symbols-outlined"
+          style={{
+            fontSize: 14,
+            color: 'var(--vx-text-4)',
+            transition: 'color 150ms ease',
+            ...(isMuted ? {} : { color: '#5a5a5a' }),
+          }}
+        >
+          volume_up
+        </span>
         <ElasticSlider
-          min={0} max={1} step={0.01}
+          min={0}
+          max={1}
+          step={0.01}
           value={layer.volume}
-          onChange={v => onUpdate({ ...layer, volume: v })}
+          onChange={(v) => onUpdate({ ...layer, volume: v })}
           accentColor={accent}
           disabled={isMuted}
           style={{ flex: 1 }}
         />
-        <span style={{
-          fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--vx-text-4)', minWidth: 42, textAlign: 'right',
-          transition: 'color 150ms ease',
-        }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 9,
+            color: 'var(--vx-text-4)',
+            minWidth: 42,
+            textAlign: 'right',
+            transition: 'color 150ms ease',
+          }}
+        >
           {dbToDisplay(layer.volume)}
         </span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--vx-text-4)' }}>swap_horiz</span>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 14, color: 'var(--vx-text-4)' }}
+        >
+          swap_horiz
+        </span>
         <ElasticSlider
-          min={-1} max={1} step={0.01}
+          min={-1}
+          max={1}
+          step={0.01}
           value={layer.pan}
-          onChange={v => onUpdate({ ...layer, pan: v })}
+          onChange={(v) => onUpdate({ ...layer, pan: v })}
           accentColor="#a78bfa"
           style={{ flex: 1 }}
         />
-        <span style={{
-          fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--vx-text-4)', minWidth: 28, textAlign: 'right',
-          transition: 'color 150ms ease',
-        }}>
-          {layer.pan === 0 ? 'C' : layer.pan < 0 ? `L${Math.round(Math.abs(layer.pan) * 100)}` : `R${Math.round(layer.pan * 100)}`}
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 9,
+            color: 'var(--vx-text-4)',
+            minWidth: 28,
+            textAlign: 'right',
+            transition: 'color 150ms ease',
+          }}
+        >
+          {layer.pan === 0
+            ? 'C'
+            : layer.pan < 0
+              ? `L${Math.round(Math.abs(layer.pan) * 100)}`
+              : `R${Math.round(layer.pan * 100)}`}
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginBottom: showFx ? 10 : 0, transition: 'margin-bottom 200ms ease' }}>
-        <button onClick={() => setShowFx(!showFx)} style={{
-          display: 'flex', alignItems: 'center', gap: 4, background: 'var(--vx-deep)',
-          border: '1px solid var(--vx-edge)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer',
-          fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700,
-          color: layer.effects.some(e => e.enabled) ? 'var(--studio-accent)' : 'var(--vx-text-4)',
-          transition: 'color 200ms ease, border-color 200ms ease, transform 100ms ease',
-          borderColor: showFx ? 'var(--studio-accent-border)' : 'var(--vx-edge)',
+      <div
+        style={{
+          display: 'flex',
+          gap: 6,
+          marginBottom: showFx ? 10 : 0,
+          transition: 'margin-bottom 200ms ease',
         }}
-          onPointerDown={e => (e.currentTarget.style.transform = 'scale(0.95)')}
-          onPointerUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-          onPointerLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+      >
+        <button
+          onClick={() => setShowFx(!showFx)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            background: 'var(--vx-deep)',
+            border: '1px solid var(--vx-edge)',
+            borderRadius: 6,
+            padding: '4px 8px',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+            fontSize: 9,
+            fontWeight: 700,
+            color: layer.effects.some((e) => e.enabled)
+              ? 'var(--studio-accent)'
+              : 'var(--vx-text-4)',
+            transition: 'color 200ms ease, border-color 200ms ease, transform 100ms ease',
+            borderColor: showFx ? 'var(--studio-accent-border)' : 'var(--vx-edge)',
+          }}
+          onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
+          onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          <span className="material-symbols-outlined" style={{
-            fontSize: 12,
-            transition: 'transform 300ms cubic-bezier(0.34,1.56,0.64,1)',
-            transform: showFx ? 'rotate(90deg)' : 'rotate(0)',
-          }}>tune</span>
-          FX {layer.effects.filter(e => e.enabled).length > 0 && `(${layer.effects.filter(e => e.enabled).length})`}
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: 12,
+              transition: 'transform 300ms cubic-bezier(0.34,1.56,0.64,1)',
+              transform: showFx ? 'rotate(90deg)' : 'rotate(0)',
+            }}
+          >
+            tune
+          </span>
+          FX{' '}
+          {layer.effects.filter((e) => e.enabled).length > 0 &&
+            `(${layer.effects.filter((e) => e.enabled).length})`}
         </button>
 
-        <button onClick={onHarmonize} style={{
-          display: 'flex', alignItems: 'center', gap: 4, background: 'var(--studio-accent-soft)',
-          border: '1px solid var(--studio-accent-border)', borderRadius: 6, padding: '4px 9px', cursor: 'pointer',
-          fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700, color: 'var(--studio-accent)',
-          transition: 'background 150ms ease, transform 100ms ease',
-        }}
-          onPointerDown={e => (e.currentTarget.style.transform = 'scale(0.95)')}
-          onPointerUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-          onPointerLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+        <button
+          onClick={onHarmonize}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            background: 'var(--studio-accent-soft)',
+            border: '1px solid var(--studio-accent-border)',
+            borderRadius: 6,
+            padding: '4px 9px',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+            fontSize: 9,
+            fontWeight: 700,
+            color: 'var(--studio-accent)',
+            transition: 'background 150ms ease, transform 100ms ease',
+          }}
+          onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
+          onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 12 }}>graphic_eq</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+            graphic_eq
+          </span>
           {t.vocalex.harmonize || 'Harmonize'}
         </button>
 
         {confirmDel ? (
           <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
-            <button onClick={() => { onDelete(); setConfirmDel(false); }} style={{ background: '#7f2927', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700, color: '#ff9993' }}>{t.vocalex.deleteTake || 'Delete'}</button>
-            <button onClick={() => setConfirmDel(false)} style={{ background: 'var(--vx-input)', border: 'none', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700, color: 'var(--vx-text-2)' }}>{t.vocalex.cancelAction || 'Cancel'}</button>
+            <button
+              onClick={() => {
+                onDelete();
+                setConfirmDel(false);
+              }}
+              style={{
+                background: '#7f2927',
+                border: 'none',
+                borderRadius: 6,
+                padding: '4px 8px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                fontSize: 9,
+                fontWeight: 700,
+                color: '#ff9993',
+              }}
+            >
+              {t.vocalex.deleteTake || 'Delete'}
+            </button>
+            <button
+              onClick={() => setConfirmDel(false)}
+              style={{
+                background: 'var(--vx-input)',
+                border: 'none',
+                borderRadius: 6,
+                padding: '4px 8px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                fontSize: 9,
+                fontWeight: 700,
+                color: 'var(--vx-text-2)',
+              }}
+            >
+              {t.vocalex.cancelAction || 'Cancel'}
+            </button>
           </div>
         ) : (
-          <button onClick={() => setConfirmDel(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--vx-text-4)', display: 'flex', marginLeft: 'auto' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>delete</span>
+          <button
+            onClick={() => setConfirmDel(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 4,
+              color: 'var(--vx-text-4)',
+              display: 'flex',
+              marginLeft: 'auto',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              delete
+            </span>
           </button>
         )}
       </div>
 
-      <div style={{
-        overflow: 'hidden',
-        maxHeight: showFx ? 1000 : 0,
-        opacity: showFx ? 1 : 0,
-        transition: 'max-height 400ms cubic-bezier(0.22,1,0.36,1), opacity 300ms ease',
-      }}>
+      <div
+        style={{
+          overflow: 'hidden',
+          maxHeight: showFx ? 1000 : 0,
+          opacity: showFx ? 1 : 0,
+          transition: 'max-height 400ms cubic-bezier(0.22,1,0.36,1), opacity 300ms ease',
+        }}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {layer.effects.map((fx, i) => (
-            <EffectRow key={fx.type} effect={fx} index={i} onChange={updated => {
-              const newFx = [...layer.effects];
-              newFx[i] = updated;
-              onUpdate({ ...layer, effects: newFx });
-            }} />
+            <EffectRow
+              key={fx.type}
+              effect={fx}
+              index={i}
+              onChange={(updated) => {
+                const newFx = [...layer.effects];
+                newFx[i] = updated;
+                onUpdate({ ...layer, effects: newFx });
+              }}
+            />
           ))}
         </div>
       </div>
@@ -499,7 +845,11 @@ function TrackChannel({ layer, hasSolo, onUpdate, onDelete, onHarmonize, isPlayi
   );
 }
 
-function AddTrackSheet({ session, onAdd, onClose }: {
+function AddTrackSheet({
+  session,
+  onAdd,
+  onClose,
+}: {
   session: LabSession;
   onAdd: (layer: LabLayer) => void;
   onClose: () => void;
@@ -513,7 +863,9 @@ function AddTrackSheet({ session, onAdd, onClose }: {
   const startRef = useRef(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { getAllTakes().then(setTakes); }, []);
+  useEffect(() => {
+    vocalexRepository.getAllTakes().then(setTakes);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -524,12 +876,14 @@ function AddTrackSheet({ session, onAdd, onClose }: {
   }, []);
 
   const importTake = (take: TakeRecord) => {
-    onAdd(createLayer({
-      name: take.name,
-      audioBlob: take.audioBlob,
-      durationMs: take.durationMs,
-      sourceType: 'take',
-    }));
+    onAdd(
+      createLayer({
+        name: take.name,
+        audioBlob: take.audioBlob,
+        durationMs: take.durationMs,
+        sourceType: 'take',
+      })
+    );
   };
 
   const importFile = async (file: File) => {
@@ -537,38 +891,53 @@ function AddTrackSheet({ session, onAdd, onClose }: {
     const ctx = createAudioContext();
     try {
       const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
-      onAdd(createLayer({
-        name: file.name.replace(/\.[^.]+$/, ''),
-        audioBlob: blob,
-        durationMs: buf.duration * 1000,
-        sourceType: 'file',
-      }));
-    } finally { ctx.close(); }
+      onAdd(
+        createLayer({
+          name: file.name.replace(/\.[^.]+$/, ''),
+          audioBlob: blob,
+          durationMs: buf.duration * 1000,
+          sourceType: 'file',
+        })
+      );
+    } finally {
+      ctx.close();
+    }
   };
 
   const startRec = async () => {
     try {
       let stream: MediaStream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        });
       } catch (constraintsErr) {
-        console.warn('[LabPanel] getUserMedia with constraints failed, falling back to simple audio:', constraintsErr);
+        console.warn(
+          '[LabPanel] getUserMedia with constraints failed, falling back to simple audio:',
+          constraintsErr
+        );
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       }
-      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
       const rec = new MediaRecorder(stream, { mimeType: mime });
       chunksRef.current = [];
-      rec.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       rec.onstop = () => {
-        stream.getTracks().forEach(t => t.stop());
+        stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: mime });
         const dur = Date.now() - startRef.current;
-        onAdd(createLayer({
-          name: `Recording ${session.layers.length + 1}`,
-          audioBlob: blob,
-          durationMs: dur,
-          sourceType: 'recorded',
-        }));
+        onAdd(
+          createLayer({
+            name: `Recording ${session.layers.length + 1}`,
+            audioBlob: blob,
+            durationMs: dur,
+            sourceType: 'recorded',
+          })
+        );
       };
       recorderRef.current = rec;
       startRef.current = Date.now();
@@ -585,101 +954,264 @@ function AddTrackSheet({ session, onAdd, onClose }: {
   };
 
   return (
-    <DialogScaffold
-      open={true}
-      onClose={onClose}
-      title={t.vocalex.addTrack}
-    >
+    <DialogScaffold open={true} onClose={onClose} title={t.vocalex.addTrack}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--vx-deep)', borderRadius: 10, padding: 3 }}>
-          {(['takes', 'file', 'record'] as const).map(tabKey => {
-            const tabLabels: Record<string, string> = { takes: t.vocalex.tabTakes, file: t.vocalex.tabFile, record: t.vocalex.tabRecord };
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            background: 'var(--vx-deep)',
+            borderRadius: 10,
+            padding: 3,
+          }}
+        >
+          {(['takes', 'file', 'record'] as const).map((tabKey) => {
+            const tabLabels: Record<string, string> = {
+              takes: t.vocalex.tabTakes,
+              file: t.vocalex.tabFile,
+              record: t.vocalex.tabRecord,
+            };
             return (
-              <button key={tabKey} onClick={() => setTab(tabKey)} style={{
-                flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', cursor: 'pointer',
-                fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700,
-                background: tab === tabKey ? 'var(--vx-input)' : 'transparent',
-                color: tab === tabKey ? 'var(--vx-text)' : 'var(--vx-text-3)',
-                textTransform: 'capitalize',
-                transition: 'background 200ms ease, color 200ms ease',
-              }}>
+              <button
+                key={tabKey}
+                onClick={() => setTab(tabKey)}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  borderRadius: 8,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  background: tab === tabKey ? 'var(--vx-input)' : 'transparent',
+                  color: tab === tabKey ? 'var(--vx-text)' : 'var(--vx-text-3)',
+                  textTransform: 'capitalize',
+                  transition: 'background 200ms ease, color 200ms ease',
+                }}
+              >
                 {tabLabels[tabKey]}
               </button>
             );
           })}
         </div>
 
-        {tab === 'takes' && (
-          takes.length === 0 ? (
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-3)', textAlign: 'center', padding: '20px 0' }}>{t.vocalex.noTakesForImport}</p>
+        {tab === 'takes' &&
+          (takes.length === 0 ? (
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 13,
+                color: 'var(--vx-text-3)',
+                textAlign: 'center',
+                padding: '20px 0',
+              }}
+            >
+              {t.vocalex.noTakesForImport}
+            </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {takes.map(take => (
-                <div key={take.id} onClick={() => importTake(take)} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
-                  background: 'var(--vx-deep)', borderRadius: 10, cursor: 'pointer',
-                  transition: 'background 150ms ease',
-                }}
-                  onPointerDown={e => (e.currentTarget.style.background = '#1a1a1a')}
-                  onPointerUp={e => (e.currentTarget.style.background = 'var(--vx-deep)')}
-                  onPointerLeave={e => (e.currentTarget.style.background = 'var(--vx-deep)')}
+              {takes.map((take) => (
+                <div
+                  key={take.id}
+                  onClick={() => importTake(take)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    background: 'var(--vx-deep)',
+                    borderRadius: 10,
+                    cursor: 'pointer',
+                    transition: 'background 150ms ease',
+                  }}
+                  onPointerDown={(e) => (e.currentTarget.style.background = '#1a1a1a')}
+                  onPointerUp={(e) => (e.currentTarget.style.background = 'var(--vx-deep)')}
+                  onPointerLeave={(e) => (e.currentTarget.style.background = 'var(--vx-deep)')}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--studio-accent)' }}>video_library</span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 18, color: 'var(--studio-accent)' }}
+                  >
+                    video_library
+                  </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 600, fontSize: 13, color: 'var(--vx-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{take.name}</p>
-                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--vx-text-3)', margin: '1px 0 0' }}>{formatDur(take.durationMs)}</p>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-headline)',
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: 'var(--vx-text)',
+                        margin: 0,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {take.name}
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: 10,
+                        color: 'var(--vx-text-3)',
+                        margin: '1px 0 0',
+                      }}
+                    >
+                      {formatDur(take.durationMs)}
+                    </p>
                   </div>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--vx-text-4)' }}>add_circle</span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 18, color: 'var(--vx-text-4)' }}
+                  >
+                    add_circle
+                  </span>
                 </div>
               ))}
             </div>
-          )
-        )}
+          ))}
 
         {tab === 'file' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '24px 0' }}>
-            <input ref={fileRef} type="file" accept="audio/*" style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) importFile(f); }} />
-            <button onClick={() => fileRef.current?.click()} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-              width: '100%', padding: '32px 20px', borderRadius: 14,
-              background: 'var(--vx-deep)', border: '2px dashed var(--vx-input)', cursor: 'pointer',
-              transition: 'border-color 150ms ease',
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 16,
+              padding: '24px 0',
             }}
-              onPointerDown={e => (e.currentTarget.style.borderColor = 'var(--studio-accent)')}
-              onPointerUp={e => (e.currentTarget.style.borderColor = 'var(--vx-input)')}
-              onPointerLeave={e => (e.currentTarget.style.borderColor = 'var(--vx-input)')}
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept="audio/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) importFile(f);
+              }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 10,
+                width: '100%',
+                padding: '32px 20px',
+                borderRadius: 14,
+                background: 'var(--vx-deep)',
+                border: '2px dashed var(--vx-input)',
+                cursor: 'pointer',
+                transition: 'border-color 150ms ease',
+              }}
+              onPointerDown={(e) => (e.currentTarget.style.borderColor = 'var(--studio-accent)')}
+              onPointerUp={(e) => (e.currentTarget.style.borderColor = 'var(--vx-input)')}
+              onPointerLeave={(e) => (e.currentTarget.style.borderColor = 'var(--vx-input)')}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--studio-accent)' }}>upload_file</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, color: 'var(--vx-text-2)' }}>{t.vocalex.tapToChooseAudio}</span>
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--vx-text-4)' }}>{t.vocalex.audioFormats}</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 32, color: 'var(--studio-accent)' }}
+              >
+                upload_file
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--vx-text-2)',
+                }}
+              >
+                {t.vocalex.tapToChooseAudio}
+              </span>
+              <span
+                style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--vx-text-4)' }}
+              >
+                {t.vocalex.audioFormats}
+              </span>
             </button>
           </div>
         )}
 
         {tab === 'record' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '32px 0' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 20,
+              padding: '32px 0',
+            }}
+          >
             {recording ? (
               <>
-                <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#ef4444', animation: 'pulse 1s infinite' }} />
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: '#ef4444', fontWeight: 600 }}>{t.vocalex.recording}</p>
-                <button onClick={stopRec} style={{
-                  width: 64, height: 64, borderRadius: '50%', background: '#ef4444', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 8px 32px rgba(239,68,68,0.3)',
-                }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#fff', fontVariationSettings: "'FILL' 1" }}>stop</span>
+                <div
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    animation: 'pulse 1s infinite',
+                  }}
+                />
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 13,
+                    color: '#ef4444',
+                    fontWeight: 600,
+                  }}
+                >
+                  {t.vocalex.recording}
+                </p>
+                <button
+                  onClick={stopRec}
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 32px rgba(239,68,68,0.3)',
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 28, color: '#fff', fontVariationSettings: "'FILL' 1" }}
+                  >
+                    stop
+                  </span>
                 </button>
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined" style={{ fontSize: 36, color: 'var(--studio-accent)' }}>mic</span>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-2)', textAlign: 'center' }}>{t.vocalex.recordPrompt}</p>
-                <Button
-                  variant="primary"
-                  onClick={startRec}
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 36, color: 'var(--studio-accent)' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>mic</span>
+                  mic
+                </span>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 13,
+                    color: 'var(--vx-text-2)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {t.vocalex.recordPrompt}
+                </p>
+                <Button variant="primary" onClick={startRec}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                    mic
+                  </span>
                   {t.vocalex.startRecording}
                 </Button>
               </>
@@ -691,8 +1223,16 @@ function AddTrackSheet({ session, onAdd, onClose }: {
   );
 }
 
-function MixerView({ session, sessionNumber, onBack, onUpdate }: {
-  session: LabSession; sessionNumber: number; onBack: () => void; onUpdate: (s: LabSession) => void;
+function MixerView({
+  session,
+  sessionNumber,
+  onBack,
+  onUpdate,
+}: {
+  session: LabSession;
+  sessionNumber: number;
+  onBack: () => void;
+  onUpdate: (s: LabSession) => void;
 }) {
   useLabAnimStyle();
   const t = useT();
@@ -711,57 +1251,75 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
   const sessionRef = useRef(session);
   sessionRef.current = session;
 
-  const hasSolo = session.layers.some(l => l.solo);
-  const maxDuration = Math.max(...session.layers.map(l => l.durationMs), 0);
+  const hasSolo = session.layers.some((l) => l.solo);
+  const maxDuration = Math.max(...session.layers.map((l) => l.durationMs), 0);
 
   const saveName = () => {
     setEditingName(false);
     if (name.trim() && name !== session.name) {
       const updated = { ...session, name: name.trim(), updatedAt: Date.now() };
-      saveSession(updated).then(() => onUpdate(updated));
+      vocalexRepository.saveSession(updated).then(() => onUpdate(updated));
     } else setName(session.name);
   };
 
-  const saveAndNotify = useCallback((newSession: LabSession) => {
-    saveSession(newSession).then(() => onUpdate(newSession));
-  }, [onUpdate]);
+  const saveAndNotify = useCallback(
+    (newSession: LabSession) => {
+      vocalexRepository.saveSession(newSession).then(() => onUpdate(newSession));
+    },
+    [onUpdate]
+  );
 
-  const updateLayer = useCallback((updated: LabLayer) => {
-    const cur = sessionRef.current;
-    const newSession = { ...cur, layers: cur.layers.map(l => l.id === updated.id ? updated : l), updatedAt: Date.now() };
+  const updateLayer = useCallback(
+    (updated: LabLayer) => {
+      const cur = sessionRef.current;
+      const newSession = {
+        ...cur,
+        layers: cur.layers.map((l) => (l.id === updated.id ? updated : l)),
+        updatedAt: Date.now(),
+      };
 
-    if (ctxRef.current && playing) {
-      const nodes = trackNodesRef.current.get(updated.id);
-      if (nodes) {
-        const ctx = ctxRef.current;
-        const oldLayer = cur.layers.find(l => l.id === updated.id);
+      if (ctxRef.current && playing) {
+        const nodes = trackNodesRef.current.get(updated.id);
+        if (nodes) {
+          const ctx = ctxRef.current;
+          const oldLayer = cur.layers.find((l) => l.id === updated.id);
 
-        const newHasSolo = newSession.layers.some(l => l.solo);
-        const isAudible = !updated.muted && (!newHasSolo || updated.solo);
-        nodes.gainNode.gain.setTargetAtTime(isAudible ? updated.volume : 0, ctx.currentTime, 0.015);
-        nodes.pannerNode.pan.setTargetAtTime(updated.pan, ctx.currentTime, 0.015);
+          const newHasSolo = newSession.layers.some((l) => l.solo);
+          const isAudible = !updated.muted && (!newHasSolo || updated.solo);
+          nodes.gainNode.gain.setTargetAtTime(
+            isAudible ? updated.volume : 0,
+            ctx.currentTime,
+            0.015
+          );
+          nodes.pannerNode.pan.setTargetAtTime(updated.pan, ctx.currentTime, 0.015);
 
-        const fxChanged = !oldLayer ||
-          JSON.stringify(oldLayer.effects) !== JSON.stringify(updated.effects);
-        if (fxChanged) {
-          rebuildTrackEffects(ctx, nodes, updated.effects);
-        }
+          const fxChanged =
+            !oldLayer || JSON.stringify(oldLayer.effects) !== JSON.stringify(updated.effects);
+          if (fxChanged) {
+            rebuildTrackEffects(ctx, nodes, updated.effects);
+          }
 
-        for (const [id, tn] of trackNodesRef.current) {
-          if (id === updated.id) continue;
-          const lay = newSession.layers.find(l => l.id === id);
-          if (!lay) continue;
-          const aud = !lay.muted && (!newHasSolo || lay.solo);
-          tn.gainNode.gain.setTargetAtTime(aud ? lay.volume : 0, ctx.currentTime, 0.015);
+          for (const [id, tn] of trackNodesRef.current) {
+            if (id === updated.id) continue;
+            const lay = newSession.layers.find((l) => l.id === id);
+            if (!lay) continue;
+            const aud = !lay.muted && (!newHasSolo || lay.solo);
+            tn.gainNode.gain.setTargetAtTime(aud ? lay.volume : 0, ctx.currentTime, 0.015);
+          }
         }
       }
-    }
 
-    saveAndNotify(newSession);
-  }, [playing, saveAndNotify]);
+      saveAndNotify(newSession);
+    },
+    [playing, saveAndNotify]
+  );
 
   const removeLayer = (id: string) => {
-    const newSession = { ...session, layers: session.layers.filter(l => l.id !== id), updatedAt: Date.now() };
+    const newSession = {
+      ...session,
+      layers: session.layers.filter((l) => l.id !== id),
+      updatedAt: Date.now(),
+    };
     saveAndNotify(newSession);
   };
 
@@ -772,34 +1330,47 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
   };
 
   const handleDelete = async () => {
-    await deleteSession(session.id);
+    await vocalexRepository.deleteSession(session.id);
     onBack();
   };
 
-  const updateMasterVol = useCallback((v: number) => {
-    if (masterGainRef.current && ctxRef.current) {
-      masterGainRef.current.gain.setTargetAtTime(v, ctxRef.current.currentTime, 0.015);
-    }
-    const updated = { ...sessionRef.current, masterVolume: v, updatedAt: Date.now() };
-    saveAndNotify(updated);
-  }, [saveAndNotify]);
+  const updateMasterVol = useCallback(
+    (v: number) => {
+      if (masterGainRef.current && ctxRef.current) {
+        masterGainRef.current.gain.setTargetAtTime(v, ctxRef.current.currentTime, 0.015);
+      }
+      const updated = { ...sessionRef.current, masterVolume: v, updatedAt: Date.now() };
+      saveAndNotify(updated);
+    },
+    [saveAndNotify]
+  );
 
   const stopPlayback = useCallback(() => {
     for (const [, nodes] of trackNodesRef.current) {
-      try { nodes.source.stop(); } catch {}
-      try { nodes.source.disconnect(); } catch {}
+      try {
+        nodes.source.stop();
+      } catch {}
+      try {
+        nodes.source.disconnect();
+      } catch {}
       disconnectNodes(nodes.effectNodes);
     }
     trackNodesRef.current.clear();
     masterGainRef.current = null;
-    if (ctxRef.current) { ctxRef.current.close(); ctxRef.current = null; }
+    if (ctxRef.current) {
+      ctxRef.current.close();
+      ctxRef.current = null;
+    }
     cancelAnimationFrame(animRef.current);
     setPlaying(false);
     setCurrentTime(0);
   }, []);
 
   const playAll = useCallback(async () => {
-    if (playing) { stopPlayback(); return; }
+    if (playing) {
+      stopPlayback();
+      return;
+    }
     const cur = sessionRef.current;
     if (cur.layers.length === 0) return;
 
@@ -810,7 +1381,7 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
     master.connect(ctx.destination);
     masterGainRef.current = master;
 
-    const curHasSolo = cur.layers.some(l => l.solo);
+    const curHasSolo = cur.layers.some((l) => l.solo);
     const nodeMap = new Map<string, TrackNodes>();
 
     for (const layer of cur.layers) {
@@ -833,37 +1404,59 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
 
         source.connect(gainNode);
         gainNode.connect(effectInputGain);
-        const effectNodes = connectEffectChain(ctx, layer.effects, effectInputGain, effectOutputGain);
+        const effectNodes = connectEffectChain(
+          ctx,
+          layer.effects,
+          effectInputGain,
+          effectOutputGain
+        );
         effectOutputGain.connect(pannerNode);
         pannerNode.connect(master);
 
-        const trackNode: TrackNodes = { source, gainNode, pannerNode, effectInputGain, effectNodes, effectOutputGain };
+        const trackNode: TrackNodes = {
+          source,
+          gainNode,
+          pannerNode,
+          effectInputGain,
+          effectNodes,
+          effectOutputGain,
+        };
         nodeMap.set(layer.id, trackNode);
       } catch {}
     }
 
     trackNodesRef.current = nodeMap;
     startTimeRef.current = ctx.currentTime;
-    for (const [, nodes] of nodeMap) { nodes.source.start(); }
+    for (const [, nodes] of nodeMap) {
+      nodes.source.start();
+    }
     setPlaying(true);
 
-    const longestMs = Math.max(...cur.layers.map(l => l.durationMs));
+    const longestMs = Math.max(...cur.layers.map((l) => l.durationMs));
     const tick = () => {
       if (!ctxRef.current) return;
       const elapsed = (ctxRef.current.currentTime - startTimeRef.current) * 1000;
       setCurrentTime(elapsed);
-      if (elapsed >= longestMs) { stopPlayback(); return; }
+      if (elapsed >= longestMs) {
+        stopPlayback();
+        return;
+      }
       animRef.current = requestAnimationFrame(tick);
     };
     animRef.current = requestAnimationFrame(tick);
   }, [playing, stopPlayback]);
 
   useEffect(() => {
-    return () => { stopPlayback(); };
+    return () => {
+      stopPlayback();
+    };
   }, [stopPlayback]);
 
   useEffect(() => {
-    const handler = () => { stopPlayback(); onBack(); };
+    const handler = () => {
+      stopPlayback();
+      onBack();
+    };
     setVocalexBack(handler);
     return () => setVocalexBack(null);
   }, [onBack, stopPlayback]);
@@ -873,50 +1466,87 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
   const sessionTag = `#${String(sessionNumber).padStart(2, '0')}`;
 
   return (
-    <div className="spring-in" style={{ padding: '16px 20px', paddingBottom: 120, minHeight: '100%' }}>
-
+    <div
+      className="spring-in"
+      style={{ padding: '16px 20px', paddingBottom: 120, minHeight: '100%' }}
+    >
       {/* ── Session header ─────────────────────────────────────────────
           Single coherent block with: session icon, session number tag,
           editable session name (with explicit pencil affordance), and
           the delete control on the right. ─────────────────────────── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        background: 'var(--vx-deep)', border: '1px solid var(--vx-edge)',
-        borderRadius: 16, padding: '12px 14px', marginBottom: 16,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          background: 'var(--vx-deep)',
+          border: '1px solid var(--vx-edge)',
+          borderRadius: 16,
+          padding: '12px 14px',
+          marginBottom: 16,
+        }}
+      >
         {/* Icon */}
-        <div style={{
-          width: 40, height: 40, borderRadius: 12,
-          background: 'rgba(103,156,255,0.10)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#679cff' }}>{session.icon}</span>
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            background: 'rgba(103,156,255,0.10)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#679cff' }}>
+            {session.icon}
+          </span>
         </div>
 
         {/* Number + name */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{
-            fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 800,
-            color: '#679cff', letterSpacing: '0.12em', textTransform: 'uppercase',
-            margin: 0, lineHeight: 1,
-          }}>
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 10,
+              fontWeight: 800,
+              color: '#679cff',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              margin: 0,
+              lineHeight: 1,
+            }}
+          >
             {t.vocalex.session ?? 'Session'} {sessionTag}
           </p>
           {editingName ? (
             <input
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               onBlur={saveName}
-              onKeyDown={e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { setName(session.name); setEditingName(false); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveName();
+                if (e.key === 'Escape') {
+                  setName(session.name);
+                  setEditingName(false);
+                }
+              }}
               autoFocus
               maxLength={48}
               style={{
-                fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 18,
-                color: 'var(--vx-text)', background: 'none',
-                border: 'none', borderBottom: '2px solid #679cff',
-                outline: 'none', padding: '2px 0',
-                width: '100%', letterSpacing: '-0.02em', marginTop: 4,
+                fontFamily: 'var(--font-headline)',
+                fontWeight: 800,
+                fontSize: 18,
+                color: 'var(--vx-text)',
+                background: 'none',
+                border: 'none',
+                borderBottom: '2px solid #679cff',
+                outline: 'none',
+                padding: '2px 0',
+                width: '100%',
+                letterSpacing: '-0.02em',
+                marginTop: 4,
               }}
             />
           ) : (
@@ -924,21 +1554,40 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
               onClick={() => setEditingName(true)}
               title={t.vocalex.renameSession || 'Rename session'}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: 'none', border: 'none', padding: '2px 0', marginTop: 2,
-                cursor: 'pointer', color: 'var(--vx-text)',
-                width: '100%', textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'none',
+                border: 'none',
+                padding: '2px 0',
+                marginTop: 2,
+                cursor: 'pointer',
+                color: 'var(--vx-text)',
+                width: '100%',
+                textAlign: 'left',
               }}
             >
-              <span style={{
-                fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 18,
-                letterSpacing: '-0.02em',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                flex: 1, minWidth: 0,
-              }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-headline)',
+                  fontWeight: 800,
+                  fontSize: 18,
+                  letterSpacing: '-0.02em',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                  minWidth: 0,
+                }}
+              >
                 {session.name}
               </span>
-              <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--vx-text-4)', flexShrink: 0 }}>edit</span>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 14, color: 'var(--vx-text-4)', flexShrink: 0 }}
+              >
+                edit
+              </span>
             </button>
           )}
         </div>
@@ -946,8 +1595,38 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
         {/* Delete (with inline confirm) */}
         {confirmDelete ? (
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button onClick={handleDelete} style={{ background: '#7f2927', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700, color: '#ff9993' }}>{t.vocalex.deleteTake}</button>
-            <button onClick={() => setConfirmDelete(false)} style={{ background: 'var(--vx-input)', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 11, fontWeight: 700, color: 'var(--vx-text-2)' }}>{t.vocalex.cancelAction}</button>
+            <button
+              onClick={handleDelete}
+              style={{
+                background: '#7f2927',
+                border: 'none',
+                borderRadius: 8,
+                padding: '6px 12px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                fontSize: 11,
+                fontWeight: 700,
+                color: '#ff9993',
+              }}
+            >
+              {t.vocalex.deleteTake}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              style={{
+                background: 'var(--vx-input)',
+                border: 'none',
+                borderRadius: 8,
+                padding: '6px 12px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                fontSize: 11,
+                fontWeight: 700,
+                color: 'var(--vx-text-2)',
+              }}
+            >
+              {t.vocalex.cancelAction}
+            </button>
           </div>
         ) : (
           <button
@@ -955,132 +1634,294 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
             title={t.vocalex.deleteSession || 'Delete session'}
             style={{
               flexShrink: 0,
-              width: 36, height: 36, borderRadius: 10,
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              color: 'var(--vx-text-3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--vx-text-3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: 'background 150ms ease, color 150ms ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.10)'; e.currentTarget.style.color = '#ef4444'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--vx-text-3)'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239,68,68,0.10)';
+              e.currentTarget.style.color = '#ef4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--vx-text-3)';
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              delete
+            </span>
           </button>
         )}
       </div>
 
       {/* Meta line — track count + total duration */}
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--vx-text-3)', margin: '0 0 16px 4px' }}>
+      <p
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: 11,
+          color: 'var(--vx-text-3)',
+          margin: '0 0 16px 4px',
+        }}
+      >
         {t.vocalex.trackCount(session.layers.length)} · {formatDur(maxDuration)}
       </p>
 
-      <div style={{
-        background: 'var(--vx-deep)', borderRadius: 14, padding: '14px 16px', marginBottom: 16,
-        border: '1px solid var(--vx-edge)',
-      }}>
+      <div
+        style={{
+          background: 'var(--vx-deep)',
+          borderRadius: 14,
+          padding: '14px 16px',
+          marginBottom: 16,
+          border: '1px solid var(--vx-edge)',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <button onClick={playAll} style={{
-            width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer',
-            background: playing ? '#ef4444' : 'var(--studio-accent-gradient)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: playing ? '0 4px 20px rgba(239,68,68,0.3)' : 'var(--studio-accent-glow)',
-            transition: 'all 200ms ease',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff', fontVariationSettings: "'FILL' 1" }}>
+          <button
+            onClick={playAll}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              background: playing ? '#ef4444' : 'var(--studio-accent-gradient)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: playing ? '0 4px 20px rgba(239,68,68,0.3)' : 'var(--studio-accent-glow)',
+              transition: 'all 200ms ease',
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 22, color: '#fff', fontVariationSettings: "'FILL' 1" }}
+            >
               {playing ? 'stop' : 'play_arrow'}
             </span>
           </button>
           <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 13, color: 'var(--vx-text)', margin: 0 }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-headline)',
+                fontWeight: 700,
+                fontSize: 13,
+                color: 'var(--vx-text)',
+                margin: 0,
+              }}
+            >
               {playing ? t.vocalex.playing : t.vocalex.ready}
             </p>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--vx-text-4)', margin: '2px 0 0' }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 10,
+                color: 'var(--vx-text-4)',
+                margin: '2px 0 0',
+              }}
+            >
               {formatDur(currentTime)} / {formatDur(maxDuration)}
             </p>
           </div>
         </div>
 
         {maxDuration > 0 && (
-          <div style={{ height: 3, borderRadius: 2, background: 'var(--vx-input)', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: 2,
-              background: 'var(--studio-accent-gradient)',
-              width: `${Math.min((currentTime / maxDuration) * 100, 100)}%`,
-              transition: playing ? 'none' : 'width 200ms ease',
-            }} />
+          <div
+            style={{
+              height: 3,
+              borderRadius: 2,
+              background: 'var(--vx-input)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                borderRadius: 2,
+                background: 'var(--studio-accent-gradient)',
+                width: `${Math.min((currentTime / maxDuration) * 100, 100)}%`,
+                transition: playing ? 'none' : 'width 200ms ease',
+              }}
+            />
           </div>
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, fontWeight: 700, color: 'var(--vx-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t.vocalex.master}</span>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 9,
+              fontWeight: 700,
+              color: 'var(--vx-text-3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}
+          >
+            {t.vocalex.master}
+          </span>
           <ElasticSlider
-            min={0} max={1} step={0.01}
+            min={0}
+            max={1}
+            step={0.01}
             value={session.masterVolume ?? 0.8}
             onChange={updateMasterVol}
             accentColor="var(--studio-accent)"
             style={{ flex: 1 }}
           />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--vx-text-4)', minWidth: 42, textAlign: 'right' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 9,
+              color: 'var(--vx-text-4)',
+              minWidth: 42,
+              textAlign: 'right',
+            }}
+          >
             {dbToDisplay(session.masterVolume ?? 0.8)}
           </span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, color: 'var(--vx-text-3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t.vocalex.tracks}</span>
-        <button onClick={() => setShowAddSheet(true)} style={{
-          display: 'flex', alignItems: 'center', gap: 4, background: 'var(--vx-input)', border: 'none',
-          borderRadius: 8, padding: '6px 10px', cursor: 'pointer',
-          fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, color: 'var(--studio-accent)',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>add</span>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 10,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 10,
+            fontWeight: 700,
+            color: 'var(--vx-text-3)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+          }}
+        >
+          {t.vocalex.tracks}
+        </span>
+        <button
+          onClick={() => setShowAddSheet(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            background: 'var(--vx-input)',
+            border: 'none',
+            borderRadius: 8,
+            padding: '6px 10px',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+            fontSize: 10,
+            fontWeight: 700,
+            color: 'var(--studio-accent)',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+            add
+          </span>
           {t.vocalex.addTrack}
         </button>
       </div>
 
       {session.layers.length === 0 ? (
-        <div style={{ background: 'var(--vx-card)', borderRadius: 14, padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <div
+          style={{
+            background: 'var(--vx-card)',
+            borderRadius: 14,
+            padding: '40px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
           <MicWavesLottie size={52} />
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-3)', margin: 0, textAlign: 'center' }}>{t.vocalex.noTracksYet}</p>
-          <button onClick={() => setShowAddSheet(true)} style={{
-            marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 9999,
-            background: 'var(--studio-accent-gradient)', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 13, color: '#fff',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>add</span>
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 13,
+              color: 'var(--vx-text-3)',
+              margin: 0,
+              textAlign: 'center',
+            }}
+          >
+            {t.vocalex.noTracksYet}
+          </p>
+          <button
+            onClick={() => setShowAddSheet(true)}
+            style={{
+              marginTop: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '10px 20px',
+              borderRadius: 9999,
+              background: 'var(--studio-accent-gradient)',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-headline)',
+              fontWeight: 700,
+              fontSize: 13,
+              color: '#fff',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              add
+            </span>
             {t.vocalex.addFirstTrack}
           </button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {session.layers.map(layer => (
-            <TrackChannel key={layer.id} layer={layer} hasSolo={hasSolo} isPlaying={playing}
-              onUpdate={updateLayer} onDelete={() => removeLayer(layer.id)}
-              onHarmonize={() => setHarmonizingLayer(layer)} />
+          {session.layers.map((layer) => (
+            <TrackChannel
+              key={layer.id}
+              layer={layer}
+              hasSolo={hasSolo}
+              isPlaying={playing}
+              onUpdate={updateLayer}
+              onDelete={() => removeLayer(layer.id)}
+              onHarmonize={() => setHarmonizingLayer(layer)}
+            />
           ))}
         </div>
       )}
 
-      {showAddSheet && <AddTrackSheet session={session} onAdd={addLayer} onClose={() => setShowAddSheet(false)} />}
+      {showAddSheet && (
+        <AddTrackSheet session={session} onAdd={addLayer} onClose={() => setShowAddSheet(false)} />
+      )}
 
       {harmonizingLayer && (
         <HarmonizerSheet
           take={{
-            id:            harmonizingLayer.id,
-            name:          harmonizingLayer.name,
-            createdAt:     Date.now(),
-            durationMs:    harmonizingLayer.durationMs,
-            audioBlob:     harmonizingLayer.audioBlob,
+            id: harmonizingLayer.id,
+            name: harmonizingLayer.name,
+            createdAt: Date.now(),
+            durationMs: harmonizingLayer.durationMs,
+            audioBlob: harmonizingLayer.audioBlob,
             waveformPeaks: [],
-            sampleRate:    44100,
+            sampleRate: 44100,
           }}
           onClose={() => setHarmonizingLayer(null)}
           onBounce={async (newTake) => {
-            addLayer(createLayer({
-              name:       newTake.name,
-              audioBlob:  newTake.audioBlob,
-              durationMs: newTake.durationMs,
-              sourceType: 'take',
-            }));
+            addLayer(
+              createLayer({
+                name: newTake.name,
+                audioBlob: newTake.audioBlob,
+                durationMs: newTake.durationMs,
+                sourceType: 'take',
+              })
+            );
             setHarmonizingLayer(null);
           }}
         />
@@ -1089,40 +1930,138 @@ function MixerView({ session, sessionNumber, onBack, onUpdate }: {
   );
 }
 
-function SessionCard({ session, onOpen, onDelete }: {
-  session: LabSession; onOpen: (s: LabSession) => void; onDelete: (id: string) => void;
+function SessionCard({
+  session,
+  onOpen,
+  onDelete,
+}: {
+  session: LabSession;
+  onOpen: (s: LabSession) => void;
+  onDelete: (id: string) => void;
 }) {
   const t = useT();
   const [confirmDel, setConfirmDel] = useState(false);
 
   return (
-    <div style={{
-      background: 'var(--vx-edge)', borderRadius: 14, padding: '16px 16px',
-      display: 'flex', alignItems: 'center', gap: 14,
-      transition: 'background 150ms ease', cursor: 'pointer',
-    }}
+    <div
+      style={{
+        background: 'var(--vx-edge)',
+        borderRadius: 14,
+        padding: '16px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 14,
+        transition: 'background 150ms ease',
+        cursor: 'pointer',
+      }}
       onClick={() => onOpen(session)}
-      onPointerDown={e => (e.currentTarget.style.background = '#2c2c2c')}
-      onPointerUp={e => (e.currentTarget.style.background = 'var(--vx-edge)')}
-      onPointerLeave={e => (e.currentTarget.style.background = 'var(--vx-edge)')}
+      onPointerDown={(e) => (e.currentTarget.style.background = '#2c2c2c')}
+      onPointerUp={(e) => (e.currentTarget.style.background = 'var(--vx-edge)')}
+      onPointerLeave={(e) => (e.currentTarget.style.background = 'var(--vx-edge)')}
     >
-      <div style={{ width: 42, height: 42, borderRadius: 10, background: 'var(--vx-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#679cff' }}>{session.icon}</span>
+      <div
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 10,
+          background: 'var(--vx-deep)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#679cff' }}>
+          {session.icon}
+        </span>
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <h4 style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 15, color: 'var(--vx-text)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{session.name}</h4>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--vx-text-3)', margin: 0 }}>
-          {t.vocalex.trackCount(session.layers.length)} · {formatDate(session.createdAt, t.vocalex.months)}
+        <h4
+          style={{
+            fontFamily: 'var(--font-headline)',
+            fontWeight: 700,
+            fontSize: 15,
+            color: 'var(--vx-text)',
+            margin: '0 0 2px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {session.name}
+        </h4>
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 10,
+            color: 'var(--vx-text-3)',
+            margin: 0,
+          }}
+        >
+          {t.vocalex.trackCount(session.layers.length)} ·{' '}
+          {formatDate(session.createdAt, t.vocalex.months)}
         </p>
       </div>
       {confirmDel ? (
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-          <button onClick={() => { onDelete(session.id); setConfirmDel(false); }} style={{ background: '#7f2927', border: 'none', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, color: '#ff9993' }}>{t.vocalex.deleteTake}</button>
-          <button onClick={() => setConfirmDel(false)} style={{ background: 'var(--vx-input)', border: 'none', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 10, fontWeight: 700, color: 'var(--vx-text-2)' }}>{t.vocalex.cancelAction}</button>
+        <div
+          style={{ display: 'flex', gap: 4, flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              onDelete(session.id);
+              setConfirmDel(false);
+            }}
+            style={{
+              background: '#7f2927',
+              border: 'none',
+              borderRadius: 6,
+              padding: '5px 10px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-body)',
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#ff9993',
+            }}
+          >
+            {t.vocalex.deleteTake}
+          </button>
+          <button
+            onClick={() => setConfirmDel(false)}
+            style={{
+              background: 'var(--vx-input)',
+              border: 'none',
+              borderRadius: 6,
+              padding: '5px 10px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-body)',
+              fontSize: 10,
+              fontWeight: 700,
+              color: 'var(--vx-text-2)',
+            }}
+          >
+            {t.vocalex.cancelAction}
+          </button>
         </div>
       ) : (
-        <button onClick={e => { e.stopPropagation(); setConfirmDel(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--vx-text-4)', display: 'flex', flexShrink: 0 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmDel(true);
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 4,
+            color: 'var(--vx-text-4)',
+            display: 'flex',
+            flexShrink: 0,
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            delete
+          </span>
         </button>
       )}
     </div>
@@ -1133,22 +2072,31 @@ export default function LabPanel() {
   const t = useT();
   const [sessions, setSessions] = useState<LabSession[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const currentRoute = useNavigationStore(useShallow(s => s.history[s.history.length - 1])) || { app: 'hub' };
+  const currentRoute = useNavigationStore(useShallow((s) => s.history[s.history.length - 1])) || {
+    app: 'hub',
+  };
   const activeSession = useMemo(() => {
-    if (currentRoute.app === 'vocalex' && currentRoute.page === 'lab' && currentRoute.subView === 'session' && currentRoute.id) {
-      return sessions.find(s => s.id === currentRoute.id) || null;
+    if (
+      currentRoute.app === 'vocalex' &&
+      currentRoute.page === 'lab' &&
+      currentRoute.subView === 'session' &&
+      currentRoute.id
+    ) {
+      return sessions.find((s) => s.id === currentRoute.id) || null;
     }
     return null;
   }, [currentRoute, sessions]);
   const [showAll, setShowAll] = useState(false);
 
   const loadSessions = useCallback(async () => {
-    const all = await getAllSessions();
+    const all = await vocalexRepository.getAllSessions();
     setSessions(all);
     setLoaded(true);
   }, []);
 
-  useEffect(() => { loadSessions(); }, [loadSessions]);
+  useEffect(() => {
+    loadSessions();
+  }, [loadSessions]);
 
   const createSession = async () => {
     const session: LabSession = {
@@ -1160,13 +2108,13 @@ export default function LabPanel() {
       icon: randomIcon(),
       masterVolume: 0.8,
     };
-    await saveSession(session);
+    await vocalexRepository.saveSession(session);
     await loadSessions();
     NavigationDispatcher.push({ app: 'vocalex', page: 'lab', subView: 'session', id: session.id });
   };
 
   const handleUpdate = (updated: LabSession) => {
-    setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
+    setSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
   };
 
   const handleBack = () => {
@@ -1174,15 +2122,22 @@ export default function LabPanel() {
   };
 
   const handleDeleteSession = async (id: string) => {
-    await deleteSession(id);
+    await vocalexRepository.deleteSession(id);
     loadSessions();
   };
 
   if (activeSession) {
     const ordered = [...sessions].sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0));
-    const idx = ordered.findIndex(s => s.id === activeSession.id);
+    const idx = ordered.findIndex((s) => s.id === activeSession.id);
     const sessionNumber = idx >= 0 ? idx + 1 : 1;
-    return <MixerView session={activeSession} sessionNumber={sessionNumber} onBack={handleBack} onUpdate={handleUpdate} />;
+    return (
+      <MixerView
+        session={activeSession}
+        sessionNumber={sessionNumber}
+        onBack={handleBack}
+        onUpdate={handleUpdate}
+      />
+    );
   }
 
   const displaySessions = showAll ? sessions : sessions.slice(0, 6);
@@ -1190,43 +2145,118 @@ export default function LabPanel() {
   return (
     <div className="spring-in" style={{ padding: '20px 20px 40px', minHeight: '100%' }}>
       <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontFamily: 'var(--font-headline)', fontWeight: 800, fontSize: 34, letterSpacing: '-0.03em', color: 'var(--vx-text)', margin: '0 0 8px', lineHeight: 1 }}>{t.vocalex.labTitle}</h2>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-2)', margin: 0, lineHeight: 1.6, maxWidth: 320 }}>
+        <h2
+          style={{
+            fontFamily: 'var(--font-headline)',
+            fontWeight: 800,
+            fontSize: 34,
+            letterSpacing: '-0.03em',
+            color: 'var(--vx-text)',
+            margin: '0 0 8px',
+            lineHeight: 1,
+          }}
+        >
+          {t.vocalex.labTitle}
+        </h2>
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 13,
+            color: 'var(--vx-text-2)',
+            margin: 0,
+            lineHeight: 1.6,
+            maxWidth: 320,
+          }}
+        >
           {t.vocalex.labSubtitle}
         </p>
       </section>
 
       <section style={{ marginBottom: 32 }}>
-        <button onClick={createSession} style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: 'var(--studio-accent)', border: 'none', borderRadius: 9999,
-          padding: '12px 24px', cursor: 'pointer',
-          fontFamily: 'var(--font-headline)', fontSize: 14, fontWeight: 700,
-          color: '#fff', boxShadow: 'var(--studio-accent-glow)',
-          transition: 'transform 0.2s, box-shadow 0.2s',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}>add</span>
+        <button
+          onClick={createSession}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'var(--studio-accent)',
+            border: 'none',
+            borderRadius: 9999,
+            padding: '12px 24px',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-headline)',
+            fontSize: 14,
+            fontWeight: 700,
+            color: '#fff',
+            boxShadow: 'var(--studio-accent-glow)',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
+          >
+            add
+          </span>
           {t.vocalex.newSession}
         </button>
       </section>
 
       {loaded && sessions.length > 0 && (
         <section style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontFamily: 'var(--font-headline)', fontWeight: 700, fontSize: 18, color: 'var(--vx-text)', margin: 0 }}>{t.vocalex.sessionsLabel}</h3>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 16,
+            }}
+          >
+            <h3
+              style={{
+                fontFamily: 'var(--font-headline)',
+                fontWeight: 700,
+                fontSize: 18,
+                color: 'var(--vx-text)',
+                margin: 0,
+              }}
+            >
+              {t.vocalex.sessionsLabel}
+            </h3>
             {sessions.length > 6 && (
-              <button onClick={() => setShowAll(!showAll)} style={{
-                background: 'none', border: 'none', color: '#679cff', cursor: 'pointer',
-                fontFamily: 'var(--font-headline)', fontSize: 12, fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.12em',
-              }}>
+              <button
+                onClick={() => setShowAll(!showAll)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#679cff',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-headline)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                }}
+              >
                 {showAll ? t.vocalex.showLess : t.vocalex.viewAll}
               </button>
             )}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {displaySessions.map(s => (
-              <SessionCard key={s.id} session={s} onOpen={s => NavigationDispatcher.push({ app: 'vocalex', page: 'lab', subView: 'session', id: s.id })} onDelete={handleDeleteSession} />
+            {displaySessions.map((s) => (
+              <SessionCard
+                key={s.id}
+                session={s}
+                onOpen={(s) =>
+                  NavigationDispatcher.push({
+                    app: 'vocalex',
+                    page: 'lab',
+                    subView: 'session',
+                    id: s.id,
+                  })
+                }
+                onDelete={handleDeleteSession}
+              />
             ))}
           </div>
         </section>
@@ -1234,8 +2264,20 @@ export default function LabPanel() {
 
       {loaded && sessions.length === 0 && (
         <section style={{ textAlign: 'center', padding: '40px 0' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 36, color: 'var(--vx-text-4)', marginBottom: 8 }}>science</span>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--vx-text-3)', margin: '8px 0 0' }}>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 36, color: 'var(--vx-text-4)', marginBottom: 8 }}
+          >
+            science
+          </span>
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 13,
+              color: 'var(--vx-text-3)',
+              margin: '8px 0 0',
+            }}
+          >
             {t.vocalex.noSessionsHint}
           </p>
         </section>

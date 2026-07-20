@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <!-- v8 — pro intro with real app logos that fly into hub positions -->
 <html lang="en" class="dark">
   <head>
@@ -9,32 +9,47 @@
         introStart: -1,
         reactBootstrapStart: -1,
         reactMounted: -1,
-        hubVisible: -1
+        hubVisible: -1,
       };
       if (typeof PerformanceObserver !== 'undefined') {
-        var observer = new PerformanceObserver(function(list) {
+        var observer = new PerformanceObserver(function (list) {
           var entries = list.getEntries();
           for (var i = 0; i < entries.length; i++) {
             if (entries[i].name === 'first-paint') {
               window.__bootTimings.firstPaint = entries[i].startTime;
-              console.log("[LivexBoot] first-paint detected at: " + entries[i].startTime.toFixed(2) + "ms");
+              console.log(
+                '[LivexBoot] first-paint detected at: ' + entries[i].startTime.toFixed(2) + 'ms'
+              );
             }
           }
         });
         try {
           observer.observe({ entryTypes: ['paint'] });
-        } catch(e) {}
+        } catch (e) {}
       }
-      console.log("[LivexBoot] index.html parsing started at: " + window.__bootTimings.htmlStart.toFixed(2) + "ms");
+      console.log(
+        '[LivexBoot] index.html parsing started at: ' +
+          window.__bootTimings.htmlStart.toFixed(2) +
+          'ms'
+      );
     </script>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover"
+    />
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Livex by Mag — Organization, Rehearsal & Practice Tools</title>
-    <meta name="description" content="Livex is the premium integrated toolkit for musicians, band managers, and live sound engineers. Manage chords, build drum sheets, create stage plots, practice vocals, and play multitracks." />
-    <meta name="keywords" content="musician tools, band management tools, livex, livex app, livex by mag, mag livex, rehearsal tools, chord library app, stage plot app" />
+    <meta
+      name="description"
+      content="Livex is the premium integrated toolkit for musicians, band managers, and live sound engineers. Manage chords, build drum sheets, create stage plots, practice vocals, and play multitracks."
+    />
+    <meta
+      name="keywords"
+      content="musician tools, band management tools, livex, livex app, livex by mag, mag livex, rehearsal tools, chord library app, stage plot app"
+    />
     <link rel="canonical" href="https://studio-30f44.web.app/" />
     <meta name="robots" content="index, follow" />
     <meta name="google-site-verification" content="746bl6R9VflzUPX5K_5TKq7Q3yJSTWYGA1WdIETSJvw" />
@@ -43,14 +58,23 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://studio-30f44.web.app/" />
     <meta property="og:title" content="Livex by Mag — Organization, Rehearsal & Practice Tools" />
-    <meta property="og:description" content="Livex is the premium integrated toolkit for musicians, band managers, and live sound engineers. Manage chords, build drum sheets, create stage plots, practice vocals, and play multitracks." />
+    <meta
+      property="og:description"
+      content="Livex is the premium integrated toolkit for musicians, band managers, and live sound engineers. Manage chords, build drum sheets, create stage plots, practice vocals, and play multitracks."
+    />
     <meta property="og:image" content="https://studio-30f44.web.app/opengraph.jpg" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://studio-30f44.web.app/" />
-    <meta property="twitter:title" content="Livex by Mag — Organization, Rehearsal & Practice Tools" />
-    <meta property="twitter:description" content="Livex is the premium integrated toolkit for musicians, band managers, and live sound engineers. Manage chords, build drum sheets, create stage plots, practice vocals, and play multitracks." />
+    <meta
+      property="twitter:title"
+      content="Livex by Mag — Organization, Rehearsal & Practice Tools"
+    />
+    <meta
+      property="twitter:description"
+      content="Livex is the premium integrated toolkit for musicians, band managers, and live sound engineers. Manage chords, build drum sheets, create stage plots, practice vocals, and play multitracks."
+    />
     <meta name="theme-color" content="#0a0a0c" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -65,10 +89,10 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
       media="print"
-      onload="this.media='all'"
+      onload="this.media = 'all'"
     />
     <script>
-      (function() {
+      (function () {
         try {
           // Check appMode to skip intro on cold boot to a sub-app directly
           var appMode = 'hub';
@@ -83,7 +107,8 @@
           } catch (e) {}
 
           var path = window.location.pathname;
-          var isApp = path === '/app' || path.startsWith('/app/') || path === '/' || path === '/index.html';
+          var isApp =
+            path === '/app' || path.startsWith('/app/') || path === '/' || path === '/index.html';
           var alreadyShown = false;
           try {
             alreadyShown = !!sessionStorage.getItem('studio-intro-shown');
@@ -97,7 +122,11 @@
             document.documentElement.classList.remove('app-route');
             window.__introReturnedEarly = true;
             try {
-              if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppInstaller) {
+              if (
+                window.Capacitor &&
+                window.Capacitor.Plugins &&
+                window.Capacitor.Plugins.AppInstaller
+              ) {
                 window.Capacitor.Plugins.AppInstaller.notifyAppReady();
               }
             } catch (e) {}
@@ -112,7 +141,7 @@
               var perApp = settings.perApp || {};
               var activeVis = perApp[appMode] || {};
               var theme = activeVis.theme || settings.theme || 'dark';
-              
+
               var isLight = false;
               if (theme === 'light') {
                 isLight = true;
@@ -122,9 +151,9 @@
                 var hr = new Date().getHours();
                 var start = settings.dynamicLightStart || 7;
                 var end = settings.dynamicLightEnd || 20;
-                isLight = (hr >= start && hr < end);
+                isLight = hr >= start && hr < end;
               }
-              
+
               if (isLight) {
                 document.documentElement.classList.add('light');
                 document.documentElement.classList.remove('dark');
@@ -132,7 +161,7 @@
             }
           }
         } catch (e) {
-          console.warn("Theme prep error:", e);
+          console.warn('Theme prep error:', e);
         }
       })();
     </script>
@@ -140,30 +169,45 @@
       :root {
         --intro-bg: #0a0a0c;
         --intro-color: #ffffff;
-        --intro-sub-color: rgba(255, 255, 255, 0.50);
-        --intro-glow-gradient: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 40%, transparent 70%);
+        --intro-sub-color: rgba(255, 255, 255, 0.5);
+        --intro-glow-gradient: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(255, 255, 255, 0.02) 40%,
+          transparent 70%
+        );
         --intro-star-opacity: 0.5;
         --intro-star-color: rgba(255, 255, 255, 0.55);
-        --intro-star-color-weak: rgba(255, 255, 255, 0.30);
+        --intro-star-color-weak: rgba(255, 255, 255, 0.3);
         --intro-star-color-mid: rgba(255, 255, 255, 0.45);
-        --intro-shadow: drop-shadow(0 0 24px rgba(255,255,255,0.18));
-        --intro-orb-shadow: drop-shadow(0 0 6px rgba(255,255,255,0.25));
+        --intro-shadow: drop-shadow(0 0 24px rgba(255, 255, 255, 0.18));
+        --intro-orb-shadow: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
       }
 
       html.light {
         --intro-bg: #f8f9fa;
         --intro-color: #0f172a;
-        --intro-sub-color: rgba(15, 23, 42, 0.60);
-        --intro-glow-gradient: radial-gradient(circle, rgba(15,23,42,0.04) 0%, rgba(15,23,42,0.01) 40%, transparent 70%);
+        --intro-sub-color: rgba(15, 23, 42, 0.6);
+        --intro-glow-gradient: radial-gradient(
+          circle,
+          rgba(15, 23, 42, 0.04) 0%,
+          rgba(15, 23, 42, 0.01) 40%,
+          transparent 70%
+        );
         --intro-star-opacity: 0.25;
         --intro-star-color: rgba(15, 23, 42, 0.25);
         --intro-star-color-weak: rgba(15, 23, 42, 0.12);
         --intro-star-color-mid: rgba(15, 23, 42, 0.18);
-        --intro-shadow: drop-shadow(0 0 24px rgba(15,23,42,0.08));
-        --intro-orb-shadow: drop-shadow(0 0 6px rgba(15,23,42,0.12));
+        --intro-shadow: drop-shadow(0 0 24px rgba(15, 23, 42, 0.08));
+        --intro-orb-shadow: drop-shadow(0 0 6px rgba(15, 23, 42, 0.12));
       }
 
-      html, body { background: var(--intro-bg); margin: 0; padding: 0; }
+      html,
+      body {
+        background: var(--intro-bg);
+        margin: 0;
+        padding: 0;
+      }
 
       /* Hide orbit intro completely on landing page route */
       html.landing-route #intro {
@@ -179,18 +223,29 @@
          • Then the intro overlay fades out, revealing the hub underneath
       ────────────────────────────────────────────────────────────────── */
       #intro {
-        position: fixed; inset: 0; z-index: 2147483647;
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
         background: var(--intro-bg);
         overflow: hidden;
         pointer-events: none;
         opacity: 1; /* Keep at 1 for instant first paint */
-        font-family: Manrope, system-ui, -apple-system, sans-serif;
+        font-family:
+          Manrope,
+          system-ui,
+          -apple-system,
+          sans-serif;
       }
-      #intro.dismissed  { display: none; }
+      #intro.dismissed {
+        display: none;
+      }
 
       #intro-glow {
-        position: absolute; top: 50%; left: 50%;
-        width: 400px; height: 400px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 400px;
+        height: 400px;
         transform: translate(-50%, -50%) scale(0.9);
         background: var(--intro-glow-gradient);
         border-radius: 50%;
@@ -200,13 +255,23 @@
         animation: glow-fade-in 850ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
       @keyframes glow-fade-in {
-        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-        100% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.9);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
       }
 
       #intro-center {
-        position: absolute; top: 50%; left: 50%;
-        display: flex; flex-direction: column; align-items: center;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 8px;
         z-index: 1;
         will-change: transform;
@@ -216,17 +281,29 @@
         color: var(--intro-color);
       }
       @keyframes center-fade-in {
-        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
-        100% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.92);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
       }
       #intro-center .logo {
         position: relative;
-        width: 96px; height: 96px;
-        display: flex; align-items: center; justify-content: center;
+        width: 96px;
+        height: 96px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         filter: var(--intro-shadow);
       }
-      #intro-center .logo svg { width: 96px; height: 96px; }
-      
+      #intro-center .logo svg {
+        width: 96px;
+        height: 96px;
+      }
+
       /* Pure CSS logo draw animation starting on the very first painted frame */
       #intro-center .logo path {
         stroke-dasharray: 550;
@@ -234,8 +311,12 @@
         animation: logo-draw-in 650ms cubic-bezier(0.25, 1, 0.5, 1) 150ms forwards;
       }
       @keyframes logo-draw-in {
-        from { stroke-dashoffset: 550; }
-        to { stroke-dashoffset: 0; }
+        from {
+          stroke-dashoffset: 550;
+        }
+        to {
+          stroke-dashoffset: 0;
+        }
       }
 
       #logo-bloom {
@@ -246,7 +327,12 @@
         height: 80px;
         transform: translate(-50%, -50%) scale(0.1);
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(103,156,255,0.4) 60%, rgba(103,156,255,0) 100%);
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 1) 0%,
+          rgba(103, 156, 255, 0.4) 60%,
+          rgba(103, 156, 255, 0) 100%
+        );
         z-index: -1;
         opacity: 0;
         pointer-events: none;
@@ -255,14 +341,24 @@
         animation: bloom-expand 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
       @keyframes bloom-expand {
-        0% { transform: translate(-50%, -50%) scale(0.1); opacity: 0.8; }
-        100% { transform: translate(-50%, -50%) scale(28); opacity: 0; }
+        0% {
+          transform: translate(-50%, -50%) scale(0.1);
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(28);
+          opacity: 0;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        #intro *, #intro { animation: none !important; transition: opacity 200ms linear !important; }
+        #intro *,
+        #intro {
+          animation: none !important;
+          transition: opacity 200ms linear !important;
+        }
       }
-      </style>
+    </style>
   </head>
   <body>
     <div id="intro" aria-hidden="true">
@@ -277,7 +373,11 @@
         if (window.__introReturnedEarly || !intro) {
           window.__introReturnedEarly = true;
           try {
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppInstaller) {
+            if (
+              window.Capacitor &&
+              window.Capacitor.Plugins &&
+              window.Capacitor.Plugins.AppInstaller
+            ) {
               window.Capacitor.Plugins.AppInstaller.notifyAppReady();
             }
           } catch (e) {}
@@ -286,21 +386,25 @@
 
         // Notify Android wrapper immediately that WebView has completed first paint
         try {
-          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppInstaller) {
+          if (
+            window.Capacitor &&
+            window.Capacitor.Plugins &&
+            window.Capacitor.Plugins.AppInstaller
+          ) {
             window.Capacitor.Plugins.AppInstaller.notifyAppReady();
           }
         } catch (e) {}
 
         function isReactHubReady() {
-          return !!(window.__studioHubReady);
+          return !!window.__studioHubReady;
         }
 
-        var handleReactReady = function() {
+        var handleReactReady = function () {
           window.removeEventListener('studio-hub-ready', handleReactReady);
           window.removeEventListener('studio:hub-ready', handleReactReady);
           intro.style.transition = 'opacity 80ms ease-out';
           intro.style.opacity = '0';
-          setTimeout(function() {
+          setTimeout(function () {
             intro.classList.add('dismissed');
             if (intro.parentNode) intro.parentNode.removeChild(intro);
           }, 100);
@@ -314,25 +418,32 @@
           setTimeout(handleReactReady, 3000); // safety fallback
         }
       })();
-      
+
       // ── Web Auto-Updater ────────────────────────────────────────────────
       // On web (non-Capacitor), silently reload if the server has a newer
       // version than what this HTML was built with. This fixes browsers
       // that aggressively cache index.html and serve a stale bundle.
       // The script runs once per page load, is a no-op on native, and
       // uses sessionStorage to prevent infinite reload loops.
-      (function() {
+      (function () {
         try {
           // Skip on native (Capacitor)
-          if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) return;
+          if (
+            window.Capacitor &&
+            typeof window.Capacitor.isNativePlatform === 'function' &&
+            window.Capacitor.isNativePlatform()
+          )
+            return;
 
           // Prevent infinite reload loops — only attempt once per session
           var RELOAD_KEY = 'studio:web-auto-reload-done';
           if (sessionStorage.getItem(RELOAD_KEY)) return;
 
           fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
-            .then(function(r) { return r.ok ? r.json() : null; })
-            .then(function(data) {
+            .then(function (r) {
+              return r.ok ? r.json() : null;
+            })
+            .then(function (data) {
               if (!data || !data.version) return;
 
               // Compare with a script tag attribute that Vite will NOT hash-bust.
@@ -355,17 +466,25 @@
               if (!src) return;
 
               fetch(src, { method: 'HEAD', cache: 'no-store' })
-                .then(function(r) {
+                .then(function (r) {
                   if (r.ok) return; // assets exist, HTML is current
                   // Assets are missing — this HTML is stale. Reload.
-                  console.log('[Studio Web Updater] Stale HTML detected, reloading for v' + data.version);
+                  console.log(
+                    '[Studio Web Updater] Stale HTML detected, reloading for v' + data.version
+                  );
                   sessionStorage.setItem(RELOAD_KEY, '1');
                   window.location.reload();
                 })
-                .catch(function() { /* network error, don't reload */ });
+                .catch(function () {
+                  /* network error, don't reload */
+                });
             })
-            .catch(function() { /* swallow */ });
-        } catch(e) { /* never block app startup */ }
+            .catch(function () {
+              /* swallow */
+            });
+        } catch (e) {
+          /* never block app startup */
+        }
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>

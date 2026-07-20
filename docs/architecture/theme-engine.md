@@ -10,12 +10,12 @@ Provide a premium, GPU-composited theme transition animation that avoids main-th
 
 ## Responsibilities
 
-| Responsibility | Owner |
-|---|---|
+| Responsibility             | Owner                                                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Theme transition animation | [themeTransitionEngine.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/themeTransitionEngine.ts) |
-| Theme toggle UI | `StudioThemeToggler` in `packages/ui-shared/` |
-| CSS custom properties | `index.css` in each app (`apps/studio-android/src/`, `apps/studio-web/src/`) |
-| Theme persistence | `useChordStore` settings → `settings.darkMode`, `settings.amoled` |
+| Theme toggle UI            | `StudioThemeToggler` in `packages/ui-shared/`                                                                                                         |
+| CSS custom properties      | `index.css` in each app (`apps/studio-android/src/`, `apps/studio-web/src/`)                                                                          |
+| Theme persistence          | `useChordStore` settings → `settings.darkMode`, `settings.amoled`                                                                                     |
 
 ## Architecture
 
@@ -23,14 +23,14 @@ Provide a premium, GPU-composited theme transition animation that avoids main-th
 graph TD
     User[User taps theme toggle] --> Toggler[StudioThemeToggler]
     Toggler -->|startTransition| Engine[ThemeTransitionEngine<br/>Singleton]
-    
+
     Engine -->|Primary Path| VT[View Transitions API<br/>document.startViewTransition]
     Engine -->|Fallback| Overlay[Fade Overlay<br/>DOM div]
-    
+
     VT -->|captures screenshot| Old[::view-transition-old]
     VT -->|applies updateFn| New[::view-transition-new]
     New -->|clip-path animation| Reveal[Circular Reveal<br/>+ Chromatic Bloom]
-    
+
     Overlay -->|fade in 300ms| UpdateFn[updateFn callback]
     UpdateFn -->|fade out 300ms| Done[Theme Applied]
 ```
@@ -69,24 +69,24 @@ ThemeTransitionEngine.startTransition(options: ThemeTransitionOptions): Promise<
 
 ## Internal API
 
-| Element | Description |
-|---|---|
-| `isTransitioning` | Boolean concurrency guard — prevents overlapping transitions |
-| `::view-transition-old(root)` | CSS pseudo-element at z-index 1 (screenshot of old theme) |
-| `::view-transition-new(root)` | CSS pseudo-element at z-index 999999 with `theme-reveal-clip` animation |
+| Element                        | Description                                                                                                                                                       |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isTransitioning`              | Boolean concurrency guard — prevents overlapping transitions                                                                                                      |
+| `::view-transition-old(root)`  | CSS pseudo-element at z-index 1 (screenshot of old theme)                                                                                                         |
+| `::view-transition-new(root)`  | CSS pseudo-element at z-index 999999 with `theme-reveal-clip` animation                                                                                           |
 | `@keyframes theme-reveal-clip` | Circular `clip-path` expanding from `0px` to `150%` viewport radius, with `brightness(1.2) contrast(1.2) saturate(1.5) blur(4px)` chromatic bloom at leading edge |
 
 ## CSS Custom Property System
 
 The theme is defined by ~40 CSS custom properties on `:root`. Key tokens:
 
-| Token | Light | Dark | AMOLED |
-|---|---|---|---|
-| `--c-bg-primary` | `#ffffff` | `#09090b` | `#000000` |
-| `--c-bg-secondary` | `#f4f4f5` | `#18181b` | `#09090b` |
-| `--c-text-primary` | `#09090b` | `#fafafa` | `#fafafa` |
+| Token                | Light     | Dark      | AMOLED    |
+| -------------------- | --------- | --------- | --------- |
+| `--c-bg-primary`     | `#ffffff` | `#09090b` | `#000000` |
+| `--c-bg-secondary`   | `#f4f4f5` | `#18181b` | `#09090b` |
+| `--c-text-primary`   | `#09090b` | `#fafafa` | `#fafafa` |
 | `--c-text-secondary` | `#71717a` | `#a1a1aa` | `#a1a1aa` |
-| `--c-accent` | `#a855f7` | `#a855f7` | `#a855f7` |
+| `--c-accent`         | `#a855f7` | `#a855f7` | `#a855f7` |
 
 ## Design Decisions
 

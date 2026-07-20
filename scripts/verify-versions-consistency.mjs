@@ -9,7 +9,7 @@ const paths = {
   webPkg: path.join(repoRoot, 'apps/studio-web/package.json'),
   androidPkg: path.join(repoRoot, 'apps/studio-android/package.json'),
   appVersionTs: path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts'),
-  buildGradle: path.join(repoRoot, 'apps/studio-android/android/app/build.gradle')
+  buildGradle: path.join(repoRoot, 'apps/studio-android/android/app/build.gradle'),
 };
 
 console.log('=== RUNNING VERSION CONSISTENCY CHECK ===');
@@ -39,7 +39,9 @@ if (!fs.existsSync(paths.appVersionTs)) {
 }
 const appVersionSrc = fs.readFileSync(paths.appVersionTs, 'utf8');
 const webVersionMatch = appVersionSrc.match(/export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/);
-const nativeVersionMatch = appVersionSrc.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+const nativeVersionMatch = appVersionSrc.match(
+  /export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/
+);
 
 if (!webVersionMatch || !nativeVersionMatch) {
   console.error('Error: Could not parse WEB_VERSION or NATIVE_VERSION from appVersion.ts');
@@ -74,7 +76,9 @@ let failed = false;
 
 // Web Consistency
 if (webPkgVersion !== webRuntimeVersion) {
-  console.error(`\x1b[31mError: Web package version (${webPkgVersion}) and Web runtime version (${webRuntimeVersion}) disagree!\x1b[0m`);
+  console.error(
+    `\x1b[31mError: Web package version (${webPkgVersion}) and Web runtime version (${webRuntimeVersion}) disagree!\x1b[0m`
+  );
   failed = true;
 } else {
   console.log('✓ Web version consistency verified.');
@@ -82,11 +86,15 @@ if (webPkgVersion !== webRuntimeVersion) {
 
 // Android Consistency
 if (androidPkgVersion !== androidRuntimeVersion) {
-  console.error(`\x1b[31mError: Android package version (${androidPkgVersion}) and appVersion NATIVE_VERSION (${androidRuntimeVersion}) disagree!\x1b[0m`);
+  console.error(
+    `\x1b[31mError: Android package version (${androidPkgVersion}) and appVersion NATIVE_VERSION (${androidRuntimeVersion}) disagree!\x1b[0m`
+  );
   failed = true;
 }
 if (androidRuntimeVersion !== gradleVersionName) {
-  console.error(`\x1b[31mError: appVersion NATIVE_VERSION (${androidRuntimeVersion}) and Gradle versionName (${gradleVersionName}) disagree!\x1b[0m`);
+  console.error(
+    `\x1b[31mError: appVersion NATIVE_VERSION (${androidRuntimeVersion}) and Gradle versionName (${gradleVersionName}) disagree!\x1b[0m`
+  );
   failed = true;
 }
 

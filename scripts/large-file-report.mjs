@@ -25,7 +25,7 @@ const EXCLUDED_DIRS = new Set([
   'artifacts',
   'scratch',
   'screenshots',
-  '.firebase'
+  '.firebase',
 ]);
 
 function scanDir(dir) {
@@ -33,7 +33,7 @@ function scanDir(dir) {
   const list = fs.readdirSync(dir);
   for (const file of list) {
     const fullPath = path.join(dir, file);
-    
+
     // Check symlinks to prevent loops
     let stat;
     try {
@@ -51,7 +51,7 @@ function scanDir(dir) {
     } else {
       const relPath = path.relative(workspaceRoot, fullPath).replace(/\\/g, '/');
       const lines = fs.readFileSync(fullPath, 'utf8').split('\n').length;
-      
+
       const fileData = { path: relPath, basename: file, lines };
 
       if (file.endsWith('.tsx') || file.endsWith('.jsx')) {
@@ -63,7 +63,12 @@ function scanDir(dir) {
         tsFiles.push(fileData);
         if (file.startsWith('use') || relPath.includes('/hooks/')) {
           hookFiles.push(fileData);
-        } else if (relPath.includes('/utils/') || relPath.includes('/helpers/') || file.includes('helper') || file.includes('util')) {
+        } else if (
+          relPath.includes('/utils/') ||
+          relPath.includes('/helpers/') ||
+          file.includes('helper') ||
+          file.includes('util')
+        ) {
           utilFiles.push(fileData);
         }
       } else if (file.endsWith('.md')) {
@@ -77,7 +82,7 @@ console.log('Running large files scan...');
 scanDir(workspaceRoot);
 
 // Sort helper
-const sortByLines = arr => arr.sort((a, b) => b.lines - a.lines).slice(0, 10);
+const sortByLines = (arr) => arr.sort((a, b) => b.lines - a.lines).slice(0, 10);
 
 const topTs = sortByLines(tsFiles);
 const topReact = sortByLines(reactFiles);
@@ -87,7 +92,7 @@ const topDocs = sortByLines(docFiles);
 
 // Determine refactoring candidates (files > 500 lines)
 const refactorCandidates = [];
-[...tsFiles, ...reactFiles].forEach(f => {
+[...tsFiles, ...reactFiles].forEach((f) => {
   if (f.lines > 500) {
     refactorCandidates.push(f);
   }
@@ -103,7 +108,7 @@ This report indexes the largest source code and documentation files in the works
 ## 1. Top 10 Largest TS / JS Core Files
 | File Path | Lines of Code |
 |---|---|
-${topTs.map(f => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')}
+${topTs.map((f) => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')}
 
 Source:
 * \`scripts/large-file-report.mjs\`
@@ -113,7 +118,7 @@ Source:
 ## 2. Top 10 Largest React Component Files
 | Component Path | Lines of Code |
 |---|---|
-${topReact.map(f => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')}
+${topReact.map((f) => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')}
 
 Source:
 * \`scripts/large-file-report.mjs\`
@@ -123,9 +128,15 @@ Source:
 ## 3. Top 10 Largest Custom Hooks
 | Hook File | Lines of Code |
 |---|---|
-${topHooks.length > 0 
-  ? topHooks.map(f => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')
-  : '| *None found in the codebase.* | 0 |'
+${
+  topHooks.length > 0
+    ? topHooks
+        .map(
+          (f) =>
+            `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`
+        )
+        .join('\n')
+    : '| *None found in the codebase.* | 0 |'
 }
 
 Source:
@@ -136,9 +147,15 @@ Source:
 ## 4. Top 10 Largest Utility / Helper Modules
 | Utility Path | Lines of Code |
 |---|---|
-${topUtils.length > 0
-  ? topUtils.map(f => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')
-  : '| *None found in the codebase.* | 0 |'
+${
+  topUtils.length > 0
+    ? topUtils
+        .map(
+          (f) =>
+            `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`
+        )
+        .join('\n')
+    : '| *None found in the codebase.* | 0 |'
 }
 
 Source:
@@ -149,7 +166,7 @@ Source:
 ## 5. Top 10 Largest Documentation Files
 | Document | Lines of Code |
 |---|---|
-${topDocs.map(f => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')}
+${topDocs.map((f) => `| [${f.basename}](file:///${workspaceRoot.replace(/\\/g, '/')}/${f.path}) | ${f.lines} |`).join('\n')}
 
 Source:
 * \`scripts/large-file-report.mjs\`
@@ -158,9 +175,15 @@ Source:
 
 ## 6. Recommended Refactoring Candidates (Files > 500 lines)
 These files are recommended for modular split audits:
-${refactorCandidates.length > 0
-  ? refactorCandidates.map(c => `*   [${c.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${c.path}) (${c.lines} lines)`).join('\n')
-  : '*   *None detected! All files satisfy the split threshold.*'
+${
+  refactorCandidates.length > 0
+    ? refactorCandidates
+        .map(
+          (c) =>
+            `*   [${c.path}](file:///${workspaceRoot.replace(/\\/g, '/')}/${c.path}) (${c.lines} lines)`
+        )
+        .join('\n')
+    : '*   *None detected! All files satisfy the split threshold.*'
 }
 
 Source:

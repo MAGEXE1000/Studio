@@ -7,42 +7,42 @@ export async function resolve(specifier, context, nextResolve) {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export%20const%20useState%20%3D%20(init)%20%3D%3E%20globalThis.mockReact.useState(init)%3B%20export%20const%20useEffect%20%3D%20(cb%2C%20deps)%20%3D%3E%20globalThis.mockReact.useEffect(cb%2C%20deps)%3B%20export%20const%20useRef%20%3D%20(init)%20%3D%3E%20globalThis.mockReact.useRef(init)%3B%20export%20const%20memo%20%3D%20(c)%20%3D%3E%20c%3B%20export%20default%20%7B%20useState%2C%20useEffect%2C%20useRef%2C%20memo%20%7D%3B'
+      url: 'data:text/javascript,export%20const%20useState%20%3D%20(init)%20%3D%3E%20globalThis.mockReact.useState(init)%3B%20export%20const%20useEffect%20%3D%20(cb%2C%20deps)%20%3D%3E%20globalThis.mockReact.useEffect(cb%2C%20deps)%3B%20export%20const%20useRef%20%3D%20(init)%20%3D%3E%20globalThis.mockReact.useRef(init)%3B%20export%20const%20memo%20%3D%20(c)%20%3D%3E%20c%3B%20export%20default%20%7B%20useState%2C%20useEffect%2C%20useRef%2C%20memo%20%7D%3B',
     };
   }
   if (specifier === '@workspace/studio-core') {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export%20const%20useNavigationStore%20%3D%20(fn)%20%3D%3E%20fn(globalThis.mockNavigationStoreState)%3B'
+      url: 'data:text/javascript,export%20const%20useNavigationStore%20%3D%20(fn)%20%3D%3E%20fn(globalThis.mockNavigationStoreState)%3B',
     };
   }
   if (specifier === '@capacitor/core') {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export const Capacitor = new Proxy({}, { get: (t, p) => (globalThis.Capacitor || {})[p] }); export const registerPlugin = (name) => { if (!globalThis.Capacitor) globalThis.Capacitor = { Plugins: {} }; if (!globalThis.Capacitor.Plugins) globalThis.Capacitor.Plugins = {}; return globalThis.Capacitor.Plugins[name] || (globalThis.Capacitor.Plugins[name] = {}); }; export class WebPlugin {}'
+      url: 'data:text/javascript,export const Capacitor = new Proxy({}, { get: (t, p) => (globalThis.Capacitor || {})[p] }); export const registerPlugin = (name) => { if (!globalThis.Capacitor) globalThis.Capacitor = { Plugins: {} }; if (!globalThis.Capacitor.Plugins) globalThis.Capacitor.Plugins = {}; return globalThis.Capacitor.Plugins[name] || (globalThis.Capacitor.Plugins[name] = {}); }; export class WebPlugin {}',
     };
   }
   if (specifier === '@capacitor/app') {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export const App = { addListener: () => ({ remove: async () => {} }) };'
+      url: 'data:text/javascript,export const App = { addListener: () => ({ remove: async () => {} }) };',
     };
   }
   if (specifier === '@capacitor/filesystem') {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export const Filesystem = { stat: async () => ({ size: 5 * 1024 * 1024, uri: "file:///mock/path/to/downloaded.apk" }), deleteFile: async () => {}, getUri: async () => ({ uri: "file:///mock/path/to/downloaded.apk" }) }; export const Directory = { Cache: "CACHE", Documents: "DOCUMENTS", Data: "DATA" };'
+      url: 'data:text/javascript,export const Filesystem = { stat: async () => ({ size: 5 * 1024 * 1024, uri: "file:///mock/path/to/downloaded.apk" }), deleteFile: async () => {}, getUri: async () => ({ uri: "file:///mock/path/to/downloaded.apk" }) }; export const Directory = { Cache: "CACHE", Documents: "DOCUMENTS", Data: "DATA" };',
     };
   }
   if (specifier === '@capacitor/share') {
     return {
       format: 'module',
       shortCircuit: true,
-      url: 'data:text/javascript,export const Share = { share: async () => {} };'
+      url: 'data:text/javascript,export const Share = { share: async () => {} };',
     };
   }
 
@@ -55,14 +55,14 @@ export async function resolve(specifier, context, nextResolve) {
         return {
           format: 'module',
           shortCircuit: true,
-          url: pathToFileURL(resolvedPath + '.js').href
+          url: pathToFileURL(resolvedPath + '.js').href,
         };
       }
       if (fs.existsSync(path.join(resolvedPath, 'index.js'))) {
         return {
           format: 'module',
           shortCircuit: true,
-          url: pathToFileURL(path.join(resolvedPath, 'index.js')).href
+          url: pathToFileURL(path.join(resolvedPath, 'index.js')).href,
         };
       }
     }
@@ -75,25 +75,26 @@ export async function load(url, context, nextLoad) {
     return {
       format: 'module',
       shortCircuit: true,
-      source: decodeURIComponent(url.slice(21))
+      source: decodeURIComponent(url.slice(21)),
     };
   }
 
   if (url.endsWith('.json')) {
     return nextLoad(url, {
       ...context,
-      importAttributes: { ...context.importAttributes, type: 'json' }
+      importAttributes: { ...context.importAttributes, type: 'json' },
     });
   }
 
   const result = await nextLoad(url, context);
   if (url.endsWith('.js') && result.source) {
-    let sourceStr = typeof result.source === 'string' ? result.source : result.source.toString('utf8');
+    let sourceStr =
+      typeof result.source === 'string' ? result.source : result.source.toString('utf8');
     if (sourceStr.includes('import.meta.env')) {
       sourceStr = sourceStr.replace(/import\.meta\.env/g, '(globalThis.importMetaEnv || {})');
       return {
         ...result,
-        source: sourceStr
+        source: sourceStr,
       };
     }
   }

@@ -1,3 +1,4 @@
+import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 /**
  * updater/telemetry.ts
  *
@@ -7,6 +8,7 @@
 
 import { useNavigationStore } from '../../store/useNavigationStore';
 import { useChordStore } from '../../store/useChordStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
 import { logProgressStage } from './diagnostics';
 import { globalUpdateState } from './stateMachine';
 
@@ -28,7 +30,7 @@ export function logDiagnosticEvent(event: string, details?: any) {
   let currentScreen = 'unknown';
   try {
     const chordStore = useChordStore.getState();
-    if (chordStore && chordStore.settings) {
+    if (chordStore && useSettingsStore.getState().settings) {
       currentScreen = NavigationDispatcher.currentApp();
     }
   } catch (_) {}
@@ -37,7 +39,6 @@ export function logDiagnosticEvent(event: string, details?: any) {
   const installerStatus = (window as any).__studioInstallerStatus || 'idle';
 
   const logMsg = `[DIAGNOSTIC] [${timestamp}] Event: ${event} | SessionID: ${sessionId} | InstallState: ${installState} | NavState: ${navState} | ActivityState: ${activityState} | MountedScreen: ${currentScreen} | VisibleModal: ${visibleModal} | PackageInstallerStatus: ${installerStatus} | Details: ${details ? JSON.stringify(details) : ''}`;
-  console.log(logMsg);
 }
 
 if (typeof window !== 'undefined') {
@@ -91,8 +92,6 @@ export function logDetailedJsTrace(
     reason: extra?.reason ?? null,
     details,
   };
-
-  console.log(`[INSTRUMENTATION] [JS_TRACE] ${JSON.stringify(logObj, null, 2)}`);
   void logProgressStage(
     `[JS_TRACE] ${functionName}`,
     `${details} | State: ${globalUpdateState.updateState}`

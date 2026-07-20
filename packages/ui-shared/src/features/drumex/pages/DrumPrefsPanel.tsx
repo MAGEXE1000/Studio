@@ -138,7 +138,7 @@ function IconPrefs({ active }: { active: boolean }) {
 }
 
 export default function DrumPrefsPanel() {
-  const settings = useChordStore(useShallow((s) => s.settings));
+  const settings = useSettingsStore(useShallow((s) => s.settings));
 
   const { drumPrefs, updateDrumPrefs } = useDrumStore();
   const t = useT();
@@ -383,7 +383,7 @@ export default function DrumPrefsPanel() {
                                 <button
                                   key={value}
                                   onClick={() =>
-                                    settingsController.updateSettings({ defaultDrumTab: value })
+                                    useSettingsStore.getState().updateSettings({ defaultDrumTab: value })
                                   }
                                   className={`w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all ${
                                     active
@@ -499,7 +499,7 @@ export default function DrumPrefsPanel() {
                     return (
                       <button
                         key={value}
-                        onClick={() => settingsController.updateSettings({ defaultDrumTab: value })}
+                        onClick={() => useSettingsStore.getState().updateSettings({ defaultDrumTab: value })}
                         style={{
                           width: '40px',
                           height: '40px',

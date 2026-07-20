@@ -238,3 +238,10 @@ The following rules govern the development workflow and implementation of all fe
 * Every significant bug gets its own document following the standard [TEMPLATE.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/TEMPLATE.md).
 * When a bug is resolved, update its document immediately alongside the code fix.
 * This knowledge base is permanent and must survive between chats, releases, and contributors.
+
+### G. Architecture Documentation
+* Permanent architecture documentation lives in [`docs/architecture/`](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/architecture/README.md).
+* **Before implementing any major feature**, read the relevant architecture documents first. Do not rediscover the architecture from scratch.
+* When architecture changes, update the documentation immediately alongside the code.
+* If documentation conflicts with implementation, identify the inconsistency and update whichever is incorrect.
+* This documentation is permanent and must always represent the current codebase.

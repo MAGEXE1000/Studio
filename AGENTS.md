@@ -203,3 +203,38 @@ Before using any third-party library or external reference (e.g. Framer Motion, 
 1. Compatibility: Ensure full support on Android WebView (specifically rendering performance under hardware acceleration).
 2. Optimization: Implement automatic scaling/fallback modes for low-performance environments (e.g. reducing blur layers or disabling high-cost animations when `studio_performance_mode === 'low'`).
 3. Single Source: Register any shared index/registry entries or global UI configurations in central modules (like `searchIndex` or `StudioDesignSystem`) rather than local component files to prevent structural drift.
+
+---
+
+## 6. Engineering Workflow & Production-Quality Development Rules
+
+The following rules govern the development workflow and implementation of all features and updates:
+
+### A. Spec-Driven Development
+* Never begin implementation immediately.
+* Translate the feature request into a complete technical specification and break it into independent implementation phases in `implementation_plan.md` before coding.
+* Specify: objective, scope, affected systems, expected outcome, and validation criteria for each phase.
+
+### B. User Story Validation
+* Simulate the complete user journey from the user's perspective before writing code.
+* Define entry point, initial state, user actions, feedback, visual changes, data changes, next steps, failure handling, and exit conditions.
+
+### C. Small Checkpoints & Audits
+* Divide implementation into logical, compilable, independently testable checkpoints.
+* Perform a self-audit after each checkpoint: review architecture quality, DRY compliance, performance, complexity, and design consistency.
+
+### D. Root-Cause-First & Lessons Learned
+* Isolate and fix the root cause instead of stacking workarounds.
+* Document lessons learned (root cause, failed attempts, successful solution, architectural lessons) in `knowledge/lessons_learned.md`.
+
+### E. Production Principles & Telemetry
+* Adhere to SOLID, DRY, KISS, and Clean Architecture principles.
+* Evaluate performance (renders, listeners, layout, memory) and optimize before completion.
+* Conduct a final Product Owner review: "Would I approve this to ship to millions of users tomorrow?"
+
+### F. Bug Knowledge Base
+* Permanent bug documentation lives in [`docs/bugs/`](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/README.md).
+* **Before investigating any bug**, check existing bug documents first. Do not repeat failed solutions.
+* Every significant bug gets its own document following the standard [TEMPLATE.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/bugs/TEMPLATE.md).
+* When a bug is resolved, update its document immediately alongside the code fix.
+* This knowledge base is permanent and must survive between chats, releases, and contributors.

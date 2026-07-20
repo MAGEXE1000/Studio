@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useChordStore } from '@workspace/studio-core';
 
 export interface GroovexPreferences {
   masterVolume: number;
@@ -62,8 +61,7 @@ export const useGroovexStore = create<GroovexState>()(
         set((s) => ({
           recentSongs: [songId, ...s.recentSongs.filter((id) => id !== songId)].slice(0, 20),
         })),
-      updatePreferences: (prefs) =>
-        set((s) => ({ preferences: { ...s.preferences, ...prefs } })),
+      updatePreferences: (prefs) => set((s) => ({ preferences: { ...s.preferences, ...prefs } })),
       setStemVolume: (songId, stem, volume) =>
         set((s) => ({
           stemVolumes: {
@@ -86,7 +84,6 @@ export const useGroovexStore = create<GroovexState>()(
         preferences: s.preferences,
         stemVolumes: s.stemVolumes,
         stemMutes: s.stemMutes,
-        sortBy: s.sortBy,
         // Persist the last-visited active song so launch resumes
         // exactly where the user left off (e.g. mid-song in the player).
         activeSongId: s.activeSongId,

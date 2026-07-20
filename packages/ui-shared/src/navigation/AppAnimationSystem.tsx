@@ -2,65 +2,21 @@ import { useChordStore } from '@workspace/studio-core';
 import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-// ── 1. Standard Transition Presets & M3 Motion Tokens ────────────────────────
-export const MOTION_DURATIONS = {
-  veryFast: 0.10, // M3 Short 1 / Short 2
-  fast: 0.20,     // M3 Short 3 / Medium 1
-  normal: 0.30,   // M3 Medium 2 / Long 1
-  slow: 0.40,     // M3 Long 2 / Long 3
-};
-
-export const MOTION_EASINGS = {
-  emphasized: [0.2, 0.0, 0.0, 1.0] as any, // M3 Emphasized
-  standard: [0.2, 0.0, 0.0, 1.0] as any,   // M3 Standard
-  accelerate: [0.3, 0.0, 0.8, 0.15] as any, // M3 Accelerate (ease-in)
-  decelerate: [0.0, 0.0, 0.15, 1.0] as any, // M3 Decelerate (ease-out)
-  linear: [0.0, 0.0, 1.0, 1.0] as any,
-  
-  // Backward compatibility
-  spring: {
-    type: 'spring' as const,
-    stiffness: 180,
-    damping: 20,
-    mass: 0.85,
-  }
-};
-
-export const SPRING_PRESETS = {
-  soft: {
-    type: 'spring' as const,
-    stiffness: 150,
-    damping: 25,
-    mass: 1.0,
-  },
-  medium: {
-    type: 'spring' as const,
-    stiffness: 220,
-    damping: 22,
-    mass: 0.85,
-  },
-  expressive: {
-    type: 'spring' as const,
-    stiffness: 320,
-    damping: 18,
-    mass: 0.70,
-  }
-};
+import { DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
 
 // Helper to check if reduced motion is preferred by the system or settings
 export function usePrefersReducedMotion() {
-  const speed = useChordStore(state => state.settings?.animationSpeed);
+  const speed = useChordStore((state) => state.settings?.animationSpeed);
   if (speed === 'reduced') return true;
   if (speed === 'normal' || speed === 'fast') return false;
   return (
-    typeof window !== 'undefined' && 
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
 
 // Helper to check the animation duration speed coefficient
 export function useAnimationSpeed() {
-  const speed = useChordStore(state => state.settings?.animationSpeed);
+  const speed = useChordStore((state) => state.settings?.animationSpeed);
   return speed === 'fast' ? 0.6 : 1.0;
 }
 
@@ -68,20 +24,24 @@ export function useAnimationSpeed() {
 export const AnimationCoordinator = {
   getDuration(preset: 'fast' | 'normal' | 'slow' = 'normal', speedSetting?: string): number {
     if (speedSetting === 'reduced') return 0;
-    const base = MOTION_DURATIONS[preset];
+    const base = DurationPresets[preset];
     const multiplier = speedSetting === 'fast' ? 0.6 : 1.0;
     return base * multiplier;
   },
 
-  getTransition(preset: 'standard' | 'spring' = 'standard', durationPreset: 'fast' | 'normal' | 'slow' = 'normal', speedSetting?: string) {
+  getTransition(
+    preset: 'standard' | 'spring' = 'standard',
+    durationPreset: 'fast' | 'normal' | 'slow' = 'normal',
+    speedSetting?: string
+  ) {
     if (speedSetting === 'reduced') {
       return { duration: 0 };
     }
     const duration = this.getDuration(durationPreset, speedSetting);
     if (preset === 'spring') {
-      return { ...MOTION_EASINGS.spring, duration };
+      return { ...EasingPresets.spring, duration };
     }
-    return { ease: MOTION_EASINGS.standard, duration };
+    return { ease: EasingPresets.standard, duration };
   },
 
   startTransition(durationMs: number = 300) {
@@ -89,14 +49,14 @@ export const AnimationCoordinator = {
       (window as any).studioTransitionActive = true;
       const startEvent = new CustomEvent('studio:transition-start');
       window.dispatchEvent(startEvent);
-      
+
       setTimeout(() => {
         (window as any).studioTransitionActive = false;
         const endEvent = new CustomEvent('studio:transition-end');
         window.dispatchEvent(endEvent);
       }, durationMs);
     }
-  }
+  },
 };
 
 // ── 3. Navigation Coordinator ────────────────────────────────────────────────
@@ -115,7 +75,7 @@ export function useNavigationCoordinator(initialPage: string) {
 
   const navigate = useCallback((toPage: string) => {
     AnimationCoordinator.startTransition(220);
-    setState(prev => ({
+    setState((prev) => ({
       page: toPage,
       direction: 'forward',
       pageKey: prev.pageKey + 1,
@@ -124,7 +84,7 @@ export function useNavigationCoordinator(initialPage: string) {
 
   const goBack = useCallback((fallbackPage: string = 'main') => {
     AnimationCoordinator.startTransition(220);
-    setState(prev => ({
+    setState((prev) => ({
       page: fallbackPage,
       direction: 'backward',
       pageKey: prev.pageKey + 1,
@@ -157,7 +117,7 @@ export function PageTransition({
   className = '',
 }: PageTransitionProps) {
   const prefersReduced = usePrefersReducedMotion();
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore((s) => s.settings);
 
   if (prefersReduced) {
     return (
@@ -197,7 +157,7 @@ export function PageTransition({
         opacity: 1.0,
         zIndex: direction === 'forward' ? 1 : 2,
       };
-    }
+    },
   };
 
   const transition = AnimationCoordinator.getTransition(
@@ -220,7 +180,7 @@ export function PageTransition({
         inset: 0,
         overflow: 'hidden',
         willChange: 'transform, opacity',
-        ...style
+        ...style,
       }}
       className={className}
     >
@@ -240,7 +200,7 @@ export function AppEntryTransition({
   className?: string;
 }) {
   const prefersReduced = usePrefersReducedMotion();
-  const settings = useChordStore(s => s.settings);
+  const settings = useChordStore((s) => s.settings);
 
   if (prefersReduced) {
     return (
@@ -250,7 +210,11 @@ export function AppEntryTransition({
     );
   }
 
-  const transition = AnimationCoordinator.getTransition('spring', 'normal', settings?.animationSpeed);
+  const transition = AnimationCoordinator.getTransition(
+    'spring',
+    'normal',
+    settings?.animationSpeed
+  );
 
   return (
     <motion.div
@@ -304,15 +268,16 @@ export function StaggeredReveal({
         const childElement = child as React.ReactElement<any>;
         const delay = delayOffset + index * (staggerInterval / 1000) * speedScale;
 
-        let wrapperClassName = "";
+        let wrapperClassName = '';
         if (childElement.props && childElement.props.className) {
           const classes = childElement.props.className.split(/\s+/);
-          const layoutClasses = classes.filter((c: string) => 
-            c.startsWith('col-span-') || 
-            c.startsWith('row-span-') || 
-            c.startsWith('flex-') || 
-            c === 'grow' || 
-            c === 'shrink'
+          const layoutClasses = classes.filter(
+            (c: string) =>
+              c.startsWith('col-span-') ||
+              c.startsWith('row-span-') ||
+              c.startsWith('flex-') ||
+              c === 'grow' ||
+              c === 'shrink'
           );
           if (layoutClasses.length > 0) {
             wrapperClassName = layoutClasses.join(' ');
@@ -326,7 +291,7 @@ export function StaggeredReveal({
             initial={{ opacity: 0, y: 12, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
-              ...MOTION_EASINGS.spring,
+              ...EasingPresets.spring,
               delay,
             }}
             style={{
@@ -348,8 +313,8 @@ export function StaggeredReveal({
 export function AnimatedAppHeader({
   title,
   subtitle,
-  titleClassName = "font-extrabold tracking-tighter leading-none mb-3",
-  subtitleClassName = "",
+  titleClassName = 'font-extrabold tracking-tighter leading-none mb-3',
+  subtitleClassName = '',
   titleStyle = {},
   subtitleStyle = {},
   staggerInterval = 20, // ms per character
@@ -392,13 +357,19 @@ export function AnimatedAppHeader({
   if (prefersReduced) {
     return (
       <>
-        <h2 className={titleClassName} style={mergedTitleStyle}>{title}</h2>
-        {subtitle && <p className={subtitleClassName} style={mergedSubtitleStyle}>{subtitle}</p>}
+        <h2 className={titleClassName} style={mergedTitleStyle}>
+          {title}
+        </h2>
+        {subtitle && (
+          <p className={subtitleClassName} style={mergedSubtitleStyle}>
+            {subtitle}
+          </p>
+        )}
       </>
     );
   }
 
-  const chars = title.split("");
+  const chars = title.split('');
 
   return (
     <>
@@ -419,18 +390,18 @@ export function AnimatedAppHeader({
             <motion.span
               key={index}
               className="inline-block origin-bottom"
-              initial={{ y: "100%", opacity: 0 }}
+              initial={{ y: '100%', opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{
-                ...MOTION_EASINGS.spring,
+                ...EasingPresets.spring,
                 delay,
               }}
               style={{
-                display: char === " " ? "inline" : "inline-block",
-                marginRight: char === " " ? "0.25em" : 0,
+                display: char === ' ' ? 'inline' : 'inline-block',
+                marginRight: char === ' ' ? '0.25em' : 0,
               }}
             >
-              {char === " " ? "\u00A0" : char}
+              {char === ' ' ? '\u00A0' : char}
             </motion.span>
           );
         })}
@@ -442,8 +413,10 @@ export function AnimatedAppHeader({
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            ...MOTION_EASINGS.spring,
-            delay: delayOffset + Math.min(0.35, chars.length * (staggerInterval / 1000) * speedScale + 0.05),
+            ...EasingPresets.spring,
+            delay:
+              delayOffset +
+              Math.min(0.35, chars.length * (staggerInterval / 1000) * speedScale + 0.05),
           }}
         >
           {subtitle}
@@ -465,12 +438,21 @@ export interface M3TransitionProps {
  * Fade Through Transition
  * Fades out the outgoing view first, then fades in the incoming view while scaling up slightly.
  */
-export function FadeThroughTransition({ children, isVisible, className = '', style }: M3TransitionProps) {
+export function FadeThroughTransition({
+  children,
+  isVisible,
+  className = '',
+  style,
+}: M3TransitionProps) {
   const prefersReduced = usePrefersReducedMotion();
   const speedScale = useAnimationSpeed();
 
   if (prefersReduced) {
-    return isVisible ? <div className={className} style={style}>{children}</div> : null;
+    return isVisible ? (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    ) : null;
   }
 
   return (
@@ -483,8 +465,8 @@ export function FadeThroughTransition({ children, isVisible, className = '', sty
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.92 }}
           transition={{
-            ease: MOTION_EASINGS.emphasized,
-            duration: MOTION_DURATIONS.normal * speedScale
+            ease: EasingPresets.emphasized,
+            duration: DurationPresets.normal * speedScale,
           }}
         >
           {children}
@@ -503,12 +485,23 @@ export interface SharedAxisProps extends M3TransitionProps {
   direction: 'forward' | 'backward';
 }
 
-export function SharedAxisTransition({ children, isVisible, axis, direction, className = '', style }: SharedAxisProps) {
+export function SharedAxisTransition({
+  children,
+  isVisible,
+  axis,
+  direction,
+  className = '',
+  style,
+}: SharedAxisProps) {
   const prefersReduced = usePrefersReducedMotion();
   const speedScale = useAnimationSpeed();
 
   if (prefersReduced) {
-    return isVisible ? <div className={className} style={style}>{children}</div> : null;
+    return isVisible ? (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    ) : null;
   }
 
   const offset = axis === 'x' ? 30 : 20;
@@ -518,16 +511,16 @@ export function SharedAxisTransition({ children, isVisible, axis, direction, cla
   const variants = {
     initial: {
       opacity: 0,
-      [axis]: initialOffset
+      [axis]: initialOffset,
     },
     animate: {
       opacity: 1,
-      [axis]: 0
+      [axis]: 0,
     },
     exit: {
       opacity: 0,
-      [axis]: exitOffset
-    }
+      [axis]: exitOffset,
+    },
   };
 
   return (
@@ -541,8 +534,8 @@ export function SharedAxisTransition({ children, isVisible, axis, direction, cla
           exit="exit"
           variants={variants}
           transition={{
-            ease: MOTION_EASINGS.standard,
-            duration: MOTION_DURATIONS.normal * speedScale
+            ease: EasingPresets.standard,
+            duration: DurationPresets.normal * speedScale,
           }}
         >
           {children}
@@ -564,7 +557,13 @@ export interface ContainerTransformProps {
   onClick?: () => void;
 }
 
-export function ContainerTransform({ layoutId, children, className = '', style, onClick }: ContainerTransformProps) {
+export function ContainerTransform({
+  layoutId,
+  children,
+  className = '',
+  style,
+  onClick,
+}: ContainerTransformProps) {
   const prefersReduced = usePrefersReducedMotion();
 
   if (prefersReduced) {
@@ -581,7 +580,7 @@ export function ContainerTransform({ layoutId, children, className = '', style, 
       className={className}
       style={{ ...style, willChange: 'transform, opacity' }}
       transition={{
-        ...SPRING_PRESETS.medium
+        ...SpringPresets.medium,
       }}
       onClick={onClick}
     >

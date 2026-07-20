@@ -1,19 +1,20 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'motion/react';
-import { 
+import {
   useNavScrollOffset,
   useChordStore,
   useNavigationStore,
   NavigationDispatcher,
-  useBottomNavigationStore
+  useBottomNavigationStore,
+  SpringPresets,
 } from '@workspace/studio-core';
-import { 
-  StudioLogo, 
-  ChordexLogo, 
-  DrumexLogo, 
-  StagexLogoIcon, 
-  GroovexLogo, 
-  VocalexLogo 
+import {
+  StudioLogo,
+  ChordexLogo,
+  DrumexLogo,
+  StagexLogoIcon,
+  GroovexLogo,
+  VocalexLogo,
 } from '../components/icons/ChordexLogo';
 
 function useStartupComplete() {
@@ -24,7 +25,7 @@ function useStartupComplete() {
 
   useEffect(() => {
     if (complete) return;
-    
+
     const check = () => {
       if ((window as any).__studioStartupComplete) {
         setComplete(true);
@@ -34,7 +35,7 @@ function useStartupComplete() {
 
     const interval = setInterval(check, 100);
     window.addEventListener('studio-launch-complete', check);
-    
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('studio-launch-complete', check);
@@ -57,104 +58,117 @@ export interface SharedNavigationBarProps {
   isLight?: boolean;
 }
 
-const NavigationItem = React.memo(({
-  item,
-  index,
-  pillX,
-  itemWidth,
-  getCenterX,
-  onClick,
-  isActive
-}: {
-  item: any;
-  index: number;
-  pillX: any;
-  itemWidth: number;
-  getCenterX: (idx: number) => number;
-  onClick: () => void;
-  isActive: boolean;
-}) => {
-  const centerX = getCenterX(index);
-  
-  const scale = useTransform(
+const NavigationItem = React.memo(
+  ({
+    item,
+    index,
     pillX,
-    [centerX - itemWidth * 1.2, centerX, centerX + itemWidth * 1.2],
-    [1.0, 1.18, 1.0],
-    { clamp: true }
-  );
+    itemWidth,
+    getCenterX,
+    onClick,
+    isActive,
+  }: {
+    item: any;
+    index: number;
+    pillX: any;
+    itemWidth: number;
+    getCenterX: (idx: number) => number;
+    onClick: () => void;
+    isActive: boolean;
+  }) => {
+    const centerX = getCenterX(index);
 
-  const opacity = useTransform(
-    pillX,
-    [centerX - itemWidth * 1.2, centerX, centerX + itemWidth * 1.2],
-    [0.55, 1.0, 0.55],
-    { clamp: true }
-  );
+    const scale = useTransform(
+      pillX,
+      [centerX - itemWidth * 1.2, centerX, centerX + itemWidth * 1.2],
+      [1.0, 1.18, 1.0],
+      { clamp: true }
+    );
 
-  const isIconString = typeof item.icon === 'string';
+    const opacity = useTransform(
+      pillX,
+      [centerX - itemWidth * 1.2, centerX, centerX + itemWidth * 1.2],
+      [0.55, 1.0, 0.55],
+      { clamp: true }
+    );
 
-  return (
-    <motion.button
-      onClick={onClick}
-      aria-label={item.label}
-      title={item.label}
-      style={{
-        flex: 1,
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        position: 'relative',
-        zIndex: 1,
-        padding: '0 8px',
-        outline: 'none',
-        WebkitTapHighlightColor: 'transparent',
-      }}
-    >
-      <motion.div
+    const isIconString = typeof item.icon === 'string';
+
+    return (
+      <motion.button
+        onClick={onClick}
+        aria-label={item.label}
+        title={item.label}
         style={{
-          scale,
-          opacity,
+          flex: 1,
+          height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          position: 'relative',
+          zIndex: 1,
+          padding: '0 8px',
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {isIconString ? (
-          <span
-            className="material-symbols-outlined text-[20px]"
-            style={{
-              fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-              color: '#ffffff',
-            }}
-          >
-            {item.icon}
-          </span>
-        ) : (
-          <div style={{ color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {item.icon}
-          </div>
-        )}
-      </motion.div>
-    </motion.button>
-  );
-});
+        <motion.div
+          style={{
+            scale,
+            opacity,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {isIconString ? (
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{
+                fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
+                color: '#ffffff',
+              }}
+            >
+              {item.icon}
+            </span>
+          ) : (
+            <div
+              style={{
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {item.icon}
+            </div>
+          )}
+        </motion.div>
+      </motion.button>
+    );
+  }
+);
 
-export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }: SharedNavigationBarProps) {
+export function SharedNavigationBar({
+  items: propsItems,
+  isLight: propsIsLight,
+}: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
-  
+
   // Read centralized state from useBottomNavigationStore
-  const storeItems = useBottomNavigationStore(s => s.items);
-  const storeIsLight = useBottomNavigationStore(s => s.isLight);
-  const storeVisible = useBottomNavigationStore(s => s.visible);
-  const storeCollapsed = useBottomNavigationStore(s => s.collapsed);
-  
-  const isSwitcherOpen = useBottomNavigationStore(s => s.isSwitcherOpen);
-  const setIsSwitcherOpen = (open: boolean) => useBottomNavigationStore.getState().setSwitcherOpen(open);
+  const storeItems = useBottomNavigationStore((s) => s.items);
+  const storeIsLight = useBottomNavigationStore((s) => s.isLight);
+  const storeVisible = useBottomNavigationStore((s) => s.visible);
+  const storeCollapsed = useBottomNavigationStore((s) => s.collapsed);
+
+  const isSwitcherOpen = useBottomNavigationStore((s) => s.isSwitcherOpen);
+  const setIsSwitcherOpen = (open: boolean) =>
+    useBottomNavigationStore.getState().setSwitcherOpen(open);
 
   const items = propsItems !== undefined ? propsItems : storeItems;
   const isLight = propsIsLight !== undefined ? propsIsLight : storeIsLight;
@@ -164,7 +178,7 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
   // Slide down out of view progressively up to 100px (beyond viewport edge)
   const translateY = scrollOffset * 100;
 
-  const currentRoute = useNavigationStore(s => s.history[s.history.length - 1]);
+  const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
   const currentApp = currentRoute?.app ?? 'hub';
 
   const handleAppSwitch = (appKey: string) => {
@@ -173,20 +187,55 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
     setIsSwitcherOpen(false);
   };
 
-  const switcherApps = useMemo(() => [
-    { key: 'hub', label: 'Hub', icon: <StudioLogo size={18} />, onClick: () => handleAppSwitch('hub') },
-    { key: 'chords', label: 'Chordex', icon: <ChordexLogo size={18} />, onClick: () => handleAppSwitch('chords') },
-    { key: 'drums', label: 'Drumex', icon: <DrumexLogo size={18} />, onClick: () => handleAppSwitch('drums') },
-    { key: 'stage', label: 'Stagex', icon: <StagexLogoIcon size={18} />, onClick: () => handleAppSwitch('stage') },
-    { key: 'groovex', label: 'Groovex', icon: <GroovexLogo size={18} />, onClick: () => handleAppSwitch('groovex') },
-    { key: 'vocalex', label: 'Vocalex', icon: <VocalexLogo size={18} />, onClick: () => handleAppSwitch('vocalex') },
-  ], []);
+  const switcherApps = useMemo(
+    () => [
+      {
+        key: 'hub',
+        label: 'Hub',
+        icon: <StudioLogo size={18} />,
+        onClick: () => handleAppSwitch('hub'),
+      },
+      {
+        key: 'chords',
+        label: 'Chordex',
+        icon: <ChordexLogo size={18} />,
+        onClick: () => handleAppSwitch('chords'),
+      },
+      {
+        key: 'drums',
+        label: 'Drumex',
+        icon: <DrumexLogo size={18} />,
+        onClick: () => handleAppSwitch('drums'),
+      },
+      {
+        key: 'stage',
+        label: 'Stagex',
+        icon: <StagexLogoIcon size={18} />,
+        onClick: () => handleAppSwitch('stage'),
+      },
+      {
+        key: 'groovex',
+        label: 'Groovex',
+        icon: <GroovexLogo size={18} />,
+        onClick: () => handleAppSwitch('groovex'),
+      },
+      {
+        key: 'vocalex',
+        label: 'Vocalex',
+        icon: <VocalexLogo size={18} />,
+        onClick: () => handleAppSwitch('vocalex'),
+      },
+    ],
+    []
+  );
 
-  const currentItems = isSwitcherOpen ? switcherApps : (items || []);
+  const currentItems = isSwitcherOpen ? switcherApps : items || [];
   const N = currentItems.length || 1;
 
   // Dynamic screen width monitoring for robust responsiveness
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 360);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 360
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -207,13 +256,16 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
   const pillWidth = itemWidth - insetX * 2;
 
   // Mathematically perfect centering (relative to wrapper div, no paddingX offset!)
-  const getCenterX = useCallback((index: number) => {
-    return (index + 0.5) * itemWidth;
-  }, [itemWidth]);
+  const getCenterX = useCallback(
+    (index: number) => {
+      return (index + 0.5) * itemWidth;
+    },
+    [itemWidth]
+  );
 
   const activeIndex = useMemo(() => {
-    const idx = currentItems.findIndex(item => {
-      return isSwitcherOpen ? (item.key === currentApp) : item.isActive;
+    const idx = currentItems.findIndex((item) => {
+      return isSwitcherOpen ? item.key === currentApp : item.isActive;
     });
     return idx >= 0 ? idx : 0;
   }, [currentItems, currentApp, isSwitcherOpen]);
@@ -222,30 +274,28 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
   const pillSkewX = useMotionValue(0);
   const pressureOffset = useMotionValue(0);
 
-  const pillPathD = useTransform(
-    [pillSkewX, pressureOffset] as const,
-    ([skewVal, pressVal]) => {
-      const tailAmount = (skewVal as number) * 1.2;
-      const press = pressVal as number;
-      
-      const H = 38;
-      const R = 19;
-      
-      let leftX = (tailAmount < 0 ? tailAmount : 0) + press;
-      let rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
-      
-      // Enforce minimum width to prevent collapsing into a vertical lemon shape
-      const currentWidth = rightX - leftX;
-      if (currentWidth < H) {
-        const delta = (H - currentWidth) / 2;
-        leftX -= delta;
-        rightX += delta;
-      }
-      
-      const leftR = tailAmount > 0 ? Math.max(12, R - tailAmount * 0.25) : R;
-      const rightR = tailAmount < 0 ? Math.max(12, R + tailAmount * 0.25) : R;
-      
-      return `M ${leftX + leftR} 0
+  const pillPathD = useTransform([pillSkewX, pressureOffset] as const, ([skewVal, pressVal]) => {
+    const tailAmount = (skewVal as number) * 1.2;
+    const press = pressVal as number;
+
+    const H = 38;
+    const R = 19;
+
+    let leftX = (tailAmount < 0 ? tailAmount : 0) + press;
+    let rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
+
+    // Enforce minimum width to prevent collapsing into a vertical lemon shape
+    const currentWidth = rightX - leftX;
+    if (currentWidth < H) {
+      const delta = (H - currentWidth) / 2;
+      leftX -= delta;
+      rightX += delta;
+    }
+
+    const leftR = tailAmount > 0 ? Math.max(12, R - tailAmount * 0.25) : R;
+    const rightR = tailAmount < 0 ? Math.max(12, R + tailAmount * 0.25) : R;
+
+    return `M ${leftX + leftR} 0
               L ${rightX - rightR} 0
               A ${rightR} ${R} 0 0 1 ${rightX} ${R}
               A ${rightR} ${R} 0 0 1 ${rightX - rightR} ${H}
@@ -253,13 +303,12 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
               A ${leftR} ${R} 0 0 1 ${leftX} ${R}
               A ${leftR} ${R} 0 0 1 ${leftX + leftR} 0
               Z`;
-    }
-  );
+  });
 
   const [isScrubbing, setIsScrubbing] = useState(false);
   const isScrubbingRef = useRef(false);
   const scrubbingIndexRef = useRef(activeIndex);
-  
+
   const startXRef = useRef(0);
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
@@ -269,17 +318,14 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
   useEffect(() => {
     if (!isScrubbingRef.current) {
       animate(pillX, getCenterX(activeIndex), {
-        type: 'spring',
-        stiffness: 380,
-        damping: 22,
-        mass: 0.5
+        ...SpringPresets.soft,
       });
     }
   }, [activeIndex, getCenterX, pillX]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
-    
+
     useBottomNavigationStore.getState().setMotionState('Dragging');
     e.currentTarget.setPointerCapture(e.pointerId);
     const rect = e.currentTarget.getBoundingClientRect();
@@ -287,22 +333,28 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
     const minX = getCenterX(0);
     const maxX = getCenterX(N - 1);
     const clampedX = Math.max(minX, Math.min(maxX, relativeX));
-    
+
     startXRef.current = e.clientX;
     lastXRef.current = e.clientX;
     lastTimeRef.current = performance.now();
     isScrubbingRef.current = false;
     scrubbingIndexRef.current = activeIndex;
 
-    animate(pressureOffset, 4, { type: 'spring', stiffness: 500, damping: 25 });
+    animate(pressureOffset, 4, { ...SpringPresets.stiff });
 
     if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
     pressTimerRef.current = setTimeout(() => {
       isScrubbingRef.current = true;
       setIsScrubbing(true);
-      
-      if (typeof window !== 'undefined' && window.navigator && typeof window.navigator.vibrate === 'function') {
-        try { window.navigator.vibrate(15); } catch (err) {}
+
+      if (
+        typeof window !== 'undefined' &&
+        window.navigator &&
+        typeof window.navigator.vibrate === 'function'
+      ) {
+        try {
+          window.navigator.vibrate(15);
+        } catch (err) {}
       }
 
       pillX.set(clampedX);
@@ -311,7 +363,7 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
     const minX = getCenterX(0);
@@ -320,7 +372,7 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     const dx = e.clientX - lastXRef.current;
-    
+
     const velocity = dt > 0 ? dx / dt : 0;
     lastXRef.current = e.clientX;
     lastTimeRef.current = now;
@@ -330,25 +382,37 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
       if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
       isScrubbingRef.current = true;
       setIsScrubbing(true);
-      
-      if (typeof window !== 'undefined' && window.navigator && typeof window.navigator.vibrate === 'function') {
-        try { window.navigator.vibrate(8); } catch (err) {}
+
+      if (
+        typeof window !== 'undefined' &&
+        window.navigator &&
+        typeof window.navigator.vibrate === 'function'
+      ) {
+        try {
+          window.navigator.vibrate(8);
+        } catch (err) {}
       }
     }
 
     if (isScrubbingRef.current) {
       pillX.set(clampedX);
-      
+
       const skew = Math.max(-10, Math.min(10, velocity * 3.5));
       pillSkewX.set(skew);
 
       const progress = relativeX / usableWidth;
       const hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
-      
+
       if (hoveredIndex !== scrubbingIndexRef.current) {
         scrubbingIndexRef.current = hoveredIndex;
-        if (typeof window !== 'undefined' && window.navigator && typeof window.navigator.vibrate === 'function') {
-          try { window.navigator.vibrate(5); } catch (err) {}
+        if (
+          typeof window !== 'undefined' &&
+          window.navigator &&
+          typeof window.navigator.vibrate === 'function'
+        ) {
+          try {
+            window.navigator.vibrate(5);
+          } catch (err) {}
         }
       }
     }
@@ -356,27 +420,24 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
-    
+
     useBottomNavigationStore.getState().setMotionState('Idle');
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    animate(pillSkewX, 0, { type: 'spring', stiffness: 400, damping: 20 });
-    animate(pressureOffset, 0, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(pillSkewX, 0, { ...SpringPresets.expressive });
+    animate(pressureOffset, 0, { ...SpringPresets.expressive });
 
     if (isScrubbingRef.current) {
       isScrubbingRef.current = false;
       setIsScrubbing(false);
-      
+
       const finalIndex = scrubbingIndexRef.current;
       const targetItem = currentItems[finalIndex];
-      
+
       animate(pillX, getCenterX(finalIndex), {
-        type: 'spring',
-        stiffness: 380,
-        damping: 22,
-        mass: 0.5
+        ...SpringPresets.soft,
       });
 
       if (targetItem && finalIndex !== activeIndex) {
@@ -388,7 +449,7 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
       const progress = relativeX / usableWidth;
       const clickIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
       const clickedItem = currentItems[clickIndex];
-      
+
       if (clickedItem) {
         clickedItem.onClick();
       }
@@ -402,36 +463,30 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    animate(pillSkewX, 0, { type: 'spring', stiffness: 400, damping: 20 });
-    animate(pressureOffset, 0, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(pillSkewX, 0, { ...SpringPresets.expressive });
+    animate(pressureOffset, 0, { ...SpringPresets.expressive });
 
     isScrubbingRef.current = false;
     setIsScrubbing(false);
 
     animate(pillX, getCenterX(activeIndex), {
-      type: 'spring',
-      stiffness: 380,
-      damping: 22,
-      mass: 0.5
+      ...SpringPresets.soft,
     });
   };
 
-  const pillSkewXTrans = useTransform(pillSkewX, val => `${val}deg`);
+  const pillSkewXTrans = useTransform(pillSkewX, (val) => `${val}deg`);
 
   return (
     <motion.div
       ref={containerRef}
       className="shared-bottom-nav-container"
       animate={{
-        y: (!visible || collapsed || currentItems.length === 0) ? 150 : translateY,
+        y: !visible || collapsed || currentItems.length === 0 ? 150 : translateY,
         x: '-50%',
-        opacity: (!visible || collapsed || currentItems.length === 0) ? 0 : 1,
+        opacity: !visible || collapsed || currentItems.length === 0 ? 0 : 1,
       }}
       transition={{
-        type: 'spring',
-        stiffness: 380,
-        damping: 24,
-        mass: 0.35
+        ...SpringPresets.soft,
       }}
       style={{
         position: 'fixed',
@@ -465,18 +520,18 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
           userSelect: 'none',
         }}
       >
-        <div 
+        <div
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
-          style={{ 
-            display: 'flex', 
-            width: '100%', 
-            height: '100%', 
-            alignItems: 'center', 
+          style={{
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+            alignItems: 'center',
             position: 'relative',
-            touchAction: 'none'
+            touchAction: 'none',
           }}
         >
           {/* Floating interactive liquid capsule indicator */}
@@ -486,7 +541,7 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
               top: '2px',
               height: '38px',
               width: `${pillWidth + 40}px`,
-              x: useTransform(pillX, val => val - pillWidth / 2 - 20),
+              x: useTransform(pillX, (val) => val - pillWidth / 2 - 20),
               skewX: pillSkewXTrans,
               transformOrigin: 'center center',
               pointerEvents: 'none',
@@ -499,17 +554,12 @@ export function SharedNavigationBar({ items: propsItems, isLight: propsIsLight }
               viewBox={`-20 0 ${pillWidth + 40} 38`}
               style={{ overflow: 'visible' }}
             >
-              <motion.path
-                d={pillPathD}
-                fill="rgba(255, 255, 255, 0.16)"
-              />
+              <motion.path d={pillPathD} fill="rgba(255, 255, 255, 0.16)" />
             </svg>
           </motion.div>
 
           {currentItems.map((item, index) => {
-            const isActive = isSwitcherOpen 
-              ? (item.key === currentApp)
-              : item.isActive;
+            const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
 
             return (
               <NavigationItem

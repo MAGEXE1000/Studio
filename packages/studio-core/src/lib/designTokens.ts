@@ -9,22 +9,22 @@ export const ColorTokens = {
   accentPink: '#ec4899',
   accentGreen: '#10b981',
   accentYellow: '#f59e0b',
-  
+
   darkBg: '#0a0a0c',
   darkSurfaceLowest: '#0d0d0f',
   darkSurfaceLow: '#16161a',
   darkSurfaceMid: '#222227',
   darkSurfaceHigh: '#2e2e35',
-  
+
   lightBg: '#f8f9fa',
   lightSurfaceLowest: '#f5f5f5',
   lightSurfaceLow: '#f1f3f5',
   lightSurfaceMid: '#e9ecef',
   lightSurfaceHigh: '#dee2e6',
-  
+
   borderDark: 'rgba(255, 255, 255, 0.08)',
   borderLight: 'rgba(0, 0, 0, 0.08)',
-  
+
   glassBgDark: 'rgba(0, 0, 0, 0.60)',
   glassBgLight: 'rgba(255, 255, 255, 0.60)',
 };
@@ -72,17 +72,47 @@ export const GlassTokens = {
   boxShadow: '0 8px 20px 8px rgba(0, 0, 0, 0.40)',
 };
 
-export const MotionTokens = {
-  transitionDurationHub: 0.35,
-  transitionDurationApp: 0.95,
-  transitionEaseHub: 'easeOut',
-  transitionEaseApp: [0.65, 0, 0.35, 1],
+export const DurationPresets = {
+  veryFast: 0.1, // M3 Short 1 / Short 2
+  fast: 0.2, // M3 Short 3 / Medium 1
+  normal: 0.3, // M3 Medium 2 / Long 1
+  slow: 0.4, // M3 Long 2 / Long 3
+
+  // Legacy / Feature Specific
+  hubTransition: 0.35,
+  appTransition: 0.95,
+};
+
+export const EasingPresets = {
+  emphasized: [0.2, 0.0, 0.0, 1.0] as any, // M3 Emphasized
+  standard: [0.2, 0.0, 0.0, 1.0] as any, // M3 Standard
+  accelerate: [0.3, 0.0, 0.8, 0.15] as any, // M3 Accelerate (ease-in)
+  decelerate: [0.0, 0.0, 0.15, 1.0] as any, // M3 Decelerate (ease-out)
+  linear: [0.0, 0.0, 1.0, 1.0] as any,
+
+  // Legacy / Feature Specific
+  hubTransition: 'easeOut',
+  appTransition: [0.65, 0, 0.35, 1] as any,
+
+  // Backward compatibility for standard motion configs
+  spring: {
+    type: 'spring' as const,
+    stiffness: 180,
+    damping: 20,
+    mass: 0.85,
+  },
 };
 
 export const SpringPresets = {
-  soft: { type: 'spring', stiffness: 380, damping: 22, mass: 0.5 },
-  stiff: { type: 'spring', stiffness: 500, damping: 25, mass: 0.4 },
-  expressive: { type: 'spring', stiffness: 400, damping: 20, mass: 0.35 },
+  // Softer M3-style springs (formerly from AppAnimationSystem)
+  gentle: { type: 'spring' as const, stiffness: 150, damping: 25, mass: 1.0 },
+  medium: { type: 'spring' as const, stiffness: 220, damping: 22, mass: 0.85 },
+  bouncy: { type: 'spring' as const, stiffness: 320, damping: 18, mass: 0.7 },
+
+  // Stiffer structural springs (formerly native to designTokens.ts)
+  soft: { type: 'spring' as const, stiffness: 380, damping: 22, mass: 0.5 },
+  expressive: { type: 'spring' as const, stiffness: 400, damping: 20, mass: 0.35 },
+  stiff: { type: 'spring' as const, stiffness: 500, damping: 25, mass: 0.4 },
 };
 
 export const HapticTokens = {

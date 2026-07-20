@@ -88,3 +88,9 @@ export * from './lib/themeTransitionEngine';
 export * from './lib/designTokens';
 export * from './lib/navigation/useBottomNavigationStore';
 export * from './lib/notifications/NotificationService';
+export * from './store/useSettingsStore';
+
+// NEW SERVICES AND CONTROLLERS
+export * from './services/SettingsService';
+export * from './controllers/SettingsController';
+export * from './controllers/SyncController';

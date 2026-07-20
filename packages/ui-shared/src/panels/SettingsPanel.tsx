@@ -9,6 +9,7 @@ import {
   useAppUpdate,
   APP_VERSION_LABEL,
   resetNav,
+  useSettingsStore,
 } from '@workspace/studio-core';
 import React, { useRef, useState, useEffect } from 'react';
 import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
@@ -18,8 +19,8 @@ import { DialogScaffold } from '../components/StudioLayoutSystem';
 import InkThemeToggle from '../components/typography/InkThemeToggle';
 
 export default function SettingsPanel() {
-  const settings = useChordStore((s) => s.settings);
-  const updateSettings = useChordStore((s) => s.updateSettings);
+  const settings = useSettingsStore((s) => s.settings);
+
   const acc =
     ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ??
     ACCENT_COLORS.blue;
@@ -96,7 +97,7 @@ export default function SettingsPanel() {
             >
               <select
                 value={settings.tuning}
-                onChange={(e) => updateSettings({ tuning: e.target.value })}
+                onChange={(e) => settingsController.updateSettings({ tuning: e.target.value })}
                 className={`rounded px-2 py-1 text-xs outline-none cursor-pointer transition-colors border ${
                   isLight
                     ? 'bg-zinc-200 text-zinc-800 border-zinc-300 hover:border-zinc-400'
@@ -118,7 +119,7 @@ export default function SettingsPanel() {
             <SettingRow label={t.settings.rows.leftHanded} desc={t.settings.rows.leftHandedDesc}>
               <Toggle
                 value={settings.leftHanded}
-                onChange={(v) => updateSettings({ leftHanded: v })}
+                onChange={(v) => settingsController.updateSettings({ leftHanded: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -126,7 +127,7 @@ export default function SettingsPanel() {
             <SettingRow label={t.settings.rows.fretNumbers} desc={t.settings.rows.fretNumbersDesc}>
               <Toggle
                 value={settings.showFretNumbers}
-                onChange={(v) => updateSettings({ showFretNumbers: v })}
+                onChange={(v) => settingsController.updateSettings({ showFretNumbers: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -137,7 +138,7 @@ export default function SettingsPanel() {
             >
               <Toggle
                 value={settings.showFingerNumbers}
-                onChange={(v) => updateSettings({ showFingerNumbers: v })}
+                onChange={(v) => settingsController.updateSettings({ showFingerNumbers: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -145,7 +146,7 @@ export default function SettingsPanel() {
             <SettingRow label={t.settings.rows.noteNames} desc={t.settings.rows.noteNamesDesc}>
               <Toggle
                 value={settings.showNoteNames}
-                onChange={(v) => updateSettings({ showNoteNames: v })}
+                onChange={(v) => settingsController.updateSettings({ showNoteNames: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -156,7 +157,7 @@ export default function SettingsPanel() {
             >
               <Toggle
                 value={settings.showIntervals}
-                onChange={(v) => updateSettings({ showIntervals: v })}
+                onChange={(v) => settingsController.updateSettings({ showIntervals: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -167,7 +168,7 @@ export default function SettingsPanel() {
             >
               <Toggle
                 value={settings.showOpenStrings}
-                onChange={(v) => updateSettings({ showOpenStrings: v })}
+                onChange={(v) => settingsController.updateSettings({ showOpenStrings: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -179,7 +180,7 @@ export default function SettingsPanel() {
             <SettingRow label={t.settings.rows.chordColors} desc={t.settings.rows.chordColorsDesc}>
               <Toggle
                 value={settings.showChordQualityColors}
-                onChange={(v) => updateSettings({ showChordQualityColors: v })}
+                onChange={(v) => settingsController.updateSettings({ showChordQualityColors: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -200,7 +201,7 @@ export default function SettingsPanel() {
                       return (
                         <button
                           key={value}
-                          onClick={() => updateSettings({ defaultTab: value })}
+                          onClick={() => settingsController.updateSettings({ defaultTab: value })}
                           className={`w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all ${
                             active
                               ? isLight
@@ -236,7 +237,7 @@ export default function SettingsPanel() {
             >
               <Toggle
                 value={settings.chordAssistant}
-                onChange={(v) => updateSettings({ chordAssistant: v })}
+                onChange={(v) => settingsController.updateSettings({ chordAssistant: v })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />
@@ -249,7 +250,9 @@ export default function SettingsPanel() {
                 >
                   <Toggle
                     value={settings.assistantSmartSuggestions}
-                    onChange={(v) => updateSettings({ assistantSmartSuggestions: v })}
+                    onChange={(v) =>
+                      settingsController.updateSettings({ assistantSmartSuggestions: v })
+                    }
                     accentFrom={acc.from}
                     accentTo={acc.to}
                   />
@@ -260,7 +263,9 @@ export default function SettingsPanel() {
                 >
                   <Toggle
                     value={settings.assistantProgressionTips}
-                    onChange={(v) => updateSettings({ assistantProgressionTips: v })}
+                    onChange={(v) =>
+                      settingsController.updateSettings({ assistantProgressionTips: v })
+                    }
                     accentFrom={acc.from}
                     accentTo={acc.to}
                   />
@@ -271,7 +276,9 @@ export default function SettingsPanel() {
                 >
                   <Toggle
                     value={settings.assistantConflictDetection}
-                    onChange={(v) => updateSettings({ assistantConflictDetection: v })}
+                    onChange={(v) =>
+                      settingsController.updateSettings({ assistantConflictDetection: v })
+                    }
                     accentFrom={acc.from}
                     accentTo={acc.to}
                   />
@@ -282,7 +289,7 @@ export default function SettingsPanel() {
                 >
                   <Toggle
                     value={settings.assistantLearning}
-                    onChange={(v) => updateSettings({ assistantLearning: v })}
+                    onChange={(v) => settingsController.updateSettings({ assistantLearning: v })}
                     accentFrom={acc.from}
                     accentTo={acc.to}
                   />
@@ -350,7 +357,7 @@ export default function SettingsPanel() {
                   borderBottom: '1px solid rgba(72,72,72,0.07)',
                   transition: 'background-color 200ms ease',
                 }}
-                onClick={() => updateSettings({ tuning: tun.value })}
+                onClick={() => settingsController.updateSettings({ tuning: tun.value })}
               >
                 <p
                   style={{
@@ -392,7 +399,7 @@ export default function SettingsPanel() {
           <SettingRow label={t.settings.rows.leftHanded} desc={t.settings.rows.leftHandedDesc}>
             <Toggle
               value={settings.leftHanded}
-              onChange={(v) => updateSettings({ leftHanded: v })}
+              onChange={(v) => settingsController.updateSettings({ leftHanded: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -400,7 +407,7 @@ export default function SettingsPanel() {
           <SettingRow label={t.settings.rows.fretNumbers} desc={t.settings.rows.fretNumbersDesc}>
             <Toggle
               value={settings.showFretNumbers}
-              onChange={(v) => updateSettings({ showFretNumbers: v })}
+              onChange={(v) => settingsController.updateSettings({ showFretNumbers: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -411,7 +418,7 @@ export default function SettingsPanel() {
           >
             <Toggle
               value={settings.showFingerNumbers}
-              onChange={(v) => updateSettings({ showFingerNumbers: v })}
+              onChange={(v) => settingsController.updateSettings({ showFingerNumbers: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -419,7 +426,7 @@ export default function SettingsPanel() {
           <SettingRow label={t.settings.rows.noteNames} desc={t.settings.rows.noteNamesDesc}>
             <Toggle
               value={settings.showNoteNames}
-              onChange={(v) => updateSettings({ showNoteNames: v })}
+              onChange={(v) => settingsController.updateSettings({ showNoteNames: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -430,7 +437,7 @@ export default function SettingsPanel() {
           >
             <Toggle
               value={settings.showIntervals}
-              onChange={(v) => updateSettings({ showIntervals: v })}
+              onChange={(v) => settingsController.updateSettings({ showIntervals: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -441,7 +448,7 @@ export default function SettingsPanel() {
           >
             <Toggle
               value={settings.showOpenStrings}
-              onChange={(v) => updateSettings({ showOpenStrings: v })}
+              onChange={(v) => settingsController.updateSettings({ showOpenStrings: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -454,7 +461,7 @@ export default function SettingsPanel() {
           <SettingRow label={t.settings.rows.chordColors} desc={t.settings.rows.chordColorsDesc}>
             <Toggle
               value={settings.showChordQualityColors}
-              onChange={(v) => updateSettings({ showChordQualityColors: v })}
+              onChange={(v) => settingsController.updateSettings({ showChordQualityColors: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -475,7 +482,7 @@ export default function SettingsPanel() {
                     return (
                       <button
                         key={value}
-                        onClick={() => updateSettings({ defaultTab: value })}
+                        onClick={() => settingsController.updateSettings({ defaultTab: value })}
                         style={{
                           width: '40px',
                           height: '40px',
@@ -520,7 +527,7 @@ export default function SettingsPanel() {
           >
             <Toggle
               value={settings.chordAssistant}
-              onChange={(v) => updateSettings({ chordAssistant: v })}
+              onChange={(v) => settingsController.updateSettings({ chordAssistant: v })}
               accentFrom={acc.from}
               accentTo={acc.to}
             />
@@ -540,7 +547,9 @@ export default function SettingsPanel() {
               >
                 <Toggle
                   value={settings.assistantSmartSuggestions}
-                  onChange={(v) => updateSettings({ assistantSmartSuggestions: v })}
+                  onChange={(v) =>
+                    settingsController.updateSettings({ assistantSmartSuggestions: v })
+                  }
                   accentFrom={acc.from}
                   accentTo={acc.to}
                 />
@@ -552,7 +561,9 @@ export default function SettingsPanel() {
               >
                 <Toggle
                   value={settings.assistantProgressionTips}
-                  onChange={(v) => updateSettings({ assistantProgressionTips: v })}
+                  onChange={(v) =>
+                    settingsController.updateSettings({ assistantProgressionTips: v })
+                  }
                   accentFrom={acc.from}
                   accentTo={acc.to}
                 />
@@ -564,7 +575,9 @@ export default function SettingsPanel() {
               >
                 <Toggle
                   value={settings.assistantConflictDetection}
-                  onChange={(v) => updateSettings({ assistantConflictDetection: v })}
+                  onChange={(v) =>
+                    settingsController.updateSettings({ assistantConflictDetection: v })
+                  }
                   accentFrom={acc.from}
                   accentTo={acc.to}
                 />
@@ -576,7 +589,7 @@ export default function SettingsPanel() {
               >
                 <Toggle
                   value={settings.assistantLearning}
-                  onChange={(v) => updateSettings({ assistantLearning: v })}
+                  onChange={(v) => settingsController.updateSettings({ assistantLearning: v })}
                   accentFrom={acc.from}
                   accentTo={acc.to}
                 />

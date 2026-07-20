@@ -1,7 +1,23 @@
-import { useChordStore, ACCENT_COLORS, type AppKey, useT, APP_SECTIONS, useStudioPreferences } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  type AppKey,
+  useT,
+  APP_SECTIONS,
+  useStudioPreferences,
+  useSettingsStore,
+  DurationPresets,
+  EasingPresets,
+} from '@workspace/studio-core';
 import React, { useRef, useState } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, MotionValue } from 'motion/react';
-import { MOTION_DURATIONS, MOTION_EASINGS } from '@workspace/ui-shared';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  MotionValue,
+} from 'motion/react';
 
 interface DockItemProps {
   id: string;
@@ -66,7 +82,7 @@ function DockItem({
             initial={{ opacity: 0, y: 10, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.9 }}
-            transition={{ duration: MOTION_DURATIONS.fast, ease: MOTION_EASINGS.decelerate }}
+            transition={{ duration: DurationPresets.fast, ease: EasingPresets.decelerate }}
             style={{
               position: 'absolute',
               bottom: '100%',
@@ -78,7 +94,9 @@ function DockItem({
               background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(10, 10, 12, 0.85)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.12)',
+              border: isLight
+                ? '1px solid rgba(0, 0, 0, 0.08)'
+                : '1px solid rgba(255, 255, 255, 0.12)',
               color: isLight ? '#09090b' : '#ffffff',
               fontSize: '12px',
               fontWeight: 700,
@@ -111,18 +129,25 @@ function DockItem({
           cursor: 'pointer',
           outline: 'none',
           background: isActive
-            ? (isLight ? '#09090b' : '#ffffff')
+            ? isLight
+              ? '#09090b'
+              : '#ffffff'
             : isLight
               ? 'rgba(0, 0, 0, 0.05)'
               : 'rgba(255, 255, 255, 0.06)',
           color: isActive
-            ? (isLight ? '#ffffff' : '#09090b')
+            ? isLight
+              ? '#ffffff'
+              : '#09090b'
             : isLight
               ? 'rgba(0, 0, 0, 0.7)'
               : 'rgba(255, 255, 255, 0.7)',
-          boxShadow: (isActive && !reduceMotion)
-            ? (isLight ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(255, 255, 255, 0.15)')
-            : 'none',
+          boxShadow:
+            isActive && !reduceMotion
+              ? isLight
+                ? '0 4px 12px rgba(0, 0, 0, 0.15)'
+                : '0 4px 12px rgba(255, 255, 255, 0.15)'
+              : 'none',
           transformOrigin: 'bottom center',
           transition: reduceMotion
             ? 'none'
@@ -155,7 +180,7 @@ export default function WebAppSectionDock({
   activeSection: string;
   onChangeSection: (sectionId: any) => void;
 }) {
-  const settings = useChordStore(s => s.settings);
+  const settings = useSettingsStore((s) => s.settings);
   const { preferences } = useStudioPreferences();
   const t = useT();
   const vt = t.vocalex as any;
@@ -178,31 +203,51 @@ export default function WebAppSectionDock({
 
   const getSectionLabel = (labelKey: string) => {
     switch (labelKey) {
-      case 'songs': return t.nav?.songs || 'Songs';
-      case 'library': return t.nav?.library || 'Library';
-      case 'chords': return t.nav?.chords || 'Chords';
-      
-      case 'drumSongs': return t.drum?.songs || 'Beats';
-      case 'drumPatterns': return t.drum?.patterns || 'Patterns';
-      case 'drumPreferences': return t.drum?.preferences || 'Preferences';
-      
-      case 'groovexLibrary': return t.groovex?.library || 'Library';
-      case 'groovexPreferences': return t.groovex?.preferences || 'Preferences';
-      
-      case 'vocalexPitch': return vt.navPitch || 'Pitch';
-      case 'vocalexRecorder': return vt.navRecorder || 'Recorder';
-      case 'vocalexTakes': return vt.navTakes || 'Takes';
-      case 'vocalexPreferences': return vt.navPreferences || 'Preferences';
-      
-      case 'stagexStage': return t.stagex?.navStage || 'Stage';
-      case 'stagexSetup': return t.stagex?.navSetup || 'Setup';
-      case 'stagexPreferences': return t.stagex?.navPreferences || 'Preferences';
-      
-      default: return labelKey;
+      case 'songs':
+        return t.nav?.songs || 'Songs';
+      case 'library':
+        return t.nav?.library || 'Library';
+      case 'chords':
+        return t.nav?.chords || 'Chords';
+
+      case 'drumSongs':
+        return t.drum?.songs || 'Beats';
+      case 'drumPatterns':
+        return t.drum?.patterns || 'Patterns';
+      case 'drumPreferences':
+        return t.drum?.preferences || 'Preferences';
+
+      case 'groovexLibrary':
+        return t.groovex?.library || 'Library';
+      case 'groovexPreferences':
+        return t.groovex?.preferences || 'Preferences';
+
+      case 'vocalexPitch':
+        return vt.navPitch || 'Pitch';
+      case 'vocalexRecorder':
+        return vt.navRecorder || 'Recorder';
+      case 'vocalexTakes':
+        return vt.navTakes || 'Takes';
+      case 'vocalexPreferences':
+        return vt.navPreferences || 'Preferences';
+
+      case 'stagexStage':
+        return t.stagex?.navStage || 'Stage';
+      case 'stagexSetup':
+        return t.stagex?.navSetup || 'Setup';
+      case 'stagexPreferences':
+        return t.stagex?.navPreferences || 'Preferences';
+
+      default:
+        return labelKey;
     }
   };
 
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
 
   const amoledBg = activeVis.amoledMode
     ? 'rgba(4, 4, 4, 0.9)'

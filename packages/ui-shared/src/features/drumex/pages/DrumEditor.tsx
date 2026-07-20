@@ -1,5 +1,25 @@
 import { Capacitor } from '@capacitor/core';
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, setNavCollapsed, useLiquidGlassNav, DRUM_LIBRARY, LIBRARY_CATEGORIES, LIBRARY_GENRES, type LibraryCategory, type LibraryGenre, type LibraryPattern, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  useT,
+  useBackHandler,
+  useNavCollapsed,
+  setNavCollapsed,
+  useLiquidGlassNav,
+  DRUM_LIBRARY,
+  LIBRARY_CATEGORIES,
+  LIBRARY_GENRES,
+  type LibraryCategory,
+  type LibraryGenre,
+  type LibraryPattern,
+  useIsWebDesktop,
+  registerDebugProvider,
+  unregisterDebugProvider,
+  useNavigationStore,
+  NavigationDispatcher,
+  useSettingsStore,
+} from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -3002,7 +3022,7 @@ const VISIBLE_BATCH = 20;
 // â”€â”€ DrumEditor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function DrumEditor() {
   const settings = useChordStore(useShallow((s) => s.settings));
-  const updateSettings = useChordStore(useShallow((s) => s.updateSettings));
+
   const isWebDesktop = useIsWebDesktop();
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth >= 1024;
@@ -3569,7 +3589,6 @@ export default function DrumEditor() {
     const ro = new ResizeObserver((e) => update(e[0].contentRect.width));
     ro.observe(el);
     _roRef.current = ro;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // â”€â”€ Visible instruments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -3681,7 +3700,6 @@ export default function DrumEditor() {
     return () => {
       houseKitPool.onStatusChange = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kit, houseKitMic]);
 
   useEffect(() => {
@@ -4230,7 +4248,7 @@ export default function DrumEditor() {
     const el = scrollRef.current;
     if (!el) return null;
     const rect = el.getBoundingClientRect();
-    let cx = clientX - rect.left - LABEL_W + el.scrollLeft;
+    const cx = clientX - rect.left - LABEL_W + el.scrollLeft;
     const cy = clientY - rect.top + el.scrollTop;
     if (cx < 0) return null;
     const sysIdx = Math.floor(cy / sysHRef.current);
@@ -4317,7 +4335,6 @@ export default function DrumEditor() {
         drumScheduler.start(latestPat, sm, vol, masterVolume, livePrefs.loopPlayback, kit);
         setPlaying(true);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [
       kit,

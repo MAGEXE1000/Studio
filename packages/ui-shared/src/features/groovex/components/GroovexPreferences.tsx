@@ -5,6 +5,7 @@ import {
   useIsWebDesktop,
   useChordStore,
   ACCENT_COLORS,
+  useSettingsStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -76,7 +77,7 @@ export default function GroovexPreferences() {
   }
 
   const settings = useChordStore(useShallow((s) => s.settings));
-  const updateSettings = useChordStore(useShallow((s) => s.updateSettings));
+
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&
@@ -221,7 +222,9 @@ export default function GroovexPreferences() {
                   return (
                     <button
                       key={value}
-                      onClick={() => updateSettings({ defaultGroovexView: value })}
+                      onClick={() =>
+                        settingsController.updateSettings({ defaultGroovexView: value })
+                      }
                       style={{
                         width: '40px',
                         height: '40px',

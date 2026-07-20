@@ -1,6 +1,62 @@
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useChordStore, subscribeToDevTools, getLogs, clearLogs, getErrors, clearErrors, getEvents, clearEvents, getNetworkRequests, clearNetworkRequests, getPerfStats, clearPerfStats, getDebugProviders, maskSensitiveValue, APP_VERSION, getStagexDiagnostics, resetStagexDiagnostics, updateDiagnostics, updateDebugLogs, getStageIframe, getNavigationEntries, clearNavigationEntries, NavigationEntry, updaterSimulation, triggerSimulatedStatus, addJsLog, jsLogs, nativeLogs, stateTimeline, activityLifecycleTimeline, recordActivityLifecycle, simulateStatusCallback, globalUpdateState, resetAppUpdateState, resetUpdateDiagnostics, getTimelineReport, checkForUpdate, downloadUpdate, applyUpdate, deleteLocalApk, transitionHistory, rejectedTransitions, AppInstaller, APP_VERSION_LABEL, NATIVE_VERSION, transitionToState, useIsWebDesktop, useNavigationStore, useScrollHide, NavigationDispatcher, useBackHandler, PerformanceProfiler, type ProfilerMetrics, type PerformanceWarning, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  subscribeToDevTools,
+  getLogs,
+  clearLogs,
+  getErrors,
+  clearErrors,
+  getEvents,
+  clearEvents,
+  getNetworkRequests,
+  clearNetworkRequests,
+  getPerfStats,
+  clearPerfStats,
+  getDebugProviders,
+  maskSensitiveValue,
+  APP_VERSION,
+  getStagexDiagnostics,
+  resetStagexDiagnostics,
+  updateDiagnostics,
+  updateDebugLogs,
+  getStageIframe,
+  getNavigationEntries,
+  clearNavigationEntries,
+  NavigationEntry,
+  updaterSimulation,
+  triggerSimulatedStatus,
+  addJsLog,
+  jsLogs,
+  nativeLogs,
+  stateTimeline,
+  activityLifecycleTimeline,
+  recordActivityLifecycle,
+  simulateStatusCallback,
+  globalUpdateState,
+  resetAppUpdateState,
+  resetUpdateDiagnostics,
+  getTimelineReport,
+  checkForUpdate,
+  downloadUpdate,
+  applyUpdate,
+  deleteLocalApk,
+  transitionHistory,
+  rejectedTransitions,
+  AppInstaller,
+  APP_VERSION_LABEL,
+  NATIVE_VERSION,
+  transitionToState,
+  useIsWebDesktop,
+  useNavigationStore,
+  useScrollHide,
+  NavigationDispatcher,
+  useBackHandler,
+  PerformanceProfiler,
+  type ProfilerMetrics,
+  type PerformanceWarning,
+  useSettingsStore,
+} from '@workspace/studio-core';
 
 import { decodeReactError } from '../feedback/ErrorBoundary';
 import { SettingsScaffold } from '../layout/StudioLayoutSystem';
@@ -665,7 +721,7 @@ export const CopyDropdown = ({
 
 export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props) {
   const settings = useSettingsStore((state) => state.settings);
-  const updateSettings = useSettingsStore((state) => state.updateSettings);
+
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   useScrollHide(mainScrollRef);
   const chordsRoute = useNavigationStore((s) => s.history.find((r) => r.app === 'chords'));
@@ -1703,7 +1759,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   const handleCopyModuleDiagnostics = (module: string) => {
-    let dump: any = {
+    const dump: any = {
       appVersion: APP_VERSION,
       timestamp: new Date().toISOString(),
       module,
@@ -1972,7 +2028,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   const parseLogItem = (log: any) => {
-    let timestamp = new Date(log.timestamp || Date.now()).toLocaleTimeString();
+    const timestamp = new Date(log.timestamp || Date.now()).toLocaleTimeString();
     let level = log.level ? log.level.toUpperCase() : 'INFO';
     let thread = 'Main JS Thread';
     let caller = log.module || 'System';
@@ -6198,7 +6254,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         <div
                           onClick={() => {
                             const next = !settings.developerMode;
-                            updateSettings({ developerMode: next });
+                            settingsController.updateSettings({ developerMode: next });
                             showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                           }}
                           style={{
@@ -6256,7 +6312,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           <div
                             onClick={() => {
                               const next = !settings.developerMode;
-                              updateSettings({ developerMode: next });
+                              settingsController.updateSettings({ developerMode: next });
                               showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                             }}
                             style={{
@@ -6388,7 +6444,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                             <div
                               onClick={() => {
                                 const next = !settings.developerMode;
-                                updateSettings({ developerMode: next });
+                                settingsController.updateSettings({ developerMode: next });
                                 showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                               }}
                               style={{

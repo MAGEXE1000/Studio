@@ -20,6 +20,7 @@ import {
   useNavigationStore,
   NavigationDispatcher,
   type ActivePanel,
+  useSettingsStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
@@ -376,7 +377,7 @@ export default function LibraryPanel() {
   const recentChords = useChordStore(useShallow((s) => s.recentChords));
   const favorites = useChordStore(useShallow((s) => s.favorites));
   const settings = useChordStore(useShallow((s) => s.settings));
-  const updateSettings = useChordStore(useShallow((s) => s.updateSettings));
+
   const toggleFavorite = useChordStore(useShallow((s) => s.toggleFavorite));
   const addToProgression = useChordStore(useShallow((s) => s.addToProgression));
   const activeType = useChordStore(useShallow((s) => s.libraryActiveType));
@@ -743,7 +744,7 @@ export default function LibraryPanel() {
                   <button
                     key={t.value}
                     onClick={() => {
-                      updateSettings({ tuning: t.value });
+                      settingsController.updateSettings({ tuning: t.value });
                       setShowTuningMenu(false);
                     }}
                     className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex justify-between items-center transition-all ${isCurrent ? 'bg-zinc-800 text-white font-bold' : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-white'}`}

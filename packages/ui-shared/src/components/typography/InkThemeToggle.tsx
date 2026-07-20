@@ -1,16 +1,25 @@
 import React, { useRef, useCallback } from 'react';
-import { useChordStore, ThemeTransitionEngine } from '@workspace/studio-core';
+import { useChordStore, ThemeTransitionEngine, useSettingsStore } from '@workspace/studio-core';
 
-export default function InkThemeToggle({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  const settings = useChordStore(s => s.settings);
-  const updateSettings = useChordStore(s => s.updateSettings);
+export default function InkThemeToggle({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const settings = useSettingsStore((s) => s.settings);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isTransitioningRef = useRef(false);
 
   // Resolve current active theme mode
   const currentTheme = settings.theme ?? 'dark';
-  const isLight = currentTheme === 'light' || (currentTheme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const isLight =
+    currentTheme === 'light' ||
+    (currentTheme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
 
   const handleToggle = useCallback(async () => {
     if (isTransitioningRef.current || !buttonRef.current) return;
@@ -24,7 +33,7 @@ export default function InkThemeToggle({ className, style }: { className?: strin
 
     if (typeof (window as any).__triggerThemeTransition === 'function') {
       (window as any).__triggerThemeTransition(nextTheme, false, startX, startY, () => {
-        updateSettings({
+        settingsController.updateSettings({
           theme: nextTheme,
           amoledMode: false,
         });
@@ -37,12 +46,12 @@ export default function InkThemeToggle({ className, style }: { className?: strin
         startX,
         startY,
         updateFn: () => {
-          updateSettings({
+          settingsController.updateSettings({
             theme: nextTheme,
             amoledMode: false,
           });
           isTransitioningRef.current = false;
-        }
+        },
       });
     }
   }, [isLight, updateSettings]);

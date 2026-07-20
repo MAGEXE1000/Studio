@@ -1,4 +1,12 @@
-import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useNavigationStore, NavigationDispatcher, useLiquidGlassNav, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  useIsWebDesktop,
+  useNavigationStore,
+  NavigationDispatcher,
+  useLiquidGlassNav,
+  useSettingsStore,
+} from '@workspace/studio-core';
 /**
  * AppModeMenuLogo — app switcher pill in every panel header.
  *
@@ -26,7 +34,7 @@ export function AppModeMenuLogo({ color, size = 14 }: { color?: string; size?: n
   const isWebDesktop = useIsWebDesktop();
 
   const settings = useSettingsStore((s) => s.settings);
-  const updateSettings = useSettingsStore((s) => s.updateSettings);
+
   const [open, setOpen] = useState(false);
   const [anchorY, setAnchorY] = useState<number>(0);
   const [maxPillWidth, setMaxPillWidth] = useState(360);

@@ -1,5 +1,66 @@
 import { Capacitor } from '@capacitor/core';
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
+import {
+  useBackHandler,
+  subscribeAuth,
+  signOut,
+  type AuthUser,
+  subscribeSyncStatus,
+  type SyncStatus,
+  deviceId,
+  getConflictLogs,
+  clearConflictLogs,
+  createCloudBackup,
+  getSyncDiagnostics,
+  pushLocalSettingsToCloud,
+  pullCloudSettingsFromCloud,
+  registerDevice,
+  registerCurrentDevice,
+  reconnectDevices,
+  useChordStore,
+  ACCENT_COLORS,
+  type AnimationSpeed,
+  type DisplayDensity,
+  type AppKey,
+  type PerAppVisuals,
+  useNavHidden,
+  useNavCollapsed,
+  useScrollHide,
+  useT,
+  APP_VERSION_LABEL,
+  APP_VERSION_TAG,
+  APP_VERSION_DATE,
+  compareSemver,
+  APP_VERSION,
+  getChangelogSections,
+  useAppUpdate,
+  updateDebugLogs,
+  updateDiagnostics,
+  checkForUpdate,
+  resetAppUpdateState,
+  isAppInstallerAvailable,
+  applyUpdate,
+  fadeToBlackAndReload,
+  resolveApkUrl,
+  downloadAndInstallApk,
+  resolveReleasePageUrl,
+  useLiquidGlassNav,
+  useIsWebDesktop,
+  useStudioPreferences,
+  registerDebugProvider,
+  unregisterDebugProvider,
+  recordNavigation,
+  getFirestoreDiagnostics,
+  getNavigationEntries,
+  resetNav,
+  useNavigationStore,
+  NavigationDispatcher,
+  useBottomNavigationStore,
+  useNotificationService,
+  useSettingsStore,
+  DurationPresets,
+  EasingPresets,
+  SpringPresets,
+} from '@workspace/studio-core';
 import {
   getUpdateHistory,
   StartupCoordinator,
@@ -382,7 +443,7 @@ function useStartupComplete() {
 
 export default function StudioHub() {
   const settings = useSettingsStore((state) => state.settings);
-  const updateSettings = useSettingsStore((state) => state.updateSettings);
+
   const startupComplete = useStartupComplete();
   const unreadCount = useNotificationService(
     (s) => s.notifications.filter((n) => !n.read && !n.dismissed).length
@@ -711,7 +772,7 @@ export default function StudioHub() {
       showDevToast(`${remaining} tap${remaining > 1 ? 's' : ''} remaining...`);
     } else if (remaining === 0) {
       devTapsRef.current = 0;
-      updateSettings({ developerMode: true });
+      settingsController.updateSettings({ developerMode: true });
       showDevToast('Developer Options unlocked.');
     }
   };
@@ -819,7 +880,6 @@ export default function StudioHub() {
     (window as any).studioTransitionActive = true;
     setZooming(true);
     NavigationDispatcher.push({ app: appMode });
-    
 
     // Clear any pending launch timers
     launchTimers.current.forEach(clearTimeout);
@@ -838,12 +898,10 @@ export default function StudioHub() {
     }, 340);
     launchTimers.current.push(t2);
     // updateSettings is stable (Zustand action), setZooming is React setState
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     return () => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       launchTimers.current.forEach(clearTimeout);
     };
   }, []);
@@ -1864,7 +1922,7 @@ export default function StudioHub() {
                                         onClick={() => {
                                           setSearchOpen(false);
                                           setSearchQuery('');
-                                          syncNow?.();
+                                          syncController.syncNow?.();
                                         }}
                                         style={{
                                           display: 'flex',
@@ -4602,9 +4660,10 @@ function HubSettings({
   function requestChange(patch: Partial<PerAppVisuals>) {
     const ALL_APPS: AppKey[] = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
     updatePerApp(ALL_APPS, patch);
-    if (patch.theme) updateSettings({ theme: patch.theme });
-    if (patch.accentColor) updateSettings({ accentColor: patch.accentColor });
-    if (patch.amoledMode !== undefined) updateSettings({ amoledMode: patch.amoledMode });
+    if (patch.theme) settingsController.updateSettings({ theme: patch.theme });
+    if (patch.accentColor) settingsController.updateSettings({ accentColor: patch.accentColor });
+    if (patch.amoledMode !== undefined)
+      settingsController.updateSettings({ amoledMode: patch.amoledMode });
   }
 
   // Scroll-position memory per sub-page. Without this, navigating
@@ -5808,7 +5867,7 @@ User Agent: [Automatically Generated]
                 { value: 'exit-to-hub', label: t.settings.rows.swipeBackExit || 'Swipe to Hub' },
                 { value: 'manual-only', label: t.settings.rows.swipeBackManual || 'Manual Only' },
               ]}
-              onChange={(v) => updateSettings({ swipeBackBehavior: v })}
+              onChange={(v) => settingsController.updateSettings({ swipeBackBehavior: v })}
               accentFrom={accent.from}
               accentTo={accent.to}
             />
@@ -5838,7 +5897,7 @@ User Agent: [Automatically Generated]
           <SettingRow label={t.settings.rows.haptic} desc={t.settings.rows.hapticDesc}>
             <Toggle
               value={settings.hapticFeedback}
-              onChange={(v) => updateSettings({ hapticFeedback: v })}
+              onChange={(v) => settingsController.updateSettings({ hapticFeedback: v })}
               accentFrom={accent.from}
               accentTo={accent.to}
             />
@@ -5846,7 +5905,7 @@ User Agent: [Automatically Generated]
           <SettingRow label={sSets.highRefresh} desc={sSets.highRefreshDesc}>
             <Toggle
               value={settings.highRefreshRate}
-              onChange={(v) => updateSettings({ highRefreshRate: v })}
+              onChange={(v) => settingsController.updateSettings({ highRefreshRate: v })}
               accentFrom={accent.from}
               accentTo={accent.to}
             />
@@ -5854,7 +5913,7 @@ User Agent: [Automatically Generated]
           <SettingRow label={sSets.lowLatency} desc={sSets.lowLatencyDesc}>
             <Toggle
               value={settings.lowLatencyMode}
-              onChange={(v) => updateSettings({ lowLatencyMode: v })}
+              onChange={(v) => settingsController.updateSettings({ lowLatencyMode: v })}
               accentFrom={accent.from}
               accentTo={accent.to}
             />
@@ -5862,7 +5921,7 @@ User Agent: [Automatically Generated]
           <SettingRow label={sSets.performanceMode} desc={sSets.performanceModeDesc}>
             <Toggle
               value={settings.performanceMode}
-              onChange={(v) => updateSettings({ performanceMode: v })}
+              onChange={(v) => settingsController.updateSettings({ performanceMode: v })}
               accentFrom={accent.from}
               accentTo={accent.to}
             />
@@ -6183,7 +6242,7 @@ User Agent: [Automatically Generated]
                   value={hue}
                   onChange={(e) => {
                     requestChange({ accentColor: 'custom' });
-                    updateSettings({ customAccentHue: Number(e.target.value) });
+                    settingsController.updateSettings({ customAccentHue: Number(e.target.value) });
                   }}
                   style={{
                     width: '100%',
@@ -6227,7 +6286,9 @@ User Agent: [Automatically Generated]
                 return (
                   <button
                     key={opt.id}
-                    onClick={() => updateSettings({ displayDensity: opt.id as any })}
+                    onClick={() =>
+                      settingsController.updateSettings({ displayDensity: opt.id as any })
+                    }
                     style={{
                       flex: 1,
                       padding: '10px 4px',
@@ -6274,7 +6335,7 @@ User Agent: [Automatically Generated]
                 return (
                   <button
                     key={opt.id}
-                    onClick={() => updateSettings({ fontSize: opt.id as any })}
+                    onClick={() => settingsController.updateSettings({ fontSize: opt.id as any })}
                     style={{
                       flex: 1,
                       padding: '10px 4px',
@@ -6385,7 +6446,7 @@ User Agent: [Automatically Generated]
               <motion.button
                 key={opt.code}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => updateSettings({ language: opt.code as any })}
+                onClick={() => settingsController.updateSettings({ language: opt.code as any })}
                 style={{
                   position: 'relative',
                   display: 'flex',
@@ -6569,7 +6630,7 @@ User Agent: [Automatically Generated]
         }
       } else if (actionId === 'sync_now') {
         try {
-          await syncNow();
+          await syncController.syncNow();
         } catch (err) {
           console.error('Failed to sync now:', err);
         }
@@ -7319,7 +7380,7 @@ User Agent: [Automatically Generated]
       const handleResetDeveloperAction = () => {
         if (!window.confirm('Disable developer mode and hide this menu?')) return;
         wrapAction('reset-developer', () => {
-          updateSettings({ developerMode: false });
+          settingsController.updateSettings({ developerMode: false });
           goBack();
           showDevToast('Developer options disabled.');
         });
@@ -7402,7 +7463,7 @@ User Agent: [Automatically Generated]
 
       const handleForceSyncNow = () => {
         wrapAction('force-sync', async () => {
-          await syncNow();
+          await syncController.syncNow();
           showDevToast('Force sync completed.');
         });
       };

@@ -1,4 +1,17 @@
-import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  useT,
+  subscribeAuth,
+  signOut,
+  type AuthUser,
+  useAppUpdate,
+  APP_VERSION_LABEL,
+  useStudioPreferences,
+  useNavigationStore,
+  NavigationDispatcher,
+  useSettingsStore,
+} from '@workspace/studio-core';
 import {
   StudioLogo,
   ChordexLogo,
@@ -46,7 +59,7 @@ function SidebarLabel({ children, open }: { children: React.ReactNode; open: boo
 
 export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSidebar: boolean }) {
   const settings = useSettingsStore((s) => s.settings);
-  const updateSettings = useSettingsStore((s) => s.updateSettings);
+
   const { open, toggleSidebar } = useSidebar();
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;
@@ -248,10 +261,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                 onClick={() => handleGoToHub('home')}
                 tooltip="Hub Home"
               >
-                <div
-                  className="flex-shrink-0"
-                  style={{ opacity: currentApp === 'hub' ? 1 : 0.65 }}
-                >
+                <div className="flex-shrink-0" style={{ opacity: currentApp === 'hub' ? 1 : 0.65 }}>
                   <span
                     className="material-symbols-outlined"
                     style={{ fontSize: 20, display: 'block' }}
@@ -263,7 +273,6 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-
             {REGISTERED_APPS.map((app) => (
               <SidebarMenuItem key={app.id}>
                 <SidebarMenuButton
@@ -274,12 +283,22 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                   <div className="flex-shrink-0">
                     {(() => {
                       switch (app.id) {
-                        case 'chords': return <ChordexLogo size={20} />;
-                        case 'drums': return <DrumexLogo size={20} />;
-                        case 'stage': return <StagexLogoIcon size={20} />;
-                        case 'groovex': return <GroovexLogo size={20} />;
-                        case 'vocalex': return <VocalexLogo size={20} />;
-                        default: return <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{app.icon}</span>;
+                        case 'chords':
+                          return <ChordexLogo size={20} />;
+                        case 'drums':
+                          return <DrumexLogo size={20} />;
+                        case 'stage':
+                          return <StagexLogoIcon size={20} />;
+                        case 'groovex':
+                          return <GroovexLogo size={20} />;
+                        case 'vocalex':
+                          return <VocalexLogo size={20} />;
+                        default:
+                          return (
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                              {app.icon}
+                            </span>
+                          );
                       }
                     })()}
                   </div>

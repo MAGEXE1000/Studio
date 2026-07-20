@@ -29,7 +29,7 @@ export function logDiagnosticEvent(event: string, details?: any) {
   try {
     const chordStore = useChordStore.getState();
     if (chordStore && chordStore.settings) {
-      currentScreen = chordStore.settings.appMode || 'hub';
+      currentScreen = NavigationDispatcher.currentApp();
     }
   } catch (_) {}
 
@@ -38,7 +38,6 @@ export function logDiagnosticEvent(event: string, details?: any) {
 
   const logMsg = `[DIAGNOSTIC] [${timestamp}] Event: ${event} | SessionID: ${sessionId} | InstallState: ${installState} | NavState: ${navState} | ActivityState: ${activityState} | MountedScreen: ${currentScreen} | VisibleModal: ${visibleModal} | PackageInstallerStatus: ${installerStatus} | Details: ${details ? JSON.stringify(details) : ''}`;
   console.log(logMsg);
-  
 }
 
 if (typeof window !== 'undefined') {
@@ -59,9 +58,9 @@ export function logDetailedJsTrace(
   }
 ) {
   const timestamp = Date.now();
-  const thread = "Main JS Thread";
-  let stackTrace = "N/A";
-  let caller = "Unknown";
+  const thread = 'Main JS Thread';
+  let stackTrace = 'N/A';
+  let caller = 'Unknown';
   try {
     const err = new Error();
     if (err.stack) {
@@ -82,13 +81,20 @@ export function logDetailedJsTrace(
     line,
     stackTrace,
     durationMs: extra?.durationMs ?? null,
-    sessionId: extra?.sessionId ?? globalUpdateState.sessionId ?? localStorage.getItem('studio:installer_session_id') ?? 'N/A',
+    sessionId:
+      extra?.sessionId ??
+      globalUpdateState.sessionId ??
+      localStorage.getItem('studio:installer_session_id') ??
+      'N/A',
     prevState: extra?.prevState ?? globalUpdateState.updateState,
     nextState: extra?.nextState ?? null,
     reason: extra?.reason ?? null,
-    details
+    details,
   };
 
   console.log(`[INSTRUMENTATION] [JS_TRACE] ${JSON.stringify(logObj, null, 2)}`);
-  void logProgressStage(`[JS_TRACE] ${functionName}`, `${details} | State: ${globalUpdateState.updateState}`);
+  void logProgressStage(
+    `[JS_TRACE] ${functionName}`,
+    `${details} | State: ${globalUpdateState.updateState}`
+  );
 }

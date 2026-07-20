@@ -1,13 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'motion/react';
-import {
-  useNavScrollOffset,
-  useChordStore,
-  useNavigationStore,
-  NavigationDispatcher,
-  useBottomNavigationStore,
-  SpringPresets,
-} from '@workspace/studio-core';
+import { useNavScrollOffset, useChordStore, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, SpringPresets, useSettingsStore } from '@workspace/studio-core';
 import {
   StudioLogo,
   ChordexLogo,
@@ -183,7 +176,7 @@ export function SharedNavigationBar({
 
   const handleAppSwitch = (appKey: string) => {
     NavigationDispatcher.push({ app: appKey as any });
-    useChordStore.getState().updateSettings({ appMode: appKey as any });
+    
     setIsSwitcherOpen(false);
   };
 

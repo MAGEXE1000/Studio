@@ -1,8 +1,27 @@
-import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
-import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from '@workspace/ui-shared';
+import { useChordStore, ACCENT_COLORS, useT, subscribeAuth, signOut, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher, useSettingsStore } from '@workspace/studio-core';
+import {
+  StudioLogo,
+  ChordexLogo,
+  DrumexLogo,
+  StagexLogoIcon,
+  GroovexLogo,
+  VocalexLogo,
+} from '@workspace/ui-shared';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useSidebar, Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarRail } from './StudioSidebar';
+import {
+  useSidebar,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarRail,
+} from './StudioSidebar';
 
 function SidebarLabel({ children, open }: { children: React.ReactNode; open: boolean }) {
   const { preferences } = useStudioPreferences();
@@ -10,11 +29,11 @@ function SidebarLabel({ children, open }: { children: React.ReactNode; open: boo
   return (
     <motion.span
       initial={false}
-      animate={{ 
-        opacity: open ? 1 : 0, 
+      animate={{
+        opacity: open ? 1 : 0,
         x: open ? 0 : -8,
         width: open ? 'auto' : 0,
-        marginLeft: open ? 0 : -12
+        marginLeft: open ? 0 : -12,
       }}
       transition={isReduced ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
       className="truncate"
@@ -26,8 +45,8 @@ function SidebarLabel({ children, open }: { children: React.ReactNode; open: boo
 }
 
 export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSidebar: boolean }) {
-  const settings = useChordStore(s => s.settings);
-  const updateSettings = useChordStore(s => s.updateSettings);
+  const settings = useSettingsStore((s) => s.settings);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
   const { open, toggleSidebar } = useSidebar();
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;
@@ -35,7 +54,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
   const updater = useAppUpdate();
 
   const handleToggleSidebar = () => {
-    if (settings.appMode !== 'hub' && settings.autoHideSidebarInApps) {
+    if (currentApp !== 'hub' && settings.autoHideSidebarInApps) {
       window.dispatchEvent(new CustomEvent('studio:hide-sidebar-temp'));
     } else {
       toggleSidebar();
@@ -86,13 +105,13 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     };
     window.addEventListener('studio:hub-tab-active', onHubTabActive);
     window.addEventListener('studio:settings-page-active', onSettingsPageActive);
-    
+
     // Also read initial routing/page if set in session
     const savedPage = sessionStorage.getItem('studio:routeToSettingsPage');
     if (savedPage) {
       setActiveSettingsPage(savedPage);
     }
-    
+
     return () => {
       window.removeEventListener('studio:hub-tab-active', onHubTabActive);
       window.removeEventListener('studio:settings-page-active', onSettingsPageActive);
@@ -131,8 +150,6 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     };
   }, [authUser?.uid]);
 
-
-
   // Click outside to close profile popover menu
   useEffect(() => {
     if (!showProfileMenu) return;
@@ -148,7 +165,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
   }, [showProfileMenu]);
 
   // Determine active accent color
-  const activeVis = settings.perApp?.[settings.appMode ?? 'hub'] ?? {
+  const activeVis = settings.perApp?.[currentApp ?? 'hub'] ?? {
     theme: settings.theme ?? 'dark',
     accentColor: settings.accentColor ?? 'blue',
     amoledMode: settings.amoledMode ?? false,
@@ -157,7 +174,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
 
   // Navigation handlers
   const handleGoToHub = (tab: 'home' | 'settings' | 'profile' | 'help') => {
-    updateSettings({ appMode: 'hub' });
+    NavigationDispatcher.closeApp();
     window.dispatchEvent(new CustomEvent('studio:set-hub-tab', { detail: tab }));
     if (tab === 'settings') {
       sessionStorage.setItem('studio:routeToSettingsPage', 'main');
@@ -166,21 +183,19 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
   };
 
   const handleGoToSettingsPage = (page: string) => {
-    updateSettings({ appMode: 'hub' });
+    NavigationDispatcher.closeApp();
     window.dispatchEvent(new CustomEvent('studio:set-hub-tab', { detail: 'settings' }));
     sessionStorage.setItem('studio:routeToSettingsPage', page);
     window.dispatchEvent(new CustomEvent('studio:update-settings-page', { detail: page }));
   };
 
   const handleLaunchApp = (app: 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex') => {
-    updateSettings({ appMode: app });
+    NavigationDispatcher.openApp(app);
   };
 
   const handleSetChordexPanel = (panel: 'songs' | 'library' | 'chord') => {
     NavigationDispatcher.push({ app: 'chords', page: panel });
   };
-
-
 
   // User details
   const name = authUser?.displayName || authUser?.email || '';
@@ -194,13 +209,14 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     '--studio-accent-to': accent.to,
   } as React.CSSProperties;
 
-
-
   return (
     <Sidebar shouldHideSidebar={shouldHideSidebar} style={accentVars}>
       {/* Header */}
       <SidebarHeader>
-        <div className="flex items-center gap-3 overflow-hidden cursor-pointer text-[var(--c-text-primary)]" onClick={() => handleGoToHub('home')}>
+        <div
+          className="flex items-center gap-3 overflow-hidden cursor-pointer text-[var(--c-text-primary)]"
+          onClick={() => handleGoToHub('home')}
+        >
           <div className="flex-shrink-0">
             <StudioLogo size={28} />
           </div>
@@ -209,7 +225,11 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
             animate={{ opacity: open ? 1 : 0, x: open ? 0 : -8 }}
             transition={isReduced ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
             className="font-extrabold text-base tracking-tight text-[var(--c-text-primary)]"
-            style={{ fontFamily: 'Manrope, sans-serif', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}
+            style={{
+              fontFamily: 'Manrope, sans-serif',
+              letterSpacing: '-0.02em',
+              whiteSpace: 'nowrap',
+            }}
           >
             Studio
           </motion.span>
@@ -224,84 +244,51 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                active={settings.appMode === 'hub'}
+                active={currentApp === 'hub'}
                 onClick={() => handleGoToHub('home')}
                 tooltip="Hub Home"
               >
-                <div className="flex-shrink-0" style={{ opacity: settings.appMode === 'hub' ? 1 : 0.65 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 20, display: 'block' }}>home</span>
+                <div
+                  className="flex-shrink-0"
+                  style={{ opacity: currentApp === 'hub' ? 1 : 0.65 }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 20, display: 'block' }}
+                  >
+                    home
+                  </span>
                 </div>
                 <SidebarLabel open={open}>Studio Hub</SidebarLabel>
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                active={settings.appMode === 'chords'}
-                onClick={() => handleLaunchApp('chords')}
-                tooltip="Chordex"
-              >
-                <div className="flex-shrink-0">
-                  <ChordexLogo size={20} />
-                </div>
-                <SidebarLabel open={open}>Chordex</SidebarLabel>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                active={settings.appMode === 'drums'}
-                onClick={() => handleLaunchApp('drums')}
-                tooltip="Drumex"
-              >
-                <div className="flex-shrink-0">
-                  <DrumexLogo size={20} />
-                </div>
-                <SidebarLabel open={open}>Drumex</SidebarLabel>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                active={settings.appMode === 'stage'}
-                onClick={() => handleLaunchApp('stage')}
-                tooltip="Stagex"
-              >
-                <div className="flex-shrink-0">
-                  <StagexLogoIcon size={20} />
-                </div>
-                <SidebarLabel open={open}>Stagex</SidebarLabel>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                active={settings.appMode === 'groovex'}
-                onClick={() => handleLaunchApp('groovex')}
-                tooltip="Groovex"
-              >
-                <div className="flex-shrink-0">
-                  <GroovexLogo size={20} />
-                </div>
-                <SidebarLabel open={open}>Groovex</SidebarLabel>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                active={settings.appMode === 'vocalex'}
-                onClick={() => handleLaunchApp('vocalex')}
-                tooltip="Vocalex"
-              >
-                <div className="flex-shrink-0">
-                  <VocalexLogo size={20} />
-                </div>
-                <SidebarLabel open={open}>Vocalex</SidebarLabel>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {REGISTERED_APPS.map((app) => (
+              <SidebarMenuItem key={app.id}>
+                <SidebarMenuButton
+                  active={currentApp === app.id}
+                  onClick={() => handleLaunchApp(app.id as any)}
+                  tooltip={app.labelKey}
+                >
+                  <div className="flex-shrink-0">
+                    {(() => {
+                      switch (app.id) {
+                        case 'chords': return <ChordexLogo size={20} />;
+                        case 'drums': return <DrumexLogo size={20} />;
+                        case 'stage': return <StagexLogoIcon size={20} />;
+                        case 'groovex': return <GroovexLogo size={20} />;
+                        case 'vocalex': return <VocalexLogo size={20} />;
+                        default: return <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{app.icon}</span>;
+                      }
+                    })()}
+                  </div>
+                  <SidebarLabel open={open}>{app.labelKey}</SidebarLabel>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
-
       </SidebarContent>
 
       {/* Footer */}
@@ -322,7 +309,9 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    background: photo ? 'transparent' : 'var(--profile-avatar-bg, rgba(255, 255, 255, 0.08))',
+                    background: photo
+                      ? 'transparent'
+                      : 'var(--profile-avatar-bg, rgba(255, 255, 255, 0.08))',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -334,43 +323,66 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                   }}
                 >
                   {photo ? (
-                    <img src={photo} alt="" referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img
+                      src={photo}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   ) : authUser ? (
                     <span>{initial}</span>
                   ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--profile-avatar-color, var(--c-text-primary))' }}>account_circle</span>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: 20,
+                        color: 'var(--profile-avatar-color, var(--c-text-primary))',
+                      }}
+                    >
+                      account_circle
+                    </span>
                   )}
                 </div>
 
                 <motion.div
                   initial={false}
-                  animate={{ 
-                    opacity: open ? 1 : 0, 
+                  animate={{
+                    opacity: open ? 1 : 0,
                     x: open ? 0 : -8,
                     width: open ? 'auto' : 0,
-                    marginLeft: open ? 0 : -10
+                    marginLeft: open ? 0 : -10,
                   }}
                   transition={isReduced ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
                   className="flex-1 min-w-0"
-                  style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   <span
                     className="truncate font-bold text-xs text-[var(--c-text-primary)]"
                     style={{ fontFamily: 'Manrope, sans-serif' }}
                   >
-                    {authUser ? (authUser.displayName || 'Studio User') : 'Guest User'}
+                    {authUser ? authUser.displayName || 'Studio User' : 'Guest User'}
                   </span>
                   <span className="truncate text-[10px] text-[var(--c-text-secondary)] font-medium">
                     {authUser ? email : 'Not signed in'}
                   </span>
                 </motion.div>
 
-                <motion.span 
+                <motion.span
                   initial={false}
                   animate={{ opacity: open ? 0.7 : 0, scale: open ? 1 : 0.8 }}
                   transition={isReduced ? { duration: 0 } : { duration: 0.15 }}
-                  className="material-symbols-outlined" 
-                  style={{ fontSize: 16, color: 'var(--c-text-secondary)', marginLeft: 'auto', flexShrink: 0 }}
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: 16,
+                    color: 'var(--c-text-secondary)',
+                    marginLeft: 'auto',
+                    flexShrink: 0,
+                  }}
                 >
                   more_vert
                 </motion.span>
@@ -403,73 +415,141 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                     }}
                   >
                     {/* User info header */}
-                    <div style={{ padding: '8px 10px 10px', borderBottom: '1px solid rgba(128,128,128,0.08)', marginBottom: '6px' }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }} className="truncate">
-                        {authUser ? (authUser.displayName || 'Studio User') : 'Guest User'}
+                    <div
+                      style={{
+                        padding: '8px 10px 10px',
+                        borderBottom: '1px solid rgba(128,128,128,0.08)',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: 'var(--c-text-primary)',
+                          fontFamily: 'Manrope',
+                        }}
+                        className="truncate"
+                      >
+                        {authUser ? authUser.displayName || 'Studio User' : 'Guest User'}
                       </p>
-                      <p style={{ margin: '2px 0 0', fontSize: 10.5, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }} className="truncate">
+                      <p
+                        style={{
+                          margin: '2px 0 0',
+                          fontSize: 10.5,
+                          color: 'var(--c-text-secondary)',
+                          fontFamily: 'Inter',
+                        }}
+                        className="truncate"
+                      >
                         {authUser ? email : 'Not signed in'}
                       </p>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <button
-                        onClick={() => { handleGoToSettingsPage('profile'); setShowProfileMenu(false); }}
+                        onClick={() => {
+                          handleGoToSettingsPage('profile');
+                          setShowProfileMenu(false);
+                        }}
                         style={profileMenuBtnStyle}
                         className="btn-smooth hover:bg-[var(--sidebar-hover-bg)]"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>person</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          person
+                        </span>
                         <span>Profile</span>
                       </button>
 
                       <button
-                        onClick={() => { handleGoToSettingsPage('general'); setShowProfileMenu(false); }}
+                        onClick={() => {
+                          handleGoToSettingsPage('general');
+                          setShowProfileMenu(false);
+                        }}
                         style={profileMenuBtnStyle}
                         className="btn-smooth hover:bg-[var(--sidebar-hover-bg)]"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>settings</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          settings
+                        </span>
                         <span>Settings</span>
                       </button>
 
                       <button
-                        onClick={() => { handleGoToSettingsPage('release-notes'); setShowProfileMenu(false); }}
+                        onClick={() => {
+                          handleGoToSettingsPage('release-notes');
+                          setShowProfileMenu(false);
+                        }}
                         style={profileMenuBtnStyle}
                         className="btn-smooth hover:bg-[var(--sidebar-hover-bg)]"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>article</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          article
+                        </span>
                         <span>Release Notes</span>
                       </button>
 
                       <button
-                        onClick={() => { handleGoToHub('help'); setShowProfileMenu(false); }}
+                        onClick={() => {
+                          handleGoToHub('help');
+                          setShowProfileMenu(false);
+                        }}
                         style={profileMenuBtnStyle}
                         className="btn-smooth hover:bg-[var(--sidebar-hover-bg)]"
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>help</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                          help
+                        </span>
                         <span>Help & Support</span>
                       </button>
 
                       {authUser ? (
                         <>
-                          <div style={{ height: 1, background: 'rgba(128,128,128,0.08)', margin: '4px 0' }} />
+                          <div
+                            style={{
+                              height: 1,
+                              background: 'rgba(128,128,128,0.08)',
+                              margin: '4px 0',
+                            }}
+                          />
                           <button
-                            onClick={() => { signOut(); setShowProfileMenu(false); }}
+                            onClick={() => {
+                              signOut();
+                              setShowProfileMenu(false);
+                            }}
                             style={{ ...profileMenuBtnStyle, color: '#ef4444' }}
                             className="btn-smooth hover:bg-[rgba(239,68,68,0.08)]"
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#ef4444' }}>logout</span>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ fontSize: 16, color: '#ef4444' }}
+                            >
+                              logout
+                            </span>
                             <span>Log out</span>
                           </button>
                         </>
                       ) : (
                         <>
-                          <div style={{ height: 1, background: 'rgba(128,128,128,0.08)', margin: '4px 0' }} />
+                          <div
+                            style={{
+                              height: 1,
+                              background: 'rgba(128,128,128,0.08)',
+                              margin: '4px 0',
+                            }}
+                          />
                           <button
-                            onClick={() => { handleGoToSettingsPage('profile'); setShowProfileMenu(false); }}
+                            onClick={() => {
+                              handleGoToSettingsPage('profile');
+                              setShowProfileMenu(false);
+                            }}
                             style={profileMenuBtnStyle}
                             className="btn-smooth hover:bg-[var(--sidebar-hover-bg)]"
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>login</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                              login
+                            </span>
                             <span>Sign in</span>
                           </button>
                         </>

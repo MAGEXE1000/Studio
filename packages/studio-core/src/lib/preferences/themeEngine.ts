@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { syncStatusBar } from '../platform/useStatusBar';
-import { ACCENT_COLORS } from '../../store/useChordStore';
+import { ACCENT_COLORS } from '../../store/useSettingsStore';;
 
 export interface ThemeConfig {
   theme: 'light' | 'dark' | 'system' | 'dynamic';
@@ -17,7 +17,7 @@ export interface ThemeConfig {
 export function applyThemeTokens(settings: any) {
   if (typeof document === 'undefined') return;
 
-  const appMode = settings.appMode || 'hub';
+  const appMode = NavigationDispatcher.currentApp();
   const activeVis = settings.perApp?.[appMode] ?? {
     theme: settings.theme ?? 'dark',
     accentColor: settings.accentColor ?? 'blue',
@@ -27,7 +27,8 @@ export function applyThemeTokens(settings: any) {
   const root = document.documentElement;
 
   // 1. Resolve Light/Dark Mode
-  const systemIsLight = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const systemIsLight =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
   let isLightMode = false;
   const theme = activeVis.theme;
   if (theme === 'light') {
@@ -58,36 +59,12 @@ export function applyThemeTokens(settings: any) {
 
   // 2. Color Tokens
   // Backgrounds
-  const bg = isLightMode
-    ? '#f4f4f5'
-    : activeVis.amoledMode
-      ? '#000000'
-      : '#09090b';
-  const lowest = isLightMode
-    ? '#e4e4e7'
-    : activeVis.amoledMode
-      ? '#000000'
-      : '#0e0e11';
-  const low = isLightMode
-    ? '#ececed'
-    : activeVis.amoledMode
-      ? '#030303'
-      : '#131316';
-  const mid = isLightMode
-    ? '#f4f4f5'
-    : activeVis.amoledMode
-      ? '#080808'
-      : '#191a1e';
-  const high = isLightMode
-    ? '#fafafa'
-    : activeVis.amoledMode
-      ? '#0d0d0d'
-      : '#1f2025';
-  const highest = isLightMode
-    ? '#ffffff'
-    : activeVis.amoledMode
-      ? '#121212'
-      : '#25262c';
+  const bg = isLightMode ? '#f4f4f5' : activeVis.amoledMode ? '#000000' : '#09090b';
+  const lowest = isLightMode ? '#e4e4e7' : activeVis.amoledMode ? '#000000' : '#0e0e11';
+  const low = isLightMode ? '#ececed' : activeVis.amoledMode ? '#030303' : '#131316';
+  const mid = isLightMode ? '#f4f4f5' : activeVis.amoledMode ? '#080808' : '#191a1e';
+  const high = isLightMode ? '#fafafa' : activeVis.amoledMode ? '#0d0d0d' : '#1f2025';
+  const highest = isLightMode ? '#ffffff' : activeVis.amoledMode ? '#121212' : '#25262c';
 
   root.style.setProperty('--c-background', bg);
   root.style.setProperty('--c-surface-lowest', lowest);
@@ -98,14 +75,20 @@ export function applyThemeTokens(settings: any) {
 
   // Borders
   const border = isLightMode ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-  const borderDashed = isLightMode ? '1px dashed rgba(0, 0, 0, 0.16)' : '1px dashed rgba(255, 255, 255, 0.16)';
+  const borderDashed = isLightMode
+    ? '1px dashed rgba(0, 0, 0, 0.16)'
+    : '1px dashed rgba(255, 255, 255, 0.16)';
   root.style.setProperty('--c-border', border);
   root.style.setProperty('--c-border-dashed', borderDashed);
 
   // Glassmorphism overlays
   const glassBg = isLightMode
-    ? (activeVis.amoledMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.40)')
-    : (activeVis.amoledMode ? 'rgba(4, 4, 4, 0.88)' : 'rgba(26, 26, 30, 0.72)');
+    ? activeVis.amoledMode
+      ? 'rgba(255, 255, 255, 0.92)'
+      : 'rgba(255, 255, 255, 0.40)'
+    : activeVis.amoledMode
+      ? 'rgba(4, 4, 4, 0.88)'
+      : 'rgba(26, 26, 30, 0.72)';
   const glassBlur = 'blur(16px)';
   root.style.setProperty('--c-surface-glass-bg', glassBg);
   root.style.setProperty('--c-surface-glass-blur', glassBlur);
@@ -120,13 +103,14 @@ export function applyThemeTokens(settings: any) {
 
   // Accent Color Tokens
   const hubAccentKey = activeVis.accentColor ?? 'blue';
-  const accent = hubAccentKey === 'custom'
-    ? {
-        from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-        mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-        to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`
-      }
-    : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.blue);
+  const accent =
+    hubAccentKey === 'custom'
+      ? {
+          from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
+          mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
+          to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
+        }
+      : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.blue);
 
   root.style.setProperty('--c-accent-from', accent.from);
   root.style.setProperty('--c-accent-to', accent.to);
@@ -149,14 +133,20 @@ export function applyThemeTokens(settings: any) {
 
   root.style.setProperty('--c-accent-rgb', colorToRgbStr(accent.to));
   root.style.setProperty('--c-accent-soft', `color-mix(in srgb, ${accent.to} 12%, transparent)`);
-  root.style.setProperty('--c-accent-glow', `0 4px 20px color-mix(in srgb, ${accent.to} 25%, transparent)`);
+  root.style.setProperty(
+    '--c-accent-glow',
+    `0 4px 20px color-mix(in srgb, ${accent.to} 25%, transparent)`
+  );
   root.style.setProperty('--c-accent-border', `color-mix(in srgb, ${accent.to} 30%, transparent)`);
   root.style.setProperty('--c-brand', accent.from);
 
   // Error colors
   root.style.setProperty('--c-error', '#ef4444');
   root.style.setProperty('--c-error-dim', '#f87171');
-  root.style.setProperty('--c-error-container', isLightMode ? 'rgba(239, 68, 68, 0.05)' : 'rgba(239, 68, 68, 0.15)');
+  root.style.setProperty(
+    '--c-error-container',
+    isLightMode ? 'rgba(239, 68, 68, 0.05)' : 'rgba(239, 68, 68, 0.15)'
+  );
 
   // 3. Spacing Tokens
   root.style.setProperty('--spacing-xs', '4px');
@@ -167,9 +157,9 @@ export function applyThemeTokens(settings: any) {
 
   // Sync density-aware layout spacing
   const densities = {
-    compact:     { pad: '10px', rowPad: '10px 20px', gap: '8px',  cardGap: '6px'  },
+    compact: { pad: '10px', rowPad: '10px 20px', gap: '8px', cardGap: '6px' },
     comfortable: { pad: '16px', rowPad: '14px 20px', gap: '12px', cardGap: '10px' },
-    spacious:    { pad: '22px', rowPad: '20px 24px', gap: '18px', cardGap: '16px' },
+    spacious: { pad: '22px', rowPad: '20px 24px', gap: '18px', cardGap: '16px' },
   };
   const d = (densities as any)[settings.displayDensity] || densities.comfortable;
   root.style.setProperty('--c-space-pad', d.pad);
@@ -190,23 +180,26 @@ export function applyThemeTokens(settings: any) {
   // 5. Elevation Tokens
   root.style.setProperty('--elevation-low', isLightMode ? '0 1px 3px rgba(0,0,0,0.06)' : 'none');
   root.style.setProperty('--elevation-mid', isLightMode ? '0 4px 12px rgba(0,0,0,0.04)' : 'none');
-  root.style.setProperty('--elevation-high', isLightMode ? '0 12px 32px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.4)');
+  root.style.setProperty(
+    '--elevation-high',
+    isLightMode ? '0 12px 32px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.4)'
+  );
 
   // 6. Typography Tokens
   root.style.setProperty('--font-headline', 'Manrope, sans-serif');
   root.style.setProperty('--font-body', 'Inter, sans-serif');
 
   const sizes = {
-    small:  { base: '13px', sm: '11px', xs: '9px',  lg: '16px', xl: '20px', hero: '2.2rem' },
+    small: { base: '13px', sm: '11px', xs: '9px', lg: '16px', xl: '20px', hero: '2.2rem' },
     medium: { base: '14px', sm: '12px', xs: '10px', lg: '18px', xl: '24px', hero: '2.8rem' },
-    large:  { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
+    large: { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
   };
   const s = (sizes as any)[settings.fontSize] || sizes.medium;
   root.style.setProperty('--font-base', s.base);
-  root.style.setProperty('--font-sm',   s.sm);
-  root.style.setProperty('--font-xs',   s.xs);
-  root.style.setProperty('--font-lg',   s.lg);
-  root.style.setProperty('--font-xl',   s.xl);
+  root.style.setProperty('--font-sm', s.sm);
+  root.style.setProperty('--font-xs', s.xs);
+  root.style.setProperty('--font-lg', s.lg);
+  root.style.setProperty('--font-xl', s.xl);
   root.style.setProperty('--font-hero', s.hero);
 
   // 7. Motion Tokens

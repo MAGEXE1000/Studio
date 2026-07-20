@@ -42,27 +42,40 @@ export const useNavigationStore = create<NavigationStore>()(
 
       setHistory: (history) => {
         const prev = useNavigationStore.getState().history;
-        console.log(`[NavigationStore] [${new Date().toISOString()}] setHistory | Prev: ${JSON.stringify(prev)} -> Next: ${JSON.stringify(history)}`);
+        console.log(
+          `[NavigationStore] [${new Date().toISOString()}] setHistory | Prev: ${JSON.stringify(prev)} -> Next: ${JSON.stringify(history)}`
+        );
         set({ history });
       },
       setTransition: (transitionType, isTransitioning) => {
         const store = useNavigationStore.getState();
-        console.log(`[NavigationStore] [${new Date().toISOString()}] setTransition | type: ${transitionType}, active: ${isTransitioning} | Prev: {type: ${store.transitionType}, active: ${store.isTransitioning}}`);
+        console.log(
+          `[NavigationStore] [${new Date().toISOString()}] setTransition | type: ${transitionType}, active: ${isTransitioning} | Prev: {type: ${store.transitionType}, active: ${store.isTransitioning}}`
+        );
         set({ transitionType, isTransitioning });
       },
       setGestureState: (gestureState, predictiveProgress) => {
         const store = useNavigationStore.getState();
-        console.log(`[NavigationStore] [${new Date().toISOString()}] setGestureState | State: ${gestureState}, Progress: ${predictiveProgress} | Prev: {state: ${store.gestureState}, progress: ${store.predictiveProgress}}`);
+        console.log(
+          `[NavigationStore] [${new Date().toISOString()}] setGestureState | State: ${gestureState}, Progress: ${predictiveProgress} | Prev: {state: ${store.gestureState}, progress: ${store.predictiveProgress}}`
+        );
         set({ gestureState, predictiveProgress });
       },
       registerHandler: (id, priority, fn) => {
-        console.log(`[NavigationStore] [${new Date().toISOString()}] registerHandler | id: ${id}, priority: ${priority}`);
+        console.log(
+          `[NavigationStore] [${new Date().toISOString()}] registerHandler | id: ${id}, priority: ${priority}`
+        );
         set((state) => ({
-          activeHandlers: [...state.activeHandlers.filter((h) => h.id !== id), { id, priority, fn }],
+          activeHandlers: [
+            ...state.activeHandlers.filter((h) => h.id !== id),
+            { id, priority, fn },
+          ],
         }));
       },
       unregisterHandler: (id) => {
-        console.log(`[NavigationStore] [${new Date().toISOString()}] unregisterHandler | id: ${id}`);
+        console.log(
+          `[NavigationStore] [${new Date().toISOString()}] unregisterHandler | id: ${id}`
+        );
         set((state) => ({
           activeHandlers: state.activeHandlers.filter((h) => h.id !== id),
         }));
@@ -96,3 +109,11 @@ export const useNavigationStore = create<NavigationStore>()(
     }
   )
 );
+
+
+export const useCurrentApp = (): NavigationRoute['app'] => {
+  return useNavigationStore((state) => {
+    const route = state.history[state.history.length - 1];
+    return route ? route.app : 'hub';
+  });
+};

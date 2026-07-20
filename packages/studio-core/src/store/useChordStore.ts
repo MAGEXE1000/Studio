@@ -83,7 +83,6 @@ export interface AppSettings {
   defaultVocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
   defaultGroovexView?: 'library' | 'preferences';
   startupApp: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
-  appMode: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
   hubUserName: string;
   highRefreshRate: boolean;
   lowLatencyMode: boolean;
@@ -605,7 +604,6 @@ export const useChordStore = create<ChordStore>()(
           if (s.settings && typeof s.settings === 'object') {
             const settings = s.settings as Record<string, unknown>;
             settings.startupApp = 'hub';
-            settings.appMode = 'hub';
             settings.hubUserName = settings.hubUserName ?? '';
           }
         }

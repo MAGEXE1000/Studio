@@ -1,25 +1,8 @@
-import {
-  setBackHandler,
-  useBackHandler,
-  useChordStore,
-  ACCENT_COLORS,
-  translations,
-  useT,
-  useLiquidGlassNav,
-  useNavCollapsed,
-  setNavCollapsed,
-  useIsWebDesktop,
-  registerDebugProvider,
-  unregisterDebugProvider,
-  setNavScrollOffset,
-  getNavScrollOffset,
-  useScrollHide,
-  useBottomNavigationStore,
-} from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset, useScrollHide, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { MOTION_DURATIONS, MOTION_EASINGS } from '../../../navigation/AppAnimationSystem';
+
 import {
   getSharedNavTransform,
   getSharedNavOpacity,
@@ -35,7 +18,6 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
-import { ActionButton } from '../../../components/design-system/ActionButton';
 import {
   SharedNavigationBar,
   type SharedNavigationItem,
@@ -197,11 +179,11 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
         useChordStore
           .getState()
           .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
-        const updated = useChordStore.getState().settings.defaultStageView ?? 'Editor';
+        const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
         const a2 =
           ACCENT_COLORS[
-            (useChordStore.getState().settings.perApp?.stage?.accentColor ??
-              useChordStore.getState().settings.accentColor ??
+            (useSettingsStore.getState().settings.perApp?.stage?.accentColor ??
+              useSettingsStore.getState().settings.accentColor ??
               'blue') as keyof typeof ACCENT_COLORS
           ] ?? ACCENT_COLORS.blue;
         btnWrap.querySelectorAll('button').forEach((b, idx) => {
@@ -515,7 +497,7 @@ export default function StagexPanel() {
   curViewRef.current = curView;
 
   useEffect(() => {
-    useChordStore.getState().setLastSession({ stagexView: curView });
+    useSettingsStore.getState().setLastSession({ stagexView: curView });
   }, [curView]);
 
   const elementsScrollRef = useRef<HTMLDivElement>(null);
@@ -910,7 +892,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         // 12. Reopen Stagex
         setTestStep('Reopening Stagex...');
         const store = useChordStore.getState();
-        store.updateSettings({ appMode: 'stage' });
+        NavigationDispatcher.openApp('stage');
         await delay(1000);
       }
 
@@ -1907,7 +1889,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   opacity: isRightPanelCollapsed ? 0 : 1,
                   x: isRightPanelCollapsed ? 260 : 0,
                 }}
-                transition={{ duration: MOTION_DURATIONS.normal, ease: MOTION_EASINGS.standard }}
+                transition={{ duration: DurationPresets.normal, ease: EasingPresets.standard }}
                 style={{
                   position: 'absolute',
                   top: 0,

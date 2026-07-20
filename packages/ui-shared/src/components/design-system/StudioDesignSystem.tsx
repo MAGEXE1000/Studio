@@ -1,18 +1,14 @@
-import { useChordStore, ACCENT_COLORS, type AppKey } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, type AppKey, useSettingsStore, SpringPresets } from '@workspace/studio-core';
 import React, { lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-  AnimatedAppHeader,
-  MOTION_EASINGS,
-  SPRING_PRESETS,
-} from '../../navigation/AppAnimationSystem';
+import { AnimatedAppHeader, MOTION_EASINGS } from '../../navigation/AppAnimationSystem';
 import { ProgressiveBlur } from './ProgressiveBlur';
 import AppSpinner from '../loading/AppSpinner';
 
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
 export function useStudioDesignSystem() {
-  const settings = useChordStore((s) => s.settings);
-  const appKey = (settings.appMode ?? 'hub') as AppKey;
+  const settings = useSettingsStore((s) => s.settings);
+  const appKey = (NavigationDispatcher.currentApp()) as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
     theme: settings.theme ?? 'dark',
     accentColor: settings.accentColor ?? 'blue',
@@ -87,7 +83,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         whileTap={disabled || loading ? undefined : { scale: 0.96 }}
-        transition={SPRING_PRESETS.soft}
+        transition={SpringPresets.soft}
         style={{
           padding: pad,
           fontSize,
@@ -152,7 +148,7 @@ export function Card({
           ? { scale: 1.015, y: -2, boxShadow: 'var(--elevation-mid)' }
           : undefined,
         whileTap: { scale: 0.985, y: 0 },
-        transition: SPRING_PRESETS.soft,
+        transition: SpringPresets.soft,
       }
     : {};
 
@@ -258,7 +254,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
             initial={{ scale: 0.94, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.94, opacity: 0 }}
-            transition={SPRING_PRESETS.expressive}
+            transition={SpringPresets.expressive}
             style={{
               position: 'relative',
               width: '100%',
@@ -601,7 +597,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={SPRING_PRESETS.medium}
+            transition={SpringPresets.medium}
             style={{
               position: 'relative',
               width: '100%',
@@ -833,7 +829,7 @@ export function FloatingButton({ icon, style, className = '', ...props }: Floati
     <motion.button
       whileHover={isHoverable ? { scale: 1.06, y: -2 } : undefined}
       whileTap={{ scale: 0.94, y: 0 }}
-      transition={SPRING_PRESETS.medium}
+      transition={SpringPresets.medium}
       style={{
         width: '56px',
         height: '56px',

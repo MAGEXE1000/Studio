@@ -1,4 +1,5 @@
 import { useChordStore } from '../../store/useChordStore';
+import { useSettingsStore } from '../../store/useSettingsStore';;
 
 export interface LogEntry {
   id: string;
@@ -133,8 +134,15 @@ const stagexDiagnostics: StagexDiagnosticsState = {
   lastNack: 'none',
   lastMissingHandler: 'none',
   lastFailedHandler: 'none',
-  availableHandlers: ['switchView', 'toggleSCDial', 'toggleGigMode', 'stageGoBack', 'openPresetsPanel', 'exportPDFWithOptions'],
-  missingHandlers: []
+  availableHandlers: [
+    'switchView',
+    'toggleSCDial',
+    'toggleGigMode',
+    'stageGoBack',
+    'openPresetsPanel',
+    'exportPDFWithOptions',
+  ],
+  missingHandlers: [],
 };
 
 export function updateStagexDiagnostics(updates: Partial<StagexDiagnosticsState>) {
@@ -175,8 +183,15 @@ export function resetStagexDiagnostics() {
     lastNack: 'none',
     lastMissingHandler: 'none',
     lastFailedHandler: 'none',
-    availableHandlers: ['switchView', 'toggleSCDial', 'toggleGigMode', 'stageGoBack', 'openPresetsPanel', 'exportPDFWithOptions'],
-    missingHandlers: []
+    availableHandlers: [
+      'switchView',
+      'toggleSCDial',
+      'toggleGigMode',
+      'stageGoBack',
+      'openPresetsPanel',
+      'exportPDFWithOptions',
+    ],
+    missingHandlers: [],
   });
   notifyListeners();
 }
@@ -186,8 +201,10 @@ let originalConsole: typeof console | null = null;
 
 // Helpers to notify subscribers
 function notifyListeners() {
-  listeners.forEach(l => {
-    try { l(); } catch (_) {}
+  listeners.forEach((l) => {
+    try {
+      l();
+    } catch (_) {}
   });
 }
 
@@ -229,30 +246,36 @@ function getCallerSource(): string {
 
 // ── 1. LOG VIEWER ──
 export function addLog(level: 'info' | 'warn' | 'error', module: string, ...args: any[]) {
-  const isDevMode = useChordStore.getState().settings.developerMode;
+  const isDevMode = useSettingsStore.getState().settings.developerMode;
   if (!isDevMode && !initialized) return;
 
-  const msg = args.map(arg => {
-    if (arg instanceof Error) return arg.message + '\n' + arg.stack;
-    if (typeof arg === 'object') {
-      try { return JSON.stringify(arg); } catch (_) { return String(arg); }
-    }
-    return String(arg);
-  }).join(' ');
+  const msg = args
+    .map((arg) => {
+      if (arg instanceof Error) return arg.message + '\n' + arg.stack;
+      if (typeof arg === 'object') {
+        try {
+          return JSON.stringify(arg);
+        } catch (_) {
+          return String(arg);
+        }
+      }
+      return String(arg);
+    })
+    .join(' ');
 
   let targetLevel = level;
   if (level === 'warn') {
-    const isDiagnostics = args.some(arg => {
-      if (arg && typeof arg === 'object') {
-        return 'appVersion' in arg && 'appName' in arg && 'memory' in arg;
-      }
-      return false;
-    }) || (
-      msg.includes('"appVersion"') &&
-      msg.includes('"appName"') &&
-      msg.includes('"memory"') &&
-      msg.includes('"status"')
-    );
+    const isDiagnostics =
+      args.some((arg) => {
+        if (arg && typeof arg === 'object') {
+          return 'appVersion' in arg && 'appName' in arg && 'memory' in arg;
+        }
+        return false;
+      }) ||
+      (msg.includes('"appVersion"') &&
+        msg.includes('"appName"') &&
+        msg.includes('"memory"') &&
+        msg.includes('"status"'));
 
     if (isDiagnostics) {
       targetLevel = 'info';
@@ -260,9 +283,11 @@ export function addLog(level: 'info' | 'warn' | 'error', module: string, ...args
   }
 
   const id = Math.random().toString(36).substring(2, 9);
-  const isDevModeSafe = typeof useChordStore !== 'undefined' && useChordStore?.getState?.()?.settings?.developerMode;
+  const isDevModeSafe =
+    typeof useChordStore !== 'undefined' && useChordStore?.getState?.()?.settings?.developerMode;
   const source = isDevModeSafe ? getCallerSource() : 'unknown';
-  const isFirestore = msg.includes('@firebase/firestore') || msg.toLowerCase().includes('firestore');
+  const isFirestore =
+    msg.includes('@firebase/firestore') || msg.toLowerCase().includes('firestore');
 
   logsBuffer.push({
     id,
@@ -270,7 +295,7 @@ export function addLog(level: 'info' | 'warn' | 'error', module: string, ...args
     level: targetLevel,
     message: msg,
     module: isFirestore ? 'network' : module,
-    source: isFirestore ? 'Firestore' : source
+    source: isFirestore ? 'Firestore' : source,
   });
 
   if (logsBuffer.length > MAX_ITEMS) logsBuffer.shift();
@@ -294,7 +319,7 @@ export function recordNavigation(entry: Omit<NavigationEntry, 'id' | 'timestamp'
   navBuffer.push({
     id,
     timestamp: Date.now(),
-    ...entry
+    ...entry,
   });
 
   if (navBuffer.length > 50) navBuffer.shift();
@@ -312,16 +337,17 @@ export function clearNavigationEntries() {
 
 // ── 2. ERROR VIEWER ──
 export function addError(err: Omit<ErrorEntry, 'timestamp'>) {
-  const isDevMode = useChordStore.getState().settings.developerMode;
+  const isDevMode = useSettingsStore.getState().settings.developerMode;
   if (!isDevMode) return;
 
-  const isFirestore = err.message.includes('@firebase/firestore') || err.message.toLowerCase().includes('firestore');
+  const isFirestore =
+    err.message.includes('@firebase/firestore') || err.message.toLowerCase().includes('firestore');
 
   errorsBuffer.push({
     ...err,
     module: isFirestore ? 'network' : err.module,
     source: isFirestore ? 'Firestore' : err.source,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   });
 
   if (errorsBuffer.length > MAX_ITEMS) errorsBuffer.shift();
@@ -339,14 +365,14 @@ export function clearErrors() {
 
 // ── 3. EVENT INSPECTOR ──
 export function recordEvent(type: string, target: string, module = 'general') {
-  const isDevMode = useChordStore.getState().settings.developerMode;
+  const isDevMode = useSettingsStore.getState().settings.developerMode;
   if (!isDevMode) return;
 
   eventsBuffer.push({
     timestamp: Date.now(),
     type,
     target,
-    module
+    module,
   });
 
   if (eventsBuffer.length > MAX_ITEMS) eventsBuffer.shift();
@@ -369,7 +395,13 @@ function stripSensitiveHeaders(headers: HeadersInit | undefined): Record<string,
 
   const sanitize = (key: string, val: string) => {
     const k = key.toLowerCase();
-    if (k.includes('authorization') || k.includes('token') || k.includes('key') || k.includes('cookie') || k.includes('credential')) {
+    if (
+      k.includes('authorization') ||
+      k.includes('token') ||
+      k.includes('key') ||
+      k.includes('cookie') ||
+      k.includes('credential')
+    ) {
       stripped[key] = '********';
     } else {
       stripped[key] = val;
@@ -388,7 +420,7 @@ function stripSensitiveHeaders(headers: HeadersInit | undefined): Record<string,
 
 export function recordNetworkRequest(method: string, url: string, init?: RequestInit): string {
   const id = Math.random().toString(36).substring(2, 9);
-  const isDevMode = useChordStore.getState().settings.developerMode;
+  const isDevMode = useSettingsStore.getState().settings.developerMode;
   if (!isDevMode) return id;
 
   networkBuffer.push({
@@ -396,7 +428,7 @@ export function recordNetworkRequest(method: string, url: string, init?: Request
     timestamp: Date.now(),
     method,
     url,
-    headers: stripSensitiveHeaders(init?.headers)
+    headers: stripSensitiveHeaders(init?.headers),
   });
 
   if (networkBuffer.length > MAX_ITEMS) networkBuffer.shift();
@@ -418,11 +450,11 @@ const STATUS_TEXTS: Record<number, string> = {
   500: 'Internal Server Error',
   502: 'Bad Gateway',
   503: 'Service Unavailable',
-  504: 'Gateway Timeout'
+  504: 'Gateway Timeout',
 };
 
 export function recordNetworkResponse(id: string, status: number, statusText: string) {
-  const req = networkBuffer.find(n => n.id === id);
+  const req = networkBuffer.find((n) => n.id === id);
   if (req) {
     req.status = status;
     let actualStatusText = statusText;
@@ -437,7 +469,7 @@ export function recordNetworkResponse(id: string, status: number, statusText: st
 }
 
 export function recordNetworkFailure(id: string, error: string) {
-  const req = networkBuffer.find(n => n.id === id);
+  const req = networkBuffer.find((n) => n.id === id);
   if (req) {
     req.error = error;
     notifyListeners();
@@ -454,8 +486,12 @@ export function clearNetworkRequests() {
 }
 
 // ── 5. PERFORMANCE INSPECTOR ──
-export function recordPerfEvent(componentName: string, type: 'mount' | 'unmount' | 'render', renderCount = 0) {
-  const isDevMode = useChordStore.getState().settings.developerMode;
+export function recordPerfEvent(
+  componentName: string,
+  type: 'mount' | 'unmount' | 'render',
+  renderCount = 0
+) {
+  const isDevMode = useSettingsStore.getState().settings.developerMode;
   if (!isDevMode) return;
 
   let stats = perfRegistry.get(componentName);
@@ -500,7 +536,15 @@ export function getDebugProviders() {
 // ── 7. SHIELDED STORAGE VALUES ──
 export function maskSensitiveValue(key: string, value: string): string {
   const k = key.toLowerCase();
-  if (k.includes('token') || k.includes('password') || k.includes('key') || k.includes('secret') || k.includes('auth') || k.includes('jwt') || k.includes('credential')) {
+  if (
+    k.includes('token') ||
+    k.includes('password') ||
+    k.includes('key') ||
+    k.includes('secret') ||
+    k.includes('auth') ||
+    k.includes('jwt') ||
+    k.includes('credential')
+  ) {
     return '********';
   }
   return value;
@@ -515,7 +559,7 @@ export function initDevToolsFramework() {
   originalConsole = {
     log: console.log.bind(console),
     warn: console.warn.bind(console),
-    error: console.error.bind(console)
+    error: console.error.bind(console),
   } as any;
 
   console.log = (...args: any[]) => {
@@ -562,14 +606,16 @@ export function initDevToolsFramework() {
       }
     }
     addLog('error', module, ...cleanArgs);
-    
+
     // Add to error viewer automatically
-    const msg = cleanArgs.map(c => typeof c === 'object' ? JSON.stringify(c) : String(c)).join(' ');
+    const msg = cleanArgs
+      .map((c) => (typeof c === 'object' ? JSON.stringify(c) : String(c)))
+      .join(' ');
     addError({
       message: msg,
       stack: new Error().stack || '',
       source: 'console.error',
-      module
+      module,
     });
   };
 
@@ -579,7 +625,7 @@ export function initDevToolsFramework() {
       message: e.message || String(e.error),
       stack: e.error?.stack || '',
       source: e.filename ? `${e.filename}:${e.lineno}:${e.colno}` : 'window.onerror',
-      module: 'general'
+      module: 'general',
     });
   });
 
@@ -589,7 +635,7 @@ export function initDevToolsFramework() {
       message: reason?.message || String(reason),
       stack: reason?.stack || '',
       source: 'unhandledrejection',
-      module: 'general'
+      module: 'general',
     });
   });
 
@@ -611,7 +657,7 @@ export function initDevToolsFramework() {
 
   // Intercept clicks/gestures for Event Inspecting
   const handleGlobalTouch = (e: Event) => {
-    const isDevMode = useChordStore.getState().settings.developerMode;
+    const isDevMode = useSettingsStore.getState().settings.developerMode;
     if (!isDevMode) return;
 
     let targetDesc = '';
@@ -624,15 +670,15 @@ export function initDevToolsFramework() {
         if (cls) targetDesc += `.${cls}`;
       }
     }
-    
+
     // Attempt to infer active application key
     const store = useChordStore.getState();
-    const app = store.settings.appMode || 'hub';
+    const app = NavigationDispatcher.currentApp();
     recordEvent(e.type, targetDesc || 'unknown', app);
   };
 
   const capturedEvents = ['click', 'touchstart', 'touchend', 'pointerdown', 'pointerup'];
-  capturedEvents.forEach(evt => {
+  capturedEvents.forEach((evt) => {
     window.addEventListener(evt, handleGlobalTouch, { capture: true, passive: true });
   });
 }

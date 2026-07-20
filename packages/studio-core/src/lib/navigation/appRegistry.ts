@@ -31,3 +31,19 @@ export const APP_SECTIONS: Record<string, AppSection[]> = {
     { id: 'Preferences', labelKey: 'stagexPreferences', icon: 'tune' },
   ],
 };
+
+
+export interface AppManifest {
+  id: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+  labelKey: string;
+  icon: string;
+  themeColor?: string;
+}
+
+export const REGISTERED_APPS: AppManifest[] = [
+  { id: 'chords', labelKey: 'Chords', icon: 'music_note', themeColor: '#3b82f6' },
+  { id: 'drums', labelKey: 'Drums', icon: 'album', themeColor: '#f59e0b' },
+  { id: 'stage', labelKey: 'Stage', icon: 'grid_view', themeColor: '#8b5cf6' },
+  { id: 'groovex', labelKey: 'GrooveX', icon: 'library_music', themeColor: '#ec4899' },
+  { id: 'vocalex', labelKey: 'Vocalex', icon: 'mic', themeColor: '#10b981' },
+];

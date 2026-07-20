@@ -1,4 +1,8 @@
-import { type NavigationRoute, type NavigationHistory, type TransitionType } from './navigationTypes';
+import {
+  type NavigationRoute,
+  type NavigationHistory,
+  type TransitionType,
+} from './navigationTypes';
 import { useNavigationStore } from '../../store/useNavigationStore.js';
 import { NavigationCoordinator } from './NavigationCoordinator.js';
 import {
@@ -25,12 +29,16 @@ export class NavigationDispatcher {
     const current = store.history[store.history.length - 1];
 
     if (current && isRouteEqual(current, nextRoute)) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Duplicate route detected. Current: ${JSON.stringify(current)} | Next: ${JSON.stringify(nextRoute)}`);
+      console.warn(
+        `[NavigationDispatcher] [${timestamp}] Push ignored: Duplicate route detected. Current: ${JSON.stringify(current)} | Next: ${JSON.stringify(nextRoute)}`
+      );
       return;
     }
 
     if (detectRecursion(store.history, nextRoute)) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Push ignored: Recursive cycle detected. Stack: ${JSON.stringify(store.history)} | Next: ${JSON.stringify(nextRoute)}`);
+      console.warn(
+        `[NavigationDispatcher] [${timestamp}] Push ignored: Recursive cycle detected. Stack: ${JSON.stringify(store.history)} | Next: ${JSON.stringify(nextRoute)}`
+      );
       return;
     }
 
@@ -50,7 +58,9 @@ export class NavigationDispatcher {
    */
   public static replace(route: Partial<NavigationRoute>): void {
     const timestamp = new Date().toISOString();
-    console.log(`[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`);
+    console.log(
+      `[NavigationDispatcher] [${timestamp}] replace | requested: ${JSON.stringify(route)}`
+    );
     // Transition is allowed to interrupt immediately (lock check removed)
 
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
@@ -72,7 +82,9 @@ export class NavigationDispatcher {
 
     const store = useNavigationStore.getState();
     if (isRootRouteOnly(store.history)) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] Pop ignored: Cannot pop past root route. Stack: ${JSON.stringify(store.history)}`);
+      console.warn(
+        `[NavigationDispatcher] [${timestamp}] Pop ignored: Cannot pop past root route. Stack: ${JSON.stringify(store.history)}`
+      );
       return;
     }
 
@@ -100,7 +112,9 @@ export class NavigationDispatcher {
     const index = store.history.findIndex(predicate);
 
     if (index === -1) {
-      console.warn(`[NavigationDispatcher] [${timestamp}] popTo ignored: Target route not found in stack. Stack: ${JSON.stringify(store.history)}`);
+      console.warn(
+        `[NavigationDispatcher] [${timestamp}] popTo ignored: Target route not found in stack. Stack: ${JSON.stringify(store.history)}`
+      );
       return;
     }
 
@@ -159,6 +173,51 @@ export class NavigationDispatcher {
     return store.history[store.history.length - 2];
   }
 
+  
+  /**
+   * Opens an application by name.
+   */
+  public static openApp(appKey: NavigationRoute['app']): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] openApp | appKey: ${appKey}`);
+    if (this.currentApp() === appKey) return;
+    this.push({ app: appKey });
+  }
+
+  /**
+   * Closes the current application and returns to the hub.
+   */
+  public static closeApp(): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] closeApp`);
+    this.openApp('hub');
+  }
+
+  /**
+   * Switches to a specific tab in the current application.
+   */
+  public static switchTab(tab: NavigationRoute['tab']): void {
+    const timestamp = new Date().toISOString();
+    console.log(`[NavigationDispatcher] [${timestamp}] switchTab | tab: ${tab}`);
+    const current = this.currentRoute();
+    if (current.tab === tab) return;
+    this.push({ app: current.app, tab });
+  }
+
+  /**
+   * Goes back to the previous route (alias for pop).
+   */
+  public static goBack(): void {
+    this.pop();
+  }
+
+  /**
+   * Gets the currently active application.
+   */
+  public static currentApp(): NavigationRoute['app'] {
+    return this.currentRoute().app;
+  }
+
   /**
    * Subscribes to navigation store state changes.
    */
@@ -180,7 +239,9 @@ export class NavigationDispatcher {
     }
 
     this.transitionTimeout = setTimeout(() => {
-      console.log(`[NavigationDispatcher] [${new Date().toISOString()}] lockTransition timeout auto-release`);
+      console.log(
+        `[NavigationDispatcher] [${new Date().toISOString()}] lockTransition timeout auto-release`
+      );
       useNavigationStore.getState().setTransition(null, false);
       this.transitionTimeout = null;
     }, 300); // 300ms matches visual transition timing

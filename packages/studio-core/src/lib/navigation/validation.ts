@@ -18,11 +18,21 @@ export const navDiagnosticsRegistry: ReactNavDiagnostics = {};
 export function printDiagnosticsDump(reason: string): void {
   const timestamp = new Date().toISOString();
   const store = useNavigationStore.getState();
-  const mountedTree = navDiagnosticsRegistry.getMountedTree ? navDiagnosticsRegistry.getMountedTree() : ['unknown'];
-  const visibleTree = navDiagnosticsRegistry.getVisibleTree ? navDiagnosticsRegistry.getVisibleTree() : ['unknown'];
-  const animationState = navDiagnosticsRegistry.getAnimationState ? navDiagnosticsRegistry.getAnimationState() : 'unknown';
-  const appMode = navDiagnosticsRegistry.getAppMode ? navDiagnosticsRegistry.getAppMode() : 'unknown';
-  const cachedPanel = navDiagnosticsRegistry.getCachedPanel ? navDiagnosticsRegistry.getCachedPanel() : null;
+  const mountedTree = navDiagnosticsRegistry.getMountedTree
+    ? navDiagnosticsRegistry.getMountedTree()
+    : ['unknown'];
+  const visibleTree = navDiagnosticsRegistry.getVisibleTree
+    ? navDiagnosticsRegistry.getVisibleTree()
+    : ['unknown'];
+  const animationState = navDiagnosticsRegistry.getAnimationState
+    ? navDiagnosticsRegistry.getAnimationState()
+    : 'unknown';
+  const appMode = navDiagnosticsRegistry.getAppMode
+    ? navDiagnosticsRegistry.getAppMode()
+    : 'unknown';
+  const cachedPanel = navDiagnosticsRegistry.getCachedPanel
+    ? navDiagnosticsRegistry.getCachedPanel()
+    : null;
 
   console.error(`
 ==================================================
@@ -34,7 +44,11 @@ Current Navigation Stack (History):
 ${JSON.stringify(store.history, null, 2)}
 
 Current Back Stack (Active Handlers):
-${JSON.stringify(store.activeHandlers.map(h => ({ id: h.id, priority: h.priority })), null, 2)}
+${JSON.stringify(
+  store.activeHandlers.map((h) => ({ id: h.id, priority: h.priority })),
+  null,
+  2
+)}
 
 Mounted React Tree:
 ${JSON.stringify(mountedTree, null, 2)}

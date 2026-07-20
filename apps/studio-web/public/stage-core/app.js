@@ -4998,6 +4998,47 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+let _promptCb = null;
+function showPrompt(title, defaultText, onOk) {
+  _promptCb = onOk;
+  const titleEl = document.getElementById('prompt-title');
+  if (titleEl) titleEl.textContent = title;
+  
+  const inputEl = document.getElementById('prompt-input');
+  if (inputEl) {
+    inputEl.value = defaultText || '';
+  }
+  
+  const el = document.getElementById('prompt-modal');
+  if (el) el.style.display = 'flex';
+  if (inputEl) setTimeout(() => inputEl.focus(), 50);
+}
+
+function doPrompt(val) {
+  const el = document.getElementById('prompt-modal');
+  if (el) el.style.display = 'none';
+  if (val !== null && typeof _promptCb === 'function') _promptCb(val);
+  _promptCb = null;
+}
+
+// Close prompt modal on Escape/Enter key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const el = document.getElementById('prompt-modal');
+    if (el && el.style.display !== 'none') {
+      doPrompt(null);
+    }
+  } else if (e.key === 'Enter') {
+    const el = document.getElementById('prompt-modal');
+    if (el && el.style.display !== 'none') {
+      const inputEl = document.getElementById('prompt-input');
+      if (inputEl) {
+        doPrompt(inputEl.value);
+      }
+    }
+  }
+});
+
 
 const PRESETS_KEY = 'stagecorePresets_v1';
 
@@ -5734,7 +5775,7 @@ function renameSceneInline(idx, name) {
   if (!v) return;
   state.scenes[idx].name = v;
   renderScenesBar();
-  saveProject();
+  saveProjectSilent();
 }
 
 function duplicateScene(idx) {
@@ -5748,15 +5789,16 @@ function duplicateScene(idx) {
   const copy = {
     id: 's' + Date.now(),
     name: source.name + ' (Copy)',
-    elements: JSON.parse(JSON.stringify(source.elements)),
-    connections: JSON.parse(JSON.stringify(source.connections)),
+    elements: _deepClone(source.elements),
+    connections: _deepClone(source.connections),
     nextId: source.nextId || 1
   };
   state.scenes.push(copy);
   _loadScene(state.scenes.length - 1);
   renderAll();
   renderScenesBar();
-  saveProject();
+  saveProjectSilent();
+  showToast(state.lang === 'es' ? 'Escena duplicada' : 'Scene duplicated');
 }
 
 function renderScenesBar() {
@@ -5950,14 +5992,21 @@ function _ensureScenes() {
   }
 }
 
+function _deepClone(obj) {
+  if (typeof structuredClone === 'function') {
+    try { return structuredClone(obj); } catch(e){}
+  }
+  return JSON.parse(JSON.stringify(obj));
+}
+
 function _persistCurrentScene() {
   _ensureScenes();
   const idx = state.currentSceneIdx;
   state.scenes[idx] = {
     id: state.scenes[idx].id,
     name: state.scenes[idx].name,
-    elements: JSON.parse(JSON.stringify(state.elements)),
-    connections: JSON.parse(JSON.stringify(state.connections)),
+    elements: _deepClone(state.elements),
+    connections: _deepClone(state.connections),
     nextId: state.nextId,
   };
 }
@@ -5966,8 +6015,8 @@ function _loadScene(idx) {
   _ensureScenes();
   if (idx < 0 || idx >= state.scenes.length) return;
   const sc = state.scenes[idx];
-  state.elements = JSON.parse(JSON.stringify(sc.elements || []));
-  state.connections = JSON.parse(JSON.stringify(sc.connections || []));
+  state.elements = _deepClone(sc.elements || []);
+  state.connections = _deepClone(sc.connections || []);
   state.nextId = sc.nextId || 1;
   state.currentSceneIdx = idx;
   state.selectedId = null;
@@ -5986,7 +6035,7 @@ function switchScene(idx) {
   renderAll();
   renderScenesBar();
   pushHistory(); // seed new scene's history with current snapshot
-  saveProject();
+  saveProjectSilent();
 }
 
 function addScene() {
@@ -6007,7 +6056,8 @@ function addScene() {
   _loadScene(state.scenes.length - 1);
   renderAll();
   renderScenesBar();
-  saveProject();
+  saveProjectSilent();
+  showToast(state.lang === 'es' ? 'Escena añadida' : 'Scene added');
 }
 
 function removeScene(idx) {
@@ -6037,7 +6087,8 @@ function removeScene(idx) {
     switchScene(target);
     renderAll();
     renderScenesBar();
-    saveProject();
+    saveProjectSilent();
+    showToast(state.lang === 'es' ? 'Escena eliminada' : 'Scene deleted');
   }, { title: title, okText: deleteBtnText, cancelText: cancelBtnText, isDestructive: true });
 }
 
@@ -6080,13 +6131,18 @@ function renameScenePrompt(idx) {
   _ensureScenes();
   if (idx < 0 || idx >= state.scenes.length) return;
   const cur = state.scenes[idx].name;
-  const nv = window.prompt(state.lang === 'es' ? 'Nombre de la escena:' : 'Scene name:', cur);
-  if (nv == null) return;
-  const v = String(nv).trim().slice(0, 24);
-  if (!v) return;
-  state.scenes[idx].name = v;
-  renderScenesBar();
-  saveProject();
+  showPrompt(
+    state.lang === 'es' ? 'Nombre de la escena:' : 'Scene name:',
+    cur,
+    (nv) => {
+      const v = String(nv).trim().slice(0, 24);
+      if (!v) return;
+      state.scenes[idx].name = v;
+      renderScenesBar();
+      saveProjectSilent();
+      showToast(state.lang === 'es' ? 'Escena renombrada' : 'Scene renamed');
+    }
+  );
 }
 
 // Expose for inline onclick handlers
@@ -6098,14 +6154,14 @@ window.renameScenePrompt = renameScenePrompt;
 // ══════════════════════════════════════════════════════════
 //  SAVE / EXPORT
 // ══════════════════════════════════════════════════════════
-function saveProject() {
+function saveProjectSilent() {
   try {
     _persistCurrentScene();
     localStorage.setItem('stagecoreProject', JSON.stringify({
       schemaVersion: 9,
-      elements: JSON.parse(JSON.stringify(state.elements)),
-      connections: JSON.parse(JSON.stringify(state.connections)),
-      scenes: JSON.parse(JSON.stringify(state.scenes)),
+      elements: _deepClone(state.elements),
+      connections: _deepClone(state.connections),
+      scenes: _deepClone(state.scenes),
       currentSceneIdx: state.currentSceneIdx,
       members: state.members,
       riderNeeds: state.riderNeeds,
@@ -6123,8 +6179,12 @@ function saveProject() {
     }));
   } catch(e) {}
   _sessionSave();
-  showToast(T('projectSaved'));
   scheduleCloudAutosave();
+}
+
+function saveProject() {
+  saveProjectSilent();
+  showToast(T('projectSaved'));
 }
 
 // ── Silent full-session persistence ──────────────────────────

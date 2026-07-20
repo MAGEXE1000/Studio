@@ -1,14 +1,25 @@
-import { useT, APP_VERSION_LABEL, useScrollHide, useIsWebDesktop, useChordStore, ACCENT_COLORS } from '@workspace/studio-core';
+import {
+  useT,
+  APP_VERSION_LABEL,
+  useScrollHide,
+  useIsWebDesktop,
+  useChordStore,
+  ACCENT_COLORS,
+} from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import ElasticSlider from '../../../components/progress/ElasticSlider';
 import { useGroovexStore } from '../state/useGroovexStore';
-import { getCacheSize, clearAllCache, clearSongCache, getPerSongCacheInfo, type SongCacheInfo } from '../services/stemCache';
+import {
+  getCacheSize,
+  clearAllCache,
+  clearSongCache,
+  getPerSongCacheInfo,
+  type SongCacheInfo,
+} from '../services/stemCache';
 import { SONG_CATALOG } from '../services/songCatalog';
-import { WebSettingsSection, WebPreferenceRow } from '../../../components/design-system/WebDesignSystem';
-import { Toggle } from '../../../components/typography/SettingControls';
+import { Toggle, SettingSection, SettingRow } from '../../../components/typography/SettingControls';
 import { Card } from '../../../components/design-system/StudioDesignSystem';
-
 
 export default function GroovexPreferences() {
   const t = useT();
@@ -42,7 +53,10 @@ export default function GroovexPreferences() {
     setDeletingId(songId);
     setConfirmDeleteAll(false);
     await clearSongCache(songId);
-    await Promise.all([getCacheSize().then(setCacheInfo), getPerSongCacheInfo().then(setSongCaches)]);
+    await Promise.all([
+      getCacheSize().then(setCacheInfo),
+      getPerSongCacheInfo().then(setSongCaches),
+    ]);
     setDeletingId(null);
   }
 
@@ -50,43 +64,100 @@ export default function GroovexPreferences() {
     setConfirmDeleteAll(false);
     setDeletingId('__all__');
     await clearAllCache();
-    await Promise.all([getCacheSize().then(setCacheInfo), getPerSongCacheInfo().then(setSongCaches)]);
+    await Promise.all([
+      getCacheSize().then(setCacheInfo),
+      getPerSongCacheInfo().then(setSongCaches),
+    ]);
     setDeletingId(null);
   }
 
   function songMeta(songId: string) {
-    return SONG_CATALOG.find(s => s.id === songId);
+    return SONG_CATALOG.find((s) => s.id === songId);
   }
 
-  const settings = useChordStore(useShallow(s => s.settings));
-  const updateSettings = useChordStore(useShallow(s => s.updateSettings));
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const settings = useChordStore(useShallow((s) => s.settings));
+  const updateSettings = useChordStore(useShallow((s) => s.updateSettings));
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
 
   return (
-    <div ref={scrollRef} className="spring-in w-full" style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', background: 'var(--app-bg)' }}>
-      <div style={{ maxWidth: 600, margin: isWebDesktop ? '0' : '0 auto', padding: isWebDesktop ? '24px' : '0 20px', paddingBottom: 'var(--content-bottom-pad)' }}>
-
+    <div
+      ref={scrollRef}
+      className="spring-in w-full"
+      style={{
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        background: 'var(--app-bg)',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 600,
+          margin: isWebDesktop ? '0' : '0 auto',
+          padding: isWebDesktop ? '24px' : '0 20px',
+          paddingBottom: 'var(--content-bottom-pad)',
+        }}
+      >
         {isWebDesktop ? (
           <div className="mb-6">
-            <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>
+            <h2
+              style={{
+                fontSize: '18px',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                color: 'var(--c-text-primary)',
+                fontFamily: 'var(--font-headline)',
+              }}
+            >
               {t.groovex.audioEngine}
             </h2>
-            <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', fontSize: '11px', marginTop: '2px' }}>
+            <p
+              style={{
+                color: 'var(--c-text-secondary)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '11px',
+                marginTop: '2px',
+              }}
+            >
               {t.groovex.audioEngineDesc}
             </p>
           </div>
         ) : (
           <section style={{ paddingTop: 32, marginBottom: 32 }}>
-            <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', margin: '0 0 6px', color: 'var(--c-text-primary)' }}>{t.groovex.audioEngine}</h2>
-            <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', margin: 0 }}>
+            <h2
+              style={{
+                fontSize: 28,
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                margin: '0 0 6px',
+                color: 'var(--c-text-primary)',
+              }}
+            >
+              {t.groovex.audioEngine}
+            </h2>
+            <p
+              style={{
+                fontSize: 13,
+                color: 'var(--c-text-secondary)',
+                fontFamily: 'var(--font-body)',
+                margin: 0,
+              }}
+            >
               {t.groovex.audioEngineDesc}
             </p>
           </section>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-          <PrefCard title={t.groovex.defaultVolumeLevels} icon="equalizer" isWebDesktop={isWebDesktop}>
+          <PrefCard
+            title={t.groovex.defaultVolumeLevels}
+            icon="equalizer"
+            isWebDesktop={isWebDesktop}
+          >
             <SliderRow
               label={t.groovex.masterGain}
               value={preferences.masterVolume}
@@ -125,25 +196,43 @@ export default function GroovexPreferences() {
           </PrefCard>
 
           <PrefCard title={t.settings.rows.defaultTab} icon="dashboard" isWebDesktop={isWebDesktop}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: isWebDesktop ? '12px 16px' : '4px 0' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                padding: isWebDesktop ? '12px 16px' : '4px 0',
+              }}
+            >
               <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: 0 }}>
                 {t.settings.rows.defaultTabDesc}
               </p>
               <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                {(['library', 'preferences'] as const).map(value => {
+                {(['library', 'preferences'] as const).map((value) => {
                   const active = (settings.defaultGroovexView || 'library') === value;
-                  const acc = ACCENT_COLORS[settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
-                  const icons: Record<string, string> = { library: 'library_music', preferences: 'tune' };
+                  const acc =
+                    ACCENT_COLORS[
+                      settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS
+                    ] ?? ACCENT_COLORS.blue;
+                  const icons: Record<string, string> = {
+                    library: 'library_music',
+                    preferences: 'tune',
+                  };
                   return (
                     <button
                       key={value}
                       onClick={() => updateSettings({ defaultGroovexView: value })}
                       style={{
-                        width: '40px', height: '40px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         borderRadius: '10px',
                         border: active ? `2px solid ${acc.from}` : '2px solid transparent',
-                        background: active ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)` : 'var(--app-surface-low)',
+                        background: active
+                          ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
+                          : 'var(--app-surface-low)',
                         color: active ? acc.from : 'var(--c-text-secondary)',
                         cursor: 'pointer',
                         transition: 'all 150ms ease',
@@ -151,7 +240,9 @@ export default function GroovexPreferences() {
                       }}
                       title={value}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{icons[value]}</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                        {icons[value]}
+                      </span>
                     </button>
                   );
                 })}
@@ -161,25 +252,52 @@ export default function GroovexPreferences() {
 
           <PrefCard title={t.groovex.downloadedSongs} icon="cloud_done" isWebDesktop={isWebDesktop}>
             <div style={{ padding: isWebDesktop ? '12px 16px' : '4px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 14,
+                }}
+              >
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--c-text-secondary)', margin: '0 0 4px', fontFamily: 'var(--font-body)' }}>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--c-text-secondary)',
+                      margin: '0 0 4px',
+                      fontFamily: 'var(--font-body)',
+                    }}
+                  >
                     {t.groovex.songUnit(cacheInfo.songCount)} • {cacheInfo.stemCount} stems
                   </p>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0 }}>
+                  <p
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 700,
+                      color: 'var(--c-text-primary)',
+                      margin: 0,
+                    }}
+                  >
                     {formatBytes(cacheInfo.totalBytes)}
                   </p>
                 </div>
-                {cacheInfo.songCount > 0 && (
-                  confirmDeleteAll ? (
+                {cacheInfo.songCount > 0 &&
+                  (confirmDeleteAll ? (
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         onClick={handleClearAll}
                         disabled={deletingId !== null}
                         style={{
-                          padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                          background: '#ee7d77', color: '#fff',
-                          fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          border: 'none',
+                          cursor: 'pointer',
+                          background: '#ee7d77',
+                          color: '#fff',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-body)',
                           opacity: deletingId ? 0.5 : 1,
                         }}
                       >
@@ -188,9 +306,14 @@ export default function GroovexPreferences() {
                       <button
                         onClick={() => setConfirmDeleteAll(false)}
                         style={{
-                          padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
-                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)', color: 'var(--c-text-primary)',
-                          fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)',
+                          color: 'var(--c-text-primary)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-body)',
                           border: isLight ? '1px solid rgba(0,0,0,0.08)' : 'none',
                         }}
                       >
@@ -202,73 +325,116 @@ export default function GroovexPreferences() {
                       onClick={() => setConfirmDeleteAll(true)}
                       disabled={deletingId !== null}
                       style={{
-                        padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                        background: 'rgba(238,125,119,0.15)', color: '#ee7d77',
-                        fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-body)',
+                        padding: '6px 12px',
+                        borderRadius: 8,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: 'rgba(238,125,119,0.15)',
+                        color: '#ee7d77',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        fontFamily: 'var(--font-body)',
                         opacity: deletingId ? 0.5 : 1,
                       }}
                     >
                       {t.groovex.deleteAll}
                     </button>
-                  )
-                )}
+                  ))}
               </div>
 
               {songCaches.length > 0 && (
-                <div style={{
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                  marginTop: 4, marginBottom: 10,
-                  maxHeight: 200, overflowY: 'auto',
-                  borderRadius: 8,
-                }} className="no-scrollbar">
-                  {songCaches.map(sc => {
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    marginTop: 4,
+                    marginBottom: 10,
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                    borderRadius: 8,
+                  }}
+                  className="no-scrollbar"
+                >
+                  {songCaches.map((sc) => {
                     const meta = songMeta(sc.songId);
                     const isDeleting = deletingId === sc.songId || deletingId === '__all__';
                     return (
                       <div
                         key={sc.songId}
                         style={{
-                          display: 'flex', alignItems: 'center', gap: 12,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
                           padding: '8px 10px',
                           background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
                           borderRadius: 8,
                           opacity: isDeleting ? 0.4 : 1,
                           transition: 'opacity 200ms ease',
-                          border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.04)',
+                          border: isLight
+                            ? '1px solid rgba(0,0,0,0.06)'
+                            : '1px solid rgba(255,255,255,0.04)',
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{
-                          fontSize: 22, color: 'var(--gx-accent)', flexShrink: 0,
-                          fontVariationSettings: "'FILL' 1",
-                        }}>album</span>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: 22,
+                            color: 'var(--gx-accent)',
+                            flexShrink: 0,
+                            fontVariationSettings: "'FILL' 1",
+                          }}
+                        >
+                          album
+                        </span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{
-                            fontSize: 12, fontWeight: 700, color: 'var(--c-text-primary)',
-                            margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          }}>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: 'var(--c-text-primary)',
+                              margin: 0,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
                             {meta?.title ?? sc.songId}
                           </p>
-                          <p style={{
-                            fontSize: 10, color: 'var(--c-text-secondary)', margin: '1px 0 0',
-                            fontFamily: 'var(--font-body)',
-                          }}>
-                            {meta?.artist ?? t.groovex.unknown} • {sc.stemCount} stems • {formatBytes(sc.totalBytes)}
+                          <p
+                            style={{
+                              fontSize: 10,
+                              color: 'var(--c-text-secondary)',
+                              margin: '1px 0 0',
+                              fontFamily: 'var(--font-body)',
+                            }}
+                          >
+                            {meta?.artist ?? t.groovex.unknown} • {sc.stemCount} stems •{' '}
+                            {formatBytes(sc.totalBytes)}
                           </p>
                         </div>
                         <button
                           onClick={() => handleDeleteSong(sc.songId)}
                           disabled={deletingId !== null}
                           style={{
-                            width: 28, height: 28, borderRadius: 6, border: 'none',
+                            width: 28,
+                            height: 28,
+                            borderRadius: 6,
+                            border: 'none',
                             cursor: deletingId ? 'default' : 'pointer',
                             background: 'rgba(238,125,119,0.12)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                             flexShrink: 0,
                             opacity: deletingId && !isDeleting ? 0.3 : 1,
                             transition: 'opacity 150ms',
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#ee7d77' }}>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: 14, color: '#ee7d77' }}
+                          >
                             {isDeleting ? 'hourglass_empty' : 'delete'}
                           </span>
                         </button>
@@ -278,7 +444,16 @@ export default function GroovexPreferences() {
                 </div>
               )}
 
-              <p style={{ fontSize: 10.5, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'var(--font-body)', opacity: 0.7, lineHeight: 1.4 }}>
+              <p
+                style={{
+                  fontSize: 10.5,
+                  color: 'var(--c-text-secondary)',
+                  margin: 0,
+                  fontFamily: 'var(--font-body)',
+                  opacity: 0.7,
+                  lineHeight: 1.4,
+                }}
+              >
                 {songCaches.length === 0
                   ? t.groovex.noSongsDownloaded
                   : t.groovex.downloadedSongsHint}
@@ -288,38 +463,91 @@ export default function GroovexPreferences() {
 
           <PrefCard title={t.groovex.aboutGroovex} icon="info" isWebDesktop={isWebDesktop}>
             <div style={{ padding: isWebDesktop ? '12px 16px' : '4px 0' }}>
-              <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 8px', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
+              <p
+                style={{
+                  fontSize: 12.5,
+                  color: 'var(--c-text-secondary)',
+                  margin: '0 0 8px',
+                  fontFamily: 'var(--font-body)',
+                  lineHeight: 1.5,
+                }}
+              >
                 {t.groovex.aboutDesc1}
               </p>
-              <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', margin: '0 0 8px', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
+              <p
+                style={{
+                  fontSize: 12.5,
+                  color: 'var(--c-text-secondary)',
+                  margin: '0 0 8px',
+                  fontFamily: 'var(--font-body)',
+                  lineHeight: 1.5,
+                }}
+              >
                 {t.groovex.aboutDesc2}
               </p>
-              <p style={{ fontSize: 10.5, color: 'var(--c-text-secondary)', margin: 0, fontFamily: 'var(--font-body)', opacity: 0.6 }}>
+              <p
+                style={{
+                  fontSize: 10.5,
+                  color: 'var(--c-text-secondary)',
+                  margin: 0,
+                  fontFamily: 'var(--font-body)',
+                  opacity: 0.6,
+                }}
+              >
                 {APP_VERSION_LABEL} • {t.groovex.aboutVersion}
               </p>
             </div>
           </PrefCard>
 
-          <div style={{ marginTop: 16, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <h4 style={{ color: '#ee7d77', fontWeight: 700, margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6, fontSize: '13px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>warning</span>
+          <div
+            style={{ marginTop: 16, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          >
+            <h4
+              style={{
+                color: '#ee7d77',
+                fontWeight: 700,
+                margin: '0 0 8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: '13px',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
+                warning
+              </span>
               {t.groovex.resetAllPreferences}
             </h4>
-            <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', margin: '0 0 12px', maxWidth: 400, lineHeight: 1.4 }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: 'var(--c-text-secondary)',
+                margin: '0 0 12px',
+                maxWidth: 400,
+                lineHeight: 1.4,
+              }}
+            >
               {t.groovex.resetDesc}
             </p>
             <button
-              onClick={() => updatePreferences({
-                masterVolume: 0.85,
-                loopPlayback: false,
-                autoPlay: false,
-                countIn: false,
-                defaultStemVolume: 0.85,
-              })}
+              onClick={() =>
+                updatePreferences({
+                  masterVolume: 0.85,
+                  loopPlayback: false,
+                  autoPlay: false,
+                  countIn: false,
+                  defaultStemVolume: 0.85,
+                })
+              }
               style={{
-                background: 'rgba(127,41,39,0.2)', border: '1px solid rgba(238,125,119,0.3)',
-                color: '#ee7d77', fontSize: 12, fontWeight: 700, padding: '10px 20px',
-                borderRadius: 8, cursor: 'pointer',
+                background: 'rgba(127,41,39,0.2)',
+                border: '1px solid rgba(238,125,119,0.3)',
+                color: '#ee7d77',
+                fontSize: 12,
+                fontWeight: 700,
+                padding: '10px 20px',
+                borderRadius: 8,
+                cursor: 'pointer',
                 transition: 'background 150ms ease',
               }}
             >
@@ -332,58 +560,113 @@ export default function GroovexPreferences() {
   );
 }
 
-function PrefCard({ title, icon, children, isWebDesktop }: { title: string; icon: string; children: React.ReactNode; isWebDesktop?: boolean }) {
+function PrefCard({
+  title,
+  icon,
+  children,
+  isWebDesktop,
+}: {
+  title: string;
+  icon: string;
+  children: React.ReactNode;
+  isWebDesktop?: boolean;
+}) {
   if (isWebDesktop) {
-    return (
-      <WebSettingsSection title={title}>
-        {children}
-      </WebSettingsSection>
-    );
+    return <SettingSection title={title}>{children}</SettingSection>;
   }
   return (
     <Card style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--gx-accent)' }}>{icon}</span>
-        <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--c-text-primary)', margin: 0, fontFamily: 'var(--font-headline)' }}>{title}</h3>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 20, color: 'var(--gx-accent)' }}
+        >
+          {icon}
+        </span>
+        <h3
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: 'var(--c-text-primary)',
+            margin: 0,
+            fontFamily: 'var(--font-headline)',
+          }}
+        >
+          {title}
+        </h3>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {children}
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>{children}</div>
     </Card>
   );
 }
 
-function SliderRow({ label, value, onChange, displayValue, isWebDesktop }: {
-  label: string; value: number; onChange: (v: number) => void; displayValue: string; isWebDesktop?: boolean;
+function SliderRow({
+  label,
+  value,
+  onChange,
+  displayValue,
+  isWebDesktop,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  displayValue: string;
+  isWebDesktop?: boolean;
 }) {
-  const settings = useChordStore(useShallow(s => s.settings));
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
+  const settings = useChordStore(useShallow((s) => s.settings));
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
 
   if (isWebDesktop) {
     return (
-      <WebPreferenceRow label={label} desc={`Current level: ${displayValue}`}>
+      <SettingRow label={label} desc={`Current level: ${displayValue}`}>
         <div style={{ width: '180px' }}>
           <ElasticSlider
-            min={0} max={1} step={0.01}
+            min={0}
+            max={1}
+            step={0.01}
             value={value}
             onChange={onChange}
             accentColor="var(--gx-accent, #679cff)"
-            trackColor={isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)"}
+            trackColor={isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}
           />
         </div>
-      </WebPreferenceRow>
+      </SettingRow>
     );
   }
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-secondary)', fontFamily: 'var(--font-body)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 8,
+        }}
+      >
+        <label
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--c-text-secondary)',
+            fontFamily: 'var(--font-body)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.12em',
+          }}
+        >
           {label}
         </label>
-        <span style={{ fontSize: 13, color: 'var(--gx-accent)', fontWeight: 700 }}>{displayValue}</span>
+        <span style={{ fontSize: 13, color: 'var(--gx-accent)', fontWeight: 700 }}>
+          {displayValue}
+        </span>
       </div>
       <ElasticSlider
-        min={0} max={1} step={0.01}
+        min={0}
+        max={1}
+        step={0.01}
         value={value}
         onChange={onChange}
         accentColor="var(--gx-accent, #679cff)"
@@ -393,44 +676,75 @@ function SliderRow({ label, value, onChange, displayValue, isWebDesktop }: {
   );
 }
 
-function ToggleRow({ label, value, onChange, isWebDesktop }: {
-  label: string; value: boolean; onChange: (v: boolean) => void; isWebDesktop?: boolean;
+function ToggleRow({
+  label,
+  value,
+  onChange,
+  isWebDesktop,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  isWebDesktop?: boolean;
 }) {
-  const settings = useChordStore(useShallow(s => s.settings));
-  const isLight = settings.theme === 'light' || (settings.theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
-  const acc = ACCENT_COLORS[settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
+  const settings = useChordStore(useShallow((s) => s.settings));
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
+  const acc =
+    ACCENT_COLORS[settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS] ??
+    ACCENT_COLORS.blue;
 
   if (isWebDesktop) {
     return (
-      <WebPreferenceRow label={label}>
+      <SettingRow label={label}>
         <button
           onClick={() => onChange(!value)}
           style={{
-            width: 44, height: 24, borderRadius: 9999, border: 'none', cursor: 'pointer',
-            background: value ? 'rgba(103,156,255,0.25)' : (isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'),
-            position: 'relative', padding: 2, transition: 'background 150ms ease',
+            width: 44,
+            height: 24,
+            borderRadius: 9999,
+            border: 'none',
+            cursor: 'pointer',
+            background: value
+              ? 'rgba(103,156,255,0.25)'
+              : isLight
+                ? 'rgba(0,0,0,0.08)'
+                : 'rgba(255,255,255,0.08)',
+            position: 'relative',
+            padding: 2,
+            transition: 'background 150ms ease',
           }}
         >
-          <div style={{
-            width: 18, height: 18, borderRadius: 9999,
-            background: value ? 'var(--gx-accent)' : 'var(--c-text-secondary)',
-            position: 'absolute', top: 3,
-            left: value ? 23 : 3,
-            transition: 'left 150ms ease, background 150ms ease',
-          }} />
+          <div
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 9999,
+              background: value ? 'var(--gx-accent)' : 'var(--c-text-secondary)',
+              position: 'absolute',
+              top: 3,
+              left: value ? 23 : 3,
+              transition: 'left 150ms ease, background 150ms ease',
+            }}
+          />
         </button>
-      </WebPreferenceRow>
+      </SettingRow>
     );
   }
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '6px 0',
+      }}
+    >
       <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)' }}>{label}</span>
-      <Toggle
-        value={value}
-        onChange={onChange}
-        accentFrom={acc.from}
-        accentTo={acc.to}
-      />
+      <Toggle value={value} onChange={onChange} accentFrom={acc.from} accentTo={acc.to} />
     </div>
   );
 }

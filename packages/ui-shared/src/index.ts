@@ -65,7 +65,6 @@ export * from './components/ui/encrypted-text';
 
 export { useGroovexStore } from './groovex/useGroovexStore';
 export { AppModeMenuLogo } from './components/AppModeMenuLogo';
-export { WebToolbar, WebButton } from './components/WebDesignSystem';
 export { default as WebAppSectionDock } from './components/WebAppSectionDock';
 export { default as DevToolsDashboard } from './components/DevToolsDashboard';
 
@@ -74,10 +73,13 @@ export { default as UpdateIndicator } from './components/UpdateIndicator';
 export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';
 export * from './components/StudioLayoutSystem';
 export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';
-export { ActionButton } from './components/design-system/ActionButton';
+export { ActionButton } from './components/design-system/StudioDesignSystem';
 export { SharedNavigationBar } from './navigation/SharedNavigationBar';
 export { BottomNavigationController } from './navigation/BottomNavigationController';
-export { LaunchAnimationEngine, type LaunchPreset } from './components/launch/LaunchAnimationEngine';
+export {
+  LaunchAnimationEngine,
+  type LaunchPreset,
+} from './components/launch/LaunchAnimationEngine';
 export { ApplicationTransitionEngine } from './components/launch/ApplicationTransitionEngine';
 export { default as InkThemeOverlay } from './components/feature/InkThemeOverlay';
 export { default as html2canvas } from 'html2canvas';

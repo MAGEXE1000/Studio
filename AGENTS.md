@@ -245,3 +245,19 @@ The following rules govern the development workflow and implementation of all fe
 * When architecture changes, update the documentation immediately alongside the code.
 * If documentation conflicts with implementation, identify the inconsistency and update whichever is incorrect.
 * This documentation is permanent and must always represent the current codebase.
+
+### H. Global Engineering Workflow
+* The mandatory 12-step engineering workflow is defined in [`docs/workflows/global-engineering-workflow.md`](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/workflows/global-engineering-workflow.md).
+* **Every task must follow this workflow. No steps may be skipped.**
+* The steps are: (1) Understand, (2) Read Docs, (3) Investigate, (4) Shared-First, (5) Root Cause, (6) Small Phases, (7) Self Audit, (8) Performance Review, (9) Update Memory, (10) Product Owner Review, (11) Validate, (12) Complete.
+
+### I. Architectural Invariant
+* The shared-first development rule is defined in [`docs/workflows/architectural-invariant.md`](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/workflows/architectural-invariant.md).
+* **One implementation. Multiple consumers. Never the opposite.**
+* Before implementing any feature, check the Shared Systems Registry to determine if it belongs to a shared system.
+* Any implementation that duplicates existing shared behavior is an architectural defect.
+
+### J. Architectural Decisions
+* Architectural Decision Records (ADRs) live in [`docs/decisions/`](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/decisions/README.md).
+* Every significant architectural choice must be recorded as a numbered ADR.
+* ADRs are permanent — never delete or overwrite them. Superseded decisions are referenced by their replacement.

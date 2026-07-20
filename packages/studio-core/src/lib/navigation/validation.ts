@@ -155,5 +155,15 @@ export function isTransitionLocked(): boolean {
  * Prevents popping when only the root route exists.
  */
 export function isRootRouteOnly(history: NavigationHistory): boolean {
-  return history.length <= 1;
+  if (history.length === 0) return true;
+  const currentApp = history[history.length - 1].app;
+  let count = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].app === currentApp) {
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count <= 1;
 }

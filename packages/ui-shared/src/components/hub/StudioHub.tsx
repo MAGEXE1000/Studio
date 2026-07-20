@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore } from '@workspace/studio-core';
+import { useBackHandler, subscribeAuth, signOut, type AuthUser, subscribeSyncStatus, syncNow, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService } from '@workspace/studio-core';
 import { getUpdateHistory, StartupCoordinator, startDiagnosticsSession, resetUpdateTimeline, getTimelineReport, searchIndex, type SearchableItem } from '@workspace/studio-core';
 import React, { useState, useRef, useEffect, useLayoutEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -42,7 +42,7 @@ const ALL_SHORTCUT_OPTIONS = [
   { id: 'vocalex-coach', icon: 'record_voice_over', titleEn: 'Vocal Coach', titleEs: 'Entrenador Vocal' },
   { id: 'vocalex-pitch', icon: 'graphic_eq', titleEn: 'Pitch Tracker', titleEs: 'Seguimiento de Tono' },
   { id: 'developer', icon: 'terminal', titleEn: 'Dev Options', titleEs: 'Opc. de Desarrollador' },
-  { id: 'updater', icon: 'system_update_alt', titleEn: 'App Updater', titleEs: 'Actualizador de App' },
+  { id: 'notifications', icon: 'notifications', titleEn: 'Notifications', titleEs: 'Notificaciones' },
   { id: 'help', icon: 'contact_support', titleEn: 'Help & FAQ', titleEs: 'Centro de Ayuda' },
 ];
 
@@ -186,6 +186,7 @@ export default function StudioHub() {
   const settings = useChordStore(state => state.settings);
   const updateSettings = useChordStore(state => state.updateSettings);
   const startupComplete = useStartupComplete();
+  const unreadCount = useNotificationService(s => s.notifications.filter(n => !n.read && !n.dismissed).length);
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -258,9 +259,9 @@ export default function StudioHub() {
       {
         key: 'notifications',
         icon: 'notifications',
-        label: 'Updates',
-        isActive: tab === 'settings' && page === 'updater',
-        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' }),
+        label: 'Activity',
+        isActive: tab === 'settings' && page === 'notifications',
+        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' }),
       },
       {
         key: 'home',
@@ -273,7 +274,7 @@ export default function StudioHub() {
         key: 'settings',
         icon: 'settings',
         label: 'Settings',
-        isActive: tab === 'settings' && page !== 'updater',
+        isActive: tab === 'settings' && page !== 'notifications',
         onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
       },
     ]);
@@ -303,12 +304,12 @@ export default function StudioHub() {
       if (stored) {
         setShortcuts(JSON.parse(stored));
       } else {
-        const defaultShortcuts = ['chords-chord', 'chords-songs', 'updater', 'settings'];
+        const defaultShortcuts = ['chords-chord', 'chords-songs', 'notifications', 'settings'];
         setShortcuts(defaultShortcuts);
         localStorage.setItem('studio:quick-shortcuts', JSON.stringify(defaultShortcuts));
       }
     } catch {
-      setShortcuts(['chords-chord', 'chords-songs', 'updater', 'settings']);
+      setShortcuts(['chords-chord', 'chords-songs', 'notifications', 'settings']);
     }
   }, []);
 
@@ -356,7 +357,7 @@ export default function StudioHub() {
       case 'updater':
         setTab('settings');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' });
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' });
         }, 150);
         break;
       case 'help':
@@ -2384,7 +2385,7 @@ function AppRow({
 
 // ── Hub settings ──────────────────────────────────────────────────────────────
 
-type SettingsPageId = 'main' | 'general' | 'appearance' | 'language' | 'privacy' | 'about' | 'updater' | 'debug' | 'developer' | 'profile' | 'help-center' | 'faq' | 'release-notes' | 'download-apps' | 'keyboard-shortcuts' | 'terms' | 'privacy-policy' | 'bug-report';
+type SettingsPageId = 'main' | 'general' | 'appearance' | 'language' | 'privacy' | 'about' | 'notifications' | 'debug' | 'developer' | 'profile' | 'help-center' | 'faq' | 'release-notes' | 'download-apps' | 'keyboard-shortcuts' | 'terms' | 'privacy-policy' | 'bug-report';
 
 function formatHour(h: number): string {
   if (h === 0) return '12 am';
@@ -3196,6 +3197,7 @@ function HubSettings({
   const updatePerApp = useChordStore(state => state.updatePerApp);
   const historyLength = useNavigationStore(s => s.history.length);
   const { preferences, setPreference } = useStudioPreferences();
+  const unreadCount = useNotificationService(s => s.notifications.filter(n => !n.read && !n.dismissed).length);
   const [langQuery, setLangQuery] = useState('');
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -3221,7 +3223,7 @@ function HubSettings({
   const getInitialSettingsPage = () => {
     if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToUpdater') === '1') {
       sessionStorage.removeItem('studio:routeToUpdater');
-      return 'updater';
+      return 'notifications';
     }
     if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToPrivacy') === '1') {
       sessionStorage.removeItem('studio:routeToPrivacy');
@@ -3332,13 +3334,13 @@ function HubSettings({
   useEffect(() => {
     const handleRoute = () => {
       sessionStorage.removeItem('studio:routeToUpdater');
-      navigate('updater');
+      navigate('notifications');
     };
     window.addEventListener('studio:route-to-updater', handleRoute);
 
     if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToUpdater') === '1') {
       sessionStorage.removeItem('studio:routeToUpdater');
-      navigate('updater');
+      navigate('notifications');
     }
 
     return () => {
@@ -4731,15 +4733,285 @@ User Agent: [Automatically Generated]
     );
   }
 
-  function renderUpdaterContent() {
+  function renderNotificationCenterContent() {
+    const { notifications, markAsRead, dismiss, clearAll, markAllAsRead } = useNotificationService();
+    const activeNotifications = notifications.filter(n => !n.dismissed);
+    const updater = useAppUpdate();
+
+    const handleAction = async (id: string, actionId: string) => {
+      markAsRead(id);
+      
+      if (actionId === 'start_download') {
+        try {
+          await updater.downloadUpdate('notification_center');
+        } catch (err) {
+          console.error('Failed to trigger update download:', err);
+        }
+      } else if (actionId === 'apply_update') {
+        try {
+          await updater.applyUpdate('notification_center');
+        } catch (err) {
+          console.error('Failed to trigger update apply:', err);
+        }
+      } else if (actionId === 'retry_update') {
+        try {
+          await updater.downloadUpdate('notification_center');
+        } catch (err) {
+          console.error('Failed to retry update:', err);
+        }
+      } else if (actionId === 'sync_now') {
+        try {
+          await syncNow();
+        } catch (err) {
+          console.error('Failed to sync now:', err);
+        }
+      } else if (actionId === 'dismiss') {
+        dismiss(id);
+      }
+    };
+
     return (
-      <HubUpdaterPage
-        cardStyle={cardStyle}
-        accent={accent}
-        onBack={goBack}
-        style={{}}
-        hideHeader={!isWebDesktop}
-      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', padding: '16px 20px', paddingBottom: 64, minHeight: '100%' }}>
+        {/* Header Actions */}
+        {activeNotifications.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+              {activeNotifications.filter(n => !n.read).length} Unread
+            </span>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => markAllAsRead()}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  cursor: 'pointer'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>done_all</span>
+                Mark all read
+              </button>
+              <button
+                onClick={() => clearAll()}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#ef4444',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  cursor: 'pointer'
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                Clear all
+              </button>
+            </div>
+          </div>
+        )}
+
+        <AnimatePresence initial={false} mode="popLayout">
+          {activeNotifications.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 26 }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingTop: 64,
+                paddingBottom: 64,
+                gap: 16,
+                textAlign: 'center'
+              }}
+            >
+              <div style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'rgba(128, 128, 128, 0.04)',
+                border: '1px solid rgba(128, 128, 128, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 32, color: 'var(--c-text-secondary)', opacity: 0.8 }}>notifications_off</span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', margin: '0 0 4px', fontFamily: 'var(--font-headline)' }}>All Caught Up</h3>
+                <p style={{ fontSize: 12.5, color: 'var(--c-text-secondary)', opacity: 0.7, margin: 0, maxWidth: 240, lineHeight: 1.4, fontFamily: 'var(--font-body)' }}>
+                  No new activity, updates, or sync events at this time.
+                </p>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              variants={{
+                hidden: { opacity: 0 },
+                show: { opacity: 1, transition: { staggerChildren: 0.06 } }
+              }}
+              initial="hidden"
+              animate="show"
+              style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+            >
+              {activeNotifications.map((n) => {
+                const badgeStyle = getCategoryColor(n.category);
+                const isUnread = !n.read;
+                return (
+                  <motion.div
+                    key={n.id}
+                    layout
+                    variants={{
+                      hidden: { opacity: 0, y: 12, filter: 'blur(4px)' },
+                      show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 400, damping: 28 } },
+                      exit: { opacity: 0, scale: 0.95, filter: 'blur(4px)', transition: { duration: 0.18 } }
+                    }}
+                    exit="exit"
+                    onClick={() => markAsRead(n.id)}
+                    style={{
+                      background: isUnread ? 'rgba(255,255,255,0.03)' : 'rgba(128,128,128,0.01)',
+                      borderRadius: 18,
+                      padding: 16,
+                      border: isUnread ? '1px solid rgba(168, 85, 247, 0.25)' : '1px solid rgba(128,128,128,0.06)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
+                      cursor: 'pointer',
+                      position: 'relative',
+                      boxShadow: isUnread ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
+                      transition: 'border 250ms, background 250ms, box-shadow 250ms'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                      {/* Icon */}
+                      <div style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: isUnread ? 'rgba(255,255,255,0.04)' : 'rgba(128, 128, 128, 0.04)',
+                        border: '1px solid rgba(128, 128, 128, 0.08)',
+                        flexShrink: 0
+                      }}>
+                        <span className="material-symbols-outlined" style={{ color: badgeStyle.text, fontSize: 18 }}>
+                          {getCategoryIcon(n.category)}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--c-text-primary)', fontFamily: 'var(--font-headline)' }}>
+                            {n.title}
+                          </span>
+                          <span style={{ fontSize: 10, color: 'var(--c-text-secondary)', opacity: 0.6 }}>
+                            {formatTimestamp(n.timestamp)}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 12, color: 'var(--c-text-secondary)', opacity: 0.85, margin: 0, lineHeight: 1.45, fontFamily: 'var(--font-body)' }}>
+                          {n.subtitle}
+                        </p>
+                      </div>
+
+                      {/* Unread Glow Dot */}
+                      {isUnread && (
+                        <div style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: '#a855f7',
+                          boxShadow: '0 0 8px #a855f7',
+                          position: 'absolute',
+                          top: 16,
+                          right: 16
+                        }} />
+                      )}
+                    </div>
+
+                    {/* Actions and Footer */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(128,128,128,0.06)', paddingTop: 10, marginTop: 2 }}>
+                      <span style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        padding: '3px 8px',
+                        borderRadius: 6,
+                        background: badgeStyle.bg,
+                        color: badgeStyle.text,
+                        fontFamily: 'var(--font-headline)'
+                      }}>
+                        {n.category.replace('_', ' ')}
+                      </span>
+
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {n.actions && n.actions.map((act) => (
+                          <button
+                            key={act.actionId}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAction(n.id, act.actionId);
+                            }}
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: 999,
+                              background: 'var(--c-text-primary)',
+                              color: 'var(--app-bg)',
+                              border: 'none',
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              fontFamily: 'var(--font-headline)'
+                            }}
+                          >
+                            {act.label}
+                          </button>
+                        ))}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dismiss(n.id);
+                          }}
+                          style={{
+                            padding: '5px 10px',
+                            borderRadius: 999,
+                            background: 'rgba(128, 128, 128, 0.06)',
+                            color: 'var(--c-text-secondary)',
+                            border: 'none',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 3,
+                            fontFamily: 'var(--font-headline)'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 13 }}>close</span>
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     );
   }
 
@@ -5659,8 +5931,8 @@ User Agent: [Automatically Generated]
         return renderLanguageContent();
       case 'privacy':
         return renderPrivacyContent();
-      case 'updater':
-        return renderUpdaterContent();
+      case 'notifications':
+        return renderNotificationCenterContent();
       case 'developer':
         return (
           <Suspense fallback={<div style={{ padding: 24, color: 'var(--c-text-secondary)', fontFamily: 'Inter, sans-serif' }}>Loading Developer Panel...</div>}>
@@ -5701,7 +5973,7 @@ User Agent: [Automatically Generated]
       <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
         <SharedNavigationContainer
           activeView={page}
-          viewOrder={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'debug', 'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report', 'developer', 'updater']}
+          viewOrder={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'debug', 'profile', 'release-notes', 'help-center', 'faq', 'terms', 'privacy-policy', 'bug-report', 'developer', 'notifications']}
           preMountViews={['main', 'general', 'appearance', 'language', 'privacy', 'about', 'profile']}
         >
           {(pageId) => {
@@ -5712,10 +5984,10 @@ User Agent: [Automatically Generated]
                 </Suspense>
               );
             }
-            if (pageId === 'updater') {
+            if (pageId === 'notifications') {
               return (
-                <SettingsScaffold title="App Updater" onBack={goBack}>
-                  {renderUpdaterContent()}
+                <SettingsScaffold title="Notification Center" onBack={goBack}>
+                  {renderNotificationCenterContent()}
                 </SettingsScaffold>
               );
             }
@@ -5817,19 +6089,27 @@ User Agent: [Automatically Generated]
                       <div style={{ background: 'var(--app-surface-low, rgba(128,128,128,0.02))', borderRadius: 16, padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2, border: '1px solid rgba(128,128,128,0.06)' }}>
                         <motion.div
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('updater')}
+                          onClick={() => navigate('notifications')}
                           style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 12, borderRadius: 10, cursor: 'pointer' }}
                           className="hover:bg-white/5 transition-colors"
                         >
                           <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}>system_update</span>
+                            <span className="material-symbols-outlined" style={{ color: unreadCount > 0 ? '#a855f7' : 'var(--c-text-secondary)', fontSize: 18 }}>
+                              {unreadCount > 0 ? 'notifications_active' : 'notifications'}
+                            </span>
                           </div>
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Updater</span>
-                              <span style={{ fontSize: 9, background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>{APP_VERSION_LABEL}</span>
+                              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text-primary)', fontFamily: 'Inter' }}>Notification Center</span>
+                              {unreadCount > 0 && (
+                                <span style={{ fontSize: 9, background: 'rgba(168, 85, 247, 0.15)', padding: '2px 8px', borderRadius: 12, color: '#a855f7', fontWeight: 700, fontFamily: 'Inter' }}>
+                                  {unreadCount} NEW
+                                </span>
+                              )}
                             </div>
-                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>System is up to date</span>
+                            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.7 }}>
+                              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up'}
+                            </span>
                           </div>
                           <span className="material-symbols-outlined" style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}>chevron_right</span>
                         </motion.div>
@@ -6899,6 +7179,69 @@ User Agent: [Automatically Generated]
 interface FAQItem {
   question: string;
   answer: string;
+}
+
+/* ── NOTIFICATION CENTER HELPERS ──────────────────────────────────── */
+function getCategoryIcon(category: string): string {
+  switch (category) {
+    case 'app_update':
+    case 'ota_update':
+      return 'system_update';
+    case 'download_complete':
+      return 'download_done';
+    case 'install_ready':
+      return 'install_mobile';
+    case 'install_failed':
+      return 'error';
+    case 'sync_event':
+      return 'sync';
+    case 'backup_event':
+      return 'backup';
+    case 'cloud_event':
+      return 'cloud';
+    case 'account_event':
+      return 'account_circle';
+    case 'tip':
+      return 'lightbulb';
+    case 'feature_announcement':
+      return 'campaign';
+    case 'system_message':
+      return 'info';
+    default:
+      return 'notifications';
+  }
+}
+
+function getCategoryColor(category: string): { bg: string, text: string } {
+  switch (category) {
+    case 'install_failed':
+      return { bg: 'rgba(239, 68, 68, 0.1)', text: '#ef4444' };
+    case 'install_ready':
+    case 'app_update':
+    case 'ota_update':
+      return { bg: 'rgba(168, 85, 247, 0.1)', text: '#a855f7' };
+    case 'sync_event':
+    case 'backup_event':
+      return { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6' };
+    case 'tip':
+      return { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b' };
+    case 'feature_announcement':
+      return { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981' };
+    default:
+      return { bg: 'rgba(128, 128, 128, 0.1)', text: 'var(--c-text-secondary)' };
+  }
+}
+
+function formatTimestamp(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  if (diff < 60000) return 'Just now';
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(diff / 86400000);
+  if (days === 1) return 'Yesterday';
+  return `${days}d ago`;
 }
 
 

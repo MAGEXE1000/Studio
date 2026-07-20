@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.3"
-$VersionCode = "40203"
-$ReleaseNote = "4.2.3 - Centralized Shared Bottom Navigation state machine and Visibility controller, fixed transitions freezing, and expanded Theme Laboratory with 10 GPU concepts."
+$VersionName = "4.2.4"
+$VersionCode = "40204"
+$ReleaseNote = "4.2.4 - Persistent Notification Service and timeline UI, isolated per-app back navigation stacks, and synchronized transition layout cleanups."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

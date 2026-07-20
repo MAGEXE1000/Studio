@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AppKey } from '../../store/useChordStore';
+import { useBottomNavigationStore } from './useBottomNavigationStore.js';
 
 export type TransitionState =
   | 'IDLE'
@@ -33,6 +34,13 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
   requestTransition: (targetApp) => {
     let { state, launchingApp } = get();
+    
+    // Clear bottom navigation store states immediately
+    const navStore = useBottomNavigationStore.getState();
+    navStore.setSwitcherOpen(false);
+    navStore.setVisible(false);
+    navStore.setItems([]);
+
     if (state !== 'IDLE') {
       // If we are already transitioning to the same app, do nothing
       if (launchingApp === targetApp) {
@@ -160,6 +168,12 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       clearTimeout(existing);
       (window as any).__transitionWatchdog = null;
     }
+
+    // Clear bottom navigation store states
+    const navStore = useBottomNavigationStore.getState();
+    navStore.setSwitcherOpen(false);
+    navStore.setVisible(false);
+    navStore.setItems([]);
 
     set({
       state: 'IDLE',

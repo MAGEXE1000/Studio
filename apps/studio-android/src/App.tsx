@@ -26,7 +26,11 @@ import {
   navDiagnosticsRegistry,
   useApplicationTransitionStore,
   ThemeTransitionEngine,
-  useBottomNavigationStore
+  useBottomNavigationStore,
+  useNotificationService,
+  subscribeAuth,
+  subscribeSyncStatus,
+  syncNow
 } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
@@ -1185,7 +1189,70 @@ export default function App() {
       if (watchdogTimer) clearTimeout(watchdogTimer);
     };
   }, [transitionActive, updateSettings]);
+  // Subscribe to Auth and Sync status changes to publish notifications
+  useEffect(() => {
+    let lastUserEmail: string | null = null;
+    let lastSyncing = false;
 
+    // A. Subscribe Auth
+    const unsubAuth = subscribeAuth((user) => {
+      if (user) {
+        if (user.email !== lastUserEmail) {
+          useNotificationService.getState().publish({
+            category: 'account_event',
+            priority: 'normal',
+            title: 'Signed In Successfully',
+            subtitle: `Connected to Cloud: ${user.email}. Settings synchronization is active.`,
+            icon: 'account_circle'
+          });
+          lastUserEmail = user.email;
+        }
+      } else {
+        if (lastUserEmail !== null) {
+          useNotificationService.getState().publish({
+            category: 'account_event',
+            priority: 'normal',
+            title: 'Signed Out',
+            subtitle: 'You have signed out of your account. Local settings will not sync.',
+            icon: 'no_accounts'
+          });
+          lastUserEmail = null;
+        }
+      }
+    });
+
+    // B. Subscribe Sync
+    const unsubSync = subscribeSyncStatus((status) => {
+      if (status.syncing) {
+        lastSyncing = true;
+      } else if (lastSyncing) {
+        lastSyncing = false;
+        if (status.error) {
+          useNotificationService.getState().publish({
+            category: 'sync_event',
+            priority: 'high',
+            title: 'Sync Synchronization Failed',
+            subtitle: `Sync error: ${status.error}`,
+            icon: 'sync_problem',
+            actions: [{ label: 'Retry Now', actionId: 'sync_now' }]
+          });
+        } else {
+          useNotificationService.getState().publish({
+            category: 'sync_event',
+            priority: 'low',
+            title: 'Settings Synchronized',
+            subtitle: 'Successfully updated configurations across all devices.',
+            icon: 'sync'
+          });
+        }
+      }
+    });
+
+    return () => {
+      unsubAuth();
+      unsubSync();
+    };
+  }, []);
   // ── Sync Active Theme & AMOLED Mode (handled globally by StartupCoordinator's subscriber) ──
 
 

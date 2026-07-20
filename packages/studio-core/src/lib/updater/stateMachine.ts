@@ -21,6 +21,7 @@ export type AppUpdateState =
 import { parseSemver, APP_VERSION, compareSemver } from '../appVersion';
 import { releaseMetadataInspector } from './versionLogger';
 import { UpdaterFlightRecorder } from './flightRecorder';
+import { useNotificationService } from '../notifications/NotificationService.js';
 
 export interface StructuredReleaseNotes {
   added?: string[];
@@ -990,6 +991,59 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
       }
     }
   } catch (_) {}
+
+  // Publish to Notification Service
+  try {
+    if (state === 'UPDATE_AVAILABLE') {
+      useNotificationService.getState().publish({
+        category: 'ota_update',
+        priority: 'high',
+        title: 'Update Available',
+        subtitle: `A new OTA update v${globalUpdateState.remoteVersion} is available.`,
+        icon: 'system_update',
+        actions: [{ label: 'Install', actionId: 'start_download' }]
+      });
+    } else if (state === 'DOWNLOAD_APK') {
+      useNotificationService.getState().publish({
+        category: 'ota_update',
+        priority: 'normal',
+        title: 'Download Started',
+        subtitle: `Downloading package v${globalUpdateState.remoteVersion}...`,
+        icon: 'downloading'
+      });
+    } else if (state === 'VERIFY_SHA256') {
+      useNotificationService.getState().publish({
+        category: 'download_complete',
+        priority: 'normal',
+        title: 'Download Finished',
+        subtitle: `Package v${globalUpdateState.remoteVersion} download complete. Verifying...`,
+        icon: 'verified'
+      });
+    } else if (state === 'WAITING_USER_CONFIRMATION') {
+      useNotificationService.getState().publish({
+        category: 'install_ready',
+        priority: 'high',
+        title: 'Installation Ready',
+        subtitle: `Update v${globalUpdateState.remoteVersion} is verified and ready to install.`,
+        icon: 'install_mobile',
+        actions: [
+          { label: 'Install Now', actionId: 'apply_update' },
+          { label: 'Dismiss', actionId: 'dismiss' }
+        ]
+      });
+    } else if (state === 'INSTALL_FAILED') {
+      useNotificationService.getState().publish({
+        category: 'install_failed',
+        priority: 'high',
+        title: 'Installation Failed',
+        subtitle: `Failed to install update: ${failureReason || reason || 'unknown error'}`,
+        icon: 'error',
+        actions: [{ label: 'Retry', actionId: 'retry_update' }]
+      });
+    }
+  } catch (e) {
+    console.error('Failed to publish updater notification:', e);
+  }
 
   stateListeners.forEach((l) => l(globalUpdateState));
 }

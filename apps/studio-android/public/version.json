@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.2.3",
-  "versionName": "4.2.3",
-  "versionCode": 40203,
-  "version_code": 40203,
-  "commit": "55936107",
-  "releasedAt": "7/19/2026, 2:38:44 PM CST",
-  "buildTimestamp": "7/19/2026, 2:38:44 PM CST",
+  "version": "4.2.4",
+  "versionName": "4.2.4",
+  "versionCode": 40204,
+  "version_code": 40204,
+  "commit": "6b402cd0",
+  "releasedAt": "7/19/2026, 8:37:46 PM CST",
+  "buildTimestamp": "7/19/2026, 8:37:46 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Centralized Bottom Navigation state machine and Visibility controller globally.\n• Resolved transition freezing issues by adding active task interruptions and startZoom guards.\n• Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.\n• Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
-  "whatsNew": "• Centralized Bottom Navigation state machine and Visibility controller globally.\n• Resolved transition freezing issues by adding active task interruptions and startZoom guards.\n• Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.\n• Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
+  "changelog": "• Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.\n• Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.\n• Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.\n• Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
+  "whatsNew": "• Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.\n• Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.\n• Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.\n• Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
   "releaseNotes": {
     "added": [
-      "Centralized Bottom Navigation state machine and Visibility controller globally.",
-      "Resolved transition freezing issues by adding active task interruptions and startZoom guards.",
-      "Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.",
-      "Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally."
+      "Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.",
+      "Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.",
+      "Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.",
+      "Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts."
     ]
   },
   "mandatory": false

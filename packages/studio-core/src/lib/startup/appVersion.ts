@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.2.3';
-export const WEB_VERSION = '4.2.3';
+export const NATIVE_VERSION = '4.2.4';
+export const WEB_VERSION = '4.2.4';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -39,11 +39,11 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-19';
+export const APP_VERSION_DATE = '2026-07-20';
 // Note: keep ISO-8601. Bump together with APP_VERSION on each release.
 
-export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
-export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/19/2026, 8:38:00 PM CST';
+export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'a1b2c3d4';
+export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/20/2026, 2:33:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -62,10 +62,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Centralized Bottom Navigation state machine and Visibility controller globally.",
-      "Resolved transition freezing issues by adding active task interruptions and startZoom guards.",
-      "Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.",
-      "Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
+      "Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.",
+      "Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.",
+      "Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.",
+      "Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
     ],
   },
 ];
@@ -75,10 +75,10 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
     heading: "What's New",
     items: [
-      "Centralized Bottom Navigation state machine and Visibility controller globally.",
-      "Resolved transition freezing issues by adding active task interruptions and startZoom guards.",
-      "Expanded Motion Playground to a full Theme Transition Laboratory featuring 10 GPU concepts.",
-      "Eliminated slide-in-from-side anomalies by keeping navigation bar instance mounted globally.",
+      "Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.",
+      "Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.",
+      "Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.",
+      "Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
     ],
   },
 ];
@@ -89,10 +89,10 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
     heading: "Novedades",
     items: [
-      "Controlador de visibilidad y máquina de estados centralizada para la navegación inferior.",
-      "Resueltos los congelamientos de transición con interrupciones del hilo de transición activa y guardas de startZoom.",
-      "Expansión del Motion Playground a un laboratorio completo de transiciones de tema con 10 conceptos GPU.",
-      "Eliminadas anomalías de deslizamiento lateral manteniendo la barra de navegación montada globalmente.",
+      "Servicio de notificaciones persistente y centralizado para actualizaciones del sistema, sincronización y autenticación.",
+      "Pestaña de Centro de Notificaciones dedicada con feed animado y botones de acción interactivos.",
+      "Pila de navegación de retroceso aislada por aplicación, impidiendo el retorno inesperado al Hub.",
+      "Limpieza síncrona de diseño en transiciones de aplicaciones para evitar superposiciones de menús.",
     ],
   },
 ];

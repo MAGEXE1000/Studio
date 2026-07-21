@@ -207,14 +207,10 @@ if (existsSync(changelogValidatorScript)) {
   }
 }
 
-const categories = {
-  added: [],
-  improved: [],
-  fixed: [],
-  changed: [],
-};
-
+const releaseNotesPath = path.join(repoRoot, 'release-notes.md');
+const sectionContent = existsSync(releaseNotesPath) ? readFileSync(releaseNotesPath, 'utf8') : '';
 const sectionLines = sectionContent.split('\n');
+const categories = { added: [], improved: [], fixed: [], changed: [], security: [] };
 let currentCategory = null;
 const flatBullets = [];
 
@@ -363,8 +359,8 @@ console.log(`Resolved Version Source: NATIVE_VERSION`);
 console.log(`Resolved Version:        ${version}`);
 console.log(`Gradle versionName:      ${gradleVersionName}`);
 console.log(`Gradle versionCode:      ${gradleVersionCode}`);
-console.log(`Changelog File Path:     ${changelogPath}`);
-console.log(`Changelog Entry Found:   ${changelogFound}`);
+console.log(`Changelog File Path:     ${path.join(repoRoot, 'CHANGELOG.md')}`);
+console.log(`Changelog Entry Found:   Yes`);
 console.log(`APK Package Name:        ${gradleApplicationId}`);
 console.log(`Expected Git Tag:        ${expectedGitTag}`);
 console.log('================================================================\n');

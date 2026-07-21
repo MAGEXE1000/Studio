@@ -13,6 +13,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.5
+
+### Added
+
+- LOT 1 runtime optimizations: Root-level code splitting.
+- Lazy-loading of PDF engine to reduce startup bundle size.
+- Dead code elimination.
+
 ## 4.2.4
 
 ### Added

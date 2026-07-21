@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.2.4",
-  "versionName": "4.2.4",
-  "versionCode": 40204,
-  "version_code": 40204,
-  "commit": "65e4b379",
-  "releasedAt": "7/20/2026, 4:08:58 PM CST",
-  "buildTimestamp": "7/20/2026, 4:08:58 PM CST",
+  "version": "4.2.5",
+  "versionName": "4.2.5",
+  "versionCode": 40205,
+  "version_code": 40205,
+  "commit": "e4f34fa6",
+  "releasedAt": "7/20/2026, 6:33:45 PM CST",
+  "buildTimestamp": "7/20/2026, 6:33:45 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.\n• Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.\n• Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.\n• Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
-  "whatsNew": "• Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.\n• Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.\n• Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.\n• Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
+  "changelog": "• LOT 1 runtime optimizations: Root-level code splitting.\n• Lazy-loading of PDF engine to reduce startup bundle size.\n• Dead code elimination.",
+  "whatsNew": "• LOT 1 runtime optimizations: Root-level code splitting.\n• Lazy-loading of PDF engine to reduce startup bundle size.\n• Dead code elimination.",
   "releaseNotes": {
     "added": [
-      "Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.",
-      "Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.",
-      "Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.",
-      "Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts."
+      "LOT 1 runtime optimizations: Root-level code splitting.",
+      "Lazy-loading of PDF engine to reduce startup bundle size.",
+      "Dead code elimination."
     ]
   },
   "mandatory": false

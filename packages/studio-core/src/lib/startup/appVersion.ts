@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.2.4';
-export const WEB_VERSION = '4.2.4';
+export const NATIVE_VERSION = '4.2.5';
+export const WEB_VERSION = '4.2.5';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -71,10 +71,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Centralized persistent Notification Service to store and track system updates, cloud sync, and auth events.",
-      "Dedicated flagship Notification Center UI featuring stagger-animated timelines and interactive action buttons.",
-      "Isolated back navigation stack per application, preventing unexpected return-to-hub or cross-app history pops.",
-      "Synchronous layout cleanup during transitions to eliminate overlapping bottom navigation or switcher artifacts.",
+      "LOT 1 runtime optimizations: Root-level code splitting.",
+      "Lazy-loading of PDF engine to reduce startup bundle size.",
+      "Dead code elimination.",
     ],
   },
 ];

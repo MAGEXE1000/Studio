@@ -809,17 +809,10 @@ if (androidHome && existsSync(path.join(androidHome, 'build-tools'))) {
         process.exit(1);
       }
       const fingerprint = sha256Match[1].toLowerCase();
-      const expectedSig =
-        process.env.EXPECTED_SIGNATURE_SHA256 ||
-        '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
-      const targetSig =
-        process.env.REINSTALL_REQUIRED === 'true'
-          ? '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
-          : expectedSig.replace(/:/g, '').toLowerCase();
-
-      if (fingerprint !== targetSig) {
+      const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+      if (fingerprint !== HARDCODED_PROD_FINGERPRINT) {
         console.error(
-          `release-firebase: âœ— APK signature fingerprint mismatch! Expected ${targetSig}, got ${fingerprint}`
+          `release-firebase: ✗ CRITICAL SECURITY FAILURE: APK signature fingerprint mismatch! Expected official production signature ${HARDCODED_PROD_FINGERPRINT}, got ${fingerprint}`
         );
         process.exit(1);
       }
@@ -836,6 +829,20 @@ if (androidHome && existsSync(path.join(androidHome, 'build-tools'))) {
   console.warn(
     'release-firebase: âš  ANDROID_HOME not set or build-tools missing. Skipping APK integrity check.'
   );
+}
+
+// Step 6.6: Generate Release Verification Report
+console.log('Step 6.6/15: Generate Release Verification Report...');
+const verReportScript = path.join(repoRoot, 'scripts/generate-release-verification-report.mjs');
+if (existsSync(verReportScript)) {
+  const verResult = spawnSync('node', [verReportScript, localApkPath], {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+  if (verResult.status !== 0) {
+    console.error('release-firebase: ✗ Release verification report generation failed!');
+    process.exit(verResult.status ?? 1);
+  }
 }
 
 // Step 7: Create GitHub Release tag if missing

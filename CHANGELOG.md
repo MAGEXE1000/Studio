@@ -13,6 +13,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.15
+
+### Security
+
+- Enforced mandatory production signing key verification (`SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`) with zero fallback.
+- Added pre-build Gradle key store fingerprint assertion and post-signing release verification report stage.
+
 ## 4.2.14
 
 ### Added

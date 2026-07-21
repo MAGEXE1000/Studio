@@ -14,12 +14,16 @@ if (!fs.existsSync(appVersionPath)) {
   process.exit(1);
 }
 const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
-const expectedSigMatch = appVersionSrc.match(
-  /export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/
-);
+const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
 const EXPECTED_FINGERPRINT = (
-  process.env.EXPECTED_SIGNATURE_SHA256 || (expectedSigMatch ? expectedSigMatch[1] : '')
+  process.env.EXPECTED_SIGNATURE_SHA256 || (expectedSigMatch ? expectedSigMatch[1] : HARDCODED_PROD_FINGERPRINT)
 ).toLowerCase().replace(/:/g, '').trim();
+
+if (EXPECTED_FINGERPRINT !== HARDCODED_PROD_FINGERPRINT) {
+  console.error(`✗ CRITICAL SECURITY FAILURE: Attempting release verification with unauthorized fingerprint: ${EXPECTED_FINGERPRINT}`);
+  console.error(`  Expected Production Fingerprint: ${HARDCODED_PROD_FINGERPRINT}`);
+  process.exit(1);
+}
 console.log(`Authoritative production fingerprint: ${EXPECTED_FINGERPRINT}`);
 
 // 2. Scan firebase-public/apk/ for all APKs

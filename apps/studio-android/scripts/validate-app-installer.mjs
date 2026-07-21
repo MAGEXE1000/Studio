@@ -592,49 +592,13 @@ if (fs.existsSync(paths.apkPath)) {
     const sha256Match = signInfoVerbose.match(/certificate SHA-256 digest:\s+([a-fA-F0-9:]+)/i);
     const currentSignature = sha256Match ? sha256Match[1].replace(/:/g, '').toLowerCase() : '';
 
-    // Check signature consistency with previous release
-    const expectedSigMatch = appVersionSrc.match(
-      /export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/
+    const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+    assert(
+      currentSignature === HARDCODED_PROD_FINGERPRINT,
+      `CRITICAL SECURITY FAILURE: APK signature fingerprint mismatch! Expected official production signature ${HARDCODED_PROD_FINGERPRINT}, found ${currentSignature}`,
+      EXIT_CODES.RELEASE_VALIDATION
     );
-    const expectedProdSignature = process.env.EXPECTED_SIGNATURE_SHA256
-      ? process.env.EXPECTED_SIGNATURE_SHA256.replace(/:/g, '').toLowerCase()
-      : (expectedSigMatch
-        ? expectedSigMatch[1].toLowerCase().replace(/:/g, '').trim()
-        : '');
-
-    if (prevSignature && currentSignature !== prevSignature) {
-      if (isDevPreview) {
-        console.warn(
-          `⚠ Development warning: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. Proceeding since --development-preview is enabled.`
-        );
-      } else if (process.env.REINSTALL_REQUIRED === 'true') {
-        console.log(
-          `✓ Controlled signature transition allowed with REINSTALL_REQUIRED=true (${prevSignature} → ${currentSignature})`
-        );
-      } else {
-        assert(
-          false,
-          `Release blocked: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. (For controlled reset, set REINSTALL_REQUIRED=true)`,
-          EXIT_CODES.RELEASE_VALIDATION
-        );
-      }
-    }
-
-    // Check signature consistency with expected production key
-    if (currentSignature !== expectedProdSignature) {
-      if (isDevPreview) {
-        console.warn(
-          `âš  Development warning: APK is not signed with the production certificate. Expected: ${expectedProdSignature}, Found: ${currentSignature}`
-        );
-      } else {
-        assert(
-          false,
-          `Release blocked: APK is not signed with the production certificate! Expected: ${expectedProdSignature}, Found: ${currentSignature}`,
-          EXIT_CODES.RELEASE_VALIDATION
-        );
-      }
-    }
-    console.log('âœ“ APK signing certificate validation check passed.');
+    console.log('✓ APK signing certificate validation check passed.');
 
     // 2. Certificate Details Check (Owner, Issuer, Validity)
     try {

@@ -146,6 +146,19 @@ jobs:
             exit 1
           fi
 
+      - name: Verify Pre-Build Production Keystore Fingerprint
+        run: |
+          keytool -list -v -keystore apps/studio-android/android/app/release.keystore -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > cert.txt
+          FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | tr -d '[:space:]' | cut -d':' -f2- | tr '[:upper:]' '[:lower:]')
+          EXPECTED="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
+          echo "Detected Keystore SHA-256: $FINGERPRINT"
+          echo "Expected Production SHA-256: $EXPECTED"
+          if [ "$FINGERPRINT" != "$EXPECTED" ]; then
+            echo "::error::CRITICAL SECURITY FAILURE: Decoded release.keystore SHA-256 fingerprint ($FINGERPRINT) does not match expected production certificate ($EXPECTED)!"
+            exit 1
+          fi
+          echo "✓ Production Keystore Pre-Build Fingerprint Verified."
+
       - name: Run Android Release Orchestration Script
         env:
           GH_TOKEN: ${{ github.token }}
@@ -170,11 +183,39 @@ jobs:
           retention-days: 1
 
   # =========================================================================
-  # JOB 3: PUBLISH, DEPLOY & REPORT (~20 seconds)
+  # JOB 3: SIGNING & CONTRACT VERIFICATION (~10 seconds)
+  # =========================================================================
+  signing_verification:
+    name: 3. Signing & Contract Verification
+    needs: build_and_package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Verify Release Verification Artifacts
+        run: |
+          if [ ! -f release-verification-report.json ]; then
+            echo "::error::release-verification-report.json was not generated during build!"
+            exit 1
+          fi
+          cat release-verification-report.md >> $GITHUB_STEP_SUMMARY
+          STATUS=$(node -p "JSON.parse(require('fs').readFileSync('release-verification-report.json', 'utf8')).status")
+          if [ "$STATUS" != "VERIFIED_PRODUCTION" ]; then
+            echo "::error::CRITICAL SECURITY FAILURE: Release verification status is $STATUS"
+            exit 1
+          fi
+          echo "✓ Signing Verification Stage Passed: Status is VERIFIED_PRODUCTION"
+
+  # =========================================================================
+  # JOB 4: PUBLISH, DEPLOY & REPORT (~20 seconds)
   # =========================================================================
   publish_and_deploy:
-    name: 3. Publish, Deploy & Report
-    needs: build_and_package
+    name: 4. Publish, Deploy & Report
+    needs: [build_and_package, signing_verification]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

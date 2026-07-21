@@ -12,11 +12,13 @@ on:
         description: 'Optional release note'
         required: false
         default: ''
-      prerelease:
-        description: 'Publish as GitHub Prerelease'
-        type: boolean
-        required: false
-        default: true
+      release_type:
+        description: 'Release Publication Type'
+        type: choice
+        options:
+          - 'stable'
+          - 'prerelease'
+        default: 'stable'
 
 permissions:
   contents: write
@@ -150,7 +152,7 @@ jobs:
         run: |
           cd apps/studio-android
           PRERELEASE_FLAG=""
-          if [ "${{ inputs.prerelease }}" = "true" ]; then
+          if [ "${{ inputs.release_type }}" = "prerelease" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
           node scripts/release-firebase.mjs $PRERELEASE_FLAG > build.log 2>&1 || {

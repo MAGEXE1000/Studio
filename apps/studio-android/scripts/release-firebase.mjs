@@ -194,55 +194,17 @@ if (!ghToken) {
 }
 console.log('release-firebase: âœ“ GH_TOKEN presence validated.');
 
-// B. CHANGELOG entry check
-const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
-if (!existsSync(changelogPath)) {
-  console.error(
-    `release-firebase: âœ— Release blocked: CHANGELOG.md not found at ${changelogPath}`
-  );
-  process.exit(1);
-}
-
-const changelogText = readFileSync(changelogPath, 'utf8');
-const lines = changelogText.split(/\r?\n/);
-let sectionContent = '';
-let inSection = false;
-
-for (const line of lines) {
-  if (line.match(/^##\s+/)) {
-    if (inSection) break;
-    if (line.match(new RegExp(`^##\\s+${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`))) {
-      inSection = true;
-    }
-  } else if (inSection) {
-    sectionContent += line + '\n';
+// B. MANDATORY RELEASE CHANGELOG SYSTEM VALIDATION
+const changelogValidatorScript = path.join(repoRoot, 'scripts', 'validate-release-changelog.mjs');
+if (existsSync(changelogValidatorScript)) {
+  const changelogRes = spawnSync('node', [changelogValidatorScript], {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+  if (changelogRes.status !== 0) {
+    console.error('\x1b[31mrelease-firebase: ✗ Mandatory release changelog validation failed!\x1b[0m');
+    process.exit(changelogRes.status ?? 1);
   }
-}
-
-if (!inSection) {
-  console.error(
-    `\x1b[31mrelease-firebase: âœ— Release blocked: missing changelog entry for version ${version} in CHANGELOG.md. Add real release notes before publishing.\x1b[0m`
-  );
-  process.exit(1);
-}
-
-sectionContent = sectionContent.trim();
-if (!sectionContent) {
-  console.error(
-    `\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} is empty. Add real release notes before publishing.\x1b[0m`
-  );
-  process.exit(1);
-}
-
-if (
-  sectionContent.toLowerCase() === `version ${version}`.toLowerCase() ||
-  sectionContent.toLowerCase() === `release v${version}`.toLowerCase() ||
-  sectionContent.toLowerCase() === `version: ${version}`.toLowerCase()
-) {
-  console.error(
-    `\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} contains only generic placeholder text. Add real release notes before publishing.\x1b[0m`
-  );
-  process.exit(1);
 }
 
 const categories = {

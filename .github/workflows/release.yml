@@ -75,6 +75,9 @@ jobs:
       - name: Install Node Dependencies (Cached)
         run: pnpm install --frozen-lockfile
 
+      - name: Validate Mandatory Release Changelog System
+        run: node scripts/validate-release-changelog.mjs
+
       - name: Validate Multi-Manifest Version Consistency & CHANGELOG
         run: pnpm check:versions
 
@@ -149,7 +152,7 @@ jobs:
       - name: Verify Pre-Build Production Keystore Fingerprint
         run: |
           keytool -list -v -keystore apps/studio-android/android/app/release.keystore -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > cert.txt
-          FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | tr -d '[:space:]' | cut -d':' -f2- | tr '[:upper:]' '[:lower:]')
+          FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | cut -d':' -f2- | tr -d '[:space:]:' | tr '[:upper:]' '[:lower:]')
           EXPECTED="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
           echo "Detected Keystore SHA-256: $FINGERPRINT"
           echo "Expected Production SHA-256: $EXPECTED"

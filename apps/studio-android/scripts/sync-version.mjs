@@ -97,18 +97,32 @@ if (!fs.existsSync(localChangelogPath)) {
 }
 
 const changelogText = fs.readFileSync(localChangelogPath, 'utf8');
-const esc = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const re = new RegExp(`^##\\s+${esc}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, 'm');
-const match = changelogText.match(re);
+const changelogRawLines = changelogText.split(/\r?\n/);
+let inSection = false;
+let sectionLines = [];
 
-if (!match) {
+for (const rawLine of changelogRawLines) {
+  const isHeader = rawLine.match(/^(?:#|##)\s+(?:Version\s+)?v?(\d+\.\d+\.\d+)/i);
+  if (isHeader) {
+    if (inSection) break;
+    if (isHeader[1] === version) {
+      inSection = true;
+      continue;
+    }
+  }
+  if (inSection) {
+    sectionLines.push(rawLine);
+  }
+}
+
+if (!inSection) {
   console.error(
     `\x1b[31msync-version: ✗ Release blocked: missing changelog entry for version ${version} in CHANGELOG.md. Add real release notes before publishing.\x1b[0m`
   );
   process.exit(1);
 }
 
-const sectionContent = match[1].trim();
+const sectionContent = sectionLines.join('\n').trim();
 if (!sectionContent) {
   console.error(
     `\x1b[31msync-version: ✗ Release blocked: changelog entry for version ${version} is empty. Add real release notes before publishing.\x1b[0m`

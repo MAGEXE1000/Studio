@@ -185,6 +185,15 @@ jobs:
           path: firebase-public/
           retention-days: 1
 
+      - name: Upload Release Verification Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-verification-report
+          path: |
+            release-verification-report.json
+            release-verification-report.md
+          retention-days: 1
+
   # =========================================================================
   # JOB 3: SIGNING & CONTRACT VERIFICATION (~10 seconds)
   # =========================================================================
@@ -198,6 +207,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+
+      - name: Download Release Verification Report Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-verification-report
 
       - name: Verify Release Verification Artifacts
         run: |

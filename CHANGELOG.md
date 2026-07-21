@@ -13,6 +13,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.7
+
+### Fixed
+
+- Resolved Android native startup hang on the Livex logo by auto-recovering StartupCoordinator execution when native window focus transitions occur mid-boot.
+- Preserved onHubShow callback and auto-restart boot execution when app returns to active/foreground state.
+
 ## 4.2.6
 
 ### Fixed

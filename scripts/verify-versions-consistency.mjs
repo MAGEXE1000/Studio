@@ -70,9 +70,25 @@ const gradleVersionCode = parseInt(gradleVersionCodeMatch[1], 10);
 console.log(`build.gradle versionName: ${gradleVersionName}`);
 console.log(`build.gradle versionCode: ${gradleVersionCode}`);
 
-// === VALIDATIONS ===
+// 5. Read CHANGELOG.md and verify section matching target version
+const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
+if (!fs.existsSync(changelogPath)) {
+  console.error(`Error: CHANGELOG.md not found at ${changelogPath}`);
+  process.exit(1);
+}
+const changelogText = fs.readFileSync(changelogPath, 'utf8');
+const changelogHeaderRegex = new RegExp(`^##\\s+${androidRuntimeVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm');
 
 let failed = false;
+
+if (!changelogHeaderRegex.test(changelogText)) {
+  console.error(`\x1b[31mError: CHANGELOG.md is missing section for version ${androidRuntimeVersion}!\x1b[0m`);
+  failed = true;
+} else {
+  console.log(`✓ CHANGELOG.md section for v${androidRuntimeVersion} verified.`);
+}
+
+// === VALIDATIONS ===
 
 // Web Consistency
 if (webPkgVersion !== webRuntimeVersion) {

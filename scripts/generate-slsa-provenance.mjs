@@ -59,6 +59,7 @@ export function generateSlsaProvenance(options = {}) {
   // Generate Cryptographic Provenance Signatures (.sig)
   signFile(path.join(repoRoot, 'release-manifest.json'), path.join(repoRoot, 'release-manifest.sig'));
   signFile(path.join(repoRoot, 'release-audit.json'), path.join(repoRoot, 'release-audit.sig'));
+  signFile(path.join(repoRoot, 'CHANGELOG.md'), path.join(repoRoot, 'CHANGELOG.sig'));
 
   const apkPath = path.join(repoRoot, 'apps/studio-android/android/app/build/outputs/apk/release/app-release.apk');
   if (fs.existsSync(apkPath)) {

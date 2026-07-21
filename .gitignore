@@ -16,6 +16,14 @@ smoke-report.json
 smoke-report.md
 release-slsa-provenance.json
 *.sig
+deterministic-build-report.json
+dependency-lock-report.json
+artifact-retention-report.json
+release-health.json
+release-health.md
+dependency-report.json
+dependency-report.md
+recovery-report.json
 .expo/
 .expo-shared/
 

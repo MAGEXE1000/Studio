@@ -21,6 +21,11 @@ import { appendReleaseHistory } from '../../../scripts/generate-release-history.
 import { generateReleaseDelta } from '../../../scripts/generate-release-delta.mjs';
 import { runReleaseSmokeTest } from '../../../scripts/run-release-smoke-test.mjs';
 import { generateSlsaProvenance } from '../../../scripts/generate-slsa-provenance.mjs';
+import { verifyDeterministicBuild } from '../../../scripts/verify-deterministic-build.mjs';
+import { verifyDependencyLocks } from '../../../scripts/verify-dependency-locks.mjs';
+import { manageArtifactRetention } from '../../../scripts/manage-artifact-retention.mjs';
+import { generateReleaseHealth } from '../../../scripts/generate-release-health.mjs';
+import { generateDependencyReport } from '../../../scripts/generate-dependency-report.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(__dirname, '..');
@@ -872,7 +877,19 @@ const deltaMdPath = path.join(repoRoot, 'release-delta.md');
 const provenancePath = path.join(repoRoot, 'release-slsa-provenance.json');
 const manifestSigPath = path.join(repoRoot, 'release-manifest.sig');
 const auditSigPath = path.join(repoRoot, 'release-audit.sig');
+const changelogSigPath = path.join(repoRoot, 'CHANGELOG.sig');
 const apkSigPath = path.join(repoRoot, 'apk.sig');
+const deterministicPath = path.join(repoRoot, 'deterministic-build-report.json');
+const depLockPath = path.join(repoRoot, 'dependency-lock-report.json');
+const retentionPath = path.join(repoRoot, 'artifact-retention-report.json');
+const healthPath = path.join(repoRoot, 'release-health.json');
+const depReportPath = path.join(repoRoot, 'dependency-report.json');
+
+verifyDeterministicBuild();
+verifyDependencyLocks();
+manageArtifactRetention();
+generateReleaseHealth({ version });
+generateDependencyReport();
 
 generateReleaseManifest({
   version,
@@ -886,7 +903,7 @@ generateAuditLog({
   version,
   gitCommit: currentCommit,
   gitTag: tag,
-  artifacts: [uploadApkName, uploadShaName, 'release-manifest.json', 'release-audit.json', 'release-history.json', 'release-delta.json', 'release-slsa-provenance.json'],
+  artifacts: [uploadApkName, uploadShaName, 'release-manifest.json', 'release-audit.json', 'release-history.json', 'release-delta.json', 'release-slsa-provenance.json', 'release-health.json', 'dependency-report.json'],
 });
 
 appendReleaseHistory({
@@ -925,7 +942,13 @@ const uploadRes = runGh([
   provenancePath,
   manifestSigPath,
   auditSigPath,
+  changelogSigPath,
   apkSigPath,
+  deterministicPath,
+  depLockPath,
+  retentionPath,
+  healthPath,
+  depReportPath,
   '--clobber',
   '--repo',
   'MAGEXE1000/Studio',

@@ -16,7 +16,7 @@ if (!fs.existsSync(appVersionPath)) {
 const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
 const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
 const EXPECTED_FINGERPRINT = (
-  process.env.EXPECTED_SIGNATURE_SHA256 || (expectedSigMatch ? expectedSigMatch[1] : HARDCODED_PROD_FINGERPRINT)
+  process.env.EXPECTED_SIGNATURE_SHA256 || HARDCODED_PROD_FINGERPRINT
 ).toLowerCase().replace(/:/g, '').trim();
 
 if (EXPECTED_FINGERPRINT !== HARDCODED_PROD_FINGERPRINT) {

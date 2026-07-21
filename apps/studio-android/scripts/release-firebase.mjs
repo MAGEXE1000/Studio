@@ -163,8 +163,31 @@ for (const line of lines) {
   }
 }
 
-sectionContent = sectionContent.trim();
+if (!inSection) {
+  console.error(
+    `\x1b[31mrelease-firebase: âœ— Release blocked: missing changelog entry for version ${version} in CHANGELOG.md. Add real release notes before publishing.\x1b[0m`
+  );
+  process.exit(1);
+}
 
+sectionContent = sectionContent.trim();
+if (!sectionContent) {
+  console.error(
+    `\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} is empty. Add real release notes before publishing.\x1b[0m`
+  );
+  process.exit(1);
+}
+
+if (
+  sectionContent.toLowerCase() === `version ${version}`.toLowerCase() ||
+  sectionContent.toLowerCase() === `release v${version}`.toLowerCase() ||
+  sectionContent.toLowerCase() === `version: ${version}`.toLowerCase()
+) {
+  console.error(
+    `\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} contains only generic placeholder text. Add real release notes before publishing.\x1b[0m`
+  );
+  process.exit(1);
+}
 
 const categories = {
   added: [],

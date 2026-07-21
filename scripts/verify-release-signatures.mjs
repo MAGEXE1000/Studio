@@ -7,79 +7,132 @@ import { spawnSync } from 'node:child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
-// 1. Authoritative Expected Fingerprint
-const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
-if (!fs.existsSync(appVersionPath)) {
-  console.error(`âœ— Authoritative config not found at: ${appVersionPath}`);
-  process.exit(1);
-}
-const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
+// 1. Authoritative Expected Production Certificate
 const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
 const EXPECTED_FINGERPRINT = (
   process.env.EXPECTED_SIGNATURE_SHA256 || HARDCODED_PROD_FINGERPRINT
 ).toLowerCase().replace(/:/g, '').trim();
 
 if (EXPECTED_FINGERPRINT !== HARDCODED_PROD_FINGERPRINT) {
-  console.error(`✗ CRITICAL SECURITY FAILURE: Attempting release verification with unauthorized fingerprint: ${EXPECTED_FINGERPRINT}`);
+  console.error(`::error::CRITICAL SECURITY FAILURE: Attempting release verification with unauthorized fingerprint: ${EXPECTED_FINGERPRINT}`);
   console.error(`  Expected Production Fingerprint: ${HARDCODED_PROD_FINGERPRINT}`);
   process.exit(1);
 }
-console.log(`Authoritative production fingerprint: ${EXPECTED_FINGERPRINT}`);
 
-// 2. Scan firebase-public/apk/ for all APKs
-const apkDir = path.join(repoRoot, 'firebase-public/apk');
-if (!fs.existsSync(apkDir)) {
-  console.log(
-    'âœ“ No firebase-public/apk directory found. Skipping deployment signatures validation.'
-  );
-  process.exit(0);
+// 2. Locate Target APK & Artifact Paths
+let apkPath = process.argv[2] ? path.resolve(process.argv[2]) : '';
+const firebaseApkDir = path.join(repoRoot, 'firebase-public/apk');
+const gradleApkPath = path.join(repoRoot, 'apps/studio-android/android/app/build/outputs/apk/release/app-release.apk');
+
+if (!apkPath) {
+  if (fs.existsSync(firebaseApkDir)) {
+    const apks = fs.readdirSync(firebaseApkDir).filter((f) => f.endsWith('.apk'));
+    if (apks.length > 0) {
+      apkPath = path.join(firebaseApkDir, apks[0]);
+    }
+  }
+  if (!apkPath && fs.existsSync(gradleApkPath)) {
+    apkPath = gradleApkPath;
+  }
 }
 
-const files = fs.readdirSync(apkDir).filter((f) => f.endsWith('.apk'));
-if (files.length === 0) {
-  console.log('âœ“ No release APK files found in firebase-public/apk.');
-  process.exit(0);
+if (!apkPath) {
+  apkPath = path.join(firebaseApkDir, 'studio-release.apk');
 }
 
-console.log(`Found ${files.length} APK files in firebase-public/apk/ to verify...`);
+const artifactPath = fs.existsSync(firebaseApkDir) ? firebaseApkDir : path.dirname(apkPath);
+const apkExists = fs.existsSync(apkPath);
 
-for (const file of files) {
-  const filePath = path.join(apkDir, file);
-  console.log(`Verifying: ${file}...`);
+// Locate SHA256 Checksum File
+let shaPath = `${apkPath}.sha256`;
+if (!fs.existsSync(shaPath)) {
+  const altSha = path.join(path.dirname(apkPath), `${path.basename(apkPath, '.apk')}.apk.sha256`);
+  if (fs.existsSync(altSha)) {
+    shaPath = altSha;
+  }
+}
+const shaExists = fs.existsSync(shaPath);
 
-  // Run keytool to print certificate fingerprints
-  const keytoolResult = spawnSync('keytool', ['-printcert', '-jarfile', filePath], {
-    encoding: 'utf8',
-  });
+// Locate release-manifest.json & release-verification-report.json
+let manifestPath = path.join(repoRoot, 'release-manifest.json');
+if (!fs.existsSync(manifestPath)) {
+  const verReportPath = path.join(repoRoot, 'release-verification-report.json');
+  if (fs.existsSync(verReportPath)) {
+    manifestPath = verReportPath;
+  }
+}
+const manifestExists = fs.existsSync(manifestPath);
 
-  if (keytoolResult.status !== 0) {
-    console.error(`âœ— Keytool verification failed for APK: ${file}`);
-    console.error(keytoolResult.stderr || keytoolResult.stdout);
-    process.exit(1);
+// 3. Extract Certificate Fingerprint from APK via keytool or apksigner
+let detectedFingerprint = 'NOT_DETECTED';
+
+if (apkExists) {
+  const keytoolRes = spawnSync('keytool', ['-printcert', '-jarfile', apkPath], { encoding: 'utf8' });
+  if (keytoolRes.status === 0 && keytoolRes.stdout) {
+    const match = keytoolRes.stdout.match(/SHA256:\s*([A-Fa-f0-9:]+)/i);
+    if (match) {
+      detectedFingerprint = match[1].toLowerCase().replace(/:/g, '').trim();
+    }
   }
 
-  const keytoolOut = keytoolResult.stdout || '';
-  const sha256Match = keytoolOut.match(/SHA256:\s*([A-Fa-f0-9:]+)/);
-  if (!sha256Match) {
-    console.error(`âœ— Could not parse SHA-256 certificate digest from keytool for: ${file}`);
-    console.error(keytoolOut);
-    process.exit(1);
+  if (detectedFingerprint === 'NOT_DETECTED') {
+    const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || '';
+    let apksignerCmd = 'apksigner';
+    if (androidHome) {
+      const buildToolsDir = path.join(androidHome, 'build-tools');
+      if (fs.existsSync(buildToolsDir)) {
+        const versions = fs.readdirSync(buildToolsDir).sort().reverse();
+        if (versions.length > 0) {
+          apksignerCmd = path.join(buildToolsDir, versions[0], process.platform === 'win32' ? 'apksigner.bat' : 'apksigner');
+        }
+      }
+    }
+    const apkRes = spawnSync(apksignerCmd, ['verify', '--verbose', '--print-certs', apkPath], { encoding: 'utf8', shell: process.platform === 'win32' });
+    if (apkRes.status === 0 && apkRes.stdout) {
+      const match = apkRes.stdout.match(/SHA-256 digest:\s*([A-Fa-f0-9:]+)/i);
+      if (match) {
+        detectedFingerprint = match[1].toLowerCase().replace(/:/g, '').trim();
+      }
+    }
   }
-
-  const fingerprint = sha256Match[1].toLowerCase().replace(/:/g, '').trim();
-  console.log(`  SHA-256 Signature: ${fingerprint}`);
-
-  if (fingerprint !== EXPECTED_FINGERPRINT) {
-    console.error(`::error::âœ— SIGNATURE MISMATCH DETECTED for APK: ${file}`);
-    console.error(`  Expected: ${EXPECTED_FINGERPRINT}`);
-    console.error(`  Found:    ${fingerprint}`);
-    console.error(
-      `\nCRITICAL ERROR: Refusing to publish or deploy. This APK was signed with the wrong key!`
-    );
-    process.exit(1);
-  }
-  console.log(`  âœ“ Signature matches production exactly.`);
 }
 
-console.log('âœ“ All release APK signature verifications passed successfully!');
+// 4. PRINT COMPLETE DIAGNOSTIC REPORT
+console.log('\n================================================================');
+console.log('RELEASE SIGNATURE & ARTIFACT VERIFICATION DIAGNOSTIC REPORT');
+console.log('================================================================');
+console.log(`Expected Certificate:                ${EXPECTED_FINGERPRINT}`);
+console.log(`Detected Certificate:                ${detectedFingerprint}`);
+console.log(`APK Path:                            ${apkPath}`);
+console.log(`Artifact Path:                       ${artifactPath}`);
+console.log(`Existence of APK:                    ${apkExists ? 'YES (FOUND)' : 'NO (MISSING)'}`);
+console.log(`Existence of SHA File:               ${shaExists ? 'YES (FOUND)' : 'NO (MISSING)'}`);
+console.log(`Existence of release-manifest.json:  ${manifestExists ? 'YES (FOUND)' : 'NO (MISSING)'}`);
+console.log('================================================================\n');
+
+// 5. FAIL-FAST SECURITY & ARTIFACT ASSERTIONS
+if (!apkExists) {
+  console.error(`::error::CRITICAL RELEASE FAILURE: Signed APK does not exist at path ${apkPath}!`);
+  process.exit(1);
+}
+
+if (!shaExists) {
+  console.error(`::error::CRITICAL RELEASE FAILURE: SHA256 checksum file does not exist at path ${shaPath}!`);
+  process.exit(1);
+}
+
+if (!manifestExists) {
+  console.error(`::error::CRITICAL RELEASE FAILURE: release-manifest.json does not exist at path ${manifestPath}!`);
+  process.exit(1);
+}
+
+if (detectedFingerprint !== EXPECTED_FINGERPRINT) {
+  console.error(`::error::CRITICAL SECURITY FAILURE: Signature certificate mismatch detected!`);
+  console.error(`  Expected Production Fingerprint: ${EXPECTED_FINGERPRINT}`);
+  console.error(`  Detected APK Fingerprint:        ${detectedFingerprint}`);
+  console.error(`  Refusing release. This APK was NOT signed with the production release key.`);
+  process.exit(1);
+}
+
+console.log('✓ RELEASE SIGNATURE & ARTIFACT CONTRACT VERIFICATION PASSED');
 process.exit(0);

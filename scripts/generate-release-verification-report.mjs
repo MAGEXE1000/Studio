@@ -96,6 +96,9 @@ export function generateVerificationReport(apkPath) {
   const jsonPath = path.join(repoRoot, 'release-verification-report.json');
   fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
 
+  const manifestPath = path.join(repoRoot, 'release-manifest.json');
+  fs.writeFileSync(manifestPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
+
   const mdContent = `# Production Release Verification Report
 
 - **Timestamp**: ${report.timestamp}

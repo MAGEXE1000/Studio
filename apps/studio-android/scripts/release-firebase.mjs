@@ -815,6 +815,20 @@ if (existsSync(verReportScript)) {
   }
 }
 
+// Step 6.7: Run Release Signature & Artifact Contract Verification
+console.log('Step 6.7/15: Run Release Signature & Artifact Contract Verification...');
+const verifySigScript = path.join(repoRoot, 'scripts/verify-release-signatures.mjs');
+if (existsSync(verifySigScript)) {
+  const verifySigResult = spawnSync('node', [verifySigScript, localApkPath], {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+  if (verifySigResult.status !== 0) {
+    console.error('release-firebase: ✗ Release signature & artifact contract verification failed!');
+    process.exit(verifySigResult.status ?? 1);
+  }
+}
+
 // Step 7: Create GitHub Release tag if missing
 console.log('Step 7/15: Create GitHub Release tag if missing...');
 const tag = `v${version}`;

@@ -1,17 +1,17 @@
 {
   "platform": "web",
-  "version": "4.2.13",
-  "commit": "e3d7325c",
+  "version": "4.2.14",
+  "commit": "6e8fbe6a",
   "releasedAt": "undefined",
   "buildTimestamp": "undefined",
   "updateMode": "refresh",
-  "description": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
-  "whatsNew": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
-  "changelog": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
+  "description": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
+  "whatsNew": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
+  "changelog": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
   "releaseNotes": {
     "added": [
-      "Production validation release build for Studio Android prerelease v4.2.13.",
-      "Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment."
+      "Standard production release build for Studio Android v4.2.14.",
+      "End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment."
     ]
   },
   "mandatory": false

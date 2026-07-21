@@ -161,8 +161,8 @@ if (existsSync(appVersionPath)) {
     const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
     if (existsSync(changelogPath)) {
       let clText = readFileSync(changelogPath, 'utf8');
-      if (!clText.includes(`## ${nextVersion}`)) {
-        const newSection = `## ${nextVersion}\n\n### Security & Maintenance\n\n- Standard production release build for Studio Android v${nextVersion}.\n- Automated SLSA provenance generation, APK signing, GitHub Release creation, and Firebase metadata deployment.\n\n`;
+      if (!clText.includes(`Version ${nextVersion}`) && !clText.includes(`## ${nextVersion}`)) {
+        const newSection = `# Version ${nextVersion}\n\nRelease Date: ${dateString}\n\n## Added\n\n- Standard production release build for Studio Android v${nextVersion}.\n- Automated SLSA provenance generation, APK signing, GitHub Release creation, and Firebase metadata deployment.\n\n## Security\n\n- Enforced mandatory production signing key verification (SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206).\n\n## Breaking Changes\n\nNone\n\n`;
         clText = clText.replace('# Studio Changelog\n', `# Studio Changelog\n\n${newSection}`);
         writeFileSync(changelogPath, clText, 'utf8');
         console.log(`release-firebase: → Auto-appended section for v${nextVersion} to CHANGELOG.md`);

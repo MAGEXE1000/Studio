@@ -149,8 +149,7 @@ function attemptAutoGeneration(versionName, repoRoot) {
     
     const draftContent = `# Version ${versionName}
 
-Release Date:
-${new Date().toISOString().split('T')[0]}
+Release Date: ${new Date().toISOString().split('T')[0]}
 
 ## Added
 
@@ -159,6 +158,10 @@ ${new Date().toISOString().split('T')[0]}
 ## Security
 
 - Enforced mandatory production signing key verification (SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206).
+
+## Breaking Changes
+
+None
 
 ## Recent Commits Included
 ${commits.map((c) => `- ${c}`).join('\n')}

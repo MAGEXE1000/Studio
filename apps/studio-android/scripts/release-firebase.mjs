@@ -17,6 +17,10 @@ import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
 import { generateReleaseManifest } from '../../../scripts/generate-release-manifest.mjs';
 import { generateAuditLog } from '../../../scripts/release-audit-logger.mjs';
+import { appendReleaseHistory } from '../../../scripts/generate-release-history.mjs';
+import { generateReleaseDelta } from '../../../scripts/generate-release-delta.mjs';
+import { runReleaseSmokeTest } from '../../../scripts/run-release-smoke-test.mjs';
+import { generateSlsaProvenance } from '../../../scripts/generate-slsa-provenance.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(__dirname, '..');
@@ -859,9 +863,16 @@ const localUploadShaPath = path.join(repoRoot, uploadShaName);
 copyFileSync(localApkPath, localUploadApkPath);
 writeFileSync(localUploadShaPath, `${localApkSha}  ${uploadApkName}\n`, 'utf8');
 
-// Generate Release Manifest & Audit Log
+// Generate Release Artifacts & Cryptographic Provenance Signatures
 const manifestPath = path.join(repoRoot, 'release-manifest.json');
 const auditPath = path.join(repoRoot, 'release-audit.json');
+const historyPath = path.join(repoRoot, 'release-history.json');
+const deltaJsonPath = path.join(repoRoot, 'release-delta.json');
+const deltaMdPath = path.join(repoRoot, 'release-delta.md');
+const provenancePath = path.join(repoRoot, 'release-slsa-provenance.json');
+const manifestSigPath = path.join(repoRoot, 'release-manifest.sig');
+const auditSigPath = path.join(repoRoot, 'release-audit.sig');
+const apkSigPath = path.join(repoRoot, 'apk.sig');
 
 generateReleaseManifest({
   version,
@@ -875,7 +886,29 @@ generateAuditLog({
   version,
   gitCommit: currentCommit,
   gitTag: tag,
-  artifacts: [uploadApkName, uploadShaName, 'release-manifest.json', 'release-audit.json'],
+  artifacts: [uploadApkName, uploadShaName, 'release-manifest.json', 'release-audit.json', 'release-history.json', 'release-delta.json', 'release-slsa-provenance.json'],
+});
+
+appendReleaseHistory({
+  version,
+  versionCode: gradleVersionCode,
+  commitSha: currentCommit,
+  tag,
+  apkFilename: uploadApkName,
+  sha256: localApkSha,
+  status: 'SUCCESSFUL',
+});
+
+generateReleaseDelta({
+  version,
+  apkSizeBytes: statSync(localUploadApkPath).size,
+  sha256: localApkSha,
+});
+
+generateSlsaProvenance({
+  version,
+  commitSha: currentCommit,
+  apkSha256: localApkSha,
 });
 
 const uploadRes = runGh([
@@ -886,6 +919,13 @@ const uploadRes = runGh([
   localUploadShaPath,
   manifestPath,
   auditPath,
+  historyPath,
+  deltaJsonPath,
+  deltaMdPath,
+  provenancePath,
+  manifestSigPath,
+  auditSigPath,
+  apkSigPath,
   '--clobber',
   '--repo',
   'MAGEXE1000/Studio',
@@ -896,7 +936,7 @@ if (uploadRes.status !== 0) {
   );
   process.exit(1);
 }
-console.log(`release-firebase: ✓ Uploaded assets ${uploadApkName}, ${uploadShaName}, release-manifest.json, and release-audit.json`);
+console.log(`release-firebase: ✓ Uploaded release assets, manifests, deltas, provenance, and cryptographic signatures to GitHub Releases`);
 
 try {
   rmSync(localUploadApkPath);

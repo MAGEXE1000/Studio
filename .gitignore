@@ -9,6 +9,13 @@ out-tsc/
 *.zip
 release-manifest.json
 release-audit.json
+release-history.json
+release-delta.json
+release-delta.md
+smoke-report.json
+smoke-report.md
+release-slsa-provenance.json
+*.sig
 .expo/
 .expo-shared/
 

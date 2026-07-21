@@ -1,4 +1,4 @@
-import { subscribeSyncStatus, getSyncStatus, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP, useSettingsStore, userRepository } from "@workspace/studio-core";
+import { subscribeSyncStatus, getSyncStatus, syncNow, settingsController, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP, useSettingsStore, userRepository } from "@workspace/studio-core";
 import { useEffect, useRef, useState } from 'react';
 import { DialogScaffold } from '../layout/StudioLayoutSystem';
 import { Button } from '../design-system/StudioDesignSystem';

@@ -5,7 +5,8 @@ import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n
 import { secureReadLocal, secureWriteLocal } from '../lib/security';
 
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
-import type { Theme, AccentColor, AnimationSpeed, DisplayDensity, Language, ActivePanel, AppKey, PerAppVisuals } from './useSettingsStore';
+import { useSettingsStore, settingsController, type Theme, type AccentColor, type AnimationSpeed, type DisplayDensity, type Language, type ActivePanel, type AppKey, type PerAppVisuals, type AppSettings, type SettingsStore } from './useSettingsStore';
+import { NavigationDispatcher } from '../lib/navigation/NavigationDispatcher';
 
 
 // Re-exported from i18n.ts so the store and the translation system always
@@ -70,6 +71,11 @@ interface ChordStore {
   chordUsage: Record<string, number>;
   activityLog?: any[];
   libraryActiveType: ChordType | 'all' | null;
+
+  settings: AppSettings;
+  settingsController: typeof settingsController;
+  setLastSession: (patch: Partial<SettingsStore['lastSession']>) => void;
+  currentApp: string;
 
   /**
    * Persisted "where was the user last?" snapshot — used at app launch to
@@ -147,6 +153,19 @@ export const useChordStore = create<ChordStore>()(
       customChords: [],
       chordUsage: {},
       activityLog: [],
+
+      get settings() {
+        return useSettingsStore.getState().settings;
+      },
+      get settingsController() {
+        return settingsController;
+      },
+      setLastSession: (patch) => {
+        useSettingsStore.getState().setLastSession(patch);
+      },
+      get currentApp() {
+        return NavigationDispatcher.currentApp();
+      },
 
       trackChordUsage: (chordId) => {
         set((state) => ({

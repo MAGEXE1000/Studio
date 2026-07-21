@@ -2806,3 +2806,11 @@ export function detachSyncEngine(): void {
   runPromise = null;
   listeners = new Set();
 }
+
+export const syncController = {
+  syncNow: () => syncNow(),
+  retrySync: () => syncNow(),
+  getSyncStatus: () => getSyncStatus(),
+  subscribeSyncStatus: (cb: (status: SyncStatus) => void) => subscribeSyncStatus(cb),
+};
+

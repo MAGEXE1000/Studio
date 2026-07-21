@@ -21,6 +21,7 @@ import {
   SharedNavigationContainer,
   ScreenScaffold,
   ApplicationTransitionEngine,
+  StudioHub,
 } from '@workspace/ui-shared';
 
 const LibraryPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel })));
@@ -43,9 +44,7 @@ import {
 
 import './index.css';
 
-const StudioHub = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.StudioHub }))
-);
+
 
 function SidebarHoverSync({ hoverShowSidebar }: { hoverShowSidebar: boolean }) {
   const { setOpen } = useSidebar();
@@ -135,8 +134,10 @@ export default function App() {
     setAppPreloaded,
   } = useApplicationTransitionStore();
 
+  const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
+
   const splashVisible = transitionState !== 'IDLE';
-  const previousAppModeRef = useRef<AppKey>(settings.appMode || 'hub');
+  const previousAppModeRef = useRef<AppKey>((routeApp as AppKey) || 'hub');
 
   // Global theme transition listener
   useEffect(() => {
@@ -163,7 +164,7 @@ export default function App() {
 
   // Launch transition hook using global useApplicationTransitionStore state machine
   useEffect(() => {
-    const appMode = settings.appMode || 'hub';
+    const appMode = (routeApp as AppKey) || 'hub';
     if (appMode !== previousAppModeRef.current) {
       const ok = requestTransition(appMode);
       if (ok) {
@@ -174,55 +175,15 @@ export default function App() {
         }
       }
     }
-  }, [settings.appMode, requestTransition, setAppPreloaded]);
+  }, [routeApp, requestTransition, setAppPreloaded]);
 
   const handleAppPreloaded = useCallback(
     (app: AppKey) => {
-      if (useSettingsStore.getState().settings.appMode !== app) return;
+      if (useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]?.app !== app) return;
       setAppPreloaded(true);
     },
     [setAppPreloaded]
   );
-
-  const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
-
-  // Bi-directional synchronization between navigation stack (NavigationStore) and chord store settings
-  const lastSyncedRouteAppRef = useRef<string | null>(null);
-  const lastSyncedSettingsAppRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const settingsApp = settings.appMode || 'hub';
-
-    if (routeApp !== settingsApp) {
-      const routeChanged =
-        lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
-      const settingsChanged =
-        lastSyncedSettingsAppRef.current !== null &&
-        settingsApp !== lastSyncedSettingsAppRef.current;
-
-      if (routeChanged && !settingsChanged) {
-        updateSettings({ appMode: routeApp as any });
-      } else if (settingsChanged && !routeChanged) {
-        if (settingsApp === 'hub') {
-          NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
-        } else {
-          const currentHistory = useNavigationStore.getState().history;
-          const isCurrentlySubApp =
-            currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
-          if (isCurrentlySubApp) {
-            NavigationDispatcher.replace({ app: settingsApp as any });
-          } else {
-            NavigationDispatcher.push({ app: settingsApp as any });
-          }
-        }
-      } else {
-        updateSettings({ appMode: routeApp as any });
-      }
-    }
-
-    lastSyncedRouteAppRef.current = routeApp;
-    lastSyncedSettingsAppRef.current = settingsApp;
-  }, [routeApp, settings.appMode, updateSettings]);
 
   const returnToStudioHub = useCallback(
     (isSwipeSuccess = false) => {
@@ -243,12 +204,11 @@ export default function App() {
       window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
 
       // 3. Clear selected/active app state, reset animation locks & return to Hub after transition
-      updateSettings({ appMode: 'hub' });
       NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
 
       // Reset nested views to defaults if rememberLastAppSection is disabled
       if (!preferences.rememberLastAppSection) {
-        const storeState = useChordStore.getState();
+        const storeState = useSettingsStore.getState();
         storeState.setLastSession({
           vocalexTab: 'coach',
           drumexTab: storeState.settings.defaultDrumTab ?? 'songs',
@@ -421,8 +381,8 @@ export default function App() {
         setSession(currentSession);
 
         if (currentSession?.user) {
-          const { getAccountDoc } = await import('@workspace/studio-core');
-          const doc = await getAccountDoc(currentSession.user.id);
+          const { userRepository } = await import('@workspace/studio-core');
+          const doc = await userRepository.getAccountDoc(currentSession.user.id);
           if (!active) return;
           const status = doc || { status: 'active', scheduledAtMs: null };
           if (status.status === 'pending_deletion') {
@@ -451,7 +411,7 @@ export default function App() {
     };
   }, []);
 
-  const appMode = settings.appMode || 'hub';
+  const appMode = routeApp || 'hub';
   const isSubAppActive = appMode !== 'hub';
 
   const lastActiveAppRef = useRef<AppKey>('chords');
@@ -569,9 +529,7 @@ export default function App() {
               pointerEvents: isSubAppActive ? 'none' : 'auto',
             }}
           >
-            <Suspense fallback={<SmartLoading fallbackSkeleton={<StudioHubSkeleton />} />}>
-              <StudioHub />
-            </Suspense>
+            <StudioHub />
           </div>
 
           <AnimatePresence mode="wait">

@@ -7,6 +7,8 @@ out-tsc/
 *.tsbuildinfo
 *.apk
 *.zip
+release-manifest.json
+release-audit.json
 .expo/
 .expo-shared/
 

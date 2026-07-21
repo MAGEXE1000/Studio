@@ -15,6 +15,8 @@ import fs, {
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
+import { generateReleaseManifest } from '../../../scripts/generate-release-manifest.mjs';
+import { generateAuditLog } from '../../../scripts/release-audit-logger.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(__dirname, '..');
@@ -847,8 +849,8 @@ if (viewRes.status !== 0) {
   runGh(['release', 'edit', tag, '--notes-file', releaseNotesFile, '--repo', 'MAGEXE1000/Studio']);
 }
 
-// Step 8: Upload APK asset with exact expected name
-console.log('Step 8/15: Upload APK asset with exact expected name...');
+// Step 8: Upload APK asset, SHA-256 checksum, manifest & audit log to GitHub Releases
+console.log('Step 8/15: Upload APK asset, SHA-256 checksum, manifest & audit log to GitHub Releases...');
 const uploadApkName = `studio-${version}.apk`;
 const uploadShaName = `studio-${version}.sha256`;
 const localUploadApkPath = path.join(repoRoot, uploadApkName);
@@ -857,23 +859,44 @@ const localUploadShaPath = path.join(repoRoot, uploadShaName);
 copyFileSync(localApkPath, localUploadApkPath);
 writeFileSync(localUploadShaPath, `${localApkSha}  ${uploadApkName}\n`, 'utf8');
 
+// Generate Release Manifest & Audit Log
+const manifestPath = path.join(repoRoot, 'release-manifest.json');
+const auditPath = path.join(repoRoot, 'release-audit.json');
+
+generateReleaseManifest({
+  version,
+  versionCode: gradleVersionCode,
+  sha256: localApkSha,
+  apkFilename: uploadApkName,
+  apkPath: localUploadApkPath,
+});
+
+generateAuditLog({
+  version,
+  gitCommit: currentCommit,
+  gitTag: tag,
+  artifacts: [uploadApkName, uploadShaName, 'release-manifest.json', 'release-audit.json'],
+});
+
 const uploadRes = runGh([
   'release',
   'upload',
   tag,
   localUploadApkPath,
   localUploadShaPath,
+  manifestPath,
+  auditPath,
   '--clobber',
   '--repo',
   'MAGEXE1000/Studio',
 ]);
 if (uploadRes.status !== 0) {
   console.error(
-    `release-firebase: âœ— Failed to upload APK asset to GitHub: ${uploadRes.stderr.toString()}`
+    `release-firebase: ✗ Failed to upload assets to GitHub: ${uploadRes.stderr.toString()}`
   );
   process.exit(1);
 }
-console.log(`release-firebase: âœ“ Uploaded assets ${uploadApkName} and ${uploadShaName}`);
+console.log(`release-firebase: ✓ Uploaded assets ${uploadApkName}, ${uploadShaName}, release-manifest.json, and release-audit.json`);
 
 try {
   rmSync(localUploadApkPath);

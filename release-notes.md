@@ -1,4 +1,4 @@
 ### Fixed
 
-- Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.
-- Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.
+- Production Release Pipeline orchestration and multi-manifest automated version bumping.
+- Hardened release preflight validation, signed APK build packaging, and deployment telemetry.

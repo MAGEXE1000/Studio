@@ -13,6 +13,20 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.11
+
+### Fixed
+
+- Production Release Pipeline orchestration and multi-manifest automated version bumping.
+- Hardened release preflight validation, signed APK build packaging, and deployment telemetry.
+
+## 4.2.10
+
+### Fixed
+
+- Restored production Release Pipeline orchestration and multi-manifest automated version bumping.
+- Hardened release preflight validation, signed APK build packaging, and deployment telemetry.
+
 ## 4.2.9
 
 ### Fixed

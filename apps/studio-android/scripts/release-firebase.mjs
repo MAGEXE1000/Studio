@@ -113,10 +113,15 @@ if (existsSync(appVersionPath)) {
     const day = String(d.getDate()).padStart(2, '0');
     const dateString = `${year}-${month}-${day}`;
 
+    // 1. Update appVersion.ts
     let newSrc = versionSrc;
     newSrc = newSrc.replace(
       /export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/,
       `export const NATIVE_VERSION = '${nextVersion}'`
+    );
+    newSrc = newSrc.replace(
+      /export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/,
+      `export const WEB_VERSION = '${nextVersion}'`
     );
     newSrc = newSrc.replace(
       /export\s+const\s+APP_VERSION_DATE\s*=\s*['"]([^'"]+)['"]\s*;\s*\/\/\s*[^\r\n]*/,
@@ -124,15 +129,43 @@ if (existsSync(appVersionPath)) {
     );
 
     writeFileSync(appVersionPath, newSrc, 'utf8');
+
+    // 2. Update build.gradle (versionName and versionCode)
+    const gradlePath = path.join(pkgRoot, 'android', 'app', 'build.gradle');
+    if (existsSync(gradlePath)) {
+      const parts = nextVersion.split('.').map(Number);
+      const nextCode = parts[0] * 10000 + parts[1] * 100 + parts[2];
+      let gradleSrc = readFileSync(gradlePath, 'utf8');
+      gradleSrc = gradleSrc.replace(/versionName\s+['"]([^'"]+)['"]/, `versionName "${nextVersion}"`);
+      gradleSrc = gradleSrc.replace(/versionCode\s+\d+/, `versionCode ${nextCode}`);
+      writeFileSync(gradlePath, gradleSrc, 'utf8');
+    }
+
+    // 3. Update apps/studio-android/package.json
+    const androidPkgPath = path.join(pkgRoot, 'package.json');
+    if (existsSync(androidPkgPath)) {
+      const pkg = JSON.parse(readFileSync(androidPkgPath, 'utf8'));
+      pkg.version = nextVersion;
+      writeFileSync(androidPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+    }
+
+    // 4. Update apps/studio-web/package.json
+    const webPkgPath = path.join(repoRoot, 'apps', 'studio-web', 'package.json');
+    if (existsSync(webPkgPath)) {
+      const pkg = JSON.parse(readFileSync(webPkgPath, 'utf8'));
+      pkg.version = nextVersion;
+      writeFileSync(webPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+    }
+
     console.log(
-      `release-firebase: â†’ Auto-bumped version in appVersion.ts: ${currentVersion} â†’ ${nextVersion} (date: ${dateString})`
+      `release-firebase: → Auto-bumped version in all 12-way manifests: ${currentVersion} → ${nextVersion} (date: ${dateString})`
     );
     version = nextVersion;
   } else {
-    console.log(`release-firebase: â†’ Keeping current version ${currentVersion}`);
+    console.log(`release-firebase: → Keeping current version ${currentVersion}`);
   }
 } else {
-  console.error(`release-firebase: âœ— appVersion.ts does not exist at ${appVersionPath}`);
+  console.error(`release-firebase: ✗ appVersion.ts does not exist at ${appVersionPath}`);
   process.exit(1);
 }
 

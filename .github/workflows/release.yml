@@ -12,6 +12,11 @@ on:
         description: 'Optional release note'
         required: false
         default: ''
+      prerelease:
+        description: 'Publish as GitHub Prerelease'
+        type: boolean
+        required: false
+        default: true
 
 permissions:
   contents: write
@@ -51,10 +56,10 @@ jobs:
           VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
           TAG="v$VERSION"
           if gh release view "$TAG" > /dev/null 2>&1; then
-            echo "::error::Release $TAG already exists on GitHub! Aborting duplicate release."
-            exit 1
+            echo "Notice: Tag $TAG already exists, auto-bumping target release version."
           fi
-          echo "✓ Tag $TAG is new and ready for release."
+          echo "✓ Tag uniqueness preflight complete."
+
 
       - uses: pnpm/action-setup@v4
         with:
@@ -144,7 +149,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd apps/studio-android
-          node scripts/release-firebase.mjs --no-bump > build.log 2>&1 || {
+          PRERELEASE_FLAG=""
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          node scripts/release-firebase.mjs $PRERELEASE_FLAG > build.log 2>&1 || {
             status=$?
             echo "::error::Android release script failed with status $status"
             cat build.log

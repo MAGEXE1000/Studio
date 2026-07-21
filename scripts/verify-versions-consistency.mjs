@@ -10,118 +10,126 @@ const paths = {
   androidPkg: path.join(repoRoot, 'apps/studio-android/package.json'),
   appVersionTs: path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts'),
   buildGradle: path.join(repoRoot, 'apps/studio-android/android/app/build.gradle'),
+  changelog: path.join(repoRoot, 'CHANGELOG.md'),
+  releaseNotes: path.join(repoRoot, 'release-notes.md'),
+  versionJson: path.join(repoRoot, 'apps/studio-android/public/version.json'),
+  appReleaseJson: path.join(repoRoot, 'apps/studio-android/public/app-release.json'),
+  releaseManifest: path.join(repoRoot, 'release-manifest.json'),
 };
 
-console.log('=== RUNNING VERSION CONSISTENCY CHECK ===');
+console.log('=== RUNNING MULTI-MANIFEST VERSION CONSISTENCY CHECK ===');
 
-// 1. Read Web package version
-if (!fs.existsSync(paths.webPkg)) {
-  console.error(`Error: Web package.json not found at ${paths.webPkg}`);
-  process.exit(1);
-}
-const webPkgJson = JSON.parse(fs.readFileSync(paths.webPkg, 'utf8'));
-const webPkgVersion = webPkgJson.version;
-console.log(`Web package.json version: ${webPkgVersion}`);
-
-// 2. Read Android package version
-if (!fs.existsSync(paths.androidPkg)) {
-  console.error(`Error: Android package.json not found at ${paths.androidPkg}`);
-  process.exit(1);
-}
-const androidPkgJson = JSON.parse(fs.readFileSync(paths.androidPkg, 'utf8'));
-const androidPkgVersion = androidPkgJson.version;
-console.log(`Android package.json version: ${androidPkgVersion}`);
-
-// 3. Read appVersion.ts runtime versions
+// 1. Single Source of Truth: appVersion.ts
 if (!fs.existsSync(paths.appVersionTs)) {
-  console.error(`Error: appVersion.ts not found at ${paths.appVersionTs}`);
+  console.error(`::error::VERSION CONSISTENCY FAILURE: appVersion.ts not found at ${paths.appVersionTs}`);
   process.exit(1);
 }
 const appVersionSrc = fs.readFileSync(paths.appVersionTs, 'utf8');
 const webVersionMatch = appVersionSrc.match(/export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/);
-const nativeVersionMatch = appVersionSrc.match(
-  /export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/
-);
+const nativeVersionMatch = appVersionSrc.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/);
 
 if (!webVersionMatch || !nativeVersionMatch) {
-  console.error('Error: Could not parse WEB_VERSION or NATIVE_VERSION from appVersion.ts');
+  console.error('::error::VERSION CONSISTENCY FAILURE: Could not parse WEB_VERSION or NATIVE_VERSION from appVersion.ts');
   process.exit(1);
 }
-const webRuntimeVersion = webVersionMatch[1];
-const androidRuntimeVersion = nativeVersionMatch[1];
-console.log(`appVersion.ts WEB_VERSION: ${webRuntimeVersion}`);
-console.log(`appVersion.ts NATIVE_VERSION: ${androidRuntimeVersion}`);
 
-// 4. Read Gradle versionName & versionCode
-if (!fs.existsSync(paths.buildGradle)) {
-  console.error(`Error: build.gradle not found at ${paths.buildGradle}`);
+const EXPECTED_VERSION = nativeVersionMatch[1];
+const EXPECTED_WEB_VERSION = webVersionMatch[1];
+
+if (EXPECTED_VERSION !== EXPECTED_WEB_VERSION) {
+  console.error(`::error::VERSION CONSISTENCY FAILURE: NATIVE_VERSION (${EXPECTED_VERSION}) and WEB_VERSION (${EXPECTED_WEB_VERSION}) in appVersion.ts disagree!`);
   process.exit(1);
 }
-const gradleSrc = fs.readFileSync(paths.buildGradle, 'utf8');
-const gradleVersionNameMatch = gradleSrc.match(/versionName\s+['"]([^'"]+)['"]/);
-const gradleVersionCodeMatch = gradleSrc.match(/versionCode\s+(\d+)/);
 
-if (!gradleVersionNameMatch || !gradleVersionCodeMatch) {
-  console.error('Error: Could not parse versionName or versionCode from build.gradle');
-  process.exit(1);
-}
-const gradleVersionName = gradleVersionNameMatch[1];
-const gradleVersionCode = parseInt(gradleVersionCodeMatch[1], 10);
-console.log(`build.gradle versionName: ${gradleVersionName}`);
-console.log(`build.gradle versionCode: ${gradleVersionCode}`);
+console.log(`Single Source of Truth Version: ${EXPECTED_VERSION}`);
 
-// 5. Read CHANGELOG.md and verify section matching target version
-const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
-if (!fs.existsSync(changelogPath)) {
-  console.error(`Error: CHANGELOG.md not found at ${changelogPath}`);
-  process.exit(1);
-}
-const changelogText = fs.readFileSync(changelogPath, 'utf8');
-const changelogHeaderRegex = new RegExp(
-  `^(?:#|##)\\s+(?:Version\\s+)?v?${androidRuntimeVersion.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*$`,
-  'm'
-);
+// Calculate expected versionCode
+const vParts = EXPECTED_VERSION.split('.').map(Number);
+const EXPECTED_VERSION_CODE = vParts[0] * 10000 + vParts[1] * 100 + vParts[2];
 
-let failed = false;
-
-if (!changelogHeaderRegex.test(changelogText)) {
-  console.error(`\x1b[31mError: CHANGELOG.md is missing section for version ${androidRuntimeVersion}!\x1b[0m`);
-  failed = true;
-} else {
-  console.log(`✓ CHANGELOG.md section for v${androidRuntimeVersion} verified.`);
+function assertVersion(filePath, detectedVersion, label) {
+  if (detectedVersion !== EXPECTED_VERSION) {
+    console.error(`::error::VERSION CONSISTENCY FAILURE: Artifact version mismatch detected!`);
+    console.error(`  Expected Version: ${EXPECTED_VERSION}`);
+    console.error(`  Detected Version: ${detectedVersion}`);
+    console.error(`  Source File:      ${filePath}`);
+    console.error(`  Label:            ${label}`);
+    process.exit(1);
+  }
+  console.log(`✓ ${label} matches version ${EXPECTED_VERSION} (${filePath})`);
 }
 
-// === VALIDATIONS ===
-
-// Web Consistency
-if (webPkgVersion !== webRuntimeVersion) {
-  console.error(
-    `\x1b[31mError: Web package version (${webPkgVersion}) and Web runtime version (${webRuntimeVersion}) disagree!\x1b[0m`
-  );
-  failed = true;
-} else {
-  console.log('✓ Web version consistency verified.');
+// 2. Web package.json
+if (fs.existsSync(paths.webPkg)) {
+  const webPkg = JSON.parse(fs.readFileSync(paths.webPkg, 'utf8'));
+  assertVersion(paths.webPkg, webPkg.version, 'apps/studio-web/package.json');
 }
 
-// Android Consistency
-if (androidPkgVersion !== androidRuntimeVersion) {
-  console.error(
-    `\x1b[31mError: Android package version (${androidPkgVersion}) and appVersion NATIVE_VERSION (${androidRuntimeVersion}) disagree!\x1b[0m`
-  );
-  failed = true;
-}
-if (androidRuntimeVersion !== gradleVersionName) {
-  console.error(
-    `\x1b[31mError: appVersion NATIVE_VERSION (${androidRuntimeVersion}) and Gradle versionName (${gradleVersionName}) disagree!\x1b[0m`
-  );
-  failed = true;
+// 3. Android package.json
+if (fs.existsSync(paths.androidPkg)) {
+  const androidPkg = JSON.parse(fs.readFileSync(paths.androidPkg, 'utf8'));
+  assertVersion(paths.androidPkg, androidPkg.version, 'apps/studio-android/package.json');
 }
 
-if (!failed) {
-  console.log('✓ Android version consistency verified.');
-  console.log('\x1b[32m=== VERSION CONSISTENCY CHECK PASSED ===\x1b[0m');
-  process.exit(0);
-} else {
-  console.error('\x1b[31m=== VERSION CONSISTENCY CHECK FAILED ===\x1b[0m');
-  process.exit(1);
+// 4. build.gradle
+if (fs.existsSync(paths.buildGradle)) {
+  const gradleSrc = fs.readFileSync(paths.buildGradle, 'utf8');
+  const nameMatch = gradleSrc.match(/versionName\s+['"]([^'"]+)['"]/);
+  const codeMatch = gradleSrc.match(/versionCode\s+(\d+)/);
+
+  if (!nameMatch || !codeMatch) {
+    console.error(`::error::VERSION CONSISTENCY FAILURE: Could not parse versionName/versionCode in ${paths.buildGradle}`);
+    process.exit(1);
+  }
+
+  assertVersion(paths.buildGradle, nameMatch[1], 'build.gradle versionName');
+  const detectedCode = parseInt(codeMatch[1], 10);
+  if (detectedCode !== EXPECTED_VERSION_CODE) {
+    console.error(`::error::VERSION CONSISTENCY FAILURE: versionCode mismatch in ${paths.buildGradle}!`);
+    console.error(`  Expected versionCode: ${EXPECTED_VERSION_CODE}`);
+    console.error(`  Detected versionCode: ${detectedCode}`);
+    process.exit(1);
+  }
+  console.log(`✓ build.gradle versionCode matches ${EXPECTED_VERSION_CODE}`);
 }
+
+// 5. CHANGELOG.md
+if (fs.existsSync(paths.changelog)) {
+  const changelogText = fs.readFileSync(paths.changelog, 'utf8');
+  const changelogRegex = new RegExp(`^(?:#|##)\\s+(?:Version\\s+)?v?${EXPECTED_VERSION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm');
+  if (!changelogRegex.test(changelogText)) {
+    console.error(`::error::VERSION CONSISTENCY FAILURE: CHANGELOG.md is missing section for version ${EXPECTED_VERSION}!`);
+    process.exit(1);
+  }
+  console.log(`✓ CHANGELOG.md section for v${EXPECTED_VERSION} verified.`);
+}
+
+// 6. release-notes.md (if present)
+if (fs.existsSync(paths.releaseNotes)) {
+  const rnText = fs.readFileSync(paths.releaseNotes, 'utf8');
+  const rnMatch = rnText.match(/Version\s+(\d+\.\d+\.\d+)/i);
+  if (rnMatch && rnMatch[1] !== EXPECTED_VERSION) {
+    assertVersion(paths.releaseNotes, rnMatch[1], 'release-notes.md');
+  }
+}
+
+// 7. version.json (if present)
+if (fs.existsSync(paths.versionJson)) {
+  const vj = JSON.parse(fs.readFileSync(paths.versionJson, 'utf8'));
+  assertVersion(paths.versionJson, vj.version || vj.versionName, 'public/version.json');
+}
+
+// 8. app-release.json (if present)
+if (fs.existsSync(paths.appReleaseJson)) {
+  const arj = JSON.parse(fs.readFileSync(paths.appReleaseJson, 'utf8'));
+  assertVersion(paths.appReleaseJson, arj.version || arj.versionName, 'public/app-release.json');
+}
+
+// 9. release-manifest.json (if present)
+if (fs.existsSync(paths.releaseManifest)) {
+  const rm = JSON.parse(fs.readFileSync(paths.releaseManifest, 'utf8'));
+  assertVersion(paths.releaseManifest, rm.releaseVersion || rm.versionName || rm.version, 'release-manifest.json');
+}
+
+console.log('\x1b[32m=== MULTI-MANIFEST VERSION CONSISTENCY PASSED CLEANLY ===\x1b[0m');
+process.exit(0);

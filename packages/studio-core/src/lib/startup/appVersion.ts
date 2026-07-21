@@ -67,13 +67,6 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
-  {
-    heading: "Added",
-    items: [
-      "Standard production release build for Studio Android v4.2.14.",
-      "End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
-    ],
-  },
 ];
 
 /** Native English version of the current changelog for Android. */

@@ -83,99 +83,11 @@ if (existsSync(appVersionPath)) {
     process.exit(1);
   }
   version = currentVersion;
-
-  // Check if custom version is passed via command line (e.g., --version 3.0.79)
   const versionArgIndex = process.argv.indexOf('--version');
-  const noBump = process.argv.includes('--no-bump');
-  let nextVersion = null;
-  if (noBump) {
-    nextVersion = currentVersion;
-  } else if (versionArgIndex !== -1 && process.argv[versionArgIndex + 1]) {
-    nextVersion = process.argv[versionArgIndex + 1];
-  } else {
-    // Auto-increment the patch version (rolling over from 99 to minor version)
-    const parts = currentVersion.split('.');
-    if (parts.length === 3 && parts.every((p) => /^\d+$/.test(p))) {
-      if (parts[2] === '99') {
-        parts[1] = String(Number(parts[1]) + 1);
-        parts[2] = '0';
-      } else {
-        parts[2] = String(Number(parts[2]) + 1);
-      }
-      nextVersion = parts.join('.');
-    }
+  if (versionArgIndex !== -1 && process.argv[versionArgIndex + 1]) {
+    version = process.argv[versionArgIndex + 1];
   }
-
-  if (nextVersion && nextVersion !== currentVersion) {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const dateString = `${year}-${month}-${day}`;
-
-    // 1. Update appVersion.ts
-    let newSrc = versionSrc;
-    newSrc = newSrc.replace(
-      /export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/,
-      `export const NATIVE_VERSION = '${nextVersion}'`
-    );
-    newSrc = newSrc.replace(
-      /export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/,
-      `export const WEB_VERSION = '${nextVersion}'`
-    );
-    newSrc = newSrc.replace(
-      /export\s+const\s+APP_VERSION_DATE\s*=\s*['"]([^'"]+)['"]\s*;\s*\/\/\s*[^\r\n]*/,
-      `export const APP_VERSION_DATE = '${dateString}'; // ${nextVersion}`
-    );
-
-    writeFileSync(appVersionPath, newSrc, 'utf8');
-
-    // 2. Update build.gradle (versionName and versionCode)
-    const gradlePath = path.join(pkgRoot, 'android', 'app', 'build.gradle');
-    if (existsSync(gradlePath)) {
-      const parts = nextVersion.split('.').map(Number);
-      const nextCode = parts[0] * 10000 + parts[1] * 100 + parts[2];
-      let gradleSrc = readFileSync(gradlePath, 'utf8');
-      gradleSrc = gradleSrc.replace(/versionName\s+['"]([^'"]+)['"]/, `versionName "${nextVersion}"`);
-      gradleSrc = gradleSrc.replace(/versionCode\s+\d+/, `versionCode ${nextCode}`);
-      writeFileSync(gradlePath, gradleSrc, 'utf8');
-    }
-
-    // 3. Update apps/studio-android/package.json
-    const androidPkgPath = path.join(pkgRoot, 'package.json');
-    if (existsSync(androidPkgPath)) {
-      const pkg = JSON.parse(readFileSync(androidPkgPath, 'utf8'));
-      pkg.version = nextVersion;
-      writeFileSync(androidPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-    }
-
-    // 4. Update apps/studio-web/package.json
-    const webPkgPath = path.join(repoRoot, 'apps', 'studio-web', 'package.json');
-    if (existsSync(webPkgPath)) {
-      const pkg = JSON.parse(readFileSync(webPkgPath, 'utf8'));
-      pkg.version = nextVersion;
-      writeFileSync(webPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-    }
-
-    // 5. Update CHANGELOG.md if section is missing during auto-bump
-    const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
-    if (existsSync(changelogPath)) {
-      let clText = readFileSync(changelogPath, 'utf8');
-      if (!clText.includes(`Version ${nextVersion}`) && !clText.includes(`## ${nextVersion}`)) {
-        const newSection = `# Version ${nextVersion}\n\nRelease Date: ${dateString}\n\n## Added\n\n- Standard production release build for Studio Android v${nextVersion}.\n- Automated SLSA provenance generation, APK signing, GitHub Release creation, and Firebase metadata deployment.\n\n## Security\n\n- Enforced mandatory production signing key verification (SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206).\n\n## Breaking Changes\n\nNone\n\n`;
-        clText = clText.replace('# Studio Changelog\n', `# Studio Changelog\n\n${newSection}`);
-        writeFileSync(changelogPath, clText, 'utf8');
-        console.log(`release-firebase: → Auto-appended section for v${nextVersion} to CHANGELOG.md`);
-      }
-    }
-
-    console.log(
-      `release-firebase: → Auto-bumped version in all 12-way manifests: ${currentVersion} → ${nextVersion} (date: ${dateString})`
-    );
-    version = nextVersion;
-  } else {
-    console.log(`release-firebase: → Keeping current version ${currentVersion}`);
-  }
+  console.log(`release-firebase: → Single source of truth version: ${version}`);
 } else {
   console.error(`release-firebase: ✗ appVersion.ts does not exist at ${appVersionPath}`);
   process.exit(1);

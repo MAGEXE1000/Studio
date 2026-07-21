@@ -1,18 +1,15 @@
 {
-  "platform": "web",
-  "version": "4.2.14",
-  "commit": "6e8fbe6a",
-  "releasedAt": "undefined",
-  "buildTimestamp": "undefined",
+  "platform": "android",
+  "version": "4.2.17",
+  "versionName": "4.2.17",
+  "versionCode": 40217,
+  "version_code": 40217,
+  "commit": "9a4583f6",
+  "releasedAt": "7/21/2026, 5:58:48 PM CST",
+  "buildTimestamp": "7/21/2026, 5:58:48 PM CST",
   "updateMode": "refresh",
-  "description": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
-  "whatsNew": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
-  "changelog": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
-  "releaseNotes": {
-    "added": [
-      "Standard production release build for Studio Android v4.2.14.",
-      "End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment."
-    ]
-  },
+  "changelog": "• Standard production release build for Studio Android v4.2.17.\n• Complete release infrastructure security hardening, signature diagnostic reporting, and contract validation.\n• Enforced mandatory production signing key verification (`SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`) with zero fallback.\n• Added pre-build Gradle keystore fingerprint assertion, signature diagnostic report generation, and multi-stage verification pipeline gates.",
+  "whatsNew": "• Standard production release build for Studio Android v4.2.17.\n• Complete release infrastructure security hardening, signature diagnostic reporting, and contract validation.\n• Enforced mandatory production signing key verification (`SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`) with zero fallback.\n• Added pre-build Gradle keystore fingerprint assertion, signature diagnostic report generation, and multi-stage verification pipeline gates.",
+  "releaseNotes": {},
   "mandatory": false
 }

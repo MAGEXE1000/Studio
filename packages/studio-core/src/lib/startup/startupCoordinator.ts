@@ -53,12 +53,15 @@ class StartupCoordinatorClass {
   private storeUnsubscribe: (() => void) | null = null;
   private hifpsRafId = 0;
 
+  private savedOnHubShow: (() => void) | null = null;
+
   private hubMountedResolver: (() => void) | null = null;
   private hubMountedPromise: Promise<void> = new Promise<void>((resolve) => {
     this.hubMountedResolver = resolve;
   });
 
   notifyHubMounted() {
+    console.log(`[STARTUP-TRACE] notifyHubMounted() CALLED at ${performance.now().toFixed(0)}ms, hasResolver=${!!this.hubMountedResolver}`);
     if (this.hubMountedResolver) {
       this.hubMountedResolver();
     }
@@ -152,10 +155,12 @@ class StartupCoordinatorClass {
     phase.timeout = timeoutMs;
     phase.retryCount = 0;
     this.notify();
+    console.log(`[STARTUP-TRACE] Phase ${phaseId} (${phase.name}) STARTED at ${phase.startTime.toFixed(0)}ms, timeout=${timeoutMs}ms`);
 
     let attempt = 0;
     while (attempt <= maxRetries) {
       if (this.currentRunId !== runId) {
+        console.log(`[STARTUP-TRACE] Phase ${phaseId} CANCELLED (runId mismatch)`);
         return false;
       }
       try {
@@ -166,10 +171,12 @@ class StartupCoordinatorClass {
         phase.endTime = performance.now();
         phase.duration = phase.endTime - (phase.startTime || phase.endTime);
         this.notify();
+        console.log(`[STARTUP-TRACE] Phase ${phaseId} (${phase.name}) COMPLETED in ${phase.duration?.toFixed(0)}ms`);
         return true;
       } catch (err: any) {
         attempt++;
         phase.retryCount = attempt;
+        console.log(`[STARTUP-TRACE] Phase ${phaseId} (${phase.name}) FAILED attempt ${attempt}/${maxRetries}: ${err.message || err}`);
         if (attempt > maxRetries) {
           phase.status = 'failed';
           phase.result = 'failure';
@@ -177,6 +184,7 @@ class StartupCoordinatorClass {
           phase.endTime = performance.now();
           phase.duration = phase.endTime - (phase.startTime || phase.endTime);
           this.notify();
+          console.log(`[STARTUP-TRACE] Phase ${phaseId} (${phase.name}) EXHAUSTED RETRIES, duration=${phase.duration?.toFixed(0)}ms`);
           return false;
         }
       }
@@ -185,7 +193,14 @@ class StartupCoordinatorClass {
   }
 
   async run(onHubShow: () => void) {
-    if (this.isStarted) return;
+    console.log(`[STARTUP-TRACE] StartupCoordinator.run() CALLED at ${performance.now().toFixed(0)}ms, isStarted=${this.isStarted}`);
+    if (onHubShow) {
+      this.savedOnHubShow = onHubShow;
+    }
+    if (this.isStarted) {
+      console.log(`[STARTUP-TRACE] StartupCoordinator.run() SKIPPED - already started`);
+      return;
+    }
     this.isStarted = true;
     this.isCompleted = false;
     this.cancellationReason = '';
@@ -198,6 +213,7 @@ class StartupCoordinatorClass {
 
     // Phase 1: Native initialization
     const p1Success = await this.executePhase('1', 5000, async () => {
+      const { Capacitor } = await import('@capacitor/core');
       const isNative = Capacitor.isNativePlatform();
       if (typeof window !== 'undefined') {
         (window as any).__nativeBootTimings = {
@@ -251,16 +267,21 @@ class StartupCoordinatorClass {
     if (!p3Success || this.currentRunId !== runId) return;
 
     // Wait for orbits intro splash transition to finish
+    console.log(`[STARTUP-TRACE] waitForIntroDone STARTED at ${performance.now().toFixed(0)}ms, __introDone=${(window as any).__introDone}`);
     await this.waitForIntroDone();
+    console.log(`[STARTUP-TRACE] waitForIntroDone COMPLETED at ${performance.now().toFixed(0)}ms`);
     if (this.currentRunId !== runId) return;
 
     // Phase 5: Hub initialization (Run first to show Hub immediately)
     const p5Success = await this.executePhase('5', 5000, async () => {
       // Dispatch UI mounting events (sets startupComplete = true in App.tsx)
+      console.log(`[STARTUP-TRACE] Phase 5: calling onHubShow() at ${performance.now().toFixed(0)}ms`);
       onHubShow();
+      console.log(`[STARTUP-TRACE] Phase 5: onHubShow() returned, awaiting hubMountedPromise at ${performance.now().toFixed(0)}ms`);
 
       // Await the Hub mounting notification
       await this.hubMountedPromise;
+      console.log(`[STARTUP-TRACE] Phase 5: hubMountedPromise RESOLVED at ${performance.now().toFixed(0)}ms`);
 
       // Await two requestAnimationFrames to ensure it has painted and the first frame is committed
       await new Promise<void>((resolve) => {
@@ -270,6 +291,7 @@ class StartupCoordinatorClass {
           });
         });
       });
+      console.log(`[STARTUP-TRACE] Phase 5: 2x rAF COMPLETED at ${performance.now().toFixed(0)}ms`);
       if (typeof window !== 'undefined' && (window as any).__bootTimings) {
         (window as any).__bootTimings.hubVisible = performance.now();
       }
@@ -278,6 +300,7 @@ class StartupCoordinatorClass {
       if (typeof window !== 'undefined') {
         (window as any).__studioStartupComplete = true;
         window.dispatchEvent(new Event('studio-startup-complete'));
+        console.log(`[STARTUP-TRACE] Phase 5: studio-startup-complete EVENT DISPATCHED at ${performance.now().toFixed(0)}ms`);
       }
 
       this.isCompleted = true;
@@ -415,6 +438,10 @@ class StartupCoordinatorClass {
     this.isStarted = false;
     this.isCompleted = false;
 
+    if (reason === 'app_unmounted') {
+      this.savedOnHubShow = null;
+    }
+
     // Clear active timers and listeners
     this.cleanup();
 
@@ -547,6 +574,10 @@ class StartupCoordinatorClass {
                 this.startHiFpsTick();
               }
               this.startPeriodicUpdatePolling();
+              if (!this.isCompleted && !this.isStarted && this.savedOnHubShow) {
+                console.log('[STARTUP-TRACE] Auto-restarting StartupCoordinator from appStateChange active');
+                void this.run(this.savedOnHubShow);
+              }
               this.handleLifecycleEvent(
                 'appStateChange',
                 'lifecycle_appstate',
@@ -606,6 +637,10 @@ class StartupCoordinatorClass {
 
   private handleLifecycleEvent(type: string, trigger: string, reason: string, payload?: any) {
     if (!this.isCompleted) {
+      if (!this.isStarted && this.savedOnHubShow) {
+        console.log(`[STARTUP-TRACE] Auto-restarting StartupCoordinator from lifecycle event: ${type}`);
+        void this.run(this.savedOnHubShow);
+      }
       this.queuedEvents.push({ type, trigger, reason, payload });
       this.notify();
       return;

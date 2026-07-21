@@ -444,6 +444,7 @@ export default function StudioHub() {
   }, []);
 
   useEffect(() => {
+    console.log(`[STARTUP-TRACE] StudioHub: mount useEffect fired at ${performance.now().toFixed(0)}ms, calling notifyHubMounted()`);
     StartupCoordinator.notifyHubMounted();
     (window as any).__studioHubReady = true;
     window.dispatchEvent(new CustomEvent('studio:hub-ready'));

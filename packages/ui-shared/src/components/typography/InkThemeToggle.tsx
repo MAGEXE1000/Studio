@@ -54,7 +54,7 @@ export default function InkThemeToggle({
         },
       });
     }
-  }, [isLight, useSettingsStore.getState().updateSettings]);
+  }, [isLight]);
 
   return (
     <button

@@ -7,7 +7,7 @@ interface LandingNavbarProps {
   navigateTo: (path: string) => void;
 }
 
-export default function LandingNavbar({}: LandingNavbarProps) {
+export default function LandingNavbar() {
   const { preferences } = useStudioPreferences();
   const isReduced = preferences.reduceMotion;
   const [activeSection, setActiveSection] = useState<string>('');

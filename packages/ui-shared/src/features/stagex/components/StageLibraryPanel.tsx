@@ -15,18 +15,19 @@ interface StageLibraryPanelProps {
   handleAddElement: (item: StageLibraryItem) => void;
 }
 
-export const StageLibraryPanel = React.memo<StageLibraryPanelProps>(({
-  isLight,
-  accent,
-  searchQuery,
-  setSearchQuery,
-  customElements,
-  expandedCats,
-  setExpandedCats,
-  callIframe,
-  iframeRef,
-  handleAddElement,
-}) => {
+export const StageLibraryPanel = React.memo(
+  ({
+    isLight,
+    accent,
+    searchQuery,
+    setSearchQuery,
+    customElements,
+    expandedCats,
+    setExpandedCats,
+    callIframe,
+    iframeRef,
+    handleAddElement,
+  }: StageLibraryPanelProps) => {
   // Pre-compute flattened, lowercased strings for O(1) filter performance
   const searchDictionary = useMemo(() => {
     const dict: { item: StageLibraryItem; searchStr: string }[] = [];

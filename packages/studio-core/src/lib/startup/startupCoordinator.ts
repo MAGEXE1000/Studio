@@ -505,8 +505,7 @@ class StartupCoordinatorClass {
   private startStoreSync() {
     if (this.storeUnsubscribe) return;
     this.storeUnsubscribe = useChordStore.subscribe((state, prevState) => {
-      if (false /* settings moved */) return;
-      ;
+      return;
     });
   }
 

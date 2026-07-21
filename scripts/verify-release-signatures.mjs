@@ -46,9 +46,17 @@ const apkExists = fs.existsSync(apkPath);
 // Locate SHA256 Checksum File
 let shaPath = `${apkPath}.sha256`;
 if (!fs.existsSync(shaPath)) {
-  const altSha = path.join(path.dirname(apkPath), `${path.basename(apkPath, '.apk')}.apk.sha256`);
-  if (fs.existsSync(altSha)) {
-    shaPath = altSha;
+  const alt1 = path.join(path.dirname(apkPath), `${path.basename(apkPath, '.apk')}.apk.sha256`);
+  const alt2 = path.join(firebaseApkDir, `${path.basename(apkPath, '.apk')}.sha256`);
+  const alt3 = path.join(firebaseApkDir, `${path.basename(apkPath)}.sha256`);
+  if (fs.existsSync(alt1)) shaPath = alt1;
+  else if (fs.existsSync(alt2)) shaPath = alt2;
+  else if (fs.existsSync(alt3)) shaPath = alt3;
+  else if (fs.existsSync(firebaseApkDir)) {
+    const shas = fs.readdirSync(firebaseApkDir).filter((f) => f.endsWith('.sha256'));
+    if (shas.length > 0) {
+      shaPath = path.join(firebaseApkDir, shas[0]);
+    }
   }
 }
 const shaExists = fs.existsSync(shaPath);

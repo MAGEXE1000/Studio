@@ -719,6 +719,7 @@ if (!existsSync(localApkPath)) {
 }
 const localApkSha = computeSha256(localApkPath);
 console.log(`release-firebase: Local APK SHA-256 = ${localApkSha}`);
+writeFileSync(`${localApkPath}.sha256`, localApkSha, 'utf8');
 
 // Step 6.5: Verify APK integrity via aapt and apksigner
 console.log('Step 6.5/15: Verify APK integrity (aapt & apksigner)...');

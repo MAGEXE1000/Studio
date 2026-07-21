@@ -157,6 +157,18 @@ if (existsSync(appVersionPath)) {
       writeFileSync(webPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
     }
 
+    // 5. Update CHANGELOG.md if section is missing during auto-bump
+    const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
+    if (existsSync(changelogPath)) {
+      let clText = readFileSync(changelogPath, 'utf8');
+      if (!clText.includes(`## ${nextVersion}`)) {
+        const newSection = `## ${nextVersion}\n\n### Security & Maintenance\n\n- Standard production release build for Studio Android v${nextVersion}.\n- Automated SLSA provenance generation, APK signing, GitHub Release creation, and Firebase metadata deployment.\n\n`;
+        clText = clText.replace('# Studio Changelog\n', `# Studio Changelog\n\n${newSection}`);
+        writeFileSync(changelogPath, clText, 'utf8');
+        console.log(`release-firebase: → Auto-appended section for v${nextVersion} to CHANGELOG.md`);
+      }
+    }
+
     console.log(
       `release-firebase: → Auto-bumped version in all 12-way manifests: ${currentVersion} → ${nextVersion} (date: ${dateString})`
     );

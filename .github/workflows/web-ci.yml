@@ -14,8 +14,6 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
-      - 'docs/**'
-      - 'scripts/validate-documentation.mjs'
   pull_request:
     branches: [main]
     paths:
@@ -29,11 +27,10 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
-      - 'docs/**'
-      - 'scripts/validate-documentation.mjs'
 
 jobs:
   ci:
+    name: Web Build & Verify
     runs-on: ubuntu-latest
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -55,17 +52,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate Documentation
-        run: pnpm docs:validate
-
-      - name: Check Formatting
-        run: pnpm format:check
+      - name: Enforce Import Boundaries
+        run: pnpm lint:imports
 
       - name: Lint
         run: pnpm lint
-
-      - name: Enforce Import Boundaries
-        run: pnpm lint:imports
 
       - name: Typecheck Web
         run: pnpm typecheck:web

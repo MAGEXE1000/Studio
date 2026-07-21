@@ -7,8 +7,15 @@
   },
   "hosting": {
     "public": "firebase-public",
-    "predeploy": ["node scripts/verify-release-signatures.mjs"],
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.apk"],
+    "predeploy": [
+      "node ./scripts/verify-release-signatures.mjs"
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/*.apk"
+    ],
     "rewrites": [
       {
         "source": "**",
@@ -145,7 +152,7 @@
     "redirects": [
       {
         "source": "/apk/studio-latest.apk",
-        "destination": "https://github.com/MAGEXE1000/Studio/releases/download/v4.0.31/studio-4.0.31.apk",
+        "destination": "https://github.com/MAGEXE1000/Studio/releases/download/v4.2.13/studio-4.2.13.apk",
         "type": 302
       },
       {

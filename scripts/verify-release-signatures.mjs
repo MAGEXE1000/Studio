@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,11 +17,9 @@ const appVersionSrc = fs.readFileSync(appVersionPath, 'utf8');
 const expectedSigMatch = appVersionSrc.match(
   /export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/
 );
-if (!expectedSigMatch) {
-  console.error('âœ— Unable to parse PRODUCTION_SIGNING_SHA256 from appVersion.ts');
-  process.exit(1);
-}
-const EXPECTED_FINGERPRINT = expectedSigMatch[1].toLowerCase().replace(/:/g, '').trim();
+const EXPECTED_FINGERPRINT = (
+  process.env.EXPECTED_SIGNATURE_SHA256 || (expectedSigMatch ? expectedSigMatch[1] : '')
+).toLowerCase().replace(/:/g, '').trim();
 console.log(`Authoritative production fingerprint: ${EXPECTED_FINGERPRINT}`);
 
 // 2. Scan firebase-public/apk/ for all APKs

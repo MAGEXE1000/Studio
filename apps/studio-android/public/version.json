@@ -1,19 +1,17 @@
 {
-  "platform": "android",
-  "version": "4.2.6",
-  "versionName": "4.2.6",
-  "versionCode": 40206,
-  "version_code": 40206,
-  "commit": "d1fd253c",
-  "releasedAt": "7/20/2026, 9:35:11 PM CST",
-  "buildTimestamp": "7/20/2026, 9:35:11 PM CST",
+  "platform": "web",
+  "version": "4.2.13",
+  "commit": "e3d7325c",
+  "releasedAt": "undefined",
+  "buildTimestamp": "undefined",
   "updateMode": "refresh",
-  "changelog": "• Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.\n• Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.",
-  "whatsNew": "• Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.\n• Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.",
+  "description": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
+  "whatsNew": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
+  "changelog": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.",
-      "Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions."
+    "added": [
+      "Production validation release build for Studio Android prerelease v4.2.13.",
+      "Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment."
     ]
   },
   "mandatory": false

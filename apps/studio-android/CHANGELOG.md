@@ -13,6 +13,55 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.13
+
+### Added
+
+- Production validation release build for Studio Android prerelease v4.2.13.
+- Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.
+
+## 4.2.12
+
+### Added
+
+- Automated full production release pipeline validation for Android prerelease build.
+- Verified SLSA build provenance, SHA-256 integrity, release delta reports, and Firebase metadata synchronization.
+
+## 4.2.11
+
+### Fixed
+
+- Production Release Pipeline orchestration and multi-manifest automated version bumping.
+- Hardened release preflight validation, signed APK build packaging, and deployment telemetry.
+
+## 4.2.10
+
+### Fixed
+
+- Restored production Release Pipeline orchestration and multi-manifest automated version bumping.
+- Hardened release preflight validation, signed APK build packaging, and deployment telemetry.
+
+## 4.2.9
+
+### Fixed
+
+- Physical Android real-device validation prerelease build with hardened release infrastructure telemetry.
+- Enforced complete release manifest, audit log, history, delta, smoke test, and SLSA provenance signatures.
+
+## 4.2.8
+
+### Fixed
+
+- Physical Android real-device validation prerelease build with hardened release infrastructure telemetry.
+- Enforced complete release manifest, audit log, history, delta, smoke test, and SLSA provenance signatures.
+
+## 4.2.7
+
+### Fixed
+
+- Resolved Android native startup hang on the Livex logo by auto-recovering StartupCoordinator execution when native window focus transitions occur mid-boot.
+- Preserved onHubShow callback and auto-restart boot execution when app returns to active/foreground state.
+
 ## 4.2.6
 
 ### Fixed

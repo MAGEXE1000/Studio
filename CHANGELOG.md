@@ -13,6 +13,20 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.13
+
+### Added
+
+- Production validation release build for Studio Android prerelease v4.2.13.
+- Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.
+
+## 4.2.12
+
+### Added
+
+- Automated full production release pipeline validation for Android prerelease build.
+- Verified SLSA build provenance, SHA-256 integrity, release delta reports, and Firebase metadata synchronization.
+
 ## 4.2.11
 
 ### Fixed

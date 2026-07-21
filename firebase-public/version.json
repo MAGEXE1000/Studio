@@ -1,20 +1,17 @@
 {
   "platform": "web",
-  "version": "4.0.87",
-  "commit": "a5c5c867",
-  "releasedAt": "7/18/2026, 9:30:00 AM CST",
-  "buildTimestamp": "7/18/2026, 9:30:00 AM CST",
+  "version": "4.2.13",
+  "commit": "e3d7325c",
+  "releasedAt": "undefined",
+  "buildTimestamp": "undefined",
   "updateMode": "refresh",
-  "changelog": "• Fixed sticky hover pointer states on touch screens / WebViews (disabled Framer Motion whileHover on touch).\n• Standardized bottom navigation bar sizing (width 90%, max width 448px, height 60px, radius 2rem) across Chords, Vocalex, and Hub.\n• Unified sliding navigation pill transition ease and durations to match Material 3 Emphasized.\n• Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.\n• Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.\n• Polished Groovex library list row/chip padding, radii, and grid margins.",
-  "whatsNew": "• Fixed sticky hover pointer states on touch screens / WebViews (disabled Framer Motion whileHover on touch).\n• Standardized bottom navigation bar sizing (width 90%, max width 448px, height 60px, radius 2rem) across Chords, Vocalex, and Hub.\n• Unified sliding navigation pill transition ease and durations to match Material 3 Emphasized.\n• Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.\n• Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.\n• Polished Groovex library list row/chip padding, radii, and grid margins.",
+  "description": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
+  "whatsNew": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
+  "changelog": "â€¢ Production validation release build for Studio Android prerelease v4.2.13.\nâ€¢ Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment.",
   "releaseNotes": {
-    "improved": [
-      "Fixed sticky hover pointer states on touch screens / WebViews (disabled Framer Motion whileHover on touch).",
-      "Standardized bottom navigation bar sizing (width 90%, max width 448px, height 60px, radius 2rem) across Chords, Vocalex, and Hub.",
-      "Unified sliding navigation pill transition ease and durations to match Material 3 Emphasized.",
-      "Registered missing keyframe entry transitions (settings-content-fade-in) for settings panels.",
-      "Scoped CSS hover rules inside media-hover blocks to prevent WebView sticky taps.",
-      "Polished Groovex library list row/chip padding, radii, and grid margins."
+    "added": [
+      "Production validation release build for Studio Android prerelease v4.2.13.",
+      "Automated SLSA provenance generation, APK signing, GitHub Prerelease creation, and Firebase metadata deployment."
     ]
   },
   "mandatory": false

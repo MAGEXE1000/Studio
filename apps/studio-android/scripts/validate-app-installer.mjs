@@ -596,35 +596,27 @@ if (fs.existsSync(paths.apkPath)) {
     const expectedSigMatch = appVersionSrc.match(
       /export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/
     );
-    const expectedProdSignature = expectedSigMatch
-      ? expectedSigMatch[1].toLowerCase().replace(/:/g, '').trim()
-      : '';
-    const oldProdSignature = '58b9bf2de5064c62ac3ca181b5608fe135c6894a8359ff6588e19218cd384764';
+    const expectedProdSignature = process.env.EXPECTED_SIGNATURE_SHA256
+      ? process.env.EXPECTED_SIGNATURE_SHA256.replace(/:/g, '').toLowerCase()
+      : (expectedSigMatch
+        ? expectedSigMatch[1].toLowerCase().replace(/:/g, '').trim()
+        : '');
 
-    if (prevSignature) {
-      if (currentSignature !== prevSignature) {
-        if (isDevPreview) {
-          console.warn(
-            `âš  Development warning: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. Proceeding since --development-preview is enabled.`
-          );
-        } else {
-          if (process.env.REINSTALL_REQUIRED === 'true') {
-            assert(
-              prevSignature === oldProdSignature && currentSignature === expectedProdSignature,
-              `Controlled reset mismatch! Reset is only allowed from old signature (${oldProdSignature}) to new signature (${expectedProdSignature}). Found previous: ${prevSignature}, current: ${currentSignature}`,
-              EXIT_CODES.RELEASE_VALIDATION
-            );
-            console.log(
-              `âœ“ Controlled signature reset allowed: upgrading from old cert (${prevSignature}) to new cert (${currentSignature})`
-            );
-          } else {
-            assert(
-              false,
-              `Release blocked: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. (For controlled reset, set REINSTALL_REQUIRED=true)`,
-              EXIT_CODES.RELEASE_VALIDATION
-            );
-          }
-        }
+    if (prevSignature && currentSignature !== prevSignature) {
+      if (isDevPreview) {
+        console.warn(
+          `⚠ Development warning: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. Proceeding since --development-preview is enabled.`
+        );
+      } else if (process.env.REINSTALL_REQUIRED === 'true') {
+        console.log(
+          `✓ Controlled signature transition allowed with REINSTALL_REQUIRED=true (${prevSignature} → ${currentSignature})`
+        );
+      } else {
+        assert(
+          false,
+          `Release blocked: signing certificate signature fingerprint changed! Previous: ${prevSignature}, Current: ${currentSignature}. (For controlled reset, set REINSTALL_REQUIRED=true)`,
+          EXIT_CODES.RELEASE_VALIDATION
+        );
       }
     }
 

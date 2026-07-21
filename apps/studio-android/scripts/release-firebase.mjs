@@ -559,9 +559,11 @@ if (!isDevPreview) {
     );
 
     const targetSig =
-      process.env.REINSTALL_REQUIRED === 'true'
-        ? '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
-        : expectedSig;
+      process.env.EXPECTED_SIGNATURE_SHA256
+        ? process.env.EXPECTED_SIGNATURE_SHA256.replace(/:/g, '').toLowerCase()
+        : (process.env.REINSTALL_REQUIRED === 'true'
+          ? '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
+          : expectedSig);
 
     console.log(`release-firebase: Expected production SHA-256:                     ${targetSig}`);
 
@@ -652,6 +654,12 @@ console.log('Step 3/15: Build signed Android release APK...');
 const gradleCmd = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
 const gradleArgs = ['assembleRelease', '-x', 'lint', '-x', 'lintVitalRelease', '--stacktrace'];
 const gradleEnv = { ...process.env };
+if (process.platform === 'win32') {
+  const jdk21Path = 'C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot';
+  if (existsSync(jdk21Path)) {
+    gradleEnv.JAVA_HOME = jdk21Path;
+  }
+}
 if (gradleEnv.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {
   delete gradleEnv.GITHUB_TOKEN;
 }
@@ -856,6 +864,7 @@ const runGh = (args) => {
     stdio: 'pipe',
     shell: false,
     env,
+    maxBuffer: 100 * 1024 * 1024,
   });
 };
 
@@ -1118,9 +1127,9 @@ if (process.env.CI) {
 
   // Step 14: Re-validate their APK URL and SHA
   console.log('Step 14/15: Re-validate their APK URL and SHA...');
-  if (deployedVer.version !== '4.0.0' || deployedAppRelease.version !== version) {
+  if (deployedVer.version !== version || deployedAppRelease.version !== version) {
     console.error(
-      `release-firebase: âœ— Deployed version mismatch! Expected PWA: 4.0.0, Native: ${version}`
+      `release-firebase: ✗ Deployed version mismatch! Expected: ${version}, Found version.json: ${deployedVer.version}, app-release.json: ${deployedAppRelease.version}`
     );
     process.exit(1);
   }

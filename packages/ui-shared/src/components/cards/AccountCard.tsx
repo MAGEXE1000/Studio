@@ -505,8 +505,8 @@ function CloudOffIconSVG() {
 export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSettings }: Props) {
   const tRoot = useT();
   const t = tRoot.hub.accountSection;
-  const lang = useChordStore((s) => s.settings.language) ?? 'en';
-  const syncAcrossDevices = useChordStore((s) => s.settings.syncAcrossDevices);
+  const lang = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const syncAcrossDevices = useSettingsStore((s) => s.settings.syncAcrossDevices);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -635,7 +635,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
   async function doSyncNow() {
     setBusy(true);
     try {
-      await syncController.syncNow();
+      await syncNow();
     } finally {
       setBusy(false);
     }
@@ -644,7 +644,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
   async function doRetry() {
     setBusy(true);
     try {
-      await syncController.retrySync();
+      await syncNow();
     } finally {
       setBusy(false);
     }
@@ -913,7 +913,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
   const isWebDesktop = useIsWebDesktop();
   const tRoot = useT();
   const t = tRoot.hub.accountSection;
-  const lang = useChordStore((s) => s.settings.language) ?? 'en';
+  const lang = useSettingsStore((s) => s.settings.language) ?? 'en';
   const [user, setUser] = useState<AuthUser | null>(null);
   const [sheet, setSheet] = useState<DangerSheet>('none');
   const [closing, setClosing] = useState(false);
@@ -1697,7 +1697,7 @@ export function AccountSettingsPage({
 }) {
   const tRoot = useT();
   const t = tRoot.hub.accountSection;
-  const lang = useChordStore((s) => s.settings.language) ?? 'en';
+  const lang = useSettingsStore((s) => s.settings.language) ?? 'en';
   const favCount = useChordStore((s) => s.favorites?.length ?? 0);
   const progCount = useChordStore((s) => s.progressions?.length ?? 0);
   const presetCount = useChordStore((s) => s.presets?.length ?? 0);
@@ -1762,7 +1762,7 @@ export function AccountSettingsPage({
   async function doSyncNow() {
     setBusy(true);
     try {
-      await syncController.syncNow();
+      await syncNow();
     } finally {
       setBusy(false);
     }
@@ -1771,7 +1771,7 @@ export function AccountSettingsPage({
   async function doRetry() {
     setBusy(true);
     try {
-      await syncController.retrySync();
+      await syncNow();
     } finally {
       setBusy(false);
     }
@@ -1891,7 +1891,7 @@ export function AccountSettingsPage({
         lang === 'es' ? 'Copia de seguridad manual exportada' : 'Manual backup exported',
         'Studio'
       );
-      settingsController.updateSettings({ lastExportDate: dateString });
+      useSettingsStore.getState().updateSettings({ lastExportDate: dateString });
     } catch (e) {
       console.error(e);
       showToast(lang === 'es' ? 'Error al exportar datos' : 'Export failed');

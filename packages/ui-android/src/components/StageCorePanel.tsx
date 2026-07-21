@@ -1,5 +1,5 @@
 import { Button, Toolbar } from '@workspace/ui-shared/src/components/design-system/StudioDesignSystem';
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -105,7 +105,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const prefsScroll = doc.querySelector('.sc-prefs-scroll');
     if (!prefsScroll || doc.getElementById('sc-start-on-injected')) return;
 
-    const store = useChordStore.getState();
+    const store = useSettingsStore.getState();
     const lang = store.settings.language ?? 'en';
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
@@ -167,9 +167,9 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
       btn.appendChild(ic);
 
       btn.onclick = () => {
-        useChordStore
+        useSettingsStore
           .getState()
-          .settingsController.updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
+          .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
         const a2 =
           ACCENT_COLORS[
@@ -480,8 +480,8 @@ export default function StagexPanel() {
     if (currentRoute.app === 'stage' && currentRoute.page) {
       return currentRoute.page;
     }
-    const s = useChordStore.getState();
-    const saved = s.settings.restoreLastSession ? s.lastSession?.stagexView : undefined;
+    const s = useSettingsStore.getState();
+    const saved = s.settings.restoreLastSession ? (useChordStore.getState() as any).lastSession?.stagexView : undefined;
     return saved || s.settings.defaultStageView || 'Editor';
   }, [currentRoute]);
 

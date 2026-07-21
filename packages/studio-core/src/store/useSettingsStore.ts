@@ -23,6 +23,7 @@ export type AnimationSpeed = 'normal' | 'fast' | 'reduced';
 export type DisplayDensity = 'compact' | 'comfortable' | 'spacious';
 
 export interface AppSettings {
+  appMode?: AppKey;
   instrument: Instrument;
   theme: Theme;
   showNoteNames: boolean;

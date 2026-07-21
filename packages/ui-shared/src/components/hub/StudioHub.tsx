@@ -61,6 +61,16 @@ import { SharedNavigationContainer } from '../../navigation/SharedNavigationCont
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 const GOOEY_SPRING = { type: 'spring', stiffness: 550, damping: 33, mass: 0.45 } as const;
 
+const settingsController = {
+  updateSettings: (patch: any) => useSettingsStore.getState().updateSettings(patch),
+};
+const syncController = {
+  syncNow: async () => {
+    await pushLocalSettingsToCloud();
+    await pullCloudSettingsFromCloud();
+  },
+};
+
 import AccountCard, { AccountDangerZone, AccountSettingsPage } from '../cards/AccountCard';
 import DevToolsDashboard from '../devtools/DevToolsDashboard';
 
@@ -666,12 +676,13 @@ export default function StudioHub() {
         const navEntries = getNavigationEntries();
         const lastNav = navEntries.length > 0 ? navEntries[navEntries.length - 1] : null;
         const currentStore = useChordStore.getState();
+        const currentSettings = useSettingsStore.getState();
         return {
           activeTab: tabRef.current,
           zooming: zoomingRef.current,
           authStatus: authUserRef.current ? 'Signed In' : 'Signed Out',
-          theme: currentStore.settings.theme,
-          language: currentStore.settings.language,
+          theme: currentSettings.settings.theme,
+          language: currentSettings.settings.language,
           'Sync Provider': diag.syncProvider,
           'Firestore Runtime Active': diag.firestoreRuntimeActive,
           'Firestore Disabled (Verified)': !diag.firestoreRuntimeActive,
@@ -8109,7 +8120,7 @@ User Agent: [Automatically Generated]
           <SettingsSectionLabel>5. UI & Navigation</SettingsSectionLabel>
           <div style={cardStyle}>
             <DevInfoRow label="Current Root View" value="App" />
-            <DevInfoRow label="Current Active App" value={currentApp || 'hub'} />
+            <DevInfoRow label="Current Active App" value="hub" />
             <DevInfoRow label="Return-to-Hub State" value="Idle" />
             <DevInfoRow
               label="Overlay State"

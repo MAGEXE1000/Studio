@@ -77,7 +77,10 @@ if (!fs.existsSync(changelogPath)) {
   process.exit(1);
 }
 const changelogText = fs.readFileSync(changelogPath, 'utf8');
-const changelogHeaderRegex = new RegExp(`^##\\s+${androidRuntimeVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm');
+const changelogHeaderRegex = new RegExp(
+  `^(?:#|##)\\s+(?:Version\\s+)?v?${androidRuntimeVersion.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*$`,
+  'm'
+);
 
 let failed = false;
 

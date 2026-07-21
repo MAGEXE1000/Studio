@@ -834,7 +834,8 @@ if (viewRes.status !== 0) {
   console.log(
     `release-firebase: Release ${tag} not found. Creating it pointing to target commit ${currentCommit}...`
   );
-  const createRes = runGh([
+  const isPrerelease = process.argv.includes('--prerelease');
+  const ghCreateArgs = [
     'release',
     'create',
     tag,
@@ -846,7 +847,11 @@ if (viewRes.status !== 0) {
     currentCommit,
     '--repo',
     'MAGEXE1000/Studio',
-  ]);
+  ];
+  if (isPrerelease) {
+    ghCreateArgs.push('--prerelease');
+  }
+  const createRes = runGh(ghCreateArgs);
   if (createRes.status !== 0) {
     console.error(
       `release-firebase: âœ— Failed to create GitHub Release: ${createRes.stderr.toString()}`

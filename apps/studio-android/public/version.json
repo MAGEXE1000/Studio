@@ -1,20 +1,19 @@
 {
   "platform": "android",
-  "version": "4.2.5",
-  "versionName": "4.2.5",
-  "versionCode": 40205,
-  "version_code": 40205,
-  "commit": "e4f34fa6",
-  "releasedAt": "7/20/2026, 6:33:45 PM CST",
-  "buildTimestamp": "7/20/2026, 6:33:45 PM CST",
+  "version": "4.2.6",
+  "versionName": "4.2.6",
+  "versionCode": 40206,
+  "version_code": 40206,
+  "commit": "d1fd253c",
+  "releasedAt": "7/20/2026, 9:35:11 PM CST",
+  "buildTimestamp": "7/20/2026, 9:35:11 PM CST",
   "updateMode": "refresh",
-  "changelog": "• LOT 1 runtime optimizations: Root-level code splitting.\n• Lazy-loading of PDF engine to reduce startup bundle size.\n• Dead code elimination.",
-  "whatsNew": "• LOT 1 runtime optimizations: Root-level code splitting.\n• Lazy-loading of PDF engine to reduce startup bundle size.\n• Dead code elimination.",
+  "changelog": "• Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.\n• Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.",
+  "whatsNew": "• Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.\n• Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.",
   "releaseNotes": {
-    "added": [
-      "LOT 1 runtime optimizations: Root-level code splitting.",
-      "Lazy-loading of PDF engine to reduce startup bundle size.",
-      "Dead code elimination."
+    "fixed": [
+      "Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.",
+      "Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions."
     ]
   },
   "mandatory": false

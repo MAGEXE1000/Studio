@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher, useSettingsStore, authRepository } from "@workspace/studio-core";
+import { useChordStore, ACCENT_COLORS, useT, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher, useSettingsStore, authRepository, REGISTERED_APPS } from "@workspace/studio-core";
 import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from "@workspace/ui-shared";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from "motion/react";
@@ -27,6 +27,7 @@ function SidebarLabel({ children, open }: { children: React.ReactNode; open: boo
 
 export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSidebar: boolean }) {
   const settings = useSettingsStore((s) => s.settings);
+  const currentApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   const { open, toggleSidebar } = useSidebar();
   const { preferences } = useStudioPreferences();

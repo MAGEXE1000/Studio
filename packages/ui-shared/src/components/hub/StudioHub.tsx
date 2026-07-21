@@ -382,6 +382,7 @@ function useStartupComplete() {
 
 export default function StudioHub() {
   const settings = useSettingsStore((state) => state.settings);
+  const currentApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   const startupComplete = useStartupComplete();
   const unreadCount = useNotificationService(

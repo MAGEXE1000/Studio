@@ -69,11 +69,10 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "LOT 1 runtime optimizations: Root-level code splitting.",
-      "Lazy-loading of PDF engine to reduce startup bundle size.",
-      "Dead code elimination.",
+      "Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.",
+      "Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.",
     ],
   },
 ];

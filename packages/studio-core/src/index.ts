@@ -64,6 +64,7 @@ export * from './lib/performanceProfiler';
 
 // Navigation Core Foundation (Sprint 9.1)
 export * from './lib/navigation/navigationTypes';
+export * from './lib/navigation/appRegistry';
 export * from './store/useNavigationStore';
 export * from './lib/navigation/NavigationDispatcher';
 export * from './lib/navigation/NavigationCoordinator';

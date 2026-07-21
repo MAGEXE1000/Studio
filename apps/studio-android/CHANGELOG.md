@@ -13,6 +13,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.6
+
+### Fixed
+
+- Fixed severe startup loop regression caused by lazy loading `StudioHub` alongside static module dependencies.
+- Fixed latent `appMode` state synchronization bugs and restored accurate routing transitions.
+
 ## 4.2.5
 
 ### Added

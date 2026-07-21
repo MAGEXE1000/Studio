@@ -13,6 +13,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+## 4.2.9
+
+### Fixed
+
+- Physical Android real-device validation prerelease build with hardened release infrastructure telemetry.
+- Enforced complete release manifest, audit log, history, delta, smoke test, and SLSA provenance signatures.
+
 ## 4.2.8
 
 ### Fixed

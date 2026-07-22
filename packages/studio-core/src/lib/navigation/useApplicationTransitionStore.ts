@@ -131,28 +131,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       (window as any).__transitionWatchdog = null;
     }
 
-    set({ state: 'OVERLAY_DISMISS' });
-
-    setTimeout(() => {
-      set({ state: 'INTERACTION_ENABLE' });
-      setTimeout(() => {
-        set({
-          state: 'IDLE',
-          launchingApp: null,
-          appPreloaded: false,
-          logoFormed: false,
-        });
-      }, 50);
-    }, 250); // 250ms overlay dismiss fade animation
-  },
-
-  reset: () => {
-    const existing = (window as any).__transitionWatchdog;
-    if (existing) {
-      clearTimeout(existing);
-      (window as any).__transitionWatchdog = null;
-    }
-
     // Clear bottom navigation store states
     const navStore = useBottomNavigationStore.getState();
     navStore.setSwitcherOpen(false);

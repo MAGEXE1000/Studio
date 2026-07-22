@@ -485,35 +485,7 @@ export default function StudioHub() {
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
 
-  useEffect(() => {
-    if (isWebDesktop) return;
-    useBottomNavigationStore.getState().setItems([
-      {
-        key: 'notifications',
-        icon: 'notifications',
-        label: 'Activity',
-        isActive: tab === 'settings' && page === 'notifications',
-        onClick: () =>
-          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' }),
-      },
-      {
-        key: 'home',
-        icon: 'home',
-        label: 'Home',
-        isActive: tab === 'home',
-        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
-      },
-      {
-        key: 'settings',
-        icon: 'settings',
-        label: 'Settings',
-        isActive: tab === 'settings' && page !== 'notifications',
-        onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
-      },
-    ]);
-    useBottomNavigationStore.getState().setVisible(true);
-    useBottomNavigationStore.getState().setIsLight(isLight);
-  }, [tab, page, isLight, isWebDesktop]);
+
   const [langQuery, setLangQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<
     'all' | 'apps' | 'settings' | 'projects' | 'songs' | 'actions'

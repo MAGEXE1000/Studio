@@ -274,19 +274,7 @@ export default function VocalexApp() {
 
   useScrollHide(activeScrollRef, activeTab);
 
-  useEffect(() => {
-    if (isWebDesktop) return;
-    useBottomNavigationStore.getState().setItems(
-      NAV_ITEMS.map((item) => ({
-        key: item.panel,
-        icon: <item.Icon active={activeTab === item.panel} />,
-        label: item.label,
-        isActive: activeTab === item.panel,
-        onClick: () => NavigationDispatcher.push({ app: 'vocalex', page: item.panel }),
-      }))
-    );
-    useBottomNavigationStore.getState().setIsLight(isLight);
-  }, [activeTab, isLight, isWebDesktop]);
+  useEffect(() => {}, []);
 
   const navHidden = useNavHidden();
   const navCollapsed = useNavCollapsed();

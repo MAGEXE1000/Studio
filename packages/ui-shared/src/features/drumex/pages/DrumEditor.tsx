@@ -1057,20 +1057,7 @@ function DrumNav({
   const ALL_NAV_TABS = useDrumNavTabs();
   const isWebDesktop = useIsWebDesktop();
 
-  useEffect(() => {
-    if (isWebDesktop) return;
-    useBottomNavigationStore.getState().setItems(
-      ALL_NAV_TABS.map((tab) => ({
-        key: tab.id,
-        icon: <tab.Icon active={activeTab === tab.id} />,
-        label: tab.label,
-        isActive: activeTab === tab.id,
-        onClick: () => setTab(tab.id),
-      }))
-    );
-    useBottomNavigationStore.getState().setIsLight(isLight);
-    useBottomNavigationStore.getState().setVisible(!hidden);
-  }, [activeTab, isLight, hidden, isWebDesktop, ALL_NAV_TABS, setTab]);
+  useEffect(() => {}, []);
 
   return null;
 }

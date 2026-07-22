@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.26
+
+Release Date: 2026-07-21
+
+## Fixed
+- Unified Bottom Navigation system into a single global controller across all 7 applications.
+- Fixed transition completion state restoration for Bottom Navigation pill.
+- Harmonized dark theme surface design tokens across all workspace packages and settings panels.
+
 # Version 4.2.25
 
 Release Date: 2026-07-21

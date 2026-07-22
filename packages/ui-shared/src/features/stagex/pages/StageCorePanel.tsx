@@ -907,32 +907,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     [transitionToView]
   );
 
-  useEffect(() => {
-    if (isWebDesktop) return;
-    useBottomNavigationStore.getState().setItems(
-      navTabs.map((t) => ({
-        key: t.view,
-        icon: t.icon,
-        label: t.label,
-        isActive: isTabActive(t.view),
-        onClick: () => handleNavTap(t.view),
-      }))
-    );
-    useBottomNavigationStore.getState().setIsLight(isLight);
-    useBottomNavigationStore
-      .getState()
-      .setVisible(!(liveMode || hideBottomNav || (isLandscapeEditor && landscapeNavHidden)));
-  }, [
-    curView,
-    isLight,
-    liveMode,
-    hideBottomNav,
-    isLandscapeEditor,
-    landscapeNavHidden,
-    isWebDesktop,
-    handleNavTap,
-    isTabActive,
-  ]);
+  useEffect(() => {}, []);
   const handleFabTap = useCallback(() => {
     callIframe('toggleSCDial');
   }, [callIframe]);

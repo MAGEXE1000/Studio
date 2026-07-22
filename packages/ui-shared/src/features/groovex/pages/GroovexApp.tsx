@@ -98,26 +98,7 @@ export default function GroovexApp() {
     setNavHidden(view === 'player');
   }, [view, isWebDesktop]);
 
-  useEffect(() => {
-    if (isWebDesktop || view === 'player') return;
-    useBottomNavigationStore.getState().setItems([
-      {
-        key: 'library',
-        icon: 'library_music',
-        label: t.groovex.library,
-        isActive: view === 'library',
-        onClick: () => navigate('library'),
-      },
-      {
-        key: 'preferences',
-        icon: 'tune',
-        label: t.groovex.preferences,
-        isActive: view === 'preferences',
-        onClick: () => navigate('preferences'),
-      },
-    ]);
-    useBottomNavigationStore.getState().setIsLight(isLight);
-  }, [view, isLight, isWebDesktop, t]);
+  useEffect(() => {}, []);
   return (
     <div
       className="groovex-root"

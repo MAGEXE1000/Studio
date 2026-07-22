@@ -123,12 +123,12 @@
   --studio-accent-glow: 0 4px 20px color-mix(in srgb, var(--studio-accent-to) 25%, transparent);
   --studio-accent-border: color-mix(in srgb, var(--studio-accent-to) 30%, transparent);
 
-  --app-bg: #000000;
-  --app-surface-lowest: #000000;
-  --app-surface-low: #131313;
-  --app-surface: #191a1a;
-  --app-surface-high: #1f2020;
-  --app-surface-highest: #252626;
+  --app-bg: var(--c-background, #09090b);
+  --app-surface-lowest: var(--c-surface-lowest, #0e0e11);
+  --app-surface-low: var(--c-surface-low, #131316);
+  --app-surface: var(--c-surface-mid, #191a1e);
+  --app-surface-high: var(--c-surface-high, #1f2025);
+  --app-surface-highest: var(--c-surface-highest, #25262c);
 
   --c-text-primary: #e7e5e4;
   --c-text-secondary: #acabaa;

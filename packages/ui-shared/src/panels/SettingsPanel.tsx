@@ -99,12 +99,13 @@ export default function SettingsPanel() {
               <select
                 value={settings.tuning}
                 onChange={(e) => useSettingsStore.getState().updateSettings({ tuning: e.target.value })}
-                className={`rounded px-2 py-1 text-xs outline-none cursor-pointer transition-colors border ${
-                  isLight
-                    ? 'bg-zinc-200 text-zinc-800 border-zinc-300 hover:border-zinc-400'
-                    : 'bg-zinc-900 text-zinc-200 border-zinc-800 hover:border-zinc-700'
-                }`}
-                style={{ fontFamily: 'Inter' }}
+                style={{
+                  fontFamily: 'Inter',
+                  background: 'var(--c-surface-high)',
+                  color: 'var(--c-text-primary)',
+                  borderColor: 'var(--c-border)',
+                }}
+                className="rounded px-2.5 py-1 text-xs outline-none cursor-pointer transition-colors border"
               >
                 {tunings.map((tun) => (
                   <option key={tun.value} value={tun.value}>
@@ -203,15 +204,12 @@ export default function SettingsPanel() {
                         <button
                           key={value}
                           onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
-                          className={`w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all ${
-                            active
-                              ? isLight
-                                ? 'bg-zinc-300 text-black border-zinc-400'
-                                : 'bg-zinc-800 text-white border-zinc-700'
-                              : isLight
-                                ? 'bg-transparent text-zinc-500 border-zinc-200 hover:text-black hover:border-zinc-300'
-                                : 'bg-transparent text-zinc-500 border-zinc-900 hover:text-zinc-300'
-                          }`}
+                          style={{
+                            background: active ? 'var(--c-surface-high)' : 'transparent',
+                            color: active ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
+                            borderColor: active ? 'var(--c-border-strong)' : 'var(--c-border)',
+                          }}
+                          className="w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all"
                         >
                           <Icon active={active} />
                         </button>

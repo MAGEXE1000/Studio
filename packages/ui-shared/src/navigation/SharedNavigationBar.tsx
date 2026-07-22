@@ -518,9 +518,6 @@ export function SharedNavigationBar({
     };
   }, []);
 
-  // Slide down out of view progressively up to 100px (beyond viewport edge)
-  const translateY = scrollOffset * 100;
-
   const handleAppSwitch = (appKey: string) => {
     NavigationDispatcher.push({ app: appKey as any });
     setIsSwitcherOpen(false);
@@ -568,9 +565,6 @@ export function SharedNavigationBar({
     []
   );
 
-  const currentItems = isSwitcherOpen ? switcherApps : items || [];
-  const N = currentItems.length || 1;
-
   // Dynamic screen width monitoring for robust responsiveness
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 360
@@ -583,16 +577,22 @@ export function SharedNavigationBar({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const isHub = currentApp === 'hub';
   const showSwitcherButton = currentApp !== 'hub';
-  // 64px search + 8px gap = 72px. Switcher button is 64px + 8px gap = 72px.
-  const rightButtonsWidth = 72 + (showSwitcherButton ? 72 : 0);
-  const maxAvailableWidth = windowWidth - 32 - rightButtonsWidth * 2;
-  const barWidth = Math.max(160, Math.min(330, maxAvailableWidth));
+  const showSearchButton = isHub;
 
+  const currentItems = isSwitcherOpen ? switcherApps : items || [];
+  const N = currentItems.length || 1;
+  const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
+  const slotWidth = isSwitcherOpen ? 52 : 70;
   const paddingX = 8; // Match the container padding: '6px 8px'
   const insetX = 6;
+
+  const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
+  const barWidth = Math.max(160, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
+
   const usableWidth = barWidth - paddingX * 2;
-  const itemWidth = usableWidth / N;
+  const itemWidth = usableWidth / totalSlots;
   const pillWidth = itemWidth - insetX * 2;
 
   // Mathematically perfect centering (relative to wrapper div, no paddingX offset!)
@@ -785,180 +785,207 @@ export function SharedNavigationBar({
 
   const pillSkewXTrans = useTransform(pillSkewX, (val) => `${val}deg`);
 
+  const fastSpring = useMemo(
+    () => ({
+      type: 'spring',
+      stiffness: 550,
+      damping: 32,
+      mass: 0.45,
+    }),
+    []
+  );
+
+  // Slide down out of view progressively up to 100px (beyond viewport edge)
+  const translateY = scrollOffset * 100;
+
   return (
     <>
-      <motion.div
-        ref={containerRef}
-        className="shared-bottom-nav-container-wrapper"
-        animate={{
-          y: !visible || collapsed || currentItems.length === 0 ? 150 : translateY,
-          opacity: !visible || collapsed || currentItems.length === 0 ? 0 : 1,
-        }}
-        transition={{
-          ...SpringPresets.soft,
-        }}
-        style={{
-          position: 'fixed',
-          bottom: 'max(14px, env(safe-area-inset-bottom))',
-          left: '16px',
-          right: '16px',
-          zIndex: 9999,
-          display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
-          alignItems: 'center',
-          pointerEvents: 'none',
-        }}
-      >
-        {/* Left Column (spacer to balance the grid columns) */}
-        <div style={{ pointerEvents: 'none' }} />
-
-        {/* Center Column: Bottom Navigation Bar */}
-        <div
-          className="shared-bottom-nav glass-nav"
-          style={{
-            pointerEvents: 'auto',
-            justifySelf: 'center',
-            width: `${barWidth}px`,
-            height: '64px',
-            borderRadius: '9999px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            background: 'rgba(12, 12, 14, 0.45)',
-            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            padding: '6px 8px',
-            position: 'relative',
-            touchAction: 'none',
-            userSelect: 'none',
-          }}
-        >
-          <div
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
+      <AnimatePresence initial={false} mode="wait">
+        {!searchOpen && (
+          <motion.div
+            key="navigation-bar-wrapper"
+            ref={containerRef}
+            className="shared-bottom-nav-container-wrapper"
+            animate={{
+              y: !visible || collapsed || currentItems.length === 0 ? 150 : translateY,
+              opacity: !visible || collapsed || currentItems.length === 0 ? 0 : 1,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{
+              ...SpringPresets.soft,
+            }}
             style={{
-              display: 'flex',
-              width: '100%',
-              height: '100%',
+              position: 'fixed',
+              bottom: 'max(14px, env(safe-area-inset-bottom))',
+              left: '16px',
+              right: '16px',
+              zIndex: 9999,
+              display: 'grid',
+              gridTemplateColumns: '1fr auto 1fr',
               alignItems: 'center',
-              position: 'relative',
-              touchAction: 'none',
+              pointerEvents: 'none',
             }}
           >
-            {/* Liquid Glass Highlight */}
+            {/* Left Column (spacer to balance the grid columns) */}
+            <div style={{ pointerEvents: 'none' }} />
+
+            {/* Center Column: Bottom Navigation Bar / Unified Dock */}
             <motion.div
+              layoutId={isHub ? "search-container" : undefined}
+              transition={fastSpring}
+              className="shared-bottom-nav glass-nav"
               style={{
-                position: 'absolute',
-                top: '1px',
-                height: '50px',
-                width: `${pillWidth}px`,
-                x: useTransform(pillX, (val) => val - pillWidth / 2),
-                skewX: pillSkewXTrans,
-                transformOrigin: 'center center',
-                pointerEvents: 'none',
-                zIndex: 0,
+                pointerEvents: 'auto',
+                justifySelf: 'center',
+                width: `${barWidth}px`,
+                height: '64px',
                 borderRadius: '9999px',
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.03) 100%)',
-                border: '1.2px solid rgba(255, 255, 255, 0.32)',
-                boxShadow: 'inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.25)',
-                backdropFilter: 'blur(16px) saturate(170%) brightness(1.1)',
-                WebkitBackdropFilter: 'blur(16px) saturate(170%) brightness(1.1)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'rgba(12, 12, 14, 0.45)',
+                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                backdropFilter: 'blur(25px)',
+                WebkitBackdropFilter: 'blur(25px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                padding: '6px 8px',
+                position: 'relative',
+                touchAction: 'none',
+                userSelect: 'none',
               }}
-            />
-
-            {currentItems.map((item, index) => {
-              const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
-
-              return (
-                <NavigationItem
-                  key={item.key}
-                  item={item}
-                  index={index}
-                  pillX={pillX}
-                  itemWidth={itemWidth}
-                  getCenterX={getCenterX}
-                  onClick={item.onClick}
-                  isActive={isActive}
+            >
+              <div
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
+                style={{
+                  display: 'flex',
+                  width: '100%',
+                  height: '100%',
+                  alignItems: 'center',
+                  position: 'relative',
+                  touchAction: 'none',
+                }}
+              >
+                {/* Liquid Glass Highlight */}
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    top: '1px',
+                    height: '50px',
+                    width: `${pillWidth}px`,
+                    x: useTransform(pillX, (val) => val - pillWidth / 2),
+                    skewX: pillSkewXTrans,
+                    transformOrigin: 'center center',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.03) 100%)',
+                    border: '1.2px solid rgba(255, 255, 255, 0.32)',
+                    boxShadow: 'inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(16px) saturate(170%) brightness(1.1)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(170%) brightness(1.1)',
+                  }}
                 />
-              );
-            })}
-          </div>
-        </div>
 
-        {/* Right Column: App Switcher & Search Buttons */}
-        <div
-          style={{
-            pointerEvents: 'auto',
-            justifySelf: 'end',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          {showSwitcherButton && (
-            <motion.button
-              onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
-              whileTap={{ scale: 0.9 }}
+                {currentItems.map((item, index) => {
+                  const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
+
+                  return (
+                    <NavigationItem
+                      key={item.key}
+                      item={item}
+                      index={index}
+                      pillX={pillX}
+                      itemWidth={itemWidth}
+                      getCenterX={getCenterX}
+                      onClick={item.onClick}
+                      isActive={isActive}
+                    />
+                  );
+                })}
+
+                {/* Unified Search button inside the dock for Hub */}
+                {isHub && !isSwitcherOpen && (
+                  <motion.button
+                    onClick={() => setSearchOpen(true)}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      width: `${itemWidth}px`,
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      zIndex: 1,
+                      padding: '0 8px',
+                      outline: 'none',
+                      WebkitTapHighlightColor: 'transparent',
+                    }}
+                  >
+                    <motion.div
+                      layoutId="search-icon"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'rgba(255, 255, 255, 0.60)',
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        search
+                      </span>
+                    </motion.div>
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Right Column: App Switcher Button (floating outside navigation for sub-apps) */}
+            <div
               style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                background: 'rgba(12, 12, 14, 0.45)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(25px)',
-                WebkitBackdropFilter: 'blur(25px)',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                pointerEvents: 'auto',
+                justifySelf: 'end',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                color: isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
-                cursor: 'pointer',
-                outline: 'none',
-                WebkitTapHighlightColor: 'transparent',
+                gap: '8px',
               }}
             >
-              <span className="material-symbols-outlined text-[20px]">
-                {isSwitcherOpen ? 'close' : 'apps'}
-              </span>
-            </motion.button>
-          )}
-
-          {!searchOpen ? (
-            <motion.button
-              layoutId="search-container"
-              onClick={() => setSearchOpen(true)}
-              whileTap={{ scale: 0.9 }}
-              style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                background: 'rgba(12, 12, 14, 0.45)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(25px)',
-                WebkitBackdropFilter: 'blur(25px)',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'rgba(255, 255, 255, 0.60)',
-                cursor: 'pointer',
-                outline: 'none',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                search
-              </span>
-            </motion.button>
-          ) : (
-            <div style={{ width: '64px', height: '64px' }} />
-          )}
-        </div>
-      </motion.div>
+              {showSwitcherButton && (
+                <motion.button
+                  onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                  whileTap={{ scale: 0.9 }}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'rgba(12, 12, 14, 0.45)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backdropFilter: 'blur(25px)',
+                    WebkitBackdropFilter: 'blur(25px)',
+                    boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {isSwitcherOpen ? 'close' : 'apps'}
+                  </span>
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Global Morphing Search Panel Overlay */}
       <AnimatePresence>
@@ -969,7 +996,7 @@ export function SharedNavigationBar({
               inset: 0,
               zIndex: 99999,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'end',
               justifyContent: 'center',
               padding: '16px',
               pointerEvents: 'auto',
@@ -996,6 +1023,7 @@ export function SharedNavigationBar({
             {/* Morphing Search Panel */}
             <motion.div
               layoutId="search-container"
+              transition={fastSpring}
               style={{
                 position: 'relative',
                 width: '100%',
@@ -1011,6 +1039,7 @@ export function SharedNavigationBar({
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
+                marginBottom: 'max(14px, env(safe-area-inset-bottom))',
               }}
             >
               {/* Header / Search Field */}
@@ -1023,9 +1052,20 @@ export function SharedNavigationBar({
                   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                 }}
               >
-                <span className="material-symbols-outlined text-[20px] text-white opacity-60">
-                  search
-                </span>
+                {/* Search icon morph target */}
+                <motion.div
+                  layoutId="search-icon"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#ffffff',
+                    opacity: 0.6,
+                  }}
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    search
+                  </span>
+                </motion.div>
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -1234,3 +1274,4 @@ export function SharedNavigationBar({
     </>
   );
 }
+

@@ -13,6 +13,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.34
+
+Release Date: 2026-07-22
+
+## Improved
+- Rebuilt global search as a floating morphing dock overlay with category chips and action command palettes.
+- Re-architected bottom navigation dock to mathematically center active tabs and utilize liquid-glass refraction blurs.
+
 # Version 4.2.33
 
 Release Date: 2026-07-22

@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useChordStore } from '@workspace/studio-core';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface TransitionConcept {
@@ -11,81 +10,35 @@ interface TransitionConcept {
 
 const CONCEPTS: TransitionConcept[] = [
   {
-    id: 'liquid-wave',
-    name: 'Liquid Wave',
-    description:
-      'A beautiful diagonal bezier liquid wave clip-path sweep that glides across the screen.',
-    notes:
-      'Uses GPU-accelerated CSS clip-paths. Avoids main thread layout invalidations. Highly performant on WebView.',
+    id: 'material-shared-axis',
+    name: 'Material Shared Axis',
+    description: 'A smooth sliding transition matching Material Design 3 guidelines along X, Y, or Z axes with clean opacity crossfades.',
+    notes: 'Leverages GPU-accelerated translate3d and opacity transitions. Low memory usage and zero layout reflow overhead.'
   },
   {
-    id: 'glass-ripple',
-    name: 'Glass Ripple',
-    description:
-      'A concentric ripple expanding from touch coordinates with a frosted glass refraction effect.',
-    notes:
-      'Leverages CSS backdrop-filter with scale transforms. Moderate GPU load due to dynamic blur calculations.',
+    id: 'premium-spring-slide',
+    name: 'Premium Spring Slide',
+    description: 'A snappy, physical-based spring slide with overshoot damping that matches natural physical mass.',
+    notes: 'Uses custom fast-spring physics (stiffness: 450, damping: 32, mass: 0.8) for immediate tactile response.'
   },
   {
-    id: 'fluid-bloom',
-    name: 'Fluid Bloom',
-    description: 'A hardware-accelerated brightness bloom and chromatic saturation pulse reveal.',
-    notes:
-      'Combines CSS filters (brightness, contrast, saturate) with circular clip-paths. Outstanding frame pacing.',
+    id: 'elastic-morph',
+    name: 'Elastic Morph',
+    description: 'An organic elastic morphing container transition where panels fluidly scale and bounce into position.',
+    notes: 'Combines dynamic scale and border-radius interpolation with spring damping. Feels bouncy and alive.'
   },
   {
-    id: 'radial-flow',
-    name: 'Radial Surface Flow',
-    description:
-      'A multi-layered swirling gradient circle expanding outward from the touch position.',
-    notes: 'Uses multi-stop radial gradient backgrounds on a GPU-composited overlay layer.',
+    id: 'floating-depth',
+    name: 'Floating Depth',
+    description: 'A layered depth transition where the outgoing screen recedes into the background and the incoming screen floats over it.',
+    notes: 'Utilizes 3D perspective, scale shifts, and card shadows to create hierarchical depth.'
   },
   {
-    id: 'ink-spread',
-    name: 'Dynamic Ink Spread',
-    description:
-      'An organic, ink-blot spread using SVG turbulence and gooey threshold matrix filters.',
-    notes:
-      'Computationally heavy. SVG feTurbulence filters require CPU rasterization on older WebView engines, resulting in minor jank.',
-  },
-  {
-    id: 'gradient-field',
-    name: 'Expanding Gradient Field',
-    description:
-      'Shifting conic and radial gradients blending across the surface during transition.',
-    notes:
-      'Implements opacity cross-fades of pre-rendered gradient vectors to prevent runtime gradient recalculation.',
-  },
-  {
-    id: 'chromatic-pulse',
-    name: 'Soft Chromatic Pulse',
-    description: 'A fast circular reveal that splits RGB channels momentarily before settling.',
-    notes:
-      'Duplicates the layer into three composited elements offset by color-matrix shifts. Medium fill cost.',
-  },
-  {
-    id: 'glass-morph',
-    name: 'Glass Morph',
-    description:
-      'Heavily blurred frost-glass overlay sliding in and dissolving into the new theme.',
-    notes:
-      'Utilizes high-radius backdrop-filter blurs. Double-buffered layer increases memory usage during animation.',
-  },
-  {
-    id: 'energy-prop',
-    name: 'Energy Propagation',
-    description:
-      'A glowing lightning-like neon ring propagating outward from the click with subtle sparks.',
-    notes:
-      'Draws a canvas-rendered neon ring overlay. Bypasses React updates for 60fps particle logic.',
-  },
-  {
-    id: 'diffusion',
-    name: 'Surface Diffusion',
-    description: 'A granular pixel noise/dither dissolve wave spreading across the screen.',
-    notes:
-      'Uses a dynamic CSS mask-image with dithered SVG patterns. Excellent retro dither aesthetic.',
-  },
+    id: 'liquid-flow',
+    name: 'Liquid Flow',
+    description: 'A gorgeous, organic liquid transition utilizing fluid cubic beziers and smooth sliding clipping waves.',
+    notes: 'Combines clip-path radial sweep animations with hardware-accelerated SVG compositing.'
+  }
 ];
 
 interface MotionPlaygroundViewProps {
@@ -94,10 +47,21 @@ interface MotionPlaygroundViewProps {
 }
 
 export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroundViewProps) {
-  const [selectedConcept, setSelectedConcept] = useState<string>('liquid-wave');
-  const [simulatedTheme, setSimulatedTheme] = useState<'light' | 'dark'>('dark');
+  const [selectedConcept, setSelectedConcept] = useState<string>('material-shared-axis');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [clickCoord, setClickCoord] = useState({ x: 120, y: 200 });
+
+  // Simulator States
+  const [simulatedPage, setSimulatedPage] = useState<'home' | 'details'>('home');
+  const [simulatedTab, setSimulatedTab] = useState<'home' | 'profile' | 'settings'>('home');
+  const [simulatedApp, setSimulatedApp] = useState<'hub' | 'chordex' | 'drumex'>('hub');
+  const [simulatedPanelOpen, setSimulatedPanelOpen] = useState(false);
+  const [activeAction, setActiveAction] = useState<'forward' | 'backward' | 'tab' | 'app' | 'panel'>('forward');
+
+  // Animation directions
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const [tabDirection, setTabDirection] = useState<'left' | 'right'>('right');
+  const [appDirection, setAppDirection] = useState<'left' | 'right'>('right');
 
   // Measured Telemetry
   const [telemetry, setTelemetry] = useState({
@@ -109,25 +73,14 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
 
   const transitionFrameRef = useRef<number | null>(null);
 
-  const activeConcept = CONCEPTS.find((c) => c.id === selectedConcept) || CONCEPTS[0];
+  const activeConcept = useMemo(() => {
+    return CONCEPTS.find((c) => c.id === selectedConcept) || CONCEPTS[0];
+  }, [selectedConcept]);
 
-  const triggerTransition = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isTransitioning) return;
-
-    // Capture relative coordinates inside the phone screen mockup
-    const rect = e.currentTarget.getBoundingClientRect();
-    const parentRect = e.currentTarget.parentElement?.getBoundingClientRect();
-    if (parentRect) {
-      setClickCoord({
-        x: rect.left - parentRect.left + rect.width / 2,
-        y: rect.top - parentRect.top + rect.height / 2,
-      });
-    }
-
+  const runTelemetry = (durationMs: number = 320) => {
     setIsTransitioning(true);
     setTelemetry((prev) => ({ ...prev, active: true, time: 0, drops: 0, fps: 60 }));
 
-    const duration = 650; // ms
     const startTime = performance.now();
     let frameCount = 0;
     let jankCount = 0;
@@ -146,7 +99,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
         jankCount++;
       }
 
-      if (elapsed < duration) {
+      if (elapsed < durationMs) {
         transitionFrameRef.current = requestAnimationFrame(measureFrame);
       } else {
         const finalTime = performance.now() - startTime;
@@ -158,11 +111,72 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
           active: false,
         });
         setIsTransitioning(false);
-        setSimulatedTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
       }
     };
 
     transitionFrameRef.current = requestAnimationFrame(measureFrame);
+  };
+
+  const handleForwardClick = (e: React.MouseEvent) => {
+    if (isTransitioning) return;
+    captureCoords(e);
+    setActiveAction('forward');
+    setDirection('forward');
+    setSimulatedPage('details');
+    runTelemetry(350);
+  };
+
+  const handleBackwardClick = (e: React.MouseEvent) => {
+    if (isTransitioning) return;
+    captureCoords(e);
+    setActiveAction('backward');
+    setDirection('backward');
+    setSimulatedPage('home');
+    runTelemetry(350);
+  };
+
+  const handleTabClick = (e: React.MouseEvent, tab: 'home' | 'profile' | 'settings') => {
+    if (isTransitioning || tab === simulatedTab) return;
+    captureCoords(e);
+    setActiveAction('tab');
+    const tabs: ('home' | 'profile' | 'settings')[] = ['home', 'profile', 'settings'];
+    const oldIdx = tabs.indexOf(simulatedTab);
+    const newIdx = tabs.indexOf(tab);
+    setTabDirection(newIdx > oldIdx ? 'right' : 'left');
+    setSimulatedTab(tab);
+    runTelemetry(280);
+  };
+
+  const handleAppClick = (e: React.MouseEvent, app: 'hub' | 'chordex' | 'drumex') => {
+    if (isTransitioning || app === simulatedApp) return;
+    captureCoords(e);
+    setActiveAction('app');
+    const apps: ('hub' | 'chordex' | 'drumex')[] = ['hub', 'chordex', 'drumex'];
+    const oldIdx = apps.indexOf(simulatedApp);
+    const newIdx = apps.indexOf(app);
+    setAppDirection(newIdx > oldIdx ? 'right' : 'left');
+    setSimulatedApp(app);
+    runTelemetry(300);
+  };
+
+  const handlePanelToggle = (e: React.MouseEvent) => {
+    if (isTransitioning) return;
+    captureCoords(e);
+    setActiveAction('panel');
+    setSimulatedPanelOpen((prev) => !prev);
+    runTelemetry(320);
+  };
+
+  const captureCoords = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const parent = document.getElementById('simulated-phone-viewport');
+    if (parent) {
+      const parentRect = parent.getBoundingClientRect();
+      setClickCoord({
+        x: rect.left - parentRect.left + rect.width / 2,
+        y: rect.top - parentRect.top + rect.height / 2,
+      });
+    }
   };
 
   useEffect(() => {
@@ -172,6 +186,26 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
       }
     };
   }, []);
+
+  // Preset physics configuration
+  const springTransition = useMemo(() => {
+    if (selectedConcept === 'premium-spring-slide') {
+      return { type: 'spring' as const, stiffness: 450, damping: 32, mass: 0.8 };
+    }
+    if (selectedConcept === 'elastic-morph') {
+      return { type: 'spring' as const, stiffness: 500, damping: 20, mass: 0.6 };
+    }
+    if (selectedConcept === 'floating-depth') {
+      return { type: 'spring' as const, stiffness: 260, damping: 26 };
+    }
+    return { type: 'spring' as const, stiffness: 300, damping: 28 };
+  }, [selectedConcept]);
+
+  const cssTransition = useMemo(() => {
+    return { duration: 0.5, ease: [0.25, 1, 0.5, 1] }; // For Liquid Flow
+  }, []);
+
+  const activeTransition = selectedConcept === 'liquid-flow' ? cssTransition : springTransition;
 
   return (
     <div
@@ -229,7 +263,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
                 margin: 0,
               }}
             >
-              Theme Laboratory
+              Motion Playground
             </h2>
             <p style={{ fontSize: '11px', color: 'var(--c-text-secondary)', margin: 0 }}>
               Flagship Transition Architect Playground
@@ -250,7 +284,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
           gap: 20,
         }}
       >
-        {/* SELECT CONCEPT */}
+        {/* SELECT PRESET */}
         <div
           style={{ width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 6 }}
         >
@@ -263,7 +297,7 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
               letterSpacing: '0.05em',
             }}
           >
-            Select Transition Concept
+            Select Transition Preset
           </label>
           <select
             value={selectedConcept}
@@ -305,347 +339,339 @@ export default function MotionPlaygroundView({ accent, onBack }: MotionPlaygroun
             boxSizing: 'border-box',
           }}
         >
-          {/* Phone Aspect Viewport Mockup */}
+          {/* Phone Viewport Simulator */}
           <div
+            id="simulated-phone-viewport"
             style={{
               position: 'relative',
               width: '100%',
-              maxWidth: 240,
+              maxWidth: 260,
               aspectRatio: '9/16',
-              borderRadius: 32,
-              border: '6px solid #1a1a20',
-              boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+              borderRadius: 36,
+              border: '8px solid #1a1a20',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
               overflow: 'hidden',
-              background: simulatedTheme === 'dark' ? '#0a0a0c' : '#f8f9fa',
-              color: simulatedTheme === 'dark' ? '#ffffff' : '#111827',
-              transition: isTransitioning ? 'none' : 'background 300ms ease, color 300ms ease',
+              background: '#0a0a0c',
+              color: '#ffffff',
             }}
           >
-            {/* Simulated App Content Layout */}
+            {/* Top App Bar Switcher */}
             <div
               style={{
-                padding: 16,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '40px',
+                background: 'rgba(12, 12, 14, 0.85)',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                zIndex: 40,
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-                height: '100%',
-                boxSizing: 'border-box',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                padding: '0 8px',
               }}
             >
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <span style={{ fontSize: 10, fontWeight: 700, opacity: 0.6 }}>LIVEX STUDIO</span>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                  signal_cellular_alt
-                </span>
-              </div>
-
-              <div style={{ marginTop: 8 }}>
-                <h4 style={{ fontSize: 16, fontWeight: 800, margin: '0 0 2px' }}>Workspace</h4>
-                <p style={{ fontSize: 10, opacity: 0.6, margin: 0 }}>
-                  Simulated Laboratory Environment
-                </p>
-              </div>
-
-              {/* Cards Mockup */}
-              <div
-                style={{
-                  background:
-                    simulatedTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                  borderRadius: 14,
-                  padding: 12,
-                  border: '1px solid rgba(128,128,128,0.08)',
-                }}
-              >
-                <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>Primary Core</div>
-                <div
-                  style={{ width: '80%', height: 6, borderRadius: 3, background: accent.from }}
-                />
-              </div>
-
-              <div
-                style={{
-                  background:
-                    simulatedTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                  borderRadius: 14,
-                  padding: 12,
-                  border: '1px solid rgba(128,128,128,0.08)',
-                  flex: 1,
-                }}
-              >
-                <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>AppTelemetry</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div
-                    style={{
-                      height: 5,
-                      borderRadius: 2,
-                      background: 'rgba(128,128,128,0.2)',
-                      width: '90%',
-                    }}
-                  />
-                  <div
-                    style={{
-                      height: 5,
-                      borderRadius: 2,
-                      background: 'rgba(128,128,128,0.2)',
-                      width: '70%',
-                    }}
-                  />
-                  <div
-                    style={{
-                      height: 5,
-                      borderRadius: 2,
-                      background: 'rgba(128,128,128,0.2)',
-                      width: '85%',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Floating Action Button (Theme Trigger) */}
-              <button
-                onClick={triggerTransition}
-                style={{
-                  position: 'absolute',
-                  bottom: 20,
-                  right: 20,
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background: accent.from,
-                  border: 'none',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                  zIndex: 20,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                  {simulatedTheme === 'dark' ? 'light_mode' : 'dark_mode'}
-                </span>
-              </button>
+              {(['hub', 'chordex', 'drumex'] as const).map((app) => (
+                <button
+                  key={app}
+                  onClick={(e) => handleAppClick(e, app)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: simulatedApp === app ? accent.from : 'rgba(255,255,255,0.5)',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    padding: '4px 6px',
+                    borderRadius: '4px',
+                    transition: 'all 200ms ease',
+                  }}
+                >
+                  {app === 'hub' ? 'Hub' : app === 'chordex' ? 'Chords' : 'Drums'}
+                </button>
+              ))}
             </div>
 
-            {/* TRANSITION OVERLAY ANIMATOR */}
-            <AnimatePresence>
-              {isTransitioning && (
+            {/* Inner Content Animator */}
+            <div style={{ width: '100%', height: '100%', paddingTop: '40px', paddingBottom: '50px', position: 'relative', overflow: 'hidden' }}>
+              <AnimatePresence initial={false} mode={selectedConcept === 'floating-depth' ? 'popLayout' : 'wait'}>
+                {/* Simulated Screen */}
                 <motion.div
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
+                  key={`${simulatedApp}-${simulatedTab}-${simulatedPage}`}
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    zIndex: 10,
-                    pointerEvents: 'none',
+                    padding: 14,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: simulatedApp === 'chordex' ? 'rgba(30,15,45,0.95)' : simulatedApp === 'drumex' ? 'rgba(45,15,35,0.95)' : '#0d0d11',
+                    boxSizing: 'border-box',
                     overflow: 'hidden',
                   }}
+                  initial={
+                    selectedConcept === 'liquid-flow'
+                      ? { clipPath: 'circle(0% at 50% 50%)', opacity: 1 }
+                      : selectedConcept === 'floating-depth'
+                        ? (activeAction === 'backward' ? { scale: 0.9, opacity: 0.6 } : { y: '100%', opacity: 1 })
+                        : selectedConcept === 'elastic-morph'
+                          ? { scale: 0.8, opacity: 0, borderRadius: '48px' }
+                          : selectedConcept === 'premium-spring-slide'
+                            ? { x: activeAction === 'forward' ? '100%' : '-100%', opacity: 1 }
+                            : { opacity: 0, x: activeAction === 'forward' ? 30 : -30, scale: 0.96 } // Material Shared Axis
+                  }
+                  animate={
+                    selectedConcept === 'liquid-flow'
+                      ? { clipPath: 'circle(150% at 50% 50%)', opacity: 1 }
+                      : { y: 0, x: 0, scale: 1, opacity: 1, borderRadius: '0px' }
+                  }
+                  exit={
+                    selectedConcept === 'liquid-flow'
+                      ? { opacity: 0 }
+                      : selectedConcept === 'floating-depth'
+                        ? (activeAction === 'forward' ? { scale: 0.9, opacity: 0.6 } : { y: '100%', opacity: 0 })
+                        : selectedConcept === 'elastic-morph'
+                          ? { scale: 1.2, opacity: 0, borderRadius: '48px' }
+                          : selectedConcept === 'premium-spring-slide'
+                            ? { x: activeAction === 'forward' ? '-100%' : '100%', opacity: 1 }
+                            : { opacity: 0, x: activeAction === 'forward' ? -30 : 30, scale: 0.96 } // Material Shared Axis
+                  }
+                  transition={activeTransition}
                 >
-                  {/* CONCEPT 1: Liquid Wave */}
-                  {selectedConcept === 'liquid-wave' && (
-                    <motion.div
-                      initial={{ clipPath: 'polygon(0 0, 0 0, 0 100%, 0 100%)' }}
-                      animate={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' }}
-                      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c',
-                      }}
-                    />
-                  )}
+                  {simulatedPage === 'home' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, height: '100%' }}>
+                      <div style={{ marginTop: 8 }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.5, textTransform: 'uppercase' }}>
+                          {simulatedApp} &bull; {simulatedTab}
+                        </span>
+                        <h4 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 2px' }}>Studio workspace</h4>
+                      </div>
 
-                  {/* CONCEPT 2: Glass Ripple */}
-                  {selectedConcept === 'glass-ripple' && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0.5 }}
-                      animate={{ scale: 4.5, opacity: 0 }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      style={{
-                        position: 'absolute',
-                        left: clickCoord.x - 50,
-                        top: clickCoord.y - 50,
-                        width: 100,
-                        height: 100,
-                        borderRadius: '50%',
-                        background: 'rgba(255,255,255,0.15)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        border: '2px solid rgba(255,255,255,0.3)',
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 3: Fluid Bloom */}
-                  {selectedConcept === 'fluid-bloom' && (
-                    <motion.div
-                      initial={{ scale: 0, filter: 'brightness(1.5) saturate(1.8) blur(0px)' }}
-                      animate={{ scale: 6, filter: 'brightness(1.0) saturate(1.0) blur(4px)' }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      style={{
-                        position: 'absolute',
-                        left: clickCoord.x - 40,
-                        top: clickCoord.y - 40,
-                        width: 80,
-                        height: 80,
-                        borderRadius: '50%',
-                        background: accent.from,
-                        opacity: 0.8,
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 4: Radial Flow */}
-                  {selectedConcept === 'radial-flow' && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: 0 }}
-                      animate={{ scale: 5, rotate: 180 }}
-                      transition={{ duration: 0.65, ease: 'easeInOut' }}
-                      style={{
-                        position: 'absolute',
-                        left: clickCoord.x - 50,
-                        top: clickCoord.y - 50,
-                        width: 100,
-                        height: 100,
-                        borderRadius: '50%',
-                        background: `radial-gradient(circle, ${accent.from} 0%, ${accent.to} 100%)`,
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 5: Ink Spread */}
-                  {selectedConcept === 'ink-spread' && (
-                    <motion.div
-                      initial={{ scale: 0, borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%' }}
-                      animate={{ scale: 6, borderRadius: '50%' }}
-                      transition={{ duration: 0.65, ease: 'easeIn' }}
-                      style={{
-                        position: 'absolute',
-                        left: clickCoord.x - 50,
-                        top: clickCoord.y - 50,
-                        width: 100,
-                        height: 100,
-                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c',
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 6: Expanding Gradient Field */}
-                  {selectedConcept === 'gradient-field' && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.6 }}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: `linear-gradient(135deg, ${accent.from} 0%, var(--app-bg) 100%)`,
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 7: Chromatic Pulse */}
-                  {selectedConcept === 'chromatic-pulse' && (
-                    <div style={{ position: 'absolute', inset: 0 }}>
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 5 }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                      {/* Forward Action trigger */}
+                      <button
+                        onClick={handleForwardClick}
                         style={{
-                          position: 'absolute',
-                          left: clickCoord.x - 50,
-                          top: clickCoord.y - 50,
-                          width: 100,
-                          height: 100,
-                          borderRadius: '50%',
-                          background: 'rgba(239, 68, 68, 0.4)',
-                          mixBlendMode: 'screen',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: 14,
+                          padding: 10,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          color: '#fff',
+                          outline: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
                         }}
-                      />
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 5 }}
-                        transition={{ duration: 0.6, delay: 0.05, ease: 'easeOut' }}
+                      >
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700 }}>Push detail screen</div>
+                          <div style={{ fontSize: 9, opacity: 0.5 }}>Simulates Forward Transition</div>
+                        </div>
+                        <span className="material-symbols-outlined text-[16px]" style={{ color: accent.from }}>
+                          chevron_right
+                        </span>
+                      </button>
+
+                      {/* Panel Action trigger */}
+                      <button
+                        onClick={handlePanelToggle}
                         style={{
-                          position: 'absolute',
-                          left: clickCoord.x - 50,
-                          top: clickCoord.y - 50,
-                          width: 100,
-                          height: 100,
-                          borderRadius: '50%',
-                          background: 'rgba(59, 130, 246, 0.4)',
-                          mixBlendMode: 'screen',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: 14,
+                          padding: 10,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          color: '#fff',
+                          outline: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
                         }}
-                      />
+                      >
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700 }}>Toggle Slide Panel</div>
+                          <div style={{ fontSize: 9, opacity: 0.5 }}>Simulates bottom sheet modal</div>
+                        </div>
+                        <span className="material-symbols-outlined text-[16px]" style={{ color: accent.from }}>
+                          keyboard_double_arrow_up
+                        </span>
+                      </button>
+
+                      <div
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          borderRadius: 14,
+                          padding: 10,
+                          flex: 1,
+                          fontSize: 9,
+                          opacity: 0.6,
+                        }}
+                      >
+                        Interactive simulation playground. Tap tabs, switch apps, or trigger actions to observe custom physics.
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                        <button
+                          onClick={handleBackwardClick}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'flex',
+                          }}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                        </button>
+                        <span style={{ fontSize: 12, fontWeight: 700 }}>Detail View</span>
+                      </div>
+                      <div style={{ fontSize: 10, opacity: 0.7, padding: '4px 0' }}>
+                        This screen simulates a sub-page or deep panel context.
+                      </div>
+                      <div
+                        style={{
+                          height: 80,
+                          borderRadius: 12,
+                          background: `linear-gradient(135deg, ${accent.from}22, ${accent.to}22)`,
+                          border: `1px dashed ${accent.from}44`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <span style={{ fontSize: 10, fontWeight: 700, color: accent.from }}>GPU Composite Layer</span>
+                      </div>
                     </div>
                   )}
+                </motion.div>
+              </AnimatePresence>
 
-                  {/* CONCEPT 8: Glass Morph */}
-                  {selectedConcept === 'glass-morph' && (
-                    <motion.div
-                      initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                      animate={{
-                        opacity: [1, 1, 0],
-                        backdropFilter: ['blur(0px)', 'blur(20px)', 'blur(0px)'],
-                      }}
-                      transition={{ duration: 0.65 }}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(128,128,128,0.1)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 9: Energy Propagation */}
-                  {selectedConcept === 'energy-prop' && (
-                    <motion.div
-                      initial={{
-                        scale: 0,
-                        border: '4px solid #3b82f6',
-                        boxShadow: '0 0 0px #3b82f6',
-                      }}
-                      animate={{
-                        scale: 6,
-                        border: '1px solid #10b981',
-                        boxShadow: '0 0 20px #10b981',
-                      }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      style={{
-                        position: 'absolute',
-                        left: clickCoord.x - 50,
-                        top: clickCoord.y - 50,
-                        width: 100,
-                        height: 100,
-                        borderRadius: '50%',
-                      }}
-                    />
-                  )}
-
-                  {/* CONCEPT 10: Surface Diffusion */}
-                  {selectedConcept === 'diffusion' && (
+              {/* Simulated Panel (Bottom Sheet overlay) */}
+              <AnimatePresence>
+                {simulatedPanelOpen && (
+                  <>
                     <motion.div
                       initial={{ opacity: 0 }}
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 0.6 }}
+                      animate={{ opacity: 0.5 }}
+                      exit={{ opacity: 0 }}
+                      onClick={handlePanelToggle}
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: simulatedTheme === 'dark' ? '#f8f9fa' : '#0a0a0c',
-                        backgroundImage:
-                          'radial-gradient(rgba(128,128,128,0.15) 1px, transparent 0)',
-                        backgroundSize: '8px 8px',
+                        backgroundColor: '#000',
+                        zIndex: 45,
                       }}
                     />
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <motion.div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '60%',
+                        background: '#141418',
+                        borderTop: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '20px 20px 0 0',
+                        zIndex: 50,
+                        padding: 14,
+                        boxSizing: 'border-box',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        transformOrigin: 'bottom center',
+                      }}
+                      initial={
+                        selectedConcept === 'liquid-flow'
+                          ? { clipPath: 'polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)' }
+                          : selectedConcept === 'elastic-morph'
+                            ? { scaleY: 0, opacity: 0 }
+                            : { y: '100%' }
+                      }
+                      animate={
+                        selectedConcept === 'liquid-flow'
+                          ? { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)' }
+                          : selectedConcept === 'elastic-morph'
+                            ? { scaleY: 1, opacity: 1 }
+                            : { y: 0 }
+                      }
+                      exit={
+                        selectedConcept === 'liquid-flow'
+                          ? { clipPath: 'polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)' }
+                          : selectedConcept === 'elastic-morph'
+                            ? { scaleY: 0, opacity: 0 }
+                            : { y: '100%' }
+                      }
+                      transition={activeTransition}
+                    >
+                      <div style={{ width: 32, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)', margin: '0 auto 8px' }} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 12, fontWeight: 800 }}>Slide Panel Title</span>
+                        <button
+                          onClick={handlePanelToggle}
+                          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 0 }}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">close</span>
+                        </button>
+                      </div>
+                      <div style={{ fontSize: 9, opacity: 0.6 }}>
+                        Configured as a spring-driven sheets container. Simulates panel overlay behavior.
+                      </div>
+                      <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', borderRadius: 10 }} />
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom Navigation Tab Bar */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '50px',
+                background: 'rgba(12, 12, 14, 0.9)',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                zIndex: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+              }}
+            >
+              {([
+                { key: 'home', icon: 'home' },
+                { key: 'profile', icon: 'person' },
+                { key: 'settings', icon: 'settings' }
+              ] as const).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={(e) => handleTabClick(e, tab.key)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: simulatedTab === tab.key ? accent.from : 'rgba(255,255,255,0.4)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    padding: '4px',
+                    outline: 'none',
+                  }}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {tab.icon}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

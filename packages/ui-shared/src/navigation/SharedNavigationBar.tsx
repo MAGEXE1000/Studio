@@ -195,120 +195,119 @@ export function SharedNavigationBar({
     [searchOpen]
   );
 
-  // Dynamic index registration from local storage on opening search
+  // 1. One-time index registration from local storage on mount (avoiding CPU spikes on open)
   useEffect(() => {
-    let timer: any;
+    const timer = setTimeout(() => {
+      try {
+        const chordex = localStorage.getItem('chord-explorer-storage-v3');
+        if (chordex) {
+          const parsed = JSON.parse(chordex);
+          const state = parsed.state || {};
+          (state.presets || []).forEach((p: any) => {
+            searchIndex.register({
+              id: `chordex-preset-${p.id || p.name}`,
+              category: 'projects',
+              titleEn: p.name || 'Untitled Chordex Preset',
+              titleEs: p.name || 'Preajuste de Chordex sin título',
+              subtitleEn: 'Chordex Preset',
+              subtitleEs: 'Preajuste de Chordex',
+              keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
+              keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
+              target: {
+                app: 'chords',
+                action: () => {
+                  NavigationDispatcher.push({ app: 'chords', page: 'library' as any });
+                },
+              },
+            });
+          });
+          (state.progressions || []).forEach((p: any) => {
+            searchIndex.register({
+              id: `chordex-prog-${p.id || p.name}`,
+              category: 'projects',
+              titleEn: p.name || 'Untitled Progression',
+              titleEs: p.name || 'Progresión sin título',
+              subtitleEn: 'Chordex Progression',
+              subtitleEs: 'Progresión de Chordex',
+              keywordsEn: ['progression', 'chords', 'chordex'],
+              keywordsEs: ['progresión', 'acordes', 'chordex'],
+              target: {
+                app: 'chords',
+                action: () => {
+                  NavigationDispatcher.push({ app: 'chords', page: 'songs' as any });
+                },
+              },
+            });
+          });
+        }
+      } catch {}
+
+      try {
+        const drumex = localStorage.getItem('chordex-drums');
+        if (drumex) {
+          const parsed = JSON.parse(drumex);
+          const state = parsed.state || {};
+          (state.drumSongs || []).forEach((s: any) => {
+            searchIndex.register({
+              id: `drumex-song-${s.id || s.name}`,
+              category: 'songs',
+              titleEn: s.name || 'Untitled Drum Song',
+              titleEs: s.name || 'Canción de batería sin título',
+              subtitleEn: 'Drumex Song',
+              subtitleEs: 'Canción de Drumex',
+              keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
+              keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
+              target: {
+                app: 'drums',
+                action: () => {
+                  NavigationDispatcher.push({ app: 'drums', page: 'songs' as any });
+                },
+              },
+            });
+          });
+        }
+      } catch {}
+
+      try {
+        const groovex = localStorage.getItem('groovex-storage-v1');
+        if (groovex) {
+          const parsed = JSON.parse(groovex);
+          const state = parsed.state || {};
+          (state.recentSongs || []).forEach((s: any) => {
+            searchIndex.register({
+              id: `groovex-song-${s.id || s.name || s.title}`,
+              category: 'songs',
+              titleEn: s.name || s.title || s.artist || 'Untitled Groovex Song',
+              titleEs: s.name || s.title || s.artist || 'Canción de Groovex sin título',
+              subtitleEn: 'Groovex Recent Song',
+              subtitleEs: 'Canción reciente de Groovex',
+              keywordsEn: ['groove', 'song', 'recent', 'groovex'],
+              keywordsEs: ['groove', 'canción', 'reciente', 'groovex'],
+              target: {
+                app: 'groovex',
+              },
+            });
+          });
+        }
+      } catch {}
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 2. Fetch recent searches and auto focus on searchOpen
+  useEffect(() => {
     if (searchOpen) {
-      // 1. Fetch recent searches
       try {
         const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
         setRecentSearches(JSON.parse(historyStr));
       } catch {}
 
-      // 2. Fetch presets/progressions/drum songs/groovex songs from local storage and register them
-      timer = setTimeout(() => {
-        try {
-          const chordex = localStorage.getItem('chord-explorer-storage-v3');
-          if (chordex) {
-            const parsed = JSON.parse(chordex);
-            const state = parsed.state || {};
-            (state.presets || []).forEach((p: any) => {
-              searchIndex.register({
-                id: `chordex-preset-${p.id || p.name}`,
-                category: 'projects',
-                titleEn: p.name || 'Untitled Chordex Preset',
-                titleEs: p.name || 'Preajuste de Chordex sin título',
-                subtitleEn: 'Chordex Preset',
-                subtitleEs: 'Preajuste de Chordex',
-                keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
-                keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
-                target: {
-                  app: 'chords',
-                  action: () => {
-                    NavigationDispatcher.push({ app: 'chords', page: 'library' as any });
-                  },
-                },
-              });
-            });
-            (state.progressions || []).forEach((p: any) => {
-              searchIndex.register({
-                id: `chordex-prog-${p.id || p.name}`,
-                category: 'projects',
-                titleEn: p.name || 'Untitled Progression',
-                titleEs: p.name || 'Progresión sin título',
-                subtitleEn: 'Chordex Progression',
-                subtitleEs: 'Progresión de Chordex',
-                keywordsEn: ['progression', 'chords', 'chordex'],
-                keywordsEs: ['progresión', 'acordes', 'chordex'],
-                target: {
-                  app: 'chords',
-                  action: () => {
-                    NavigationDispatcher.push({ app: 'chords', page: 'songs' as any });
-                  },
-                },
-              });
-            });
-          }
-        } catch {}
-
-        try {
-          const drumex = localStorage.getItem('chordex-drums');
-          if (drumex) {
-            const parsed = JSON.parse(drumex);
-            const state = parsed.state || {};
-            (state.drumSongs || []).forEach((s: any) => {
-              searchIndex.register({
-                id: `drumex-song-${s.id || s.name}`,
-                category: 'songs',
-                titleEn: s.name || 'Untitled Drum Song',
-                titleEs: s.name || 'Canción de batería sin título',
-                subtitleEn: 'Drumex Song',
-                subtitleEs: 'Canción de Drumex',
-                keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
-                keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
-                target: {
-                  app: 'drums',
-                  action: () => {
-                    NavigationDispatcher.push({ app: 'drums', page: 'songs' as any });
-                  },
-                },
-              });
-            });
-          }
-        } catch {}
-
-        try {
-          const groovex = localStorage.getItem('groovex-storage-v1');
-          if (groovex) {
-            const parsed = JSON.parse(groovex);
-            const state = parsed.state || {};
-            (state.recentSongs || []).forEach((s: any) => {
-              searchIndex.register({
-                id: `groovex-song-${s.id || s.name || s.title}`,
-                category: 'songs',
-                titleEn: s.name || s.title || s.artist || 'Untitled Groovex Song',
-                titleEs: s.name || s.title || s.artist || 'Canción de Groovex sin título',
-                subtitleEn: 'Groovex Recent Song',
-                subtitleEs: 'Canción reciente de Groovex',
-                keywordsEn: ['groove', 'song', 'recent', 'groovex'],
-                keywordsEs: ['groove', 'canción', 'reciente', 'groovex'],
-                target: {
-                  app: 'groovex',
-                },
-              });
-            });
-          }
-        } catch {}
-      }, 350);
-
-      // Auto focus input
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         searchInputRef.current?.focus();
-      }, 250);
+      }, 100);
+      return () => clearTimeout(timer);
     }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
   }, [searchOpen]);
 
   const addToSearchHistory = (query: string) => {
@@ -1015,9 +1014,7 @@ export function SharedNavigationBar({
               style={{
                 position: 'absolute',
                 inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                backgroundColor: 'rgba(5, 5, 8, 0.4)',
               }}
             />
 
@@ -1029,18 +1026,19 @@ export function SharedNavigationBar({
                 position: 'relative',
                 width: '100%',
                 maxWidth: '480px',
-                height: '80vh',
-                maxHeight: '600px',
+                height: '55vh',
+                maxHeight: '460px',
                 background: 'rgba(20, 20, 24, 0.65)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '24px',
                 boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
-                backdropFilter: 'blur(25px)',
-                WebkitBackdropFilter: 'blur(25px)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
                 marginBottom: 'max(14px, env(safe-area-inset-bottom))',
+                willChange: 'transform, opacity',
               }}
             >
               {/* Header / Search Field */}

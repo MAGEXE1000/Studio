@@ -243,7 +243,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         }
         _elementLastY.delete(el);
         lastElementRef.current = null;
-        onStateChanged();
+        resetNav();
       }
     };
   }, [ref, dependency]);

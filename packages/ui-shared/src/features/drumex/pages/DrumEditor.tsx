@@ -10715,19 +10715,18 @@ export default function DrumEditor() {
           {/* Import JSON button */}
           <button
             onClick={() => setShowImportDrum(true)}
-            className="btn-smooth"
+            className="flex items-center justify-center active:scale-90 transition-all duration-200"
             title="Import Drumex JSON"
             style={{
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: 'var(--app-surface-high)',
-              border: '1px solid rgba(128,128,128,0.18)',
-              color: 'var(--c-text-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.28)',
+              background: 'rgba(12, 12, 14, 0.45)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#ffffff',
+              backdropFilter: 'blur(25px)',
+              WebkitBackdropFilter: 'blur(25px)',
+              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
               pointerEvents: 'auto',
               cursor: 'pointer',
             }}
@@ -10739,25 +10738,24 @@ export default function DrumEditor() {
           {/* New beat button */}
           <button
             onClick={() => setShowCreateForm(true)}
-            className="btn-smooth"
+            className="flex items-center justify-center active:scale-90 transition-all duration-200"
             style={{
-              width: 54,
-              height: 54,
+              width: 48,
+              height: 48,
               borderRadius: '50%',
-              background: `linear-gradient(135deg,${accent.from},${accent.to})`,
-              color: '#fff',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: `0 4px 20px ${accent.to}66`,
+              background: 'rgba(12, 12, 14, 0.45)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#ffffff',
+              backdropFilter: 'blur(25px)',
+              WebkitBackdropFilter: 'blur(25px)',
+              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
               pointerEvents: 'auto',
+              cursor: 'pointer',
             }}
           >
             <span
               className="material-symbols-outlined"
-              style={{ fontSize: 26, fontVariationSettings: "'wght' 400" }}
+              style={{ fontSize: 20, fontVariationSettings: "'wght' 400" }}
             >
               add
             </span>

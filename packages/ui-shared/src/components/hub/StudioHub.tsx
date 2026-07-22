@@ -204,6 +204,23 @@ const ALL_SHORTCUT_OPTIONS = [
   },
 ];
 
+const SHORTCUT_LABEL_MAP: Record<string, { en: string; es: string }> = {
+  'chords-songs': { en: 'Songs', es: 'Canciones' },
+  'chords-practice': { en: 'Practice', es: 'Práctica' },
+  'drums': { en: 'Drums', es: 'Batería' },
+  'stage': { en: 'Console', es: 'Consola' },
+  'groovex': { en: 'Groovex', es: 'Groovex' },
+  'vocalex-coach': { en: 'Coach', es: 'Entrenador' },
+  'vocalex-pitch': { en: 'Pitch', es: 'Tono' },
+  'developer': { en: 'Dev', es: 'Desarrollador' },
+  'notifications': { en: 'Alerts', es: 'Alertas' },
+  'help': { en: 'Help', es: 'Ayuda' },
+  'settings': { en: 'Settings', es: 'Ajustes' },
+  'updater': { en: 'Updates', es: 'Actualiz.' },
+  'sync': { en: 'Sync', es: 'Sincro' },
+  'backup': { en: 'Backup', es: 'Copia' },
+};
+
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
   const h = new Date().getHours();
   const timeWord = h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening';
@@ -1356,30 +1373,36 @@ export default function StudioHub() {
                       style={{ width: '100%', maxWidth: '380px', marginTop: '24px' }}
                       className="flex flex-col gap-6 w-full"
                     >
-                      {/* Greetings Section */}
-                      <section className="space-y-1">
-                        <h2
-                          style={{
-                            fontFamily: 'Manrope',
-                            fontWeight: 800,
-                            color: 'var(--c-text-primary)',
-                          }}
-                          className="text-3xl leading-tight"
-                        >
-                          {greeting}
-                        </h2>
-                        <p
-                          style={{
-                            fontFamily: 'Inter',
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.85,
-                          }}
-                          className="text-sm"
-                        >
-                          {subtitle}
-                        </p>
-                      </section>
-                                            {/* Pinned Quick Actions Section */}
+                      {/* Greetings Section & Logo Header Row */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                        <section className="space-y-1" style={{ flex: 1, minWidth: 0 }}>
+                          <h2
+                            style={{
+                              fontFamily: 'Manrope',
+                              fontWeight: 800,
+                              color: 'var(--c-text-primary)',
+                            }}
+                            className="text-3xl leading-tight"
+                          >
+                            {greeting}
+                          </h2>
+                          <p
+                            style={{
+                              fontFamily: 'Inter',
+                              color: 'var(--c-text-secondary)',
+                              opacity: 0.85,
+                            }}
+                            className="text-sm"
+                          >
+                            {subtitle}
+                          </p>
+                        </section>
+                        <div style={{ color: 'var(--c-text-primary)', marginLeft: 16, marginTop: 4, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                          <StudioLogo size={32} />
+                        </div>
+                      </div>
+
+                      {/* Pinned Quick Actions Section */}
                       <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <h3
@@ -1418,108 +1441,123 @@ export default function StudioHub() {
                         </div>
 
                         <div
-                          ref={listRef}
                           style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 6,
-                            position: 'relative',
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(5, 1fr)',
+                            gap: '12px',
+                            padding: '4px 0 12px',
                           }}
                         >
-                          {shortcuts.map((id, index) => {
+                          {shortcuts.slice(0, 5).map((id) => {
                             const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
                             if (!opt) return null;
-                            const isDragged = draggingId === id;
+                            const mappedLabel = SHORTCUT_LABEL_MAP[id] || { en: opt.titleEn.split(' ')[0], es: opt.titleEs.split(' ')[0] };
+                            const displayLabel = lang === 'es' ? mappedLabel.es : mappedLabel.en;
+
                             return (
-                              <motion.div
+                              <div
                                 key={id}
-                                data-id={id}
-                                data-reorder-item
                                 style={{
-                                  y: yFor(id),
-                                  touchAction: 'none',
-                                  userSelect: 'none',
-                                  position: 'relative',
-                                  zIndex: isDragged ? 10 : 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  cursor: 'pointer',
                                 }}
-                                onPointerDown={(e) => handlePointerDown(e, id, index)}
-                                onPointerMove={handlePointerMove}
-                                onPointerUp={handlePointerUp}
-                                onPointerCancel={handlePointerCancel}
+                                onClick={() => handleShortcutClick(id)}
                               >
                                 <motion.div
+                                  whileTap={{ scale: 0.92 }}
                                   style={{
+                                    width: '48px',
+                                    height: '48px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(12, 12, 14, 0.45)',
+                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    backdropFilter: 'blur(25px)',
+                                    WebkitBackdropFilter: 'blur(25px)',
+                                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 10,
-                                    padding: '6px 10px',
-                                    borderRadius: '12px',
-                                    background: 'var(--app-surface-high, rgba(128, 128, 128, 0.05))',
-                                    border: '1px solid rgba(128, 128, 128, 0.08)',
-                                    cursor: isEditMode ? 'grabbing' : 'pointer',
-                                    transition: 'background-color 200ms ease',
-                                  }}
-                                  animate={
-                                    isDragged
-                                      ? {
-                                          scale: 1.02,
-                                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                                          backgroundColor: 'var(--app-surface-higher, rgba(128, 128, 128, 0.1))',
-                                        }
-                                      : {
-                                          scale: 1,
-                                          boxShadow: 'none',
-                                          backgroundColor: 'var(--app-surface-high, rgba(128, 128, 128, 0.05))',
-                                        }
-                                  }
-                                  whileTap={!isEditMode ? { scale: 0.98 } : undefined}
-                                  onClick={() => {
-                                    if (!isEditMode && !dragRef.current?.active) {
-                                      handleShortcutClick(id);
-                                    }
+                                    justifyContent: 'center',
                                   }}
                                 >
-                                  <div
+                                  <span
+                                    className="material-symbols-outlined"
                                     style={{
-                                      width: '28px',
-                                      height: '28px',
-                                      borderRadius: '8px',
-                                      backgroundColor: 'var(--app-surface-higher, rgba(128, 128, 128, 0.08))',
-                                      border: '1px solid rgba(128, 128, 128, 0.1)',
+                                      color: accent.from,
+                                      fontSize: '20px',
                                     }}
-                                    className="flex items-center justify-center flex-none"
                                   >
-                                    <span
-                                      className="material-symbols-outlined text-[15px]"
-                                      style={{ color: accent.from }}
-                                    >
-                                      {opt.icon}
-                                    </span>
-                                  </div>
-                                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-text-primary)' }} className="truncate">
-                                      {lang === 'es' ? opt.titleEs : opt.titleEn}
-                                    </span>
-                                    <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', opacity: 0.7 }} className="truncate">
-                                      {lang === 'es' ? opt.descEs : opt.descEn}
-                                    </span>
-                                  </div>
-                                  {isEditMode ? (
-                                    <span
-                                      className="material-symbols-outlined text-[16px] opacity-60 flex-none"
-                                      style={{ cursor: 'grab' }}
-                                    >
-                                      drag_indicator
-                                    </span>
-                                  ) : (
-                                    <span className="material-symbols-outlined text-[16px] opacity-30 flex-none">
-                                      chevron_right
-                                    </span>
-                                  )}
+                                    {opt.icon}
+                                  </span>
                                 </motion.div>
-                              </motion.div>
+                                <span
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    color: 'var(--c-text-secondary)',
+                                    marginTop: '6px',
+                                    textAlign: 'center',
+                                    width: '100%',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {displayLabel}
+                                </span>
+                              </div>
                             );
                           })}
+
+                          {shortcuts.length < 5 && (
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => setShortcutPickerOpen(true)}
+                            >
+                              <motion.div
+                                whileTap={{ scale: 0.92 }}
+                                style={{
+                                  width: '48px',
+                                  height: '48px',
+                                  borderRadius: '50%',
+                                  background: 'transparent',
+                                  border: '1px dashed rgba(255, 255, 255, 0.25)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{
+                                    color: 'var(--c-text-secondary)',
+                                    fontSize: '20px',
+                                    opacity: 0.7,
+                                  }}
+                                >
+                                  add
+                                </span>
+                              </motion.div>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: 'var(--c-text-secondary)',
+                                  marginTop: '6px',
+                                  textAlign: 'center',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                {lang === 'es' ? 'Añadir' : 'Add'}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </section>
 

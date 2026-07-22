@@ -1042,6 +1042,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 <iframe
                   ref={iframeRef}
                   src={iframeSrc}
+                  data-view={getSimplifiedView(curView)}
+                  onLoad={handleLoad}
                   title="Stagex Canvas"
                   style={{
                     position: 'absolute',
@@ -1654,10 +1656,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     aria-label={isStageExpanded ? 'Exit Landscape View' : 'Enter Landscape View'}
                     style={{
                       position: 'absolute',
-                      bottom: baseBottom + 152,
+                      bottom: baseBottom + 116,
                       right: 14,
-                      width: '64px',
-                      height: '64px',
+                      width: '48px',
+                      height: '48px',
                       borderRadius: '50%',
                       background: isStageExpanded
                         ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
@@ -1687,10 +1689,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     <span
                       className="material-symbols-outlined"
                       style={{
-                        color: isStageExpanded
-                          ? '#fff'
-                          : 'rgba(255, 255, 255, 0.60)',
-                        fontSize: 22,
+                        color: '#fff',
+                        fontSize: 20,
                         lineHeight: 1,
                       }}
                     >
@@ -1711,10 +1711,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     aria-label="Toggle Live Mode"
                     style={{
                       position: 'absolute',
-                      bottom: baseBottom + 76,
+                      bottom: baseBottom + 58,
                       right: 14,
-                      width: '64px',
-                      height: '64px',
+                      width: '48px',
+                      height: '48px',
                       borderRadius: '50%',
                       background: liveMode
                         ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
@@ -1744,10 +1744,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     <span
                       className="material-symbols-outlined"
                       style={{
-                        color: liveMode
-                          ? '#fff'
-                          : 'rgba(255, 255, 255, 0.60)',
-                        fontSize: 22,
+                        color: '#fff',
+                        fontSize: 20,
                         lineHeight: 1,
                       }}
                     >
@@ -1770,11 +1768,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                       position: 'absolute',
                       bottom: baseBottom,
                       right: 14,
-                      width: '64px',
-                      height: '64px',
+                      width: '48px',
+                      height: '48px',
                       borderRadius: '50%',
-                      background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                      border: 'none',
+                      background: 'rgba(12, 12, 14, 0.45)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      backdropFilter: 'blur(25px)',
+                      WebkitBackdropFilter: 'blur(25px)',
                       zIndex: 20,
                       cursor: 'pointer',
                       WebkitTapHighlightColor: 'transparent',
@@ -1786,8 +1786,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                       pointerEvents: isPlusHidden ? 'none' : 'auto',
                       visibility: isPlusHidden ? 'hidden' : 'visible',
                       boxShadow: fabOpen
-                        ? `0 6px 32px ${accent.from}99, 0 3px 12px rgba(0,0,0,0.4)`
-                        : `0 4px 24px ${accent.from}80, 0 2px 8px rgba(0,0,0,0.3)`,
+                        ? `0 6px 32px ${accent.from}99, 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12)`
+                        : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
                       padding: 0,
                       transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
                       transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
@@ -1797,7 +1797,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                       className="material-symbols-outlined"
                       style={{
                         color: '#fff',
-                        fontSize: 24,
+                        fontSize: 20,
                         lineHeight: 1,
                         transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
                       }}

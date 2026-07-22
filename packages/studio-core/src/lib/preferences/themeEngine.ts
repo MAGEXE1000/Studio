@@ -217,6 +217,21 @@ export function applyThemeTokens(settings: any) {
   root.style.fontSize = s.base;
   root.setAttribute('data-text-scale', settings.fontSize);
 
+  // Apply root zoom/scale for immediate live updates to density and text scale
+  const densityScales = {
+    compact: 0.90,
+    comfortable: 1.0,
+    spacious: 1.10,
+  };
+  const ds = densityScales[settings.displayDensity as keyof typeof densityScales] || 1.0;
+  const textScales = {
+    small: 0.90,
+    medium: 1.0,
+    large: 1.12,
+  };
+  const ts = textScales[settings.fontSize as keyof typeof textScales] || 1.0;
+  (root.style as any).zoom = String(ds * ts);
+
   // 7. Motion Tokens
   const isReduced = settings.animationSpeed === 'reduced';
   const speedScale = settings.animationSpeed === 'fast' ? 0.6 : 1.0;

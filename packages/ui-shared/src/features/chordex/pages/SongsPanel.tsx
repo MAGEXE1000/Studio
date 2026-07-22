@@ -6731,50 +6731,54 @@ export default function SongsPanel() {
           bottom: '96px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
+          gap: '12px',
           zIndex: 9999,
         }}
       >
-        {/* Import circle â€” top */}
+        {/* Import circle — top */}
         <button
           onClick={() => setShowImport(true)}
           data-testid="import-preset-btn"
-          className="btn-smooth flex items-center justify-center text-on-surface hover:bg-white/5 transition-all shadow-lg"
+          className="flex items-center justify-center active:scale-90 transition-all duration-200"
           style={{
-            width: '56px',
-            height: '56px',
+            width: '48px',
+            height: '48px',
             borderRadius: '50%',
-            background: 'rgba(30, 30, 30, 0.72)',
+            background: 'rgba(12, 12, 14, 0.45)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: 'var(--c-text-primary)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            color: '#ffffff',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
             cursor: 'pointer',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
             cloud_download
           </span>
         </button>
-        {/* New circle â€” bottom */}
+        {/* New circle — bottom */}
         <button
           onClick={() => {
             setEditingId(null);
             setShowForm(true);
           }}
           data-testid="new-preset-btn"
-          className="flex items-center justify-center active:scale-95 transition-all shadow-lg"
+          className="flex items-center justify-center active:scale-90 transition-all duration-200"
           style={{
-            width: '56px',
-            height: '56px',
+            width: '48px',
+            height: '48px',
             borderRadius: '50%',
-            background: accent.from,
-            border: 'none',
-            color: 'white',
+            background: 'rgba(12, 12, 14, 0.45)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: '#ffffff',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
             cursor: 'pointer',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
             add
           </span>
         </button>

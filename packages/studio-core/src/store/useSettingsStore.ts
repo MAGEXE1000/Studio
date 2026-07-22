@@ -207,9 +207,24 @@ export const useSettingsStore = create<SettingsStore>()(
 
       updateSettings: (newSettings) => {
         set((state) => {
-            const nextSession = state.lastSession;
+          const nextSession = state.lastSession;
+          const updatedSettings = { ...state.settings, ...newSettings };
+
+          if (newSettings.theme || newSettings.accentColor || newSettings.amoledMode !== undefined) {
+            const updatedPerApp = { ...updatedSettings.perApp };
+            (Object.keys(updatedPerApp) as AppKey[]).forEach((app) => {
+              updatedPerApp[app] = {
+                ...updatedPerApp[app],
+                ...(newSettings.theme && { theme: newSettings.theme }),
+                ...(newSettings.accentColor && { accentColor: newSettings.accentColor }),
+                ...(newSettings.amoledMode !== undefined && { amoledMode: newSettings.amoledMode }),
+              };
+            });
+            updatedSettings.perApp = updatedPerApp;
+          }
+
           return {
-            settings: { ...state.settings, ...newSettings },
+            settings: updatedSettings,
             lastSession: nextSession,
           };
         });
@@ -232,7 +247,6 @@ export const useSettingsStore = create<SettingsStore>()(
     {
       name: 'settings-storage-v1',
       version: 1,
-      // Attempt to migrate old settings from chord-explorer-storage-v3
       migrate: (persistedState: any, version: number) => {
         if (version === 0) {
           try {
@@ -262,16 +276,19 @@ export const useSettingsStore = create<SettingsStore>()(
   )
 );
 
+if (typeof window !== 'undefined') {
+  useSettingsStore.subscribe((state) => {
+    applyThemeTokens(state.settings);
+  });
+}
 
 export const settingsController = {
   updateSettings: (patch: Partial<AppSettings>) => {
     useSettingsStore.getState().updateSettings(patch);
-    const updatedSettings = useSettingsStore.getState().settings;
-    if (patch.theme || patch.accentColor || patch.amoledMode !== undefined || patch.customAccentHue !== undefined || patch.displayDensity) {
-      applyThemeTokens(updatedSettings);
-    }
+    applyThemeTokens(useSettingsStore.getState().settings);
   },
   updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => {
     useSettingsStore.getState().updatePerApp(apps, patch);
+    applyThemeTokens(useSettingsStore.getState().settings);
   }
 };

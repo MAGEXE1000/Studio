@@ -18,11 +18,17 @@ export interface ThemeConfig {
 export function applyThemeTokens(settings: any) {
   if (typeof document === 'undefined') return;
 
+  const globalTheme = settings?.theme ?? 'dark';
+  const globalAccent = settings?.accentColor ?? 'blue';
+  const globalAmoled = settings?.amoledMode ?? false;
+
   const appMode = NavigationDispatcher.currentApp();
-  const activeVis = settings.perApp?.[appMode] ?? {
-    theme: settings.theme ?? 'dark',
-    accentColor: settings.accentColor ?? 'blue',
-    amoledMode: settings.amoledMode ?? false,
+  const perAppVis = settings?.perApp?.[appMode];
+
+  const activeVis = {
+    theme: perAppVis?.theme ?? globalTheme,
+    accentColor: perAppVis?.accentColor ?? globalAccent,
+    amoledMode: perAppVis?.amoledMode ?? globalAmoled,
   };
 
   const root = document.documentElement;
@@ -38,8 +44,8 @@ export function applyThemeTokens(settings: any) {
     isLightMode = systemIsLight;
   } else if (theme === 'dynamic') {
     const h = new Date().getHours();
-    const start = settings.dynamicLightStart ?? 7;
-    const end = settings.dynamicLightEnd ?? 20;
+    const start = settings?.dynamicLightStart ?? 7;
+    const end = settings?.dynamicLightEnd ?? 20;
     isLightMode = h >= start && h < end;
   }
 

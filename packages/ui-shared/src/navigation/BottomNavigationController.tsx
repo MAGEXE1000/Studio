@@ -5,6 +5,10 @@ import {
   useNavScrollOffset,
   useBottomNavigationStore,
   useApplicationTransitionStore,
+  useNavigationStore,
+  NavigationDispatcher,
+  APP_SECTIONS,
+  useSettingsStore,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
 
@@ -15,7 +19,66 @@ export function BottomNavigationController() {
   const transitionState = useApplicationTransitionStore((s) => s.state);
   const launchingApp = useApplicationTransitionStore((s) => s.launchingApp);
 
-  const { visible, items, setCollapsed, setVisible, setMotionState } = useBottomNavigationStore();
+  const history = useNavigationStore((s) => s.history);
+  const currentRoute = history[history.length - 1] || { app: 'hub' };
+  const currentApp = currentRoute.app || 'hub';
+  const activeTab = currentRoute.tab || currentRoute.page || 'home';
+  const activePage = currentRoute.page || 'main';
+
+  const settings = useSettingsStore((s) => s.settings);
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
+
+  const { setCollapsed, setVisible, setMotionState, setItems, setIsLight } =
+    useBottomNavigationStore();
+
+  // Dynamically resolve bottom nav items for active application scope
+  useEffect(() => {
+    setIsLight(isLight);
+
+    if (currentApp === 'hub') {
+      setItems([
+        {
+          key: 'notifications',
+          icon: 'notifications',
+          label: 'Activity',
+          isActive: activeTab === 'settings' && activePage === 'notifications',
+          onClick: () =>
+            NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' }),
+        },
+        {
+          key: 'home',
+          icon: 'home',
+          label: 'Home',
+          isActive: activeTab === 'home',
+          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
+        },
+        {
+          key: 'settings',
+          icon: 'settings',
+          label: 'Settings',
+          isActive: activeTab === 'settings' && activePage !== 'notifications',
+          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+        },
+      ]);
+      return;
+    }
+
+    const sections = APP_SECTIONS[currentApp] || [];
+    const formattedItems = sections.map((sec) => ({
+      key: sec.id,
+      icon: sec.icon,
+      label: sec.labelKey,
+      isActive: activeTab === sec.id || activePage === sec.id,
+      onClick: () =>
+        NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id }),
+    }));
+
+    setItems(formattedItems);
+  }, [currentApp, activeTab, activePage, isLight, setItems, setIsLight]);
 
   // Sync programmatic visibility and collapse states
   useEffect(() => {

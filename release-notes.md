@@ -1,3 +1,7 @@
+# Version 4.2.24
+
+Release Date: 2026-07-21
+
 Release Date: 2026-07-21
 
 ## Added

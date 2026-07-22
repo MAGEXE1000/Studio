@@ -23,18 +23,28 @@ function RelatedPlayBtn({
   isLight?: boolean;
 }) {
   const [playing, setPlaying] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   const handlePlay = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
       if (playing) {
         stopChordPlayback();
+        if (timerRef.current) clearTimeout(timerRef.current);
         setPlaying(false);
         return;
       }
       setPlaying(true);
       playChord(guitar);
-      setTimeout(() => setPlaying(false), 2800);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setPlaying(false), 2800);
     },
     [guitar, playing]
   );

@@ -116,31 +116,35 @@ export default function ChangelogSheet({
                   gap: 10,
                 }}
               >
-                {sec.items.map((line, j) => (
-                  <li
-                    key={j}
-                    style={{
-                      display: 'flex',
-                      gap: 12,
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      lineHeight: 1.55,
-                      color: 'var(--c-text-secondary)',
-                    }}
-                  >
-                    <span
+                {sec.items.map((line, j) => {
+                  const cleanedLine = line.replace(/^[-*•]\s*/, '').trim();
+                  return (
+                    <li
+                      key={j}
                       style={{
-                        flexShrink: 0,
-                        width: 4,
-                        height: 4,
-                        borderRadius: '50%',
-                        marginTop: 9,
-                        background: 'var(--c-accent-from)',
+                        display: 'flex',
+                        gap: 12,
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        lineHeight: '1.6',
+                        color: 'var(--c-text-secondary)',
+                        padding: '2px 0',
                       }}
-                    />
-                    <span>{line}</span>
-                  </li>
-                ))}
+                    >
+                      <span
+                        style={{
+                          flexShrink: 0,
+                          width: 4,
+                          height: 4,
+                          borderRadius: '50%',
+                          marginTop: 9,
+                          background: 'var(--c-accent-from)',
+                        }}
+                      />
+                      <span>{cleanedLine}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ))}

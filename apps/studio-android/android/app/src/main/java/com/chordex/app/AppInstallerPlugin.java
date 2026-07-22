@@ -69,6 +69,7 @@ public class AppInstallerPlugin extends Plugin {
 
     public static AppInstallerPlugin instance = null;
     public static Intent pendingConfirmIntent = null;
+    public static PluginCall activeDownloadCall = null;
 
     public static void resumePendingInstall(android.app.Activity activity) {
         if (pendingConfirmIntent != null) {
@@ -991,22 +992,18 @@ public class AppInstallerPlugin extends Plugin {
                 return;
             }
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    int threadCallId = callId;
-                    logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "STEP", "Download/Install thread started");
-                    try {
-                        String fileName = call.getString("fileName");
-                        File apkFile = downloadFileWithResume(urlString, fileName, threadCallId, "downloadAndInstallApk");
-                        logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "EXIT", "Success. Triggering installation for: " + apkFile.getAbsolutePath());
-                        triggerInstallation(apkFile, call);
-                    } catch (Exception e) {
-                        logNativeInstrumentation(getContext(), "downloadAndInstallApk", threadCallId, "EXIT", "Exception: " + e.getMessage());
-                        call.reject("Download failed: " + e.getMessage(), e);
-                    }
-                }
-            }).start();
+            activeDownloadCall = call;
+
+            Intent serviceIntent = new Intent(getContext(), UpdateDownloadService.class);
+            serviceIntent.putExtra("url", urlString);
+            serviceIntent.putExtra("fileName", call.getString("fileName"));
+            serviceIntent.putExtra("expectedHash", call.getString("expectedHash"));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                getContext().startForegroundService(serviceIntent);
+            } else {
+                getContext().startService(serviceIntent);
+            }
         }
     }
 
@@ -1022,24 +1019,18 @@ public class AppInstallerPlugin extends Plugin {
             return;
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int threadCallId = callId;
-                logNativeInstrumentation(getContext(), "downloadApk", threadCallId, "STEP", "Download thread started");
-                try {
-                    String fileName = call.getString("fileName");
-                    File apkFile = downloadFileWithResume(urlString, fileName, threadCallId, "downloadApk");
-                    logNativeInstrumentation(getContext(), "downloadApk", threadCallId, "EXIT", "Success. filePath=" + apkFile.getAbsolutePath());
-                    JSObject ret = new JSObject();
-                    ret.put("filePath", apkFile.getAbsolutePath());
-                    call.resolve(ret);
-                } catch (Exception e) {
-                    logNativeInstrumentation(getContext(), "downloadApk", threadCallId, "EXIT", "Exception: " + e.getMessage());
-                    call.reject("Download failed: " + e.getMessage(), e);
-                }
-            }
-        }).start();
+        activeDownloadCall = call;
+
+        Intent serviceIntent = new Intent(getContext(), UpdateDownloadService.class);
+        serviceIntent.putExtra("url", urlString);
+        serviceIntent.putExtra("fileName", call.getString("fileName"));
+        serviceIntent.putExtra("expectedHash", call.getString("expectedHash"));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getContext().startForegroundService(serviceIntent);
+        } else {
+            getContext().startService(serviceIntent);
+        }
     }
 
     @PluginMethod
@@ -1149,7 +1140,7 @@ public class AppInstallerPlugin extends Plugin {
         openUnknownAppSourcesSettings(call);
     }
 
-    private void triggerInstallation(File file, PluginCall call) {
+    void triggerInstallation(File file, PluginCall call) {
         Context context = getContext();
         triggerInstallationCallCount++;
         int callId = nextCallId();

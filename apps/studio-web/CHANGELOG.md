@@ -13,6 +13,28 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.40
+
+Release Date: 2026-07-22
+
+## Improved
+- Implemented vertical drag-to-reorder layout for Pinned Actions with touch-hold activation and FLIP dragging.
+- Added usage-based Suggested Actions engine de-duplicated against pinned items.
+- Built native Android Foreground Service for resilient background update downloads with progress notifications.
+- Restructured search bar width to expand to full width matching results container.
+- Fixed What's New markdown bullet renderer, spacing, and emoji clipping issues.
+
+# Version 4.2.39
+
+Release Date: 2026-07-22
+
+## Improved
+- Redesigned search bar into a single-surface morph of the bottom navigation dock with a horizontal Liquid Glass stretching animation.
+- Restructured search results to slide upward above the navigation dock, remaining visible when focusing input and opening the keyboard.
+- Streamlined search result cards by removing unnecessary icons and adding high-contrast category tags.
+- Added an unread notification badge on the bell icon and automatically mark notifications as read when the center is opened.
+- Restored Developer Options Motion Playground to a clean state containing only stable, production-ready GPU animations.
+
 # Version 4.2.38
 
 Release Date: 2026-07-22

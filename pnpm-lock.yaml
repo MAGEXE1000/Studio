@@ -415,6 +415,10 @@ importers:
         version: 3.1.0
 
   artifacts/mockup-sandbox:
+    dependencies:
+      motion:
+        specifier: ^12.42.2
+        version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
     devDependencies:
       '@hookform/resolvers':
         specifier: ^3.10.0

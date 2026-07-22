@@ -18,7 +18,7 @@ import React, {
   useCallback,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, motionValue, animate } from 'motion/react';
 import {
   StudioLogo,
   ChordexLogo,
@@ -92,39 +92,116 @@ import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
 const ALL_SHORTCUT_OPTIONS = [
   {
     id: 'chords-songs',
-    icon: 'library_music',
+    icon: 'music_note',
     titleEn: 'Songs Library',
     titleEs: 'Biblioteca de Canciones',
+    descEn: 'Rehearse your repertoire',
+    descEs: 'Ensaya tu repertorio',
   },
   {
     id: 'chords-practice',
-    icon: 'school',
+    icon: 'menu_book',
     titleEn: 'Song Practice',
     titleEs: 'Práctica de Canciones',
+    descEn: 'Practice chords and progressions',
+    descEs: 'Practica acordes y progresiones',
   },
-  { id: 'drums', icon: 'drum', titleEn: 'Drum Sequencer', titleEs: 'Secuenciador de Batería' },
-  { id: 'stage', icon: 'mic_external_on', titleEn: 'Stagex Console', titleEs: 'Consola Stagex' },
-  { id: 'groovex', icon: 'play_circle', titleEn: 'Groovex Player', titleEs: 'Reproductor Groovex' },
+  {
+    id: 'drums',
+    icon: 'grid_on',
+    titleEn: 'Drum Sequencer',
+    titleEs: 'Secuenciador de Batería',
+    descEn: 'Create custom drum loops',
+    descEs: 'Crea bucles de batería',
+  },
+  {
+    id: 'stage',
+    icon: 'speaker',
+    titleEn: 'Stagex Console',
+    titleEs: 'Consola Stagex',
+    descEn: 'Manage live audio routing',
+    descEs: 'Gestiona audio en vivo',
+  },
+  {
+    id: 'groovex',
+    icon: 'album',
+    titleEn: 'Groovex Player',
+    titleEs: 'Reproductor Groovex',
+    descEn: 'Backing tracks controller',
+    descEs: 'Controlador de pistas de fondo',
+  },
   {
     id: 'vocalex-coach',
-    icon: 'record_voice_over',
+    icon: 'mic',
     titleEn: 'Vocal Coach',
     titleEs: 'Entrenador Vocal',
+    descEn: 'Voice warmups & training',
+    descEs: 'Calentamiento y práctica vocal',
   },
   {
     id: 'vocalex-pitch',
-    icon: 'graphic_eq',
+    icon: 'equalizer',
     titleEn: 'Pitch Tracker',
     titleEs: 'Seguimiento de Tono',
+    descEn: 'Real-time pitch estimation',
+    descEs: 'Visualizador de tono en tiempo real',
   },
-  { id: 'developer', icon: 'terminal', titleEn: 'Dev Options', titleEs: 'Opc. de Desarrollador' },
+  {
+    id: 'developer',
+    icon: 'terminal',
+    titleEn: 'Dev Options',
+    titleEs: 'Opc. de Desarrollador',
+    descEn: 'Debugger & playground utilities',
+    descEs: 'Utilidades de depuración',
+  },
   {
     id: 'notifications',
     icon: 'notifications',
     titleEn: 'Notifications',
     titleEs: 'Notificaciones',
+    descEn: 'Check system alerts and logs',
+    descEs: 'Alertas del sistema y registros',
   },
-  { id: 'help', icon: 'contact_support', titleEn: 'Help & FAQ', titleEs: 'Centro de Ayuda' },
+  {
+    id: 'help',
+    icon: 'help',
+    titleEn: 'Help & FAQ',
+    titleEs: 'Centro de Ayuda',
+    descEn: 'User guide and documentation',
+    descEs: 'Guía de usuario y soporte',
+  },
+  {
+    id: 'settings',
+    icon: 'settings',
+    titleEn: 'Settings',
+    titleEs: 'Ajustes',
+    descEn: 'App preferences and themes',
+    descEs: 'Preferencias y temas visuales',
+  },
+  {
+    id: 'updater',
+    icon: 'system_update',
+    titleEn: 'Check Updates',
+    titleEs: 'Buscar Actualizaciones',
+    descEn: 'Update system components',
+    descEs: 'Actualizar componentes del sistema',
+  },
+  {
+    id: 'sync',
+    icon: 'sync',
+    titleEn: 'Cloud Sync',
+    titleEs: 'Sincronizar Nube',
+    descEn: 'Synchronize profiles & catalog',
+    descEs: 'Sincronizar perfiles y catálogo',
+  },
+  {
+    id: 'backup',
+    icon: 'cloud_upload',
+    titleEn: 'Data Backup',
+    titleEs: 'Respaldo de Datos',
+    descEn: 'Create local and cloud backups',
+    descEs: 'Crear respaldos locales y en nube',
+  },
 ];
 
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
@@ -495,6 +572,206 @@ export default function StudioHub() {
   const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState<string[]>([]);
 
+  // Drag-to-reorder state variables
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
+
+  const pressTimerRef = useRef<any>(null);
+  const dragRef = useRef<any>(null);
+  const yMapRef = useRef(new Map<string, any>());
+
+  const yFor = (id: string) => {
+    let mv = yMapRef.current.get(id);
+    if (!mv) {
+      mv = motionValue(0);
+      yMapRef.current.set(id, mv);
+    }
+    return mv;
+  };
+
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const rowNodes = () => [...(listRef.current?.querySelectorAll<HTMLDivElement>("[data-reorder-item]") ?? [])];
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>, id: string, index: number) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    const row = event.currentTarget;
+    row.setPointerCapture(event.pointerId);
+    
+    dragRef.current = {
+      row,
+      pointerId: event.pointerId,
+      index,
+      startY: event.clientY,
+      active: false,
+      slot: 0,
+      to: index,
+      id,
+    };
+
+    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+    pressTimerRef.current = setTimeout(() => {
+      if (typeof window !== 'undefined' && typeof window.navigator?.vibrate === 'function') {
+        window.navigator.vibrate(15);
+      }
+      setIsEditMode(true);
+      setDraggingId(id);
+      
+      const rows = rowNodes();
+      dragRef.current.active = true;
+      dragRef.current.slot = rows.length > 1 ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top : rows[0].offsetHeight;
+      dragRef.current.rows = rows;
+      
+      setTargetIndex(index);
+    }, 300);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+
+    const dy = event.clientY - drag.startY;
+
+    if (!drag.active) {
+      if (Math.abs(dy) > 5) {
+        if (pressTimerRef.current) {
+          clearTimeout(pressTimerRef.current);
+          pressTimerRef.current = null;
+        }
+      }
+      return;
+    }
+
+    const max = (shortcuts.length - 1 - drag.index) * drag.slot;
+    const min = -drag.index * drag.slot;
+    
+    let offset = dy;
+    if (offset > max) offset = max + (offset - max) / 4;
+    if (offset < min) offset = min + (offset - min) / 4;
+
+    yFor(drag.id).jump(offset);
+
+    const to = Math.max(0, Math.min(shortcuts.length - 1, Math.round((drag.index * drag.slot + Math.max(min, Math.min(max, dy))) / drag.slot)));
+    if (to !== drag.to) {
+      drag.to = to;
+      setTargetIndex(to);
+      drag.rows.forEach((row: HTMLDivElement, j: number) => {
+        if (row === drag.row) return;
+        let shift = 0;
+        if (drag.index < j && j <= to) shift = -drag.slot;
+        if (to <= j && j < drag.index) shift = drag.slot;
+        
+        const mv = yFor(row.dataset.id!);
+        animate(mv, shift, { duration: 0.2, ease: [0.22, 1, 0.36, 1] });
+      });
+    }
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    dragRef.current = null;
+    
+    if (!drag.active) return;
+
+    setDraggingId(null);
+    setTargetIndex(null);
+    setIsEditMode(false);
+
+    if (drag.to !== drag.index) {
+      const nextShortcuts = [...shortcuts];
+      const [moved] = nextShortcuts.splice(drag.index, 1);
+      nextShortcuts.splice(drag.to, 0, moved);
+      setShortcuts(nextShortcuts);
+      localStorage.setItem('studio:quick-shortcuts', JSON.stringify(nextShortcuts));
+      yMapRef.current.forEach((mv) => mv.jump(0));
+    } else {
+      yMapRef.current.forEach((mv) => {
+        animate(mv, 0, { duration: 0.2, ease: [0.22, 1, 0.36, 1] });
+      });
+    }
+  };
+
+  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    dragRef.current = null;
+    
+    setDraggingId(null);
+    setTargetIndex(null);
+    setIsEditMode(false);
+    
+    yMapRef.current.forEach((mv) => {
+      animate(mv, 0, { duration: 0.2, ease: [0.22, 1, 0.36, 1] });
+    });
+  };
+
+  // Usage-based suggestions engine
+  const getSuggestedActions = () => {
+    const activityLog = useChordStore.getState().activityLog || [];
+    const candidates = [
+      { id: 'chords-songs', score: 0 },
+      { id: 'chords-practice', score: 0 },
+      { id: 'drums', score: 0 },
+      { id: 'stage', score: 0 },
+      { id: 'groovex', score: 0 },
+      { id: 'vocalex-coach', score: 0 },
+      { id: 'vocalex-pitch', score: 0 },
+      { id: 'developer', score: 0 },
+      { id: 'notifications', score: 0 },
+      { id: 'help', score: 0 },
+      { id: 'settings', score: 0 },
+      { id: 'updater', score: 0 },
+      { id: 'sync', score: 0 },
+      { id: 'backup', score: 0 },
+    ];
+
+    activityLog.forEach((event, idx) => {
+      const recencyWeight = 25 - idx;
+      let matchedId = '';
+      if (event.type === 'app_launch') {
+        if (event.subtitle?.includes('Chordex')) matchedId = 'chords-songs';
+        else if (event.subtitle?.includes('Drumex')) matchedId = 'drums';
+        else if (event.subtitle?.includes('Stagex')) matchedId = 'stage';
+        else if (event.subtitle?.includes('Groovex')) matchedId = 'groovex';
+        else if (event.subtitle?.includes('Vocalex')) matchedId = 'vocalex-coach';
+      } else if (event.type === 'cloud_sync') {
+        matchedId = 'sync';
+      } else if (event.type === 'backup') {
+        matchedId = 'backup';
+      } else if (event.type === 'ota_install' || event.type === 'apk_install') {
+        matchedId = 'updater';
+      }
+      if (matchedId) {
+        const cand = candidates.find(c => c.id === matchedId);
+        if (cand) cand.score += recencyWeight;
+      }
+    });
+
+    const suggested = candidates
+      .filter(c => !shortcuts.includes(c.id))
+      .sort((a, b) => b.score - a.score);
+
+    const defaults = ['chords-practice', 'notifications', 'settings', 'help', 'updater', 'sync'];
+    for (const defId of defaults) {
+      if (suggested.length >= 4) break;
+      if (!shortcuts.includes(defId) && !suggested.some(s => s.id === defId)) {
+        suggested.push({ id: defId, score: -1 });
+      }
+    }
+    return suggested.slice(0, 4).map(s => s.id);
+  };
+
   const activeRouteApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   useEffect(() => {
@@ -551,6 +828,21 @@ export default function StudioHub() {
         setTab('settings');
         setTimeout(() => {
           NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' });
+        }, 150);
+        break;
+      case 'settings':
+        setTab('settings');
+        break;
+      case 'sync':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'sync' });
+        }, 150);
+        break;
+      case 'backup':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'backup' });
         }, 150);
         break;
       case 'help':
@@ -1087,8 +1379,151 @@ export default function StudioHub() {
                           {subtitle}
                         </p>
                       </section>
+                                            {/* Pinned Quick Actions Section */}
+                      <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h3
+                            style={{
+                              fontFamily: 'Inter',
+                              fontSize: '10px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.12em',
+                              fontWeight: 700,
+                              color: 'var(--c-text-secondary)',
+                              opacity: 0.6,
+                            }}
+                            className="px-1"
+                          >
+                            {lang === 'es' ? 'Acciones Fijadas' : 'Pinned Actions'}
+                          </h3>
+                          {/* Plus button to open picker */}
+                          <button
+                            onClick={() => setShortcutPickerOpen(true)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: accent.from,
+                              fontFamily: 'Inter',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                            }}
+                          >
+                            <span className="material-symbols-outlined text-[14px]">add</span>
+                            {lang === 'es' ? 'Fijar' : 'Pin'}
+                          </button>
+                        </div>
 
-                      {/* Quick Actions Shortcuts horizontal list */}
+                        <div
+                          ref={listRef}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8,
+                            position: 'relative',
+                          }}
+                        >
+                          {shortcuts.map((id, index) => {
+                            const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
+                            if (!opt) return null;
+                            const isDragged = draggingId === id;
+                            return (
+                              <motion.div
+                                key={id}
+                                data-id={id}
+                                data-reorder-item
+                                style={{
+                                  y: yFor(id),
+                                  touchAction: 'none',
+                                  userSelect: 'none',
+                                  position: 'relative',
+                                  zIndex: isDragged ? 10 : 1,
+                                }}
+                                onPointerDown={(e) => handlePointerDown(e, id, index)}
+                                onPointerMove={handlePointerMove}
+                                onPointerUp={handlePointerUp}
+                                onPointerCancel={handlePointerCancel}
+                              >
+                                <motion.div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 12,
+                                    padding: '12px 14px',
+                                    borderRadius: '16px',
+                                    background: 'var(--app-surface-high, rgba(128, 128, 128, 0.05))',
+                                    border: '1px solid rgba(128, 128, 128, 0.08)',
+                                    cursor: isEditMode ? 'grabbing' : 'pointer',
+                                    transition: 'background-color 200ms ease',
+                                  }}
+                                  animate={
+                                    isDragged
+                                      ? {
+                                          scale: 1.02,
+                                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+                                          backgroundColor: 'var(--app-surface-higher, rgba(128, 128, 128, 0.1))',
+                                        }
+                                      : {
+                                          scale: 1,
+                                          boxShadow: 'none',
+                                          backgroundColor: 'var(--app-surface-high, rgba(128, 128, 128, 0.05))',
+                                        }
+                                  }
+                                  whileTap={!isEditMode ? { scale: 0.98 } : undefined}
+                                  onClick={() => {
+                                    if (!isEditMode && !dragRef.current?.active) {
+                                      handleShortcutClick(id);
+                                    }
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: '40px',
+                                      height: '40px',
+                                      borderRadius: '12px',
+                                      backgroundColor: 'var(--app-surface-higher, rgba(128, 128, 128, 0.08))',
+                                      border: '1px solid rgba(128, 128, 128, 0.1)',
+                                    }}
+                                    className="flex items-center justify-center flex-none"
+                                  >
+                                    <span
+                                      className="material-symbols-outlined text-lg"
+                                      style={{ color: accent.from }}
+                                    >
+                                      {opt.icon}
+                                    </span>
+                                  </div>
+                                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--c-text-primary)' }} className="truncate">
+                                      {lang === 'es' ? opt.titleEs : opt.titleEn}
+                                    </span>
+                                    <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)', opacity: 0.7 }} className="truncate">
+                                      {lang === 'es' ? opt.descEs : opt.descEn}
+                                    </span>
+                                  </div>
+                                  {isEditMode ? (
+                                    <span
+                                      className="material-symbols-outlined text-lg opacity-60 flex-none"
+                                      style={{ cursor: 'grab' }}
+                                    >
+                                      drag_indicator
+                                    </span>
+                                  ) : (
+                                    <span className="material-symbols-outlined text-lg opacity-30 flex-none">
+                                      chevron_right
+                                    </span>
+                                  )}
+                                </motion.div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </section>
+
+                      {/* Suggested Actions Section */}
                       <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <h3
                           style={{
@@ -1102,84 +1537,57 @@ export default function StudioHub() {
                           }}
                           className="px-1"
                         >
-                          {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
+                          {lang === 'es' ? 'Sugerencias para Ti' : 'Suggested for You'}
                         </h3>
                         <div
-                          style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '4px 0' }}
-                          className="hide-scrollbar"
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: 10,
+                            width: '100%',
+                          }}
                         >
-                          {shortcuts.map((id) => {
+                          {getSuggestedActions().map((id) => {
                             const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
                             if (!opt) return null;
                             return (
                               <button
                                 key={id}
                                 onClick={() => handleShortcutClick(id)}
-                                className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10,
+                                  padding: '10px 12px',
+                                  borderRadius: '14px',
+                                  background: 'rgba(128,128,128,0.03)',
+                                  border: '1px solid rgba(128,128,128,0.05)',
+                                  textAlign: 'left',
+                                  cursor: 'pointer',
+                                  outline: 'none',
+                                }}
+                                className="bouncy-action"
                               >
-                                <div
-                                  style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '16px',
-                                    backgroundColor:
-                                      'var(--app-surface-high, rgba(128,128,128,0.06))',
-                                    border: '1px solid rgba(128,128,128,0.08)',
-                                  }}
-                                  className="flex items-center justify-center"
+                                <span
+                                  className="material-symbols-outlined text-md"
+                                  style={{ color: accent.from, opacity: 0.8 }}
                                 >
-                                  <span
-                                    className="material-symbols-outlined text-xl"
-                                    style={{ color: accent.from }}
-                                  >
-                                    {opt.icon}
-                                  </span>
-                                </div>
+                                  {opt.icon}
+                                </span>
                                 <span
                                   style={{
-                                    fontSize: '10px',
+                                    fontSize: '11px',
                                     color: 'var(--c-text-secondary)',
+                                    fontWeight: 600,
                                     fontFamily: 'Inter',
                                   }}
+                                  className="truncate"
                                 >
-                                  {lang === 'es'
-                                    ? opt.titleEs.split(' ')[0]
-                                    : opt.titleEn.split(' ')[0]}
+                                  {lang === 'es' ? opt.titleEs : opt.titleEn}
                                 </span>
                               </button>
                             );
                           })}
-
-                          {/* Plus button to open picker */}
-                          <button
-                            onClick={() => setShortcutPickerOpen(true)}
-                            className="flex-none flex flex-col items-center gap-2 bouncy-action cursor-pointer bg-transparent border-none outline-none"
-                          >
-                            <div
-                              style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '16px',
-                                backgroundColor: 'transparent',
-                                border: '1.5px dashed rgba(128,128,128,0.3)',
-                              }}
-                              className="flex items-center justify-center"
-                            >
-                              <span className="material-symbols-outlined text-xl text-on-surface-variant/60">
-                                add
-                              </span>
-                            </div>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                color: 'var(--c-text-secondary)',
-                                fontFamily: 'Inter',
-                                opacity: 0.8,
-                              }}
-                            >
-                              {lang === 'es' ? 'Editar' : 'Edit'}
-                            </span>
-                          </button>
                         </div>
                       </section>
 
@@ -3194,18 +3602,23 @@ function HubUpdaterPage({
                     {(isChangelogTooLong && !changelogExpanded
                       ? section.items.slice(0, 3)
                       : section.items
-                    ).map((item, ii) => (
-                      <div key={ii} className="updater-changelog-item" style={{ padding: '2px 0' }}>
-                        <div
-                          className="updater-changelog-bullet"
-                          style={{
-                            background: getCategoryStyle(section.heading).text,
-                            opacity: 0.6,
-                          }}
-                        />
-                        <span>{item}</span>
-                      </div>
-                    ))}
+                    ).map((item, ii) => {
+                      const cleanedItem = item.replace(/^[-*•]\s*/, '').trim();
+                      return (
+                        <div key={ii} className="updater-changelog-item" style={{ padding: '4px 0', display: 'flex', alignItems: 'flex-start', gap: 6, lineHeight: '1.6' }}>
+                          <div
+                            className="updater-changelog-bullet"
+                            style={{
+                              background: getCategoryStyle(section.heading).text,
+                              opacity: 0.6,
+                              marginTop: 6,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span>{cleanedItem}</span>
+                        </div>
+                      );
+                    })}
                     {isChangelogTooLong && !changelogExpanded && section.items.length > 3 && (
                       <div
                         style={{

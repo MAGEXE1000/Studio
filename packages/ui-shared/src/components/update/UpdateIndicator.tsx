@@ -2406,150 +2406,9 @@ function UpdateModal({
 
   const renderChangelog = () => {
     const releaseNotes = updater.releaseNotes;
+    const sections = parseChangelogToSections(releaseNotes, updater.changelog);
 
-    // Check if we have structured release notes with at least one item
-    const hasStructured =
-      releaseNotes &&
-      typeof releaseNotes === 'object' &&
-      !Array.isArray(releaseNotes) &&
-      (((releaseNotes as StructuredReleaseNotes).added &&
-        (releaseNotes as StructuredReleaseNotes).added!.length > 0) ||
-        ((releaseNotes as StructuredReleaseNotes).improved &&
-          (releaseNotes as StructuredReleaseNotes).improved!.length > 0) ||
-        ((releaseNotes as StructuredReleaseNotes).fixed &&
-          (releaseNotes as StructuredReleaseNotes).fixed!.length > 0) ||
-        ((releaseNotes as StructuredReleaseNotes).changed &&
-          (releaseNotes as StructuredReleaseNotes).changed!.length > 0));
-
-    if (hasStructured) {
-      const rn = releaseNotes as StructuredReleaseNotes;
-      const categories = [
-        { label: 'Added', items: rn.added },
-        { label: 'Improved', items: rn.improved },
-        { label: 'Fixed', items: rn.fixed },
-        { label: 'Changed', items: rn.changed },
-      ].filter((cat) => cat.items && cat.items.length > 0);
-
-      return (
-        <div
-          style={{
-            width: '100%',
-            margin: '12px 0 4px',
-            borderRadius: 14,
-            background: 'rgba(128, 128, 128, 0.05)',
-            border: '1px solid rgba(128, 128, 128, 0.08)',
-            overflow: 'hidden',
-            transition: 'all 200ms ease',
-          }}
-        >
-          {/* Toggle Header */}
-          <button
-            type="button"
-            onClick={() => setChangelogExpanded(!changelogExpanded)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
-              fontWeight: 700,
-              fontSize: 12.5,
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 16, color: purpleFrom }}
-              >
-                info
-              </span>
-              <span>What's New</span>
-            </div>
-            <span
-              className="material-symbols-outlined"
-              style={{
-                fontSize: 16,
-                color: 'var(--c-text-secondary)',
-                transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 200ms ease',
-              }}
-            >
-              expand_more
-            </span>
-          </button>
-
-          {/* Categories list */}
-          <AnimatePresence initial={false}>
-            {changelogExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: DurationPresets.normal, ease: EasingPresets.standard }}
-                style={{
-                  maxHeight: 150,
-                  overflowY: 'auto',
-                  padding: '0 14px 12px',
-                  borderTop: '1px solid rgba(128, 128, 128, 0.06)',
-                }}
-              >
-                {categories.map((cat, idx) => (
-                  <div key={idx} style={{ marginTop: idx === 0 ? 8 : 12 }}>
-                    <div
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        color: 'var(--c-text-primary)',
-                        fontFamily: 'Manrope',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 4,
-                      }}
-                    >
-                      {cat.label}
-                    </div>
-                    <ul
-                      style={{
-                        margin: 0,
-                        paddingLeft: 16,
-                        fontSize: 12,
-                        color: 'var(--c-text-secondary)',
-                        fontFamily: 'Inter',
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      {cat.items!.map((item: string, itemIdx: number) => (
-                        <li key={itemIdx} style={{ marginBottom: 4 }}>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      );
-    }
-
-    // Fallback to flat list or plain text splits
-    const bullets = Array.isArray(releaseNotes)
-      ? (releaseNotes as string[])
-      : updater.changelog
-        ? updater.changelog
-            .split('\n')
-            .map((l) => l.trim())
-            .filter(Boolean)
-        : [];
-
-    if (bullets.length === 0) return null;
+    if (sections.length === 0) return null;
 
     return (
       <div
@@ -2557,8 +2416,8 @@ function UpdateModal({
           width: '100%',
           margin: '12px 0 4px',
           borderRadius: 14,
-          background: 'rgba(128, 128, 128, 0.05)',
-          border: '1px solid rgba(128, 128, 128, 0.08)',
+          background: 'rgba(12, 12, 14, 0.45)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           overflow: 'hidden',
           transition: 'all 200ms ease',
         }}
@@ -2572,7 +2431,7 @@ function UpdateModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '10px 14px',
+            padding: '12px 14px',
             background: 'transparent',
             border: 'none',
             color: 'var(--c-text-primary)',
@@ -2584,7 +2443,10 @@ function UpdateModal({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: purpleFrom }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 16, color: purpleFrom }}
+            >
               info
             </span>
             <span>What's New</span>
@@ -2602,7 +2464,7 @@ function UpdateModal({
           </span>
         </button>
 
-        {/* Bullet List Container */}
+        {/* Categories list */}
         <AnimatePresence initial={false}>
           {changelogExpanded && (
             <motion.div
@@ -2611,33 +2473,110 @@ function UpdateModal({
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: DurationPresets.normal, ease: EasingPresets.standard }}
               style={{
-                maxHeight: 150,
+                maxHeight: 240,
                 overflowY: 'auto',
                 padding: '0 14px 12px',
-                borderTop: '1px solid rgba(128, 128, 128, 0.06)',
+                borderTop: '1px solid rgba(255, 255, 255, 0.06)',
               }}
             >
-              <ul
-                style={{
-                  margin: '8px 0 0',
-                  paddingLeft: 18,
-                  fontSize: 12,
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  lineHeight: 1.55,
-                }}
-              >
-                {bullets.map((bullet, idx) => (
-                  <li key={idx} style={{ marginBottom: 5 }}>
-                    {bullet.replace(/^-\s*/, '')}
-                  </li>
-                ))}
-              </ul>
+              {sections.map((sec, idx) => (
+                <div key={idx} style={{ marginTop: idx === 0 ? 8 : 12 }}>
+                  {sec.heading && (
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'Manrope',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: 6,
+                      }}
+                    >
+                      {sec.heading}
+                    </div>
+                  )}
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: 16,
+                      fontSize: 12,
+                      color: 'var(--c-text-secondary)',
+                      fontFamily: 'Inter',
+                      lineHeight: '1.6',
+                    }}
+                  >
+                    {sec.items.map((item: string, itemIdx: number) => (
+                      <li key={itemIdx} style={{ padding: '4px 0', marginBottom: 2 }}>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
     );
+  };
+
+  const parseChangelogToSections = (releaseNotes: any, changelog: string | null) => {
+    if (
+      releaseNotes &&
+      typeof releaseNotes === 'object' &&
+      !Array.isArray(releaseNotes)
+    ) {
+      const rn = releaseNotes as StructuredReleaseNotes;
+      return [
+        { heading: 'Added', items: rn.added || [] },
+        { heading: 'Improved', items: rn.improved || [] },
+        { heading: 'Fixed', items: rn.fixed || [] },
+        { heading: 'Changed', items: rn.changed || [] },
+      ].filter((cat) => cat.items && cat.items.length > 0);
+    }
+
+    const lines = Array.isArray(releaseNotes)
+      ? (releaseNotes as string[])
+      : changelog
+        ? changelog.split('\n')
+        : [];
+
+    const sections: { heading: string; items: string[] }[] = [];
+    let currentSection: { heading: string; items: string[] } = { heading: '', items: [] };
+
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+
+      if (line.startsWith('#')) {
+        if (currentSection.items.length > 0) {
+          sections.push(currentSection);
+        }
+        const heading = line.replace(/^#+\s*/, '').trim();
+        currentSection = { heading, items: [] };
+      } else if (line.startsWith('-') || line.startsWith('*') || line.startsWith('•')) {
+        const item = line.replace(/^[-*•]\s*/, '').trim();
+        if (item) {
+          currentSection.items.push(item);
+        }
+      } else {
+        const cleaned = line.replace(/^[-*•]\s*/, '').trim();
+        if (cleaned) {
+          currentSection.items.push(cleaned);
+        }
+      }
+    }
+
+    if (currentSection.items.length > 0) {
+      sections.push(currentSection);
+    }
+
+    if (sections.length === 0 && currentSection.items.length > 0) {
+      sections.push({ heading: "What's New", items: currentSection.items });
+    }
+
+    return sections;
   };
   // Render buttons
   const actionButtons = renderButtons();

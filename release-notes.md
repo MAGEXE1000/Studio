@@ -1,18 +1,14 @@
-# Version 4.2.24
-
-Release Date: 2026-07-21
-
 Release Date: 2026-07-21
 
 ## Added
 
-- Standard production release build for Studio Android v4.2.24.
-- Forensic instrumentation and optimization of internal release orchestration phases.
+- Production release for Studio Android v4.2.25 with full Android runtime stabilization.
+- Global theme system single source of truth with instant cross-screen propagation.
 
 ## Security
 
 - Enforced mandatory production signing key verification (`SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`) with zero fallback.
-- Added pre-build Gradle keystore fingerprint assertion, signature diagnostic report generation, and multi-stage verification pipeline gates.
+- Centralized bottom navigation system across Hub, Chordex, Stagex, Groovex, Vocalex, and Drumex.
 
 ## Breaking Changes
 

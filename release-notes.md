@@ -2,8 +2,8 @@ Release Date: 2026-07-21
 
 ## Added
 
-- Standard production release build for Studio Android v4.2.17.
-- Complete release infrastructure security hardening, signature diagnostic reporting, and contract validation.
+- Standard production release build for Studio Android v4.2.19.
+- Deterministic state machine architecture and single source of truth version enforcement.
 
 ## Security
 

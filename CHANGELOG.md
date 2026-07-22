@@ -13,6 +13,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.28
+
+Release Date: 2026-07-21
+
+## Fixed
+- Architected a single self-healing Bottom Navigation Controller system with permanent recovery watchdog and event-driven restoration. All sub-apps inherit identical navigation lifecycle.
+
 # Version 4.2.27
 
 Release Date: 2026-07-21

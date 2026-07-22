@@ -2638,34 +2638,7 @@ const SubAppWrapper = memo(function SubAppWrapper({
     }
   }, [activePanel, visiblePanel, isActive]);
 
-  useEffect(() => {
-    if (cachedApp === 'chords' && isActive) {
-      useBottomNavigationStore.getState().setItems([
-        {
-          key: 'songs',
-          icon: 'music_note',
-          label: 'Songs',
-          isActive: cachedPanel === 'songs',
-          onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'songs' }),
-        },
-        {
-          key: 'library',
-          icon: 'library_music',
-          label: 'Library',
-          isActive: cachedPanel === 'library' || !cachedPanel,
-          onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'library' }),
-        },
-        {
-          key: 'settings',
-          icon: 'tune',
-          label: 'Settings',
-          isActive: cachedPanel === 'settings',
-          onClick: () => NavigationDispatcher.push({ app: 'chords', page: 'settings' }),
-        },
-      ]);
-      useBottomNavigationStore.getState().setVisible(true);
-    }
-  }, [cachedApp, cachedPanel, isActive]);
+
 
   useEffect(() => {
     if (exitingPanel !== null) {

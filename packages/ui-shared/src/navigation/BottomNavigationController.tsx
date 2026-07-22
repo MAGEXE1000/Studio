@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   useNavHidden,
   useNavCollapsed,
@@ -35,10 +35,7 @@ export function BottomNavigationController() {
   const { setCollapsed, setVisible, setMotionState, setItems, setIsLight } =
     useBottomNavigationStore();
 
-  // Dynamically resolve bottom nav items for active application scope
-  useEffect(() => {
-    setIsLight(isLight);
-
+  const rebuildItems = useCallback(() => {
     if (currentApp === 'hub') {
       setItems([
         {
@@ -78,7 +75,13 @@ export function BottomNavigationController() {
     }));
 
     setItems(formattedItems);
-  }, [currentApp, activeTab, activePage, isLight, setItems, setIsLight]);
+  }, [currentApp, activeTab, activePage, setItems]);
+
+  // Dynamically resolve bottom nav items for active application scope
+  useEffect(() => {
+    setIsLight(isLight);
+    rebuildItems();
+  }, [isLight, setIsLight, rebuildItems]);
 
   // Sync programmatic visibility and collapse states
   useEffect(() => {
@@ -112,6 +115,91 @@ export function BottomNavigationController() {
       setMotionState(hidden ? 'Hidden' : collapsed ? 'Hidden' : 'Idle');
     }
   }, [transitionState, launchingApp, hidden, collapsed, setMotionState]);
+
+  // Self-healing recovery mechanism
+  const performRecovery = useCallback(() => {
+    // 1. Detect if keyboard is focused (covering navigation)
+    let isKeyboardFocused = false;
+    if (typeof document !== 'undefined') {
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tagName = activeEl.tagName.toLowerCase();
+        isKeyboardFocused =
+          tagName === 'input' ||
+          tagName === 'textarea' ||
+          activeEl.hasAttribute('contenteditable') ||
+          (activeEl as HTMLElement).isContentEditable;
+      }
+    }
+
+    // 2. Detect if fullscreen mode is active
+    const isFullscreen = typeof document !== 'undefined' && !!document.fullscreenElement;
+
+    // 3. Detect if an explicit modal is open that requests hidden nav
+    const isModalOpen =
+      typeof document !== 'undefined' &&
+      (document.querySelector('.modal-backdrop') !== null ||
+        document.querySelector('.studio-modal') !== null ||
+        document.querySelector('[role="dialog"]') !== null);
+
+    // 4. Check if the app is currently in transition
+    const isTransitioning = transitionState !== 'IDLE';
+
+    // 5. Check programmatic hidden state (from useNavHidden() store)
+    const isProgrammaticallyHidden = hidden;
+
+    // Check if we should hide bottom navigation
+    const shouldHide =
+      isKeyboardFocused ||
+      isFullscreen ||
+      isModalOpen ||
+      isTransitioning ||
+      isProgrammaticallyHidden;
+
+    // Get current store values
+    const store = useBottomNavigationStore.getState();
+
+    // If it shouldn't be hidden, enforce visible = true and rebuild items if empty
+    if (!shouldHide) {
+      if (!store.visible) {
+        store.setVisible(true);
+      }
+      if (!store.items || store.items.length === 0) {
+        rebuildItems();
+      }
+    } else {
+      // If it should be hidden, make sure visible is synced to false
+      if (store.visible) {
+        store.setVisible(false);
+      }
+    }
+  }, [transitionState, hidden, rebuildItems]);
+
+  // Periodic heartbeat watchdog check every 1000ms
+  useEffect(() => {
+    const interval = setInterval(() => {
+      performRecovery();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [performRecovery]);
+
+  // Event-driven recovery on interactions
+  useEffect(() => {
+    const handler = () => performRecovery();
+    window.addEventListener('focusin', handler);
+    window.addEventListener('focusout', handler);
+    window.addEventListener('click', handler, { passive: true });
+    window.addEventListener('touchstart', handler, { passive: true });
+    window.addEventListener('resize', handler);
+
+    return () => {
+      window.removeEventListener('focusin', handler);
+      window.removeEventListener('focusout', handler);
+      window.removeEventListener('click', handler);
+      window.removeEventListener('touchstart', handler);
+      window.removeEventListener('resize', handler);
+    };
+  }, [performRecovery]);
 
   // Filter out rendering on Desktop web views
   const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor?.isNativePlatform?.();

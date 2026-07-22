@@ -2,18 +2,14 @@ Release Date: 2026-07-21
 
 ## Added
 
-- Production release for Studio Android v4.2.27 with unified Bottom Navigation & Login Notification stabilization.
+- Production release for Studio Android v4.2.28 with self-healing, architectural Bottom Navigation stabilization.
 
 ## Fixed
 
-- Unified Bottom Navigation Controller across Hub, Chordex, Stagex, Groovex, Drumex, Vocalex, and Settings.
-- Resolved transition completion state restoration for Bottom Navigation visibility (`setVisible(true)` on `IDLE`).
-- Fixed session restoration auth listener in `App.tsx` to eliminate repeated `"Signed In Successfully"` notifications on startup and restart.
+- Replaced fragmented local sub-app navigation overrides with a unified global Bottom Navigation Controller system.
+- Designed and implemented a permanent recovery watchdog/heartbeat checking every 1000ms.
+- Bound event-driven listeners on user interactions (`focusin`, `focusout`, `click`, `touchstart`, `resize`) to instantly heal/restore navigation bar visibility and items.
 
 ## Security
 
-- Enforced mandatory production signing key verification (`SHA-256: 900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206`) with zero debug key fallback.
-
-## Breaking Changes
-
-None
+- Enforced production release keystore verification with zero fallback policy.

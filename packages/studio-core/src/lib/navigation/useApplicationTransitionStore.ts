@@ -35,11 +35,9 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   requestTransition: (targetApp) => {
     let { state, launchingApp } = get();
     
-    // Clear bottom navigation store states immediately during transition preparation
+    // Clear bottom navigation switcher state immediately during transition preparation
     const navStore = useBottomNavigationStore.getState();
     navStore.setSwitcherOpen(false);
-    navStore.setVisible(false);
-    navStore.setItems([]);
 
     if (state !== 'IDLE') {
       if (launchingApp === targetApp) {
@@ -126,10 +124,9 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       (window as any).__transitionWatchdog = null;
     }
 
-    // Reset bottom navigation store states and restore visibility for IDLE
+    // Reset bottom navigation switcher states for IDLE
     const navStore = useBottomNavigationStore.getState();
     navStore.setSwitcherOpen(false);
-    navStore.setVisible(true);
 
     set({
       state: 'IDLE',
@@ -148,7 +145,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
     const navStore = useBottomNavigationStore.getState();
     navStore.setSwitcherOpen(false);
-    navStore.setVisible(true);
 
     set({
       state: 'IDLE',

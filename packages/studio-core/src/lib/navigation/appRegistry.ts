@@ -28,7 +28,7 @@ export const APP_SECTIONS: Record<string, AppSection[]> = {
   ],
   stage: [
     { id: 'Editor', labelKey: 'stagexStage', icon: 'grid_view' },
-    { id: 'SetupHub', labelKey: 'stagexSetup', icon: 'folder_open' },
+    { id: 'Setup', labelKey: 'stagexSetup', icon: 'folder_open' },
     { id: 'Preferences', labelKey: 'stagexPreferences', icon: 'tune' },
   ],
 };

@@ -402,6 +402,7 @@ export default function StagexPanel() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeReady = useRef(false);
   const settings = useSettingsStore((state) => state.settings);
+  const isActiveApp = settings.appMode === 'stage';
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<any[]>([]);
@@ -1698,7 +1699,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   const isTabActive = (view: string) => {
     if (view === 'Editor') return curView === 'Editor' || curView === 'Export';
-    if (view === 'Setup' || view === 'SetupHub')
+    if (view === 'Setup')
       return ['SetupHub', 'Rider', 'Setlist', 'Gear', 'Members', 'Setup'].includes(curView);
     if (view === 'Preferences') return curView === 'Preferences';
     return false;
@@ -2099,21 +2100,23 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 background: stageBg,
               }}
             >
-              <iframe
-                ref={iframeRef}
-                src={iframeSrc}
-                title="Stagex Canvas"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  display: 'block',
-                  backgroundColor: 'transparent',
-                }}
-                allow="clipboard-write"
-              />
+              {isActiveApp && (
+                <iframe
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  title="Stagex Canvas"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    display: 'block',
+                    backgroundColor: 'transparent',
+                  }}
+                  allow="clipboard-write"
+                />
+              )}
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />
@@ -3158,24 +3161,26 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   'opacity 150ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
-              <iframe
-                ref={iframeRef}
-                src={iframeSrc}
-                data-view={getSimplifiedView(curView)}
-                onLoad={handleLoad}
-                title="Stagex"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  display: 'block',
-                  backgroundColor: stageBg,
-                  transform: collapseHeader ? 'translateZ(0.01px)' : 'translateZ(0px)',
-                }}
-                allow="clipboard-write"
-              />
+              {isActiveApp && (
+                <iframe
+                  ref={iframeRef}
+                  src={iframeSrc}
+                  data-view={getSimplifiedView(curView)}
+                  onLoad={handleLoad}
+                  title="Stagex"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    display: 'block',
+                    backgroundColor: stageBg,
+                    transform: collapseHeader ? 'translateZ(0.01px)' : 'translateZ(0px)',
+                  }}
+                  allow="clipboard-write"
+                />
+              )}
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />

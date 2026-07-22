@@ -87,7 +87,7 @@ type AccountState =
     };
 
 const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
-const ALL_PANELS = ['library', 'songs', 'chord', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'chord', 'settings'] as const;
 
 const AppReadyNotifier = memo(function AppReadyNotifier({
   app,
@@ -700,8 +700,9 @@ export default function App() {
                                 >
                                   {(panel) => (
                                     <>
-                                      {panel === 'library' && <LibraryPanel />}
                                       {panel === 'songs' && <SongsPanel />}
+                                      {panel === 'library' && <LibraryPanel />}
+                                      {panel === 'chord' && <ChordPanel />}
                                       {panel === 'settings' && <SettingsPanel />}
                                     </>
                                   )}

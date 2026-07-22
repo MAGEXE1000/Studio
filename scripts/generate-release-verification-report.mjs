@@ -99,6 +99,42 @@ export function generateVerificationReport(apkPath) {
   const manifestPath = path.join(repoRoot, 'release-manifest.json');
   fs.writeFileSync(manifestPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
 
+  const stateSnapshot = {
+    resolvedVersion: versionName,
+    versionCode,
+    apkFilename: path.basename(targetApk),
+    apkSha: detectedSha256,
+    certificateFingerprint: detectedSha256,
+    expectedFingerprint: EXPECTED_PROD_SHA256,
+    githubTag: `v${versionName}`,
+    releaseUrl: `https://github.com/MAGEXE1000/Studio/releases/tag/v${versionName}`,
+    timestamp: report.timestamp,
+  };
+  fs.writeFileSync(path.join(repoRoot, 'release-state.json'), JSON.stringify(stateSnapshot, null, 2) + '\n', 'utf8');
+
+  const healthReport = {
+    timestamp: report.timestamp,
+    status: report.status,
+    passedValidations: [
+      'Single Source Version Consistency',
+      'Production Keystore Fingerprint Match',
+      'Manifest Package Name Verification',
+      'APK Scheme Integrity',
+    ],
+    artifacts: [
+      'app-release.apk',
+      'app-release.apk.sha256',
+      'release-verification-report.json',
+      'release-manifest.json',
+      'release-state.json',
+      'release-health.json',
+    ],
+    version: versionName,
+    gitCommit: process.env.GITHUB_SHA || 'local',
+    environment: process.platform,
+  };
+  fs.writeFileSync(path.join(repoRoot, 'release-health.json'), JSON.stringify(healthReport, null, 2) + '\n', 'utf8');
+
   const mdContent = `# Production Release Verification Report
 
 - **Timestamp**: ${report.timestamp}

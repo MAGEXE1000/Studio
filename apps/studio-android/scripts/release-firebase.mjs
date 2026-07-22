@@ -742,6 +742,17 @@ if (existsSync(verifySigScript)) {
   }
 }
 
+const isDryRun = process.argv.includes('--dry-run') || process.argv.includes('--smoke-test');
+if (isDryRun) {
+  console.log('\n================================================================');
+  console.log('✓ SMOKE-TEST / DRY-RUN COMPLETED SUCCESSFULLY!');
+  console.log('  All validations, builds, signatures, SHA256 checksums,');
+  console.log('  release state snapshot (release-state.json), and pipeline');
+  console.log('  health reports (release-health.json) generated without publishing.');
+  console.log('================================================================\n');
+  process.exit(0);
+}
+
 // Step 7: Create GitHub Release tag if missing
 console.log('Step 7/15: Create GitHub Release tag if missing...');
 const tag = `v${version}`;

@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.32
+
+Release Date: 2026-07-22
+
+## Improved
+- Overhauled global design system to increase corner radii softness consistently.
+- Refined Bottom Navigation bar dimensions and height for comfort and native feel.
+- Enhanced layered progressive blurs, premium elevation, and translucency.
+
 # Version 4.2.31
 
 Release Date: 2026-07-22

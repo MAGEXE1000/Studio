@@ -305,7 +305,7 @@ export function BentoSettingCard({
         padding: '16px',
         background: 'var(--app-surface-high)',
         border: '1px solid rgba(128, 128, 128, 0.06)',
-        borderRadius: '16px',
+        borderRadius: 'var(--radius-xl)',
         cursor: 'pointer',
         textAlign: 'left',
         boxSizing: 'border-box',
@@ -560,7 +560,7 @@ export function SettingSection({
         style={{
           border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
           backgroundColor: 'var(--app-surface-low, rgba(128, 128, 128, 0.08))',
-          borderRadius: '12px',
+          borderRadius: 'var(--radius-lg)',
           overflow: 'hidden',
         }}
       >

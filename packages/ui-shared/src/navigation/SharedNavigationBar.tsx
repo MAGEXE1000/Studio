@@ -281,8 +281,8 @@ export function SharedNavigationBar({
     const tailAmount = (skewVal as number) * 1.2;
     const press = pressVal as number;
 
-    const H = 38;
-    const R = 19;
+    const H = 44;
+    const R = 22;
 
     let leftX = (tailAmount < 0 ? tailAmount : 0) + press;
     let rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
@@ -503,21 +503,21 @@ export function SharedNavigationBar({
       }}
     >
       <div
-        className="shared-bottom-nav"
+        className="shared-bottom-nav glass-nav"
         style={{
           pointerEvents: 'auto',
           width: `${barWidth}px`,
-          height: '46px',
+          height: '56px',
           borderRadius: '9999px',
-          border: '1.5px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(0, 0, 0, 0.60)',
-          boxShadow: '0 8px 20px 8px rgba(0, 0, 0, 0.40)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'rgba(12, 12, 14, 0.45)',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-around',
-          padding: '2px 4px',
+          padding: '4px 6px',
           position: 'relative',
           touchAction: 'none',
           userSelect: 'none',
@@ -542,7 +542,7 @@ export function SharedNavigationBar({
             style={{
               position: 'absolute',
               top: '2px',
-              height: '38px',
+              height: '44px',
               width: `${pillWidth + 40}px`,
               x: useTransform(pillX, (val) => val - pillWidth / 2 - 20),
               skewX: pillSkewXTrans,
@@ -554,10 +554,10 @@ export function SharedNavigationBar({
             <svg
               width="100%"
               height="100%"
-              viewBox={`-20 0 ${pillWidth + 40} 38`}
+              viewBox={`-20 0 ${pillWidth + 40} 44`}
               style={{ overflow: 'visible' }}
             >
-              <motion.path d={pillPathD} fill="rgba(255, 255, 255, 0.16)" />
+              <motion.path d={pillPathD} fill="rgba(255, 255, 255, 0.14)" />
             </svg>
           </motion.div>
 
@@ -586,14 +586,14 @@ export function SharedNavigationBar({
           whileTap={{ scale: 0.9 }}
           style={{
             pointerEvents: 'auto',
-            width: '46px',
-            height: '46px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            background: 'rgba(0, 0, 0, 0.60)',
-            border: '1.5px solid rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            boxShadow: '0 8px 20px 8px rgba(0, 0, 0, 0.40)',
+            background: 'rgba(12, 12, 14, 0.45)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

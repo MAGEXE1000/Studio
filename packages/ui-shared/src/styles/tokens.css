@@ -49,12 +49,12 @@
   --font-label: 'Inter', sans-serif;
   --font-sans: 'Manrope', sans-serif;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
-  --radius-3xl: 2rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-2xl: 2.25rem;
+  --radius-3xl: 2.75rem;
   --radius-full: 9999px;
 }
 
@@ -1641,7 +1641,7 @@ html.light .groovex-root button[style*='background: rgba(239,68,68,0.15)'] {
   }
   35% {
     transform: scale(0.95);
-    border-radius: 16px;
+    border-radius: 28px;
   }
   100% {
     transform: scale(1);
@@ -2056,7 +2056,7 @@ html.web-desktop .gb-inner {
 
 html.web-desktop .card-hover {
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  border-radius: 12px !important;
+  border-radius: var(--radius-lg) !important;
   box-shadow: none !important;
   background: rgba(9, 9, 11, 0.4) !important;
 }

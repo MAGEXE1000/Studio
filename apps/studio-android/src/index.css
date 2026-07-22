@@ -27,7 +27,7 @@ body {
 ──────────────────────────────────────────────────────────────────────────── */
 :root {
   --nav-safe-bottom: max(10px, env(safe-area-inset-bottom, 0px));
-  --nav-h: 64px;
+  --nav-h: 74px;
   --content-bottom-pad: calc(var(--nav-safe-bottom) + var(--nav-h) + 16px);
 }
 

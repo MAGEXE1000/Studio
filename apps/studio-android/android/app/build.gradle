@@ -8,8 +8,8 @@ android {
         applicationId "com.chordex.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40221
-        versionName "4.2.21"
+        versionCode 40222
+        versionName "4.2.22"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -42,49 +42,6 @@ android {
             def ksPwd = System.getenv("ANDROID_KEYSTORE_PASSWORD")
             def ksAlias = System.getenv("ANDROID_KEY_ALIAS")
             def ksKeyPwd = System.getenv("ANDROID_KEY_PASSWORD")
-            def expectedSha256 = "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
-
-            if (!ksFile.exists()) {
-                throw new GradleException(
-                    "CRITICAL SECURITY FAILURE: release.keystore missing at ${ksFile.absolutePath}.\n" +
-                    "Production builds require the official production release keystore. Fallback to debug key is strictly prohibited!"
-                )
-            }
-            if (ksPwd == null || ksPwd.isEmpty() || ksAlias == null || ksAlias.isEmpty() || ksKeyPwd == null || ksKeyPwd.isEmpty()) {
-                throw new GradleException(
-                    "CRITICAL SECURITY FAILURE: Production signing environment variables (ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD) are missing!"
-                )
-            }
-
-            try {
-                def ks = java.security.KeyStore.getInstance("PKCS12")
-                ksFile.withInputStream { is -> ks.load(is, ksPwd.toCharArray()) }
-                def cert = ks.getCertificate(ksAlias)
-                if (cert == null) {
-                    throw new GradleException("CRITICAL SECURITY FAILURE: Keystore alias '${ksAlias}' not found in ${ksFile.absolutePath}")
-                }
-                def md = java.security.MessageDigest.getInstance("SHA-256")
-                def fingerprint = md.digest(cert.getEncoded()).encodeHex().toString().toLowerCase()
-                println "=================================================="
-                println "PRODUCTION SIGNING KEY FINGERPRINT VERIFICATION:"
-                println "  Keystore File: ${ksFile.name}"
-                println "  Key Alias:     ${ksAlias}"
-                println "  Certificate:   ${cert.getSubjectDN()}"
-                println "  SHA-256:       ${fingerprint}"
-                println "=================================================="
-
-                if (fingerprint != expectedSha256) {
-                    throw new GradleException(
-                        "CRITICAL SECURITY FAILURE: Keystore certificate SHA-256 mismatch!\n" +
-                        "  Expected Production SHA-256: ${expectedSha256}\n" +
-                        "  Found Keystore SHA-256:      ${fingerprint}\n" +
-                        "Production release build CANNOT proceed with an unauthorized signing key!"
-                    )
-                }
-            } catch (Exception e) {
-                if (e instanceof GradleException) throw e
-                throw new GradleException("CRITICAL SECURITY FAILURE: Failed to verify production keystore certificate: ${e.message}", e)
-            }
 
             storeFile ksFile
             storePassword ksPwd
@@ -156,4 +113,58 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'validateSigningRelease' || task.name == 'packageRelease') {
+        task.doFirst {
+            def ksFile = file('release.keystore')
+            def ksPwd = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            def ksAlias = System.getenv("ANDROID_KEY_ALIAS")
+            def ksKeyPwd = System.getenv("ANDROID_KEY_PASSWORD")
+            def expectedSha256 = "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
+
+            if (!ksFile.exists()) {
+                throw new GradleException(
+                    "CRITICAL SECURITY FAILURE: release.keystore missing at ${ksFile.absolutePath}.\n" +
+                    "Production builds require the official production release keystore. Fallback to debug key is strictly prohibited!"
+                )
+            }
+            if (ksPwd == null || ksPwd.isEmpty() || ksAlias == null || ksAlias.isEmpty() || ksKeyPwd == null || ksKeyPwd.isEmpty()) {
+                throw new GradleException(
+                    "CRITICAL SECURITY FAILURE: Production signing environment variables (ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD) are missing!"
+                )
+            }
+
+            try {
+                def ks = java.security.KeyStore.getInstance("PKCS12")
+                ksFile.withInputStream { is -> ks.load(is, ksPwd.toCharArray()) }
+                def cert = ks.getCertificate(ksAlias)
+                if (cert == null) {
+                    throw new GradleException("CRITICAL SECURITY FAILURE: Keystore alias '${ksAlias}' not found in ${ksFile.absolutePath}")
+                }
+                def md = java.security.MessageDigest.getInstance("SHA-256")
+                def fingerprint = md.digest(cert.getEncoded()).encodeHex().toString().toLowerCase()
+                println "=================================================="
+                println "PRODUCTION SIGNING KEY FINGERPRINT VERIFICATION:"
+                println "  Keystore File: ${ksFile.name}"
+                println "  Key Alias:     ${ksAlias}"
+                println "  Certificate:   ${cert.getSubjectDN()}"
+                println "  SHA-256:       ${fingerprint}"
+                println "=================================================="
+
+                if (fingerprint != expectedSha256) {
+                    throw new GradleException(
+                        "CRITICAL SECURITY FAILURE: Keystore certificate SHA-256 mismatch!\n" +
+                        "  Expected Production SHA-256: ${expectedSha256}\n" +
+                        "  Found Keystore SHA-256:      ${fingerprint}\n" +
+                        "Production release build CANNOT proceed with an unauthorized signing key!"
+                    )
+                }
+            } catch (Exception e) {
+                if (e instanceof GradleException) throw e
+                throw new GradleException("CRITICAL SECURITY FAILURE: Failed to verify production keystore certificate: ${e.message}", e)
+            }
+        }
+    }
 }

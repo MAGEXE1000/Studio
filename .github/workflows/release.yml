@@ -253,19 +253,19 @@ jobs:
 
       - name: Verify Deployed Android Metadata
         run: |
-          echo "Waiting 5s for Firebase CDN propagation..."
-          sleep 5
           NATIVE_VER=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
-
-          echo "--- Fetching app-release.json ---"
-          APP_JSON=$(curl -sf --retry 3 "https://studio-30f44.web.app/app-release.json")
-          APP_LIVE=$(echo "$APP_JSON" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version")
-          echo "Deployed app-release.json version = $APP_LIVE"
-          if [ "$APP_LIVE" != "$NATIVE_VER" ]; then
-            echo "::error::Deployed app-release.json version mismatch! Expected $NATIVE_VER, got $APP_LIVE"
-            exit 1
-          fi
-          echo "✓ Android Release Post-deploy verification passed"
+          echo "Verifying Firebase CDN propagation for version $NATIVE_VER..."
+          for i in {1..10}; do
+            APP_JSON=$(curl -sf --retry 2 "https://studio-ebff6.web.app/app-release.json" || true)
+            APP_LIVE=$(echo "$APP_JSON" | node -p "try{JSON.parse(require('fs').readFileSync(0,'utf8')).version}catch(e){'unknown'}")
+            if [ "$APP_LIVE" = "$NATIVE_VER" ]; then
+              echo "✓ Android Release Post-deploy verification passed (Deployed version: $APP_LIVE)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Deployed app-release.json version mismatch! Expected $NATIVE_VER, got $APP_LIVE"
+          exit 1
 
       - name: Generate Pipeline Performance Summary Report
         if: always()

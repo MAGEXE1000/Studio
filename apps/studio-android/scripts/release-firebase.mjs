@@ -534,7 +534,7 @@ run('npx', ['cap', 'sync', 'android']);
 console.log('Step 3/15: Build signed Android release APK...');
 
 const gradleCmd = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
-const gradleArgs = ['assembleRelease', '-x', 'lint', '-x', 'lintVitalRelease', '--stacktrace'];
+const gradleArgs = ['assembleRelease', '-x', 'lint', '-x', 'lintVitalRelease', '--parallel', '--build-cache', '--max-workers=4', '--stacktrace'];
 const gradleEnv = { ...process.env };
 if (process.platform === 'win32') {
   const jdk21Path = 'C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot';

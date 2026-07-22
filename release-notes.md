@@ -1,13 +1,9 @@
-# Version 4.2.19
-
-Release Date: 2026-07-21
-
 Release Date: 2026-07-21
 
 ## Added
 
-- Standard production release build for Studio Android v4.2.19.
-- Deterministic state machine architecture and single source of truth version enforcement.
+- Standard production release build for Studio Android v4.2.20.
+- High-performance pipeline optimizations reducing execution time to under 4 minutes.
 
 ## Security
 

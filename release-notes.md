@@ -1,11 +1,8 @@
-# Version 4.2.38
-
-Release Date: 2026-07-22
-
 Release Date: 2026-07-22
 
 ## Improved
-- Optimized search transitions by morphing with a compact upward growth (55vh) and removing heavy fullscreen backdrop blurs to avoid layout thrashing.
-- Cached and deferred local-storage search index loading on mount to prevent CPU spikes during search open animations.
-- Prevented Bottom Navigation bar disappearances by adding a deterministic reset call on scroll observer element unmount.
-- Designed 5 new premium transition presets (Material Shared Axis, Premium Spring Slide, Elastic Morph, Floating Depth, Liquid Flow) in the Motion Playground with interactive simulator controls.
+- Redesigned search bar into a single-surface morph of the bottom navigation dock with a horizontal Liquid Glass stretching animation.
+- Restructured search results to slide upward above the navigation dock, remaining visible when focusing input and opening the keyboard.
+- Streamlined search result cards by removing unnecessary icons and adding high-contrast category tags.
+- Added an unread notification badge on the bell icon and automatically mark notifications as read when the center is opened.
+- Restored Developer Options Motion Playground to a clean state containing only stable, production-ready GPU animations.

@@ -470,6 +470,20 @@ export default function StudioHub() {
     activeRoute.app === 'hub' && activeRoute.tab === 'settings'
       ? (activeRoute.page ?? 'main')
       : 'main';
+
+  const { markAllAsRead } = useNotificationService();
+  const routeApp = activeRoute.app;
+  const routeTab = activeRoute.tab;
+  const routePage = activeRoute.page;
+
+  useEffect(() => {
+    if (
+      routeApp === 'hub' &&
+      (routeTab === 'notifications' || routePage === 'notifications' || (routeTab === 'profile' && routePage === 'notifications'))
+    ) {
+      markAllAsRead();
+    }
+  }, [routeApp, routeTab, routePage, markAllAsRead]);
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&

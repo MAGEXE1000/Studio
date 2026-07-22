@@ -198,8 +198,9 @@ export function BottomNavigationController() {
       const activeEl = document.activeElement;
       if (activeEl) {
         const tagName = activeEl.tagName.toLowerCase();
+        const isSearchInput = activeEl.id === 'global-search-input';
         setIsKeyboardFocused(
-          tagName === 'input' ||
+          (!isSearchInput && tagName === 'input') ||
           tagName === 'textarea' ||
           activeEl.hasAttribute('contenteditable') ||
           (activeEl as HTMLElement).isContentEditable

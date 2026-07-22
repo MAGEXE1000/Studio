@@ -12,7 +12,7 @@ import {
   NavigationDispatcher,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
-import { IconSongs, IconLibrary, IconChords, IconSettings } from '../components/icons/NavIcons';
+import { IconSongs, IconLibrary, IconSettings } from '../components/icons/NavIcons';
 
 if (typeof window !== 'undefined') {
   (window as any).__navMetrics = (window as any).__navMetrics || {
@@ -185,10 +185,6 @@ export function BottomNavigationController() {
 
   // Compute navigation items synchronously from route history & registry definitions
   const computedItems = useMemo(() => {
-    if (isTransitioning) {
-      return [];
-    }
-
     if (currentApp !== lastAppRef.current) {
       lastAppRef.current = currentApp;
       if (typeof window !== 'undefined') {
@@ -232,8 +228,6 @@ export function BottomNavigationController() {
           iconElement = <IconSongs active={isActive} />;
         } else if (sec.id === 'library') {
           iconElement = <IconLibrary active={isActive} />;
-        } else if (sec.id === 'chord') {
-          iconElement = <IconChords active={isActive} />;
         } else if (sec.id === 'settings') {
           iconElement = <IconSettings active={isActive} />;
         } else {
@@ -261,7 +255,7 @@ export function BottomNavigationController() {
       onClick: () =>
         NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any }),
     }));
-  }, [currentApp, activeTab, activePage, isTransitioning, getTranslation]);
+  }, [currentApp, activeTab, activePage, getTranslation]);
 
   // Filter out rendering on Desktop web views
   const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor?.isNativePlatform?.();
@@ -269,7 +263,7 @@ export function BottomNavigationController() {
     return null;
   }
 
-  const visible = !isTransitioning && !isKeyboardFocused && !hasDOMHiddenIndicator && useBottomNavigationStore.getState().visible;
+  const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && useBottomNavigationStore.getState().visible;
 
   return (
     <SharedNavigationBar

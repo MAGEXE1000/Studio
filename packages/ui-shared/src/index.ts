@@ -19,7 +19,6 @@ export { default as FourStringDiagram } from './components/FourStringDiagram';
 export { default as ChordDiagram } from './components/ChordDiagram';
 export * from './components/StudioSkeleton';
 export { LibraryPanel } from './features/chordex';
-export { ChordPanel } from './features/chordex';
 export { default as SettingsPanel } from './panels/SettingsPanel';
 export { SongsPanel } from './features/chordex';
 export { DrumEditor } from './features/drumex';

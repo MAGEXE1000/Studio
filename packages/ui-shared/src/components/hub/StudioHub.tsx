@@ -93,12 +93,6 @@ import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
 
 const ALL_SHORTCUT_OPTIONS = [
   {
-    id: 'chords-chord',
-    icon: 'music_note',
-    titleEn: 'Chord Builder',
-    titleEs: 'Constructor de Acordes',
-  },
-  {
     id: 'chords-songs',
     icon: 'library_music',
     titleEn: 'Songs Library',
@@ -515,23 +509,17 @@ export default function StudioHub() {
       if (stored) {
         setShortcuts(JSON.parse(stored));
       } else {
-        const defaultShortcuts = ['chords-chord', 'chords-songs', 'notifications', 'settings'];
+        const defaultShortcuts = ['chords-practice', 'chords-songs', 'notifications', 'settings'];
         setShortcuts(defaultShortcuts);
         localStorage.setItem('studio:quick-shortcuts', JSON.stringify(defaultShortcuts));
       }
     } catch {
-      setShortcuts(['chords-chord', 'chords-songs', 'notifications', 'settings']);
+      setShortcuts(['chords-practice', 'chords-songs', 'notifications', 'settings']);
     }
   }, []);
 
   const handleShortcutClick = (id: string) => {
     switch (id) {
-      case 'chords-chord':
-        launchApp('chords');
-        setTimeout(() => {
-          NavigationDispatcher.push({ app: 'chords', page: 'chord' });
-        }, 150);
-        break;
       case 'chords-songs':
         launchApp('chords');
         setTimeout(() => {
@@ -3201,6 +3189,7 @@ type SettingsPageId =
   | 'language'
   | 'privacy'
   | 'about'
+  | 'updater'
   | 'notifications'
   | 'debug'
   | 'developer'
@@ -4427,6 +4416,16 @@ function HubSettings({
             label: t.hub.studioSettings.generalTitle || (lang === 'es' ? 'Ajustes' : 'Settings'),
           },
           {
+            id: 'updater' as const,
+            icon: 'system_update',
+            label: lang === 'es' ? 'Actualizador' : 'Updater',
+          },
+          {
+            id: 'notifications' as const,
+            icon: 'notifications',
+            label: lang === 'es' ? 'Centro de Notificaciones' : 'Notification Center',
+          },
+          {
             id: 'appearance' as const,
             icon: 'palette',
             label: t.settings.sections.appearance || (lang === 'es' ? 'Apariencia' : 'Appearance'),
@@ -4480,6 +4479,7 @@ function HubSettings({
   }, [t, settings.developerMode, lang, tab]);
 
   const getPageTitle = (id: SettingsPageId | 'profile') => {
+    if (id === 'updater') return lang === 'es' ? 'Actualizador' : 'Updater';
     if (id === 'help-center') return t.hub.studioSettings.helpTitle || 'Help Center';
     if (id === 'faq') return (t.hub as any).studioSettings?.helpTitle || 'FAQ & Support';
     if (id === 'terms') return t.hub.studioSettings.termsTitle || 'Terms of Service';
@@ -8728,6 +8728,7 @@ User Agent: [Automatically Generated]
   if (!isWebDesktop) {
     const standardScrollPages: SettingsPageId[] = [
       'general',
+      'updater',
       'appearance',
       'language',
       'privacy',
@@ -8749,6 +8750,7 @@ User Agent: [Automatically Generated]
           viewOrder={[
             'main',
             'general',
+            'updater',
             'appearance',
             'language',
             'privacy',
@@ -8767,6 +8769,7 @@ User Agent: [Automatically Generated]
           preMountViews={[
             'main',
             'general',
+            'updater',
             'appearance',
             'language',
             'privacy',

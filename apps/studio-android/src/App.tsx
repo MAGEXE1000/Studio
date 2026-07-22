@@ -21,9 +21,6 @@ const StudioHub = lazy(() =>
 const LibraryPanel = lazy(() =>
   import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel }))
 );
-const ChordPanel = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.ChordPanel }))
-);
 const SettingsPanel = lazy(() =>
   import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel }))
 );
@@ -90,7 +87,7 @@ type AccountState =
       };
     };
 
-const ALL_PANELS = ['songs', 'library', 'chord', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'settings'] as const;
 
 function getVisualStateForElement(selector: string) {
   const el = document.querySelector(selector);
@@ -2829,9 +2826,8 @@ const SubAppWrapper = memo(function SubAppWrapper({
                       <SharedNavigationContainer activeView={cachedPanel} viewOrder={ALL_PANELS}>
                         {(panel) => (
                           <>
-                            {panel === 'library' && <LibraryPanel />}
-                            {panel === 'chord' && <ChordPanel />}
                             {panel === 'songs' && <SongsPanel />}
+                            {panel === 'library' && <LibraryPanel />}
                             {panel === 'settings' && <SettingsPanel />}
                           </>
                         )}

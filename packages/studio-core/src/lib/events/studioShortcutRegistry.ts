@@ -28,13 +28,7 @@ export const SHORTCUT_REGISTRY: ShortcutRegistryItem[] = [
     type: 'chordex-panel',
     payload: 'library',
   },
-  {
-    id: 'chordex_chords',
-    label: 'Chordex Chords',
-    icon: 'grid_view',
-    type: 'chordex-panel',
-    payload: 'chord',
-  },
+
 
   {
     id: 'settings_appearance',

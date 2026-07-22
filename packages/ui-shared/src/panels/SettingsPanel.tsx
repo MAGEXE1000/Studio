@@ -193,7 +193,6 @@ export default function SettingsPanel() {
                 const tabs: { value: ActivePanel; Icon: React.FC<{ active: boolean }> }[] = [
                   { value: 'songs', Icon: IconSongs },
                   { value: 'library', Icon: IconLibrary },
-                  { value: 'chord', Icon: IconChords },
                   { value: 'settings', Icon: IconSettings },
                 ];
                 return (
@@ -471,7 +470,6 @@ export default function SettingsPanel() {
               const tabs: { value: ActivePanel; Icon: React.FC<{ active: boolean }> }[] = [
                 { value: 'songs', Icon: IconSongs },
                 { value: 'library', Icon: IconLibrary },
-                { value: 'chord', Icon: IconChords },
                 { value: 'settings', Icon: IconSettings },
               ];
               return (

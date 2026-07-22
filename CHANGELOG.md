@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.31
+
+Release Date: 2026-07-22
+
+## Fixed
+- Removed obsolete chords section from Chordex app completely.
+- Optimized Bottom Navigation to mount immediately as part of app shell.
+- Restored dedicated Updater settings page alongside Notification Center.
+
 # Version 4.2.30
 
 Release Date: 2026-07-22

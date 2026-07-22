@@ -25,7 +25,6 @@ import {
 } from '@workspace/ui-shared';
 
 const LibraryPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel })));
-const ChordPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.ChordPanel })));
 const SettingsPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel })));
 const SongsPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.SongsPanel })));
 const DrumEditor = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.DrumEditor })));
@@ -86,8 +85,7 @@ type AccountState =
       };
     };
 
-const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
-const ALL_PANELS = ['songs', 'library', 'chord', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'settings'] as const;
 
 const AppReadyNotifier = memo(function AppReadyNotifier({
   app,
@@ -702,7 +700,6 @@ export default function App() {
                                     <>
                                       {panel === 'songs' && <SongsPanel />}
                                       {panel === 'library' && <LibraryPanel />}
-                                      {panel === 'chord' && <ChordPanel />}
                                       {panel === 'settings' && <SettingsPanel />}
                                     </>
                                   )}

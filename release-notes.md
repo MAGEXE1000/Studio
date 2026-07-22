@@ -2,8 +2,8 @@ Release Date: 2026-07-21
 
 ## Added
 
-- Standard production release build for Studio Android v4.2.23.
-- Optimized CI workflow checkout depth reducing total release pipeline execution runtime to under 5 minutes.
+- Standard production release build for Studio Android v4.2.24.
+- Forensic instrumentation and optimization of internal release orchestration phases.
 
 ## Security
 

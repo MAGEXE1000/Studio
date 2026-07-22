@@ -2,7 +2,7 @@ Release Date: 2026-07-21
 
 ## Added
 
-- Standard production release build for Studio Android v4.2.20.
+- Standard production release build for Studio Android v4.2.21.
 - High-performance pipeline optimizations reducing execution time to under 4 minutes.
 
 ## Security

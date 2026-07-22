@@ -1,7 +1,5 @@
 Release Date: 2026-07-22
 
 ## Improved
-- Overhauled settings layout and transitioned Profile into a primary bottom navigation tab.
-- Rebuilt the Profile tab with a modern Bento grid, interactive sync status card, and integrated activity timeline.
-- Resolved Stagex view synchronization and exit logo freezes on app switches.
-- Styled Bottom Navigation and active capsule indicators with liquid glass translucency.
+- Rebuilt global search as a floating morphing dock overlay with category chips and action command palettes.
+- Re-architected bottom navigation dock to mathematically center active tabs and utilize liquid-glass refraction blurs.

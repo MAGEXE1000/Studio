@@ -1,3 +1,6 @@
+import { ENJAMBRE_SONGS } from '../../data/songs';
+import { NavigationDispatcher } from './NavigationDispatcher';
+
 export interface SearchableItem {
   id: string;
   category: 'apps' | 'settings' | 'projects' | 'songs' | 'actions';
@@ -268,6 +271,32 @@ class CentralizedSearchIndex {
         tab: 'settings',
         page: 'privacy',
       },
+    });
+
+    // 5. Catalog Songs
+    ENJAMBRE_SONGS.forEach((song) => {
+      this.register({
+        id: `song-${song.id}`,
+        category: 'songs',
+        titleEn: song.title,
+        titleEs: song.title,
+        subtitleEn: `by ${song.artist} (${song.genre})`,
+        subtitleEs: `de ${song.artist} (${song.genre})`,
+        keywordsEn: [song.artist, song.genre, 'song', 'catalog', 'chords', 'chart'],
+        keywordsEs: [song.artist, song.genre, 'canción', 'catálogo', 'acordes'],
+        target: {
+          app: 'chords',
+          action: () => {
+            // Launch Chords app and direct to practice view
+            NavigationDispatcher.push({
+              app: 'chords',
+              tab: 'songs',
+              page: 'practice',
+              params: { songId: song.id }
+            } as any);
+          },
+        },
+      });
     });
   }
 }

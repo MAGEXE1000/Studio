@@ -1,5 +1,12 @@
+# Version 4.2.37
+
 Release Date: 2026-07-22
 
+Release Date: 2026-07-22
+
+## Fixed
+- Stabilized global search by removing duplicate index registrations and unmounted stale closures from the Hub, preventing runtime crashes.
+- Resolved React Hook Ordering violation (#300) in the Shared Navigation Bar by raising `useTransform` to the component top level.
+
 ## Improved
-- Refined Search Dock layout to sit naturally to the left and unified the Bottom Navigation and Search Button into a single morphing dock.
-- Restored centered sub-app Bottom Navigation layouts without empty placeholders or search button layouts.
+- Completely purged legacy header app switcher pill (`AppModeMenuLogo`) across Chordex, Drumex, Stagex, Groovex, Vocalex, and Settings for clean page headers.

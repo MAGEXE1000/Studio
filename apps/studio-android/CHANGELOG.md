@@ -13,6 +13,25 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.37
+
+Release Date: 2026-07-22
+
+## Fixed
+- Stabilized global search by removing duplicate index registrations and unmounted stale closures from the Hub, preventing runtime crashes.
+- Resolved React Hook Ordering violation (#300) in the Shared Navigation Bar by raising `useTransform` to the component top level.
+
+## Improved
+- Completely purged legacy header app switcher pill (`AppModeMenuLogo`) across Chordex, Drumex, Stagex, Groovex, Vocalex, and Settings for clean page headers.
+
+# Version 4.2.35
+
+Release Date: 2026-07-22
+
+## Improved
+- Refined Search Dock layout to sit naturally to the left and unified the Bottom Navigation and Search Button into a single morphing dock.
+- Restored centered sub-app Bottom Navigation layouts without empty placeholders or search button layouts.
+
 # Version 4.2.34
 
 Release Date: 2026-07-22

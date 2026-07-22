@@ -64,7 +64,6 @@ export { default as VinylLottie } from './components/lottie/VinylLottie';
 export * from './components/ui/encrypted-text';
 
 export { useGroovexStore } from './features/groovex';
-export { AppModeMenuLogo } from './components/AppModeMenuLogo';
 export { default as WebAppSectionDock } from './components/WebAppSectionDock';
 export { default as DevToolsDashboard } from './components/DevToolsDashboard';
 

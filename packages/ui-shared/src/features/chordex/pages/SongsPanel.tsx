@@ -33,7 +33,6 @@ import CustomChordBuilder, {
   CustomMiniDiagram,
 } from '../../../components/feature/CustomChordBuilder';
 import ChordDiagram from '../../../components/diagrams/ChordDiagram';
-import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 import {
   DialogScaffold,

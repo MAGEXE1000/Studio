@@ -784,10 +784,11 @@ export function SharedNavigationBar({
   };
 
   const pillSkewXTrans = useTransform(pillSkewX, (val) => `${val}deg`);
+  const pillXTrans = useTransform(pillX, (val) => val - pillWidth / 2);
 
   const fastSpring = useMemo(
     () => ({
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 550,
       damping: 32,
       mass: 0.45,
@@ -875,7 +876,7 @@ export function SharedNavigationBar({
                     top: '1px',
                     height: '50px',
                     width: `${pillWidth}px`,
-                    x: useTransform(pillX, (val) => val - pillWidth / 2),
+                    x: pillXTrans,
                     skewX: pillSkewXTrans,
                     transformOrigin: 'center center',
                     pointerEvents: 'none',

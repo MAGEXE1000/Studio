@@ -4,7 +4,6 @@ import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
   AnimatedActionButton,
-  AppModeMenuLogo,
   WebAppSectionDock,
   SmartLoading,
   StagexPanelSkeleton,
@@ -2948,12 +2947,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 </button>
               </div>
 
-              {!isWebDesktop && (
-                <AppModeMenuLogo
-                  color={isLight ? 'rgba(0,0,0,0.80)' : 'rgba(255,255,255,0.90)'}
-                  size={13}
-                />
-              )}
+
 
               <div style={{ flex: 1 }} />
 

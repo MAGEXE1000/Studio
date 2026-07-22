@@ -13,7 +13,6 @@ import {
   settingsController,
 } from '@workspace/studio-core';
 import React, { useRef, useState, useEffect } from 'react';
-import { AppModeMenuLogo } from '../components/AppModeMenuLogo';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../components/SettingControls';
 import { IconSongs, IconLibrary, IconChords, IconSettings } from '../components/NavIcons';
 import { DialogScaffold } from '../components/StudioLayoutSystem';

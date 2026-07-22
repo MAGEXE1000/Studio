@@ -2,7 +2,6 @@ import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, 
 import { useShallow } from 'zustand/react/shallow';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from '../state/useGroovexStore';
-import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import {
   SHARED_NAV_TRANSITION,
   getSharedNavTransform,

@@ -26,7 +26,6 @@ import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useMemo, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { SongPracticeView } from '../../../components/SongPracticeView';
 import ChordDiagram from '../../../components/ChordDiagram';
-import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import GuitarDiagram from '../../../components/GuitarDiagram';
 import PianoDiagram from '../../../components/PianoDiagram';
 import FourStringDiagram from '../../../components/FourStringDiagram';

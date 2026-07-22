@@ -6,8 +6,6 @@ import {
   startDiagnosticsSession,
   resetUpdateTimeline,
   getTimelineReport,
-  searchIndex,
-  type SearchableItem,
 } from '@workspace/studio-core';
 import React, {
   useState,
@@ -464,7 +462,6 @@ export default function StudioHub() {
     };
   }, []);
   const [zooming, setZooming] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const activeRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || {
     app: 'hub',
     tab: 'home',
@@ -481,23 +478,6 @@ export default function StudioHub() {
 
 
   const [langQuery, setLangQuery] = useState('');
-  const [searchCategory, setSearchCategory] = useState<
-    'all' | 'apps' | 'settings' | 'projects' | 'songs' | 'actions'
-  >('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  useBackHandler(
-    'modal',
-    () => {
-      if (searchOpen) {
-        setSearchOpen(false);
-        setSearchQuery('');
-        return true;
-      }
-      return false;
-    },
-    [searchOpen]
-  );
   const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState<string[]>([]);
 
@@ -887,223 +867,6 @@ export default function StudioHub() {
     [greetName, lang]
   );
 
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (searchOpen) {
-      try {
-        const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
-        setRecentSearches(JSON.parse(historyStr));
-      } catch {}
-    }
-  }, [searchOpen]);
-
-  const addToSearchHistory = (query: string) => {
-    const trimmed = query.trim();
-    if (!trimmed) return;
-    try {
-      const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
-      let history: string[] = JSON.parse(historyStr);
-      history = history.filter((x) => x.toLowerCase() !== trimmed.toLowerCase());
-      history.unshift(trimmed);
-      history = history.slice(0, 5);
-      localStorage.setItem('studio:recent-searches', JSON.stringify(history));
-      setRecentSearches(history);
-    } catch {}
-  };
-
-  const removeSearchHistory = (queryToRemove: string) => {
-    try {
-      const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
-      let history: string[] = JSON.parse(historyStr);
-      history = history.filter((x) => x.toLowerCase() !== queryToRemove.toLowerCase());
-      localStorage.setItem('studio:recent-searches', JSON.stringify(history));
-      setRecentSearches(history);
-    } catch {}
-  };
-
-  const scoreMatch = (query: string, text: string): number => {
-    const q = query.toLowerCase().trim();
-    const t = text.toLowerCase();
-    if (!q) return 0;
-    if (t === q) return 150;
-    if (t.startsWith(q)) return 100;
-    if (t.includes(q)) return 80;
-
-    let qIdx = 0;
-    let tIdx = 0;
-    let matchDistance = 0;
-    while (qIdx < q.length && tIdx < t.length) {
-      if (q[qIdx] === t[tIdx]) {
-        if (qIdx > 0) {
-          matchDistance += tIdx - qIdx;
-        }
-        qIdx++;
-      }
-      tIdx++;
-    }
-    if (qIdx === q.length) {
-      return Math.max(10, 50 - matchDistance);
-    }
-    return 0;
-  };
-
-  const getSearchResults = (query: string): SearchableItem[] => {
-    const q = query.trim();
-    if (!q) return [];
-
-    const allItems = searchIndex.getItems();
-    const scored = allItems.map((item) => {
-      const titleScore = Math.max(scoreMatch(q, item.titleEn), scoreMatch(q, item.titleEs));
-      const subtitleScore =
-        Math.max(scoreMatch(q, item.subtitleEn), scoreMatch(q, item.subtitleEs)) * 0.5;
-
-      const keywordsEnScore = (item.keywordsEn || []).some((k) =>
-        k.toLowerCase().includes(q.toLowerCase())
-      )
-        ? 70
-        : 0;
-      const keywordsEsScore = (item.keywordsEs || []).some((k) =>
-        k.toLowerCase().includes(q.toLowerCase())
-      )
-        ? 70
-        : 0;
-
-      const finalScore = Math.max(titleScore, subtitleScore, keywordsEnScore, keywordsEsScore);
-      return { item, score: finalScore };
-    });
-
-    let results = scored
-      .filter((x) => x.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((x) => x.item);
-
-    if (searchCategory !== 'all') {
-      results = results.filter((x) => x.category === searchCategory);
-    }
-
-    return results;
-  };
-
-  const handleSearchRowClick = (item: SearchableItem) => {
-    addToSearchHistory(searchQuery);
-    // Keep search open on row interaction
-    setSearchQuery('');
-
-    if (item.target.action) {
-      item.target.action();
-    } else if (item.target.app) {
-      if (item.target.app === 'hub') {
-        NavigationDispatcher.push({
-          app: 'hub',
-          tab: item.target.tab || 'home',
-          page: item.target.page,
-        } as any);
-      } else {
-        launchApp(item.target.app);
-        if (item.target.page) {
-          setTimeout(() => {
-            NavigationDispatcher.push({
-              app: item.target.app as any,
-              page: item.target.page,
-            } as any);
-          }, 150);
-        }
-      }
-    }
-  };
-
-  const renderSearchRow = (item: SearchableItem, idx: number) => {
-    const icon =
-      {
-        apps: 'widgets',
-        settings: 'settings',
-        projects: 'folder',
-        songs: 'library_music',
-        actions: 'bolt',
-      }[item.category] || 'widgets';
-
-    const iconColor =
-      {
-        apps: accent.from,
-        settings: '#38bdf8',
-        projects: '#fb7185',
-        songs: '#a78bfa',
-        actions: '#f59e0b',
-      }[item.category] || accent.from;
-
-    return (
-      <button
-        key={item.id || idx}
-        onClick={() => handleSearchRowClick(item)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          width: '100%',
-          padding: '8px 12px',
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(128,128,128,0.04)',
-          borderRadius: 12,
-          textAlign: 'left',
-          cursor: 'pointer',
-          transition: 'all 120ms ease',
-        }}
-        className="hover:scale-[0.99] active:scale-[0.97]"
-      >
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: `${iconColor}12`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: iconColor,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-            {icon}
-          </span>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: '12.5px',
-              fontWeight: 600,
-              color: 'var(--c-text-primary)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {lang === 'es' ? item.titleEs : item.titleEn}
-          </div>
-          <div
-            style={{
-              fontSize: '10.5px',
-              color: 'var(--c-text-secondary)',
-              opacity: 0.8,
-              marginTop: 1,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {lang === 'es' ? item.subtitleEs : item.subtitleEn}
-          </div>
-        </div>
-        <span
-          className="material-symbols-outlined"
-          style={{ color: 'var(--c-text-muted)', fontSize: 16 }}
-        >
-          chevron_right
-        </span>
-      </button>
-    );
-  };
-
   const formatTimeAgo = useCallback(
     (timeInput: any): string => {
       try {
@@ -1217,126 +980,7 @@ export default function StudioHub() {
     return list.slice(0, 3);
   }, [formatTimeAgo, launchApp]);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    if (searchOpen) {
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
 
-      // Defer expensive scanning off the critical animation path to avoid stutters
-      timer = setTimeout(() => {
-        try {
-          const chordex = localStorage.getItem('chord-explorer-storage-v3');
-          if (chordex) {
-            const parsed = JSON.parse(chordex);
-            const state = parsed.state || {};
-            (state.presets || []).forEach((p: any) => {
-              searchIndex.register({
-                id: `chordex-preset-${p.id || p.name}`,
-                category: 'projects',
-                titleEn: p.name || 'Untitled Chordex Preset',
-                titleEs: p.name || 'Preajuste de Chordex sin título',
-                subtitleEn: 'Chordex Preset',
-                subtitleEs: 'Preajuste de Chordex',
-                keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
-                keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
-                target: {
-                  app: 'chords',
-                  action: () => {
-                    launchApp('chords');
-                    setTimeout(() => {
-                      NavigationDispatcher.push({ app: 'chords', page: 'library' });
-                    }, 150);
-                  },
-                },
-              });
-            });
-            (state.progressions || []).forEach((p: any) => {
-              searchIndex.register({
-                id: `chordex-prog-${p.id || p.name}`,
-                category: 'projects',
-                titleEn: p.name || 'Untitled Progression',
-                titleEs: p.name || 'Progresión sin título',
-                subtitleEn: 'Chordex Progression',
-                subtitleEs: 'Progresión de Chordex',
-                keywordsEn: ['progression', 'chords', 'chordex'],
-                keywordsEs: ['progresión', 'acordes', 'chordex'],
-                target: {
-                  app: 'chords',
-                  action: () => {
-                    launchApp('chords');
-                    setTimeout(() => {
-                      NavigationDispatcher.push({ app: 'chords', page: 'songs' });
-                    }, 150);
-                  },
-                },
-              });
-            });
-          }
-        } catch {}
-
-        try {
-          const drumex = localStorage.getItem('chordex-drums');
-          if (drumex) {
-            const parsed = JSON.parse(drumex);
-            const state = parsed.state || {};
-            (state.drumSongs || []).forEach((s: any) => {
-              searchIndex.register({
-                id: `drumex-song-${s.id || s.name}`,
-                category: 'songs',
-                titleEn: s.name || 'Untitled Drum Song',
-                titleEs: s.name || 'Canción de batería sin título',
-                subtitleEn: 'Drumex Song',
-                subtitleEs: 'Canción de Drumex',
-                keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
-                keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
-                target: {
-                  app: 'drums',
-                  action: () => {
-                    launchApp('drums');
-                    setTimeout(() => {
-                      NavigationDispatcher.push({ app: 'drums', page: 'songs' });
-                    }, 150);
-                  },
-                },
-              });
-            });
-          }
-        } catch {}
-
-        try {
-          const groovex = localStorage.getItem('groovex-storage-v1');
-          if (groovex) {
-            const parsed = JSON.parse(groovex);
-            const state = parsed.state || {};
-            (state.recentSongs || []).forEach((s: any) => {
-              searchIndex.register({
-                id: `groovex-song-${s.id || s.name || s.title}`,
-                category: 'songs',
-                titleEn: s.name || s.title || s.artist || 'Untitled Groovex Song',
-                titleEs: s.name || s.title || s.artist || 'Canción de Groovex sin título',
-                subtitleEn: 'Groovex Recent Song',
-                subtitleEs: 'Canción reciente de Groovex',
-                keywordsEn: ['groove', 'song', 'recent', 'groovex'],
-                keywordsEs: ['groove', 'canción', 'reciente', 'groovex'],
-                target: {
-                  app: 'groovex',
-                  action: () => {
-                    launchApp('groovex');
-                  },
-                },
-              });
-            });
-          }
-        } catch {}
-      }, 350);
-    }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [searchOpen]);
 
   return (
     <div
@@ -1383,8 +1027,8 @@ export default function StudioHub() {
                   inset: 0,
                   overflowY: 'auto',
                   overflowX: 'hidden',
-                  willChange: tabId === 'home' && searchOpen ? undefined : 'transform',
-                  transform: tabId === 'home' && searchOpen ? undefined : 'translate3d(0, 0, 0)',
+                  willChange: 'transform',
+                  transform: 'translate3d(0, 0, 0)',
                   WebkitOverflowScrolling: 'touch',
                 }}
               >
@@ -2249,41 +1893,7 @@ export default function StudioHub() {
         </div>
       )}
 
-      {/* 🔍 Global Search Backdrop and Click-Away Overlay */}
-      <AnimatePresence>
-        {searchOpen && (
-          <>
-            {/* Fixed subtle dim overlay behind dropdown */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 39,
-                background: 'rgba(10, 10, 12, 0.35)',
-                pointerEvents: 'none',
-              }}
-            />
 
-            {/* Click-away overlay */}
-            <div
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 40,
-                background: 'transparent',
-              }}
-              onClick={() => {
-                setSearchOpen(false);
-                setSearchQuery('');
-              }}
-            />
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

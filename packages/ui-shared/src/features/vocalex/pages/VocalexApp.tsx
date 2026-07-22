@@ -27,7 +27,6 @@ import {
   type SharedNavigationItem,
 } from '../../../navigation/SharedNavigationBar';
 
-import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import { subscribeVocalexBack } from '../utils/headerBack';
 import {
   SHARED_NAV_TRANSITION,

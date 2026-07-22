@@ -9,7 +9,6 @@ import {
   SHARED_NAV_TRANSITION,
 } from '../../../navigation/navStyles';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
-import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
 import SmartLoading from '../../../components/loading/SmartLoading';
 import { StagexPanelSkeleton } from '../../../components/loading/StudioSkeleton';

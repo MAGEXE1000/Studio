@@ -118,7 +118,7 @@ import {
   type SampleStatus,
   type HouseInstName,
 } from '@workspace/studio-core';
-import { AppModeMenuLogo } from '../../../components/icons/AppModeMenuLogo';
+
 import DrumPrefsPanel from './DrumPrefsPanel';
 import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
 import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
@@ -5080,10 +5080,7 @@ export default function DrumEditor() {
               )}
             </>
           ) : (
-            <>
-              <AppModeMenuLogo color={isLight ? '#18181b' : '#d4d4d8'} size={13} />
-              <div style={{ flex: 1 }} />
-            </>
+            <div style={{ flex: 1 }} />
           )}
         </div>
       ) : (

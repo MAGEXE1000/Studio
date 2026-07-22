@@ -1698,8 +1698,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   const isTabActive = (view: string) => {
     if (view === 'Editor') return curView === 'Editor' || curView === 'Export';
-    if (view === 'Setup')
-      return ['SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(curView);
+    if (view === 'Setup' || view === 'SetupHub')
+      return ['SetupHub', 'Rider', 'Setlist', 'Gear', 'Members', 'Setup'].includes(curView);
     if (view === 'Preferences') return curView === 'Preferences';
     return false;
   };
@@ -3181,6 +3181,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   <SmartLoading app="stage" />
                 </div>
               )}
+              {hideBottomNav && <div className="hide-bottom-nav" style={{ display: 'none' }} />}
             </div>
 
             {showDiagnostics && (

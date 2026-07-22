@@ -90,7 +90,7 @@ type AccountState =
       };
     };
 
-const ALL_PANELS = ['songs', 'library', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'chord', 'settings'] as const;
 
 function getVisualStateForElement(selector: string) {
   const el = document.querySelector(selector);

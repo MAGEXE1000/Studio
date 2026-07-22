@@ -86,8 +86,8 @@ type AccountState =
       };
     };
 
-const NAV_ORDER = ['songs', 'library', 'settings'] as const;
-const ALL_PANELS = ['library', 'songs', 'settings'] as const;
+const NAV_ORDER = ['songs', 'library', 'chord', 'settings'] as const;
+const ALL_PANELS = ['library', 'songs', 'chord', 'settings'] as const;
 
 const AppReadyNotifier = memo(function AppReadyNotifier({
   app,

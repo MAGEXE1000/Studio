@@ -1,14 +1,7 @@
-Release Date: 2026-07-21
-
-## Added
-
-- Production release for Studio Android v4.2.29 with single-bar architecture stabilization.
+Release Date: 2026-07-22
 
 ## Fixed
-
-- Removed duplicate local SharedNavigationBar from StageCorePanel in packages/ui-android.
-- Guaranteed 100% single global bottom navigation controller layout across all sub-apps.
-
-## Security
-
-- Enforced production release keystore verification with zero fallback policy.
+- Refactored Bottom Navigation to compute items synchronously and reactively from route history, resolving race conditions.
+- Fixed Stagex setup tab bug by mapping Setup view ID correctly to SetupHub.
+- Resolved Stagex switching/unmounting transition logo freeze.
+- Aligned Chordex preferences tab setup and navigation panels array.

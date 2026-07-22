@@ -9,6 +9,7 @@ export const APP_SECTIONS: Record<string, AppSection[]> = {
     { id: 'songs', labelKey: 'songs', icon: 'music_note' },
     { id: 'library', labelKey: 'library', icon: 'folder_open' },
     { id: 'chord', labelKey: 'chords', icon: 'grid_view' },
+    { id: 'settings', labelKey: 'settings', icon: 'tune' },
   ],
   drums: [
     { id: 'songs', labelKey: 'drumSongs', icon: 'queue_music' },
@@ -27,7 +28,7 @@ export const APP_SECTIONS: Record<string, AppSection[]> = {
   ],
   stage: [
     { id: 'Editor', labelKey: 'stagexStage', icon: 'grid_view' },
-    { id: 'Setup', labelKey: 'stagexSetup', icon: 'folder_open' },
+    { id: 'SetupHub', labelKey: 'stagexSetup', icon: 'folder_open' },
     { id: 'Preferences', labelKey: 'stagexPreferences', icon: 'tune' },
   ],
 };

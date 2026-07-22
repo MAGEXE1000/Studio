@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'motion/react';
-import { useNavScrollOffset, useChordStore, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, SpringPresets, useSettingsStore } from '@workspace/studio-core';
+import { useNavScrollOffset, useChordStore, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, SpringPresets, useSettingsStore, APP_SECTIONS, useApplicationTransitionStore, useT } from '@workspace/studio-core';
 import {
   StudioLogo,
   ChordexLogo,
@@ -163,20 +163,188 @@ export function SharedNavigationBar({
   const setIsSwitcherOpen = (open: boolean) =>
     useBottomNavigationStore.getState().setSwitcherOpen(open);
 
-  const items = propsItems !== undefined ? propsItems : storeItems;
+  const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
+  const currentApp = currentRoute?.app ?? 'hub';
+  const activeTab = currentRoute?.tab || currentRoute?.page || 'home';
+  const activePage = currentRoute?.page || 'main';
+
+  const transitionState = useApplicationTransitionStore((s) => s.state);
+  const isTransitioning = transitionState !== 'IDLE';
+
+  const t = useT();
+  const getTranslation = useCallback((key: string) => {
+    if (!t) return key;
+    if (key === 'songs') return t.navigation?.songs || 'Songs';
+    if (key === 'library') return t.navigation?.library || 'Library';
+    if (key === 'settings') return t.navigation?.settings || 'Preferences';
+    if (key === 'chords') return t.navigation?.chords || 'Chords';
+    if (key === 'drumSongs') return t.navigation?.drumSongs || 'Songs';
+    if (key === 'drumPatterns') return t.navigation?.drumPatterns || 'Patterns';
+    if (key === 'drumPreferences') return t.navigation?.drumPreferences || 'Preferences';
+    if (key === 'groovexLibrary') return t.navigation?.groovexLibrary || 'Library';
+    if (key === 'groovexPreferences') return t.navigation?.groovexPreferences || 'Preferences';
+    if (key === 'vocalexCoach') return t.navigation?.vocalexCoach || 'Coach';
+    if (key === 'vocalexRecorder') return t.navigation?.vocalexRecorder || 'Recorder';
+    if (key === 'vocalexTakes') return t.navigation?.vocalexTakes || 'Takes';
+    if (key === 'vocalexPreferences') return t.navigation?.vocalexPreferences || 'Preferences';
+    if (key === 'stagexStage') return t.navigation?.stagexStage || 'Stage';
+    if (key === 'stagexSetup') return t.navigation?.stagexSetup || 'Setup';
+    if (key === 'stagexPreferences') return t.navigation?.stagexPreferences || 'Preferences';
+    return key;
+  }, [t]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__navMetrics = (window as any).__navMetrics || {
+        mounts: 0,
+        unmounts: 0,
+        fallbackActivations: 0,
+        recoveries: 0,
+        itemRebuilds: 0,
+        controllerRecreations: 0,
+      };
+      (window as any).__navMetrics.mounts++;
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        (window as any).__navMetrics.unmounts++;
+      }
+    };
+  }, []);
+
+  const lastAppRef = useRef<string | null>(null);
+
+  // Compute navigation items synchronously from route history & registry definitions
+  const computedItems = useMemo(() => {
+    if (isTransitioning) {
+      return [];
+    }
+
+    if (currentApp !== lastAppRef.current) {
+      lastAppRef.current = currentApp;
+      if (typeof window !== 'undefined') {
+        (window as any).__navMetrics = (window as any).__navMetrics || {
+          mounts: 0,
+          unmounts: 0,
+          fallbackActivations: 0,
+          recoveries: 0,
+          itemRebuilds: 0,
+          controllerRecreations: 0,
+        };
+        (window as any).__navMetrics.itemRebuilds++;
+      }
+    }
+
+    if (currentApp === 'hub') {
+      return [
+        {
+          key: 'notifications',
+          icon: 'notifications',
+          label: 'Activity',
+          isActive: activeTab === 'settings' && activePage === 'notifications',
+          onClick: () =>
+            NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' }),
+        },
+        {
+          key: 'home',
+          icon: 'home',
+          label: 'Home',
+          isActive: activeTab === 'home',
+          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
+        },
+        {
+          key: 'settings',
+          icon: 'settings',
+          label: 'Settings',
+          isActive: activeTab === 'settings' && activePage !== 'notifications',
+          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+        },
+      ];
+    }
+
+    const sections = APP_SECTIONS[currentApp] || [];
+    return sections.map((sec) => ({
+      key: sec.id,
+      icon: sec.icon,
+      label: getTranslation(sec.labelKey),
+      isActive: activeTab === sec.id || activePage === sec.id,
+      onClick: () =>
+        NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id }),
+    }));
+  }, [currentApp, activeTab, activePage, isTransitioning, getTranslation]);
+
+  // Compute visibility reactively based on transition and DOM indicators
+  const [isKeyboardFocused, setIsKeyboardFocused] = useState(false);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const checkKeyboard = () => {
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tagName = activeEl.tagName.toLowerCase();
+        setIsKeyboardFocused(
+          tagName === 'input' ||
+          tagName === 'textarea' ||
+          activeEl.hasAttribute('contenteditable') ||
+          (activeEl as HTMLElement).isContentEditable
+        );
+      } else {
+        setIsKeyboardFocused(false);
+      }
+    };
+    window.addEventListener('focusin', checkKeyboard);
+    window.addEventListener('focusout', checkKeyboard);
+    window.addEventListener('click', checkKeyboard, { passive: true });
+    window.addEventListener('touchstart', checkKeyboard, { passive: true });
+    window.addEventListener('resize', checkKeyboard);
+    return () => {
+      window.removeEventListener('focusin', checkKeyboard);
+      window.removeEventListener('focusout', checkKeyboard);
+      window.removeEventListener('click', checkKeyboard);
+      window.removeEventListener('touchstart', checkKeyboard);
+      window.removeEventListener('resize', checkKeyboard);
+    };
+  }, []);
+
+  const [hasDOMHiddenIndicator, setHasDOMHiddenIndicator] = useState(false);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const checkDOM = () => {
+      const isFullscreen = !!document.fullscreenElement;
+      const isModalOpen =
+        document.querySelector('.modal-backdrop') !== null ||
+        document.querySelector('.studio-modal') !== null ||
+        document.querySelector('[role="dialog"]') !== null;
+      const hasHideClass =
+        document.querySelector('.hide-bottom-nav') !== null ||
+        document.querySelector('.hide-global-nav') !== null;
+      setHasDOMHiddenIndicator(isFullscreen || isModalOpen || hasHideClass);
+    };
+    
+    checkDOM();
+    const interval = setInterval(checkDOM, 500);
+
+    window.addEventListener('click', checkDOM, { passive: true });
+    window.addEventListener('touchstart', checkDOM, { passive: true });
+    window.addEventListener('resize', checkDOM);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('click', checkDOM);
+      window.removeEventListener('touchstart', checkDOM);
+      window.removeEventListener('resize', checkDOM);
+    };
+  }, []);
+
+  const items = propsItems !== undefined ? propsItems : computedItems;
   const isLight = propsIsLight !== undefined ? propsIsLight : storeIsLight;
-  const visible = storeVisible;
+  const visible = !isTransitioning && !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible;
   const collapsed = storeCollapsed;
 
   // Slide down out of view progressively up to 100px (beyond viewport edge)
   const translateY = scrollOffset * 100;
 
-  const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
-  const currentApp = currentRoute?.app ?? 'hub';
-
   const handleAppSwitch = (appKey: string) => {
     NavigationDispatcher.push({ app: appKey as any });
-    
     setIsSwitcherOpen(false);
   };
 

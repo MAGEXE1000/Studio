@@ -249,109 +249,10 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
   }, [ref, dependency]);
 }
 
-// â”€â”€â”€ Watchdog Recovery System & Diagnostics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-let _watchdogTimer: ReturnType<typeof setTimeout> | null = null;
-
-function clearWatchdogTimer() {
-  if (_watchdogTimer) {
-    clearTimeout(_watchdogTimer);
-    _watchdogTimer = null;
-  }
-}
-
-function logRecovery(reason: string, action: string, startTime: number) {
-  try {
-    const navStore = useNavigationStore.getState();
-    const currentRoute = navStore.history[navStore.history.length - 1];
-    const previousRoute = navStore.history[navStore.history.length - 2] ?? null;
-    const duration = Date.now() - startTime;
-
-    const diagnosticsInfo = {
-      currentRoute: currentRoute ? JSON.stringify(currentRoute) : 'null',
-      previousRoute: previousRoute ? JSON.stringify(previousRoute) : 'null',
-      registeredScrollCount: _registeredScrollElements.size,
-      collapsedState: _collapsed,
-      transitionState: `isTransitioning=${navStore.isTransitioning}`,
-      recoveryReason: reason,
-      recoveryAction: action,
-      recoveryDuration: `${duration}ms`,
-    };
-  } catch (e) {
-  }
-}
+// ─── Watchdog Recovery System & Diagnostics ───────────────────────────────
 
 export function onStateChanged() {
-  try {
-    if (typeof window === 'undefined') return;
-
-    // 1. Collapsed state self-healing check
-    if (_collapsed) {
-      let hasActiveScroll = false;
-      let allNearTop = true;
-
-      for (const el of _registeredScrollElements) {
-        if (el.isConnected) {
-          const isVisible = el.offsetHeight > 0 && el.offsetWidth > 0;
-          if (isVisible) {
-            hasActiveScroll = true;
-            if (el.scrollTop >= 40) {
-              allNearTop = false;
-            }
-          }
-        }
-      }
-
-      // If no active visible scroll owner exists, or all of them are near top, auto-expand!
-      if (!hasActiveScroll || allNearTop) {
-        const startTime = Date.now();
-        logRecovery(
-          `Collapsed but hasActiveScroll=${hasActiveScroll}, allNearTop=${allNearTop}`,
-          'setNavCollapsed(false)',
-          startTime
-        );
-        setNavCollapsed(false);
-        return;
-      }
-    }
-
-    // 2. Hidden state self-healing check (deferred watch)
-    clearWatchdogTimer();
-    if (_hidden) {
-      const startTime = Date.now();
-      _watchdogTimer = setTimeout(() => {
-        _watchdogTimer = null;
-
-        const isTransitioning = useNavigationStore.getState().isTransitioning;
-        if (isTransitioning) return;
-
-        const isHtml5Fullscreen = !!(
-          document.fullscreenElement ||
-          (document as any).webkitFullscreenElement ||
-          (document as any).mozFullScreenElement ||
-          (document as any).msFullscreenElement
-        );
-        if (isHtml5Fullscreen) return;
-
-        const hasFullscreenView = !!(
-          document.querySelector('.live-mode-view') ||
-          document.querySelector('[data-testid="live-close"]') ||
-          document.querySelector('[data-testid="custom-chord-save-btn"]') ||
-          document.querySelector('[data-testid="generate-progression-btn"]')
-        );
-        if (hasFullscreenView) return;
-
-        // Stuck hidden state
-        logRecovery(
-          'Hidden state active but no fullscreen elements or transitions detected',
-          'resetNav()',
-          startTime
-        );
-        resetNav();
-      }, 200);
-    }
-  } catch (e) {
-    // Passive safety guard during early app boot
-  }
+  // Watchdog recovery removed. All navigation updates are pure event-driven.
 }
 
 // Global Event-driven bindings
@@ -369,23 +270,7 @@ if (typeof window !== 'undefined') {
         lastActiveRoute = activeRouteStr;
         resetNav();
       }
-
-      onStateChanged();
     });
-
-    // Observe body mutations for fullscreen overlay changes (lightweight check, no div scanning)
-    const observer = new MutationObserver(() => {
-      if (_hidden || _collapsed) {
-        onStateChanged();
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Listen to native browser fullscreen state updates
-    document.addEventListener('fullscreenchange', onStateChanged);
-    document.addEventListener('webkitfullscreenchange', onStateChanged);
-    document.addEventListener('mozfullscreenchange', onStateChanged);
-    document.addEventListener('MSFullscreenChange', onStateChanged);
 
     // App Resume failsafes: restore navigation visibility upon focus or visibility restore
     window.addEventListener('focus', () => {

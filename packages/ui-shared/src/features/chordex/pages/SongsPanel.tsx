@@ -1990,22 +1990,9 @@ function ExportModal({
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <button
               onClick={handleClose}
-              className="btn-smooth"
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'transparent',
-                flexShrink: 0,
-              }}
+              className="premium-back-btn"
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ color: accent.from, fontSize: '22px' }}
-              >
+              <span className="material-symbols-outlined">
                 arrow_back
               </span>
             </button>

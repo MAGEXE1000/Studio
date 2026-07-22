@@ -153,6 +153,7 @@ const _elementLastY = new WeakMap<HTMLElement, number>();
 
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
   const lastElementRef = useRef<HTMLElement | null>(null);
+  const mountTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const checkAndBind = () => {
@@ -175,6 +176,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 
       if (el) {
         _registeredScrollElements.add(el);
+        mountTimeRef.current = Date.now();
 
         const onScroll = () => {
           const y = el.scrollTop;
@@ -191,6 +193,13 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
             if (_collapsed) {
               setNavCollapsed(false);
             }
+            _elementLastY.set(el, y);
+            return;
+          }
+
+          // Guard against initial scroll adjustments or restoration within the first 500ms
+          const timeSinceMount = Date.now() - mountTimeRef.current;
+          if (timeSinceMount < 500) {
             _elementLastY.set(el, y);
             return;
           }

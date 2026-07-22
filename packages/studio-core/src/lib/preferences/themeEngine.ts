@@ -174,6 +174,12 @@ export function applyThemeTokens(settings: any) {
   root.style.setProperty('--c-space-gap', d.gap);
   root.style.setProperty('--c-space-card-gap', d.cardGap);
 
+  root.style.setProperty('--density-pad', d.pad);
+  root.style.setProperty('--density-row-pad', d.rowPad);
+  root.style.setProperty('--density-gap', d.gap);
+  root.style.setProperty('--density-card-gap', d.cardGap);
+  root.setAttribute('data-density', settings.displayDensity);
+
   // 4. Radius Tokens
   root.style.setProperty('--radius-xs', '0.25rem');
   root.style.setProperty('--radius-sm', '0.5rem');
@@ -208,6 +214,8 @@ export function applyThemeTokens(settings: any) {
   root.style.setProperty('--font-lg', s.lg);
   root.style.setProperty('--font-xl', s.xl);
   root.style.setProperty('--font-hero', s.hero);
+  root.style.fontSize = s.base;
+  root.setAttribute('data-text-scale', settings.fontSize);
 
   // 7. Motion Tokens
   const isReduced = settings.animationSpeed === 'reduced';

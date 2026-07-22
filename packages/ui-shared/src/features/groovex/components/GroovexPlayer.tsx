@@ -459,28 +459,12 @@ export default function GroovexPlayer() {
           <div style={{ paddingTop: 16, display: 'flex', justifyContent: 'flex-start' }}>
             <button
               onClick={() => NavigationDispatcher.push({ app: 'groovex', page: 'library' })}
-              className="btn-smooth"
+              className="premium-back-btn"
               aria-label="Back to library"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 12px',
-                borderRadius: 8,
-                border: isLight ? '1px solid rgba(0,0,0,0.08)' : '1px solid rgba(255,255,255,0.08)',
-                background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.03)',
-                color: 'var(--c-text-primary)',
-                fontSize: 12,
-                fontWeight: 600,
-                fontFamily: 'var(--font-headline)',
-                cursor: 'pointer',
-                transition: 'background 200ms ease',
-              }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              <span className="material-symbols-outlined">
                 arrow_back
               </span>
-              <span>Back</span>
             </button>
           </div>
         )}

@@ -132,26 +132,10 @@ export default function GroovexApp() {
           >
             <button
               onClick={handleBack}
-              className="btn-smooth"
+              className="premium-back-btn"
               aria-label="Back"
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--gx-surface-high)',
-                border: '1px solid rgba(128,128,128,0.15)',
-                cursor: 'pointer',
-                padding: 0,
-                transition: 'background 500ms cubic-bezier(0.4,0,0.2,1)',
-              }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ color: 'var(--c-text-primary)', fontSize: 18 }}
-              >
+              <span className="material-symbols-outlined">
                 arrow_back
               </span>
             </button>

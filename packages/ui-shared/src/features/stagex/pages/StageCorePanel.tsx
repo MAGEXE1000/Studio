@@ -1634,179 +1634,180 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               />
             )}
 
-            {/* â”€â”€ Stage Expand/Rotate Toggle â”€â”€ */}
-            {curView === 'Editor' && (
-              <button
-                onClick={toggleStageExpanded}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  toggleStageExpanded();
-                }}
-                aria-label={isStageExpanded ? 'Exit Landscape View' : 'Enter Landscape View'}
-                style={{
-                  position: 'absolute',
-                  bottom: (isLandscapeEditor ? 14 : 90) + 110,
-                  right: 17,
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background: isStageExpanded
-                    ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                    : isLight
-                      ? 'rgba(255,255,255,0.82)'
-                      : 'rgba(28,28,32,0.80)',
-                  border: isStageExpanded
-                    ? 'none'
-                    : isLight
-                      ? '1px solid rgba(0,0,0,0.10)'
-                      : '1px solid rgba(255,255,255,0.12)',
-                  backdropFilter: isStageExpanded ? 'none' : 'blur(12px)',
-                  WebkitBackdropFilter: isStageExpanded ? 'none' : 'blur(12px)',
-                  boxShadow: isStageExpanded
-                    ? `0 4px 20px ${accent.from}90`
-                    : '0 4px 16px rgba(0,0,0,0.25)',
-                  zIndex: 20,
-                  cursor: 'pointer',
-                  WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  opacity: (isLandscapeEditor && propPanelOpen) || fabOpen ? 0 : 1,
-                  pointerEvents:
-                    (isLandscapeEditor && propPanelOpen) || fabOpen
-                      ? ('none' as const)
-                      : ('auto' as const),
-                  visibility:
-                    (isLandscapeEditor && propPanelOpen) || fabOpen
-                      ? ('hidden' as const)
-                      : ('visible' as const),
-                  transition:
-                    'background 300ms ease, box-shadow 300ms ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{
-                    color: isStageExpanded
-                      ? '#fff'
-                      : isLight
-                        ? 'rgba(0,0,0,0.65)'
-                        : 'rgba(200,200,220,0.9)',
-                    fontSize: 22,
-                    lineHeight: 1,
-                  }}
-                >
-                  screen_rotation
-                </span>
-              </button>
-            )}
+            {/* ── Stagex FABs Redesign: App Switcher visually-aligned ── */}
+            {curView === 'Editor' && (() => {
+              const baseBottom = isLandscapeEditor ? 14 : 90;
+              const isPlusHidden = liveMode || (isLandscapeEditor && propPanelOpen);
+              const isEyeHidden = (isLandscapeEditor && propPanelOpen) || fabOpen;
+              const isRotateHidden = (isLandscapeEditor && propPanelOpen) || fabOpen;
 
-            {/* â”€â”€ Live-mode toggle (eye) â€” stacked 8px above the FAB â”€â”€ */}
-            {curView === 'Editor' && (
-              <ActionButton
-                id="stagex-eye-button"
-                data-testid="stagex-eye-button"
-                variant="visibility"
-                isVisible={liveMode}
-                onClick={() => callIframe('toggleGigMode')}
-                iconSize={22}
-                style={{
-                  position: 'absolute',
-                  bottom: (isLandscapeEditor ? 14 : 90) + 50 + 8,
-                  right: 17,
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background: liveMode
-                    ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                    : isLight
-                      ? 'rgba(255,255,255,0.82)'
-                      : 'rgba(28,28,32,0.80)',
-                  border: liveMode
-                    ? 'none'
-                    : isLight
-                      ? '1px solid rgba(0,0,0,0.10)'
-                      : '1px solid rgba(255,255,255,0.12)',
-                  boxShadow: liveMode
-                    ? `0 4px 20px ${accent.from}90`
-                    : '0 4px 16px rgba(0,0,0,0.25)',
-                  zIndex: 20,
-                  opacity: (isLandscapeEditor && propPanelOpen) || fabOpen ? 0 : 1,
-                  pointerEvents:
-                    (isLandscapeEditor && propPanelOpen) || fabOpen
-                      ? ('none' as const)
-                      : ('auto' as const),
-                  visibility:
-                    (isLandscapeEditor && propPanelOpen) || fabOpen
-                      ? ('hidden' as const)
-                      : ('visible' as const),
-                  padding: 0,
-                }}
-              />
-            )}
+              return (
+                <>
+                  {/* Rotate/Expand Toggle (Button 3: stacked at top) */}
+                  <motion.button
+                    onClick={toggleStageExpanded}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      toggleStageExpanded();
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label={isStageExpanded ? 'Exit Landscape View' : 'Enter Landscape View'}
+                    style={{
+                      position: 'absolute',
+                      bottom: baseBottom + 152,
+                      right: 14,
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '50%',
+                      background: isStageExpanded
+                        ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
+                        : 'rgba(12, 12, 14, 0.45)',
+                      border: isStageExpanded
+                        ? 'none'
+                        : '1px solid rgba(255, 255, 255, 0.08)',
+                      backdropFilter: 'blur(25px)',
+                      WebkitBackdropFilter: 'blur(25px)',
+                      boxShadow: isStageExpanded
+                        ? `0 6px 24px ${accent.from}80, 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12)`
+                        : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                      zIndex: 20,
+                      cursor: 'pointer',
+                      WebkitTapHighlightColor: 'transparent',
+                      touchAction: 'manipulation',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 0,
+                      opacity: isRotateHidden ? 0 : 1,
+                      pointerEvents: isRotateHidden ? 'none' : 'auto',
+                      visibility: isRotateHidden ? 'hidden' : 'visible',
+                      transition: 'background-color 300ms ease, box-shadow 300ms ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        color: isStageExpanded
+                          ? '#fff'
+                          : 'rgba(255, 255, 255, 0.60)',
+                        fontSize: 22,
+                        lineHeight: 1,
+                      }}
+                    >
+                      screen_rotation
+                    </span>
+                  </motion.button>
 
-            {/* â”€â”€ FAB: add instrument â”€â”€ */}
-            {curView === 'Editor' && (
-              <button
-                id="stagex-plus-button"
-                data-testid="stagex-plus-button"
-                onClick={handleFabTap}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  handleFabTap();
-                }}
-                aria-label={tr.stagex.addInstrument}
-                style={{
-                  position: 'absolute',
-                  bottom: isLandscapeEditor ? 14 : 90,
-                  right: 14,
-                  width: 50,
-                  height: 50,
-                  borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  border: 'none',
-                  zIndex: 20,
-                  cursor: 'pointer',
-                  WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation',
-                  display: 'flex',
-                  opacity: liveMode ? 0 : isLandscapeEditor && propPanelOpen ? 0 : 1,
-                  pointerEvents: liveMode
-                    ? ('none' as const)
-                    : isLandscapeEditor && propPanelOpen
-                      ? ('none' as const)
-                      : ('auto' as const),
-                  visibility: liveMode
-                    ? ('hidden' as const)
-                    : isLandscapeEditor && propPanelOpen
-                      ? ('hidden' as const)
-                      : ('visible' as const),
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: fabOpen
-                    ? `0 6px 32px ${accent.from}99, 0 3px 12px rgba(0,0,0,0.4)`
-                    : `0 4px 24px ${accent.from}80, 0 2px 8px rgba(0,0,0,0.3)`,
-                  padding: 0,
-                  transform: fabOpen ? 'rotate(45deg) scale(1.08)' : 'rotate(0deg) scale(1)',
-                  transition:
-                    'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{
-                    color: '#fff',
-                    fontSize: 24,
-                    lineHeight: 1,
-                    transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-                  }}
-                >
-                  add
-                </span>
-              </button>
-            )}
+                  {/* Live-mode toggle (Button 2: stacked in middle) */}
+                  <motion.button
+                    id="stagex-eye-button"
+                    data-testid="stagex-eye-button"
+                    onClick={() => callIframe('toggleGigMode')}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      callIframe('toggleGigMode');
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label="Toggle Live Mode"
+                    style={{
+                      position: 'absolute',
+                      bottom: baseBottom + 76,
+                      right: 14,
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '50%',
+                      background: liveMode
+                        ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
+                        : 'rgba(12, 12, 14, 0.45)',
+                      border: liveMode
+                        ? 'none'
+                        : '1px solid rgba(255, 255, 255, 0.08)',
+                      backdropFilter: 'blur(25px)',
+                      WebkitBackdropFilter: 'blur(25px)',
+                      boxShadow: liveMode
+                        ? `0 6px 24px ${accent.from}80, 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12)`
+                        : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                      zIndex: 20,
+                      cursor: 'pointer',
+                      WebkitTapHighlightColor: 'transparent',
+                      touchAction: 'manipulation',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 0,
+                      opacity: isEyeHidden ? 0 : 1,
+                      pointerEvents: isEyeHidden ? 'none' : 'auto',
+                      visibility: isEyeHidden ? 'hidden' : 'visible',
+                      transition: 'background-color 300ms ease, box-shadow 300ms ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        color: liveMode
+                          ? '#fff'
+                          : 'rgba(255, 255, 255, 0.60)',
+                        fontSize: 22,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {liveMode ? 'visibility' : 'visibility_off'}
+                    </span>
+                  </motion.button>
+
+                  {/* FAB: Add Instrument (Button 1: at bottom) */}
+                  <motion.button
+                    id="stagex-plus-button"
+                    data-testid="stagex-plus-button"
+                    onClick={handleFabTap}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      handleFabTap();
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label={tr.stagex.addInstrument}
+                    style={{
+                      position: 'absolute',
+                      bottom: baseBottom,
+                      right: 14,
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                      border: 'none',
+                      zIndex: 20,
+                      cursor: 'pointer',
+                      WebkitTapHighlightColor: 'transparent',
+                      touchAction: 'manipulation',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: isPlusHidden ? 0 : 1,
+                      pointerEvents: isPlusHidden ? 'none' : 'auto',
+                      visibility: isPlusHidden ? 'hidden' : 'visible',
+                      boxShadow: fabOpen
+                        ? `0 6px 32px ${accent.from}99, 0 3px 12px rgba(0,0,0,0.4)`
+                        : `0 4px 24px ${accent.from}80, 0 2px 8px rgba(0,0,0,0.3)`,
+                      padding: 0,
+                      transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, opacity 420ms cubic-bezier(0.4,0,0.2,1)',
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        color: '#fff',
+                        fontSize: 24,
+                        lineHeight: 1,
+                        transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
+                      }}
+                    >
+                      add
+                    </span>
+                  </motion.button>
+                </>
+              );
+            })()}
 
             {isLandscapeEditor && landscapeNavHidden && (
               <button

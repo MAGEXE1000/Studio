@@ -556,7 +556,7 @@ export default function StudioHub() {
   useEffect(() => {
     if (
       routeApp === 'hub' &&
-      (routeTab === 'notifications' || routePage === 'notifications' || (routeTab === 'profile' && routePage === 'notifications'))
+      ((routeTab as string) === 'notifications' || routePage === 'notifications' || (routeTab === 'profile' && routePage === 'notifications'))
     ) {
       markAllAsRead();
     }
@@ -1422,7 +1422,7 @@ export default function StudioHub() {
                           style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 8,
+                            gap: 6,
                             position: 'relative',
                           }}
                         >
@@ -1451,9 +1451,9 @@ export default function StudioHub() {
                                   style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 12,
-                                    padding: '12px 14px',
-                                    borderRadius: '16px',
+                                    gap: 10,
+                                    padding: '6px 10px',
+                                    borderRadius: '12px',
                                     background: 'var(--app-surface-high, rgba(128, 128, 128, 0.05))',
                                     border: '1px solid rgba(128, 128, 128, 0.08)',
                                     cursor: isEditMode ? 'grabbing' : 'pointer',
@@ -1463,7 +1463,7 @@ export default function StudioHub() {
                                     isDragged
                                       ? {
                                           scale: 1.02,
-                                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+                                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
                                           backgroundColor: 'var(--app-surface-higher, rgba(128, 128, 128, 0.1))',
                                         }
                                       : {
@@ -1481,111 +1481,43 @@ export default function StudioHub() {
                                 >
                                   <div
                                     style={{
-                                      width: '40px',
-                                      height: '40px',
-                                      borderRadius: '12px',
+                                      width: '28px',
+                                      height: '28px',
+                                      borderRadius: '8px',
                                       backgroundColor: 'var(--app-surface-higher, rgba(128, 128, 128, 0.08))',
                                       border: '1px solid rgba(128, 128, 128, 0.1)',
                                     }}
                                     className="flex items-center justify-center flex-none"
                                   >
                                     <span
-                                      className="material-symbols-outlined text-lg"
+                                      className="material-symbols-outlined text-[15px]"
                                       style={{ color: accent.from }}
                                     >
                                       {opt.icon}
                                     </span>
                                   </div>
                                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--c-text-primary)' }} className="truncate">
+                                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-text-primary)' }} className="truncate">
                                       {lang === 'es' ? opt.titleEs : opt.titleEn}
                                     </span>
-                                    <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)', opacity: 0.7 }} className="truncate">
+                                    <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)', opacity: 0.7 }} className="truncate">
                                       {lang === 'es' ? opt.descEs : opt.descEn}
                                     </span>
                                   </div>
                                   {isEditMode ? (
                                     <span
-                                      className="material-symbols-outlined text-lg opacity-60 flex-none"
+                                      className="material-symbols-outlined text-[16px] opacity-60 flex-none"
                                       style={{ cursor: 'grab' }}
                                     >
                                       drag_indicator
                                     </span>
                                   ) : (
-                                    <span className="material-symbols-outlined text-lg opacity-30 flex-none">
+                                    <span className="material-symbols-outlined text-[16px] opacity-30 flex-none">
                                       chevron_right
                                     </span>
                                   )}
                                 </motion.div>
                               </motion.div>
-                            );
-                          })}
-                        </div>
-                      </section>
-
-                      {/* Suggested Actions Section */}
-                      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <h3
-                          style={{
-                            fontFamily: 'Inter',
-                            fontSize: '10px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.12em',
-                            fontWeight: 700,
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.6,
-                          }}
-                          className="px-1"
-                        >
-                          {lang === 'es' ? 'Sugerencias para Ti' : 'Suggested for You'}
-                        </h3>
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: 10,
-                            width: '100%',
-                          }}
-                        >
-                          {getSuggestedActions().map((id) => {
-                            const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
-                            if (!opt) return null;
-                            return (
-                              <button
-                                key={id}
-                                onClick={() => handleShortcutClick(id)}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 10,
-                                  padding: '10px 12px',
-                                  borderRadius: '14px',
-                                  background: 'rgba(128,128,128,0.03)',
-                                  border: '1px solid rgba(128,128,128,0.05)',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  outline: 'none',
-                                }}
-                                className="bouncy-action"
-                              >
-                                <span
-                                  className="material-symbols-outlined text-md"
-                                  style={{ color: accent.from, opacity: 0.8 }}
-                                >
-                                  {opt.icon}
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: '11px',
-                                    color: 'var(--c-text-secondary)',
-                                    fontWeight: 600,
-                                    fontFamily: 'Inter',
-                                  }}
-                                  className="truncate"
-                                >
-                                  {lang === 'es' ? opt.titleEs : opt.titleEn}
-                                </span>
-                              </button>
                             );
                           })}
                         </div>
@@ -1618,7 +1550,7 @@ export default function StudioHub() {
                                 Logo: ChordexLogo,
                                 name: 'Chordex',
                                 desc: t.hub.chordexDesc,
-                                color: accent.from,
+                                color: '#a855f7',
                                 active: activeRouteApp === 'chords',
                               },
                               {
@@ -1626,7 +1558,7 @@ export default function StudioHub() {
                                 Logo: DrumexLogo,
                                 name: 'Drumex',
                                 desc: t.hub.drumexDesc,
-                                color: accent.from,
+                                color: '#ec4899',
                                 active: activeRouteApp === 'drums',
                               },
                               {
@@ -1634,7 +1566,7 @@ export default function StudioHub() {
                                 Logo: StagexLogoIcon,
                                 name: 'Stagex',
                                 desc: t.hub.stagexDesc,
-                                color: accent.from,
+                                color: '#3b82f6',
                                 active: activeRouteApp === 'stage',
                               },
                               {
@@ -1642,7 +1574,7 @@ export default function StudioHub() {
                                 Logo: GroovexLogo,
                                 name: 'Groovex',
                                 desc: t.hub.groovexDesc,
-                                color: accent.from,
+                                color: '#10b981',
                                 active: activeRouteApp === 'groovex',
                               },
                               {
@@ -1650,7 +1582,7 @@ export default function StudioHub() {
                                 Logo: VocalexLogo,
                                 name: 'Vocalex',
                                 desc: t.hub.vocalexDesc,
-                                color: accent.from,
+                                color: '#f59e0b',
                                 active: activeRouteApp === 'vocalex',
                               },
                             ] as {
@@ -8326,6 +8258,7 @@ User Agent: [Automatically Generated]
                   title={getPageTitle(pageId as SettingsPageId)}
                   onBack={goBack}
                   toolbarActions={toolbarActions}
+                  hideBack={pageId === 'profile'}
                 >
                   {renderActivePageContent(pageId as SettingsPageId)}
                 </SettingsScaffold>

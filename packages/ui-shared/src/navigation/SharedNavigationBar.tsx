@@ -318,17 +318,16 @@ export function SharedNavigationBar({
 
   // 2. Fetch recent searches and auto focus on searchOpen
   useEffect(() => {
-    if (searchOpen) {
-      try {
-        const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
-        setRecentSearches(JSON.parse(historyStr));
-      } catch {}
+    if (!searchOpen) return;
+    try {
+      const historyStr = localStorage.getItem('studio:recent-searches') || '[]';
+      setRecentSearches(JSON.parse(historyStr));
+    } catch {}
 
-      const timer = setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [searchOpen]);
 
   const addToSearchHistory = (query: string) => {
@@ -841,9 +840,9 @@ export function SharedNavigationBar({
   const fastSpring = useMemo(
     () => ({
       type: 'spring' as const,
-      stiffness: 550,
-      damping: 32,
-      mass: 0.45,
+      stiffness: 180,
+      damping: 26,
+      mass: 1.0,
     }),
     []
   );

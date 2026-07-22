@@ -10,6 +10,9 @@ import {
   useT,
   APP_SECTIONS,
   NavigationDispatcher,
+  authRepository,
+  getUserAvatar,
+  subscribeUserAvatar,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
 import { IconSongs, IconLibrary, IconSettings } from '../components/icons/NavIcons';
@@ -80,6 +83,74 @@ export function BottomNavigationController() {
       (window as any).__navMetrics.controllerRecreations++;
     }
   }, []);
+
+  // Subscribe to user and avatar details
+  const [user, setUser] = useState<any>(null);
+  const [avatarIcon, setAvatarIcon] = useState<string | null>(null);
+  const [customPhoto, setCustomPhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    return authRepository.subscribeAuth((u: any) => {
+      setUser(u);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setAvatarIcon(null);
+      setCustomPhoto(null);
+      return;
+    }
+    const refresh = () => setAvatarIcon(getUserAvatar(user.uid));
+    refresh();
+    const unsubAvatar = subscribeUserAvatar(refresh);
+
+    try {
+      const stored = localStorage.getItem(`chordex_cp_${user.uid}`);
+      setCustomPhoto(stored || null);
+    } catch {
+      setCustomPhoto(null);
+    }
+
+    const onCoverChanged = (e: Event) => {
+      const detail = (e as CustomEvent<{ uid: string; cover: string | null }>).detail;
+      if (detail && detail.uid === user.uid) {
+        setCustomPhoto(detail.cover);
+      }
+    };
+    window.addEventListener('chordex:user-cover-changed', onCoverChanged);
+
+    return () => {
+      unsubAvatar();
+      window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
+    };
+  }, [user]);
+
+  const profileIcon = useMemo(() => {
+    const effectivePhoto = customPhoto || user?.photoURL;
+    if (avatarIcon) {
+      return (
+        <span className="material-symbols-outlined" style={{ fontSize: 22, fontVariationSettings: "'FILL' 1", display: 'block' }}>
+          {avatarIcon}
+        </span>
+      );
+    }
+    if (effectivePhoto) {
+      return (
+        <img
+          src={effectivePhoto}
+          alt=""
+          style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+          referrerPolicy="no-referrer"
+        />
+      );
+    }
+    return (
+      <span className="material-symbols-outlined" style={{ fontSize: 22, display: 'block' }}>
+        person
+      </span>
+    );
+  }, [user, avatarIcon, customPhoto]);
 
   // Dynamically resolve bottom nav items light mode state
   useEffect(() => {
@@ -198,9 +269,9 @@ export function BottomNavigationController() {
           key: 'notifications',
           icon: 'notifications',
           label: 'Activity',
-          isActive: activeTab === 'settings' && activePage === 'notifications',
+          isActive: activeTab === 'profile' && activePage === 'notifications',
           onClick: () =>
-            NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' }),
+            NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'notifications' }),
         },
         {
           key: 'home',
@@ -210,11 +281,11 @@ export function BottomNavigationController() {
           onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
         },
         {
-          key: 'settings',
-          icon: 'settings',
-          label: 'Settings',
-          isActive: activeTab === 'settings' && activePage !== 'notifications',
-          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' }),
+          key: 'profile',
+          icon: profileIcon,
+          label: 'Profile',
+          isActive: activeTab === 'profile' && activePage !== 'notifications',
+          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' }),
         },
       ];
     }
@@ -247,14 +318,27 @@ export function BottomNavigationController() {
     }
 
     const sections = APP_SECTIONS[currentApp] || [];
-    return sections.map((sec) => ({
-      key: sec.id,
-      icon: sec.icon,
-      label: getTranslation(sec.labelKey),
-      isActive: activeTab === sec.id || activePage === sec.id,
-      onClick: () =>
-        NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any }),
-    }));
+    return sections.map((sec) => {
+      let isActive = activeTab === sec.id || activePage === sec.id;
+      if (currentApp === 'stage') {
+        if (sec.id === 'Editor') {
+          isActive = ['Editor', 'Export'].includes(activeTab) || ['Editor', 'Export'].includes(activePage);
+        } else if (sec.id === 'Setup') {
+          isActive = ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activeTab) ||
+                     ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activePage);
+        } else if (sec.id === 'Preferences') {
+          isActive = ['Preferences', 'Assistant'].includes(activeTab) || ['Preferences', 'Assistant'].includes(activePage);
+        }
+      }
+      return {
+        key: sec.id,
+        icon: sec.icon,
+        label: getTranslation(sec.labelKey),
+        isActive,
+        onClick: () =>
+          NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any }),
+      };
+    });
   }, [currentApp, activeTab, activePage, getTranslation]);
 
   // Filter out rendering on Desktop web views

@@ -281,8 +281,8 @@ export function SharedNavigationBar({
     const tailAmount = (skewVal as number) * 1.2;
     const press = pressVal as number;
 
-    const H = 44;
-    const R = 22;
+    const H = 50;
+    const R = 25;
 
     let leftX = (tailAmount < 0 ? tailAmount : 0) + press;
     let rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press;
@@ -305,6 +305,27 @@ export function SharedNavigationBar({
               L ${leftX + leftR} ${H}
               A ${leftR} ${R} 0 0 1 ${leftX} ${R}
               A ${leftR} ${R} 0 0 1 ${leftX + leftR} 0
+              Z`;
+  });
+
+  const reflectionPathD = useTransform([pillSkewX, pressureOffset] as const, ([skewVal, pressVal]) => {
+    const tailAmount = (skewVal as number) * 1.2;
+    const press = pressVal as number;
+
+    const H = 25;
+    const R = 25;
+
+    let leftX = (tailAmount < 0 ? tailAmount : 0) + press + 1.5;
+    let rightX = pillWidth + (tailAmount > 0 ? tailAmount : 0) - press - 1.5;
+
+    const leftR = tailAmount > 0 ? Math.max(12, R - tailAmount * 0.25) : R;
+    const rightR = tailAmount < 0 ? Math.max(12, R + tailAmount * 0.25) : R;
+
+    return `M ${leftX + leftR} 1.5
+              L ${rightX - rightR} 1.5
+              A ${rightR} ${R} 0 0 1 ${rightX} ${R}
+              L ${leftX} ${R}
+              A ${leftR} ${R} 0 0 1 ${leftX + leftR} 1.5
               Z`;
   });
 
@@ -507,17 +528,17 @@ export function SharedNavigationBar({
         style={{
           pointerEvents: 'auto',
           width: `${barWidth}px`,
-          height: '56px',
+          height: '64px',
           borderRadius: '9999px',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           background: 'rgba(12, 12, 14, 0.45)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+          backdropFilter: 'blur(25px)',
+          WebkitBackdropFilter: 'blur(25px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-around',
-          padding: '4px 6px',
+          padding: '6px 8px',
           position: 'relative',
           touchAction: 'none',
           userSelect: 'none',
@@ -541,8 +562,8 @@ export function SharedNavigationBar({
           <motion.div
             style={{
               position: 'absolute',
-              top: '2px',
-              height: '44px',
+              top: '1px',
+              height: '50px',
               width: `${pillWidth + 40}px`,
               x: useTransform(pillX, (val) => val - pillWidth / 2 - 20),
               skewX: pillSkewXTrans,
@@ -554,10 +575,33 @@ export function SharedNavigationBar({
             <svg
               width="100%"
               height="100%"
-              viewBox={`-20 0 ${pillWidth + 40} 44`}
+              viewBox={`-20 0 ${pillWidth + 40} 50`}
               style={{ overflow: 'visible' }}
             >
-              <motion.path d={pillPathD} fill="rgba(255, 255, 255, 0.14)" />
+              <defs>
+                <linearGradient id="liquid-glass-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255, 255, 255, 0.20)" />
+                  <stop offset="40%" stopColor="rgba(255, 255, 255, 0.08)" />
+                  <stop offset="100%" stopColor="rgba(255, 255, 255, 0.02)" />
+                </linearGradient>
+                <linearGradient id="liquid-glass-border" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(255, 255, 255, 0.35)" />
+                  <stop offset="100%" stopColor="rgba(255, 255, 255, 0.08)" />
+                </linearGradient>
+              </defs>
+              <motion.path
+                d={pillPathD}
+                fill="url(#liquid-glass-grad)"
+                stroke="url(#liquid-glass-border)"
+                strokeWidth="1.2"
+                style={{
+                  filter: 'drop-shadow(0 4px 12px rgba(255,255,255,0.06))',
+                }}
+              />
+              <motion.path
+                d={reflectionPathD}
+                fill="rgba(255, 255, 255, 0.12)"
+              />
             </svg>
           </motion.div>
 
@@ -586,14 +630,14 @@ export function SharedNavigationBar({
           whileTap={{ scale: 0.9 }}
           style={{
             pointerEvents: 'auto',
-            width: '56px',
-            height: '56px',
+            width: '64px',
+            height: '64px',
             borderRadius: '50%',
             background: 'rgba(12, 12, 14, 0.45)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(25px)',
+            WebkitBackdropFilter: 'blur(25px)',
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -545,7 +545,7 @@ export default function App() {
                   pointerEvents: isSubAppActive && !splashVisible ? 'auto' : 'none',
                 }}
               >
-                {stableKey === 'groovex' && (
+                {stableKey === 'groovex' && appMode === 'groovex' && (
                   <div
                     className="app-sub-app-container"
                     style={{
@@ -568,7 +568,7 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'vocalex' && (
+                {stableKey === 'vocalex' && appMode === 'vocalex' && (
                   <div
                     className="app-sub-app-container"
                     style={{
@@ -591,7 +591,7 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'stage' && (
+                {stableKey === 'stage' && appMode === 'stage' && (
                   <div
                     className="app-sub-app-container"
                     style={{
@@ -614,7 +614,7 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'drums' && (
+                {stableKey === 'drums' && appMode === 'drums' && (
                   <div
                     className="app-sub-app-container"
                     style={{
@@ -637,7 +637,7 @@ export default function App() {
                   </div>
                 )}
 
-                {stableKey === 'chords' && (
+                {stableKey === 'chords' && appMode === 'chords' && (
                   <div
                     className="app-sub-app-container"
                     style={{

@@ -2619,6 +2619,9 @@ const SubAppWrapper = memo(function SubAppWrapper({
   // Cache the active panel for the chords sub-app so it doesn't flash/change during exit transitions
   const [cachedPanel, setCachedPanel] = useState(activePanel);
   const isActive = settings.appMode === cachedApp;
+  if (!isActive) {
+    return null;
+  }
 
   const [visiblePanel, setVisiblePanel] = useState(activePanel);
   const [exitingPanel, setExitingPanel] = useState<string | null>(null);

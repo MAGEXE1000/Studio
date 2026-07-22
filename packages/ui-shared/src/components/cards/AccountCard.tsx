@@ -1759,6 +1759,11 @@ export function AccountSettingsPage({
   }));
   useEffect(() => subscribeSyncStatus(setSync), []);
 
+  const phase = sync.phase;
+  const justSynced = phase === 'success';
+  const isSyncing = phase === 'syncing';
+  const isError = phase === 'error';
+
   async function doSyncNow() {
     setBusy(true);
     try {
@@ -2532,80 +2537,456 @@ export function AccountSettingsPage({
           <div style={{ marginTop: 10 }}>{renderRoleBadge(profile?.role, lang, accent)}</div>
         </div>
 
-        {/* On-device stats */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 20, width: '100%' }}>
-          {(
-            [
-              {
-                label: lang === 'es' ? 'Favoritos' : 'Favorites',
-                value: favCount,
-                icon: 'favorite',
-                color: accent.from,
-              },
-              {
-                label: lang === 'es' ? 'Progres.' : 'Progressions',
-                value: progCount,
-                icon: 'queue_music',
-                color: '#10b981',
-              },
-              {
-                label: lang === 'es' ? 'Presets' : 'Presets',
-                value: presetCount,
-                icon: 'grid_view',
-                color: '#f59e0b',
-              },
-            ] as { label: string; value: number; icon: string; color: string }[]
-          ).map(({ label, value, icon, color }) => (
+        {/* Bento Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: 12,
+            marginTop: 20,
+            width: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Bento Card 1: Favorites */}
+          <div
+            style={{
+              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
+              border: '1px solid rgba(128,128,128,0.08)',
+              borderRadius: '20px',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 90,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
             <div
-              key={label}
               style={{
-                flex: 1,
-                background: 'var(--app-surface)',
-                border: '1px solid rgba(128,128,128,0.09)',
-                borderRadius: 16,
-                padding: '13px 8px 11px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 5,
-                boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+                position: 'absolute',
+                top: -20,
+                right: -20,
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                background: `${accent.from}12`,
+                filter: 'blur(15px)',
               }}
-            >
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: 17, color, fontVariationSettings: "'FILL' 1" }}
+                style={{ fontSize: 18, color: accent.from, fontVariationSettings: "'FILL' 1" }}
               >
-                {icon}
+                favorite
+              </span>
+              <span
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {lang === 'es' ? 'Favoritos' : 'Favorites'}
+              </span>
+            </div>
+            <p
+              style={{
+                fontFamily: 'Manrope',
+                fontWeight: 800,
+                fontSize: 26,
+                color: 'var(--c-text-primary)',
+                margin: '12px 0 0',
+                lineHeight: 1,
+              }}
+            >
+              {favCount}
+            </p>
+          </div>
+
+          {/* Bento Card 2: Progressions */}
+          <div
+            style={{
+              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
+              border: '1px solid rgba(128,128,128,0.08)',
+              borderRadius: '20px',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 90,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: -20,
+                right: -20,
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.08)',
+                filter: 'blur(15px)',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: '#10b981', fontVariationSettings: "'FILL' 1" }}
+              >
+                queue_music
+              </span>
+              <span
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {lang === 'es' ? 'Progres.' : 'Progressions'}
+              </span>
+            </div>
+            <p
+              style={{
+                fontFamily: 'Manrope',
+                fontWeight: 800,
+                fontSize: 26,
+                color: 'var(--c-text-primary)',
+                margin: '12px 0 0',
+                lineHeight: 1,
+              }}
+            >
+              {progCount}
+            </p>
+          </div>
+
+          {/* Bento Card 3: Presets */}
+          <div
+            style={{
+              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
+              border: '1px solid rgba(128,128,128,0.08)',
+              borderRadius: '20px',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 90,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: -20,
+                right: -20,
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                background: 'rgba(245, 158, 11, 0.08)',
+                filter: 'blur(15px)',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: '#f59e0b', fontVariationSettings: "'FILL' 1" }}
+              >
+                grid_view
+              </span>
+              <span
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {lang === 'es' ? 'Presets' : 'Presets'}
+              </span>
+            </div>
+            <p
+              style={{
+                fontFamily: 'Manrope',
+                fontWeight: 800,
+                fontSize: 26,
+                color: 'var(--c-text-primary)',
+                margin: '12px 0 0',
+                lineHeight: 1,
+              }}
+            >
+              {presetCount}
+            </p>
+          </div>
+
+          {/* Bento Card 4: Cloud Sync & Backup (Interactive!) */}
+          <button
+            type="button"
+            onClick={doSyncNow}
+            disabled={busy || !settings.syncAcrossDevices}
+            style={{
+              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
+              border: '1px solid rgba(128,128,128,0.08)',
+              borderRadius: '20px',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 90,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              cursor: settings.syncAcrossDevices ? 'pointer' : 'default',
+              position: 'relative',
+              overflow: 'hidden',
+              textAlign: 'left',
+              width: '100%',
+              boxSizing: 'border-box',
+              outline: 'none',
+              borderStyle: 'solid',
+            }}
+          >
+            {/* Sync Status Glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: -20,
+                right: -20,
+                width: 60,
+                height: 60,
+                borderRadius: '50%',
+                background: `${
+                  isSyncing
+                    ? accent.from
+                    : sync.phase === 'error'
+                      ? '#ff6b6b'
+                      : settings.syncAcrossDevices && (sync.phase === 'success' || sync.lastSyncedMs != null)
+                        ? '#10b981'
+                        : 'var(--c-text-secondary)'
+                }15`,
+                filter: 'blur(15px)',
+              }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              {isSyncing ? (
+                <StudioSpinner
+                  outerSize="h-[18px] w-[18px]"
+                  childSize="h-[14px] w-[14px]"
+                  colorFrom={accent.from}
+                  colorTo={accent.from}
+                />
+              ) : (
+                <span
+                  className={`material-symbols-outlined sync-icon ${justSynced ? 'sync-pop' : ''}`}
+                  style={{
+                    fontSize: 18,
+                    color:
+                      sync.phase === 'error'
+                        ? '#ff6b6b'
+                        : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
+                          ? '#10b981'
+                          : 'var(--c-text-secondary)',
+                    transition: 'color 250ms ease',
+                  }}
+                >
+                  {isSyncing
+                    ? 'sync'
+                    : sync.phase === 'error'
+                      ? 'sync_problem'
+                      : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
+                        ? 'check_circle'
+                        : 'cloud_off'}
+                </span>
+              )}
+              <span
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {lang === 'es' ? 'Sincro' : 'Sync'}
+              </span>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <p
+                style={{
+                  fontFamily: 'Manrope',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  color: 'var(--c-text-primary)',
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                {isSyncing
+                  ? lang === 'es'
+                    ? 'Sincronizando...'
+                    : 'Syncing...'
+                  : sync.phase === 'error'
+                    ? lang === 'es'
+                      ? 'Fallo de sincro'
+                      : 'Sync failed'
+                    : !settings.syncAcrossDevices
+                      ? lang === 'es'
+                        ? 'Pausada'
+                        : 'Paused'
+                      : lang === 'es'
+                        ? 'Al día'
+                        : 'Up to date'}
+              </p>
+              <p
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: 8.5,
+                  color: 'var(--c-text-secondary)',
+                  margin: '2px 0 0',
+                  lineHeight: 1.2,
+                  opacity: 0.8,
+                }}
+              >
+                {sync.lastSyncedMs
+                  ? formatRelative(sync.lastSyncedMs, lang)
+                  : lang === 'es'
+                    ? 'Sin guardar'
+                    : 'Not saved'}
+              </p>
+            </div>
+          </button>
+
+          {/* Bento Card 5: Activity Timeline (Spans both columns) */}
+          <div
+            style={{
+              gridColumn: 'span 2',
+              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
+              border: '1px solid rgba(128,128,128,0.08)',
+              borderRadius: '20px',
+              padding: '16px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              position: 'relative',
+              overflow: 'hidden',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: 'var(--c-text-secondary)', opacity: 0.8 }}
+              >
+                history
               </span>
               <p
                 style={{
                   fontFamily: 'Manrope',
                   fontWeight: 800,
-                  fontSize: 22,
+                  fontSize: 14,
                   color: 'var(--c-text-primary)',
                   margin: 0,
-                  lineHeight: 1,
+                  letterSpacing: '-0.01em',
                 }}
               >
-                {value}
-              </p>
-              <p
-                style={{
-                  fontFamily: 'Inter',
-                  fontSize: 9.5,
-                  color: 'var(--c-text-secondary)',
-                  margin: 0,
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  lineHeight: 1.3,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                {label}
+                {lang === 'es' ? 'Actividad Reciente' : 'Recent Activity'}
               </p>
             </div>
-          ))}
+
+            {activityLog && activityLog.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                {activityLog.slice(0, 3).map((event: any) => {
+                  const emoji = getActivityEmoji(event.type, event.subtitle);
+                  return (
+                    <div
+                      key={event.id}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}
+                    >
+                      <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{emoji}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p
+                          style={{
+                            fontFamily: 'Manrope',
+                            fontWeight: 750,
+                            fontSize: 12.5,
+                            color: 'var(--c-text-primary)',
+                            margin: 0,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {event.title}
+                        </p>
+                        {event.subtitle && (
+                          <p
+                            style={{
+                              fontFamily: 'Inter',
+                              fontSize: 11,
+                              color: 'var(--c-text-secondary)',
+                              margin: '1px 0 0',
+                              opacity: 0.8,
+                            }}
+                          >
+                            {event.subtitle}
+                          </p>
+                        )}
+                      </div>
+                      <span
+                        style={{
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          color: 'var(--c-text-secondary)',
+                          whiteSpace: 'nowrap',
+                          opacity: 0.6,
+                        }}
+                      >
+                        {formatElapsedTime(event.timestamp, lang)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '12px 0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <p
+                  style={{
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    color: 'var(--c-text-secondary)',
+                    margin: 0,
+                    opacity: 0.7,
+                  }}
+                >
+                  {lang === 'es' ? 'No hay actividad registrada aún' : 'No recorded activity yet'}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -2663,134 +3044,6 @@ export function AccountSettingsPage({
             onPress={() => openSheet('privacy-data')}
             last
           />
-        </div>
-
-        {/* Activity Timeline Section */}
-        <div style={{ marginTop: 24, animation: 'hub-row-fade 380ms ease 85ms both' }}>
-          <p
-            style={{
-              fontFamily: 'Manrope',
-              fontWeight: 700,
-              fontSize: 11,
-              color: 'var(--c-text-secondary)',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              margin: '0 0 10px',
-            }}
-          >
-            {lang === 'es' ? 'Línea de Tiempo de Actividad' : 'Activity Timeline'}
-          </p>
-          <div
-            style={{
-              ...cardStyle,
-              padding: '16px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-              background: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-              border: '1px solid rgba(128,128,128,0.12)',
-            }}
-          >
-            <p
-              style={{
-                fontFamily: 'Inter',
-                fontSize: 12,
-                color: 'var(--c-text-secondary)',
-                margin: 0,
-                lineHeight: 1.45,
-              }}
-            >
-              {lang === 'es'
-                ? 'Mira tu actividad reciente en el ecosistema Studio.'
-                : 'See your recent activity across Studio.'}
-            </p>
-
-            {/* List of activity items */}
-            {activityLog && activityLog.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-                {activityLog.map((event: any) => {
-                  const emoji = getActivityEmoji(event.type, event.subtitle);
-                  return (
-                    <div
-                      key={event.id}
-                      style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}
-                    >
-                      <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{emoji}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p
-                          style={{
-                            fontFamily: 'Manrope',
-                            fontWeight: 750,
-                            fontSize: 13,
-                            color: 'var(--c-text-primary)',
-                            margin: 0,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {event.title}
-                        </p>
-                        {event.subtitle && (
-                          <p
-                            style={{
-                              fontFamily: 'Inter',
-                              fontSize: 11,
-                              color: 'var(--c-text-secondary)',
-                              margin: '1px 0 0',
-                              opacity: 0.8,
-                            }}
-                          >
-                            {event.subtitle}
-                          </p>
-                        )}
-                      </div>
-                      <span
-                        style={{
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          color: 'var(--c-text-secondary)',
-                          whiteSpace: 'nowrap',
-                          opacity: 0.6,
-                        }}
-                      >
-                        {formatElapsedTime(event.timestamp, lang)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '16px 0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 6,
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 24, color: 'var(--c-text-secondary)', opacity: 0.5 }}
-                >
-                  history
-                </span>
-                <p
-                  style={{
-                    fontFamily: 'Inter',
-                    fontSize: 12,
-                    color: 'var(--c-text-secondary)',
-                    margin: 0,
-                    opacity: 0.7,
-                  }}
-                >
-                  {lang === 'es' ? 'No hay actividad registrada aún' : 'No recorded activity yet'}
-                </p>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Developer / Account Details Card */}

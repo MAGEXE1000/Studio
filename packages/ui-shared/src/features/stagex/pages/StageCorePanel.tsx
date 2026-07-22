@@ -1,4 +1,4 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset, useScrollHide, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset, useScrollHide, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
@@ -104,10 +104,16 @@ export default function StagexPanel() {
   // Restore the last Stagex sub-view (Editor / Setup / Preferences / Export)
   // from the persisted session. The iframe's internal view is switched to
   // match below in handleLoad, after the iframe finishes loading.
-  const [curView, setCurView] = useState<string>(() => {
-    const s = useSettingsStore.getState();
-    const saved = s.settings.restoreLastSession ? s.lastSession?.stagexView : undefined;
-    return saved || s.settings.defaultStageView || 'Editor';
+  const curView = useNavigationStore((s) => {
+    const last = s.history[s.history.length - 1];
+    if (last?.app === 'stage' && last.page) {
+      if (last.page === 'Setup') return 'SetupHub';
+      if (last.page === 'Preferences') return 'Preferences';
+      return last.page;
+    }
+    const sState = useSettingsStore.getState();
+    const saved = sState.settings.restoreLastSession ? sState.lastSession?.stagexView : undefined;
+    return saved || sState.settings.defaultStageView || 'Editor';
   });
 
   const curViewRef = useRef(curView);
@@ -640,7 +646,11 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       } catch {}
       try {
         (iframe.contentWindow as StageWin).__onViewChange = (view: string) => {
-          setCurView(view === 'Assistant' ? 'Preferences' : view);
+          const mappedPage = view === 'Assistant' ? 'Preferences' : (view === 'SetupHub' ? 'Setup' : view);
+          const route = NavigationDispatcher.currentRoute();
+          if (route.app !== 'stage' || route.page !== mappedPage) {
+            NavigationDispatcher.replace({ app: 'stage', page: mappedPage as any });
+          }
         };
       } catch {}
 
@@ -891,12 +901,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     (targetView: string) => {
       setIsExiting(true);
       setTimeout(() => {
-        setCurView(targetView);
+        const mappedPage = targetView === 'SetupHub' ? 'Setup' : (targetView === 'Assistant' || targetView === 'Preferences' ? 'Preferences' : targetView);
+        NavigationDispatcher.push({ app: 'stage', page: mappedPage as any });
         callIframe('switchView', targetView);
         setIsExiting(false);
       }, 150);
     },
-    [callIframe, setCurView]
+    [callIframe]
   );
 
   const handleNavTap = useCallback(
@@ -1336,16 +1347,16 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                       const sv = win?.switchView;
                       if (typeof sv === 'function') {
                         if (curView === 'Export') {
-                          setCurView('Editor');
+                          NavigationDispatcher.replace({ app: 'stage', page: 'Editor' });
                           sv('Editor');
                           return;
                         }
                         if (['Rider', 'Setlist', 'Gear', 'Members'].includes(curView)) {
-                          setCurView('SetupHub');
+                          NavigationDispatcher.replace({ app: 'stage', page: 'Setup' });
                           sv('SetupHub');
                           return;
                         }
-                        setCurView('Editor');
+                        NavigationDispatcher.replace({ app: 'stage', page: 'Editor' });
                         sv('Editor');
                         return;
                       }

@@ -3201,7 +3201,12 @@ type SettingsPageId =
   | 'keyboard-shortcuts'
   | 'terms'
   | 'privacy-policy'
-  | 'bug-report';
+  | 'bug-report'
+  | 'personal-info'
+  | 'security-login'
+  | 'subscription'
+  | 'devices-sessions'
+  | 'privacy-data';
 
 function formatHour(h: number): string {
   if (h === 0) return '12 am';
@@ -4490,6 +4495,11 @@ function HubSettings({
         t.hub.studioSettings.profileTitle ||
         (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')
       );
+    if (id === 'personal-info') return lang === 'es' ? 'Información personal' : 'Personal Information';
+    if (id === 'security-login') return lang === 'es' ? 'Seguridad y acceso' : 'Security & Login';
+    if (id === 'subscription') return lang === 'es' ? 'Suscripción y facturación' : 'Subscription & Billing';
+    if (id === 'devices-sessions') return lang === 'es' ? 'Dispositivos y sesiones' : 'Devices & Sessions';
+    if (id === 'privacy-data') return lang === 'es' ? 'Privacidad y datos' : 'Privacy & Data';
 
     for (const section of sections) {
       const item = section.items.find((n) => n.id === id);
@@ -8706,6 +8716,11 @@ User Agent: [Automatically Generated]
           />
         );
       case 'profile':
+      case 'personal-info':
+      case 'security-login':
+      case 'subscription':
+      case 'devices-sessions':
+      case 'privacy-data':
         return renderProfile();
       case 'release-notes':
         return renderReleaseNotesContent();
@@ -8741,6 +8756,11 @@ User Agent: [Automatically Generated]
       'terms',
       'privacy-policy',
       'bug-report',
+      'personal-info',
+      'security-login',
+      'subscription',
+      'devices-sessions',
+      'privacy-data',
     ];
 
     return (
@@ -8765,6 +8785,11 @@ User Agent: [Automatically Generated]
             'bug-report',
             'developer',
             'notifications',
+            'personal-info',
+            'security-login',
+            'subscription',
+            'devices-sessions',
+            'privacy-data',
           ]}
           preMountViews={[
             'main',
@@ -8805,8 +8830,45 @@ User Agent: [Automatically Generated]
               );
             }
             if (standardScrollPages.includes(pageId as SettingsPageId)) {
+              const toolbarActions = pageId === 'profile' ? (
+                <button
+                  type="button"
+                  onClick={() => NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' })}
+                  style={{
+                    background: 'rgba(128, 128, 128, 0.10)',
+                    border: 'none',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-primary)',
+                    cursor: 'pointer',
+                    transition: 'transform 130ms cubic-bezier(0.34, 1.15, 0.64, 1)',
+                  }}
+                  onPointerDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.91)';
+                  }}
+                  onPointerUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onPointerLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                    settings
+                  </span>
+                </button>
+              ) : undefined;
+
               return (
-                <SettingsScaffold title={getPageTitle(pageId as SettingsPageId)} onBack={goBack}>
+                <SettingsScaffold
+                  title={getPageTitle(pageId as SettingsPageId)}
+                  onBack={goBack}
+                  toolbarActions={toolbarActions}
+                >
                   {renderActivePageContent(pageId as SettingsPageId)}
                 </SettingsScaffold>
               );

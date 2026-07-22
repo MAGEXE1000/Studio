@@ -2,13 +2,12 @@ Release Date: 2026-07-21
 
 ## Added
 
-- Production release for Studio Android v4.2.28 with self-healing, architectural Bottom Navigation stabilization.
+- Production release for Studio Android v4.2.29 with single-bar architecture stabilization.
 
 ## Fixed
 
-- Replaced fragmented local sub-app navigation overrides with a unified global Bottom Navigation Controller system.
-- Designed and implemented a permanent recovery watchdog/heartbeat checking every 1000ms.
-- Bound event-driven listeners on user interactions (`focusin`, `focusout`, `click`, `touchstart`, `resize`) to instantly heal/restore navigation bar visibility and items.
+- Removed duplicate local SharedNavigationBar from StageCorePanel in packages/ui-android.
+- Guaranteed 100% single global bottom navigation controller layout across all sub-apps.
 
 ## Security
 

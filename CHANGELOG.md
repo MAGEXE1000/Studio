@@ -13,6 +13,13 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.29
+
+Release Date: 2026-07-21
+
+## Fixed
+- Removed duplicate local SharedNavigationBar from StageCorePanel in packages/ui-android, enforcing 100% single global bottom navigation.
+
 # Version 4.2.28
 
 Release Date: 2026-07-21

@@ -3521,25 +3521,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               </button>
             )}
 
-            {/* ── Glassmorphism bottom nav ── */}
-            {!(
-              liveMode ||
-              hideBottomNav ||
-              (isLandscapeEditor && landscapeNavHidden) ||
-              navCollapsed ||
-              isWebDesktop
-            ) && (
-              <SharedNavigationBar
-                items={navTabs.map((t) => ({
-                  key: t.view,
-                  icon: t.icon,
-                  label: t.label,
-                  isActive: isTabActive(t.view),
-                  onClick: () => handleNavTap(t.view),
-                }))}
-                isLight={isLight}
-              />
-            )}
+
           </div>
 
           {/* ── PDF Export Bottom Sheet ───────────────────────── */}

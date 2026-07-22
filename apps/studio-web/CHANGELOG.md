@@ -13,6 +13,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.27
+
+Release Date: 2026-07-21
+
+## Fixed
+- Restored and unified single global Bottom Navigation Controller across all 7 studio apps.
+- Fixed session restoration auth listener to eliminate repeated login notifications on boot.
+
 # Version 4.2.26
 
 Release Date: 2026-07-21

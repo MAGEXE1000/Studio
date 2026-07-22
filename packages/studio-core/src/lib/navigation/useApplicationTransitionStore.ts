@@ -35,28 +35,26 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
   requestTransition: (targetApp) => {
     let { state, launchingApp } = get();
     
-    // Clear bottom navigation store states immediately
+    // Clear bottom navigation store states immediately during transition preparation
     const navStore = useBottomNavigationStore.getState();
     navStore.setSwitcherOpen(false);
     navStore.setVisible(false);
     navStore.setItems([]);
 
     if (state !== 'IDLE') {
-      // If we are already transitioning to the same app, do nothing
       if (launchingApp === targetApp) {
         return true;
       }
       get().reset();
       state = 'IDLE';
     }
-    // Clear any active safety watchdog
+
     const existing = (window as any).__transitionWatchdog;
     if (existing) {
       clearTimeout(existing);
       (window as any).__transitionWatchdog = null;
     }
     
-    // Set 4.5s safety watchdog timer (generous fallback)
     (window as any).__transitionWatchdog = setTimeout(() => {
       get().reset();
     }, 4500);
@@ -68,12 +66,10 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       logoFormed: targetApp === 'hub',
     });
     
-    // Switch to preloading and logo formation
     setTimeout(() => {
       const current = get();
       if (current.state === 'PREPARING') {
         set({ state: 'LOGO_FORMATION' });
-        // If both are already satisfied, transition to zoom immediately!
         if (current.appPreloaded && current.logoFormed) {
           get().startZoom();
         }
@@ -88,7 +84,6 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
 
     set({ appPreloaded: preloaded });
 
-    // Trigger zoom if both conditions are met (including during PREPARING phase)
     if (preloaded && logoFormed && (state === 'PREPARING' || state === 'LOGO_FORMATION' || state === 'FORMATION_COMPLETE')) {
       get().startZoom();
     }
@@ -119,7 +114,7 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       if (current.state === 'FORMATION_COMPLETE' && current.appPreloaded) {
         set({ state: 'ZOOM_TRANSITION' });
       }
-    }, 180); // 180ms brief completion hold
+    }, 180);
   },
 
   completeTransition: () => {
@@ -131,11 +126,10 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       (window as any).__transitionWatchdog = null;
     }
 
-    // Clear bottom navigation store states
+    // Reset bottom navigation store states and restore visibility for IDLE
     const navStore = useBottomNavigationStore.getState();
     navStore.setSwitcherOpen(false);
-    navStore.setVisible(false);
-    navStore.setItems([]);
+    navStore.setVisible(true);
 
     set({
       state: 'IDLE',
@@ -143,5 +137,24 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       appPreloaded: false,
       logoFormed: false,
     });
-  }
+  },
+
+  reset: () => {
+    const existing = (window as any).__transitionWatchdog;
+    if (existing) {
+      clearTimeout(existing);
+      (window as any).__transitionWatchdog = null;
+    }
+
+    const navStore = useBottomNavigationStore.getState();
+    navStore.setSwitcherOpen(false);
+    navStore.setVisible(true);
+
+    set({
+      state: 'IDLE',
+      launchingApp: null,
+      appPreloaded: false,
+      logoFormed: false,
+    });
+  },
 }));

@@ -1290,11 +1290,17 @@ export default function App() {
   // Subscribe to Auth and Sync status changes to publish notifications
   useEffect(() => {
     let lastUserEmail: string | null = null;
+    let isInitialBoot = true;
     let lastSyncing = false;
 
     // A. Subscribe Auth
     const unsubAuth = authRepository.subscribeAuth((user) => {
       if (user) {
+        if (isInitialBoot) {
+          lastUserEmail = user.email;
+          isInitialBoot = false;
+          return;
+        }
         if (user.email !== lastUserEmail) {
           useNotificationService.getState().publish({
             category: 'account_event',
@@ -1306,6 +1312,7 @@ export default function App() {
           lastUserEmail = user.email;
         }
       } else {
+        isInitialBoot = false;
         if (lastUserEmail !== null) {
           useNotificationService.getState().publish({
             category: 'account_event',

@@ -1,6 +1,7 @@
 Release Date: 2026-07-22
 
 ## Improved
-- Overhauled confirmation dialogs to use official HeroUI AlertDialog.
-- Replaced custom toast system with unified HeroUI Toast notifications.
-- Redesigned Notification Center items using HeroUI Alert components.
+- Fixed Bottom Navigation to remain visible on tab changes.
+- Fixed Display Density layout scaling to prevent gray margins.
+- Refined Text Scale behavior to scale only typography.
+- Enhanced Appearance color picker rendering and border visibility.

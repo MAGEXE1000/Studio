@@ -9,7 +9,6 @@ import {
   searchIndex,
   type SearchableItem,
   useSettingsStore,
-  useNotificationService,
 } from '@workspace/studio-core';
 import {
   StudioLogo,
@@ -84,56 +83,38 @@ const NavigationItem = React.memo(
     onClick: () => void;
     isActive: boolean;
   }) => {
-    const centerX = getCenterX(index);
-
-    const scale = useTransform(
-      pillX,
-      [centerX - itemWidth * 1.2, centerX, centerX + itemWidth * 1.2],
-      [1.0, 1.18, 1.0],
-      { clamp: true }
-    );
-
-    const opacity = useTransform(
-      pillX,
-      [centerX - itemWidth * 1.2, centerX, centerX + itemWidth * 1.2],
-      [0.55, 1.0, 0.55],
-      { clamp: true }
-    );
-
     const isIconString = typeof item.icon === 'string';
-
-    const unreadCount = useNotificationService(
-      (s) => s.notifications.filter((n) => !n.read && !n.dismissed).length
-    );
 
     return (
       <motion.button
         onClick={onClick}
         aria-label={item.label}
         title={item.label}
+        layout
+        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
         style={{
-          flex: 1,
+          flex: isActive ? '1.5' : '1',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'transparent',
-          border: 'none',
+          background: isActive ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+          border: isActive ? '1px solid rgba(255, 255, 255, 0.22)' : '1px solid transparent',
+          borderRadius: '9999px',
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1,
-          padding: '0 8px',
+          padding: isActive ? '0 12px' : '0 6px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
         <motion.div
           style={{
-            scale,
-            opacity,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            gap: '6px',
             position: 'relative',
           }}
         >
@@ -143,6 +124,7 @@ const NavigationItem = React.memo(
               style={{
                 fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
                 color: '#ffffff',
+                fontSize: '20px',
               }}
             >
               {item.icon}
@@ -160,20 +142,26 @@ const NavigationItem = React.memo(
             </div>
           )}
 
-          {item.key === 'notifications' && unreadCount > 0 && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--c-accent-from, #ff2d55)',
-                boxShadow: '0 0 6px var(--c-accent-from, #ff2d55)',
-              }}
-            />
-          )}
+          <AnimatePresence mode="wait">
+            {isActive && item.label && (
+              <motion.span
+                initial={{ opacity: 0, width: 0, scale: 0.9 }}
+                animate={{ opacity: 1, width: 'auto', scale: 1 }}
+                exit={{ opacity: 0, width: 0, scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '-0.01em',
+                  overflow: 'hidden',
+                }}
+              >
+                {item.label}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </motion.div>
       </motion.button>
     );
@@ -861,11 +849,14 @@ export function SharedNavigationBar({
         ref={containerRef}
         className="shared-bottom-nav-container-wrapper"
         animate={{
-          y: (!visible || collapsed || currentItems.length === 0) && !searchOpen ? 150 : translateY,
-          opacity: (!visible || collapsed || currentItems.length === 0) && !searchOpen ? 0 : 1,
+          y: (!visible || currentItems.length === 0) ? 120 : 0,
+          scale: (collapsed && !searchOpen) ? 0.78 : 1.0,
+          opacity: (!visible || currentItems.length === 0) ? 0 : 1,
         }}
         transition={{
-          ...SpringPresets.soft,
+          type: 'spring',
+          stiffness: 400,
+          damping: 32,
         }}
         style={{
           position: 'fixed',
@@ -877,6 +868,7 @@ export function SharedNavigationBar({
           flexDirection: 'column',
           alignItems: 'center',
           pointerEvents: 'none',
+          transformOrigin: 'bottom center',
         }}
       >
         {/* Click-outside backdrop */}

@@ -478,7 +478,7 @@ export default function StagexPanel() {
 
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || { app: 'hub' };
   const curView = useMemo(() => {
-    if (currentRoute.app === 'stage' && currentRoute.page) {
+    if (currentRoute.app === 'stage' && currentRoute.page && currentRoute.page !== 'main' && currentRoute.page !== 'stage') {
       return currentRoute.page;
     }
     const s = useSettingsStore.getState();

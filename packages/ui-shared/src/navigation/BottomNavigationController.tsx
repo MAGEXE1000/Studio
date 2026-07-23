@@ -293,16 +293,6 @@ export function BottomNavigationController() {
     if (currentApp === 'hub') {
       return [
         {
-          key: 'notifications',
-          icon: 'notifications',
-          label: 'Activity',
-          isActive: activeTab === 'profile' && activePage === 'notifications',
-          onClick: () => {
-            NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'notifications' });
-            setIsProfileMenuOpen(false);
-          },
-        },
-        {
           key: 'home',
           icon: 'home',
           label: 'Home',
@@ -316,7 +306,7 @@ export function BottomNavigationController() {
           key: 'profile',
           icon: profileIcon,
           label: 'Profile',
-          isActive: (activeTab === 'profile' && activePage !== 'notifications') || activeTab === 'settings',
+          isActive: activeTab === 'profile' || activeTab === 'settings',
           onClick: () => setIsProfileMenuOpen((prev) => !prev),
         },
       ];

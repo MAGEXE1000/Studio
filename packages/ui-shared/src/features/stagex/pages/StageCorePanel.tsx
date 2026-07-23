@@ -106,7 +106,7 @@ export default function StagexPanel() {
   // match below in handleLoad, after the iframe finishes loading.
   const curView = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    if (last?.app === 'stage' && last.page) {
+    if (last?.app === 'stage' && last.page && last.page !== 'main' && last.page !== 'stage') {
       if (last.page === 'Setup') return 'SetupHub';
       if (last.page === 'Preferences') return 'Preferences';
       return last.page;

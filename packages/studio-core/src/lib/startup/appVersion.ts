@@ -26,8 +26,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.2.54';
-export const WEB_VERSION = '4.2.54';
+export const NATIVE_VERSION = '4.2.55';
+export const WEB_VERSION = '4.2.55';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -67,6 +67,46 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
+];
+
+export interface ReleaseHistoryItem {
+  version: string;
+  date: string;
+  highlights: string[];
+}
+
+export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.2.55',
+    date: '2026-07-23',
+    highlights: [
+      'Redesigned Bottom Navigation with elegant 20-30% scale reduction on scroll down without hiding offscreen.',
+      'Active Tab Indicator with horizontal pill expansion and dynamic section name text.',
+      'Native-feeling Android spring motion system with smooth 60 FPS pacing.',
+      'New Changelog & Release History section inside Settings.',
+      'Permanently resolved Stagex center panel iframe navigation and route initialization.',
+      'Completely removed Notification Center for a cleaner, streamlined user experience.',
+    ],
+  },
+  {
+    version: '4.2.54',
+    date: '2026-07-23',
+    highlights: [
+      'Restored per-container scroll binding for bottom navigation auto-hide.',
+      'Fixed Stagex center panel iframe blackout by removing obsolete app checks.',
+      'Retired Updater Diagnostics in favor of Coming Soon placeholder.',
+      'Streamlined Updater experience into a single progress indicator.',
+    ],
+  },
+  {
+    version: '4.2.53',
+    date: '2026-07-23',
+    highlights: [
+      'Resolved Profile popup immediate closure caused by ghost clicks.',
+      'Restored touchmove scroll hide and watchdog recovery.',
+      'Preserved 60 FPS performance and cross-platform navigation consistency.',
+    ],
+  },
 ];
 
 /** Native English version of the current changelog for Android. */

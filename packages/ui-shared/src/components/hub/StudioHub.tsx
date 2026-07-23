@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
+import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
   StartupCoordinator,
@@ -571,9 +571,6 @@ export default function StudioHub() {
   const currentApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   const startupComplete = useStartupComplete();
-  const unreadCount = useNotificationService(
-    (s) => s.notifications.filter((n) => !n.read && !n.dismissed).length
-  );
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
@@ -3844,9 +3841,6 @@ function HubSettings({
   const updatePerApp = useSettingsStore((state) => state.updatePerApp);
   const historyLength = useNavigationStore((s) => s.history.length);
   const { preferences, setPreference } = useStudioPreferences();
-  const unreadCount = useNotificationService(
-    (s) => s.notifications.filter((n) => !n.read && !n.dismissed).length
-  );
   const [langQuery, setLangQuery] = useState('');
   const t = useT();
   const lang = settings.language ?? 'en';

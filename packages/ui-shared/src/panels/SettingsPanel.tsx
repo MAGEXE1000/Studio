@@ -11,6 +11,8 @@ import {
   resetNav,
   useSettingsStore,
   settingsController,
+  RELEASE_HISTORY,
+  NavigationDispatcher,
 } from '@workspace/studio-core';
 import React, { useRef, useState, useEffect } from 'react';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../components/SettingControls';
@@ -592,6 +594,55 @@ export default function SettingsPanel() {
               </SettingRow>
             </div>
           )}
+        </div>
+
+        {/* ── CHANGELOG & RELEASE HISTORY ── */}
+        <SectionHeader icon="history" title="Changelog & Release Notes" />
+        <div style={{ ...cardStyle, padding: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {RELEASE_HISTORY.map((rel) => (
+              <div
+                key={rel.version}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        background: `linear-gradient(135deg, ${acc.from}, ${acc.to})`,
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        padding: '3px 10px',
+                        borderRadius: '9999px',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      v{rel.version}
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+                      {rel.date}
+                    </span>
+                  </div>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {rel.highlights.map((h, i) => (
+                    <li key={i} style={{ fontSize: '13px', color: 'var(--c-text-primary)', lineHeight: '1.45' }}>
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

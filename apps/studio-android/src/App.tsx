@@ -2,7 +2,7 @@ import { type AppKey } from '@workspace/studio-core';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useStudioPreferences, logActivity, resetNav, setNavHidden, setNavLocked, BackDispatcher, useStatusBar, recordNavigation, getNavigationEntries, NATIVE_VERSION, tolgee, addLog, useBackHandler, StartupCoordinator, useNavigationStore, NavigationDispatcher, type ActivePanel, navDiagnosticsRegistry, useApplicationTransitionStore, ThemeTransitionEngine, useBottomNavigationStore, useNotificationService, subscribeSyncStatus, syncNow, useSettingsStore, authRepository, EasingPresets } from "@workspace/studio-core";
+import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useStudioPreferences, logActivity, resetNav, setNavHidden, setNavLocked, BackDispatcher, useStatusBar, recordNavigation, getNavigationEntries, NATIVE_VERSION, tolgee, addLog, useBackHandler, StartupCoordinator, useNavigationStore, NavigationDispatcher, type ActivePanel, navDiagnosticsRegistry, useApplicationTransitionStore, ThemeTransitionEngine, useBottomNavigationStore, subscribeSyncStatus, syncNow, useSettingsStore, authRepository, EasingPresets } from "@workspace/studio-core";
 
 import { TolgeeProvider } from '@tolgee/react';
 

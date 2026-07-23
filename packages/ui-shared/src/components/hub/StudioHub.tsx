@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { ColorPicker, parseColor, toast, Alert, AlertDialog, Button } from "@heroui/react";
+import { ColorPicker, parseColor, toast, Alert, AlertDialog, Button, ColorArea, ColorSlider, ColorSwatch } from "@heroui/react";
 import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
@@ -625,7 +625,7 @@ export default function StudioHub() {
   useEffect(() => {
     const isSubPage = activeRoute.page && activeRoute.page !== 'main';
     const shouldHide = shortcutPickerOpen || isEditMode || isSubPage;
-    setNavHidden(shouldHide);
+    setNavHidden(!!shouldHide);
     return () => {
       setNavHidden(false);
     };
@@ -1685,6 +1685,7 @@ export default function StudioHub() {
                     setTab={setTab}
                     showDevToast={showDevToast}
                     handleLogoTap={handleLogoTap}
+                    triggerConfirm={triggerConfirm}
                   />
                 )}
                 {/* 👤 PROFILE TAB */}
@@ -1701,6 +1702,7 @@ export default function StudioHub() {
                       setTab={setTab}
                       showDevToast={showDevToast}
                       handleLogoTap={handleLogoTap}
+                      triggerConfirm={triggerConfirm}
                     />
 
                     {/* Premium Login Success Check Overlay */}
@@ -2202,31 +2204,30 @@ export default function StudioHub() {
       )}
       {confirmState && (
         <AlertDialog
-          open={confirmState.isOpen}
+          isOpen={confirmState.isOpen}
           onOpenChange={(open) => setConfirmState(prev => prev ? { ...prev, isOpen: open } : null)}
         >
-          <AlertDialog.Backdrop>
-            <AlertDialog.Container>
-              <AlertDialog.Dialog>
-                <AlertDialog.Header>
-                  <AlertDialog.Heading>{confirmState.title}</AlertDialog.Heading>
-                </AlertDialog.Header>
-                <AlertDialog.Body>{confirmState.message}</AlertDialog.Body>
-                <AlertDialog.Footer>
-                  <Button onPress={() => setConfirmState(null)}>Cancel</Button>
-                  <Button
-                    color="danger"
-                    onPress={() => {
-                      confirmState.onConfirm();
-                      setConfirmState(null);
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </AlertDialog.Footer>
-              </AlertDialog.Dialog>
-            </AlertDialog.Container>
-          </AlertDialog.Backdrop>
+          <AlertDialog.Backdrop />
+          <AlertDialog.Container>
+            <AlertDialog.Dialog>
+              <AlertDialog.Header>
+                <AlertDialog.Heading>{confirmState.title}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>{confirmState.message}</AlertDialog.Body>
+              <AlertDialog.Footer>
+                <Button onPress={() => setConfirmState(null)}>Cancel</Button>
+                <Button
+                  variant="danger"
+                  onPress={() => {
+                    confirmState.onConfirm();
+                    setConfirmState(null);
+                  }}
+                >
+                  Confirm
+                </Button>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
         </AlertDialog>
       )}
     </div>
@@ -3678,6 +3679,7 @@ function HubSettings({
   setTab,
   showDevToast = () => {},
   handleLogoTap = () => {},
+  triggerConfirm = () => {},
 }: {
   accent: { from: string; to: string; mid: string };
   scrollRef?: React.RefObject<HTMLDivElement | null>;
@@ -3687,6 +3689,7 @@ function HubSettings({
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
   showDevToast?: (msg: string) => void;
   handleLogoTap?: () => void;
+  triggerConfirm?: (title: string, message: string, onConfirm: () => void) => void;
 }) {
   const settings = useSettingsStore((state) => state.settings);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
@@ -5498,15 +5501,31 @@ User Agent: [Automatically Generated]
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <ColorPicker
-                  label="Custom Accent Color"
                   value={parseColor(`hsl(${hue}, 75%, 55%)`)}
                   onChange={(color) => {
                     requestChange({ accentColor: 'custom' });
-                    const hueVal = Math.round(color.toHSL().hue);
+                    const hueVal = Math.round(color.toFormat('hsl').getChannelValue('hue'));
                     settingsController.updateSettings({ customAccentHue: hueVal });
                   }}
                   className="w-full"
-                />
+                >
+                  <ColorPicker.Trigger className="flex items-center gap-2 p-2 rounded-lg border border-separator cursor-pointer">
+                    <ColorSwatch className="w-6 h-6 rounded" />
+                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)' }}>Custom Accent Color</span>
+                  </ColorPicker.Trigger>
+                  <ColorPicker.Popover className="p-4 rounded-xl border border-separator bg-surface-secondary shadow-lg">
+                    <div className="flex flex-col gap-3">
+                      <ColorArea colorSpace="hsl" xChannel="saturation" yChannel="lightness" className="w-48 h-36 rounded-lg border border-separator">
+                        <ColorArea.Thumb className="w-5 h-5 rounded-full border-2 border-white shadow cursor-pointer" />
+                      </ColorArea>
+                      <ColorSlider channel="hue" colorSpace="hsl" className="w-48">
+                        <ColorSlider.Track className="h-3 rounded-full border border-separator">
+                          <ColorSlider.Thumb className="w-5 h-5 rounded-full border-2 border-white shadow cursor-pointer" />
+                        </ColorSlider.Track>
+                      </ColorSlider>
+                    </div>
+                  </ColorPicker.Popover>
+                </ColorPicker>
               </div>
             );
           })()}

@@ -5751,31 +5751,30 @@ export default function DrumEditor() {
                       delete
                     </span>
                   </button>
-                  <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
-                    <AlertDialog.Backdrop>
-                      <AlertDialog.Container>
-                        <AlertDialog.Dialog>
-                          <AlertDialog.Header>
-                            <AlertDialog.Heading>Reset pattern?</AlertDialog.Heading>
-                          </AlertDialog.Header>
-                          <AlertDialog.Body>
-                            All hits will be removed, preserving your bar count. You can undo after.
-                          </AlertDialog.Body>
-                          <AlertDialog.Footer>
-                            <HeroButton onPress={() => setShowClearConfirm(false)}>Cancel</HeroButton>
-                            <HeroButton
-                              color="danger"
-                              onPress={() => {
-                                handleClear();
-                                setShowClearConfirm(false);
-                              }}
-                            >
-                              Clear
-                            </HeroButton>
-                          </AlertDialog.Footer>
-                        </AlertDialog.Dialog>
-                      </AlertDialog.Container>
-                    </AlertDialog.Backdrop>
+                  <AlertDialog isOpen={showClearConfirm} onOpenChange={setShowClearConfirm}>
+                    <AlertDialog.Backdrop />
+                    <AlertDialog.Container>
+                      <AlertDialog.Dialog>
+                        <AlertDialog.Header>
+                          <AlertDialog.Heading>Reset pattern?</AlertDialog.Heading>
+                        </AlertDialog.Header>
+                        <AlertDialog.Body>
+                          All hits will be removed, preserving your bar count. You can undo after.
+                        </AlertDialog.Body>
+                        <AlertDialog.Footer>
+                          <HeroButton onPress={() => setShowClearConfirm(false)}>Cancel</HeroButton>
+                          <HeroButton
+                            variant="danger"
+                            onPress={() => {
+                              handleClear();
+                              setShowClearConfirm(false);
+                            }}
+                          >
+                            Clear
+                          </HeroButton>
+                        </AlertDialog.Footer>
+                      </AlertDialog.Dialog>
+                    </AlertDialog.Container>
                   </AlertDialog>
                 </div>
 
@@ -7729,31 +7728,30 @@ export default function DrumEditor() {
                           >
                             {/* Clear button â€” black bg, red trash icon */}
                             <div style={{ position: 'relative' }}>
-                              <AlertDialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
-                                <AlertDialog.Backdrop>
-                                  <AlertDialog.Container>
-                                    <AlertDialog.Dialog>
-                                      <AlertDialog.Header>
-                                        <AlertDialog.Heading>Reset pattern?</AlertDialog.Heading>
-                                      </AlertDialog.Header>
-                                      <AlertDialog.Body>
-                                        All hits and extra bars will be removed, leaving one empty bar. You can undo after.
-                                      </AlertDialog.Body>
-                                      <AlertDialog.Footer>
-                                        <HeroButton onPress={() => setShowClearConfirm(false)}>Cancel</HeroButton>
-                                        <HeroButton
-                                          color="danger"
-                                          onPress={() => {
-                                            handleClear();
-                                            setShowClearConfirm(false);
-                                          }}
-                                        >
-                                          Clear
-                                        </HeroButton>
-                                      </AlertDialog.Footer>
-                                    </AlertDialog.Dialog>
-                                  </AlertDialog.Container>
-                                </AlertDialog.Backdrop>
+                              <AlertDialog isOpen={showClearConfirm} onOpenChange={setShowClearConfirm}>
+                                <AlertDialog.Backdrop />
+                                <AlertDialog.Container>
+                                  <AlertDialog.Dialog>
+                                    <AlertDialog.Header>
+                                      <AlertDialog.Heading>Reset pattern?</AlertDialog.Heading>
+                                    </AlertDialog.Header>
+                                    <AlertDialog.Body>
+                                      All hits and extra bars will be removed, leaving one empty bar. You can undo after.
+                                    </AlertDialog.Body>
+                                    <AlertDialog.Footer>
+                                      <HeroButton onPress={() => setShowClearConfirm(false)}>Cancel</HeroButton>
+                                      <HeroButton
+                                        variant="danger"
+                                        onPress={() => {
+                                          handleClear();
+                                          setShowClearConfirm(false);
+                                        }}
+                                      >
+                                        Clear
+                                      </HeroButton>
+                                    </AlertDialog.Footer>
+                                  </AlertDialog.Dialog>
+                                </AlertDialog.Container>
                               </AlertDialog>
                               <button
                                 onClick={() => setShowClearConfirm((s) => !s)}

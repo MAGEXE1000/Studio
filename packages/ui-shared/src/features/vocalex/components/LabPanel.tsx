@@ -8,6 +8,7 @@ import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
+import { AlertDialog, Button as HeroButton } from "@heroui/react";
 
 const SESSION_ICONS = [
   'graphic_eq',
@@ -1592,74 +1593,67 @@ function MixerView({
           )}
         </div>
 
-        {/* Delete (with inline confirm) */}
-        {confirmDelete ? (
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button
-              onClick={handleDelete}
-              style={{
-                background: '#7f2927',
-                border: 'none',
-                borderRadius: 8,
-                padding: '6px 12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-                fontSize: 11,
-                fontWeight: 700,
-                color: '#ff9993',
-              }}
-            >
-              {t.vocalex.deleteTake}
-            </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              style={{
-                background: 'var(--vx-input)',
-                border: 'none',
-                borderRadius: 8,
-                padding: '6px 12px',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-                fontSize: 11,
-                fontWeight: 700,
-                color: 'var(--vx-text-2)',
-              }}
-            >
-              {t.vocalex.cancelAction}
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            title={t.vocalex.deleteSession || 'Delete session'}
-            style={{
-              flexShrink: 0,
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--vx-text-3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 150ms ease, color 150ms ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(239,68,68,0.10)';
-              e.currentTarget.style.color = '#ef4444';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--vx-text-3)';
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-              delete
-            </span>
-          </button>
-        )}
+        <button
+          onClick={() => setConfirmDelete(true)}
+          title={t.vocalex.deleteSession || 'Delete session'}
+          style={{
+            flexShrink: 0,
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--vx-text-3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 150ms ease, color 150ms ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(239,68,68,0.10)';
+            e.currentTarget.style.color = '#ef4444';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--vx-text-3)';
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            delete
+          </span>
+        </button>
+
+        <AlertDialog
+          isOpen={confirmDelete}
+          onOpenChange={(open) => !open && setConfirmDelete(false)}
+        >
+          <AlertDialog.Backdrop />
+          <AlertDialog.Container>
+            <AlertDialog.Dialog>
+              <AlertDialog.Header>
+                <AlertDialog.Heading>{t.vocalex.deleteSession || 'Delete Session'}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                Are you sure you want to delete this session? This action cannot be undone.
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <HeroButton onPress={() => setConfirmDelete(false)}>
+                  {t.vocalex.cancelAction || 'Cancel'}
+                </HeroButton>
+                <HeroButton
+                  variant="danger"
+                  onPress={() => {
+                    handleDelete();
+                    setConfirmDelete(false);
+                  }}
+                >
+                    {t.vocalex.deleteTake || 'Delete'}
+                  </HeroButton>
+                </AlertDialog.Footer>
+              </AlertDialog.Dialog>
+            </AlertDialog.Container>
+          </AlertDialog>
       </div>
 
       {/* Meta line — track count + total duration */}
@@ -2002,68 +1996,56 @@ function SessionCard({
           {formatDate(session.createdAt, t.vocalex.months)}
         </p>
       </div>
-      {confirmDel ? (
-        <div
-          style={{ display: 'flex', gap: 4, flexShrink: 0 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => {
-              onDelete(session.id);
-              setConfirmDel(false);
-            }}
-            style={{
-              background: '#7f2927',
-              border: 'none',
-              borderRadius: 6,
-              padding: '5px 10px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-              fontSize: 10,
-              fontWeight: 700,
-              color: '#ff9993',
-            }}
-          >
-            {t.vocalex.deleteTake}
-          </button>
-          <button
-            onClick={() => setConfirmDel(false)}
-            style={{
-              background: 'var(--vx-input)',
-              border: 'none',
-              borderRadius: 6,
-              padding: '5px 10px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-              fontSize: 10,
-              fontWeight: 700,
-              color: 'var(--vx-text-2)',
-            }}
-          >
-            {t.vocalex.cancelAction}
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setConfirmDel(true);
-          }}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 4,
-            color: 'var(--vx-text-4)',
-            display: 'flex',
-            flexShrink: 0,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-            delete
-          </span>
-        </button>
-      )}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setConfirmDel(true);
+        }}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 4,
+          color: 'var(--vx-text-4)',
+          display: 'flex',
+          flexShrink: 0,
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+          delete
+        </span>
+      </button>
+
+      <AlertDialog
+        isOpen={confirmDel}
+        onOpenChange={(open) => !open && setConfirmDel(false)}
+      >
+        <AlertDialog.Backdrop />
+        <AlertDialog.Container>
+          <AlertDialog.Dialog>
+            <AlertDialog.Header>
+              <AlertDialog.Heading>{t.vocalex.deleteSession || 'Delete Session'}</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              Are you sure you want to delete this session? This action cannot be undone.
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <HeroButton onPress={() => setConfirmDel(false)}>
+                {t.vocalex.cancelAction || 'Cancel'}
+              </HeroButton>
+              <HeroButton
+                variant="danger"
+                onPress={() => {
+                  onDelete(session.id);
+                  setConfirmDel(false);
+                }}
+              >
+                  {t.vocalex.deleteTake || 'Delete'}
+                </HeroButton>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog>
     </div>
   );
 }

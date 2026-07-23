@@ -6512,31 +6512,32 @@ export default function SongsPanel() {
           />
         )}
 
-        <AlertDialog open={!!showDeleteId} onOpenChange={(open) => !open && setShowDeleteId(null)}>
-          <AlertDialog.Backdrop>
-            <AlertDialog.Container>
-              <AlertDialog.Dialog>
-                <AlertDialog.Header>
-                  <AlertDialog.Heading>{t.songs.confirmDelete}</AlertDialog.Heading>
-                </AlertDialog.Header>
-                <AlertDialog.Body>
-                  Are you sure you want to delete this song preset? This action cannot be undone.
-                </AlertDialog.Body>
-                <AlertDialog.Footer>
-                  <HeroButton onPress={() => setShowDeleteId(null)}>{t.songs.cancel}</HeroButton>
-                  <HeroButton
-                    color="danger"
-                    onPress={() => {
+        <AlertDialog isOpen={!!showDeleteId} onOpenChange={(open) => !open && setShowDeleteId(null)}>
+          <AlertDialog.Backdrop />
+          <AlertDialog.Container>
+            <AlertDialog.Dialog>
+              <AlertDialog.Header>
+                <AlertDialog.Heading>{t.songs.confirmDelete}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                Are you sure you want to delete this song preset? This action cannot be undone.
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <HeroButton onPress={() => setShowDeleteId(null)}>{t.songs.cancel}</HeroButton>
+                <HeroButton
+                  variant="danger"
+                  onPress={() => {
+                    if (showDeleteId) {
                       deletePreset(showDeleteId);
-                      setShowDeleteId(null);
-                    }}
-                  >
-                    {t.songs.delete}
-                  </HeroButton>
-                </AlertDialog.Footer>
-              </AlertDialog.Dialog>
-            </AlertDialog.Container>
-          </AlertDialog.Backdrop>
+                    }
+                    setShowDeleteId(null);
+                  }}
+                >
+                  {t.songs.delete}
+                </HeroButton>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
         </AlertDialog>
 
         {exportModalPreset && (
@@ -6660,31 +6661,32 @@ export default function SongsPanel() {
         )}
       </div>
 
-      <AlertDialog open={!!showDeleteId} onOpenChange={(open) => !open && setShowDeleteId(null)}>
-        <AlertDialog.Backdrop>
-          <AlertDialog.Container>
-            <AlertDialog.Dialog>
-              <AlertDialog.Header>
-                <AlertDialog.Heading>{t.songs.confirmDelete}</AlertDialog.Heading>
-              </AlertDialog.Header>
-              <AlertDialog.Body>
-                Are you sure you want to delete this song preset? This action cannot be undone.
-              </AlertDialog.Body>
-              <AlertDialog.Footer>
-                <HeroButton onPress={() => setShowDeleteId(null)}>{t.songs.cancel}</HeroButton>
-                <HeroButton
-                  color="danger"
-                  onPress={() => {
+      <AlertDialog isOpen={!!showDeleteId} onOpenChange={(open) => !open && setShowDeleteId(null)}>
+        <AlertDialog.Backdrop />
+        <AlertDialog.Container>
+          <AlertDialog.Dialog>
+            <AlertDialog.Header>
+              <AlertDialog.Heading>{t.songs.confirmDelete}</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              Are you sure you want to delete this song preset? This action cannot be undone.
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <HeroButton onPress={() => setShowDeleteId(null)}>{t.songs.cancel}</HeroButton>
+              <HeroButton
+                variant="danger"
+                onPress={() => {
+                  if (showDeleteId) {
                     deletePreset(showDeleteId);
-                    setShowDeleteId(null);
-                  }}
-                >
-                  {t.songs.delete}
-                </HeroButton>
-              </AlertDialog.Footer>
-            </AlertDialog.Dialog>
-          </AlertDialog.Container>
-        </AlertDialog.Backdrop>
+                  }
+                  setShowDeleteId(null);
+                }}
+              >
+                {t.songs.delete}
+              </HeroButton>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
       </AlertDialog>
 
       {/* Export config modal */}

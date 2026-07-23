@@ -17,6 +17,7 @@ import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
+import { AlertDialog, Button as HeroButton } from "@heroui/react";
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
@@ -247,37 +248,36 @@ export default function TakeDetailView({
       )}
 
       {/* Delete confirmation */}
-      <DialogScaffold
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        title={t.vocalex.deleteConfirmTitle}
+      <AlertDialog
+        isOpen={showDeleteConfirm}
+        onOpenChange={(open) => !open && setShowDeleteConfirm(false)}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 13,
-              color: 'var(--c-text-secondary)',
-              margin: 0,
-              lineHeight: 1.5,
-            }}
-          >
-            {t.vocalex.deleteConfirmBody}
-          </p>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Button onClick={() => setShowDeleteConfirm(false)} style={{ flex: 1 }}>
-              {t.vocalex.cancelAction}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleDelete}
-              style={{ flex: 1, background: 'var(--c-error)', color: '#fff' }}
-            >
-              {t.vocalex.deleteTake}
-            </Button>
-          </div>
-        </div>
-      </DialogScaffold>
+        <AlertDialog.Backdrop />
+        <AlertDialog.Container>
+          <AlertDialog.Dialog>
+            <AlertDialog.Header>
+              <AlertDialog.Heading>{t.vocalex.deleteConfirmTitle}</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              {t.vocalex.deleteConfirmBody}
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <HeroButton onPress={() => setShowDeleteConfirm(false)}>
+                {t.vocalex.cancelAction || 'Cancel'}
+              </HeroButton>
+              <HeroButton
+                variant="danger"
+                onPress={() => {
+                  handleDelete();
+                  setShowDeleteConfirm(false);
+                }}
+              >
+                {t.vocalex.deleteTake || 'Delete'}
+              </HeroButton>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog>
 
       {/* Take info */}
       <div style={{ marginBottom: 20 }}>

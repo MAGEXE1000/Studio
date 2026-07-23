@@ -1941,28 +1941,27 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             />
           {iframeConfirm && (
             <AlertDialog
-              open={!!iframeConfirm}
+              isOpen={!!iframeConfirm}
               onOpenChange={(open) => !open && respondConfirm(false)}
             >
-              <AlertDialog.Backdrop>
-                <AlertDialog.Container>
-                  <AlertDialog.Dialog>
-                    <AlertDialog.Header>
-                      <AlertDialog.Heading>{iframeConfirm.title}</AlertDialog.Heading>
-                    </AlertDialog.Header>
-                    <AlertDialog.Body>{iframeConfirm.message}</AlertDialog.Body>
-                    <AlertDialog.Footer>
-                      <HeroButton onPress={() => respondConfirm(false)}>{tr.stagex.pdfSheetCancel || 'Cancel'}</HeroButton>
-                      <HeroButton
-                        color={iframeConfirm.isDestructive ? 'danger' : 'default'}
-                        onPress={() => respondConfirm(true)}
-                      >
-                        {iframeConfirm.title.toLowerCase().includes('delete') || iframeConfirm.title.toLowerCase().includes('eliminar') ? 'Delete' : 'Confirm'}
-                      </HeroButton>
-                    </AlertDialog.Footer>
-                  </AlertDialog.Dialog>
-                </AlertDialog.Container>
-              </AlertDialog.Backdrop>
+              <AlertDialog.Backdrop />
+              <AlertDialog.Container>
+                <AlertDialog.Dialog>
+                  <AlertDialog.Header>
+                    <AlertDialog.Heading>{iframeConfirm.title}</AlertDialog.Heading>
+                  </AlertDialog.Header>
+                  <AlertDialog.Body>{iframeConfirm.message}</AlertDialog.Body>
+                  <AlertDialog.Footer>
+                    <HeroButton onPress={() => respondConfirm(false)}>{tr.stagex.pdfSheetCancel || 'Cancel'}</HeroButton>
+                    <HeroButton
+                      variant={iframeConfirm.isDestructive ? 'danger' : 'outline'}
+                      onPress={() => respondConfirm(true)}
+                    >
+                      {iframeConfirm.title.toLowerCase().includes('delete') || iframeConfirm.title.toLowerCase().includes('eliminar') ? 'Delete' : 'Confirm'}
+                    </HeroButton>
+                  </AlertDialog.Footer>
+                </AlertDialog.Dialog>
+              </AlertDialog.Container>
             </AlertDialog>
           )}
         </div>

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.51"
-$VersionCode = "40251"
-$ReleaseNote = "Release v4.2.51 - Redesigned Notification Center cards to HeroUI Alert, added notification deduplication, fixed Bottom Navigation settings tab highlight regression, resolved global window interaction events for scroll auto-hide, and implemented premium floating glassmorphic Profile Account Menu."
+$VersionName = "4.2.52"
+$VersionCode = "40252"
+$ReleaseNote = "Release v4.2.52 - Resolved updater diagnostics simulation mode leak causing false installation failures, enabled global window capturing scroll-hide navigation across all sub-apps, polished Profile popup tab toggle and background closure behaviors, and implemented Android back button handling for overlays."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -20,7 +20,10 @@ git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/studio-core/src/lib/navigation/navScroll.ts
 git add packages/studio-core/src/lib/notifications/NotificationService.ts
 git add packages/studio-core/src/lib/updater/stateMachine.ts
+git add packages/studio-core/src/lib/updater/updaterSimulation.ts
 git add packages/ui-shared/src/navigation/BottomNavigationController.tsx
+git add packages/ui-shared/src/components/sheets/UpdateDiagnosticsSheet.tsx
+git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
 git add packages/ui-shared/src/navigation/AppAnimationSystem.tsx
 git add packages/ui-shared/src/features/drumex/pages/DrumPrefsPanel.tsx
 git add packages/ui-shared/src/panels/SettingsPanel.tsx

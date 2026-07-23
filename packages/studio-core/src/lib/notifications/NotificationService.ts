@@ -75,7 +75,7 @@ export const useNotificationService = create<NotificationServiceStore>()(
       publish: (notification) => {
         const notifications = get().notifications;
         const existingIndex = notifications.findIndex(
-          (n) => n.category === notification.category && n.title === notification.title && !n.dismissed
+          (n) => n.category === notification.category && n.title === notification.title
         );
 
         if (existingIndex !== -1) {
@@ -87,6 +87,7 @@ export const useNotificationService = create<NotificationServiceStore>()(
               timestamp: Date.now(),
               actions: notification.actions,
               read: false,
+              dismissed: false,
             };
             return { notifications: updated };
           });

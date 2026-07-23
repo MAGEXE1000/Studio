@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Capacitor } from '@capacitor/core';
 
-import { useChordStore, ACCENT_COLORS, updateDiagnostics, updateDebugLogs, useBackHandler, APP_VERSION, useAppUpdate, UpdaterFlightRecorder, updaterSimulation, transitionToState, checkForUpdate, downloadUpdate, applyUpdate, applyUpdateDirect, checkAndCleanCache, runSignatureMismatchRecovery, deleteLocalApk, useSettingsStore, SpringPresets } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, clearAllSimulationSettings, updateDiagnostics, updateDebugLogs, useBackHandler, APP_VERSION, useAppUpdate, UpdaterFlightRecorder, updaterSimulation, transitionToState, checkForUpdate, downloadUpdate, applyUpdate, applyUpdateDirect, checkAndCleanCache, runSignatureMismatchRecovery, deleteLocalApk, useSettingsStore, SpringPresets } from '@workspace/studio-core';
 
 type Props = {
   open: boolean;
@@ -285,6 +285,18 @@ export default function UpdateDiagnosticsSheet({ open, onClose }: Props) {
       return () => clearTimeout(id);
     }
   }, [open, refreshLogs]);
+
+  useEffect(() => {
+    if (!open) {
+      clearAllSimulationSettings();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    return () => {
+      clearAllSimulationSettings();
+    };
+  }, []);
 
   // Window scroll locking
   useEffect(() => {

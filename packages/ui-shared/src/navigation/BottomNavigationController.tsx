@@ -13,6 +13,7 @@ import {
   authRepository,
   getUserAvatar,
   subscribeUserAvatar,
+  useBackHandler,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
 import { IconSongs, IconLibrary, IconSettings } from '../components/icons/NavIcons';
@@ -54,7 +55,29 @@ export function BottomNavigationController() {
 
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
+  useBackHandler(
+    'overlay',
+    () => {
+      if (isProfileMenuOpen) {
+        setIsProfileMenuOpen(false);
+        return true;
+      }
+      return false;
+    },
+    [isProfileMenuOpen]
+  );
+
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
+
+  useEffect(() => {
+    setIsProfileMenuOpen(false);
+  }, [currentRoute]);
+
+  useEffect(() => {
+    if (isSwitcherOpen) {
+      setIsProfileMenuOpen(false);
+    }
+  }, [isSwitcherOpen]);
   const currentApp = currentRoute?.app ?? 'hub';
   const activeTab = currentRoute?.tab || currentRoute?.page || 'home';
   const activePage = currentRoute?.page || 'main';
@@ -274,22 +297,27 @@ export function BottomNavigationController() {
           icon: 'notifications',
           label: 'Activity',
           isActive: activeTab === 'profile' && activePage === 'notifications',
-          onClick: () =>
-            NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'notifications' }),
+          onClick: () => {
+            NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'notifications' });
+            setIsProfileMenuOpen(false);
+          },
         },
         {
           key: 'home',
           icon: 'home',
           label: 'Home',
           isActive: activeTab === 'home',
-          onClick: () => NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' }),
+          onClick: () => {
+            NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' });
+            setIsProfileMenuOpen(false);
+          },
         },
         {
           key: 'profile',
           icon: profileIcon,
           label: 'Profile',
           isActive: (activeTab === 'profile' && activePage !== 'notifications') || activeTab === 'settings',
-          onClick: () => setIsProfileMenuOpen(true),
+          onClick: () => setIsProfileMenuOpen((prev) => !prev),
         },
       ];
     }
@@ -316,6 +344,7 @@ export function BottomNavigationController() {
           isActive,
           onClick: () => {
             NavigationDispatcher.push({ app: 'chords', page: sec.id as any, tab: sec.id as any });
+            setIsProfileMenuOpen(false);
           },
         };
       });
@@ -339,8 +368,10 @@ export function BottomNavigationController() {
         icon: sec.icon,
         label: getTranslation(sec.labelKey),
         isActive,
-        onClick: () =>
-          NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any }),
+        onClick: () => {
+          NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any });
+          setIsProfileMenuOpen(false);
+        },
       };
     });
   }, [currentApp, activeTab, activePage, getTranslation]);

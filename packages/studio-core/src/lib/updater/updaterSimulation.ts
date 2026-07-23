@@ -194,3 +194,39 @@ export function isSimulationActive(): boolean {
     updaterSimulation.forceInvalidApk
   );
 }
+
+export function clearAllSimulationSettings(): void {
+  updaterSimulation.forceUpdateAvailable = false;
+  updaterSimulation.forceNoUpdate = false;
+  updaterSimulation.forceDowngrade = false;
+  updaterSimulation.forceMandatoryUpdate = false;
+  updaterSimulation.forceOptionalUpdate = false;
+
+  updaterSimulation.forceSignatureMismatch = false;
+  updaterSimulation.forceShaFailure = false;
+  updaterSimulation.forceMetadataFailure = false;
+  updaterSimulation.forceInvalidApk = false;
+  updaterSimulation.forceDownloadFailure = false;
+  updaterSimulation.forceDownloadTimeout = false;
+  updaterSimulation.forceRecoveryMode = false;
+  updaterSimulation.forceResumeDownload = false;
+  updaterSimulation.forceCachedApk = false;
+
+  updaterSimulation.forceInstallSuccess = false;
+  updaterSimulation.forceInstallFailure = false;
+  updaterSimulation.forceUserCancel = false;
+  updaterSimulation.forcePendingUserAction = false;
+
+  updaterSimulation.simulateDownload = false;
+  updaterSimulation.injectDownloadFailure = false;
+  updaterSimulation.injectChecksumFailure = false;
+  updaterSimulation.injectNetworkTimeout = false;
+  updaterSimulation.simulateDownloadThrottling = false;
+  updaterSimulation.runWorkflowActive = false;
+
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem('studio:is_simulation_active');
+    } catch (_) {}
+  }
+}

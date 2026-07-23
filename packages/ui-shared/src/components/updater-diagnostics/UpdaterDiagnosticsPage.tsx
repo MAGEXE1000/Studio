@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { isNative, globalUpdateState, updaterSimulation, triggerSimulatedStatus, resetAppUpdateState, applyUpdate, downloadUpdate, checkForUpdate, stateListeners, UpdaterFlightRecorder, isInstallationLocked, isPostInstallSessionActive, shouldUseAndroidApkUpdater, useIsWebDesktop, getLogs, getErrors, updateDiagnostics, PerformanceProfiler, getTransitionHistory, getRejectedTransitions, addJsLog, updateDebugLogs, useChordStore, useNavigationStore, APP_VERSION, useAppUpdate, transitionToState, applyUpdateDirect, checkAndCleanCache, runSignatureMismatchRecovery, deleteLocalApk, ACCENT_COLORS, PRODUCTION_SIGNING_SHA256, useSettingsStore } from '@workspace/studio-core';
+import { isNative, globalUpdateState, updaterSimulation, clearAllSimulationSettings, triggerSimulatedStatus, resetAppUpdateState, applyUpdate, downloadUpdate, checkForUpdate, stateListeners, UpdaterFlightRecorder, isInstallationLocked, isPostInstallSessionActive, shouldUseAndroidApkUpdater, useIsWebDesktop, getLogs, getErrors, updateDiagnostics, PerformanceProfiler, getTransitionHistory, getRejectedTransitions, addJsLog, updateDebugLogs, useChordStore, useNavigationStore, APP_VERSION, useAppUpdate, transitionToState, applyUpdateDirect, checkAndCleanCache, runSignatureMismatchRecovery, deleteLocalApk, ACCENT_COLORS, PRODUCTION_SIGNING_SHA256, useSettingsStore } from '@workspace/studio-core';
 import { copyToClipboard } from './centralizedClipboard';
 
 // Generate real diagnostics from memory
@@ -280,36 +280,7 @@ export default function UpdaterDiagnosticsPage() {
   // Workflow safety: Clean up simulation overrides on component unmount
   useEffect(() => {
     return () => {
-      // Restore the real updater by turning off all simulation flags
-      updaterSimulation.runWorkflowActive = false;
-      updaterSimulation.forceUpdateAvailable = false;
-      updaterSimulation.forceNoUpdate = false;
-      updaterSimulation.forceDowngrade = false;
-      updaterSimulation.forceMandatoryUpdate = false;
-      updaterSimulation.forceOptionalUpdate = false;
-
-      updaterSimulation.forceSignatureMismatch = false;
-      updaterSimulation.forceShaFailure = false;
-      updaterSimulation.forceMetadataFailure = false;
-      updaterSimulation.forceInvalidApk = false;
-      updaterSimulation.forceDownloadFailure = false;
-      updaterSimulation.forceDownloadTimeout = false;
-      updaterSimulation.forceRecoveryMode = false;
-      updaterSimulation.forceResumeDownload = false;
-      updaterSimulation.forceCachedApk = false;
-
-      updaterSimulation.forceInstallSuccess = false;
-      updaterSimulation.forceInstallFailure = false;
-      updaterSimulation.forceUserCancel = false;
-      updaterSimulation.forcePendingUserAction = false;
-
-      updaterSimulation.simulateDownload = false;
-      updaterSimulation.injectDownloadFailure = false;
-      updaterSimulation.injectChecksumFailure = false;
-      updaterSimulation.injectNetworkTimeout = false;
-      updaterSimulation.simulateDownloadThrottling = false;
-
-      localStorage.removeItem('studio:is_simulation_active');
+      clearAllSimulationSettings();
     };
   }, []);
 

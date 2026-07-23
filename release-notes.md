@@ -1,5 +1,5 @@
 Release Date: 2026-07-22
 
 ## Improved
-- Resolved Bottom Navigation unexpected collapse regression by using targeted modal backdrop triggers.
-- Redesigned Custom Accent Color picker popover with custom 2D free dragging and Pointer Capture.
+- Rolled back HeroUI integrations (ColorPicker, AlertDialog, Toast, and Alert-based Notification Center) to restore stable native UI and navigation behavior.
+- Fully resolved Bottom Navigation unexpected collapse regressions, stabilizing routing and tab transitions across all sub-apps.

@@ -13,6 +13,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.47
+
+Release Date: 2026-07-22
+
+## Improved
+- Rolled back HeroUI integrations (ColorPicker, AlertDialog, Toast, and Alert-based Notification Center) to restore stable native UI and navigation behavior.
+- Fully resolved Bottom Navigation unexpected collapse regressions, stabilizing routing and tab transitions across all sub-apps.
+
 # Version 4.2.46
 
 Release Date: 2026-07-22

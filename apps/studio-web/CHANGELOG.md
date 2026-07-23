@@ -13,6 +13,16 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.50
+
+Release Date: 2026-07-23
+
+## Improved
+- Redesigned Notification Center cards with status colors and cleaner typography.
+- Eliminated low-level download logs and collapsed duplicate notifications.
+- Fixed Bottom Navigation highlighting regression for settings sub-pages.
+- Implemented premium glassmorphic Profile Account Menu.
+
 # Version 4.2.49
 
 Release Date: 2026-07-23

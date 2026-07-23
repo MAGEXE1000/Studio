@@ -1,6 +1,7 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Cleaned up text animations, making all titles and headers static.
-- Resolved Stagex application switching navigation loop.
-- Restored Bottom Navigation auto-hide on scroll with page transition guards.
+- Redesigned Notification Center cards with status colors and cleaner typography.
+- Eliminated low-level download logs and collapsed duplicate notifications.
+- Fixed Bottom Navigation highlighting regression for settings sub-pages.
+- Implemented premium glassmorphic Profile Account Menu.

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.49"
-$VersionCode = "40249"
-$ReleaseNote = "Release v4.2.49 - Cleaned up text animations, resolved Stagex application switching navigation loop, and restored Bottom Navigation auto-hide on scroll with page transition guards."
+$VersionName = "4.2.50"
+$VersionCode = "40250"
+$ReleaseNote = "Release v4.2.50 - Cleaned and redesigned Notification Center cards to HeroUI Alert layout, added in-place deduplication to collapse duplicate notifications, resolved Bottom Navigation settings highlighting regression, and implemented premium glassmorphic Profile Account Menu."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

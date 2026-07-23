@@ -6058,6 +6058,23 @@ User Agent: [Automatically Generated]
       useNotificationService();
     const activeNotifications = notifications.filter((n) => !n.dismissed);
     const updater = useAppUpdate();
+    const settings = useSettingsStore.getState().settings;
+    const isHubLight = (() => {
+      const hubTheme = settings.perApp?.hub?.theme ?? settings.theme ?? 'dark';
+      if (hubTheme === 'light') return true;
+      if (hubTheme === 'system') {
+        return (
+          typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches
+        );
+      }
+      if (hubTheme === 'dynamic') {
+        const h = new Date().getHours();
+        const lightStart = settings.dynamicLightStart ?? 7;
+        const lightEnd = settings.dynamicLightEnd ?? 20;
+        return h >= lightStart && h < lightEnd;
+      }
+      return false;
+    })();
 
     const handleAction = async (id: string, actionId: string) => {
       markAsRead(id);
@@ -6259,18 +6276,22 @@ User Agent: [Automatically Generated]
                     exit="exit"
                     onClick={() => markAsRead(n.id)}
                     style={{
-                      background: isUnread ? 'rgba(255,255,255,0.03)' : 'rgba(128,128,128,0.01)',
-                      borderRadius: 18,
-                      padding: 16,
-                      border: isUnread
-                        ? '1px solid rgba(168, 85, 247, 0.25)'
-                        : '1px solid rgba(128,128,128,0.06)',
+                      background: isUnread
+                        ? (isHubLight ? 'rgba(168, 85, 247, 0.04)' : 'rgba(168, 85, 247, 0.06)')
+                        : 'rgba(128,128,128,0.02)',
+                      borderRadius: 12,
+                      padding: '14px 16px',
+                      border: '1px solid',
+                      borderColor: isUnread
+                        ? 'rgba(168, 85, 247, 0.35)'
+                        : (isHubLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'),
+                      borderLeft: `4px solid ${badgeStyle.text}`,
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 12,
+                      gap: 10,
                       cursor: 'pointer',
                       position: 'relative',
-                      boxShadow: isUnread ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
+                      boxShadow: isUnread ? '0 4px 12px rgba(168,85,247,0.08)' : 'none',
                       transition: 'border 250ms, background 250ms, box-shadow 250ms',
                     }}
                   >
@@ -6278,22 +6299,19 @@ User Agent: [Automatically Generated]
                       {/* Icon */}
                       <div
                         style={{
-                          width: 36,
-                          height: 36,
+                          width: 28,
+                          height: 28,
                           borderRadius: '50%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          background: isUnread
-                            ? 'rgba(255,255,255,0.04)'
-                            : 'rgba(128, 128, 128, 0.04)',
-                          border: '1px solid rgba(128, 128, 128, 0.08)',
+                          background: badgeStyle.bg,
                           flexShrink: 0,
                         }}
                       >
                         <span
                           className="material-symbols-outlined"
-                          style={{ color: badgeStyle.text, fontSize: 18 }}
+                          style={{ color: badgeStyle.text, fontSize: 16 }}
                         >
                           {getCategoryIcon(n.category)}
                         </span>
@@ -6311,8 +6329,8 @@ User Agent: [Automatically Generated]
                         >
                           <span
                             style={{
-                              fontSize: 13.5,
-                              fontWeight: 700,
+                              fontSize: 14,
+                              fontWeight: 600,
                               color: 'var(--c-text-primary)',
                               fontFamily: 'var(--font-headline)',
                             }}
@@ -6327,11 +6345,10 @@ User Agent: [Automatically Generated]
                         </div>
                         <p
                           style={{
-                            fontSize: 12,
+                            fontSize: 12.5,
                             color: 'var(--c-text-secondary)',
-                            opacity: 0.85,
                             margin: 0,
-                            lineHeight: 1.45,
+                            lineHeight: 1.4,
                             fontFamily: 'var(--font-body)',
                           }}
                         >
@@ -6343,14 +6360,14 @@ User Agent: [Automatically Generated]
                       {isUnread && (
                         <div
                           style={{
-                            width: 8,
-                            height: 8,
+                            width: 6,
+                            height: 6,
                             borderRadius: '50%',
                             background: '#a855f7',
-                            boxShadow: '0 0 8px #a855f7',
+                            boxShadow: '0 0 6px #a855f7',
                             position: 'absolute',
-                            top: 16,
-                            right: 16,
+                            top: 14,
+                            right: 14,
                           }}
                         />
                       )}
@@ -6362,19 +6379,19 @@ User Agent: [Automatically Generated]
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderTop: '1px solid rgba(128,128,128,0.06)',
-                        paddingTop: 10,
+                        borderTop: isHubLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
+                        paddingTop: 8,
                         marginTop: 2,
                       }}
                     >
                       <span
                         style={{
                           fontSize: 9,
-                          fontWeight: 700,
+                          fontWeight: 600,
                           textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
-                          padding: '3px 8px',
-                          borderRadius: 6,
+                          letterSpacing: '0.04em',
+                          padding: '2px 6px',
+                          borderRadius: 4,
                           background: badgeStyle.bg,
                           color: badgeStyle.text,
                           fontFamily: 'var(--font-headline)',
@@ -6383,7 +6400,7 @@ User Agent: [Automatically Generated]
                         {n.category.replace('_', ' ')}
                       </span>
 
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
                         {n.actions &&
                           n.actions.map((act) => (
                             <button
@@ -6393,13 +6410,13 @@ User Agent: [Automatically Generated]
                                 handleAction(n.id, act.actionId);
                               }}
                               style={{
-                                padding: '5px 12px',
-                                borderRadius: 999,
-                                background: 'var(--c-text-primary)',
-                                color: 'var(--app-bg)',
+                                padding: '4px 10px',
+                                borderRadius: 6,
+                                background: '#a855f7',
+                                color: '#ffffff',
                                 border: 'none',
                                 fontSize: 11,
-                                fontWeight: 700,
+                                fontWeight: 600,
                                 cursor: 'pointer',
                                 fontFamily: 'var(--font-headline)',
                               }}
@@ -6407,31 +6424,33 @@ User Agent: [Automatically Generated]
                               {act.label}
                             </button>
                           ))}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            dismiss(n.id);
-                          }}
-                          style={{
-                            padding: '5px 10px',
-                            borderRadius: 999,
-                            background: 'rgba(128, 128, 128, 0.06)',
-                            color: 'var(--c-text-secondary)',
-                            border: 'none',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 3,
-                            fontFamily: 'var(--font-headline)',
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
-                            close
-                          </span>
-                          Dismiss
-                        </button>
+                        {n.category !== 'ota_update' && n.category !== 'install_ready' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dismiss(n.id);
+                            }}
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: 6,
+                              background: 'rgba(128, 128, 128, 0.08)',
+                              color: 'var(--c-text-secondary)',
+                              border: 'none',
+                              fontSize: 11,
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              fontFamily: 'var(--font-headline)',
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                              close
+                            </span>
+                            Dismiss
+                          </button>
+                        )}
                       </div>
                     </div>
                   </motion.div>

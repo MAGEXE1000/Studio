@@ -1734,13 +1734,10 @@ export default function App() {
     const unsub = StartupCoordinator.subscribe((phases) => {
       if (phases['5'].status === 'completed') {
         setStartupComplete(true);
-        setShowHubEnabled(true);
       }
     });
 
-    void StartupCoordinator.run(() => {
-      setShowHubEnabled(true);
-    });
+    void StartupCoordinator.run(() => {});
 
     return () => {
       unsub();
@@ -2446,7 +2443,7 @@ export default function App() {
               }}
             >
               <LifecycleTracker name="app-main-layout" />
-              {showHub && showHubEnabled && (
+              {showHub && (
                 <>
                   <LifecycleTracker name="StudioHub" />
                   <Suspense fallback={<StudioHubSkeleton />}>
@@ -2457,7 +2454,7 @@ export default function App() {
             </div>
 
             <AnimatePresence mode="wait">
-              {isSubAppActive && showHubEnabled && (
+              {isSubAppActive && (
                 <motion.div
                   key={stableKey}
                   className="sc-subapp-wrapper"

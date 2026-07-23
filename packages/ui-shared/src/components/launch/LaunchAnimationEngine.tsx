@@ -83,18 +83,40 @@ export function LaunchAnimationEngine({
       }, 700);
     } else if (stage === 'reveal') {
       // Step 2: Wait for Hub to mount and paint 2 requestAnimationFrames to prevent flashes
-      if (loopMode || (typeof window !== 'undefined' && (window as any).__studioStartupComplete)) {
-        console.log(`[STARTUP-TRACE] LaunchAnimationEngine: __studioStartupComplete already true, setting canStartReveal`);
+      const isComplete =
+        loopMode ||
+        (typeof window !== 'undefined' &&
+          ((window as any).__studioStartupComplete ||
+            !!document.querySelector('[data-livex-hub-root="true"]') ||
+            !!document.getElementById('hub-root')));
+      if (isComplete) {
+        console.log(
+          `[STARTUP-TRACE] LaunchAnimationEngine: startup complete or Hub DOM present, setting canStartReveal`
+        );
         setCanStartReveal(true);
       } else {
-        console.log(`[STARTUP-TRACE] LaunchAnimationEngine: waiting for studio-startup-complete event...`);
+        console.log(
+          `[STARTUP-TRACE] LaunchAnimationEngine: waiting for studio-startup-complete event...`
+        );
         const handleStartupComplete = () => {
-          console.log(`[STARTUP-TRACE] LaunchAnimationEngine: received studio-startup-complete at ${performance.now().toFixed(0)}ms`);
+          console.log(
+            `[STARTUP-TRACE] LaunchAnimationEngine: received studio-startup-complete at ${performance.now().toFixed(0)}ms`
+          );
           setCanStartReveal(true);
         };
         window.addEventListener('studio-startup-complete', handleStartupComplete);
+
+        // Fail-safe watchdog fallback to guarantee transition out even if event is missed
+        const fallbackTimer = setTimeout(() => {
+          console.log(
+            `[STARTUP-TRACE] LaunchAnimationEngine: fallback watchdog triggered at ${performance.now().toFixed(0)}ms`
+          );
+          setCanStartReveal(true);
+        }, 2000);
+
         return () => {
           window.removeEventListener('studio-startup-complete', handleStartupComplete);
+          clearTimeout(fallbackTimer);
         };
       }
     }

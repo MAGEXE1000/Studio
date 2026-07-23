@@ -55,12 +55,14 @@ class StartupCoordinatorClass {
 
   private savedOnHubShow: (() => void) | null = null;
 
+  private isHubMounted = false;
   private hubMountedResolver: (() => void) | null = null;
   private hubMountedPromise: Promise<void> = new Promise<void>((resolve) => {
     this.hubMountedResolver = resolve;
   });
 
   notifyHubMounted() {
+    this.isHubMounted = true;
     console.log(`[STARTUP-TRACE] notifyHubMounted() CALLED at ${performance.now().toFixed(0)}ms, hasResolver=${!!this.hubMountedResolver}`);
     if (this.hubMountedResolver) {
       this.hubMountedResolver();
@@ -279,9 +281,14 @@ class StartupCoordinatorClass {
       onHubShow();
       console.log(`[STARTUP-TRACE] Phase 5: onHubShow() returned, awaiting hubMountedPromise at ${performance.now().toFixed(0)}ms`);
 
-      // Await the Hub mounting notification
-      await this.hubMountedPromise;
-      console.log(`[STARTUP-TRACE] Phase 5: hubMountedPromise RESOLVED at ${performance.now().toFixed(0)}ms`);
+      // Await the Hub mounting notification if not already mounted
+      const isDomMounted = typeof document !== 'undefined' && !!(document.querySelector('[data-livex-hub-root="true"]') || document.getElementById('hub-root'));
+      if (!this.isHubMounted && !isDomMounted) {
+        await this.hubMountedPromise;
+        console.log(`[STARTUP-TRACE] Phase 5: hubMountedPromise RESOLVED at ${performance.now().toFixed(0)}ms`);
+      } else {
+        console.log(`[STARTUP-TRACE] Phase 5: Hub already mounted (isHubMounted=${this.isHubMounted}, isDomMounted=${isDomMounted}) at ${performance.now().toFixed(0)}ms`);
+      }
 
       // Await two requestAnimationFrames to ensure it has painted and the first frame is committed
       await new Promise<void>((resolve) => {

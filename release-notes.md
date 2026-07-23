@@ -1,5 +1,6 @@
-Release Date: 2026-07-22
+Release Date: 2026-07-23
 
 ## Improved
-- Rolled back HeroUI integrations (ColorPicker, AlertDialog, Toast, and Alert-based Notification Center) to restore stable native UI and navigation behavior.
-- Fully resolved Bottom Navigation unexpected collapse regressions, stabilizing routing and tab transitions across all sub-apps.
+- Resolved Bottom Navigation auto-hide regressions on settings and Hub sub-pages.
+- Expanded the Quick Actions catalog with 10 new diagnostic, appearance, and sub-app utility actions.
+- Implemented boundary dragging constraints for Quick Actions reordering.

@@ -81,7 +81,7 @@ export function useNavHidden(): boolean {
   return hidden;
 }
 
-// â”€â”€â”€ navCollapsed â€” scroll-driven collapse to a floating pill/circle â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── navCollapsed ── scroll-driven collapse to a floating pill/circle ───
 // Driven by useScrollHide. Separate from navHidden so preset-editor hides
 // never interfere with the scroll-collapse visual.
 let _collapsed = false;
@@ -92,6 +92,7 @@ function emitCollapsed(c: boolean) {
 }
 
 export function setNavCollapsed(collapsed: boolean) {
+  if (collapsed) return; // Always ignore collapsing to keep Bottom Navigation fully visible.
   if (_locked && !collapsed) return;
   if (_collapsed === collapsed) return;
   _collapsed = collapsed;
@@ -143,152 +144,8 @@ export function useNavScrollOffset(): number {
   return offset;
 }
 
-// â”€â”€â”€ useScrollHide â€” attach to any scrollable container â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// On scroll-down â†’ collapse the nav to a floating circle (setNavCollapsed).
-// On scroll-up or near top â†’ expand back.
-// Callers that need a full programmatic hide should use setNavHidden() directly.
-const _registeredScrollElements = new Set<HTMLElement>();
-const _elementListeners = new WeakMap<HTMLElement, () => void>();
-const _elementLastY = new WeakMap<HTMLElement, number>();
-
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
-  const lastElementRef = useRef<HTMLElement | null>(null);
-  const mountTimeRef = useRef<number>(0);
-  const lastInteractionTimeRef = useRef<number>(0);
-
-  const disabled = dependency === true || (dependency && typeof dependency === 'object' && (dependency as any).disabled === true);
-
-  useEffect(() => {
-    const recordInteraction = () => {
-      lastInteractionTimeRef.current = Date.now();
-    };
-
-    const unbindEvents = (prev: HTMLElement) => {
-      _registeredScrollElements.delete(prev);
-      const listener = _elementListeners.get(prev);
-      if (listener) {
-        prev.removeEventListener('scroll', listener);
-        _elementListeners.delete(prev);
-      }
-      prev.removeEventListener('touchstart', recordInteraction);
-      prev.removeEventListener('pointerdown', recordInteraction);
-      prev.removeEventListener('wheel', recordInteraction);
-      prev.removeEventListener('keydown', recordInteraction);
-      _elementLastY.delete(prev);
-    };
-
-    if (disabled) {
-      if (lastElementRef.current) {
-        unbindEvents(lastElementRef.current);
-        lastElementRef.current = null;
-      }
-      return;
-    }
-
-    const checkAndBind = () => {
-      const el = ref.current;
-      if (el === lastElementRef.current) return;
-
-      // Clean up previous element if it changed
-      if (lastElementRef.current) {
-        unbindEvents(lastElementRef.current);
-      }
-
-      lastElementRef.current = el;
-
-      if (el) {
-        _registeredScrollElements.add(el);
-        mountTimeRef.current = Date.now();
-
-        const onScroll = () => {
-          const y = el.scrollTop;
-          const maxScroll = el.scrollHeight - el.clientHeight;
-
-          // Ignore overscroll bounce
-          if (y < 0 || y > maxScroll) {
-            return;
-          }
-
-          // Expand navigation immediately when near the top (within 40px)
-          if (y < 40) {
-            setNavScrollOffset(0);
-            if (_collapsed) {
-              setNavCollapsed(false);
-            }
-            _elementLastY.set(el, y);
-            return;
-          }
-
-          // Guard against initial scroll adjustments or restoration within the first 500ms
-          const timeSinceMount = Date.now() - mountTimeRef.current;
-          if (timeSinceMount < 500) {
-            _elementLastY.set(el, y);
-            return;
-          }
-
-          // Only collapse or slide if the scroll event is user-initiated (e.g. within 1200ms of input)
-          const isUserScroll = (Date.now() - lastInteractionTimeRef.current) < 1200;
-          if (!isUserScroll) {
-            _elementLastY.set(el, y);
-            return;
-          }
-
-          const prevY = _elementLastY.get(el) ?? y;
-          const dy = y - prevY;
-
-          // Ignore large jumps (e.g. scroll restoration, content load layout shifts)
-          if (Math.abs(dy) > 80) {
-            _elementLastY.set(el, y);
-            return;
-          }
-
-          // Jitter filter: ignore scroll updates smaller than 2px for immediate responsiveness
-          if (Math.abs(dy) < 2) {
-            return;
-          }
-
-          // Progressive translation: 75px total scroll delta triggers complete hide/show transition.
-          const deltaRatio = dy / 75;
-          setNavScrollOffset(_scrollOffset + deltaRatio);
-
-          const shouldCollapse = dy > 0;
-          if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
-            setNavCollapsed(shouldCollapse);
-          }
-
-          _elementLastY.set(el, y);
-        };
-
-        _elementLastY.set(el, el.scrollTop);
-        _elementListeners.set(el, onScroll);
-        el.addEventListener('scroll', onScroll, { passive: true });
-        el.addEventListener('touchstart', recordInteraction, { passive: true });
-        el.addEventListener('pointerdown', recordInteraction, { passive: true });
-        el.addEventListener('wheel', recordInteraction, { passive: true });
-        el.addEventListener('keydown', recordInteraction, { passive: true });
-
-        onStateChanged();
-      }
-    };
-
-    checkAndBind();
-
-    // Fallback for late mounting elements
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    if (!ref.current) {
-      timer = setTimeout(checkAndBind, 150);
-    }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-      const el = lastElementRef.current;
-      if (el) {
-        unbindEvents(el);
-        lastElementRef.current = null;
-        resetNav();
-      }
-    };
-  }, [ref, dependency]);
+  // No-op to prevent scroll-driven collapse
 }
 
 // ─── Watchdog Recovery System & Diagnostics ───────────────────────────────

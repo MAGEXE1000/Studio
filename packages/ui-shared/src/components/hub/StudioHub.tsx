@@ -202,6 +202,86 @@ const ALL_SHORTCUT_OPTIONS = [
     descEn: 'Create local and cloud backups',
     descEs: 'Crear respaldos locales y en nube',
   },
+  {
+    id: 'appearance',
+    icon: 'palette',
+    titleEn: 'Appearance',
+    titleEs: 'Apariencia',
+    descEn: 'Customize theme & layout',
+    descEs: 'Temas y densidad visual',
+  },
+  {
+    id: 'language',
+    icon: 'language',
+    titleEn: 'Language',
+    titleEs: 'Idioma',
+    descEn: 'Change app language',
+    descEs: 'Cambiar idioma de la aplicación',
+  },
+  {
+    id: 'faq',
+    icon: 'quiz',
+    titleEn: 'Common Questions',
+    titleEs: 'Preguntas Frecuentes',
+    descEn: 'Frequently asked questions',
+    descEs: 'Respuestas a dudas comunes',
+  },
+  {
+    id: 'bug-report',
+    icon: 'bug_report',
+    titleEn: 'Report Bug',
+    titleEs: 'Reportar Error',
+    descEn: 'Submit system diagnostics',
+    descEs: 'Enviar diagnóstico de fallos',
+  },
+  {
+    id: 'keyboard-shortcuts',
+    icon: 'keyboard',
+    titleEn: 'Keyboard Rules',
+    titleEs: 'Teclas Rápidas',
+    descEn: 'View keybindings maps',
+    descEs: 'Mapa de atajos de teclado',
+  },
+  {
+    id: 'vocalex-takes',
+    icon: 'history',
+    titleEn: 'Voice Takes',
+    titleEs: 'Tomas Vocales',
+    descEn: 'Browse recorded vocal takes',
+    descEs: 'Ver grabaciones de voz',
+  },
+  {
+    id: 'stage-setlist',
+    icon: 'format_list_bulleted',
+    titleEn: 'Live Setlist',
+    titleEs: 'Lista de Temas',
+    descEn: 'Manage performance setlist',
+    descEs: 'Organizar repertorio en vivo',
+  },
+  {
+    id: 'stage-gear',
+    icon: 'construction',
+    titleEn: 'Gear Inventory',
+    titleEs: 'Inventario de Equipos',
+    descEn: 'Track stage hardware gear',
+    descEs: 'Gestión de equipos físicos',
+  },
+  {
+    id: 'stage-members',
+    icon: 'group',
+    titleEn: 'Crew & Band',
+    titleEs: 'Banda y Crew',
+    descEn: 'Manage band line-up',
+    descEs: 'Personal de escenario',
+  },
+  {
+    id: 'diagnostics',
+    icon: 'analytics',
+    titleEn: 'System Diagnosis',
+    titleEs: 'Diagnóstico',
+    descEn: 'Troubleshoot app performance',
+    descEs: 'Estado y depuración del sistema',
+  },
 ];
 
 const SHORTCUT_LABEL_MAP: Record<string, { en: string; es: string }> = {
@@ -219,6 +299,16 @@ const SHORTCUT_LABEL_MAP: Record<string, { en: string; es: string }> = {
   'updater': { en: 'Updates', es: 'Actualiz.' },
   'sync': { en: 'Sync', es: 'Sincro' },
   'backup': { en: 'Backup', es: 'Copia' },
+  'appearance': { en: 'Style', es: 'Estilo' },
+  'language': { en: 'Lang', es: 'Idioma' },
+  'faq': { en: 'FAQ', es: 'FAQ' },
+  'bug-report': { en: 'Bugs', es: 'Fallos' },
+  'keyboard-shortcuts': { en: 'Keys', es: 'Teclas' },
+  'vocalex-takes': { en: 'Takes', es: 'Tomas' },
+  'stage-setlist': { en: 'Setlist', es: 'Setlist' },
+  'stage-gear': { en: 'Gear', es: 'Equipos' },
+  'stage-members': { en: 'Crew', es: 'Banda' },
+  'diagnostics': { en: 'Diag', es: 'Diag' },
 };
 
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
@@ -591,6 +681,7 @@ export default function StudioHub() {
 
   // Drag-to-reorder state variables
   const [isEditMode, setIsEditMode] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const longPressTimeoutRef = useRef<any>(null);
   const startLongPressTimer = () => {
@@ -612,13 +703,12 @@ export default function StudioHub() {
   };
 
   useEffect(() => {
-    const isSubPage = !!(activeRoute.page && activeRoute.page !== 'main');
-    const shouldHide = shortcutPickerOpen || isEditMode || isSubPage;
+    const shouldHide = !!(shortcutPickerOpen || isEditMode);
     setNavHidden(shouldHide);
     return () => {
       setNavHidden(false);
     };
-  }, [shortcutPickerOpen, isEditMode, activeRoute.page]);
+  }, [shortcutPickerOpen, isEditMode]);
 
   // Usage-based suggestions engine
   const getSuggestedActions = () => {
@@ -747,6 +837,66 @@ export default function StudioHub() {
         setTab('settings');
         setTimeout(() => {
           NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'backup' });
+        }, 150);
+        break;
+      case 'appearance':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'appearance' });
+        }, 150);
+        break;
+      case 'language':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'language' });
+        }, 150);
+        break;
+      case 'faq':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'faq' });
+        }, 150);
+        break;
+      case 'bug-report':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'bug-report' });
+        }, 150);
+        break;
+      case 'keyboard-shortcuts':
+        setTab('help');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'help', page: 'keyboard-shortcuts' });
+        }, 150);
+        break;
+      case 'vocalex-takes':
+        launchApp('vocalex');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'vocalex', page: 'takes' as any, tab: 'takes' as any });
+        }, 150);
+        break;
+      case 'stage-setlist':
+        launchApp('stage');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'stage', page: 'Setlist' as any, tab: 'Setup' as any });
+        }, 150);
+        break;
+      case 'stage-gear':
+        launchApp('stage');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'stage', page: 'Gear' as any, tab: 'Setup' as any });
+        }, 150);
+        break;
+      case 'stage-members':
+        launchApp('stage');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'stage', page: 'Members' as any, tab: 'Setup' as any });
+        }, 150);
+        break;
+      case 'diagnostics':
+        setTab('settings');
+        setTimeout(() => {
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'debug' });
         }, 150);
         break;
       case 'help':
@@ -1349,36 +1499,39 @@ export default function StudioHub() {
                           )}
                         </div>
 
-                        <Reorder.Group
-                          axis="x"
-                          values={shortcuts}
-                          onReorder={(newShortcuts) => {
-                            setShortcuts(newShortcuts);
-                            localStorage.setItem(
-                              'studio:quick-shortcuts',
-                              JSON.stringify(newShortcuts)
-                            );
-                          }}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(5, 1fr)',
-                            gap: '12px',
-                            padding: '4px 0 12px',
-                            listStyle: 'none',
-                            margin: 0,
-                          }}
-                        >
-                          {shortcuts.slice(0, 5).map((id) => {
-                            const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
-                            if (!opt) return null;
-                            const mappedLabel = SHORTCUT_LABEL_MAP[id] || { en: opt.titleEn.split(' ')[0], es: opt.titleEs.split(' ')[0] };
-                            const displayLabel = lang === 'es' ? mappedLabel.es : mappedLabel.en;
+                        <div ref={gridRef} style={{ position: 'relative', width: '100%' }}>
+                          <Reorder.Group
+                            axis="x"
+                            values={shortcuts}
+                            onReorder={(newShortcuts) => {
+                              setShortcuts(newShortcuts);
+                              localStorage.setItem(
+                                'studio:quick-shortcuts',
+                                JSON.stringify(newShortcuts)
+                              );
+                            }}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(5, 1fr)',
+                              gap: '12px',
+                              padding: '4px 0 12px',
+                              listStyle: 'none',
+                              margin: 0,
+                            }}
+                          >
+                            {shortcuts.slice(0, 5).map((id) => {
+                              const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
+                              if (!opt) return null;
+                              const mappedLabel = SHORTCUT_LABEL_MAP[id] || { en: opt.titleEn.split(' ')[0], es: opt.titleEs.split(' ')[0] };
+                              const displayLabel = lang === 'es' ? mappedLabel.es : mappedLabel.en;
 
-                            return (
-                              <Reorder.Item
-                                key={id}
-                                value={id}
-                                drag={isEditMode ? "x" : false}
+                              return (
+                                <Reorder.Item
+                                  key={id}
+                                  value={id}
+                                  drag={isEditMode ? "x" : false}
+                                  dragConstraints={gridRef}
+                                  dragElastic={0}
                                 style={{
                                   display: 'flex',
                                   flexDirection: 'column',
@@ -1529,7 +1682,8 @@ export default function StudioHub() {
                               </span>
                             </div>
                           )}
-                        </Reorder.Group>
+                         </Reorder.Group>
+                        </div>
                       </section>
 
                       {/* Studio Modules grid columns */}

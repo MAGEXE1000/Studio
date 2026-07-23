@@ -155,7 +155,24 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
   const lastElementRef = useRef<HTMLElement | null>(null);
   const mountTimeRef = useRef<number>(0);
 
+  const disabled = dependency === true || (dependency && typeof dependency === 'object' && (dependency as any).disabled === true);
+
   useEffect(() => {
+    if (disabled) {
+      if (lastElementRef.current) {
+        const prev = lastElementRef.current;
+        _registeredScrollElements.delete(prev);
+        const listener = _elementListeners.get(prev);
+        if (listener) {
+          prev.removeEventListener('scroll', listener);
+          _elementListeners.delete(prev);
+        }
+        _elementLastY.delete(prev);
+        lastElementRef.current = null;
+      }
+      return;
+    }
+
     const checkAndBind = () => {
       const el = ref.current;
       if (el === lastElementRef.current) return;

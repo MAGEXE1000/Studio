@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
+import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
   StartupCoordinator,
@@ -18,7 +18,7 @@ import React, {
   useCallback,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useMotionValue, motionValue, animate } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, motionValue, animate, Reorder } from 'motion/react';
 import {
   StudioLogo,
   ChordexLogo,
@@ -591,147 +591,34 @@ export default function StudioHub() {
 
   // Drag-to-reorder state variables
   const [isEditMode, setIsEditMode] = useState(false);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [targetIndex, setTargetIndex] = useState<number | null>(null);
 
-  const pressTimerRef = useRef<any>(null);
-  const dragRef = useRef<any>(null);
-  const yMapRef = useRef(new Map<string, any>());
-
-  const yFor = (id: string) => {
-    let mv = yMapRef.current.get(id);
-    if (!mv) {
-      mv = motionValue(0);
-      yMapRef.current.set(id, mv);
-    }
-    return mv;
-  };
-
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const rowNodes = () => [...(listRef.current?.querySelectorAll<HTMLDivElement>("[data-reorder-item]") ?? [])];
-
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>, id: string, index: number) => {
-    if (event.button !== undefined && event.button !== 0) return;
-    const row = event.currentTarget;
-    row.setPointerCapture(event.pointerId);
-    
-    dragRef.current = {
-      row,
-      pointerId: event.pointerId,
-      index,
-      startY: event.clientY,
-      active: false,
-      slot: 0,
-      to: index,
-      id,
-    };
-
-    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
-    pressTimerRef.current = setTimeout(() => {
+  const longPressTimeoutRef = useRef<any>(null);
+  const startLongPressTimer = () => {
+    if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
+    longPressTimeoutRef.current = setTimeout(() => {
       if (typeof window !== 'undefined' && typeof window.navigator?.vibrate === 'function') {
-        window.navigator.vibrate(15);
+        try {
+          window.navigator.vibrate(15);
+        } catch (_) {}
       }
       setIsEditMode(true);
-      setDraggingId(id);
-      
-      const rows = rowNodes();
-      dragRef.current.active = true;
-      dragRef.current.slot = rows.length > 1 ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top : rows[0].offsetHeight;
-      dragRef.current.rows = rows;
-      
-      setTargetIndex(index);
-    }, 300);
+    }, 500);
   };
-
-  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (!drag || event.pointerId !== drag.pointerId) return;
-
-    const dy = event.clientY - drag.startY;
-
-    if (!drag.active) {
-      if (Math.abs(dy) > 5) {
-        if (pressTimerRef.current) {
-          clearTimeout(pressTimerRef.current);
-          pressTimerRef.current = null;
-        }
-      }
-      return;
-    }
-
-    const max = (shortcuts.length - 1 - drag.index) * drag.slot;
-    const min = -drag.index * drag.slot;
-    
-    let offset = dy;
-    if (offset > max) offset = max + (offset - max) / 4;
-    if (offset < min) offset = min + (offset - min) / 4;
-
-    yFor(drag.id).jump(offset);
-
-    const to = Math.max(0, Math.min(shortcuts.length - 1, Math.round((drag.index * drag.slot + Math.max(min, Math.min(max, dy))) / drag.slot)));
-    if (to !== drag.to) {
-      drag.to = to;
-      setTargetIndex(to);
-      drag.rows.forEach((row: HTMLDivElement, j: number) => {
-        if (row === drag.row) return;
-        let shift = 0;
-        if (drag.index < j && j <= to) shift = -drag.slot;
-        if (to <= j && j < drag.index) shift = drag.slot;
-        
-        const mv = yFor(row.dataset.id!);
-        animate(mv, shift, { duration: 0.2, ease: [0.22, 1, 0.36, 1] });
-      });
+  const clearLongPressTimer = () => {
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
     }
   };
 
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
-    
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    dragRef.current = null;
-    
-    if (!drag.active) return;
-
-    setDraggingId(null);
-    setTargetIndex(null);
-    setIsEditMode(false);
-
-    if (drag.to !== drag.index) {
-      const nextShortcuts = [...shortcuts];
-      const [moved] = nextShortcuts.splice(drag.index, 1);
-      nextShortcuts.splice(drag.to, 0, moved);
-      setShortcuts(nextShortcuts);
-      localStorage.setItem('studio:quick-shortcuts', JSON.stringify(nextShortcuts));
-      yMapRef.current.forEach((mv) => mv.jump(0));
-    } else {
-      yMapRef.current.forEach((mv) => {
-        animate(mv, 0, { duration: 0.2, ease: [0.22, 1, 0.36, 1] });
-      });
-    }
-  };
-
-  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (pressTimerRef.current) {
-      clearTimeout(pressTimerRef.current);
-      pressTimerRef.current = null;
-    }
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    dragRef.current = null;
-    
-    setDraggingId(null);
-    setTargetIndex(null);
-    setIsEditMode(false);
-    
-    yMapRef.current.forEach((mv) => {
-      animate(mv, 0, { duration: 0.2, ease: [0.22, 1, 0.36, 1] });
-    });
-  };
+  useEffect(() => {
+    const isSubPage = activeRoute.page && activeRoute.page !== 'main';
+    const shouldHide = shortcutPickerOpen || isEditMode || isSubPage;
+    setNavHidden(shouldHide);
+    return () => {
+      setNavHidden(false);
+    };
+  }, [shortcutPickerOpen, isEditMode, activeRoute.page]);
 
   // Usage-based suggestions engine
   const getSuggestedActions = () => {
@@ -1419,33 +1306,66 @@ export default function StudioHub() {
                           >
                             {lang === 'es' ? 'Acciones Fijadas' : 'Pinned Actions'}
                           </h3>
-                          {/* Plus button to open picker */}
-                          <button
-                            onClick={() => setShortcutPickerOpen(true)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: accent.from,
-                              fontFamily: 'Inter',
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 2,
-                            }}
-                          >
-                            <span className="material-symbols-outlined text-[14px]">add</span>
-                            {lang === 'es' ? 'Fijar' : 'Pin'}
-                          </button>
+                          {isEditMode ? (
+                            <button
+                              onClick={() => setIsEditMode(false)}
+                              style={{
+                                background: accent.from,
+                                border: 'none',
+                                color: '#000',
+                                fontFamily: 'Inter',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                borderRadius: 12,
+                                padding: '4px 10px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2,
+                              }}
+                            >
+                              <span className="material-symbols-outlined text-[14px]">check</span>
+                              {lang === 'es' ? 'Listo' : 'Done'}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setShortcutPickerOpen(true)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: accent.from,
+                                fontFamily: 'Inter',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2,
+                              }}
+                            >
+                              <span className="material-symbols-outlined text-[14px]">add</span>
+                              {lang === 'es' ? 'Fijar' : 'Pin'}
+                            </button>
+                          )}
                         </div>
 
-                        <div
+                        <Reorder.Group
+                          axis="x"
+                          values={shortcuts}
+                          onReorder={(newShortcuts) => {
+                            setShortcuts(newShortcuts);
+                            localStorage.setItem(
+                              'studio:quick-shortcuts',
+                              JSON.stringify(newShortcuts)
+                            );
+                          }}
                           style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(5, 1fr)',
                             gap: '12px',
                             padding: '4px 0 12px',
+                            listStyle: 'none',
+                            margin: 0,
                           }}
                         >
                           {shortcuts.slice(0, 5).map((id) => {
@@ -1455,18 +1375,33 @@ export default function StudioHub() {
                             const displayLabel = lang === 'es' ? mappedLabel.es : mappedLabel.en;
 
                             return (
-                              <div
+                              <Reorder.Item
                                 key={id}
+                                value={id}
+                                drag={isEditMode ? "x" : false}
                                 style={{
                                   display: 'flex',
                                   flexDirection: 'column',
                                   alignItems: 'center',
-                                  cursor: 'pointer',
+                                  cursor: isEditMode ? 'grab' : 'pointer',
+                                  position: 'relative',
+                                  userSelect: 'none',
                                 }}
-                                onClick={() => handleShortcutClick(id)}
+                                onPointerDown={startLongPressTimer}
+                                onPointerUp={clearLongPressTimer}
+                                onPointerCancel={clearLongPressTimer}
+                                onPointerLeave={clearLongPressTimer}
+                                onClick={() => {
+                                  if (!isEditMode) {
+                                    handleShortcutClick(id);
+                                  }
+                                }}
                               >
                                 <motion.div
-                                  whileTap={{ scale: 0.92 }}
+                                  animate={isEditMode ? {
+                                    rotate: [0, -1.2, 0, 1.2, 0],
+                                    transition: { duration: 0.28, repeat: Infinity, ease: "easeInOut" }
+                                  } : { rotate: 0 }}
                                   style={{
                                     width: '48px',
                                     height: '48px',
@@ -1479,6 +1414,7 @@ export default function StudioHub() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
+                                    position: 'relative',
                                   }}
                                 >
                                   <span
@@ -1490,6 +1426,41 @@ export default function StudioHub() {
                                   >
                                     {opt.icon}
                                   </span>
+
+                                  {isEditMode && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const newShortcuts = shortcuts.filter((x) => x !== id);
+                                        setShortcuts(newShortcuts);
+                                        localStorage.setItem(
+                                          'studio:quick-shortcuts',
+                                          JSON.stringify(newShortcuts)
+                                        );
+                                      }}
+                                      style={{
+                                        position: 'absolute',
+                                        top: -2,
+                                        right: -2,
+                                        background: '#f87171',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        width: 16,
+                                        height: 16,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                        zIndex: 20,
+                                      }}
+                                    >
+                                      <span className="material-symbols-outlined" style={{ fontSize: 10, fontWeight: 'bold' }}>
+                                        close
+                                      </span>
+                                    </button>
+                                  )}
                                 </motion.div>
                                 <span
                                   style={{
@@ -1506,11 +1477,11 @@ export default function StudioHub() {
                                 >
                                   {displayLabel}
                                 </span>
-                              </div>
+                              </Reorder.Item>
                             );
                           })}
 
-                          {shortcuts.length < 5 && (
+                          {shortcuts.length < 5 && !isEditMode && (
                             <div
                               style={{
                                 display: 'flex',
@@ -1558,7 +1529,7 @@ export default function StudioHub() {
                               </span>
                             </div>
                           )}
-                        </div>
+                        </Reorder.Group>
                       </section>
 
                       {/* Studio Modules grid columns */}
@@ -2061,127 +2032,97 @@ export default function StudioHub() {
                         : 'None selected. Add some below.'}
                     </div>
                   ) : (
-                    shortcuts.map((id, index) => {
-                      const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
-                      if (!opt) return null;
-                      return (
-                        <div
-                          key={id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            background: 'rgba(255, 255, 255, 0.03)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: 12,
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: accent.from, fontSize: 20 }}
-                            >
-                              {opt.icon}
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 13,
-                                color: 'var(--c-text-primary)',
-                                fontWeight: 600,
-                              }}
-                            >
-                              {lang === 'es' ? opt.titleEs : opt.titleEn}
-                            </span>
-                          </div>
+                    <Reorder.Group
+                      axis="y"
+                      values={shortcuts}
+                      onReorder={(newShortcuts) => {
+                        setShortcuts(newShortcuts);
+                        localStorage.setItem(
+                          'studio:quick-shortcuts',
+                          JSON.stringify(newShortcuts)
+                        );
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 0, margin: 0, listStyle: 'none' }}
+                    >
+                      {shortcuts.map((id) => {
+                        const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
+                        if (!opt) return null;
+                        return (
+                          <Reorder.Item
+                            key={id}
+                            value={id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '10px 12px',
+                              background: 'rgba(255, 255, 255, 0.03)',
+                              border: '1px solid rgba(255, 255, 255, 0.05)',
+                              borderRadius: 12,
+                              cursor: 'grab',
+                              userSelect: 'none',
+                            }}
+                            whileDrag={{
+                              scale: 1.02,
+                              boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+                              background: 'rgba(255, 255, 255, 0.08)',
+                              cursor: 'grabbing',
+                            }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: 18, cursor: 'grab' }}
+                              >
+                                drag_indicator
+                              </span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: accent.from, fontSize: 20 }}
+                              >
+                                {opt.icon}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 13,
+                                  color: 'var(--c-text-primary)',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {lang === 'es' ? opt.titleEs : opt.titleEn}
+                              </span>
+                            </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            {/* Move Up */}
-                            <button
-                              disabled={index === 0}
-                              onClick={() => {
-                                const newShortcuts = [...shortcuts];
-                                newShortcuts.splice(index, 1);
-                                newShortcuts.splice(index - 1, 0, id);
-                                setShortcuts(newShortcuts);
-                                localStorage.setItem(
-                                  'studio:quick-shortcuts',
-                                  JSON.stringify(newShortcuts)
-                                );
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color:
-                                  index === 0 ? 'rgba(128,128,128,0.2)' : 'var(--c-text-secondary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: 4,
-                                cursor: index === 0 ? 'default' : 'pointer',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                                arrow_upward
-                              </span>
-                            </button>
-                            {/* Move Down */}
-                            <button
-                              disabled={index === shortcuts.length - 1}
-                              onClick={() => {
-                                const newShortcuts = [...shortcuts];
-                                newShortcuts.splice(index, 1);
-                                newShortcuts.splice(index + 1, 0, id);
-                                setShortcuts(newShortcuts);
-                                localStorage.setItem(
-                                  'studio:quick-shortcuts',
-                                  JSON.stringify(newShortcuts)
-                                );
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color:
-                                  index === shortcuts.length - 1
-                                    ? 'rgba(128,128,128,0.2)'
-                                    : 'var(--c-text-secondary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: 4,
-                                cursor: index === shortcuts.length - 1 ? 'default' : 'pointer',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                                arrow_downward
-                              </span>
-                            </button>
-                            {/* Delete */}
-                            <button
-                              onClick={() => {
-                                const newShortcuts = shortcuts.filter((x) => x !== id);
-                                setShortcuts(newShortcuts);
-                                localStorage.setItem(
-                                  'studio:quick-shortcuts',
-                                  JSON.stringify(newShortcuts)
-                                );
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: '#f87171',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: 4,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                                remove_circle
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <button
+                                onClick={() => {
+                                  const newShortcuts = shortcuts.filter((x) => x !== id);
+                                  setShortcuts(newShortcuts);
+                                  localStorage.setItem(
+                                    'studio:quick-shortcuts',
+                                    JSON.stringify(newShortcuts)
+                                  );
+                                }}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  color: '#f87171',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: 4,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                                  remove_circle
+                                </span>
+                              </button>
+                            </div>
+                          </Reorder.Item>
+                        );
+                      })}
+                    </Reorder.Group>
                   )}
                 </div>
               </div>

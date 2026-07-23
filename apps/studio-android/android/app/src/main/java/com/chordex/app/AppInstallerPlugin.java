@@ -96,6 +96,10 @@ public class AppInstallerPlugin extends Plugin {
         notifyListeners("onInstallStatusChanged", data);
     }
 
+    public void emitDownloadProgress(JSObject data) {
+        notifyListeners("apkDownloadProgress", data);
+    }
+
     private static int callIdCounter = 0;
     
     public static int downloadApkCallCount = 0;
@@ -1365,12 +1369,16 @@ public class AppInstallerPlugin extends Plugin {
             JSObject result = new JSObject();
             result.put("sessionId", sessionId);
             logNativeInstrumentation(context, "triggerInstallation", callId, "EXIT", "Success: sessionId=" + sessionId);
-            call.resolve(result);
+            if (call != null) {
+                call.resolve(result);
+            }
         } catch (Exception e) {
             Log.e("AppInstallerPlugin", "Failed to trigger installation via PackageInstaller", e);
             logNativeInstrumentation(context, "triggerInstallation", callId, "EXIT", "Exception: " + e.getMessage() + "\nStack: " + Log.getStackTraceString(e));
             InstallReceiver.appendLog(context, "Install Failure", -3, "Exception: " + e.getMessage(), null, Log.getStackTraceString(e));
-            call.reject("Failed to trigger installation: " + e.getMessage(), e);
+            if (call != null) {
+                call.reject("Failed to trigger installation: " + e.getMessage(), e);
+            }
         }
     }
 

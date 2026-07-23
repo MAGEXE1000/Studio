@@ -98,6 +98,7 @@ export function ScreenScaffold({
 export interface ScrollScaffoldProps extends React.HTMLAttributes<HTMLDivElement> {
   bottomSpacing?: boolean;
   children: React.ReactNode;
+  disableScrollHide?: boolean;
 }
 
 export function ScrollScaffold({
@@ -105,10 +106,11 @@ export function ScrollScaffold({
   children,
   style,
   className = '',
+  disableScrollHide = false,
   ...props
 }: ScrollScaffoldProps) {
   const ref = React.useRef<HTMLDivElement | null>(null);
-  useScrollHide(ref);
+  useScrollHide(ref, disableScrollHide);
 
   return (
     <div
@@ -208,6 +210,7 @@ export function SettingsScaffold({
       </div>
       <ScrollScaffold
         bottomSpacing={false}
+        disableScrollHide={true}
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }}
       >
         {children}

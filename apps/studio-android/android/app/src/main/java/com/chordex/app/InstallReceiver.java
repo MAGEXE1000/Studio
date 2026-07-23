@@ -103,6 +103,10 @@ public class InstallReceiver extends BroadcastReceiver {
             String message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
             String otherPackageName = intent.getStringExtra(PackageInstaller.EXTRA_OTHER_PACKAGE_NAME);
             
+            if (UpdateDownloadService.instance != null) {
+                UpdateDownloadService.instance.updateStatusFromInstaller(status, message);
+            }
+            
             Log.d(TAG, "[INSTRUMENTATION] [NATIVE] InstallReceiver status: " + status + ", message: " + message + ", package: " + otherPackageName);
             
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

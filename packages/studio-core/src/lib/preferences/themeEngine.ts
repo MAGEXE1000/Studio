@@ -230,7 +230,19 @@ export function applyThemeTokens(settings: any) {
     large: 1.12,
   };
   const ts = textScales[settings.fontSize as keyof typeof textScales] || 1.0;
-  (root.style as any).zoom = String(ds * ts);
+  const totalZoom = ds * ts;
+  (root.style as any).zoom = String(totalZoom);
+
+  // Set html and body dimensions dynamically based on zoom factor to fill the screen viewport
+  root.style.width = `calc(100% / ${totalZoom})`;
+  root.style.height = `calc(100% / ${totalZoom})`;
+  root.style.minHeight = `calc(100vh / ${totalZoom})`;
+
+  if (typeof document !== 'undefined' && document.body) {
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
+    document.body.style.minHeight = `calc(100vh / ${totalZoom})`;
+  }
 
   // 7. Motion Tokens
   const isReduced = settings.animationSpeed === 'reduced';

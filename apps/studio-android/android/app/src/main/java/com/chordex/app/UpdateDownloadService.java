@@ -6,6 +6,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInstaller;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -25,6 +27,8 @@ public class UpdateDownloadService extends Service {
     private static final String CHANNEL_NAME = "Studio update downloader";
     private static final int NOTIFICATION_ID = 2026;
 
+    public static UpdateDownloadService instance;
+
     private NotificationManager notificationManager;
     private NotificationCompat.Builder notificationBuilder;
     private boolean isDownloading = false;
@@ -32,8 +36,15 @@ public class UpdateDownloadService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        instance = this;
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         createNotificationChannel();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        instance = null;
     }
 
     private void createNotificationChannel() {
@@ -69,14 +80,35 @@ public class UpdateDownloadService extends Service {
 
         new Thread(() -> {
             try {
+                // Stage: Preparing update...
+                updateProgressNotification("Preparing update...", 0, true);
+                Thread.sleep(800);
+
+                // Stage: Checking release...
+                updateProgressNotification("Checking release...", 0, true);
+                Thread.sleep(800);
+
+                // Stage: Downloading update...
+                updateProgressNotification("Downloading update...", 0, true);
                 File apkFile = downloadFile(url, fileName);
                 
-                // Complete download -> proceed to verify
-                updateProgressNotification("Verifying update...", 100, true);
+                // Stage: Verifying APK...
+                updateProgressNotification("Verifying APK...", 100, true);
+                Thread.sleep(800);
+
+                // Stage: Checking SHA-256...
+                updateProgressNotification("Checking SHA-256...", 100, true);
+                Thread.sleep(800);
                 
                 boolean verified = verifySha256(apkFile, expectedHash);
                 if (verified) {
+                    // Stage: Preparing installation...
                     updateProgressNotification("Preparing installation...", 100, true);
+                    Thread.sleep(800);
+
+                    // Stage: Launching installer...
+                    updateProgressNotification("Launching installer...", 100, true);
+                    Thread.sleep(800);
                     
                     // Trigger native package installer session
                     if (AppInstallerPlugin.instance != null) {
@@ -85,7 +117,8 @@ public class UpdateDownloadService extends Service {
                                 AppInstallerPlugin.instance.triggerInstallation(apkFile, null);
                             } catch (Exception e) {
                                 Log.e(TAG, "Failed to trigger installation", e);
-                                updateProgressNotification("Installation failed", 0, false);
+                                updateProgressNotification("Installation failed: " + e.getMessage(), 0, false);
+                                finishService();
                             }
                         });
                     }
@@ -97,8 +130,6 @@ public class UpdateDownloadService extends Service {
                         AppInstallerPlugin.activeDownloadCall.resolve(ret);
                         AppInstallerPlugin.activeDownloadCall = null;
                     }
-                    
-                    updateProgressNotification("Ready to install", 100, false);
                 } else {
                     updateProgressNotification("Verification failed (SHA mismatch)", 0, false);
                     if (AppInstallerPlugin.instance != null) {
@@ -110,6 +141,7 @@ public class UpdateDownloadService extends Service {
                         AppInstallerPlugin.activeDownloadCall.reject("SHA mismatch");
                         AppInstallerPlugin.activeDownloadCall = null;
                     }
+                    finishService();
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Download failed", e);
@@ -123,10 +155,7 @@ public class UpdateDownloadService extends Service {
                     AppInstallerPlugin.activeDownloadCall.reject("Download failed: " + e.getMessage(), e);
                     AppInstallerPlugin.activeDownloadCall = null;
                 }
-            } finally {
-                isDownloading = false;
-                stopForeground(false);
-                stopSelf();
+                finishService();
             }
         }).start();
 
@@ -144,10 +173,15 @@ public class UpdateDownloadService extends Service {
             pi = PendingIntent.getActivity(this, 0, launch, flags);
         }
 
+        int icon = getApplicationInfo().icon;
+        if (icon == 0) {
+            icon = R.mipmap.ic_launcher;
+        }
+
         notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Downloading Studio Update")
+            .setContentTitle("Livex System Installer")
             .setContentText("Connecting...")
-            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setSmallIcon(icon)
             .setOngoing(true)
             .setProgress(100, 0, true);
         if (pi != null) {
@@ -164,11 +198,15 @@ public class UpdateDownloadService extends Service {
 
     private void updateProgressNotification(String text, int progress, boolean indeterminate) {
         if (notificationBuilder != null) {
+            int icon = getApplicationInfo().icon;
+            if (icon == 0) {
+                icon = R.mipmap.ic_launcher;
+            }
             notificationBuilder.setContentText(text)
+                .setSmallIcon(icon)
                 .setProgress(100, progress, indeterminate);
             if (!isDownloading) {
                 notificationBuilder.setOngoing(false);
-                notificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download_done);
             }
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
         }
@@ -179,7 +217,57 @@ public class UpdateDownloadService extends Service {
             state.put("status", text);
             state.put("progress", progress);
             AppInstallerPlugin.instance.emitInstallStatus(state);
+
+            JSObject progressObj = new JSObject();
+            progressObj.put("progress", progress);
+            AppInstallerPlugin.instance.emitDownloadProgress(progressObj);
         }
+    }
+
+    public void updateStatusFromInstaller(int status, String message) {
+        if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
+            updateProgressNotification("Waiting for user confirmation...", 100, true);
+        } else if (status == PackageInstaller.STATUS_SUCCESS) {
+            updateProgressNotification("Installation completed.", 100, false);
+            finishService();
+        } else if (status == PackageInstaller.STATUS_FAILURE_ABORTED) {
+            updateProgressNotification("Installation cancelled by user.", 0, false);
+            finishService();
+        } else {
+            String explanation = getExplanationForStatus(status, message);
+            updateProgressNotification("Installation failed: " + explanation, 0, false);
+            finishService();
+        }
+    }
+
+    private String getExplanationForStatus(int status, String message) {
+        if (status == 5) { // STATUS_FAILURE_CONFLICT
+            return "Signature mismatch or conflicting package name. A clean reinstall is required.";
+        }
+        if (status == 7) { // STATUS_FAILURE_INCOMPATIBLE
+            return "Version downgrade is not allowed by the system.";
+        }
+        if (status == 6) { // STATUS_FAILURE_STORAGE
+            return "Insufficient storage space.";
+        }
+        if (status == 2) { // STATUS_FAILURE_BLOCKED
+            return "Blocked by administrator policy or system settings.";
+        }
+        if (message != null && !message.isEmpty()) {
+            return message;
+        }
+        return "Error code " + status;
+    }
+
+    private void finishService() {
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ignored) {}
+            isDownloading = false;
+            stopForeground(false);
+            stopSelf();
+        }).start();
     }
 
     private File downloadFile(String urlString, String fileName) throws Exception {

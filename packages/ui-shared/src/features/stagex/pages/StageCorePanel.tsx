@@ -1573,6 +1573,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
           <div
             style={{
+              display: 'flex',
+              flexDirection: 'column',
               position: 'relative',
               flex: 1,
               opacity: rotationTransition ? 0.15 : isExiting ? 0 : 1,
@@ -1589,6 +1591,9 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           >
             <div
               style={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
                 width: '100%',
                 height: '100%',
                 position: 'relative',
@@ -1610,6 +1615,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     border: 'none',
                     display: 'block',
                     backgroundColor: stageBg,
+                    zIndex: 1,
                   }}
                   allow="clipboard-write"
                 />
@@ -1657,7 +1663,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     style={{
                       position: 'absolute',
                       bottom: baseBottom + 116,
-                      right: 14,
+                      right: 24,
                       width: '48px',
                       height: '48px',
                       borderRadius: '50%',
@@ -1712,7 +1718,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     style={{
                       position: 'absolute',
                       bottom: baseBottom + 58,
-                      right: 14,
+                      right: 24,
                       width: '48px',
                       height: '48px',
                       borderRadius: '50%',
@@ -1767,7 +1773,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     style={{
                       position: 'absolute',
                       bottom: baseBottom,
-                      right: 14,
+                      right: 24,
                       width: '48px',
                       height: '48px',
                       borderRadius: '50%',

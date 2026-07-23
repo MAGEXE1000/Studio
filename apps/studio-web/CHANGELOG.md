@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.57
+
+Release Date: 2026-07-23
+
+## Improved
+- Conducted comprehensive AST runtime stabilization pass across all core modules and shared components.
+- Eliminated dangling useNotificationService and unreadCount ReferenceErrors.
+- Verified 0 Cannot find name diagnostics across the entire monorepo.
+
 # Version 4.2.56
 
 Release Date: 2026-07-23

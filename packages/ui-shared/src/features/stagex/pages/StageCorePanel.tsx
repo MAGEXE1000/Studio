@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 
+import { AlertDialog, Button as HeroButton } from "@heroui/react";
 import {
   getSharedNavTransform,
   getSharedNavOpacity,
@@ -53,6 +54,18 @@ export default function StagexPanel() {
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<StageLibraryItem[]>([]);
+  const [iframeConfirm, setIframeConfirm] = useState<{
+    message: string;
+    title: string;
+    isDestructive: boolean;
+  } | null>(null);
+
+  const respondConfirm = (ok: boolean) => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'stage-core:confirm-response', ok }, '*');
+    }
+    setIframeConfirm(null);
+  };
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({
     mics: false,
     drums: false,
@@ -748,6 +761,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       if (e.data?.type === 'sc-prop-state')
         setPropPanelOpen(e.data.state === 'open' || e.data.state === 'peek');
       if (e.data?.type === 'sc-live-mode') setLiveMode(!!e.data.on);
+      if (e.data?.type === 'stage-core:confirm') {
+        setIframeConfirm({
+          message: e.data.message,
+          title: e.data.title,
+          isDestructive: e.data.isDestructive || false
+        });
+      }
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);
@@ -1919,6 +1939,32 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 //               shareLabel={tr.stagex.toolShare}
               cancelLabel={tr.stagex.pdfSheetCancel}
             />
+          {iframeConfirm && (
+            <AlertDialog
+              open={!!iframeConfirm}
+              onOpenChange={(open) => !open && respondConfirm(false)}
+            >
+              <AlertDialog.Backdrop>
+                <AlertDialog.Container>
+                  <AlertDialog.Dialog>
+                    <AlertDialog.Header>
+                      <AlertDialog.Heading>{iframeConfirm.title}</AlertDialog.Heading>
+                    </AlertDialog.Header>
+                    <AlertDialog.Body>{iframeConfirm.message}</AlertDialog.Body>
+                    <AlertDialog.Footer>
+                      <HeroButton onPress={() => respondConfirm(false)}>{tr.stagex.pdfSheetCancel || 'Cancel'}</HeroButton>
+                      <HeroButton
+                        color={iframeConfirm.isDestructive ? 'danger' : 'default'}
+                        onPress={() => respondConfirm(true)}
+                      >
+                        {iframeConfirm.title.toLowerCase().includes('delete') || iframeConfirm.title.toLowerCase().includes('eliminar') ? 'Delete' : 'Confirm'}
+                      </HeroButton>
+                    </AlertDialog.Footer>
+                  </AlertDialog.Dialog>
+                </AlertDialog.Container>
+              </AlertDialog.Backdrop>
+            </AlertDialog>
+          )}
         </div>
       </div>
     </div>

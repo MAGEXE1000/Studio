@@ -6311,43 +6311,24 @@ let _confirmCb = null;
 function showConfirm(message, onOk, options = {}) {
   _confirmCb = onOk;
   const title = options.title || (state.lang === 'es' ? 'Confirmar' : 'Confirm');
-  const okText = options.okText || (state.lang === 'es' ? 'Confirmar' : 'Confirm');
-  const cancelText = options.cancelText || (state.lang === 'es' ? 'Cancelar' : 'Cancel');
-  const isDestructive = options.isDestructive || false;
-
-  const titleEl = document.getElementById('confirm-title');
-  if (titleEl) titleEl.textContent = title;
-
-  const msgEl = document.getElementById('confirm-msg');
-  if (msgEl) msgEl.textContent = message;
-
-  const okBtn = document.getElementById('confirm-ok-btn');
-  if (okBtn) {
-    okBtn.textContent = okText;
-    if (isDestructive) {
-      okBtn.style.background = 'var(--hot)';
-    } else {
-      okBtn.style.background = 'var(--accent)';
-    }
-  }
-
-  const cancelBtn = document.getElementById('confirm-cancel-btn');
-  if (cancelBtn) {
-    cancelBtn.textContent = cancelText;
-    cancelBtn.focus();
-  }
-
-  const el = document.getElementById('confirm-modal');
-  if (el) el.style.display = 'flex';
-  if (typeof lcIcons === 'function') lcIcons();
+  window.parent.postMessage({
+    type: 'stage-core:confirm',
+    message: message,
+    title: title,
+    isDestructive: options.isDestructive || false
+  }, '*');
 }
 
 function doConfirm(ok) {
-  const el = document.getElementById('confirm-modal');
-  if (el) el.style.display = 'none';
   if (ok && typeof _confirmCb === 'function') _confirmCb();
   _confirmCb = null;
 }
+
+window.addEventListener('message', function (e) {
+  if (e.data && e.data.type === 'stage-core:confirm-response') {
+    doConfirm(e.data.ok);
+  }
+});
 
 // Close confirm modal on Escape key
 document.addEventListener('keydown', function (e) {

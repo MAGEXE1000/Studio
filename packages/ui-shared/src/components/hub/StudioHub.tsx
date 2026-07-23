@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { ColorPicker, parseColor, toast, Alert, AlertDialog, Button } from "@heroui/react";
 import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useLiquidGlassNav, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useNotificationService, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
@@ -588,6 +589,16 @@ export default function StudioHub() {
   const [langQuery, setLangQuery] = useState('');
   const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
   const [shortcuts, setShortcuts] = useState<string[]>([]);
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const triggerConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmState({ isOpen: true, title, message, onConfirm });
+  };
 
   // Drag-to-reorder state variables
   const [isEditMode, setIsEditMode] = useState(false);
@@ -807,8 +818,6 @@ export default function StudioHub() {
 
   // Android-style Developer Options Tap & Toast state
   const devTapsRef = useRef(0);
-  const [devToast, setDevToast] = useState<string | null>(null);
-  const [devToastTimer, setDevToastTimer] = useState<number | null>(null);
 
   const tabRef = useRef(tab);
   tabRef.current = tab;
@@ -855,12 +864,7 @@ export default function StudioHub() {
   }, []);
 
   const showDevToast = (msg: string) => {
-    if (devToastTimer) {
-      window.clearTimeout(devToastTimer);
-    }
-    setDevToast(msg);
-    const id = window.setTimeout(() => setDevToast(null), 2000);
-    setDevToastTimer(id);
+    toast(msg);
   };
 
   const handleLogoTap = () => {
@@ -878,31 +882,6 @@ export default function StudioHub() {
       showDevToast('Developer Options unlocked.');
     }
   };
-
-  const renderDevToast = () => (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: '32px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: isHubLight ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.85)',
-        color: isHubLight ? '#fff' : '#000',
-        padding: '8px 18px',
-        borderRadius: '20px',
-        fontSize: '12.5px',
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 600,
-        zIndex: 99999,
-        pointerEvents: 'none',
-        backdropFilter: 'blur(8px)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.20)',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      {devToast}
-    </div>
-  );
 
   useEffect(() => {
     return authRepository.subscribeAuth((user) => {
@@ -1706,8 +1685,6 @@ export default function StudioHub() {
                     setTab={setTab}
                     showDevToast={showDevToast}
                     handleLogoTap={handleLogoTap}
-                    devToast={devToast}
-                    renderDevToast={renderDevToast}
                   />
                 )}
                 {/* 👤 PROFILE TAB */}
@@ -1724,8 +1701,6 @@ export default function StudioHub() {
                       setTab={setTab}
                       showDevToast={showDevToast}
                       handleLogoTap={handleLogoTap}
-                      devToast={devToast}
-                      renderDevToast={renderDevToast}
                     />
 
                     {/* Premium Login Success Check Overlay */}
@@ -2225,8 +2200,35 @@ export default function StudioHub() {
           </div>
         </div>
       )}
-
-
+      {confirmState && (
+        <AlertDialog
+          open={confirmState.isOpen}
+          onOpenChange={(open) => setConfirmState(prev => prev ? { ...prev, isOpen: open } : null)}
+        >
+          <AlertDialog.Backdrop>
+            <AlertDialog.Container>
+              <AlertDialog.Dialog>
+                <AlertDialog.Header>
+                  <AlertDialog.Heading>{confirmState.title}</AlertDialog.Heading>
+                </AlertDialog.Header>
+                <AlertDialog.Body>{confirmState.message}</AlertDialog.Body>
+                <AlertDialog.Footer>
+                  <Button onPress={() => setConfirmState(null)}>Cancel</Button>
+                  <Button
+                    color="danger"
+                    onPress={() => {
+                      confirmState.onConfirm();
+                      setConfirmState(null);
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </AlertDialog.Footer>
+              </AlertDialog.Dialog>
+            </AlertDialog.Container>
+          </AlertDialog.Backdrop>
+        </AlertDialog>
+      )}
     </div>
   );
 }
@@ -3676,8 +3678,6 @@ function HubSettings({
   setTab,
   showDevToast = () => {},
   handleLogoTap = () => {},
-  devToast = null,
-  renderDevToast = () => null,
 }: {
   accent: { from: string; to: string; mid: string };
   scrollRef?: React.RefObject<HTMLDivElement | null>;
@@ -3687,8 +3687,6 @@ function HubSettings({
   setTab: React.Dispatch<React.SetStateAction<HubTab>>;
   showDevToast?: (msg: string) => void;
   handleLogoTap?: () => void;
-  devToast?: string | null;
-  renderDevToast?: () => React.ReactNode;
 }) {
   const settings = useSettingsStore((state) => state.settings);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
@@ -5494,69 +5492,20 @@ User Agent: [Automatically Generated]
             })}
           </div>
 
-          {/* Custom Accent Hue Slider */}
+          {/* Custom Accent Color Picker */}
           {(() => {
-            const isCustom = hubVis.accentColor === 'custom';
             const hue = settings.customAccentHue ?? 220;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: 'var(--c-text-primary)',
-                        margin: 0,
-                      }}
-                    >
-                      Custom Color
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 9,
-                        color: 'var(--c-text-secondary)',
-                        textTransform: 'uppercase',
-                        margin: '2px 0 0',
-                      }}
-                    >
-                      Custom Spectrum
-                    </p>
-                  </div>
-                  <div
-                    style={{
-                      background: 'var(--app-surface-low, rgba(0,0,0,0.2))',
-                      padding: '4px 8px',
-                      borderRadius: 6,
-                      border: '1px solid rgba(128,128,128,0.1)',
-                    }}
-                  >
-                    <span style={{ fontSize: 11, color: accent.from, fontFamily: 'monospace' }}>
-                      #007AFF
-                    </span>
-                  </div>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={359}
-                  value={hue}
-                  onChange={(e) => {
+                <ColorPicker
+                  label="Custom Accent Color"
+                  value={parseColor(`hsl(${hue}, 75%, 55%)`)}
+                  onChange={(color) => {
                     requestChange({ accentColor: 'custom' });
-                    settingsController.updateSettings({ customAccentHue: Number(e.target.value) });
+                    const hueVal = Math.round(color.toHSL().hue);
+                    settingsController.updateSettings({ customAccentHue: hueVal });
                   }}
-                  style={{
-                    width: '100%',
-                    height: 8,
-                    borderRadius: 9999,
-                    outline: 'none',
-                    background:
-                      'linear-gradient(to right, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000)',
-                    appearance: 'none',
-                    WebkitAppearance: 'none',
-                  }}
+                  className="w-full"
                 />
               </div>
             );
@@ -6086,8 +6035,28 @@ User Agent: [Automatically Generated]
               style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
             >
               {activeNotifications.map((n) => {
-                const badgeStyle = getCategoryColor(n.category);
                 const isUnread = !n.read;
+                const getAlertColor = (category: string): "default" | "primary" | "secondary" | "success" | "warning" | "danger" => {
+                  switch (category) {
+                    case 'install_failed':
+                      return 'danger';
+                    case 'install_ready':
+                    case 'app_update':
+                    case 'ota_update':
+                      return 'secondary';
+                    case 'sync_event':
+                    case 'backup_event':
+                      return 'primary';
+                    case 'tip':
+                      return 'warning';
+                    case 'feature_announcement':
+                      return 'success';
+                    default:
+                      return 'default';
+                  }
+                };
+                const alertColor = getAlertColor(n.category);
+
                 return (
                   <motion.div
                     key={n.id}
@@ -6109,182 +6078,126 @@ User Agent: [Automatically Generated]
                     }}
                     exit="exit"
                     onClick={() => markAsRead(n.id)}
-                    style={{
-                      background: isUnread ? 'rgba(255,255,255,0.03)' : 'rgba(128,128,128,0.01)',
-                      borderRadius: 18,
-                      padding: 16,
-                      border: isUnread
-                        ? '1px solid rgba(168, 85, 247, 0.25)'
-                        : '1px solid rgba(128,128,128,0.06)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 12,
-                      cursor: 'pointer',
-                      position: 'relative',
-                      boxShadow: isUnread ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
-                      transition: 'border 250ms, background 250ms, box-shadow 250ms',
-                    }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                      {/* Icon */}
-                      <div
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: isUnread
-                            ? 'rgba(255,255,255,0.04)'
-                            : 'rgba(128, 128, 128, 0.04)',
-                          border: '1px solid rgba(128, 128, 128, 0.08)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ color: badgeStyle.text, fontSize: 18 }}
-                        >
-                          {getCategoryIcon(n.category)}
-                        </span>
-                      </div>
+                    <Alert color={alertColor} style={{ padding: 14, borderRadius: 16 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, position: 'relative' }}>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: 20, color: 'var(--c-text-primary)', marginTop: 2 }}
+                          >
+                            {getCategoryIcon(n.category)}
+                          </span>
+                          <Alert.Content>
+                            <Alert.Title style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--c-text-primary)' }}>
+                              {n.title}
+                            </Alert.Title>
+                            <Alert.Description style={{ fontSize: 12, color: 'var(--c-text-secondary)', opacity: 0.85, marginTop: 4 }}>
+                              {n.subtitle}
+                            </Alert.Description>
+                          </Alert.Content>
+                          <span
+                            style={{ fontSize: 10, color: 'var(--c-text-secondary)', opacity: 0.6, marginLeft: 'auto' }}
+                          >
+                            {formatTimestamp(n.timestamp)}
+                          </span>
 
-                      {/* Content */}
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          {/* Unread Glow Dot */}
+                          {isUnread && (
+                            <div
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                background: 'var(--accent, #a855f7)',
+                                boxShadow: '0 0 8px var(--accent, #a855f7)',
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                              }}
+                            />
+                          )}
+                        </div>
+
+                        {/* Actions and Footer */}
                         <div
                           style={{
                             display: 'flex',
-                            alignItems: 'center',
                             justifyContent: 'space-between',
-                            gap: 8,
+                            alignItems: 'center',
+                            borderTop: '1px solid rgba(128,128,128,0.06)',
+                            paddingTop: 8,
                           }}
                         >
                           <span
                             style={{
-                              fontSize: 13.5,
+                              fontSize: 9,
                               fontWeight: 700,
-                              color: 'var(--c-text-primary)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.08em',
+                              padding: '3px 8px',
+                              borderRadius: 6,
+                              background: 'rgba(128,128,128,0.08)',
+                              color: 'var(--c-text-secondary)',
                               fontFamily: 'var(--font-headline)',
                             }}
                           >
-                            {n.title}
+                            {n.category.replace('_', ' ')}
                           </span>
-                          <span
-                            style={{ fontSize: 10, color: 'var(--c-text-secondary)', opacity: 0.6 }}
-                          >
-                            {formatTimestamp(n.timestamp)}
-                          </span>
-                        </div>
-                        <p
-                          style={{
-                            fontSize: 12,
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.85,
-                            margin: 0,
-                            lineHeight: 1.45,
-                            fontFamily: 'var(--font-body)',
-                          }}
-                        >
-                          {n.subtitle}
-                        </p>
-                      </div>
 
-                      {/* Unread Glow Dot */}
-                      {isUnread && (
-                        <div
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            background: '#a855f7',
-                            boxShadow: '0 0 8px #a855f7',
-                            position: 'absolute',
-                            top: 16,
-                            right: 16,
-                          }}
-                        />
-                      )}
-                    </div>
-
-                    {/* Actions and Footer */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderTop: '1px solid rgba(128,128,128,0.06)',
-                        paddingTop: 10,
-                        marginTop: 2,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
-                          padding: '3px 8px',
-                          borderRadius: 6,
-                          background: badgeStyle.bg,
-                          color: badgeStyle.text,
-                          fontFamily: 'var(--font-headline)',
-                        }}
-                      >
-                        {n.category.replace('_', ' ')}
-                      </span>
-
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        {n.actions &&
-                          n.actions.map((act) => (
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            {n.actions &&
+                              n.actions.map((act) => (
+                                <button
+                                  key={act.actionId}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAction(n.id, act.actionId);
+                                  }}
+                                  style={{
+                                    padding: '5px 12px',
+                                    borderRadius: 999,
+                                    background: 'var(--c-text-primary)',
+                                    color: 'var(--app-bg)',
+                                    border: 'none',
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    fontFamily: 'var(--font-headline)',
+                                  }}
+                                >
+                                  {act.label}
+                                </button>
+                              ))}
                             <button
-                              key={act.actionId}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleAction(n.id, act.actionId);
+                                dismiss(n.id);
                               }}
                               style={{
-                                padding: '5px 12px',
+                                padding: '5px 10px',
                                 borderRadius: 999,
-                                background: 'var(--c-text-primary)',
-                                color: 'var(--app-bg)',
+                                background: 'rgba(128, 128, 128, 0.06)',
+                                color: 'var(--c-text-secondary)',
                                 border: 'none',
                                 fontSize: 11,
-                                fontWeight: 700,
+                                fontWeight: 600,
                                 cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 3,
                                 fontFamily: 'var(--font-headline)',
                               }}
                             >
-                              {act.label}
+                              <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
+                                close
+                              </span>
+                              Dismiss
                             </button>
-                          ))}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            dismiss(n.id);
-                          }}
-                          style={{
-                            padding: '5px 10px',
-                            borderRadius: 999,
-                            background: 'rgba(128, 128, 128, 0.06)',
-                            color: 'var(--c-text-secondary)',
-                            border: 'none',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 3,
-                            fontFamily: 'var(--font-headline)',
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
-                            close
-                          </span>
-                          Dismiss
-                        </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </Alert>
                   </motion.div>
                 );
               })}
@@ -6581,36 +6494,36 @@ User Agent: [Automatically Generated]
       };
 
       const handleClearUpdateCacheAction = () => {
-        if (!window.confirm('Delete downloaded APK files and reset local update history?')) return;
-        wrapAction('clear-cache', handleClearUpdateCache);
+        triggerConfirm('Clear Cache', 'Delete downloaded APK files and reset local update history?', () => {
+          wrapAction('clear-cache', handleClearUpdateCache);
+        });
       };
 
       const handleClearDismissedAction = () => {
-        if (!window.confirm('Clear skip update choices?')) return;
-        wrapAction('clear-dismissed', handleClearDismissed);
+        triggerConfirm('Clear Choices', 'Clear skip update choices?', () => {
+          wrapAction('clear-dismissed', handleClearDismissed);
+        });
       };
 
       const handleClearAppliedAction = () => {
-        if (!window.confirm('Clear list of installed Updater/APK updates?')) return;
-        wrapAction('clear-applied', handleClearApplied);
+        triggerConfirm('Clear Installed Updates', 'Clear list of installed Updater/APK updates?', () => {
+          wrapAction('clear-applied', handleClearApplied);
+        });
       };
 
       const handleClearFailedUpdateAction = () => {
-        if (!window.confirm('Clear update error codes and reset checking status?')) return;
-        wrapAction('clear-failed', () => {
-          resetAppUpdateState();
-          showDevToast('Failed update state cleared.');
+        triggerConfirm('Clear Failed Status', 'Clear update error codes and reset checking status?', () => {
+          wrapAction('clear-failed', () => {
+            resetAppUpdateState();
+            showDevToast('Failed update state cleared.');
+          });
         });
       };
 
       const handleResetOtaAction = () => {
-        if (
-          !window.confirm(
-            'Revert Updater bundles back to built-in factory default? App will reload.'
-          )
-        )
-          return;
-        wrapAction('reset-updater', handleResetOta);
+        triggerConfirm('Revert Bundles', 'Revert Updater bundles back to built-in factory default? App will reload.', () => {
+          wrapAction('reset-updater', handleResetOta);
+        });
       };
 
       const handleValidateInstallerAction = () => {
@@ -6632,10 +6545,11 @@ User Agent: [Automatically Generated]
       };
 
       const handleClearTemporaryAction = () => {
-        if (!window.confirm('Clear all session configurations and temporary mock data?')) return;
-        wrapAction('clear-temp', () => {
-          sessionStorage.clear();
-          showDevToast('Temporary mock settings cleared.');
+        triggerConfirm('Clear Temp Configurations', 'Clear all session configurations and temporary mock data?', () => {
+          wrapAction('clear-temp', () => {
+            sessionStorage.clear();
+            showDevToast('Temporary mock settings cleared.');
+          });
         });
       };
 
@@ -6661,15 +6575,13 @@ User Agent: [Automatically Generated]
       };
 
       const handleResetAppShellAction = () => {
-        if (
-          !window.confirm('Reset all user settings, active theme, and layouts to factory default?')
-        )
-          return;
-        wrapAction('reset-shell', () => {
-          localStorage.clear();
-          sessionStorage.clear();
-          showDevToast('App shell reset completed. Please restart the app.');
-          setTimeout(() => window.location.reload(), 1500);
+        triggerConfirm('Reset App Shell', 'Reset all user settings, active theme, and layouts to factory default?', () => {
+          wrapAction('reset-shell', () => {
+            localStorage.clear();
+            sessionStorage.clear();
+            showDevToast('App shell reset completed. Please restart the app.');
+            setTimeout(() => window.location.reload(), 1500);
+          });
         });
       };
 
@@ -6681,29 +6593,30 @@ User Agent: [Automatically Generated]
       };
 
       const handleResetDeveloperAction = () => {
-        if (!window.confirm('Disable developer mode and hide this menu?')) return;
-        wrapAction('reset-developer', () => {
-          settingsController.updateSettings({ developerMode: false });
-          goBack();
-          showDevToast('Developer options disabled.');
+        triggerConfirm('Disable Dev Mode', 'Disable developer mode and hide this menu?', () => {
+          wrapAction('reset-developer', () => {
+            settingsController.updateSettings({ developerMode: false });
+            goBack();
+            showDevToast('Developer options disabled.');
+          });
         });
       };
 
       const handleClearDebugLogsAction = () => {
-        if (!window.confirm('Clear diagnostic logs memory?')) return;
-        wrapAction('clear-logs', () => {
-          updateDebugLogs.fetchedVersionJson = null;
-          updateDebugLogs.fetchedAppReleaseJson = null;
-          updateDebugLogs.installError = null;
-          updateDebugLogs.lastExceptionStackTrace = null;
-          showDevToast('Logs memory reset.');
+        triggerConfirm('Clear Logs', 'Clear diagnostic logs memory?', () => {
+          wrapAction('clear-logs', () => {
+            updateDebugLogs.fetchedVersionJson = null;
+            updateDebugLogs.fetchedAppReleaseJson = null;
+            updateDebugLogs.installError = null;
+            updateDebugLogs.lastExceptionStackTrace = null;
+            showDevToast('Logs memory reset.');
+          });
         });
       };
 
       const handleResetUpdateStateAction = () => {
-        if (!window.confirm('Reset all Updater and APK update logs and persistent history?'))
-          return;
-        wrapAction('reset-update-state', () => {
+        triggerConfirm('Reset Update History', 'Reset all Updater and APK update logs and persistent history?', () => {
+          wrapAction('reset-update-state', () => {
           resetAppUpdateState();
           localStorage.removeItem('studio:appliedVersions');
           localStorage.removeItem('studio:appliedUpdateVersion');
@@ -6720,6 +6633,7 @@ User Agent: [Automatically Generated]
               .catch((err) => console.error(err));
           }
           showDevToast('Update state fully reset.');
+          });
         });
       };
 
@@ -6772,30 +6686,22 @@ User Agent: [Automatically Generated]
       };
 
       const handleResetSyncState = () => {
-        if (
-          !window.confirm(
-            'WARNING: This will reset local sync state. It will NOT delete local data. Reset now?'
-          )
-        )
-          return;
-        wrapAction('reset-sync', () => {
-          localStorage.removeItem('chordex_sync_meta_v1');
-          localStorage.removeItem('chordex_sync_first_pull_done_v1');
-          showDevToast('Local sync state reset. Re-syncing on next app open.');
-          setTimeout(() => window.location.reload(), 1500);
+        triggerConfirm('Reset Sync State', 'WARNING: This will reset local sync state. It will NOT delete local data. Reset now?', () => {
+          wrapAction('reset-sync', () => {
+            localStorage.removeItem('chordex_sync_meta_v1');
+            localStorage.removeItem('chordex_sync_first_pull_done_v1');
+            showDevToast('Local sync state reset. Re-syncing on next app open.');
+            setTimeout(() => window.location.reload(), 1500);
+          });
         });
       };
 
       const handleUploadSnapshot = () => {
-        if (
-          !window.confirm(
-            'Upload a full backup snapshot of your current local data to your cloud account?'
-          )
-        )
-          return;
-        wrapAction('upload-snapshot', async () => {
-          await createCloudBackup('manual_dev_options');
-          showDevToast('Backup snapshot uploaded successfully.');
+        triggerConfirm('Upload Backup', 'Upload a full backup snapshot of your current local data to your cloud account?', () => {
+          wrapAction('upload-snapshot', async () => {
+            await createCloudBackup('manual_dev_options');
+            showDevToast('Backup snapshot uploaded successfully.');
+          });
         });
       };
 
@@ -7397,10 +7303,10 @@ User Agent: [Automatically Generated]
               actionLabel="Push Settings"
               actionId="push-settings"
               onPress={async () => {
-                if (window.confirm('Overwrite cloud settings with local state?')) {
+                triggerConfirm('Push Settings', 'Overwrite cloud settings with local state?', async () => {
                   await wrapAction('push-settings', pushLocalSettingsToCloud);
                   showDevToast('Settings pushed successfully.');
-                }
+                });
               }}
             />
             <DevButtonRow
@@ -7409,10 +7315,10 @@ User Agent: [Automatically Generated]
               actionLabel="Pull Settings"
               actionId="pull-settings"
               onPress={async () => {
-                if (window.confirm('Overwrite local settings with cloud state?')) {
+                triggerConfirm('Pull Settings', 'Overwrite local settings with cloud state?', async () => {
                   await wrapAction('pull-settings', pullCloudSettingsFromCloud);
                   showDevToast('Settings pulled successfully.');
-                }
+                });
               }}
             />
             <DevButtonRow

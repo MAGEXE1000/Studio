@@ -25,6 +25,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
+import { AlertDialog, Button as HeroButton } from "@heroui/react";
 import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../components/lottie/SuccessLottie';
 import MusicNotesLottie from '../../../components/lottie/MusicNotesLottie';
@@ -6511,35 +6512,32 @@ export default function SongsPanel() {
           />
         )}
 
-        {showDeleteId && (
-          <DialogScaffold
-            open={true}
-            onClose={() => setShowDeleteId(null)}
-            title={t.songs.confirmDelete}
-            footer={
-              <>
-                <Button onClick={() => setShowDeleteId(null)}>{t.songs.cancel}</Button>
-                <Button
-                  onClick={() => {
-                    deletePreset(showDeleteId);
-                    setShowDeleteId(null);
-                  }}
-                  style={{
-                    backgroundColor: 'rgba(238,125,119,0.12)',
-                    color: '#ee7d77',
-                    border: '1px solid rgba(238,125,119,0.3)',
-                  }}
-                >
-                  {t.songs.delete}
-                </Button>
-              </>
-            }
-          >
-            <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '13px' }}>
-              Are you sure you want to delete this song preset? This action cannot be undone.
-            </p>
-          </DialogScaffold>
-        )}
+        <AlertDialog open={!!showDeleteId} onOpenChange={(open) => !open && setShowDeleteId(null)}>
+          <AlertDialog.Backdrop>
+            <AlertDialog.Container>
+              <AlertDialog.Dialog>
+                <AlertDialog.Header>
+                  <AlertDialog.Heading>{t.songs.confirmDelete}</AlertDialog.Heading>
+                </AlertDialog.Header>
+                <AlertDialog.Body>
+                  Are you sure you want to delete this song preset? This action cannot be undone.
+                </AlertDialog.Body>
+                <AlertDialog.Footer>
+                  <HeroButton onPress={() => setShowDeleteId(null)}>{t.songs.cancel}</HeroButton>
+                  <HeroButton
+                    color="danger"
+                    onPress={() => {
+                      deletePreset(showDeleteId);
+                      setShowDeleteId(null);
+                    }}
+                  >
+                    {t.songs.delete}
+                  </HeroButton>
+                </AlertDialog.Footer>
+              </AlertDialog.Dialog>
+            </AlertDialog.Container>
+          </AlertDialog.Backdrop>
+        </AlertDialog>
 
         {exportModalPreset && (
           <ExportModal
@@ -6662,36 +6660,32 @@ export default function SongsPanel() {
         )}
       </div>
 
-      {/* Delete confirmation sheet */}
-      {showDeleteId && (
-        <DialogScaffold
-          open={true}
-          onClose={() => setShowDeleteId(null)}
-          title={t.songs.confirmDelete}
-          footer={
-            <>
-              <Button onClick={() => setShowDeleteId(null)}>{t.songs.cancel}</Button>
-              <Button
-                onClick={() => {
-                  deletePreset(showDeleteId);
-                  setShowDeleteId(null);
-                }}
-                style={{
-                  backgroundColor: 'rgba(238,125,119,0.12)',
-                  color: '#ee7d77',
-                  border: '1px solid rgba(238,125,119,0.3)',
-                }}
-              >
-                {t.songs.delete}
-              </Button>
-            </>
-          }
-        >
-          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '13px' }}>
-            Are you sure you want to delete this song preset? This action cannot be undone.
-          </p>
-        </DialogScaffold>
-      )}
+      <AlertDialog open={!!showDeleteId} onOpenChange={(open) => !open && setShowDeleteId(null)}>
+        <AlertDialog.Backdrop>
+          <AlertDialog.Container>
+            <AlertDialog.Dialog>
+              <AlertDialog.Header>
+                <AlertDialog.Heading>{t.songs.confirmDelete}</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                Are you sure you want to delete this song preset? This action cannot be undone.
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <HeroButton onPress={() => setShowDeleteId(null)}>{t.songs.cancel}</HeroButton>
+                <HeroButton
+                  color="danger"
+                  onPress={() => {
+                    deletePreset(showDeleteId);
+                    setShowDeleteId(null);
+                  }}
+                >
+                  {t.songs.delete}
+                </HeroButton>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog.Backdrop>
+      </AlertDialog>
 
       {/* Export config modal */}
       {exportModalPreset && (

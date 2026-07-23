@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.42"
-$VersionCode = "40242"
-$ReleaseNote = "Release v4.2.42 - Redesigned Pinned Actions Grid, added Livex Header Logo, unified FABs to 48px glass design, fixed Stagex canvas rendering, and optimized Display Density/Text Scale live preference flow."
+$VersionName = "4.2.44"
+$VersionCode = "40244"
+$ReleaseNote = "Release v4.2.44 - Overhauled destructive confirmations to HeroUI AlertDialog, replaced custom toasts, and redesigned Notification Center using HeroUI Alert."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

@@ -3670,6 +3670,153 @@ function HubUpdaterPage({
   );
 }
 
+interface CustomColorPickerPopoverProps {
+  hue: number;
+  onChangeHue: (hue: number) => void;
+}
+
+function CustomColorPickerPopover({ hue, onChangeHue }: CustomColorPickerPopoverProps) {
+  const [posY, setPosY] = useState(55); // Match the HSL lightness 55% default!
+  const areaRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+
+  const updateFromArea = (clientX: number, clientY: number) => {
+    if (!areaRef.current) return;
+    const rect = areaRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+    
+    // Map X to Hue [0, 360]
+    const nextHue = Math.round((x / rect.width) * 360) % 360;
+    onChangeHue(nextHue);
+
+    // Map Y to local percentage for visual thumb movement
+    const pctY = Math.round((y / rect.height) * 100);
+    setPosY(pctY);
+  };
+
+  const updateFromSlider = (clientX: number) => {
+    if (!sliderRef.current) return;
+    const rect = sliderRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+    
+    // Map X to Hue [0, 360]
+    const nextHue = Math.round((x / rect.width) * 360) % 360;
+    onChangeHue(nextHue);
+  };
+
+  // Pointer Handlers for 2D Area
+  const handleAreaPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateFromArea(e.clientX, e.clientY);
+  };
+
+  const handleAreaPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      updateFromArea(e.clientX, e.clientY);
+    }
+  };
+
+  const handleAreaPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  // Pointer Handlers for Hue Slider
+  const handleSliderPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateFromSlider(e.clientX);
+  };
+
+  const handleSliderPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      updateFromSlider(e.clientX);
+    }
+  };
+
+  const handleSliderPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  // Calculate thumb X based on current Hue
+  const thumbX = (hue / 360) * 100;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* 2D Spectrum Area */}
+      <div
+        ref={areaRef}
+        onPointerDown={handleAreaPointerDown}
+        onPointerMove={handleAreaPointerMove}
+        onPointerUp={handleAreaPointerUp}
+        style={{
+          width: 200,
+          height: 150,
+          borderRadius: 12,
+          border: '1px solid rgba(255,255,255,0.08)',
+          position: 'relative',
+          cursor: 'crosshair',
+          // Horizontal Hue gradient blended with vertical overlay
+          background: 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.6) 100%), linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
+          overflow: 'hidden',
+          touchAction: 'none', // Critical for preventing Android scroll interference!
+        }}
+      >
+        {/* Thumb */}
+        <div
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: '50%',
+            border: '2px solid white',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+            position: 'absolute',
+            left: `${thumbX}%`,
+            top: `${posY}%`,
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none', // Let pointers pass through to the parent area!
+          }}
+        />
+      </div>
+
+      {/* 1D Hue Slider Track */}
+      <div
+        ref={sliderRef}
+        onPointerDown={handleSliderPointerDown}
+        onPointerMove={handleSliderPointerMove}
+        onPointerUp={handleSliderPointerUp}
+        style={{
+          width: 200,
+          height: 16,
+          borderRadius: 8,
+          border: '1px solid rgba(255,255,255,0.08)',
+          position: 'relative',
+          cursor: 'ew-resize',
+          // Hue slider background
+          background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
+          touchAction: 'none', // Prevents native touch scroll while sliding!
+        }}
+      >
+        {/* Slider Thumb */}
+        <div
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            border: '2px solid white',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
+            backgroundColor: `hsl(${hue}, 100%, 50%)`,
+            position: 'absolute',
+            left: `${thumbX}%`,
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function HubSettings({
   accent,
   scrollRef,
@@ -5546,62 +5693,16 @@ User Agent: [Automatically Generated]
                       border: '1px solid rgba(128,128,128,0.25)',
                       background: 'var(--app-surface, #191a1e)',
                       boxShadow: '0 10px 25px rgba(0,0,0,0.45)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 12,
                       zIndex: 99999,
                     }}
                   >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      <ColorArea
-                        colorSpace="hsl"
-                        xChannel="saturation"
-                        yChannel="lightness"
-                        style={{
-                          width: 200,
-                          height: 150,
-                          borderRadius: 8,
-                          border: '1px solid rgba(128,128,128,0.2)',
-                          position: 'relative',
-                        }}
-                      >
-                        <ColorArea.Thumb
-                          style={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: '50%',
-                            border: '2px solid white',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
-                            cursor: 'pointer',
-                            position: 'absolute',
-                          }}
-                        />
-                      </ColorArea>
-                      <ColorSlider channel="hue" colorSpace="hsl" style={{ width: 200 }}>
-                        <ColorSlider.Track
-                          style={{
-                            height: 12,
-                            borderRadius: 6,
-                            border: '1px solid rgba(128,128,128,0.2)',
-                            position: 'relative',
-                          }}
-                        >
-                          <ColorSlider.Thumb
-                            style={{
-                              width: 18,
-                              height: 18,
-                              borderRadius: '50%',
-                              border: '2px solid white',
-                              boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
-                              cursor: 'pointer',
-                              position: 'absolute',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                            }}
-                          />
-                        </ColorSlider.Track>
-                      </ColorSlider>
-                    </div>
+                    <CustomColorPickerPopover
+                      hue={hue}
+                      onChangeHue={(hueVal) => {
+                        requestChange({ accentColor: 'custom' });
+                        settingsController.updateSettings({ customAccentHue: hueVal });
+                      }}
+                    />
                   </ColorPicker.Popover>
                 </ColorPicker>
               </div>

@@ -1,7 +1,5 @@
 Release Date: 2026-07-22
 
 ## Improved
-- Fixed Bottom Navigation to remain visible on tab changes.
-- Fixed Display Density layout scaling to prevent gray margins.
-- Refined Text Scale behavior to scale only typography.
-- Enhanced Appearance color picker rendering and border visibility.
+- Resolved Bottom Navigation unexpected collapse regression by using targeted modal backdrop triggers.
+- Redesigned Custom Accent Color picker popover with custom 2D free dragging and Pointer Capture.

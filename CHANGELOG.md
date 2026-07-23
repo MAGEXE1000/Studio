@@ -13,6 +13,16 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.54
+
+Release Date: 2026-07-23
+
+## Improved
+- Restored original per-container Bottom Navigation auto-hide scroll engine without timers or polling hacks.
+- Permanently fixed Stagex Center Panel iframe rendering by removing obsolete conditional app checks.
+- Retired Updater Diagnostics and replaced it with a premium glassmorphic Coming Soon placeholder.
+- Streamlined Updater Experience into a single unified progress component for Checking, Downloading, Verifying, and Installing.
+
 # Version 4.2.53
 
 Release Date: 2026-07-23

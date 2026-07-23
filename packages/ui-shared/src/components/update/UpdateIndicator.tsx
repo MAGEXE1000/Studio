@@ -1745,28 +1745,13 @@ function UpdateModal({
     }
 
     if (state === 'reinstall_warning') {
-      const copyDiagnostics = async () => {
-        const diagnosticText = getDiagnosticsText();
-        try {
-          await navigator.clipboard.writeText(diagnosticText);
-          alert('Diagnostics copied to clipboard!');
-        } catch (err) {
-          console.error('Failed to copy diagnostics:', err);
-        }
-      };
-
       return (
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}
         >
-          <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <ActionButton type="button" onClick={copyDiagnostics} style={halfSecondaryButtonStyle}>
-              Copy diagnostics
-            </ActionButton>
-            <ActionButton type="button" onClick={onClose} style={halfSecondaryButtonStyle}>
-              I understand
-            </ActionButton>
-          </div>
+          <ActionButton type="button" onClick={onClose} style={primaryButtonStyle}>
+            I understand
+          </ActionButton>
 
           <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
             Cancel
@@ -1953,33 +1938,10 @@ function UpdateModal({
     }
 
     if (state === 'versionCode_low') {
-      const copyDiagnostics = async () => {
-        const diagnosticText = getDiagnosticsText();
-        try {
-          await navigator.clipboard.writeText(diagnosticText);
-          alert('Diagnostics copied to clipboard!');
-        } catch (err) {
-          console.error('Failed to copy diagnostics:', err);
-        }
-      };
-
       return (
         <div
           style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}
         >
-          <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-            <ActionButton type="button" onClick={copyDiagnostics} style={halfSecondaryButtonStyle}>
-              Copy Diagnostics
-            </ActionButton>
-            <ActionButton
-              type="button"
-              onClick={() => setDiagnosticsOpen(true)}
-              style={halfSecondaryButtonStyle}
-            >
-              Diagnostics UI
-            </ActionButton>
-          </div>
-
           <ActionButton type="button" onClick={onLater} style={primaryButtonStyle}>
             Later
           </ActionButton>
@@ -1988,31 +1950,6 @@ function UpdateModal({
     }
 
     if (state === 'failed') {
-      const copyDiagnostics = async () => {
-        try {
-          const report = await getDiagnosticsReport();
-          await navigator.clipboard.writeText(report);
-          alert('Diagnostics health report copied to clipboard!');
-        } catch (err) {
-          console.error('Failed to copy diagnostics:', err);
-        }
-      };
-
-      const exportDiagnostics = async () => {
-        try {
-          const report = await getDiagnosticsReport();
-          const { Share } = await import('@capacitor/share');
-          await Share.share({
-            title: 'Studio Updater Diagnostics',
-            text: report,
-            dialogTitle: 'Export Diagnostics',
-          });
-        } catch (err) {
-          console.error('Failed to export diagnostics, copying instead:', err);
-          await copyDiagnostics();
-        }
-      };
-
       if (updater.validApkExists) {
         return (
           <div
@@ -2047,7 +1984,7 @@ function UpdateModal({
               }}
             >
               {updater.error ||
-                'Studio could not start the installation automatically. Please choose an option below to recover.'}
+                'Studio could not start the installation automatically. Please choose an option below.'}
             </p>
 
             <ActionButton
@@ -2067,41 +2004,6 @@ function UpdateModal({
               </span>
               Retry Installation
             </ActionButton>
-
-            <ActionButton
-              type="button"
-              onClick={async () => {
-                try {
-                  await updater.downloadUpdate('Recovery Center: Continue Installation');
-                  await updater.applyUpdate('Recovery Center: Continue Installation');
-                } catch (err) {
-                  console.error('[UpdateIndicator] Recovery continue failed:', err);
-                }
-              }}
-              style={secondaryButtonStyle}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>
-                play_circle
-              </span>
-              Continue Installation
-            </ActionButton>
-
-            <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
-              <ActionButton
-                type="button"
-                onClick={copyDiagnostics}
-                style={halfSecondaryButtonStyle}
-              >
-                Copy Diagnostics
-              </ActionButton>
-              <ActionButton
-                type="button"
-                onClick={exportDiagnostics}
-                style={halfSecondaryButtonStyle}
-              >
-                Export Diagnostics
-              </ActionButton>
-            </div>
 
             <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
               Cancel
@@ -2130,7 +2032,7 @@ function UpdateModal({
               alignSelf: 'flex-start',
             }}
           >
-            Update Recovery Center
+            Update Failed
           </h4>
           <p
             style={{
@@ -2143,7 +2045,7 @@ function UpdateModal({
             }}
           >
             {updater.error ||
-              'Studio could not complete the update automatically. Please choose a recovery action below.'}
+              'Studio could not complete the update automatically.'}
           </p>
 
           <ActionButton
@@ -2162,19 +2064,6 @@ function UpdateModal({
             </span>
             Retry Update
           </ActionButton>
-
-          <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 4 }}>
-            <ActionButton type="button" onClick={copyDiagnostics} style={halfSecondaryButtonStyle}>
-              Copy Diagnostics
-            </ActionButton>
-            <ActionButton
-              type="button"
-              onClick={exportDiagnostics}
-              style={halfSecondaryButtonStyle}
-            >
-              Export Diagnostics
-            </ActionButton>
-          </div>
 
           <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
             Cancel

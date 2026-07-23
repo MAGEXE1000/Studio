@@ -1039,8 +1039,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 background: stageBg,
               }}
             >
-              {isActiveApp && (
-                <iframe
+              <iframe
                   ref={iframeRef}
                   src={iframeSrc}
                   data-view={getSimplifiedView(curView)}
@@ -1057,7 +1056,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   }}
                   allow="clipboard-write"
                 />
-              )}
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />
@@ -1601,26 +1599,24 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 backgroundColor: stageBg,
               }}
             >
-              {isActiveApp && (
-                <iframe
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  data-view={getSimplifiedView(curView)}
-                  onLoad={handleLoad}
-                  title="Stagex"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    display: 'block',
-                    backgroundColor: stageBg,
-                    zIndex: 1,
-                  }}
-                  allow="clipboard-write"
-                />
-              )}
+              <iframe
+                ref={iframeRef}
+                src={iframeSrc}
+                data-view={getSimplifiedView(curView)}
+                onLoad={handleLoad}
+                title="Stagex"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  display: 'block',
+                  backgroundColor: stageBg,
+                  zIndex: 1,
+                }}
+                allow="clipboard-write"
+              />
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />

@@ -2103,23 +2103,21 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 background: stageBg,
               }}
             >
-              {isActiveApp && (
-                <iframe
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  title="Stagex Canvas"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    display: 'block',
-                    backgroundColor: 'transparent',
-                  }}
-                  allow="clipboard-write"
-                />
-              )}
+              <iframe
+                ref={iframeRef}
+                src={iframeSrc}
+                title="Stagex Canvas"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  display: 'block',
+                  backgroundColor: 'transparent',
+                }}
+                allow="clipboard-write"
+              />
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />
@@ -3159,26 +3157,24 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   'opacity 150ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
-              {isActiveApp && (
-                <iframe
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  data-view={getSimplifiedView(curView)}
-                  onLoad={handleLoad}
-                  title="Stagex"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    display: 'block',
-                    backgroundColor: stageBg,
-                    transform: collapseHeader ? 'translateZ(0.01px)' : 'translateZ(0px)',
-                  }}
-                  allow="clipboard-write"
-                />
-              )}
+              <iframe
+                ref={iframeRef}
+                src={iframeSrc}
+                data-view={getSimplifiedView(curView)}
+                onLoad={handleLoad}
+                title="Stagex"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  display: 'block',
+                  backgroundColor: stageBg,
+                  transform: collapseHeader ? 'translateZ(0.01px)' : 'translateZ(0px)',
+                }}
+                allow="clipboard-write"
+              />
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stage" />

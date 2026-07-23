@@ -148,30 +148,102 @@ export function useNavScrollOffset(): number {
   return offset;
 }
 
+const _registeredScrollElements = new Set<HTMLElement>();
+const _elementListeners = new WeakMap<HTMLElement, () => void>();
 const _elementLastY = new WeakMap<HTMLElement, number>();
 
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
-  // Signature preserved, global capturing scroll listener handles all scroll hide/show.
+  const lastElementRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
-    const recordInteraction = () => {
-      _lastInteractionTime = Date.now();
+    const checkAndBind = () => {
+      const el = ref.current;
+      if (el === lastElementRef.current) return;
+
+      // Clean up previous element if it changed
+      if (lastElementRef.current) {
+        const prev = lastElementRef.current;
+        _registeredScrollElements.delete(prev);
+        const listener = _elementListeners.get(prev);
+        if (listener) {
+          prev.removeEventListener('scroll', listener);
+          _elementListeners.delete(prev);
+        }
+        _elementLastY.delete(prev);
+      }
+
+      lastElementRef.current = el;
+
+      if (el) {
+        _registeredScrollElements.add(el);
+
+        const onScroll = () => {
+          const y = el.scrollTop;
+          const maxScroll = el.scrollHeight - el.clientHeight;
+
+          // Ignore overscroll bounce
+          if (y < 0 || y > maxScroll) {
+            return;
+          }
+
+          // Expand navigation immediately when near the top (within 40px)
+          if (y < 40) {
+            setNavScrollOffset(0);
+            if (_collapsed) {
+              setNavCollapsed(false);
+            }
+            _elementLastY.set(el, y);
+            return;
+          }
+
+          const prevY = _elementLastY.get(el) ?? y;
+          const dy = y - prevY;
+
+          // Jitter filter: ignore scroll updates smaller than 2px for immediate responsiveness
+          if (Math.abs(dy) < 2) {
+            return;
+          }
+
+          // Progressive translation: 75px total scroll delta triggers complete hide/show transition.
+          const deltaRatio = dy / 75;
+          setNavScrollOffset(_scrollOffset + deltaRatio);
+
+          const shouldCollapse = dy > 0;
+          if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
+            setNavCollapsed(shouldCollapse);
+          }
+
+          _elementLastY.set(el, y);
+        };
+
+        _elementLastY.set(el, el.scrollTop);
+        _elementListeners.set(el, onScroll);
+        el.addEventListener('scroll', onScroll, { passive: true });
+
+        onStateChanged();
+      }
     };
-    if (typeof window !== 'undefined') {
-      window.addEventListener('touchstart', recordInteraction, { passive: true });
-      window.addEventListener('touchmove', recordInteraction, { passive: true });
-      window.addEventListener('pointerdown', recordInteraction, { passive: true });
-      window.addEventListener('pointermove', recordInteraction, { passive: true });
-      window.addEventListener('wheel', recordInteraction, { passive: true });
-      window.addEventListener('keydown', recordInteraction, { passive: true });
+
+    checkAndBind();
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    if (!ref.current) {
+      timer = setTimeout(checkAndBind, 150);
     }
+
     return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('touchstart', recordInteraction);
-        window.removeEventListener('touchmove', recordInteraction);
-        window.removeEventListener('pointerdown', recordInteraction);
-        window.removeEventListener('pointermove', recordInteraction);
-        window.removeEventListener('wheel', recordInteraction);
-        window.removeEventListener('keydown', recordInteraction);
+      if (timer) clearTimeout(timer);
+      const el = lastElementRef.current;
+      if (el) {
+        _registeredScrollElements.delete(el);
+        const listener = _elementListeners.get(el);
+        if (listener) {
+          el.removeEventListener('scroll', listener);
+          _elementListeners.delete(el);
+        }
+        _elementLastY.delete(el);
+        lastElementRef.current = null;
+        onStateChanged();
       }
     };
   }, [ref, dependency]);
@@ -180,18 +252,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 // ─── Watchdog Recovery System & Diagnostics ───────────────────────────────
 
 export function onStateChanged() {
-  if (typeof window === 'undefined') return;
-  // If nav is collapsed or hidden, verify that the page is still scrollable or scrolled down.
-  // If page is at top or no longer scrollable, automatically recover nav.
-  if (_collapsed || _hidden) {
-    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
-    const scrollHeight = document.documentElement.scrollHeight || 0;
-    const clientHeight = document.documentElement.clientHeight || window.innerHeight || 0;
-    if (scrollY < 40 || scrollHeight <= clientHeight + 40) {
-      if (_collapsed) setNavCollapsed(false);
-      if (_hidden && !_locked) setNavHidden(false);
-    }
-  }
+  // Pure event-driven state sync
 }
 
 // Global Event-driven bindings
@@ -229,97 +290,30 @@ if (typeof window !== 'undefined') {
       resetNav();
     });
 
-    // Watchdog fallback interval: periodically ensure nav isn't stuck collapsed on a non-scrollable view
-    setInterval(() => {
-      onStateChanged();
-    }, 1500);
-
-    // Global Scroll Listener in Capture Phase
-    const recordInteraction = () => {
-      _lastInteractionTime = Date.now();
-    };
-
-    window.addEventListener('touchstart', recordInteraction, { passive: true });
-    window.addEventListener('touchmove', recordInteraction, { passive: true });
-    window.addEventListener('pointerdown', recordInteraction, { passive: true });
-    window.addEventListener('pointermove', recordInteraction, { passive: true });
-    window.addEventListener('wheel', recordInteraction, { passive: true });
-    window.addEventListener('keydown', recordInteraction, { passive: true });
-
-    const globalScrollHandler = (e: Event) => {
-      // Resolve the scrolling element
-      const el = (e.target === document ? document.documentElement : e.target) as HTMLElement;
-      if (!el || typeof el.scrollTop !== 'number') return;
-
-      // Ignore tiny scrollable elements (like small menus, selects, etc.)
-      if (el.clientHeight < 250 || el.scrollHeight < el.clientHeight + 40) {
-        return;
-      }
-
-      const y = el.scrollTop;
-      const maxScroll = el.scrollHeight - el.clientHeight;
-
-      // Ignore overscroll bounce
-      if (y < 0 || y > maxScroll) {
-        return;
-      }
-
-      // Expand navigation immediately when near the top (within 40px)
-      if (y < 40) {
-        setNavScrollOffset(0);
-        if (_collapsed) {
-          setNavCollapsed(false);
+    // Window-level body scroll listener for full-page scrolling layouts
+    let lastWindowY = window.scrollY;
+    window.addEventListener(
+      'scroll',
+      () => {
+        const y = window.scrollY || document.documentElement.scrollTop;
+        if (y < 40) {
+          setNavScrollOffset(0);
+          if (_collapsed) setNavCollapsed(false);
+          lastWindowY = y;
+          return;
         }
-        _elementLastY.set(el, y);
-        return;
-      }
-
-      // Guard: ignore scroll if route changed within last 800ms
-      if (Date.now() - _lastRouteChangeTime < 800) {
-        _elementLastY.set(el, y);
-        return;
-      }
-
-      // Guard: ignore scroll if transition state is not IDLE
-      if (useApplicationTransitionStore.getState().state !== 'IDLE') {
-        _elementLastY.set(el, y);
-        return;
-      }
-
-      // Only collapse or slide if the scroll event is user-initiated (e.g. within 1200ms of input)
-      const isUserScroll = (Date.now() - _lastInteractionTime) < 1200;
-      if (!isUserScroll) {
-        _elementLastY.set(el, y);
-        return;
-      }
-
-      const prevY = _elementLastY.get(el) ?? y;
-      const dy = y - prevY;
-
-      // Ignore large jumps (e.g. scroll restoration, content load layout shifts)
-      if (Math.abs(dy) > 80) {
-        _elementLastY.set(el, y);
-        return;
-      }
-
-      // Jitter filter: ignore scroll updates smaller than 2px
-      if (Math.abs(dy) < 2) {
-        return;
-      }
-
-      // Progressive translation: 75px total scroll delta triggers complete hide/show transition.
-      const deltaRatio = dy / 75;
-      setNavScrollOffset(_scrollOffset + deltaRatio);
-
-      const shouldCollapse = dy > 0;
-      if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
-        setNavCollapsed(shouldCollapse);
-      }
-
-      _elementLastY.set(el, y);
-    };
-
-    window.addEventListener('scroll', globalScrollHandler, { capture: true, passive: true });
+        const dy = y - lastWindowY;
+        if (Math.abs(dy) < 2) return;
+        const deltaRatio = dy / 75;
+        setNavScrollOffset(_scrollOffset + deltaRatio);
+        const shouldCollapse = dy > 0;
+        if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
+          setNavCollapsed(shouldCollapse);
+        }
+        lastWindowY = y;
+      },
+      { passive: true }
+    );
   } catch (e) {
     // Passive safety guard
   }

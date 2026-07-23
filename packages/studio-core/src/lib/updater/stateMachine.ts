@@ -962,23 +962,10 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         title: 'Update Available',
         subtitle: `A new OTA update v${globalUpdateState.remoteVersion} is available.`,
         icon: 'system_update',
-        actions: [{ label: 'Install', actionId: 'start_download' }]
-      });
-    } else if (state === 'DOWNLOAD_APK') {
-      useNotificationService.getState().publish({
-        category: 'ota_update',
-        priority: 'normal',
-        title: 'Download Started',
-        subtitle: `Downloading package v${globalUpdateState.remoteVersion}...`,
-        icon: 'downloading'
-      });
-    } else if (state === 'VERIFY_SHA256') {
-      useNotificationService.getState().publish({
-        category: 'download_complete',
-        priority: 'normal',
-        title: 'Download Finished',
-        subtitle: `Package v${globalUpdateState.remoteVersion} download complete. Verifying...`,
-        icon: 'verified'
+        actions: [
+          { label: 'Install Now', actionId: 'start_download' },
+          { label: 'Later', actionId: 'dismiss' }
+        ]
       });
     } else if (state === 'WAITING_USER_CONFIRMATION') {
       useNotificationService.getState().publish({
@@ -989,7 +976,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         icon: 'install_mobile',
         actions: [
           { label: 'Install Now', actionId: 'apply_update' },
-          { label: 'Dismiss', actionId: 'dismiss' }
+          { label: 'Later', actionId: 'dismiss' }
         ]
       });
     } else if (state === 'INSTALL_FAILED') {

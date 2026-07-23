@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.51
+
+Release Date: 2026-07-23
+
+## Improved
+- Fixed Bottom Navigation scrolling auto-hide trigger on Android devices.
+- Completed integration of the premium Profile Account Menu on the navigation bar.
+- Collapsed duplicate lifecycle updates in the Notification Center.
+
 # Version 4.2.50
 
 Release Date: 2026-07-23

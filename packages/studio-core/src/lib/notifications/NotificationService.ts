@@ -73,6 +73,26 @@ export const useNotificationService = create<NotificationServiceStore>()(
       ],
 
       publish: (notification) => {
+        const notifications = get().notifications;
+        const existingIndex = notifications.findIndex(
+          (n) => n.category === notification.category && n.title === notification.title && !n.dismissed
+        );
+
+        if (existingIndex !== -1) {
+          set((state) => {
+            const updated = [...state.notifications];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              subtitle: notification.subtitle,
+              timestamp: Date.now(),
+              actions: notification.actions,
+              read: false,
+            };
+            return { notifications: updated };
+          });
+          return;
+        }
+
         const id = 'notif_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
         const timestamp = Date.now();
         const newItem: NotificationItem = {

@@ -163,6 +163,13 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
       lastInteractionTimeRef.current = Date.now();
     };
 
+    if (typeof window !== 'undefined') {
+      window.addEventListener('touchstart', recordInteraction, { passive: true });
+      window.addEventListener('pointerdown', recordInteraction, { passive: true });
+      window.addEventListener('wheel', recordInteraction, { passive: true });
+      window.addEventListener('keydown', recordInteraction, { passive: true });
+    }
+
     const unbindEvents = (prev: HTMLElement) => {
       _registeredScrollElements.delete(prev);
       const listener = _elementListeners.get(prev);
@@ -170,10 +177,6 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         prev.removeEventListener('scroll', listener);
         _elementListeners.delete(prev);
       }
-      prev.removeEventListener('touchstart', recordInteraction);
-      prev.removeEventListener('pointerdown', recordInteraction);
-      prev.removeEventListener('wheel', recordInteraction);
-      prev.removeEventListener('keydown', recordInteraction);
       _elementLastY.delete(prev);
     };
 
@@ -274,10 +277,6 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         _elementLastY.set(el, el.scrollTop);
         _elementListeners.set(el, onScroll);
         el.addEventListener('scroll', onScroll, { passive: true });
-        el.addEventListener('touchstart', recordInteraction, { passive: true });
-        el.addEventListener('pointerdown', recordInteraction, { passive: true });
-        el.addEventListener('wheel', recordInteraction, { passive: true });
-        el.addEventListener('keydown', recordInteraction, { passive: true });
 
         onStateChanged();
       }
@@ -298,6 +297,12 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         unbindEvents(el);
         lastElementRef.current = null;
         resetNav();
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('touchstart', recordInteraction);
+        window.removeEventListener('pointerdown', recordInteraction);
+        window.removeEventListener('wheel', recordInteraction);
+        window.removeEventListener('keydown', recordInteraction);
       }
     };
   }, [ref, dependency]);

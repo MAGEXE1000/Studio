@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.50"
-$VersionCode = "40250"
-$ReleaseNote = "Release v4.2.50 - Cleaned and redesigned Notification Center cards to HeroUI Alert layout, added in-place deduplication to collapse duplicate notifications, resolved Bottom Navigation settings highlighting regression, and implemented premium glassmorphic Profile Account Menu."
+$VersionName = "4.2.51"
+$VersionCode = "40251"
+$ReleaseNote = "Release v4.2.51 - Redesigned Notification Center cards to HeroUI Alert, added notification deduplication, fixed Bottom Navigation settings tab highlight regression, resolved global window interaction events for scroll auto-hide, and implemented premium floating glassmorphic Profile Account Menu."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -18,6 +18,9 @@ node apps/studio-web/scripts/sync-version.mjs
 Write-Host "2. Committing and pushing version changes to Git..."
 git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/studio-core/src/lib/navigation/navScroll.ts
+git add packages/studio-core/src/lib/notifications/NotificationService.ts
+git add packages/studio-core/src/lib/updater/stateMachine.ts
+git add packages/ui-shared/src/navigation/BottomNavigationController.tsx
 git add packages/ui-shared/src/navigation/AppAnimationSystem.tsx
 git add packages/ui-shared/src/features/drumex/pages/DrumPrefsPanel.tsx
 git add packages/ui-shared/src/panels/SettingsPanel.tsx

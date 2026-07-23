@@ -17,7 +17,6 @@ import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../components/design-system/StudioDesignSystem';
 import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
-import { AlertDialog, Button as HeroButton } from "@heroui/react";
 
 import RecordingView from './RecordingView';
 import TakeDetailView from './TakeDetailView';
@@ -363,55 +362,64 @@ function TakeListItem({
         <MiniWaveform peaks={take.waveformPeaks} />
       </div>
 
-      <button
-        onClick={() => setConfirming(true)}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: 6,
-          flexShrink: 0,
-          color: 'var(--vx-text-4)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-          delete
-        </span>
-      </button>
-
-      <AlertDialog
-        isOpen={confirming}
-        onOpenChange={(open) => !open && setConfirming(false)}
-      >
-        <AlertDialog.Backdrop />
-        <AlertDialog.Container>
-          <AlertDialog.Dialog>
-            <AlertDialog.Header>
-              <AlertDialog.Heading>{t.vocalex.deleteConfirmTitle || 'Delete Take'}</AlertDialog.Heading>
-            </AlertDialog.Header>
-            <AlertDialog.Body>
-              {t.vocalex.deleteConfirmBody || 'Are you sure you want to delete this take? This action cannot be undone.'}
-            </AlertDialog.Body>
-            <AlertDialog.Footer>
-              <HeroButton onPress={() => setConfirming(false)}>
-                {t.vocalex.cancelAction || 'Cancel'}
-              </HeroButton>
-              <HeroButton
-                variant="danger"
-                onPress={() => {
-                  onDelete();
-                  setConfirming(false);
-                }}
-              >
-                {t.vocalex.deleteTake || 'Delete'}
-              </HeroButton>
-            </AlertDialog.Footer>
-          </AlertDialog.Dialog>
-        </AlertDialog.Container>
-      </AlertDialog>
+      {confirming ? (
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <button
+            onClick={() => {
+              onDelete();
+              setConfirming(false);
+            }}
+            style={{
+              background: 'rgba(239,68,68,0.15)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              borderRadius: 8,
+              padding: '6px 10px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-body)',
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#ef4444',
+            }}
+          >
+            {t.vocalex.deleteTake}
+          </button>
+          <button
+            onClick={() => setConfirming(false)}
+            style={{
+              background: 'var(--vx-input)',
+              border: 'none',
+              borderRadius: 8,
+              padding: '6px 10px',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-body)',
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--vx-text-2)',
+            }}
+          >
+            {t.vocalex.cancelAction}
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setConfirming(true)}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 6,
+            flexShrink: 0,
+            color: 'var(--vx-text-4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            delete
+          </span>
+        </button>
+      )}
     </div>
   );
 }

@@ -15,7 +15,6 @@ import { useGroovexStore } from '../state/useGroovexStore';
 import { SONG_CATALOG } from '../services/songCatalog';
 import { Toggle, SettingSection, SettingRow } from '../../../components/typography/SettingControls';
 import { Card } from '../../../components/design-system/StudioDesignSystem';
-import { AlertDialog, Button as HeroButton } from "@heroui/react";
 
 export default function GroovexPreferences() {
   const t = useT();
@@ -26,7 +25,6 @@ export default function GroovexPreferences() {
   const [songCaches, setSongCaches] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
-  const [deleteSongId, setDeleteSongId] = useState<string | null>(null);
 
   const isWebDesktop = useIsWebDesktop();
 
@@ -281,8 +279,45 @@ export default function GroovexPreferences() {
                     {formatBytes(cacheInfo.totalBytes)}
                   </p>
                 </div>
-                {cacheInfo.songCount > 0 && (
-                  <>
+                {cacheInfo.songCount > 0 &&
+                  (confirmDeleteAll ? (
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        onClick={handleClearAll}
+                        disabled={deletingId !== null}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          border: 'none',
+                          cursor: 'pointer',
+                          background: '#ee7d77',
+                          color: '#fff',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-body)',
+                          opacity: deletingId ? 0.5 : 1,
+                        }}
+                      >
+                        {t.groovex.confirm}
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteAll(false)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)',
+                          color: 'var(--c-text-primary)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          fontFamily: 'var(--font-body)',
+                          border: isLight ? '1px solid rgba(0,0,0,0.08)' : 'none',
+                        }}
+                      >
+                        {t.groovex.cancel}
+                      </button>
+                    </div>
+                  ) : (
                     <button
                       onClick={() => setConfirmDeleteAll(true)}
                       disabled={deletingId !== null}
@@ -299,41 +334,9 @@ export default function GroovexPreferences() {
                         opacity: deletingId ? 0.5 : 1,
                       }}
                     >
-                      {t.groovex.deleteAll || 'Delete All'}
+                      {t.groovex.deleteAll}
                     </button>
-
-                    <AlertDialog
-                      isOpen={confirmDeleteAll}
-                      onOpenChange={(open) => !open && setConfirmDeleteAll(false)}
-                    >
-                      <AlertDialog.Backdrop />
-                      <AlertDialog.Container>
-                        <AlertDialog.Dialog>
-                          <AlertDialog.Header>
-                            <AlertDialog.Heading>{t.groovex.deleteAll || 'Delete All Cached Songs'}</AlertDialog.Heading>
-                          </AlertDialog.Header>
-                          <AlertDialog.Body>
-                            Are you sure you want to clear all cached audio files? This action cannot be undone.
-                          </AlertDialog.Body>
-                          <AlertDialog.Footer>
-                            <HeroButton onPress={() => setConfirmDeleteAll(false)}>
-                              {t.groovex.cancel || 'Cancel'}
-                            </HeroButton>
-                            <HeroButton
-                              variant="danger"
-                              onPress={() => {
-                                handleClearAll();
-                                setConfirmDeleteAll(false);
-                              }}
-                            >
-                              {t.groovex.confirm || 'Confirm'}
-                            </HeroButton>
-                          </AlertDialog.Footer>
-                        </AlertDialog.Dialog>
-                      </AlertDialog.Container>
-                    </AlertDialog>
-                  </>
-                )}
+                  ))}
               </div>
 
               {songCaches.length > 0 && (
@@ -408,7 +411,7 @@ export default function GroovexPreferences() {
                           </p>
                         </div>
                         <button
-                          onClick={() => setDeleteSongId(sc.songId)}
+                          onClick={() => handleDeleteSong(sc.songId)}
                           disabled={deletingId !== null}
                           style={{
                             width: 28,
@@ -435,38 +438,6 @@ export default function GroovexPreferences() {
                       </div>
                     );
                   })}
-                  <AlertDialog
-                    isOpen={!!deleteSongId}
-                    onOpenChange={(open) => !open && setDeleteSongId(null)}
-                  >
-                    <AlertDialog.Backdrop />
-                    <AlertDialog.Container>
-                      <AlertDialog.Dialog>
-                        <AlertDialog.Header>
-                          <AlertDialog.Heading>Delete Song Cache</AlertDialog.Heading>
-                        </AlertDialog.Header>
-                        <AlertDialog.Body>
-                          Are you sure you want to delete the cached audio files for this song?
-                        </AlertDialog.Body>
-                        <AlertDialog.Footer>
-                          <HeroButton onPress={() => setDeleteSongId(null)}>
-                            {t.groovex.cancel || 'Cancel'}
-                          </HeroButton>
-                          <HeroButton
-                            variant="danger"
-                            onPress={() => {
-                              if (deleteSongId) {
-                                handleDeleteSong(deleteSongId);
-                              }
-                              setDeleteSongId(null);
-                            }}
-                          >
-                            {t.groovex.confirm || 'Confirm'}
-                          </HeroButton>
-                        </AlertDialog.Footer>
-                      </AlertDialog.Dialog>
-                    </AlertDialog.Container>
-                  </AlertDialog>
                 </div>
               )}
 

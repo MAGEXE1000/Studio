@@ -231,9 +231,7 @@ export function BottomNavigationController() {
       const isModalOpen =
         document.querySelector('.modal-backdrop') !== null ||
         document.querySelector('.studio-modal') !== null ||
-        document.querySelector('.studio-dialog-scaffold-root') !== null ||
-        document.querySelector('.heroui-backdrop') !== null ||
-        document.querySelector('[data-slot="backdrop"]') !== null;
+        document.querySelector('[role="dialog"]') !== null;
       const hasHideClass =
         document.querySelector('.hide-bottom-nav') !== null ||
         document.querySelector('.hide-global-nav') !== null;

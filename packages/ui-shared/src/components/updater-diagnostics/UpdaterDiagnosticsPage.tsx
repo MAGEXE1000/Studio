@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { toast } from "@heroui/react";
 import { Capacitor } from '@capacitor/core';
 import { isNative, globalUpdateState, updaterSimulation, triggerSimulatedStatus, resetAppUpdateState, applyUpdate, downloadUpdate, checkForUpdate, stateListeners, UpdaterFlightRecorder, isInstallationLocked, isPostInstallSessionActive, shouldUseAndroidApkUpdater, useIsWebDesktop, getLogs, getErrors, updateDiagnostics, PerformanceProfiler, getTransitionHistory, getRejectedTransitions, addJsLog, updateDebugLogs, useChordStore, useNavigationStore, APP_VERSION, useAppUpdate, transitionToState, applyUpdateDirect, checkAndCleanCache, runSignatureMismatchRecovery, deleteLocalApk, ACCENT_COLORS, PRODUCTION_SIGNING_SHA256, useSettingsStore } from '@workspace/studio-core';
 import { copyToClipboard } from './centralizedClipboard';
@@ -182,6 +181,7 @@ export default function UpdaterDiagnosticsPage() {
   const isWebDesktop = useIsWebDesktop();
   const width = useWindowWidth();
 
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [refreshCount, setRefreshCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -224,7 +224,8 @@ export default function UpdaterDiagnosticsPage() {
       window.matchMedia('(prefers-color-scheme: light)').matches);
 
   const showToast = useCallback((msg: string) => {
-    toast(msg);
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
   }, []);
 
   const triggerRefresh = useCallback(() => setRefreshCount((prev) => prev + 1), []);
@@ -1648,6 +1649,30 @@ export default function UpdaterDiagnosticsPage() {
         </div>
       )}
 
+      {/* FLOAT NOTIFICATION TOAST */}
+      {toastMsg && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom:
+              'calc(env(safe-area-inset-bottom, 0px) + var(--content-bottom-pad, 96px) + 16px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0, 0, 0, 0.85)',
+            border: '1px solid var(--c-border)',
+            borderRadius: 20,
+            padding: '10px 20px',
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: 'bold',
+            zIndex: 10000,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 

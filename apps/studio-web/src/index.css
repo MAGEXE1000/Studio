@@ -1,11 +1,9 @@
 @import 'tailwindcss';
-@import "@heroui/react/styles";
 @import '../../../packages/ui-shared/src/styles/tokens.css';
 
 @source "../../../packages/ui-shared/src/**/*.tsx";
 @source "../../../packages/ui-web/src/**/*.tsx";
 @source "../../../packages/studio-core/src/**/*.ts";
-@source "../../../packages/ui-shared/node_modules/@heroui/react/dist/**/*.{js,jsx,ts,tsx}";
 
 /* ── Platform-Specific Overrides (Web) ──────────────────────────────────── */
 

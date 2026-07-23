@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ToastProvider } from '@heroui/react';
 import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useStudioPreferences, logActivity, resetNav, setNavHidden, setNavLocked, NavigationDispatcher, useNavigationStore, type ActivePanel, navDiagnosticsRegistry, type AppKey, useApplicationTransitionStore, ThemeTransitionEngine, useSettingsStore } from '@workspace/studio-core';
 
 import {
@@ -480,7 +479,6 @@ export default function App() {
 
   return (
     <SidebarProvider>
-      <ToastProvider />
       <SidebarHoverSync hoverShowSidebar={hoverShowSidebar} />
       <div
         style={{

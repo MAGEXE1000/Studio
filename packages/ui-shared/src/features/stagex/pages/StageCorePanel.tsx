@@ -647,7 +647,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         (iframe.contentWindow as StageWin).__onViewChange = (view: string) => {
           const mappedPage = view === 'Assistant' ? 'Preferences' : (view === 'SetupHub' ? 'Setup' : view);
           const route = NavigationDispatcher.currentRoute();
-          if (route.app !== 'stage' || route.page !== mappedPage) {
+          if (route.app === 'stage' && route.page !== mappedPage) {
             NavigationDispatcher.replace({ app: 'stage', page: mappedPage as any });
           }
         };

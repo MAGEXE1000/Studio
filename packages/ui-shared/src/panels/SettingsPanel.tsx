@@ -310,7 +310,7 @@ export default function SettingsPanel() {
         }}
       >
         {/* Page title */}
-        <div className="mt-3 mb-6 spring-in">
+        <div className="mt-3 mb-6">
           <h2
             style={{
               fontSize: 'var(--font-hero)',

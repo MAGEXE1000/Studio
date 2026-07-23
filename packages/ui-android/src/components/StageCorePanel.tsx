@@ -488,7 +488,10 @@ export default function StagexPanel() {
   const setCurView = useCallback((newView: string) => {
     const current =
       useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1];
-    if (current && current.app === 'stage' && current.page === newView) {
+    if (!current || current.app !== 'stage') {
+      return;
+    }
+    if (current.page === newView) {
       return;
     }
     NavigationDispatcher.push({ app: 'stage', page: newView });

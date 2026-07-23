@@ -354,73 +354,15 @@ export function AnimatedAppHeader({
     ...subtitleStyle,
   };
 
-  if (prefersReduced) {
-    return (
-      <>
-        <h2 className={titleClassName} style={mergedTitleStyle}>
-          {title}
-        </h2>
-        {subtitle && (
-          <p className={subtitleClassName} style={mergedSubtitleStyle}>
-            {subtitle}
-          </p>
-        )}
-      </>
-    );
-  }
-
-  const chars = title.split('');
-
   return (
     <>
-      <h2
-        className={titleClassName}
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          overflow: 'hidden',
-          lineHeight: '1.15',
-          ...mergedTitleStyle,
-        }}
-      >
-        {chars.map((char, index) => {
-          const delay = delayOffset + index * (staggerInterval / 1000) * speedScale;
-
-          return (
-            <motion.span
-              key={index}
-              className="inline-block origin-bottom"
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{
-                ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any,
-                delay,
-              }}
-              style={{
-                display: char === ' ' ? 'inline' : 'inline-block',
-                marginRight: char === ' ' ? '0.25em' : 0,
-              }}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </motion.span>
-          );
-        })}
+      <h2 className={titleClassName} style={mergedTitleStyle}>
+        {title}
       </h2>
       {subtitle && (
-        <motion.p
-          className={subtitleClassName}
-          style={mergedSubtitleStyle}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any,
-            delay:
-              delayOffset +
-              Math.min(0.35, chars.length * (staggerInterval / 1000) * speedScale + 0.05),
-          }}
-        >
+        <p className={subtitleClassName} style={mergedSubtitleStyle}>
           {subtitle}
-        </motion.p>
+        </p>
       )}
     </>
   );

@@ -2975,14 +2975,11 @@ function SettingsSectionLabel({
 }) {
   return (
     <div
-      className="spring-in"
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'between',
         margin: '28px 0 12px 4px',
-        animation: `settings-content-fade-in 300ms ease both`,
-        animationDelay: `${delay}ms`,
       }}
     >
       <span
@@ -3014,7 +3011,6 @@ function SettingsSubHeader({ title, onBack }: { title: string; onBack: () => voi
   const isWebDesktop = useIsWebDesktop();
   return (
     <div
-      className="spring-in"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -3073,7 +3069,6 @@ function ProfileHeaderBack({ onBack }: { onBack: () => void }) {
   if (isWebDesktop) return null;
   return (
     <div
-      className="spring-in"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -10155,7 +10150,7 @@ User Agent: [Automatically Generated]
                     }}
                     className="no-scrollbar"
                   >
-                    <div className="spring-in" style={{ paddingTop: 32, paddingBottom: 8 }}>
+                    <div style={{ paddingTop: 32, paddingBottom: 8 }}>
                       <p
                         style={{
                           fontSize: 28,

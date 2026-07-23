@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.44"
-$VersionCode = "40244"
-$ReleaseNote = "Release v4.2.44 - Overhauled destructive confirmations to HeroUI AlertDialog, replaced custom toasts, and redesigned Notification Center using HeroUI Alert."
+$VersionName = "4.2.49"
+$VersionCode = "40249"
+$ReleaseNote = "Release v4.2.49 - Cleaned up text animations, resolved Stagex application switching navigation loop, and restored Bottom Navigation auto-hide on scroll with page transition guards."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -16,12 +16,14 @@ node apps/studio-android/scripts/sync-version.mjs
 node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
-git add packages/studio-core/src/lib/preferences/themeEngine.ts
 git add packages/studio-core/src/lib/startup/appVersion.ts
+git add packages/studio-core/src/lib/navigation/navScroll.ts
+git add packages/ui-shared/src/navigation/AppAnimationSystem.tsx
+git add packages/ui-shared/src/features/drumex/pages/DrumPrefsPanel.tsx
+git add packages/ui-shared/src/panels/SettingsPanel.tsx
 git add packages/ui-shared/src/components/hub/StudioHub.tsx
-git add packages/ui-shared/src/features/chordex/pages/SongsPanel.tsx
-git add packages/ui-shared/src/features/drumex/pages/DrumEditor.tsx
 git add packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx
+git add packages/ui-android/src/components/StageCorePanel.tsx
 git add apps/studio-android/CHANGELOG.md
 git add apps/studio-android/android/app/build.gradle
 git add apps/studio-android/package.json

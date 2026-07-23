@@ -1,6 +1,6 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Resolved Bottom Navigation auto-hide regressions on settings and Hub sub-pages.
-- Expanded the Quick Actions catalog with 10 new diagnostic, appearance, and sub-app utility actions.
-- Implemented boundary dragging constraints for Quick Actions reordering.
+- Cleaned up text animations, making all titles and headers static.
+- Resolved Stagex application switching navigation loop.
+- Restored Bottom Navigation auto-hide on scroll with page transition guards.

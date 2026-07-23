@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.49
+
+Release Date: 2026-07-23
+
+## Improved
+- Cleaned up text animations, making all titles and headers static.
+- Resolved Stagex application switching navigation loop.
+- Restored Bottom Navigation auto-hide on scroll with page transition guards.
+
 # Version 4.2.48
 
 Release Date: 2026-07-23

@@ -5498,6 +5498,7 @@ User Agent: [Automatically Generated]
           {/* Custom Accent Color Picker */}
           {(() => {
             const hue = settings.customAccentHue ?? 220;
+            const isCustomActive = hubVis.accentColor === 'custom';
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <ColorPicker
@@ -5509,18 +5510,95 @@ User Agent: [Automatically Generated]
                   }}
                   className="w-full"
                 >
-                  <ColorPicker.Trigger className="flex items-center gap-2 p-2 rounded-lg border border-separator cursor-pointer">
-                    <ColorSwatch className="w-6 h-6 rounded" />
-                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)' }}>Custom Accent Color</span>
+                  <ColorPicker.Trigger
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: isCustomActive ? '2px solid var(--c-accent-from)' : '1px solid rgba(128,128,128,0.22)',
+                      boxShadow: isCustomActive ? '0 0 12px var(--c-accent-from)40' : 'none',
+                      cursor: 'pointer',
+                      background: 'rgba(128,128,128,0.06)',
+                      width: '100%',
+                      justifyContent: 'flex-start',
+                      outline: 'none',
+                    }}
+                  >
+                    <ColorSwatch
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 6,
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontSize: 13, color: 'var(--c-text-primary)', fontWeight: 600, fontFamily: 'Inter' }}>
+                      Custom Accent Color
+                    </span>
                   </ColorPicker.Trigger>
-                  <ColorPicker.Popover className="p-4 rounded-xl border border-separator bg-surface-secondary shadow-lg">
-                    <div className="flex flex-col gap-3">
-                      <ColorArea colorSpace="hsl" xChannel="saturation" yChannel="lightness" className="w-48 h-36 rounded-lg border border-separator">
-                        <ColorArea.Thumb className="w-5 h-5 rounded-full border-2 border-white shadow cursor-pointer" />
+                  <ColorPicker.Popover
+                    style={{
+                      padding: 16,
+                      borderRadius: 16,
+                      border: '1px solid rgba(128,128,128,0.25)',
+                      background: 'var(--app-surface, #191a1e)',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.45)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12,
+                      zIndex: 99999,
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <ColorArea
+                        colorSpace="hsl"
+                        xChannel="saturation"
+                        yChannel="lightness"
+                        style={{
+                          width: 200,
+                          height: 150,
+                          borderRadius: 8,
+                          border: '1px solid rgba(128,128,128,0.2)',
+                          position: 'relative',
+                        }}
+                      >
+                        <ColorArea.Thumb
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: '50%',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                            cursor: 'pointer',
+                            position: 'absolute',
+                          }}
+                        />
                       </ColorArea>
-                      <ColorSlider channel="hue" colorSpace="hsl" className="w-48">
-                        <ColorSlider.Track className="h-3 rounded-full border border-separator">
-                          <ColorSlider.Thumb className="w-5 h-5 rounded-full border-2 border-white shadow cursor-pointer" />
+                      <ColorSlider channel="hue" colorSpace="hsl" style={{ width: 200 }}>
+                        <ColorSlider.Track
+                          style={{
+                            height: 12,
+                            borderRadius: 6,
+                            border: '1px solid rgba(128,128,128,0.2)',
+                            position: 'relative',
+                          }}
+                        >
+                          <ColorSlider.Thumb
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: '50%',
+                              border: '2px solid white',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                              cursor: 'pointer',
+                              position: 'absolute',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                            }}
+                          />
                         </ColorSlider.Track>
                       </ColorSlider>
                     </div>

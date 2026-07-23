@@ -154,20 +154,32 @@ const _elementLastY = new WeakMap<HTMLElement, number>();
 export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
   const lastElementRef = useRef<HTMLElement | null>(null);
   const mountTimeRef = useRef<number>(0);
+  const lastInteractionTimeRef = useRef<number>(0);
 
   const disabled = dependency === true || (dependency && typeof dependency === 'object' && (dependency as any).disabled === true);
 
   useEffect(() => {
+    const recordInteraction = () => {
+      lastInteractionTimeRef.current = Date.now();
+    };
+
+    const unbindEvents = (prev: HTMLElement) => {
+      _registeredScrollElements.delete(prev);
+      const listener = _elementListeners.get(prev);
+      if (listener) {
+        prev.removeEventListener('scroll', listener);
+        _elementListeners.delete(prev);
+      }
+      prev.removeEventListener('touchstart', recordInteraction);
+      prev.removeEventListener('pointerdown', recordInteraction);
+      prev.removeEventListener('wheel', recordInteraction);
+      prev.removeEventListener('keydown', recordInteraction);
+      _elementLastY.delete(prev);
+    };
+
     if (disabled) {
       if (lastElementRef.current) {
-        const prev = lastElementRef.current;
-        _registeredScrollElements.delete(prev);
-        const listener = _elementListeners.get(prev);
-        if (listener) {
-          prev.removeEventListener('scroll', listener);
-          _elementListeners.delete(prev);
-        }
-        _elementLastY.delete(prev);
+        unbindEvents(lastElementRef.current);
         lastElementRef.current = null;
       }
       return;
@@ -179,14 +191,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 
       // Clean up previous element if it changed
       if (lastElementRef.current) {
-        const prev = lastElementRef.current;
-        _registeredScrollElements.delete(prev);
-        const listener = _elementListeners.get(prev);
-        if (listener) {
-          prev.removeEventListener('scroll', listener);
-          _elementListeners.delete(prev);
-        }
-        _elementLastY.delete(prev);
+        unbindEvents(lastElementRef.current);
       }
 
       lastElementRef.current = el;
@@ -221,8 +226,21 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
             return;
           }
 
+          // Only collapse or slide if the scroll event is user-initiated (e.g. within 1200ms of input)
+          const isUserScroll = (Date.now() - lastInteractionTimeRef.current) < 1200;
+          if (!isUserScroll) {
+            _elementLastY.set(el, y);
+            return;
+          }
+
           const prevY = _elementLastY.get(el) ?? y;
           const dy = y - prevY;
+
+          // Ignore large jumps (e.g. scroll restoration, content load layout shifts)
+          if (Math.abs(dy) > 80) {
+            _elementLastY.set(el, y);
+            return;
+          }
 
           // Jitter filter: ignore scroll updates smaller than 2px for immediate responsiveness
           if (Math.abs(dy) < 2) {
@@ -244,6 +262,10 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         _elementLastY.set(el, el.scrollTop);
         _elementListeners.set(el, onScroll);
         el.addEventListener('scroll', onScroll, { passive: true });
+        el.addEventListener('touchstart', recordInteraction, { passive: true });
+        el.addEventListener('pointerdown', recordInteraction, { passive: true });
+        el.addEventListener('wheel', recordInteraction, { passive: true });
+        el.addEventListener('keydown', recordInteraction, { passive: true });
 
         onStateChanged();
       }
@@ -261,13 +283,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
       if (timer) clearTimeout(timer);
       const el = lastElementRef.current;
       if (el) {
-        _registeredScrollElements.delete(el);
-        const listener = _elementListeners.get(el);
-        if (listener) {
-          el.removeEventListener('scroll', listener);
-          _elementListeners.delete(el);
-        }
-        _elementLastY.delete(el);
+        unbindEvents(el);
         lastElementRef.current = null;
         resetNav();
       }

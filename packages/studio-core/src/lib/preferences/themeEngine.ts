@@ -217,31 +217,26 @@ export function applyThemeTokens(settings: any) {
   root.style.fontSize = s.base;
   root.setAttribute('data-text-scale', settings.fontSize);
 
-  // Apply root zoom/scale for immediate live updates to density and text scale
+  // Apply zoom/scale to document.body for immediate live updates to density
   const densityScales = {
     compact: 0.90,
     comfortable: 1.0,
     spacious: 1.10,
   };
   const ds = densityScales[settings.displayDensity as keyof typeof densityScales] || 1.0;
-  const textScales = {
-    small: 0.90,
-    medium: 1.0,
-    large: 1.12,
-  };
-  const ts = textScales[settings.fontSize as keyof typeof textScales] || 1.0;
-  const totalZoom = ds * ts;
-  (root.style as any).zoom = String(totalZoom);
 
-  // Set html and body dimensions dynamically based on zoom factor to fill the screen viewport
-  root.style.width = `calc(100% / ${totalZoom})`;
-  root.style.height = `calc(100% / ${totalZoom})`;
-  root.style.minHeight = `calc(100vh / ${totalZoom})`;
+  if (root) {
+    (root.style as any).zoom = '';
+    root.style.width = '';
+    root.style.height = '';
+    root.style.minHeight = '';
+  }
 
   if (typeof document !== 'undefined' && document.body) {
-    document.body.style.width = '100%';
-    document.body.style.height = '100%';
-    document.body.style.minHeight = `calc(100vh / ${totalZoom})`;
+    document.body.style.zoom = String(ds);
+    document.body.style.width = `calc(100% / ${ds})`;
+    document.body.style.height = `calc(100% / ${ds})`;
+    document.body.style.minHeight = `calc(100vh / ${ds})`;
   }
 
   // 7. Motion Tokens

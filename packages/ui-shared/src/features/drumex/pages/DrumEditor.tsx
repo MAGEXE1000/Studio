@@ -3498,13 +3498,31 @@ export default function DrumEditor() {
     setHumanizeVelocity(drumPrefs.humanizeVelocity);
   }, [drumPrefs.humanizeVelocity]);
 
-  // â”€â”€ Quick mixer sheet + export modal + import modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Quick mixer sheet + export modal + import modal ──────────────────────
   const [showMixerSheet, setShowMixerSheet] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportDrum, setShowImportDrum] = useState(false);
+  const drumLastInteractionTime = useRef(0);
+
+  useEffect(() => {
+    const record = () => {
+      drumLastInteractionTime.current = Date.now();
+    };
+    window.addEventListener('touchstart', record, { passive: true });
+    window.addEventListener('pointerdown', record, { passive: true });
+    window.addEventListener('wheel', record, { passive: true });
+    window.addEventListener('keydown', record, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', record);
+      window.removeEventListener('pointerdown', record);
+      window.removeEventListener('wheel', record);
+      window.removeEventListener('keydown', record);
+    };
+  }, []);
+
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // â”€â”€ Groove Library state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Groove Library state ──────────────────────────────────────────────
   const [grooveFilter, setGrooveFilter] = useState<GrooveTag>('');
   const [patRenameId, setPatRenameId] = useState<string | null>(null);
   const [patRenameName, setPatRenameName] = useState('');
@@ -3694,7 +3712,7 @@ export default function DrumEditor() {
     if (playing) drumScheduler.updatePattern(pattern);
   }, [pattern, playing]);
 
-  // â”€â”€ Scroll-hide: attach to grid scroll container â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Scroll-hide: attach to grid scroll container ──────────────────────────
   const drumScrollHide = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const y = e.currentTarget.scrollTop;
     if (y < 30) {
@@ -3702,7 +3720,22 @@ export default function DrumEditor() {
       drumNavLastY.current = y;
       return;
     }
+
+    // Only collapse or slide if the scroll event is user-initiated (within 1200ms of input)
+    const isUserScroll = (Date.now() - drumLastInteractionTime.current) < 1200;
+    if (!isUserScroll) {
+      drumNavLastY.current = y;
+      return;
+    }
+
     const dy = y - drumNavLastY.current;
+
+    // Ignore large jumps (e.g. scroll restoration)
+    if (Math.abs(dy) > 50) {
+      drumNavLastY.current = y;
+      return;
+    }
+
     if (Math.abs(dy) < 6) return;
     setNavCollapsed(dy > 0);
     drumNavLastY.current = y;

@@ -158,14 +158,18 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
     };
     if (typeof window !== 'undefined') {
       window.addEventListener('touchstart', recordInteraction, { passive: true });
+      window.addEventListener('touchmove', recordInteraction, { passive: true });
       window.addEventListener('pointerdown', recordInteraction, { passive: true });
+      window.addEventListener('pointermove', recordInteraction, { passive: true });
       window.addEventListener('wheel', recordInteraction, { passive: true });
       window.addEventListener('keydown', recordInteraction, { passive: true });
     }
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('touchstart', recordInteraction);
+        window.removeEventListener('touchmove', recordInteraction);
         window.removeEventListener('pointerdown', recordInteraction);
+        window.removeEventListener('pointermove', recordInteraction);
         window.removeEventListener('wheel', recordInteraction);
         window.removeEventListener('keydown', recordInteraction);
       }
@@ -176,7 +180,18 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 // ─── Watchdog Recovery System & Diagnostics ───────────────────────────────
 
 export function onStateChanged() {
-  // Watchdog recovery removed. All navigation updates are pure event-driven.
+  if (typeof window === 'undefined') return;
+  // If nav is collapsed or hidden, verify that the page is still scrollable or scrolled down.
+  // If page is at top or no longer scrollable, automatically recover nav.
+  if (_collapsed || _hidden) {
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    const scrollHeight = document.documentElement.scrollHeight || 0;
+    const clientHeight = document.documentElement.clientHeight || window.innerHeight || 0;
+    if (scrollY < 40 || scrollHeight <= clientHeight + 40) {
+      if (_collapsed) setNavCollapsed(false);
+      if (_hidden && !_locked) setNavHidden(false);
+    }
+  }
 }
 
 // Global Event-driven bindings
@@ -214,13 +229,20 @@ if (typeof window !== 'undefined') {
       resetNav();
     });
 
+    // Watchdog fallback interval: periodically ensure nav isn't stuck collapsed on a non-scrollable view
+    setInterval(() => {
+      onStateChanged();
+    }, 1500);
+
     // Global Scroll Listener in Capture Phase
     const recordInteraction = () => {
       _lastInteractionTime = Date.now();
     };
 
     window.addEventListener('touchstart', recordInteraction, { passive: true });
+    window.addEventListener('touchmove', recordInteraction, { passive: true });
     window.addEventListener('pointerdown', recordInteraction, { passive: true });
+    window.addEventListener('pointermove', recordInteraction, { passive: true });
     window.addEventListener('wheel', recordInteraction, { passive: true });
     window.addEventListener('keydown', recordInteraction, { passive: true });
 

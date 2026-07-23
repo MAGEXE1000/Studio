@@ -49,7 +49,8 @@ export default function StagexPanel() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeReady = useRef(false);
   const settings = useSettingsStore(useShallow((state) => state.settings));
-  const isActiveApp = settings.appMode === 'stage';
+  const currentRouteNav = useNavigationStore((s) => s.history[s.history.length - 1]);
+  const isActiveApp = !currentRouteNav || currentRouteNav.app === 'stage';
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<StageLibraryItem[]>([]);

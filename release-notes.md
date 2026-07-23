@@ -1,7 +1,7 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Resolved updater diagnostics simulation leak causing false installation failures.
-- Enabled global scroll auto-hide navigation across all feature tabs.
-- Polish Profile popup tab toggle, backdrop, and Android Back button closure.
-- Prevented duplicate updater notifications unconditionally.
+- Resolved Profile popup immediate closure caused by ghost clicks and AnimatePresence fragment keying.
+- Restored continuous touchmove scroll hide and watchdog recovery for Bottom Navigation bar.
+- Fixed Stagex Center Panel blackout by connecting active app check to useNavigationStore.
+- Preserved 60 FPS performance and cross-platform navigation consistency.

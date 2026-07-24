@@ -647,14 +647,25 @@ export function SharedNavigationBar({
   const N = currentItems.length || 1;
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
 
+  const getItemPillWidth = useCallback(
+    (item: any) => {
+      if (isSwitcherOpen) return 44;
+      const labelStr = typeof item?.label === 'string' ? item.label : '';
+      const len = labelStr.length;
+      const contentW = 20 + (len > 0 ? 6 + len * 7.5 : 0);
+      return Math.max(44, Math.round(contentW + 24));
+    },
+    [isSwitcherOpen]
+  );
+
+  const itemPillWidths = useMemo(() => {
+    return currentItems.map((item) => getItemPillWidth(item));
+  }, [currentItems, getItemPillWidth]);
+
   // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
-  const maxLabelLen = isSwitcherOpen
-    ? 0
-    : Math.max(
-        ...currentItems.map((item) => (typeof item.label === 'string' ? item.label.length : 4))
-      );
-  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(84, maxLabelLen * 7.5 + 54);
-  const slotWidth = isSwitcherOpen ? 52 : Math.min(132, calculatedSlotWidth);
+  const maxPillWidth = isSwitcherOpen ? 44 : Math.max(...itemPillWidths, 80);
+  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(84, maxPillWidth + 12);
+  const slotWidth = isSwitcherOpen ? 52 : Math.min(160, calculatedSlotWidth);
   const paddingX = 8;
   const insetX = isSwitcherOpen ? 4 : 2;
 
@@ -663,13 +674,14 @@ export function SharedNavigationBar({
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
-  const targetPillWidth = Math.max(36, itemWidth - insetX * 2);
 
   const getPillX = useCallback(
     (index: number) => {
-      return index * itemWidth + insetX;
+      const pillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[index] || 80);
+      const centerX = paddingX + (index + 0.5) * itemWidth;
+      return centerX - pillW / 2;
     },
-    [itemWidth, insetX]
+    [isSwitcherOpen, itemWidth, itemPillWidths, paddingX]
   );
 
   const activeIndex = useMemo(() => {
@@ -698,7 +710,7 @@ export function SharedNavigationBar({
 
   // Synchronized Apple-grade spring physics
   const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
-  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 280, damping: 22, mass: 0.85 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 320, damping: 25, mass: 0.75 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -723,34 +735,54 @@ export function SharedNavigationBar({
     switcherOpenRaw.set(isSwitcherOpen ? 1 : 0);
   }, [isSwitcherOpen, switcherOpenRaw]);
 
-  // Derived continuous pill movement (zero snapping, zero layout jumps)
-  const pillX = useTransform([activeIdxSpring, dragXRaw], ([idx, drag]) => {
-    return (idx as number) * itemWidth + insetX + (drag as number);
+  // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
+  const pillX = useTransform([activeIdxSpring, dragXRaw], ([idxVal, dragVal]) => {
+    const idx = Math.max(0, Math.min(totalSlots - 1, idxVal as number));
+    const lowerIdx = Math.floor(idx);
+    const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
+    const frac = idx - lowerIdx;
+
+    const lowerPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[lowerIdx] || 80);
+    const upperPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[upperIdx] || 80);
+
+    const lowerCenterX = paddingX + (lowerIdx + 0.5) * itemWidth;
+    const upperCenterX = paddingX + (upperIdx + 0.5) * itemWidth;
+
+    const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
+    const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
+
+    return currentCenterX - currentPillW / 2 + (dragVal as number);
   });
 
-  const pillWidthVal = useTransform([pressPressureRaw, dragSkewRaw], ([press, skew]) => {
-    return targetPillWidth + (press as number) + Math.abs(skew as number) * 0.8;
-  });
+  const pillWidthVal = useTransform(
+    [activeIdxSpring, pressPressureRaw, dragSkewRaw],
+    ([idxVal, pressVal, skewVal]) => {
+      const idx = Math.max(0, Math.min(totalSlots - 1, idxVal as number));
+      const lowerIdx = Math.floor(idx);
+      const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
+      const frac = idx - lowerIdx;
+
+      const lowerPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[lowerIdx] || 80);
+      const upperPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[upperIdx] || 80);
+
+      const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
+      return currentPillW + (pressVal as number) + Math.abs(skewVal as number) * 0.8;
+    }
+  );
 
   // Derived continuous navigation dock container transformations
-  // Scroll collapse: preserve position (containerY = 0) and scale down uniformly by ~35% (scale 1.0 -> 0.65).
+  // Clean scale-only collapse: zero translation (containerY = 0), scale down uniformly by 30% (1.0 -> 0.70) from center, full opacity preserved.
   const containerY = 0;
 
   const containerScale = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 1.0;
-      return collapsed ? 0.65 : 1.0 - (offset as number) * 0.35;
+      return collapsed ? 0.70 : 1.0 - (offset as number) * 0.30;
     }
   );
 
-  const containerOpacity = useTransform(
-    [scrollOffsetSpring, searchOpenSpring],
-    ([offset, search]) => {
-      if ((search as number) > 0.1) return 1.0;
-      return collapsed ? 0.82 : 1.0 - (offset as number) * 0.18;
-    }
-  );
+  const containerOpacity = 1.0;
 
   // Derived continuous search overlay transformations
   const searchResultsHeight = useTransform(searchOpenSpring, [0, 1], ['0vh', '42vh']);
@@ -1064,7 +1096,7 @@ export function SharedNavigationBar({
           flexDirection: 'column',
           alignItems: 'center',
           pointerEvents: 'none',
-          transformOrigin: 'bottom center',
+          transformOrigin: 'center center',
           y: containerY,
           scale: containerScale,
           opacity: containerOpacity,

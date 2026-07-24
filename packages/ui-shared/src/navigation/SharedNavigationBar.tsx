@@ -652,8 +652,8 @@ export function SharedNavigationBar({
       if (isSwitcherOpen) return 44;
       const labelStr = typeof item?.label === 'string' ? item.label : '';
       const len = labelStr.length;
-      const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 8.2) : 0);
-      return Math.max(44, Math.round(contentW + 24));
+      const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 6.4) : 0);
+      return Math.max(44, Math.round(contentW + 16));
     },
     [isSwitcherOpen]
   );
@@ -663,9 +663,9 @@ export function SharedNavigationBar({
   }, [currentItems, getItemPillWidth]);
 
   // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
-  const maxPillWidth = isSwitcherOpen ? 44 : Math.max(...itemPillWidths, 80);
-  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(84, maxPillWidth + 16);
-  const slotWidth = isSwitcherOpen ? 52 : Math.min(180, calculatedSlotWidth);
+  const maxPillWidth = isSwitcherOpen ? 44 : Math.max(...itemPillWidths, 72);
+  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(76, maxPillWidth + 12);
+  const slotWidth = isSwitcherOpen ? 52 : Math.min(160, calculatedSlotWidth);
   const paddingX = 8;
   const insetX = isSwitcherOpen ? 4 : 2;
 
@@ -677,7 +677,7 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 80);
+      const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 72);
       const centerX = paddingX + (index + 0.5) * itemWidth;
       return centerX - pillW / 2;
     },
@@ -693,13 +693,11 @@ export function SharedNavigationBar({
 
   // ─────────────────────────────────────────────────────────────────────────────
   // UNIFIED MOTION GRAPH ROOT ENGINE
-  // All navigation movements, pill, collapse, expansion, search, profile, dock
-  // scale and translation derive continuously from this unified graph.
+  // All navigation movements, pill, search, profile derive continuously from this graph.
   // ─────────────────────────────────────────────────────────────────────────────
 
   // Root MotionValues
   const activeIdxRaw = useMotionValue(activeIndex);
-  const scrollOffsetRaw = useMotionValue(scrollOffset);
   const searchOpenRaw = useMotionValue(searchOpen ? 1 : 0);
   const profileOpenRaw = useMotionValue(isProfileMenuOpen ? 1 : 0);
   const switcherOpenRaw = useMotionValue(isSwitcherOpen ? 1 : 0);
@@ -710,7 +708,6 @@ export function SharedNavigationBar({
 
   // Synchronized Apple-grade spring physics
   const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
-  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 320, damping: 25, mass: 0.75 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -718,10 +715,6 @@ export function SharedNavigationBar({
   useEffect(() => {
     activeIdxRaw.set(activeIndex);
   }, [activeIndex, activeIdxRaw]);
-
-  useEffect(() => {
-    scrollOffsetRaw.set(scrollOffset);
-  }, [scrollOffset, scrollOffsetRaw]);
 
   useEffect(() => {
     searchOpenRaw.set(searchOpen ? 1 : 0);
@@ -742,8 +735,8 @@ export function SharedNavigationBar({
     const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
     const frac = idx - lowerIdx;
 
-    const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 80);
-    const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 80);
+    const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
+    const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
 
     const lowerCenterX = paddingX + (lowerIdx + 0.5) * itemWidth;
     const upperCenterX = paddingX + (upperIdx + 0.5) * itemWidth;
@@ -762,27 +755,13 @@ export function SharedNavigationBar({
       const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
       const frac = idx - lowerIdx;
 
-      const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 80);
-      const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 80);
+      const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
+      const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
 
       const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
       return currentPillW + (pressVal as number) + Math.abs(skewVal as number) * 0.8;
     }
   );
-
-  // Derived continuous navigation dock container transformations
-  // Clean scale-only collapse: zero translation (containerY = 0), scale down uniformly by 30% (1.0 -> 0.70) from center, full opacity preserved.
-  const containerY = 0;
-
-  const containerScale = useTransform(
-    [scrollOffsetSpring, searchOpenSpring],
-    ([offset, search]) => {
-      if ((search as number) > 0.1) return 1.0;
-      return collapsed ? 0.70 : 1.0 - (offset as number) * 0.30;
-    }
-  );
-
-  const containerOpacity = 1.0;
 
   // Derived continuous search overlay transformations
   const searchResultsHeight = useTransform(searchOpenSpring, [0, 1], ['0vh', '42vh']);
@@ -1097,8 +1076,6 @@ export function SharedNavigationBar({
           alignItems: 'center',
           pointerEvents: 'none',
           transformOrigin: 'center center',
-          y: containerY,
-          opacity: containerOpacity,
         }}
       >
         {/* Search Click-outside Backdrop */}
@@ -1313,7 +1290,6 @@ export function SharedNavigationBar({
               touchAction: 'none',
               userSelect: 'none',
               transformOrigin: 'center center',
-              scale: containerScale,
               transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
@@ -1538,7 +1514,6 @@ export function SharedNavigationBar({
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
                   transformOrigin: 'center center',
-                  scale: containerScale,
                 }}
               >
                 <motion.span

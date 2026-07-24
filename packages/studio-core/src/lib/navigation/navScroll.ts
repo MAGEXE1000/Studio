@@ -32,11 +32,6 @@ export function setNavLocked(locked: boolean) {
       _hidden = false;
       emit(false);
     }
-    // Also un-collapse when unlocking so the bar is always reachable.
-    if (_collapsed) {
-      _collapsed = false;
-      emitCollapsed(false);
-    }
   }
   onStateChanged();
 }
@@ -67,11 +62,6 @@ export function resetNav() {
     _hidden = false;
     emit(false);
   }
-  if (_collapsed) {
-    _collapsed = false;
-    emitCollapsed(false);
-  }
-  setNavScrollOffset(0);
   onStateChanged();
 }
 
@@ -86,168 +76,25 @@ export function useNavHidden(): boolean {
   return hidden;
 }
 
-// ─── navCollapsed ── scroll-driven collapse to a floating pill/circle ───
-// Driven by useScrollHide. Separate from navHidden so preset-editor hides
-// never interfere with the scroll-collapse visual.
-let _collapsed = false;
-const _collapsedListeners = new Set<(c: boolean) => void>();
-
-function emitCollapsed(c: boolean) {
-  _collapsedListeners.forEach((fn) => fn(c));
-}
-
-export function setNavCollapsed(collapsed: boolean) {
-  if (_locked && !collapsed) return;
-  if (_collapsed === collapsed) return;
-  _collapsed = collapsed;
-  if (typeof document !== 'undefined') {
-    if (collapsed) {
-      document.documentElement.setAttribute('data-nav-collapsed', 'true');
-    } else {
-      document.documentElement.removeAttribute('data-nav-collapsed');
-    }
-  }
-  emitCollapsed(collapsed);
-  onStateChanged();
-}
+// ─── navCollapsed ── (Obsolete - Purged) ───
+export function setNavCollapsed(_collapsed: boolean) {}
 
 export function useNavCollapsed(): boolean {
-  const [c, setC] = useState(_collapsed);
-  useEffect(() => {
-    _collapsedListeners.add(setC);
-    return () => {
-      _collapsedListeners.delete(setC);
-    };
-  }, []);
-  return c;
+  return false;
 }
-
-let _scrollOffset = 0;
-const _scrollOffsetListeners = new Set<(o: number) => void>();
 
 export function getNavScrollOffset(): number {
-  return _scrollOffset;
+  return 0;
 }
 
-export function setNavScrollOffset(offset: number) {
-  if (_locked) return;
-  const clamped = Math.max(0, Math.min(1, offset));
-  if (_scrollOffset === clamped) return;
-  _scrollOffset = clamped;
-  _scrollOffsetListeners.forEach((fn) => fn(clamped));
-}
+export function setNavScrollOffset(_offset: number) {}
 
 export function useNavScrollOffset(): number {
-  const [offset, setOffset] = useState(_scrollOffset);
-  useEffect(() => {
-    _scrollOffsetListeners.add(setOffset);
-    return () => {
-      _scrollOffsetListeners.delete(setOffset);
-    };
-  }, []);
-  return offset;
+  return 0;
 }
 
-const _registeredScrollElements = new Set<HTMLElement>();
-const _elementListeners = new WeakMap<HTMLElement, () => void>();
-const _elementLastY = new WeakMap<HTMLElement, number>();
-
-export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
-  const lastElementRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const checkAndBind = () => {
-      const el = ref.current;
-      if (el === lastElementRef.current) return;
-
-      // Clean up previous element if it changed
-      if (lastElementRef.current) {
-        const prev = lastElementRef.current;
-        _registeredScrollElements.delete(prev);
-        const listener = _elementListeners.get(prev);
-        if (listener) {
-          prev.removeEventListener('scroll', listener);
-          _elementListeners.delete(prev);
-        }
-        _elementLastY.delete(prev);
-      }
-
-      lastElementRef.current = el;
-
-      if (el) {
-        _registeredScrollElements.add(el);
-
-        const onScroll = () => {
-          const y = el.scrollTop;
-          const maxScroll = el.scrollHeight - el.clientHeight;
-
-          // Ignore overscroll bounce
-          if (y < 0 || y > maxScroll) {
-            return;
-          }
-
-          // Expand navigation immediately when near the top (within 40px)
-          if (y < 40) {
-            setNavScrollOffset(0);
-            if (_collapsed) {
-              setNavCollapsed(false);
-            }
-            _elementLastY.set(el, y);
-            return;
-          }
-
-          const prevY = _elementLastY.get(el) ?? y;
-          const dy = y - prevY;
-
-          // Jitter filter: ignore scroll updates smaller than 2px for immediate responsiveness
-          if (Math.abs(dy) < 2) {
-            return;
-          }
-
-          // Progressive translation: 75px total scroll delta triggers complete hide/show transition.
-          const deltaRatio = dy / 75;
-          setNavScrollOffset(_scrollOffset + deltaRatio);
-
-          const shouldCollapse = dy > 0;
-          if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
-            setNavCollapsed(shouldCollapse);
-          }
-
-          _elementLastY.set(el, y);
-        };
-
-        _elementLastY.set(el, el.scrollTop);
-        _elementListeners.set(el, onScroll);
-        el.addEventListener('scroll', onScroll, { passive: true });
-
-        onStateChanged();
-      }
-    };
-
-    checkAndBind();
-    
-    // Retry immediately on next frame if ref wasn't attached yet
-    let rafId: number | null = null;
-    if (!ref.current) {
-      rafId = requestAnimationFrame(checkAndBind);
-    }
-
-    return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      const el = lastElementRef.current;
-      if (el) {
-        _registeredScrollElements.delete(el);
-        const listener = _elementListeners.get(el);
-        if (listener) {
-          el.removeEventListener('scroll', listener);
-          _elementListeners.delete(el);
-        }
-        _elementLastY.delete(el);
-        lastElementRef.current = null;
-        onStateChanged();
-      }
-    };
-  }, [ref, dependency]);
+export function useScrollHide(_ref?: React.RefObject<HTMLElement | null>, _dependency?: any) {
+  // No-op: Scroll hide animation completely purged.
 }
 
 // ─── Watchdog Recovery System & Diagnostics ───────────────────────────────
@@ -273,10 +120,6 @@ function runWatchdogCheck() {
       _hidden = false;
       _hiddenStartTime = 0;
       emit(false);
-      if (_collapsed) {
-        _collapsed = false;
-        emitCollapsed(false);
-      }
       if ((window as any).__navMetrics) {
         (window as any).__navMetrics.fallbackActivations++;
         (window as any).__navMetrics.recoveries++;
@@ -310,7 +153,7 @@ if (typeof window !== 'undefined') {
       const activeRoute = state.history[state.history.length - 1];
       const activeRouteStr = activeRoute ? JSON.stringify(activeRoute) : 'null';
 
-      // Auto-reset collapsed/hidden states on route changes
+      // Auto-reset hidden states on route changes
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
         resetNav();
@@ -334,31 +177,6 @@ if (typeof window !== 'undefined') {
     window.addEventListener('orientationchange', () => {
       resetNav();
     });
-
-    // Window-level body scroll listener for full-page scrolling layouts
-    let lastWindowY = window.scrollY;
-    window.addEventListener(
-      'scroll',
-      () => {
-        const y = window.scrollY || document.documentElement.scrollTop;
-        if (y < 40) {
-          setNavScrollOffset(0);
-          if (_collapsed) setNavCollapsed(false);
-          lastWindowY = y;
-          return;
-        }
-        const dy = y - lastWindowY;
-        if (Math.abs(dy) < 2) return;
-        const deltaRatio = dy / 75;
-        setNavScrollOffset(_scrollOffset + deltaRatio);
-        const shouldCollapse = dy > 0;
-        if (_collapsed !== shouldCollapse && (!_locked || !shouldCollapse)) {
-          setNavCollapsed(shouldCollapse);
-        }
-        lastWindowY = y;
-      },
-      { passive: true }
-    );
   } catch (e) {
     // Passive safety guard
   }

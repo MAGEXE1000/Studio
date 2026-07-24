@@ -1,7 +1,5 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Native updater cleanup: completely removed legacy `[Simulation Guard]` throw checks, simulation mode overrides, and developer simulation toasts.
-- Native installation path: updater pipeline now executes real native PackageInstaller installation flow directly.
-- Highlight geometry refinement: dynamic highlight algorithm un-clamped to perfectly wrap active tab icon and label comfortably on every tab, localization, and font scale.
-- Scroll collapse geometry: removed parent container scale shift and enforced in-place center scaling for both dock and switcher button without corner drifting.
+- Highlight geometry refinement: un-clamped and recalculated active highlight pill sizing (20px icon + 6px gap + 6.4px/char + 16px padding) for exact content wrapping without oversized pills or clipping.
+- Complete scroll animation removal: purged scroll collapse listeners, scroll offset MotionValues, and scale interpolations so Bottom Navigation remains 100% static across all scroll interactions.

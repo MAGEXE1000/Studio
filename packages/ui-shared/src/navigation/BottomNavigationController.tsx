@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import {
   useNavHidden,
   useNavCollapsed,
-  useNavScrollOffset,
   useBottomNavigationStore,
   useApplicationTransitionStore,
   useNavigationStore,
@@ -33,7 +32,6 @@ if (typeof window !== 'undefined') {
 export function BottomNavigationController() {
   const hidden = useNavHidden();
   const collapsed = useNavCollapsed();
-  const scrollOffset = useNavScrollOffset();
   const transitionState = useApplicationTransitionStore((s) => s.state);
   const launchingApp = useApplicationTransitionStore((s) => s.launchingApp);
   const isTransitioning = transitionState !== 'IDLE';
@@ -194,17 +192,6 @@ export function BottomNavigationController() {
   useEffect(() => {
     setCollapsed(collapsed);
   }, [collapsed, setCollapsed]);
-
-  // Sync scroll offset state to Scrolling motion state
-  useEffect(() => {
-    if (scrollOffset > 0 && scrollOffset < 1) {
-      setMotionState('Scrolling');
-    } else if (scrollOffset === 1) {
-      setMotionState('Hidden');
-    } else if (scrollOffset === 0 && !hidden && !collapsed) {
-      setMotionState('Idle');
-    }
-  }, [scrollOffset, hidden, collapsed, setMotionState]);
 
   // Sync transition coordinator states
   useEffect(() => {

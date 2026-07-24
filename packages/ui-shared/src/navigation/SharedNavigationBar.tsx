@@ -719,10 +719,10 @@ export function SharedNavigationBar({
   const getPillX = useCallback(
     (index: number) => {
       const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 72);
-      const centerX = paddingX + (index + 0.5) * itemWidth;
+      const centerX = (index + 0.5) * itemWidth;
       return centerX - pillW / 2;
     },
-    [isSwitcherOpen, itemWidth, itemPillWidths, paddingX]
+    [isSwitcherOpen, itemWidth, itemPillWidths]
   );
 
   const activeIndex = useMemo(() => {
@@ -775,12 +775,29 @@ export function SharedNavigationBar({
     switcherOpenRaw.set(isSwitcherOpen ? 1 : 0);
   }, [isSwitcherOpen, switcherOpenRaw]);
 
-  // Scale navigation by 40% towards center-center (1.00 -> 0.60) on scroll down with zero vertical translation or hiding
+  // Scale navigation by 25% towards center-center (1.00 -> 0.75) on scroll down with zero vertical translation or hiding
   const containerScale = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 1.0;
-      return 1.00 - (offset as number) * 0.40;
+      return 1.00 - (offset as number) * 0.25;
+    }
+  );
+
+  // Subtle inward horizontal translation towards screen center composition on scroll down
+  const navX = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.1) return 0;
+      return (offset as number) * (showSwitcherButton ? 12 : 0);
+    }
+  );
+
+  const switcherX = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.1) return 0;
+      return (offset as number) * -12;
     }
   );
 
@@ -794,8 +811,8 @@ export function SharedNavigationBar({
     const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
     const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
 
-    const lowerCenterX = paddingX + (lowerIdx + 0.5) * itemWidth;
-    const upperCenterX = paddingX + (upperIdx + 0.5) * itemWidth;
+    const lowerCenterX = (lowerIdx + 0.5) * itemWidth;
+    const upperCenterX = (upperIdx + 0.5) * itemWidth;
 
     const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
     const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
@@ -1347,6 +1364,7 @@ export function SharedNavigationBar({
               userSelect: 'none',
               transformOrigin: 'center center',
               scale: containerScale,
+              x: navX,
               transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
@@ -1573,6 +1591,7 @@ export function SharedNavigationBar({
                   WebkitTapHighlightColor: 'transparent',
                   transformOrigin: 'center center',
                   scale: containerScale,
+                  x: switcherX,
                 }}
               >
                 <motion.span

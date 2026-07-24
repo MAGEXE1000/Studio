@@ -1,5 +1,5 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Real DOM highlight sizing: attached ResizeObserver layout measurements directly to active item content wrappers (getBoundingClientRect + 16px horizontal padding) for perfect content-hugging highlights across all font scales and localizations.
-- Bouncy 40% center scale animation: re-enabled scroll offset tracking to scale the Bottom Navigation and App Switcher button by 40% (1.00 -> 0.60) toward their center-center point on scroll down, with bouncy spring recovery on scroll up and zero vertical translation or hiding.
+- Highlight alignment root-cause fix: resolved padding double-counting origin error in getPillX calculation for 0.00px centered highlight placement over rendered content.
+- 25% shrink & mutual center translation: refined scroll shrink scale to 25% (1.00 -> 0.75) while introducing converging navX and switcherX horizontal translations for a compact, unified side-by-side composition on scroll down.

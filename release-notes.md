@@ -1,5 +1,5 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Highlight geometry refinement: un-clamped and recalculated active highlight pill sizing (20px icon + 6px gap + 6.4px/char + 16px padding) for exact content wrapping without oversized pills or clipping.
-- Complete scroll animation removal: purged scroll collapse listeners, scroll offset MotionValues, and scale interpolations so Bottom Navigation remains 100% static across all scroll interactions.
+- Real DOM highlight sizing: attached ResizeObserver layout measurements directly to active item content wrappers (getBoundingClientRect + 16px horizontal padding) for perfect content-hugging highlights across all font scales and localizations.
+- Bouncy 40% center scale animation: re-enabled scroll offset tracking to scale the Bottom Navigation and App Switcher button by 40% (1.00 -> 0.60) toward their center-center point on scroll down, with bouncy spring recovery on scroll up and zero vertical translation or hiding.

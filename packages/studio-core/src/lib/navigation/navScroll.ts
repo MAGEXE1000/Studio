@@ -76,25 +76,117 @@ export function useNavHidden(): boolean {
   return hidden;
 }
 
-// ─── navCollapsed ── (Obsolete - Purged) ───
+// ─── navScrollOffset ── scroll-driven 40% center-scale animation offset ───
+let _scrollOffset = 0;
+const _scrollOffsetListeners = new Set<(o: number) => void>();
+
+export function getNavScrollOffset(): number {
+  return _scrollOffset;
+}
+
+export function setNavScrollOffset(offset: number) {
+  if (_locked) return;
+  const clamped = Math.max(0, Math.min(1, offset));
+  if (_scrollOffset === clamped) return;
+  _scrollOffset = clamped;
+  _scrollOffsetListeners.forEach((fn) => fn(clamped));
+}
+
+export function useNavScrollOffset(): number {
+  const [offset, setOffset] = useState(_scrollOffset);
+  useEffect(() => {
+    _scrollOffsetListeners.add(setOffset);
+    return () => {
+      _scrollOffsetListeners.delete(setOffset);
+    };
+  }, []);
+  return offset;
+}
+
 export function setNavCollapsed(_collapsed: boolean) {}
 
 export function useNavCollapsed(): boolean {
   return false;
 }
 
-export function getNavScrollOffset(): number {
-  return 0;
-}
+const _registeredScrollElements = new Set<HTMLElement>();
+const _elementListeners = new WeakMap<HTMLElement, () => void>();
+const _elementLastY = new WeakMap<HTMLElement, number>();
 
-export function setNavScrollOffset(_offset: number) {}
+export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependency?: any) {
+  const lastElementRef = useRef<HTMLElement | null>(null);
 
-export function useNavScrollOffset(): number {
-  return 0;
-}
+  useEffect(() => {
+    const checkAndBind = () => {
+      const el = ref.current;
+      if (el === lastElementRef.current) return;
 
-export function useScrollHide(_ref?: React.RefObject<HTMLElement | null>, _dependency?: any) {
-  // No-op: Scroll hide animation completely purged.
+      if (lastElementRef.current) {
+        const prev = lastElementRef.current;
+        _registeredScrollElements.delete(prev);
+        const listener = _elementListeners.get(prev);
+        if (listener) {
+          prev.removeEventListener('scroll', listener);
+          _elementListeners.delete(prev);
+        }
+        _elementLastY.delete(prev);
+      }
+
+      lastElementRef.current = el;
+
+      if (el) {
+        _registeredScrollElements.add(el);
+
+        const onScroll = () => {
+          const y = el.scrollTop;
+          const maxScroll = el.scrollHeight - el.clientHeight;
+
+          if (y < 0 || y > maxScroll) return;
+
+          if (y < 30) {
+            setNavScrollOffset(0);
+            _elementLastY.set(el, y);
+            return;
+          }
+
+          const prevY = _elementLastY.get(el) ?? y;
+          const dy = y - prevY;
+
+          if (Math.abs(dy) < 2) return;
+
+          const deltaRatio = dy / 60;
+          setNavScrollOffset(_scrollOffset + deltaRatio);
+          _elementLastY.set(el, y);
+        };
+
+        _elementLastY.set(el, el.scrollTop);
+        _elementListeners.set(el, onScroll);
+        el.addEventListener('scroll', onScroll, { passive: true });
+      }
+    };
+
+    checkAndBind();
+
+    let rafId: number | null = null;
+    if (!ref.current) {
+      rafId = requestAnimationFrame(checkAndBind);
+    }
+
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      const el = lastElementRef.current;
+      if (el) {
+        _registeredScrollElements.delete(el);
+        const listener = _elementListeners.get(el);
+        if (listener) {
+          el.removeEventListener('scroll', listener);
+          _elementListeners.delete(el);
+        }
+        _elementLastY.delete(el);
+        lastElementRef.current = null;
+      }
+    };
+  }, [ref, dependency]);
 }
 
 // ─── Watchdog Recovery System & Diagnostics ───────────────────────────────
@@ -102,7 +194,6 @@ export function useScrollHide(_ref?: React.RefObject<HTMLElement | null>, _depen
 let _hiddenStartTime = 0;
 
 export function onStateChanged() {
-  // Reset hidden start baseline on explicit state changes
   if (!_hidden) {
     _hiddenStartTime = 0;
   } else if (_hiddenStartTime === 0) {
@@ -114,7 +205,6 @@ function runWatchdogCheck() {
   if (typeof window === 'undefined') return;
   const now = Date.now();
 
-  // 1. Auto-recover if hidden unexpectedly for >2000ms without lock
   if (_hidden && !_locked) {
     if (_hiddenStartTime > 0 && now - _hiddenStartTime >= 2000) {
       _hidden = false;
@@ -129,7 +219,6 @@ function runWatchdogCheck() {
     _hiddenStartTime = 0;
   }
 
-  // 2. Failsafe DOM presence audit
   const wrapper = document.querySelector('.shared-bottom-nav-container-wrapper') as HTMLElement | null;
   if (wrapper) {
     const style = window.getComputedStyle(wrapper);
@@ -148,19 +237,16 @@ if (typeof window !== 'undefined') {
   try {
     let lastActiveRoute: string | null = null;
 
-    // Subscribe to navigation store state changes
     useNavigationStore.subscribe((state) => {
       const activeRoute = state.history[state.history.length - 1];
       const activeRouteStr = activeRoute ? JSON.stringify(activeRoute) : 'null';
 
-      // Auto-reset hidden states on route changes
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
         resetNav();
       }
     });
 
-    // App Resume failsafes: restore navigation visibility upon focus or visibility restore
     window.addEventListener('focus', () => {
       resetNav();
     });
@@ -170,13 +256,32 @@ if (typeof window !== 'undefined') {
       }
     });
 
-    // Configuration / Layout failsafes: restore navigation visibility upon resize or orientation changes
     window.addEventListener('resize', () => {
       resetNav();
     });
     window.addEventListener('orientationchange', () => {
       resetNav();
     });
+
+    // Window-level body scroll listener for full-page scrolling layouts
+    let lastWindowY = window.scrollY;
+    window.addEventListener(
+      'scroll',
+      () => {
+        const y = window.scrollY || document.documentElement.scrollTop;
+        if (y < 30) {
+          setNavScrollOffset(0);
+          lastWindowY = y;
+          return;
+        }
+        const dy = y - lastWindowY;
+        if (Math.abs(dy) < 2) return;
+        const deltaRatio = dy / 60;
+        setNavScrollOffset(_scrollOffset + deltaRatio);
+        lastWindowY = y;
+      },
+      { passive: true }
+    );
   } catch (e) {
     // Passive safety guard
   }

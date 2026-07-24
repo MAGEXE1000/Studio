@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import {
   useNavHidden,
   useNavCollapsed,
+  useNavScrollOffset,
   useBottomNavigationStore,
   useApplicationTransitionStore,
   useNavigationStore,
@@ -32,6 +33,7 @@ if (typeof window !== 'undefined') {
 export function BottomNavigationController() {
   const hidden = useNavHidden();
   const collapsed = useNavCollapsed();
+  const scrollOffset = useNavScrollOffset();
   const transitionState = useApplicationTransitionStore((s) => s.state);
   const launchingApp = useApplicationTransitionStore((s) => s.launchingApp);
   const isTransitioning = transitionState !== 'IDLE';

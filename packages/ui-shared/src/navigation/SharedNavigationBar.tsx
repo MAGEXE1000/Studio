@@ -78,6 +78,7 @@ const NavigationItem = React.memo(
     isActive,
     isSwitcherOpen,
     activeIdxSpring,
+    onMeasureWidth,
   }: {
     item: any;
     index: number;
@@ -85,14 +86,39 @@ const NavigationItem = React.memo(
     isActive: boolean;
     isSwitcherOpen?: boolean;
     activeIdxSpring: any;
+    onMeasureWidth?: (index: number, width: number) => void;
   }) => {
     const isIconString = typeof item.icon === 'string';
+    const contentRef = useRef<HTMLDivElement | null>(null);
 
     // Continuous motion derivation for label & icon state based on distance from activeIdxSpring
     const distance = useTransform(activeIdxSpring, (val: number) => Math.abs(val - index));
     const labelOpacity = useTransform(distance, [0, 0.45], [1, 0]);
     const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
     const iconScale = useTransform(distance, [0, 0.45], [1.08, 0.98]);
+
+    useEffect(() => {
+      if (contentRef.current && onMeasureWidth) {
+        const rect = contentRef.current.getBoundingClientRect();
+        if (rect.width > 0) {
+          onMeasureWidth(index, rect.width);
+        }
+      }
+    }, [index, item.label, item.icon, isSwitcherOpen, isActive, onMeasureWidth]);
+
+    useEffect(() => {
+      if (!contentRef.current || !onMeasureWidth || typeof ResizeObserver === 'undefined') return;
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const w = entry.contentRect?.width || entry.target.getBoundingClientRect().width;
+          if (w > 0) {
+            onMeasureWidth(index, w);
+          }
+        }
+      });
+      observer.observe(contentRef.current);
+      return () => observer.disconnect();
+    }, [index, onMeasureWidth]);
 
     return (
       <button
@@ -117,6 +143,7 @@ const NavigationItem = React.memo(
         }}
       >
         <div
+          ref={contentRef}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -639,6 +666,15 @@ export function SharedNavigationBar({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const [measuredContentWidths, setMeasuredContentWidths] = useState<Record<number, number>>({});
+
+  const handleMeasureWidth = useCallback((index: number, width: number) => {
+    setMeasuredContentWidths((prev) => {
+      if (prev[index] === width) return prev;
+      return { ...prev, [index]: width };
+    });
+  }, []);
+
   const isHub = currentApp === 'hub';
   const showSwitcherButton = currentApp !== 'hub';
   const showSearchButton = isHub;
@@ -648,18 +684,23 @@ export function SharedNavigationBar({
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
 
   const getItemPillWidth = useCallback(
-    (item: any) => {
+    (item: any, index: number) => {
       if (isSwitcherOpen) return 44;
+      const domWidth = measuredContentWidths[index];
+      if (domWidth && domWidth > 0) {
+        // Real DOM measured width + 16px fixed horizontal padding (8px left, 8px right)
+        return Math.max(44, Math.round(domWidth + 16));
+      }
       const labelStr = typeof item?.label === 'string' ? item.label : '';
       const len = labelStr.length;
       const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 6.4) : 0);
       return Math.max(44, Math.round(contentW + 16));
     },
-    [isSwitcherOpen]
+    [isSwitcherOpen, measuredContentWidths]
   );
 
   const itemPillWidths = useMemo(() => {
-    return currentItems.map((item) => getItemPillWidth(item));
+    return currentItems.map((item, index) => getItemPillWidth(item, index));
   }, [currentItems, getItemPillWidth]);
 
   // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
@@ -693,11 +734,12 @@ export function SharedNavigationBar({
 
   // ─────────────────────────────────────────────────────────────────────────────
   // UNIFIED MOTION GRAPH ROOT ENGINE
-  // All navigation movements, pill, search, profile derive continuously from this graph.
+  // All navigation movements, pill, search, profile, scale derive continuously from this graph.
   // ─────────────────────────────────────────────────────────────────────────────
 
   // Root MotionValues
   const activeIdxRaw = useMotionValue(activeIndex);
+  const scrollOffsetRaw = useMotionValue(scrollOffset);
   const searchOpenRaw = useMotionValue(searchOpen ? 1 : 0);
   const profileOpenRaw = useMotionValue(isProfileMenuOpen ? 1 : 0);
   const switcherOpenRaw = useMotionValue(isSwitcherOpen ? 1 : 0);
@@ -708,6 +750,7 @@ export function SharedNavigationBar({
 
   // Synchronized Apple-grade spring physics
   const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 400, damping: 25, mass: 0.8 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -715,6 +758,10 @@ export function SharedNavigationBar({
   useEffect(() => {
     activeIdxRaw.set(activeIndex);
   }, [activeIndex, activeIdxRaw]);
+
+  useEffect(() => {
+    scrollOffsetRaw.set(scrollOffset);
+  }, [scrollOffset, scrollOffsetRaw]);
 
   useEffect(() => {
     searchOpenRaw.set(searchOpen ? 1 : 0);
@@ -727,6 +774,15 @@ export function SharedNavigationBar({
   useEffect(() => {
     switcherOpenRaw.set(isSwitcherOpen ? 1 : 0);
   }, [isSwitcherOpen, switcherOpenRaw]);
+
+  // Scale navigation by 40% towards center-center (1.00 -> 0.60) on scroll down with zero vertical translation or hiding
+  const containerScale = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.1) return 1.0;
+      return 1.00 - (offset as number) * 0.40;
+    }
+  );
 
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
   const pillX = useTransform([activeIdxSpring, dragXRaw], ([idxVal, dragVal]) => {
@@ -1290,6 +1346,7 @@ export function SharedNavigationBar({
               touchAction: 'none',
               userSelect: 'none',
               transformOrigin: 'center center',
+              scale: containerScale,
               transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
@@ -1352,6 +1409,7 @@ export function SharedNavigationBar({
                         isActive={isActive}
                         isSwitcherOpen={isSwitcherOpen}
                         activeIdxSpring={activeIdxSpring}
+                        onMeasureWidth={handleMeasureWidth}
                       />
                     );
                   })}
@@ -1514,6 +1572,7 @@ export function SharedNavigationBar({
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
                   transformOrigin: 'center center',
+                  scale: containerScale,
                 }}
               >
                 <motion.span

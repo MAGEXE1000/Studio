@@ -796,26 +796,18 @@ export function SharedNavigationBar({
     }
   );
 
-  // Dynamic composition centering math derived from windowWidth and measured barWidth:
+  // Dynamic composition centering for the 5 sub-apps:
+  // On scroll down (1.00 -> 0.75 scale), glass-nav translates subtly right (+14px) towards screen composition center,
+  // and switcherButton translates left (-18px) toward glass-nav so both elements converge symmetrically.
   const targetDockShift = useMemo(() => {
     if (!showSwitcherButton) return 0;
-    const scaledBarW = barWidth * 0.75;
-    const scaledSwitcherW = 64 * 0.75;
-    const gap = 16;
-    const totalScaledW = scaledBarW + gap + scaledSwitcherW;
-    return -(totalScaledW / 2) + scaledBarW / 2;
-  }, [barWidth, showSwitcherButton]);
+    return 14;
+  }, [showSwitcherButton]);
 
   const targetSwitcherShift = useMemo(() => {
     if (!showSwitcherButton) return 0;
-    const scaledBarW = barWidth * 0.75;
-    const scaledSwitcherW = 64 * 0.75;
-    const gap = 16;
-    const totalScaledW = scaledBarW + gap + scaledSwitcherW;
-    const unscaledSwitcherCenterOffset = barWidth / 2 + 40;
-    const targetSwitcherCenterOffset = totalScaledW / 2 - scaledSwitcherW / 2;
-    return targetSwitcherCenterOffset - unscaledSwitcherCenterOffset;
-  }, [barWidth, showSwitcherButton]);
+    return -18;
+  }, [showSwitcherButton]);
 
   // Subtle inward horizontal translation towards screen center composition on scroll down
   const navX = useTransform(

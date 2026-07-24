@@ -644,9 +644,9 @@ export function SharedNavigationBar({
   const currentItems = isSwitcherOpen ? switcherApps : items || [];
   const N = currentItems.length || 1;
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
-  const slotWidth = isSwitcherOpen ? 52 : 70;
+  const slotWidth = isSwitcherOpen ? 52 : 84;
   const paddingX = 8;
-  const insetX = 3;
+  const insetX = 2;
 
   const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
   const barWidth = Math.max(160, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
@@ -1251,7 +1251,7 @@ export function SharedNavigationBar({
               pointerEvents: 'auto',
               justifySelf: 'center',
               width: searchOpen ? '100%' : `${barWidth}px`,
-              maxWidth: '480px',
+              maxWidth: searchOpen ? 'min(720px, calc(100vw - 32px))' : '560px',
               height: '64px',
               borderRadius: searchOpen ? '24px' : '9999px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -1404,12 +1404,16 @@ export function SharedNavigationBar({
                     placeholder={lang === 'es' ? 'Buscar canciones, apps, ajustes...' : 'Search songs, apps, settings...'}
                     style={{
                       flex: 1,
+                      minWidth: 0,
                       background: 'transparent',
                       border: 'none',
                       outline: 'none',
                       color: '#ffffff',
                       fontSize: '16px',
                       fontFamily: 'Inter, sans-serif',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
                     }}
                   />
                   {searchQuery && (

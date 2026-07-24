@@ -1,6 +1,6 @@
-Release Date: 2026-07-23
+Release Date: 2026-07-24
 
 ## Improved
-- Hardened build pipeline with strict TypeScript typechecking, reference audit, circular dependency detection, and import boundary enforcement.
-- Fixed orphan references and un-declared symbol usages across all workspaces.
-- Decoupled theme engine and update state machine circular dependencies using event listeners.
+- Completely rewritten Bottom Navigation animation architecture using a single unified MotionValue root graph.
+- Continuous interpolation across navigation pill, icons, labels, scroll collapse, search expansion, and profile menu without discrete layout snapping.
+- Integrated profile menu card and backdrop directly into the unified motion engine for 60 FPS Apple-grade interaction quality.

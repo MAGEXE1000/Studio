@@ -378,177 +378,20 @@ export function BottomNavigationController() {
   const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible;
 
   return (
-    <>
-      <SharedNavigationBar
-        items={computedItems}
-        isLight={isLight}
-        visible={visible}
-        collapsed={collapsed}
-        isSwitcherOpen={isSwitcherOpen}
-        setIsSwitcherOpen={setIsSwitcherOpen}
-        currentApp={currentApp}
-        onOpenSearch={() => setProfileMenuOpen(false)}
-        onOpenProfile={() => toggleProfileMenu()}
-      />
-      <AnimatePresence>
-        {isProfileMenuOpen && (
-          <motion.div
-            key="profile-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              setProfileMenuOpen(false);
-            }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0, 0, 0, 0.4)',
-              zIndex: 2000,
-              backdropFilter: 'blur(2px)',
-            }}
-          />
-        )}
-        {isProfileMenuOpen && (
-          <motion.div
-            key="profile-menu-card"
-            initial={{ opacity: 0, y: 15, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 15, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-            style={{
-              position: 'fixed',
-              bottom: 84,
-              right: 16,
-              width: 280,
-              background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(28, 28, 30, 0.95)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: 16,
-              border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
-              zIndex: 2001,
-              padding: '16px 0',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px 12px', borderBottom: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(128,128,128,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(128,128,128,0.08)' }}>
-                {customPhoto || user?.photoURL ? (
-                  <img
-                    src={customPhoto || user?.photoURL || ''}
-                    alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}>
-                    person
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-headline)' }}>
-                  {user?.displayName || 'Guest User'}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
-                  {user?.email || 'guest@livex.studio'}
-                </span>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* View Profile */}
-              <button
-                onClick={() => {
-                  NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
-                  setProfileMenuOpen(false);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 16px',
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--c-text-primary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: 13.5,
-                  fontFamily: 'var(--font-body)',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
-                  person
-                </span>
-                View Profile
-              </button>
-
-              {/* Settings */}
-              <button
-                onClick={() => {
-                  NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' });
-                  setProfileMenuOpen(false);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 16px',
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--c-text-primary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: 13.5,
-                  fontFamily: 'var(--font-body)',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
-                  settings
-                </span>
-                Settings
-              </button>
-
-              {/* Sign Out */}
-              <button
-                onClick={() => {
-                  void authRepository.signOut();
-                  setProfileMenuOpen(false);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 16px',
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#ef4444',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontSize: 13.5,
-                  fontFamily: 'var(--font-body)',
-                  borderTop: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
-                  marginTop: 4,
-                  paddingTop: 14,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#ef4444' }}>
-                  logout
-                </span>
-                Sign Out
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+    <SharedNavigationBar
+      items={computedItems}
+      isLight={isLight}
+      visible={visible}
+      collapsed={collapsed}
+      isSwitcherOpen={isSwitcherOpen}
+      setIsSwitcherOpen={setIsSwitcherOpen}
+      currentApp={currentApp}
+      onOpenSearch={() => setProfileMenuOpen(false)}
+      onOpenProfile={() => toggleProfileMenu()}
+      user={user}
+      customPhoto={customPhoto}
+      profileIcon={profileIcon}
+    />
   );
 }
+

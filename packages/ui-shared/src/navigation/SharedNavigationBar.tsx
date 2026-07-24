@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, useMotionValue, useTransform, animate, AnimatePresence } from 'motion/react';
+import { motion, useMotionValue, useSpring, useTransform, animate, AnimatePresence } from 'motion/react';
 import {
   useNavScrollOffset,
   NavigationDispatcher,
@@ -65,6 +65,9 @@ export interface SharedNavigationBarProps {
   currentApp: string;
   onOpenSearch?: () => void;
   onOpenProfile?: () => void;
+  user?: any;
+  customPhoto?: string | null;
+  profileIcon?: React.ReactNode;
 }
 
 const NavigationItem = React.memo(
@@ -73,13 +76,21 @@ const NavigationItem = React.memo(
     index,
     onClick,
     isActive,
+    activeIdxSpring,
   }: {
     item: any;
     index: number;
     onClick: () => void;
     isActive: boolean;
+    activeIdxSpring: any;
   }) => {
     const isIconString = typeof item.icon === 'string';
+
+    // Continuous motion derivation for label & icon state based on distance from activeIdxSpring
+    const distance = useTransform(activeIdxSpring, (val: number) => Math.abs(val - index));
+    const labelOpacity = useTransform(distance, [0, 0.45], [1, 0]);
+    const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
+    const iconScale = useTransform(distance, [0, 0.45], [1.08, 0.98]);
 
     return (
       <button
@@ -98,7 +109,7 @@ const NavigationItem = React.memo(
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1,
-          padding: '0 8px',
+          padding: '0 6px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
         }}
@@ -114,51 +125,52 @@ const NavigationItem = React.memo(
           }}
         >
           {isIconString ? (
-            <span
+            <motion.span
               className="material-symbols-outlined text-[20px]"
               style={{
                 fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
                 color: '#ffffff',
                 fontSize: '20px',
+                scale: iconScale,
                 transition: 'font-variation-settings 150ms ease',
               }}
             >
               {item.icon}
-            </span>
+            </motion.span>
           ) : (
-            <div
+            <motion.div
               style={{
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                scale: iconScale,
               }}
             >
               {item.icon}
-            </div>
+            </motion.div>
           )}
 
-          <AnimatePresence initial={false}>
-            {isActive && item.label && (
-              <motion.span
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  color: '#ffffff',
-                  whiteSpace: 'nowrap',
-                  letterSpacing: '-0.01em',
-                  display: 'inline-block',
-                  lineHeight: 1,
-                }}
-              >
-                {item.label}
-              </motion.span>
-            )}
-          </AnimatePresence>
+          {item.label && (
+            <motion.span
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#ffffff',
+                whiteSpace: 'nowrap',
+                letterSpacing: '-0.01em',
+                display: 'inline-block',
+                lineHeight: 1,
+                opacity: labelOpacity,
+                scale: labelScale,
+                maxWidth: isActive ? '120px' : '0px',
+                overflow: 'hidden',
+                transition: 'max-width 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              {item.label}
+            </motion.span>
+          )}
         </div>
       </button>
     );
@@ -175,6 +187,9 @@ export function SharedNavigationBar({
   currentApp,
   onOpenSearch,
   onOpenProfile,
+  user,
+  customPhoto,
+  profileIcon,
 }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollOffset = useNavScrollOffset();
@@ -185,12 +200,15 @@ export function SharedNavigationBar({
 
   const searchOpen = useBottomNavigationStore((s) => s.isSearchOpen);
   const setSearchOpen = useBottomNavigationStore((s) => s.setSearchOpen);
+  const isProfileMenuOpen = useBottomNavigationStore((s) => s.isProfileMenuOpen);
+  const setProfileMenuOpen = useBottomNavigationStore((s) => s.setProfileMenuOpen);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<string>('all');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Close search on hardware back press
+  // Close search / profile on hardware back press
   useBackHandler(
     'modal',
     () => {
@@ -199,12 +217,16 @@ export function SharedNavigationBar({
         setSearchQuery('');
         return true;
       }
+      if (isProfileMenuOpen) {
+        setProfileMenuOpen(false);
+        return true;
+      }
       return false;
     },
-    [searchOpen, setSearchOpen]
+    [searchOpen, setSearchOpen, isProfileMenuOpen, setProfileMenuOpen]
   );
 
-  // 1. One-time index registration from local storage on mount (avoiding CPU spikes on open)
+  // 1. One-time index registration from local storage on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -373,8 +395,7 @@ export function SharedNavigationBar({
     if (!q) return [];
 
     const allItems = searchIndex.getItems();
-    
-    // Category sorting weights
+
     const categoryWeights: Record<string, number> = {
       apps: 100,
       actions: 90,
@@ -411,7 +432,7 @@ export function SharedNavigationBar({
 
     const seenIds = new Set<string>();
     const deduplicatedScored: { item: SearchableItem; score: number }[] = [];
-    
+
     scored.forEach((x) => {
       if (x.score > 0) {
         const id = x.item.id || `${x.item.category}-${x.item.titleEn}`;
@@ -452,7 +473,7 @@ export function SharedNavigationBar({
   const renderSearchRow = (item: SearchableItem, idx: number) => {
     const displayTitle = lang === 'es' ? item.titleEs : item.titleEn;
     const displaySubtitle = lang === 'es' ? item.subtitleEs : item.subtitleEn;
-    
+
     const categoryLabels: Record<string, string> = {
       apps: lang === 'es' ? 'Aplicación' : 'App',
       settings: lang === 'es' ? 'Ajustes' : 'Settings',
@@ -604,7 +625,7 @@ export function SharedNavigationBar({
     []
   );
 
-  // Dynamic screen width monitoring for robust responsiveness
+  // Dynamic screen width monitoring
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 360
   );
@@ -624,7 +645,7 @@ export function SharedNavigationBar({
   const N = currentItems.length || 1;
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
   const slotWidth = isSwitcherOpen ? 52 : 70;
-  const paddingX = 8; // Match the container padding: '6px 8px'
+  const paddingX = 8;
   const insetX = 6;
 
   const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
@@ -648,10 +669,88 @@ export function SharedNavigationBar({
     return idx >= 0 ? idx : 0;
   }, [currentItems, currentApp, isSwitcherOpen]);
 
-  const pillX = useMotionValue(getPillX(activeIndex));
-  const pillWidthVal = useMotionValue(targetPillWidth);
-  const pillSkewX = useMotionValue(0);
-  const pressureOffset = useMotionValue(0);
+  // ─────────────────────────────────────────────────────────────────────────────
+  // UNIFIED MOTION GRAPH ROOT ENGINE
+  // All navigation movements, pill, collapse, expansion, search, profile, dock
+  // scale and translation derive continuously from this unified graph.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Root MotionValues
+  const activeIdxRaw = useMotionValue(activeIndex);
+  const scrollOffsetRaw = useMotionValue(scrollOffset);
+  const searchOpenRaw = useMotionValue(searchOpen ? 1 : 0);
+  const profileOpenRaw = useMotionValue(isProfileMenuOpen ? 1 : 0);
+  const switcherOpenRaw = useMotionValue(isSwitcherOpen ? 1 : 0);
+
+  const dragXRaw = useMotionValue(0);
+  const dragSkewRaw = useMotionValue(0);
+  const pressPressureRaw = useMotionValue(0);
+
+  // Synchronized Apple-grade spring physics
+  const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 220, damping: 26, mass: 1.0 });
+  const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
+  const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
+
+  // Update root raw MotionValues continuously on state changes
+  useEffect(() => {
+    activeIdxRaw.set(activeIndex);
+  }, [activeIndex, activeIdxRaw]);
+
+  useEffect(() => {
+    scrollOffsetRaw.set(scrollOffset);
+  }, [scrollOffset, scrollOffsetRaw]);
+
+  useEffect(() => {
+    searchOpenRaw.set(searchOpen ? 1 : 0);
+  }, [searchOpen, searchOpenRaw]);
+
+  useEffect(() => {
+    profileOpenRaw.set(isProfileMenuOpen ? 1 : 0);
+  }, [isProfileMenuOpen, profileOpenRaw]);
+
+  useEffect(() => {
+    switcherOpenRaw.set(isSwitcherOpen ? 1 : 0);
+  }, [isSwitcherOpen, switcherOpenRaw]);
+
+  // Derived continuous pill movement (zero snapping, zero layout jumps)
+  const pillX = useTransform([activeIdxSpring, dragXRaw], ([idx, drag]) => {
+    return (idx as number) * itemWidth + insetX + (drag as number);
+  });
+
+  const pillWidthVal = useTransform([pressPressureRaw, dragSkewRaw], ([press, skew]) => {
+    return targetPillWidth + (press as number) + Math.abs(skew as number) * 0.8;
+  });
+
+  // Derived continuous navigation dock container transformations
+  const containerY = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.5) return 0;
+      return (offset as number) * 84;
+    }
+  );
+
+  const containerScale = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.1) return 1.0;
+      return collapsed ? 0.70 : 1.0 - (offset as number) * 0.22;
+    }
+  );
+
+  const containerOpacity = useTransform(scrollOffsetSpring, [0, 0.95, 1], [1, 0.6, 0]);
+
+  // Derived continuous search overlay transformations
+  const searchResultsHeight = useTransform(searchOpenSpring, [0, 1], ['0vh', '42vh']);
+  const searchResultsOpacity = useTransform(searchOpenSpring, [0, 0.2, 1], [0, 0.4, 1]);
+  const searchResultsY = useTransform(searchOpenSpring, [0, 1], [20, 0]);
+
+  // Derived continuous profile menu transformations
+  const profileCardOpacity = useTransform(profileOpenSpring, [0, 1], [0, 1]);
+  const profileCardY = useTransform(profileOpenSpring, [0, 1], [16, 0]);
+  const profileCardScale = useTransform(profileOpenSpring, [0, 1], [0.94, 1]);
+  const profileBackdropOpacity = useTransform(profileOpenSpring, [0, 1], [0, 1]);
 
   const [isScrubbing, setIsScrubbing] = useState(false);
   const isScrubbingRef = useRef(false);
@@ -661,18 +760,6 @@ export function SharedNavigationBar({
   const lastXRef = useRef(0);
   const lastTimeRef = useRef(0);
   const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Keep pill positioned and sized smoothly on active tab when activeIndex or layout changes
-  useEffect(() => {
-    if (!isScrubbingRef.current) {
-      animate(pillX, getPillX(activeIndex), {
-        ...SpringPresets.soft,
-      });
-      animate(pillWidthVal, targetPillWidth, {
-        ...SpringPresets.soft,
-      });
-    }
-  }, [activeIndex, targetPillWidth, getPillX, pillX, pillWidthVal]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -689,7 +776,7 @@ export function SharedNavigationBar({
     isScrubbingRef.current = false;
     scrubbingIndexRef.current = activeIndex;
 
-    animate(pressureOffset, 4, { ...SpringPresets.stiff });
+    animate(pressPressureRaw, 5, { ...SpringPresets.stiff });
 
     if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
     pressTimerRef.current = setTimeout(() => {
@@ -709,7 +796,7 @@ export function SharedNavigationBar({
         } catch (err) {}
       }
 
-      pillX.set(clampedX);
+      dragXRaw.set(clampedX - getPillX(activeIndex));
     }, 250);
   };
 
@@ -749,10 +836,10 @@ export function SharedNavigationBar({
     lastXRef.current = e.clientX;
     lastTimeRef.current = now;
 
-    pillX.set(clampedX);
+    dragXRaw.set(clampedX - getPillX(activeIndex));
 
     const skew = Math.max(-10, Math.min(10, velocity * 3.5));
-    pillSkewX.set(skew);
+    dragSkewRaw.set(skew);
 
     const progress = relativeX / usableWidth;
     const hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
@@ -779,8 +866,9 @@ export function SharedNavigationBar({
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    animate(pillSkewX, 0, { ...SpringPresets.expressive });
-    animate(pressureOffset, 0, { ...SpringPresets.expressive });
+    animate(dragSkewRaw, 0, { ...SpringPresets.expressive });
+    animate(pressPressureRaw, 0, { ...SpringPresets.expressive });
+    animate(dragXRaw, 0, { ...SpringPresets.soft });
 
     if (isScrubbingRef.current) {
       isScrubbingRef.current = false;
@@ -788,10 +876,6 @@ export function SharedNavigationBar({
 
       const finalIndex = scrubbingIndexRef.current;
       const targetItem = currentItems[finalIndex];
-
-      animate(pillX, getPillX(finalIndex), {
-        ...SpringPresets.soft,
-      });
 
       if (targetItem && finalIndex !== activeIndex) {
         targetItem.onClick();
@@ -816,50 +900,149 @@ export function SharedNavigationBar({
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    animate(pillSkewX, 0, { ...SpringPresets.expressive });
-    animate(pressureOffset, 0, { ...SpringPresets.expressive });
+    animate(dragSkewRaw, 0, { ...SpringPresets.expressive });
+    animate(pressPressureRaw, 0, { ...SpringPresets.expressive });
+    animate(dragXRaw, 0, { ...SpringPresets.soft });
 
     isScrubbingRef.current = false;
     setIsScrubbing(false);
-
-    animate(pillX, getPillX(activeIndex), {
-      ...SpringPresets.soft,
-    });
   };
 
-
-
-  const fastSpring = useMemo(
-    () => ({
-      type: 'spring' as const,
-      stiffness: 180,
-      damping: 26,
-      mass: 1.0,
-    }),
-    []
-  );
-
-  // Slide down out of view progressively up to 100px (beyond viewport edge)
-  const translateY = searchOpen ? 0 : scrollOffset * 100;
-
-
+  if (!visible) return null;
 
   return (
     <>
+      {/* Profile Click-Outside Backdrop */}
+      <motion.div
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          setProfileMenuOpen(false);
+        }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 2000,
+          backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          opacity: profileBackdropOpacity,
+          pointerEvents: isProfileMenuOpen ? 'auto' : 'none',
+        }}
+      />
+
+      {/* Profile Menu Card */}
+      <motion.div
+        style={{
+          position: 'fixed',
+          bottom: 84,
+          right: 16,
+          width: 280,
+          background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(28, 28, 30, 0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: 16,
+          border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
+          zIndex: 2001,
+          padding: '16px 0',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          opacity: profileCardOpacity,
+          y: profileCardY,
+          scale: profileCardScale,
+          pointerEvents: isProfileMenuOpen ? 'auto' : 'none',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px 12px', borderBottom: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(128,128,128,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(128,128,128,0.08)' }}>
+            {customPhoto || user?.photoURL ? (
+              <img
+                src={customPhoto || user?.photoURL || ''}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                referrerPolicy="no-referrer"
+              />
+            ) : profileIcon ? (
+              profileIcon
+            ) : (
+              <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}>
+                person
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-headline)' }}>
+              {user?.displayName || 'Guest User'}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
+              {user?.email || 'guest@livex.studio'}
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <button
+            onClick={() => {
+              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+              setProfileMenuOpen(false);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 16px',
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--c-text-primary)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontSize: 13.5,
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
+              person
+            </span>
+            View Profile
+          </button>
+
+          <button
+            onClick={() => {
+              NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' });
+              setProfileMenuOpen(false);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 16px',
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--c-text-primary)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontSize: 13.5,
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
+              settings
+            </span>
+            Settings
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Main Unified Bottom Navigation Container */}
       <motion.div
         key="navigation-bar-wrapper"
         ref={containerRef}
         className="shared-bottom-nav-container-wrapper"
-        animate={{
-          y: 0,
-          scale: (collapsed && !searchOpen) ? 0.70 : 1.0,
-          opacity: 1,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 380,
-          damping: 28,
-        }}
         style={{
           position: 'fixed',
           bottom: 'max(14px, env(safe-area-inset-bottom))',
@@ -871,211 +1054,210 @@ export function SharedNavigationBar({
           alignItems: 'center',
           pointerEvents: 'none',
           transformOrigin: 'bottom center',
+          y: containerY,
+          scale: containerScale,
+          opacity: containerOpacity,
         }}
       >
-        {/* Click-outside backdrop */}
-        {searchOpen && (
-          <div
-            onClick={() => {
-              setSearchOpen(false);
-              setSearchQuery('');
-            }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'rgba(5, 5, 8, 0.4)',
-              zIndex: -1,
-              pointerEvents: 'auto',
-            }}
-          />
-        )}
+        {/* Search Click-outside Backdrop */}
+        <div
+          onClick={() => {
+            setSearchOpen(false);
+            setSearchQuery('');
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(5, 5, 8, 0.4)',
+            zIndex: -1,
+            pointerEvents: searchOpen ? 'auto' : 'none',
+            opacity: searchOpen ? 1 : 0,
+            transition: 'opacity 200ms ease',
+          }}
+        />
 
         {/* Search Results Panel */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: '42vh' }}
-              exit={{ opacity: 0, y: 20, height: 0 }}
-              transition={fastSpring}
-              style={{
-                width: '100%',
-                maxWidth: '480px',
-                background: 'rgba(20, 20, 24, 0.65)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '24px',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                marginBottom: '8px',
-                pointerEvents: 'auto',
-                willChange: 'transform, opacity, height',
-              }}
-            >
-              {/* Category chips */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '6px',
-                  overflowX: 'auto',
-                  padding: '16px 16px 8px',
-                  flexShrink: 0,
-                }}
-              >
-                {['all', 'apps', 'settings', 'projects', 'songs', 'actions'].map((cat) => {
-                  const isActive = searchCategory === cat;
-                  const translatedCat =
-                    lang === 'es'
-                      ? {
-                          all: 'todo',
-                          apps: 'aplicaciones',
-                          settings: 'ajustes',
-                          projects: 'proyectos',
-                          songs: 'canciones',
-                          actions: 'acciones',
-                        }[cat] || cat
-                      : cat;
+        <motion.div
+          style={{
+            width: '100%',
+            maxWidth: '480px',
+            background: 'rgba(20, 20, 24, 0.65)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '24px',
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            marginBottom: '8px',
+            pointerEvents: searchOpen ? 'auto' : 'none',
+            height: searchResultsHeight,
+            opacity: searchResultsOpacity,
+            y: searchResultsY,
+            willChange: 'transform, opacity, height',
+          }}
+        >
+          {/* Category chips */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '6px',
+              overflowX: 'auto',
+              padding: '16px 16px 8px',
+              flexShrink: 0,
+            }}
+          >
+            {['all', 'apps', 'settings', 'projects', 'songs', 'actions'].map((cat) => {
+              const isActive = searchCategory === cat;
+              const translatedCat =
+                lang === 'es'
+                  ? {
+                      all: 'todo',
+                      apps: 'aplicaciones',
+                      settings: 'ajustes',
+                      projects: 'proyectos',
+                      songs: 'canciones',
+                      actions: 'acciones',
+                    }[cat] || cat
+                  : cat;
 
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSearchCategory(cat)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textTransform: 'capitalize',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {translatedCat}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Results scroll list */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '0 16px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            {searchQuery.trim() ? (
+              (() => {
+                const results = getSearchResults(searchQuery);
+                if (results.length === 0) {
                   return (
-                    <button
-                      key={cat}
-                      onClick={() => setSearchCategory(cat)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                        color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        textTransform: 'capitalize',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {translatedCat}
-                    </button>
+                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '24px', fontSize: '13px' }}>
+                      {lang === 'es' ? `No hay resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
+                    </div>
                   );
-                })}
-              </div>
-
-              {/* Results scroll list */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  padding: '0 16px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                }}
-              >
-                {searchQuery.trim() ? (
-                  (() => {
-                    const results = getSearchResults(searchQuery);
-                    if (results.length === 0) {
-                      return (
-                        <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '24px', fontSize: '13px' }}>
-                          {lang === 'es' ? `No hay resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
-                        </div>
-                      );
-                    }
-                    return (
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        {results.map((item, idx) => renderSearchRow(item, idx))}
-                      </div>
-                    );
-                  })()
-                ) : (
-                  <>
-                    {/* Recent Searches */}
-                    {recentSearches.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
-                          {lang === 'es' ? 'Búsquedas Recientes' : 'Recent Searches'}
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '8px' }}>
-                          {recentSearches.map((term) => (
-                            <div
-                              key={term}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '4px 10px',
-                                borderRadius: '8px',
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255, 255, 255, 0.06)',
-                              }}
-                            >
-                              <span
-                                onClick={() => setSearchQuery(term)}
-                                style={{ fontSize: '12px', color: 'rgba(255,255,255,0.80)', cursor: 'pointer' }}
-                              >
-                                {term}
-                              </span>
-                              <span
-                                onClick={() => removeSearchHistory(term)}
-                                className="material-symbols-outlined"
-                                style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
-                              >
-                                close
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Quick Actions / Commands */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
-                        {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '8px' }}>
-                        {searchIndex
-                          .getItems()
-                          .filter((item) => item.category === 'actions')
-                          .slice(0, 3)
-                          .map((item, idx) => renderSearchRow(item, idx))}
-                      </div>
+                }
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {results.map((item, idx) => renderSearchRow(item, idx))}
+                  </div>
+                );
+              })()
+            ) : (
+              <>
+                {/* Recent Searches */}
+                {recentSearches.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
+                      {lang === 'es' ? 'Búsquedas Recientes' : 'Recent Searches'}
                     </div>
-
-                    {/* Suggested Apps */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
-                        {lang === 'es' ? 'Aplicaciones Sugeridas' : 'Suggested Apps'}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        {searchIndex
-                          .getItems()
-                          .filter((item) => item.category === 'apps')
-                          .slice(0, 4)
-                          .map((item, idx) => renderSearchRow(item, idx))}
-                      </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '8px' }}>
+                      {recentSearches.map((term) => (
+                        <div
+                          key={term}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                          }}
+                        >
+                          <span
+                            onClick={() => setSearchQuery(term)}
+                            style={{ fontSize: '12px', color: 'rgba(255,255,255,0.80)', cursor: 'pointer' }}
+                          >
+                            {term}
+                          </span>
+                          <span
+                            onClick={() => removeSearchHistory(term)}
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
+                          >
+                            close
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  </>
+                  </div>
                 )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+                {/* Quick Actions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
+                    {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '8px' }}>
+                    {searchIndex
+                      .getItems()
+                      .filter((item) => item.category === 'actions')
+                      .slice(0, 3)
+                      .map((item, idx) => renderSearchRow(item, idx))}
+                  </div>
+                </div>
+
+                {/* Suggested Apps */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
+                    {lang === 'es' ? 'Aplicaciones Sugeridas' : 'Suggested Apps'}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {searchIndex
+                      .getItems()
+                      .filter((item) => item.category === 'apps')
+                      .slice(0, 4)
+                      .map((item, idx) => renderSearchRow(item, idx))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </motion.div>
 
         {/* Bottom Navigation Dock Grid */}
-        {searchOpen ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
+          <div style={{ pointerEvents: 'none' }} />
+
           <motion.div
-            layoutId="search-container"
-            transition={fastSpring}
             className="shared-bottom-nav glass-nav"
             style={{
               pointerEvents: 'auto',
-              width: '100%',
+              justifySelf: 'center',
+              width: searchOpen ? '100%' : `${barWidth}px`,
               maxWidth: '480px',
               height: '64px',
-              borderRadius: '24px',
+              borderRadius: searchOpen ? '24px' : '9999px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               background: 'rgba(12, 12, 14, 0.45)',
               boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
@@ -1088,7 +1270,8 @@ export function SharedNavigationBar({
               position: 'relative',
               touchAction: 'none',
               userSelect: 'none',
-              alignSelf: 'center',
+              transformOrigin: 'center center',
+              transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <div
@@ -1105,206 +1288,8 @@ export function SharedNavigationBar({
                 touchAction: 'none',
               }}
             >
-              {/* Standard Icons Wrapper */}
-              <div
-                style={{
-                  display: 'flex',
-                  width: '100%',
-                  height: '100%',
-                  alignItems: 'center',
-                  justifyContent: 'space-around',
-                  opacity: 0,
-                  pointerEvents: 'none',
-                  transition: 'opacity 200ms ease',
-                }}
-              >
-                {currentItems.map((item, index) => {
-                  const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
-                  return (
-                    <NavigationItem
-                      key={item.key}
-                      item={item}
-                      index={index}
-                      onClick={item.onClick}
-                      isActive={isActive}
-                    />
-                  );
-                })}
-
-                {isHub && !isSwitcherOpen && (
-                  <motion.button
-                    onClick={() => {
-                      if (onOpenSearch) onOpenSearch();
-                      setSearchOpen(true);
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    style={{
-                      width: `${itemWidth}px`,
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                      position: 'relative',
-                      zIndex: 1,
-                      padding: '0 8px',
-                      outline: 'none',
-                      WebkitTapHighlightColor: 'transparent',
-                    }}
-                  >
-                    <motion.div
-                      layoutId="search-icon"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'rgba(255, 255, 255, 0.60)',
-                      }}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        search
-                      </span>
-                    </motion.div>
-                  </motion.button>
-                )}
-              </div>
-
-              {/* Embedded Search input inside stretched bar */}
-              <AnimatePresence>
-                {searchOpen && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '0 16px',
-                      zIndex: 10,
-                      pointerEvents: 'auto',
-                    }}
-                  >
-                    <motion.div
-                      layoutId="search-icon"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: '#ffffff',
-                        opacity: 0.6,
-                        marginRight: '8px',
-                      }}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        search
-                      </span>
-                    </motion.div>
-                    <input
-                      id="global-search-input"
-                      ref={searchInputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={lang === 'es' ? 'Buscar canciones, apps, ajustes...' : 'Search songs, apps, settings...'}
-                      style={{
-                        flex: 1,
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        color: '#ffffff',
-                        fontSize: '16px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '4px',
-                          marginRight: '8px',
-                        }}
-                      >
-                        <span className="material-symbols-outlined text-[18px]">
-                          clear
-                        </span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        setSearchOpen(false);
-                        setSearchQuery('');
-                      }}
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#ffffff',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '4px 10px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {lang === 'es' ? 'Cancelar' : 'Cancel'}
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
-            <div style={{ pointerEvents: 'none' }} />
-            
-            <motion.div
-              layoutId="search-container"
-              className="shared-bottom-nav glass-nav"
-              style={{
-                pointerEvents: 'auto',
-                justifySelf: 'center',
-                width: `${barWidth}px`,
-                height: '64px',
-                borderRadius: '9999px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'rgba(12, 12, 14, 0.45)',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-                backdropFilter: 'blur(25px)',
-                WebkitBackdropFilter: 'blur(25px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-around',
-                padding: '6px 8px',
-                position: 'relative',
-                touchAction: 'none',
-                userSelect: 'none',
-                transformOrigin: 'center center',
-              }}
-            >
-              <div
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerCancel}
-                style={{
-                  display: 'flex',
-                  width: '100%',
-                  height: '100%',
-                  alignItems: 'center',
-                  position: 'relative',
-                  touchAction: 'none',
-                }}
-              >
-                {/* Continuous Gliding Pill Highlight */}
+              {/* Continuous Gliding Pill Highlight */}
+              {!searchOpen && (
                 <motion.div
                   style={{
                     position: 'absolute',
@@ -1322,9 +1307,10 @@ export function SharedNavigationBar({
                     zIndex: 0,
                   }}
                 />
+              )}
 
-
-                {/* Standard Icons Wrapper */}
+              {/* Standard Navigation Items */}
+              {!searchOpen ? (
                 <div
                   style={{
                     display: 'flex',
@@ -1334,7 +1320,6 @@ export function SharedNavigationBar({
                     justifyContent: 'space-around',
                     opacity: 1,
                     pointerEvents: 'auto',
-                    transition: 'opacity 200ms ease',
                   }}
                 >
                   {currentItems.map((item, index) => {
@@ -1346,17 +1331,17 @@ export function SharedNavigationBar({
                         index={index}
                         onClick={item.onClick}
                         isActive={isActive}
+                        activeIdxSpring={activeIdxSpring}
                       />
                     );
                   })}
 
                   {isHub && !isSwitcherOpen && (
-                    <motion.button
+                    <button
                       onClick={() => {
                         if (onOpenSearch) onOpenSearch();
                         setSearchOpen(true);
                       }}
-                      whileTap={{ scale: 0.95 }}
                       style={{
                         width: `${itemWidth}px`,
                         height: '100%',
@@ -1373,8 +1358,7 @@ export function SharedNavigationBar({
                         WebkitTapHighlightColor: 'transparent',
                       }}
                     >
-                      <motion.div
-                        layoutId="search-icon"
+                      <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -1385,53 +1369,134 @@ export function SharedNavigationBar({
                         <span className="material-symbols-outlined text-[20px]">
                           search
                         </span>
-                      </motion.div>
-                    </motion.button>
+                      </div>
+                    </button>
                   )}
                 </div>
-              </div>
-            </motion.div>
-
-            <div
-              style={{
-                pointerEvents: 'auto',
-                justifySelf: 'end',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              {showSwitcherButton && !searchOpen && (
-                <motion.button
-                  onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
-                  whileTap={{ scale: 0.9 }}
+              ) : (
+                /* Embedded Search Input inside stretched bar */
+                <div
                   style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    background: 'rgba(12, 12, 14, 0.45)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(25px)',
-                    WebkitBackdropFilter: 'blur(25px)',
-                    boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                    position: 'absolute',
+                    inset: 0,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    color: isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
+                    padding: '0 16px',
+                    zIndex: 10,
+                    pointerEvents: 'auto',
                   }}
                 >
-                  <span className="material-symbols-outlined text-[20px]">
-                    {isSwitcherOpen ? 'close' : 'apps'}
-                  </span>
-                </motion.button>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: '#ffffff',
+                      opacity: 0.6,
+                      marginRight: '8px',
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      search
+                    </span>
+                  </div>
+                  <input
+                    id="global-search-input"
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={lang === 'es' ? 'Buscar canciones, apps, ajustes...' : 'Search songs, apps, settings...'}
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: '#ffffff',
+                      fontSize: '16px',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '4px',
+                        marginRight: '8px',
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        clear
+                      </span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchQuery('');
+                    }}
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {lang === 'es' ? 'Cancelar' : 'Cancel'}
+                  </button>
+                </div>
               )}
             </div>
+          </motion.div>
+
+          <div
+            style={{
+              pointerEvents: 'auto',
+              justifySelf: 'end',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            {showSwitcherButton && !searchOpen && (
+              <button
+                onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: 'rgba(12, 12, 14, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(25px)',
+                  WebkitBackdropFilter: 'blur(25px)',
+                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {isSwitcherOpen ? 'close' : 'apps'}
+                </span>
+              </button>
+            )}
           </div>
-        )}
+        </div>
       </motion.div>
     </>
   );
 }
+

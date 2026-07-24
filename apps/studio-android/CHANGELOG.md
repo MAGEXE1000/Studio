@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.65
+
+Release Date: 2026-07-24
+
+## Improved
+- Completely rewritten Bottom Navigation animation architecture using a single unified MotionValue root graph.
+- Continuous interpolation across navigation pill, icons, labels, scroll collapse, search expansion, and profile menu without discrete layout snapping.
+- Integrated profile menu card and backdrop directly into the unified motion engine for 60 FPS Apple-grade interaction quality.
+
 # Version 4.2.64
 
 Release Date: 2026-07-23

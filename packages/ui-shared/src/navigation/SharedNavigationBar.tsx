@@ -675,8 +675,8 @@ export function SharedNavigationBar({
 
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
-    const minX = getCenterX(0);
-    const maxX = getCenterX(N - 1);
+    const minX = getPillX(0);
+    const maxX = getPillX(N - 1);
     const clampedX = Math.max(minX, Math.min(maxX, relativeX));
 
     startXRef.current = e.clientX;
@@ -734,8 +734,8 @@ export function SharedNavigationBar({
 
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
-    const minX = getCenterX(0);
-    const maxX = getCenterX(N - 1);
+    const minX = getPillX(0);
+    const maxX = getPillX(N - 1);
     const clampedX = Math.max(minX, Math.min(maxX, relativeX));
     const now = performance.now();
     const dt = now - lastTimeRef.current;
@@ -785,7 +785,7 @@ export function SharedNavigationBar({
       const finalIndex = scrubbingIndexRef.current;
       const targetItem = currentItems[finalIndex];
 
-      animate(pillX, getCenterX(finalIndex), {
+      animate(pillX, getPillX(finalIndex), {
         ...SpringPresets.soft,
       });
 
@@ -818,7 +818,7 @@ export function SharedNavigationBar({
     isScrubbingRef.current = false;
     setIsScrubbing(false);
 
-    animate(pillX, getCenterX(activeIndex), {
+    animate(pillX, getPillX(activeIndex), {
       ...SpringPresets.soft,
     });
   };
@@ -1124,9 +1124,6 @@ export function SharedNavigationBar({
                       key={item.key}
                       item={item}
                       index={index}
-                      pillX={pillX}
-                      itemWidth={itemWidth}
-                      getCenterX={getCenterX}
                       onClick={item.onClick}
                       isActive={isActive}
                     />
@@ -1346,9 +1343,6 @@ export function SharedNavigationBar({
                         key={item.key}
                         item={item}
                         index={index}
-                        pillX={pillX}
-                        itemWidth={itemWidth}
-                        getCenterX={getCenterX}
                         onClick={item.onClick}
                         isActive={isActive}
                       />

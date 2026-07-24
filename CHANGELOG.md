@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.62
+
+Release Date: 2026-07-23
+
+## Improved
+- Eliminated getCenterX orphan ReferenceError in SharedNavigationBar pointer drag handlers.
+- Added Repository-Wide Reference & Audit Validator to build pipeline.
+- Hardened Framer Motion event callbacks and component scope symbol safety.
+
 # Version 4.2.61
 
 Release Date: 2026-07-23

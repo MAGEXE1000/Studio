@@ -6,7 +6,8 @@ import { execSync } from 'node:child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
-// Run Navigation & Runtime Integrity Auditor first
+// Run Repository-Wide Reference & Navigation Integrity Auditors first
+execSync('node scripts/verify-all-references.mjs', { stdio: 'inherit' });
 execSync('node scripts/verify-navigation-integrity.mjs', { stdio: 'inherit' });
 
 const paths = {

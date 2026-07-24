@@ -1,6 +1,6 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Restored continuous MotionValue gliding active pill highlight across tabs.
-- Removed layout projection from navigation buttons to eliminate icon settling displacement.
-- Consolidated Bottom Navigation and App Switcher under unified spring scale architecture.
+- Eliminated getCenterX orphan ReferenceError in SharedNavigationBar pointer drag handlers.
+- Added Repository-Wide Reference & Audit Validator to build pipeline.
+- Hardened Framer Motion event callbacks and component scope symbol safety.

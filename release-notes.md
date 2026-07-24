@@ -1,4 +1,5 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Sub-app bottom navigation shrink alignment fix: corrected navbar shrink direction on sub-apps so glass-nav scales 25% and translates rightward toward screen center while the App Switcher translates leftward, eliminating leftward shrink bias.
+- Permanent architectural separation of Studio Hub and Chordex applications with isolated feature ownership (`StudioHubSettingsPanel` vs `ChordexSettingsPanel`).
+- Added dedicated Changelog & Release Notes section to Hub Settings immediately above About section.

@@ -13,6 +13,14 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.77
+
+Release Date: 2026-07-24
+
+## Improved
+- Permanent architectural separation of Studio Hub and Chordex applications with isolated feature ownership (`StudioHubSettingsPanel` vs `ChordexSettingsPanel`).
+- Added dedicated Changelog & Release Notes section to Hub Settings immediately above About section.
+
 # Version 4.2.76
 
 Release Date: 2026-07-24

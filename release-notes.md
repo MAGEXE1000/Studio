@@ -1,6 +1,6 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Polished Bottom Navigation with dynamic highlight resizing and 0 double highlight.
-- Synchronized icon and label rendering for instant appearance without delay.
-- Stabilized Profile menu stability and enforced mutual exclusion between Search and Profile.
+- Unified Bottom Navigation scroll animation system with shared 30% shrink physics.
+- Fixed Profile menu tap unreliability by deferring pointer capture to drag mode.
+- Added independent 2000ms watchdog recovery system for guaranteed navigation restoration.

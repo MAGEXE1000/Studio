@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.60
+
+Release Date: 2026-07-23
+
+## Improved
+- Restored continuous MotionValue gliding active pill highlight across tabs.
+- Removed layout projection from navigation buttons to eliminate icon settling displacement.
+- Consolidated Bottom Navigation and App Switcher under unified spring scale architecture.
+
 # Version 4.2.59
 
 Release Date: 2026-07-23

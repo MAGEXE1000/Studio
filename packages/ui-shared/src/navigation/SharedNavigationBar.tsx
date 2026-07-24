@@ -76,23 +76,18 @@ const NavigationItem = React.memo(
   }: {
     item: any;
     index: number;
-    pillX?: any;
-    itemWidth?: number;
-    getCenterX?: (idx: number) => number;
     onClick: () => void;
     isActive: boolean;
   }) => {
     const isIconString = typeof item.icon === 'string';
 
     return (
-      <motion.button
+      <button
         onClick={onClick}
         aria-label={item.label}
         title={item.label}
-        layout
-        transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         style={{
-          flex: isActive ? '1.4' : '1',
+          flex: 1,
           height: '100%',
           display: 'flex',
           alignItems: 'center',
@@ -103,31 +98,12 @@ const NavigationItem = React.memo(
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1,
-          padding: isActive ? '0 14px' : '0 6px',
+          padding: '0 8px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {isActive && (
-          <motion.div
-            layoutId="nav-active-pill"
-            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: '9999px',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
-              border: '1.2px solid rgba(255, 255, 255, 0.32)',
-              boxShadow: 'inset 0 1px 1.5px rgba(255,255,255,0.45), 0 4px 14px rgba(0,0,0,0.25)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
-          />
-        )}
-
-        <motion.div
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -144,6 +120,7 @@ const NavigationItem = React.memo(
                 fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
                 color: '#ffffff',
                 fontSize: '20px',
+                transition: 'font-variation-settings 150ms ease',
               }}
             >
               {item.icon}
@@ -164,9 +141,9 @@ const NavigationItem = React.memo(
           <AnimatePresence initial={false}>
             {isActive && item.label && (
               <motion.span
-                initial={{ opacity: 0, scale: 0.92 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.92 }}
+                exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                 style={{
                   fontSize: '12px',
@@ -182,8 +159,8 @@ const NavigationItem = React.memo(
               </motion.span>
             )}
           </AnimatePresence>
-        </motion.div>
-      </motion.button>
+        </div>
+      </button>
     );
   }
 );
@@ -656,12 +633,11 @@ export function SharedNavigationBar({
   const itemWidth = usableWidth / totalSlots;
   const pillWidth = itemWidth - insetX * 2;
 
-  // Mathematically perfect centering (relative to wrapper div, no paddingX offset!)
-  const getCenterX = useCallback(
+  const getPillX = useCallback(
     (index: number) => {
-      return (index + 0.5) * itemWidth;
+      return index * itemWidth + insetX;
     },
-    [itemWidth]
+    [itemWidth, insetX]
   );
 
   const activeIndex = useMemo(() => {
@@ -671,7 +647,7 @@ export function SharedNavigationBar({
     return idx >= 0 ? idx : 0;
   }, [currentItems, currentApp, isSwitcherOpen]);
 
-  const pillX = useMotionValue(getCenterX(activeIndex));
+  const pillX = useMotionValue(getPillX(activeIndex));
   const pillSkewX = useMotionValue(0);
   const pressureOffset = useMotionValue(0);
 
@@ -687,11 +663,11 @@ export function SharedNavigationBar({
   // Keep pill positioned on active tab when activeIndex changes and not scrubbing
   useEffect(() => {
     if (!isScrubbingRef.current) {
-      animate(pillX, getCenterX(activeIndex), {
+      animate(pillX, getPillX(activeIndex), {
         ...SpringPresets.soft,
       });
     }
-  }, [activeIndex, getCenterX, pillX]);
+  }, [activeIndex, getPillX, pillX]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -1329,6 +1305,24 @@ export function SharedNavigationBar({
                   touchAction: 'none',
                 }}
               >
+                {/* Continuous Gliding Pill Highlight */}
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    top: '4px',
+                    bottom: '4px',
+                    width: `${pillWidth}px`,
+                    x: pillX,
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                    border: '1.2px solid rgba(255, 255, 255, 0.32)',
+                    boxShadow: 'inset 0 1px 1.5px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                  }}
+                />
 
 
                 {/* Standard Icons Wrapper */}

@@ -827,8 +827,7 @@ export function SharedNavigationBar({
     });
   };
 
-  const pillSkewXTrans = useTransform(pillSkewX, (val) => `${val}deg`);
-  const pillXTrans = useTransform(pillX, (val) => val - pillWidth / 2);
+
 
   const fastSpring = useMemo(
     () => ({
@@ -843,9 +842,7 @@ export function SharedNavigationBar({
   // Slide down out of view progressively up to 100px (beyond viewport edge)
   const translateY = searchOpen ? 0 : scrollOffset * 100;
 
-  const glassWidth = searchOpen ? 'calc(100% - 16px)' : `${pillWidth}px`;
-  const glassX = searchOpen ? 8 : pillXTrans;
-  const glassSkewX = searchOpen ? '0deg' : pillSkewXTrans;
+
 
   return (
     <>

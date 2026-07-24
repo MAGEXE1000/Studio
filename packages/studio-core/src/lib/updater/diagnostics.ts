@@ -5,6 +5,7 @@ import {
   activePipelineContext,
   startUpdateSession,
   activeUpdateSession,
+  transitionListeners,
 } from './stateMachine';
 import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 
@@ -1583,3 +1584,5 @@ export function getInstallLockReport(): string {
   );
   return `=== Installation Lock Timeline (${installLockTimeline.length} events) ===\n${lines.join('\n')}`;
 }
+
+transitionListeners.add(recordStateTransition);

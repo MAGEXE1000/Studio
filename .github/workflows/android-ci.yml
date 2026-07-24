@@ -65,6 +65,12 @@ jobs:
       - name: Enforce Import Boundaries
         run: pnpm lint:imports
 
+      - name: Run Reference Audit
+        run: pnpm check:references
+
+      - name: Run Circular Dependency Check
+        run: pnpm check:circular
+
       - name: Lint
         run: pnpm lint
 

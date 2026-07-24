@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useLiquidGlassNav, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, setNavCollapsed, useBottomNavigationStore, setNavHidden, useSettingsStore } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, setNavCollapsed, useBottomNavigationStore, setNavHidden, useSettingsStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from '../state/useGroovexStore';

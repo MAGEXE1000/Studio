@@ -574,7 +574,7 @@ export function stopWatchdog() {
   }
 }
 
-import { recordStateTransition } from './diagnostics';
+export const transitionListeners = new Set<(from: string, to: string, reason: string) => void>();
 
 /**
  * Transition lock prevents recursive or concurrent transitions.
@@ -655,7 +655,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   });
 
   
-  recordStateTransition(current, state, reason);
+  transitionListeners.forEach(l => l(current, state, reason));
   stopWatchdog();
 
   const now = Date.now();

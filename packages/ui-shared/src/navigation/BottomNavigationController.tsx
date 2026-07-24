@@ -399,7 +399,7 @@ export function BottomNavigationController() {
             exit={{ opacity: 0 }}
             onPointerDown={(e) => {
               e.stopPropagation();
-              setIsProfileMenuOpen(false);
+              setProfileMenuOpen(false);
             }}
             style={{
               position: 'fixed',
@@ -466,7 +466,7 @@ export function BottomNavigationController() {
               <button
                 onClick={() => {
                   NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
-                  setIsProfileMenuOpen(false);
+                  setProfileMenuOpen(false);
                 }}
                 style={{
                   display: 'flex',
@@ -493,7 +493,7 @@ export function BottomNavigationController() {
               <button
                 onClick={() => {
                   NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' });
-                  setIsProfileMenuOpen(false);
+                  setProfileMenuOpen(false);
                 }}
                 style={{
                   display: 'flex',
@@ -520,7 +520,7 @@ export function BottomNavigationController() {
               <button
                 onClick={() => {
                   void authRepository.signOut();
-                  setIsProfileMenuOpen(false);
+                  setProfileMenuOpen(false);
                 }}
                 style={{
                   display: 'flex',

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { applyThemeTokens } from '../lib/preferences/themeEngine';
+import { applyThemeTokens, rawAccentColors } from '../lib/preferences/themeEngine';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
 import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n';
@@ -100,15 +100,7 @@ export interface SettingsStore {
   setLastSession: (patch: Partial<SettingsStore['lastSession']>) => void;
 }
 
-const rawAccentColors = {
-  blue: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  purple: { from: '#b57bee', to: '#7c3aed', mid: '#9d60e6' },
-  green: { from: '#34d399', to: '#059669', mid: '#10b981' },
-  orange: { from: '#fb923c', to: '#ea580c', mid: '#f97316' },
-  pink: { from: '#f472b6', to: '#db2777', mid: '#ec4899' },
-  teal: { from: '#2dd4bf', to: '#0891b2', mid: '#14b8a6' },
-  custom: { from: '#6ea8fe', to: '#0d6efd', mid: '#4188fc' },
-};
+
 
 export const ACCENT_COLORS = new Proxy(rawAccentColors, {
   get(target, prop) {

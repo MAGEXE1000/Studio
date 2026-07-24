@@ -1,6 +1,6 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Redesigned Studio Updater UI matching official HTML spec with continuous glass surface.
-- Upgraded Bottom Navigation motion engine with continuous pillX and pillWidth MotionValues.
-- Verified zero runtime ReferenceErrors across repository via static analysis auditors.
+- Hardened build pipeline with strict TypeScript typechecking, reference audit, circular dependency detection, and import boundary enforcement.
+- Fixed orphan references and un-declared symbol usages across all workspaces.
+- Decoupled theme engine and update state machine circular dependencies using event listeners.

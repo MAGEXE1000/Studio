@@ -1,7 +1,15 @@
 import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { Capacitor } from '@capacitor/core';
 import { syncStatusBar } from '../platform/useStatusBar';
-import { ACCENT_COLORS } from '../../store/useSettingsStore';;
+export const rawAccentColors = {
+  blue: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  purple: { from: '#b57bee', to: '#7c3aed', mid: '#9d60e6' },
+  green: { from: '#34d399', to: '#059669', mid: '#10b981' },
+  orange: { from: '#fb923c', to: '#ea580c', mid: '#f97316' },
+  pink: { from: '#f472b6', to: '#db2777', mid: '#ec4899' },
+  teal: { from: '#2dd4bf', to: '#0891b2', mid: '#14b8a6' },
+  custom: { from: '#6ea8fe', to: '#0d6efd', mid: '#4188fc' },
+};
 
 export interface ThemeConfig {
   theme: 'light' | 'dark' | 'system' | 'dynamic';
@@ -117,7 +125,7 @@ export function applyThemeTokens(settings: any) {
           mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
           to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
         }
-      : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.blue);
+      : ((rawAccentColors as any)[hubAccentKey] ?? rawAccentColors.blue);
 
   root.style.setProperty('--c-accent-from', accent.from);
   root.style.setProperty('--c-accent-to', accent.to);

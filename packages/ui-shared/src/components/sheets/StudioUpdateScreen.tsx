@@ -254,7 +254,7 @@ export default memo(function StudioUpdateScreen({
                   className="material-symbols-outlined text-4xl"
                   style={{
                     fontSize: 36,
-                    color: iconColor && iconColor !== purpleFrom ? iconColor : '#679cff',
+                    color: iconColor ? iconColor : '#679cff',
                     fontVariationSettings: "'wght' 300",
                   }}
                 >

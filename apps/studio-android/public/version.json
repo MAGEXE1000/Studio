@@ -1,15 +1,15 @@
 {
   "platform": "android",
-  "version": "4.2.70",
-  "versionName": "4.2.70",
+  "version": "4.2.71",
+  "versionName": "4.2.71",
   "versionCode": 40270,
   "version_code": 40270,
-  "commit": "4c904ef0",
-  "releasedAt": "7/24/2026, 12:40:16 PM CST",
-  "buildTimestamp": "7/24/2026, 12:40:16 PM CST",
+  "commit": "86c633c4",
+  "releasedAt": "7/24/2026, 2:11:01 PM CST",
+  "buildTimestamp": "7/24/2026, 2:11:01 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Truly universal highlight sizing: dynamic active item content measurement (icon + gap + label + 24px padding) guarantees perfect active highlight wrapping without text clipping or undersized pills across all screens, including Preferences.\n• Simplified scale-only collapse animation: completely replaced over-engineered collapse motion with clean center scaling (1.0 -> 0.70) with 0 translation (`y = 0`) and preserved 100% blur and opacity.\n• Apple-grade spring restore: smooth 100% scale restoration on scroll up with natural overshoot and soft settle.",
-  "whatsNew": "• Truly universal highlight sizing: dynamic active item content measurement (icon + gap + label + 24px padding) guarantees perfect active highlight wrapping without text clipping or undersized pills across all screens, including Preferences.\n• Simplified scale-only collapse animation: completely replaced over-engineered collapse motion with clean center scaling (1.0 -> 0.70) with 0 translation (`y = 0`) and preserved 100% blur and opacity.\n• Apple-grade spring restore: smooth 100% scale restoration on scroll up with natural overshoot and soft settle.",
+  "changelog": "• Native updater cleanup: completely removed legacy `[Simulation Guard]` throw checks, simulation mode overrides, and developer simulation toasts.\n• Native installation path: updater pipeline now executes real native PackageInstaller installation flow directly.\n• Highlight geometry refinement: dynamic highlight algorithm un-clamped to perfectly wrap active tab icon and label comfortably on every tab, localization, and font scale.\n• Scroll collapse geometry: removed parent container scale shift and enforced in-place center scaling for both dock and switcher button without corner drifting.",
+  "whatsNew": "• Native updater cleanup: completely removed legacy `[Simulation Guard]` throw checks, simulation mode overrides, and developer simulation toasts.\n• Native installation path: updater pipeline now executes real native PackageInstaller installation flow directly.\n• Highlight geometry refinement: dynamic highlight algorithm un-clamped to perfectly wrap active tab icon and label comfortably on every tab, localization, and font scale.\n• Scroll collapse geometry: removed parent container scale shift and enforced in-place center scaling for both dock and switcher button without corner drifting.",
   "releaseNotes": {},
   "mandatory": false
 }

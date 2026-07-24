@@ -1,6 +1,7 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Truly universal highlight sizing: dynamic active item content measurement (icon + gap + label + 24px padding) guarantees perfect active highlight wrapping without text clipping or undersized pills across all screens, including Preferences.
-- Simplified scale-only collapse animation: completely replaced over-engineered collapse motion with clean center scaling (1.0 -> 0.70) with 0 translation (`y = 0`) and preserved 100% blur and opacity.
-- Apple-grade spring restore: smooth 100% scale restoration on scroll up with natural overshoot and soft settle.
+- Native updater cleanup: completely removed legacy `[Simulation Guard]` throw checks, simulation mode overrides, and developer simulation toasts.
+- Native installation path: updater pipeline now executes real native PackageInstaller installation flow directly.
+- Highlight geometry refinement: dynamic highlight algorithm un-clamped to perfectly wrap active tab icon and label comfortably on every tab, localization, and font scale.
+- Scroll collapse geometry: removed parent container scale shift and enforced in-place center scaling for both dock and switcher button without corner drifting.

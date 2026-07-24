@@ -652,7 +652,7 @@ export function SharedNavigationBar({
       if (isSwitcherOpen) return 44;
       const labelStr = typeof item?.label === 'string' ? item.label : '';
       const len = labelStr.length;
-      const contentW = 20 + (len > 0 ? 6 + len * 7.5 : 0);
+      const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 8.2) : 0);
       return Math.max(44, Math.round(contentW + 24));
     },
     [isSwitcherOpen]
@@ -664,8 +664,8 @@ export function SharedNavigationBar({
 
   // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
   const maxPillWidth = isSwitcherOpen ? 44 : Math.max(...itemPillWidths, 80);
-  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(84, maxPillWidth + 12);
-  const slotWidth = isSwitcherOpen ? 52 : Math.min(160, calculatedSlotWidth);
+  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(84, maxPillWidth + 16);
+  const slotWidth = isSwitcherOpen ? 52 : Math.min(180, calculatedSlotWidth);
   const paddingX = 8;
   const insetX = isSwitcherOpen ? 4 : 2;
 
@@ -677,7 +677,7 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[index] || 80);
+      const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 80);
       const centerX = paddingX + (index + 0.5) * itemWidth;
       return centerX - pillW / 2;
     },
@@ -742,8 +742,8 @@ export function SharedNavigationBar({
     const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
     const frac = idx - lowerIdx;
 
-    const lowerPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[lowerIdx] || 80);
-    const upperPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[upperIdx] || 80);
+    const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 80);
+    const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 80);
 
     const lowerCenterX = paddingX + (lowerIdx + 0.5) * itemWidth;
     const upperCenterX = paddingX + (upperIdx + 0.5) * itemWidth;
@@ -762,8 +762,8 @@ export function SharedNavigationBar({
       const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
       const frac = idx - lowerIdx;
 
-      const lowerPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[lowerIdx] || 80);
-      const upperPillW = isSwitcherOpen ? 44 : Math.min(itemWidth - 4, itemPillWidths[upperIdx] || 80);
+      const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 80);
+      const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 80);
 
       const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
       return currentPillW + (pressVal as number) + Math.abs(skewVal as number) * 0.8;
@@ -1098,7 +1098,6 @@ export function SharedNavigationBar({
           pointerEvents: 'none',
           transformOrigin: 'center center',
           y: containerY,
-          scale: containerScale,
           opacity: containerOpacity,
         }}
       >
@@ -1314,6 +1313,7 @@ export function SharedNavigationBar({
               touchAction: 'none',
               userSelect: 'none',
               transformOrigin: 'center center',
+              scale: containerScale,
               transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
@@ -1538,6 +1538,7 @@ export function SharedNavigationBar({
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
                   transformOrigin: 'center center',
+                  scale: containerScale,
                 }}
               >
                 <motion.span

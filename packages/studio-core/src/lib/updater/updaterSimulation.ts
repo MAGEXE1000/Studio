@@ -175,24 +175,7 @@ export function triggerSimulatedStatus(status: number, message = '', progress = 
 }
 
 export function isSimulationActive(): boolean {
-  return !!(
-    (typeof localStorage !== 'undefined' &&
-      localStorage.getItem('studio:is_simulation_active') === 'true') ||
-    updaterSimulation.simulateDownload ||
-    updaterSimulation.forceInstallSuccess ||
-    updaterSimulation.forceInstallFailure ||
-    updaterSimulation.forceUserCancel ||
-    updaterSimulation.forcePendingUserAction ||
-    updaterSimulation.forceUpdateAvailable ||
-    updaterSimulation.forceNoUpdate ||
-    updaterSimulation.forceDowngrade ||
-    updaterSimulation.forceMetadataFailure ||
-    updaterSimulation.forceDownloadFailure ||
-    updaterSimulation.forceDownloadTimeout ||
-    updaterSimulation.forceShaFailure ||
-    updaterSimulation.forceSignatureMismatch ||
-    updaterSimulation.forceInvalidApk
-  );
+  return false;
 }
 
 export function clearAllSimulationSettings(): void {

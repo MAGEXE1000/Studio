@@ -1631,86 +1631,26 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       updateDebugLogs.installError += `\nAPK is eligible. Launching APK installer intent for file: ${filePath}`;
       updateGlobalState({ statusText: 'Launching PackageInstaller...' });
 
-      if (shouldSimulateInstall) {
-        try {
-          if (typeof localStorage !== 'undefined') {
-            localStorage.setItem('studio:is_simulation_active', 'true');
-          }
-        } catch (_) {}
-
-        addJsLog('[Simulate Install] Simulation active. Setting simulation handler.');
-        setSimulateStatusCallback((eventData: any) => {});
-
-        (async () => {
-          await delayForSim(10);
-          triggerSimulatedStatus(-1, 'STATUS_PENDING_USER_ACTION');
-
-          if (updaterSimulation.runWorkflowActive) {
-            addJsLog(
-              '[Simulate Install] runWorkflowActive is true. Simulating user action delay (1.5s)...'
-            );
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-          } else if (updaterSimulation.forcePendingUserAction) {
-            addJsLog(
-              '[Simulate Install] forcePendingUserAction active. Pausing for 30s before auto-continuing...'
-            );
-            await new Promise((resolve) => setTimeout(resolve, 30000));
-            if (globalUpdateState.updateState !== 'PACKAGEINSTALLER_VISIBLE') {
-              addJsLog(
-                `[Simulate Install] State changed during forcePendingUserAction pause (now: ${globalUpdateState.updateState}). Stopping simulation.`
-              );
-              return;
-            }
-            addJsLog(
-              '[Simulate Install] forcePendingUserAction timeout reached. Auto-continuing simulation...'
-            );
-          }
-
-          await delayForSim(10);
-          triggerSimulatedStatus(-2, 'installing_start');
-
-          if (updaterSimulation.forceUserCancel) {
-            await delayForSim(10);
-            triggerSimulatedStatus(3, 'STATUS_FAILURE_ABORTED');
-            return;
-          }
-          if (updaterSimulation.forceInstallFailure) {
-            await delayForSim(10);
-            triggerSimulatedStatus(1, 'STATUS_FAILURE');
-            return;
-          }
-
-          for (let p = 0.1; p <= 1.0; p += 0.1) {
-            await delayForSim(5);
-            const clamped = Math.round(p * 100) / 100;
-            const eventData = { progress: clamped, state: 'INSTALLING' };
-            logProgressStage(clamped.toString());
-            triggerSimulatedStatus(
-              -3,
-              p > 0.9 ? 'Finalizing installation...' : 'Optimizing application...',
-              clamped
-            );
-          }
-
-          await delayForSim(5);
-          triggerSimulatedStatus(0, 'STATUS_SUCCESS');
-        })();
-      } else {
-        void logProgressStage('Session committed', 'Handing over to PackageInstaller');
-        UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
-
-        const res = await triggerNativeInstall(filePath);
-        updateGlobalState({ statusText: 'Waiting for installer...' });
-        logTimelineEvent(
-          'UpdateCore',
-          'NATIVE_INSTALLER_LAUNCHED',
-          'System PackageInstaller intent triggered'
-        );
-        void logProgressStage(
-          'Waiting for Android confirmation',
-          'Waiting for system confirmation dialog to overlay'
-        );
+      if (!Capacitor.isNativePlatform() || !isAppInstallerAvailable()) {
+        logPipelineTrace('applyUpdate', 'pipeline.ts', 1635, 'Native installation is only supported on Android device.');
+        updateGlobalState({ statusText: 'Native installer unavailable on non-Android platform.' });
+        return;
       }
+
+      void logProgressStage('Session committed', 'Handing over to PackageInstaller');
+      UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
+
+      const res = await triggerNativeInstall(filePath);
+      updateGlobalState({ statusText: 'Waiting for installer...' });
+      logTimelineEvent(
+        'UpdateCore',
+        'NATIVE_INSTALLER_LAUNCHED',
+        'System PackageInstaller intent triggered'
+      );
+      void logProgressStage(
+        'Waiting for Android confirmation',
+        'Waiting for system confirmation dialog to overlay'
+      );
 
       updateDebugLogs.installError += `\nAPK installer intent launched successfully!`;
       updateDebugLogs.installerLaunchStatus = 'SUCCESS';

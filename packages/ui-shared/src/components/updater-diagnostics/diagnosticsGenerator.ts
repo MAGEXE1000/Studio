@@ -553,7 +553,6 @@ export function generateCopyEverythingReport(
   report += `| Overall Updater Score | ${healthScore}/100 | Class: ${overallStatus} |\n`;
   report += `| Installation Lock | ${lockedVal ? '🔒 LOCKED' : '🔓 UNLOCKED'} | Blocks concurrent check/recovery loops |\n`;
   report += `| Post-Install Session | ${postInstallActive ? '⏳ ACTIVE' : '⏹️ INACTIVE'} | Session holding process until process boot update |\n`;
-  report += `| Simulation Mode | ${isSimulationActive() ? '🧪 ACTIVE' : '⏹️ INACTIVE'} | Isolated mock pipeline execution |\n`;
   report += `| Invalid Transitions | ${data.rejectedTransitions.length} | Rejected transition violations |\n`;
 
   report += `\n### Recommendations & Issues\n`;

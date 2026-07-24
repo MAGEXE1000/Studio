@@ -4377,12 +4377,10 @@ function HubSettings({
           );
         } catch {}
       }
-      sessionStorage.removeItem('studio:laterUpdateVersion');
-
-      showDevToast('Updater simulation configured. Checking update...');
-      await checkForUpdate(true, 'settings_manual', 'dev test check');
+      showDevToast('Manual update check initiated...');
+      await checkForUpdate(true, 'settings_manual', 'manual update check');
     } catch (err: any) {
-      showDevToast(`Simulate failed: ${err.message || String(err)}`);
+      showDevToast(`Check failed: ${err.message || String(err)}`);
     }
   };
 

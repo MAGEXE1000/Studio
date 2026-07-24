@@ -8,20 +8,6 @@ export async function triggerNativeInstall(filePath: string): Promise<any> {
     { filePath },
     'PackageInstaller trigger requested'
   );
-  if (
-    filePath.includes('mock') ||
-    filePath.includes('simulated') ||
-    (typeof localStorage !== 'undefined' &&
-      localStorage.getItem('studio:is_simulation_active') === 'true')
-  ) {
-    logPipelineTrace(
-      'triggerNativeInstall',
-      'PackageInstaller',
-      { filePath },
-      { status: 'blocked (simulation)' }
-    );
-    throw new Error('[Simulation Guard] Blocked native install for simulated path');
-  }
   try {
     const res = await AppInstaller.installApk({ filePath });
     logPipelineTrace(

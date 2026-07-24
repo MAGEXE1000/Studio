@@ -1,7 +1,7 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Refined scroll collapse behavior: Bottom Navigation remains fixed on screen and scales down uniformly toward its center by 35% without sliding off-screen.
-- Enhanced active highlight pill geometry: expanded slot width and optimized inset padding to wrap active icon and text label with generous padding and zero clipping.
-- Expanded global search bar layout: max-width expanded to 720px with flex min-width zero and graceful text ellipsis truncation to prevent layout clipping.
-- Synchronized backdrop blur expansion: continuous container opacity prevents GPU backdrop filter detachment for instant, frame-synchronized blur expansion.
+- Single dynamic highlight sizing algorithm: active highlight pill automatically measures label length and layout across all screens (Preferences, App Switcher, Songs, etc.) with generous padding and zero clipping.
+- In-place search bar morphing: global search bar reuses the exact floating pill dimensions of the Bottom Navigation container for a smooth, continuous morphing experience.
+- Visible scale collapse: scroll collapse maintains complete screen visibility (`containerY = 0`) while scaling down 35% with full opacity, blur, shadow, and touch feedback preserved.
+- Unified Motion Engine architecture: 100% preserved with zero re-architecture or routing side effects.

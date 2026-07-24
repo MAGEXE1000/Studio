@@ -644,12 +644,18 @@ export function SharedNavigationBar({
   const currentItems = isSwitcherOpen ? switcherApps : items || [];
   const N = currentItems.length || 1;
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
-  const slotWidth = isSwitcherOpen ? 52 : 84;
+
+  // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
+  const maxLabelLen = Math.max(
+    ...currentItems.map((item) => (typeof item.label === 'string' ? item.label.length : 4))
+  );
+  const calculatedSlotWidth = Math.max(84, maxLabelLen * 7.5 + 54);
+  const slotWidth = Math.min(132, calculatedSlotWidth);
   const paddingX = 8;
   const insetX = 2;
 
   const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
-  const barWidth = Math.max(160, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
+  const barWidth = Math.max(180, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
@@ -1250,10 +1256,10 @@ export function SharedNavigationBar({
             style={{
               pointerEvents: 'auto',
               justifySelf: 'center',
-              width: searchOpen ? '100%' : `${barWidth}px`,
-              maxWidth: searchOpen ? 'min(720px, calc(100vw - 32px))' : '560px',
+              width: `${barWidth}px`,
+              maxWidth: `${barWidth}px`,
               height: '64px',
-              borderRadius: searchOpen ? '24px' : '9999px',
+              borderRadius: '9999px',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               background: 'rgba(12, 12, 14, 0.45)',
               boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',

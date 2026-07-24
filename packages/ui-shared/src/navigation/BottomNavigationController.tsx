@@ -215,7 +215,7 @@ export function BottomNavigationController() {
         setMotionState('Transitioning');
       }
     } else {
-      setMotionState(hidden ? 'Hidden' : collapsed ? 'Hidden' : 'Idle');
+      setMotionState(hidden ? 'Hidden' : collapsed ? 'Scrolling' : 'Idle');
     }
   }, [transitionState, launchingApp, hidden, collapsed, setMotionState]);
 

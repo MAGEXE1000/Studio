@@ -73,7 +73,7 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
     const prev = get().collapsed;
     if (prev === collapsed) return;
     set({ collapsed });
-    get().setMotionState(collapsed ? 'Hidden' : 'Visible');
+    get().setMotionState(collapsed ? 'Scrolling' : 'Idle');
   },
   setSwitcherOpen: (isSwitcherOpen) => {
     set({

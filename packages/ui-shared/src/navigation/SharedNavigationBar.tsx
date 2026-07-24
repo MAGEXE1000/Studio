@@ -646,14 +646,14 @@ export function SharedNavigationBar({
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
   const slotWidth = isSwitcherOpen ? 52 : 70;
   const paddingX = 8;
-  const insetX = 6;
+  const insetX = 3;
 
   const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
   const barWidth = Math.max(160, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
-  const targetPillWidth = Math.max(32, itemWidth - insetX * 2);
+  const targetPillWidth = Math.max(36, itemWidth - insetX * 2);
 
   const getPillX = useCallback(
     (index: number) => {
@@ -723,23 +723,19 @@ export function SharedNavigationBar({
   });
 
   // Derived continuous navigation dock container transformations
-  const containerY = useTransform(
-    [scrollOffsetSpring, searchOpenSpring],
-    ([offset, search]) => {
-      if ((search as number) > 0.5) return 0;
-      return (offset as number) * 84;
-    }
-  );
+  // Scroll collapse: preserve position (containerY = 0) and scale down uniformly by ~35% (scale 1.0 -> 0.65).
+  const containerY = 0;
 
   const containerScale = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 1.0;
-      return collapsed ? 0.70 : 1.0 - (offset as number) * 0.22;
+      return collapsed ? 0.65 : 1.0 - (offset as number) * 0.35;
     }
   );
 
-  const containerOpacity = useTransform(scrollOffsetSpring, [0, 0.95, 1], [1, 0.6, 0]);
+  // Maintain full opacity continuously so GPU backdrop blur composition is never detached
+  const containerOpacity = 1.0;
 
   // Derived continuous search overlay transformations
   const searchResultsHeight = useTransform(searchOpenSpring, [0, 1], ['0vh', '42vh']);
@@ -1293,8 +1289,8 @@ export function SharedNavigationBar({
                 <motion.div
                   style={{
                     position: 'absolute',
-                    top: '4px',
-                    bottom: '4px',
+                    top: '2px',
+                    bottom: '2px',
                     width: pillWidthVal,
                     x: pillX,
                     borderRadius: '9999px',

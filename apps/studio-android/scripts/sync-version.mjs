@@ -305,18 +305,20 @@ if (fs.existsSync(pkgPath)) {
   }
 }
 
-// Sync android/app/build.gradle versionName (Disabled for Web-only 4.0.0 release)
-// const gradlePath = path.join(root, 'android/app/build.gradle');
-// if (fs.existsSync(gradlePath)) {
-//   try {
-//     let gradleSrc = fs.readFileSync(gradlePath, 'utf8');
-//     const gradlePat = /versionName\s+["']([^"']+)["']/;
-//     if (gradlePat.test(gradleSrc)) {
-//       gradleSrc = gradleSrc.replace(gradlePat, `versionName "${version}"`);
-//       fs.writeFileSync(gradlePath, gradleSrc, 'utf8');
-//       console.log(`sync-version: ✓ updated android/app/build.gradle versionName to ${version}`);
-//     }
-//   } catch (err) {
-//     console.error('sync-version: ✗ failed to sync android/app/build.gradle:', err);
-//   }
-// }
+// Sync android/app/build.gradle versionName and versionCode
+const gradlePath = path.join(root, 'android/app/build.gradle');
+if (fs.existsSync(gradlePath)) {
+  try {
+    let gradleSrc = fs.readFileSync(gradlePath, 'utf8');
+    const vParts = version.split('.').map(Number);
+    const expectedCode = vParts[0] * 10000 + vParts[1] * 100 + vParts[2];
+
+    gradleSrc = gradleSrc.replace(/versionCode\s+\d+/, `versionCode ${expectedCode}`);
+    gradleSrc = gradleSrc.replace(/versionName\s+["']([^"']+)["']/, `versionName "${version}"`);
+
+    fs.writeFileSync(gradlePath, gradleSrc, 'utf8');
+    console.log(`sync-version: ✓ updated android/app/build.gradle (versionName: ${version}, versionCode: ${expectedCode})`);
+  } catch (err) {
+    console.error('sync-version: ✗ failed to sync android/app/build.gradle:', err);
+  }
+}

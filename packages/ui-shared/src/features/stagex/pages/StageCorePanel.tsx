@@ -1,4 +1,4 @@
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset, useScrollHide, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, setNavScrollOffset, getNavScrollOffset, useScrollHide, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, useNavigationStore, NavigationDispatcher } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
@@ -126,9 +126,8 @@ export default function StagexPanel() {
   const elementsScrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(elementsScrollRef);
 
-  /* â”€â”€ Glassmorphism bottom nav state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* ── Glassmorphism bottom nav state ─────────────────────── */
   const stageNavRef = useRef<HTMLDivElement | null>(null);
-  useLiquidGlassNav(stageNavRef as React.RefObject<HTMLElement | null>);
   const stageBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const prevTabRef = useRef(0);
   const stageStretchRef = useRef<ReturnType<typeof setTimeout> | null>(null);

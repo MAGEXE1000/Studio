@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.61
+
+Release Date: 2026-07-23
+
+## Improved
+- Enforced single-owner navigation store invariants for Profile, Search, and App Switcher overlays.
+- Added Static Analysis Navigation Integrity Auditor script to build pipeline.
+- Hardened Error Boundary diagnostics with active navigation overlay telemetry snapshot.
+
 # Version 4.2.60
 
 Release Date: 2026-07-23

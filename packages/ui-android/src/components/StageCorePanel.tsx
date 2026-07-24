@@ -1,5 +1,5 @@
 import { Button, Toolbar } from '@workspace/ui-shared/src/components/design-system/StudioDesignSystem';
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useLiquidGlassNav, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -513,7 +513,6 @@ export default function StagexPanel() {
 
   /* ── Glassmorphism bottom nav state ─────────────────────── */
   const stageNavRef = useRef<HTMLDivElement | null>(null);
-  useLiquidGlassNav(stageNavRef as React.RefObject<HTMLElement | null>);
   const stageBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const prevTabRef = useRef(0);
   const stageStretchRef = useRef<ReturnType<typeof setTimeout> | null>(null);

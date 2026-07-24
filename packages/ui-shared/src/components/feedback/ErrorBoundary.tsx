@@ -1,6 +1,6 @@
 import { NavigationDispatcher } from '@workspace/studio-core';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { useChordStore, globalUpdateState, useSettingsStore } from '@workspace/studio-core';
+import { useChordStore, globalUpdateState, useSettingsStore, useBottomNavigationStore } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -546,13 +546,20 @@ export class ErrorBoundary extends Component<Props, State> {
         localStorage.getItem('studio_navigation_in_progress') === 'true' || transitionActiveVal;
       const watchdogRunning = (window as any).__watchdogRunning || false;
 
-      // Determine if error was caught during a return/watchdog recovery sequence and Developer Mode is off
-      let isDevMode = false;
+      let navSnapshot: any = null;
       try {
-        isDevMode = useSettingsStore.getState().settings.developerMode || false;
+        const navState = useBottomNavigationStore.getState();
+        navSnapshot = {
+          isProfileMenuOpen: navState.isProfileMenuOpen,
+          isSearchOpen: navState.isSearchOpen,
+          isSwitcherOpen: navState.isSwitcherOpen,
+          visible: navState.visible,
+          collapsed: navState.collapsed,
+          motionState: navState.motionState,
+        };
       } catch (_) {}
 
-      const shouldSuppress = returnInProgress && !isDevMode;
+      const shouldSuppress = false;
 
       const hostFiber = (this as any)._reactInternals || (this as any)._reactInternalFiber;
       const fiberDiag = extractFiberDiagnostics(hostFiber, errorInfo?.componentStack || '');
@@ -579,6 +586,7 @@ export class ErrorBoundary extends Component<Props, State> {
         transitionActive: transitionActiveVal,
         hubRenderKey: hubRenderKeyVal,
         lastNavigationAction,
+        navSnapshot,
         checkpointStage,
         returnInProgress,
         watchdogRunning,

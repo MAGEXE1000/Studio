@@ -8,7 +8,6 @@ import {
   setNavCollapsed,
   useNavHidden,
   useNavCollapsed,
-  useLiquidGlassNav,
   useIsWebDesktop,
   registerDebugProvider,
   unregisterDebugProvider,
@@ -246,7 +245,6 @@ export default function VocalexApp() {
   ];
 
   const navRef = useRef<HTMLElement | null>(null);
-  useLiquidGlassNav(navRef);
   // Fixed nav height - same rationale as BottomNav: always 64px, dynamic
   // measurement was a race condition that returned 64 anyway.
   const NAV_HEIGHT_PX = 60;

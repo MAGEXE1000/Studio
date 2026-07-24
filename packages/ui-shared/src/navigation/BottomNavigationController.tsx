@@ -53,18 +53,21 @@ export function BottomNavigationController() {
     useBottomNavigationStore.getState().setSwitcherOpen(open);
   }, []);
 
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const isProfileMenuOpen = useBottomNavigationStore((s) => s.isProfileMenuOpen);
+  const setProfileMenuOpen = useBottomNavigationStore((s) => s.setProfileMenuOpen);
+  const toggleProfileMenu = useBottomNavigationStore((s) => s.toggleProfileMenu);
+  const storeVisible = useBottomNavigationStore((s) => s.visible);
 
   useBackHandler(
     'overlay',
     () => {
       if (isProfileMenuOpen) {
-        setIsProfileMenuOpen(false);
+        setProfileMenuOpen(false);
         return true;
       }
       return false;
     },
-    [isProfileMenuOpen]
+    [isProfileMenuOpen, setProfileMenuOpen]
   );
 
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
@@ -74,15 +77,10 @@ export function BottomNavigationController() {
   useEffect(() => {
     if (prevRouteKeyRef.current !== routeKey) {
       prevRouteKeyRef.current = routeKey;
-      setIsProfileMenuOpen(false);
+      setProfileMenuOpen(false);
     }
-  }, [routeKey]);
+  }, [routeKey, setProfileMenuOpen]);
 
-  useEffect(() => {
-    if (isSwitcherOpen) {
-      setIsProfileMenuOpen(false);
-    }
-  }, [isSwitcherOpen]);
   const currentApp = currentRoute?.app ?? 'hub';
   const activeTab = currentRoute?.tab || currentRoute?.page || 'home';
   const activePage = currentRoute?.page || 'main';
@@ -304,7 +302,7 @@ export function BottomNavigationController() {
           isActive: activeTab === 'home',
           onClick: () => {
             NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' });
-            setIsProfileMenuOpen(false);
+            setProfileMenuOpen(false);
           },
         },
         {
@@ -312,7 +310,7 @@ export function BottomNavigationController() {
           icon: profileIcon,
           label: 'Profile',
           isActive: activeTab === 'profile' || activeTab === 'settings',
-          onClick: () => setIsProfileMenuOpen((prev) => !prev),
+          onClick: () => toggleProfileMenu(),
         },
       ];
     }
@@ -339,7 +337,7 @@ export function BottomNavigationController() {
           isActive,
           onClick: () => {
             NavigationDispatcher.push({ app: 'chords', page: sec.id as any, tab: sec.id as any });
-            setIsProfileMenuOpen(false);
+            setProfileMenuOpen(false);
           },
         };
       });
@@ -365,11 +363,11 @@ export function BottomNavigationController() {
         isActive,
         onClick: () => {
           NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any });
-          setIsProfileMenuOpen(false);
+          setProfileMenuOpen(false);
         },
       };
     });
-  }, [currentApp, activeTab, activePage, getTranslation]);
+  }, [currentApp, activeTab, activePage, getTranslation, profileIcon, setProfileMenuOpen, toggleProfileMenu]);
 
   // Filter out rendering on Desktop web views
   const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor?.isNativePlatform?.();
@@ -377,7 +375,7 @@ export function BottomNavigationController() {
     return null;
   }
 
-  const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && useBottomNavigationStore.getState().visible;
+  const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible;
 
   return (
     <>
@@ -389,8 +387,8 @@ export function BottomNavigationController() {
         isSwitcherOpen={isSwitcherOpen}
         setIsSwitcherOpen={setIsSwitcherOpen}
         currentApp={currentApp}
-        onOpenSearch={() => setIsProfileMenuOpen(false)}
-        onOpenProfile={() => setIsProfileMenuOpen((prev) => !prev)}
+        onOpenSearch={() => setProfileMenuOpen(false)}
+        onOpenProfile={() => toggleProfileMenu()}
       />
       <AnimatePresence>
         {isProfileMenuOpen && (

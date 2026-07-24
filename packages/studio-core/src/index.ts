@@ -39,7 +39,6 @@ export * from './lib/studioShortcutRegistry';
 export * from './lib/supabaseClient';
 export * from './lib/sync';
 export * from './lib/transpose';
-export * from './lib/useLiquidGlassNav';
 export * from './lib/userAvatar';
 export * from './lib/useStatusBar';
 export * from './lib/useT';

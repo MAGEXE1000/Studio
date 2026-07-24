@@ -1,6 +1,6 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Unified Bottom Navigation scroll animation system with shared 30% shrink physics.
-- Fixed Profile menu tap unreliability by deferring pointer capture to drag mode.
-- Added independent 2000ms watchdog recovery system for guaranteed navigation restoration.
+- Restored continuous MotionValue gliding active pill highlight across tabs.
+- Removed layout projection from navigation buttons to eliminate icon settling displacement.
+- Consolidated Bottom Navigation and App Switcher under unified spring scale architecture.

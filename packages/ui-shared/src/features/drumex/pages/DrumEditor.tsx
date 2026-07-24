@@ -6,7 +6,6 @@ import {
   useBackHandler,
   useNavCollapsed,
   setNavCollapsed,
-  useLiquidGlassNav,
   DRUM_LIBRARY,
   LIBRARY_CATEGORIES,
   LIBRARY_GENRES,

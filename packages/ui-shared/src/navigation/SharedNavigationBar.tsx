@@ -183,7 +183,8 @@ export function SharedNavigationBar({
   const settings = useSettingsStore((s) => s.settings);
   const lang = settings?.language ?? 'en';
 
-  const [searchOpen, setSearchOpen] = useState(false);
+  const searchOpen = useBottomNavigationStore((s) => s.isSearchOpen);
+  const setSearchOpen = useBottomNavigationStore((s) => s.setSearchOpen);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<string>('all');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -200,7 +201,7 @@ export function SharedNavigationBar({
       }
       return false;
     },
-    [searchOpen]
+    [searchOpen, setSearchOpen]
   );
 
   // 1. One-time index registration from local storage on mount (avoiding CPU spikes on open)

@@ -1,9 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
+
+// Run Navigation & Runtime Integrity Auditor first
+execSync('node scripts/verify-navigation-integrity.mjs', { stdio: 'inherit' });
 
 const paths = {
   webPkg: path.join(repoRoot, 'apps/studio-web/package.json'),

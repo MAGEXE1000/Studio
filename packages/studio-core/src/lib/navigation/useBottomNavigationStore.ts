@@ -24,6 +24,8 @@ export interface BottomNavigationStore {
   visible: boolean;
   collapsed: boolean;
   isSwitcherOpen: boolean;
+  isProfileMenuOpen: boolean;
+  isSearchOpen: boolean;
   items: BottomNavItem[];
   isLight: boolean;
   debugLog: boolean;
@@ -33,6 +35,11 @@ export interface BottomNavigationStore {
   setVisible: (visible: boolean) => void;
   setCollapsed: (collapsed: boolean) => void;
   setSwitcherOpen: (open: boolean) => void;
+  setProfileMenuOpen: (open: boolean) => void;
+  toggleProfileMenu: () => void;
+  setSearchOpen: (open: boolean) => void;
+  toggleSearch: () => void;
+  closeAllOverlays: () => void;
   setItems: (items: BottomNavItem[]) => void;
   setIsLight: (isLight: boolean) => void;
   setDebugLog: (enabled: boolean) => void;
@@ -44,6 +51,8 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
   visible: true,
   collapsed: false,
   isSwitcherOpen: false,
+  isProfileMenuOpen: false,
+  isSearchOpen: false,
   items: [],
   isLight: false,
   debugLog: true,
@@ -67,10 +76,41 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
     get().setMotionState(collapsed ? 'Hidden' : 'Visible');
   },
   setSwitcherOpen: (isSwitcherOpen) => {
-    const prev = get().isSwitcherOpen;
-    if (prev === isSwitcherOpen) return;
-    set({ isSwitcherOpen });
+    set({
+      isSwitcherOpen,
+      isProfileMenuOpen: isSwitcherOpen ? false : get().isProfileMenuOpen,
+      isSearchOpen: isSwitcherOpen ? false : get().isSearchOpen,
+    });
     get().setMotionState(isSwitcherOpen ? 'SwitchingApp' : 'Visible');
+  },
+  setProfileMenuOpen: (isProfileMenuOpen) => {
+    set({
+      isProfileMenuOpen,
+      isSwitcherOpen: isProfileMenuOpen ? false : get().isSwitcherOpen,
+      isSearchOpen: isProfileMenuOpen ? false : get().isSearchOpen,
+    });
+  },
+  toggleProfileMenu: () => {
+    const next = !get().isProfileMenuOpen;
+    get().setProfileMenuOpen(next);
+  },
+  setSearchOpen: (isSearchOpen) => {
+    set({
+      isSearchOpen,
+      isProfileMenuOpen: isSearchOpen ? false : get().isProfileMenuOpen,
+      isSwitcherOpen: isSearchOpen ? false : get().isSwitcherOpen,
+    });
+  },
+  toggleSearch: () => {
+    const next = !get().isSearchOpen;
+    get().setSearchOpen(next);
+  },
+  closeAllOverlays: () => {
+    set({
+      isSwitcherOpen: false,
+      isProfileMenuOpen: false,
+      isSearchOpen: false,
+    });
   },
   setItems: (items) => {
     set({ items });

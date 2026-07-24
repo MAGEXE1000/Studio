@@ -1492,8 +1492,8 @@ function UpdateModal({
     case 'completed':
       iconName = 'check_circle';
       iconColor = '#22c55e';
-      title = 'Installation complete';
-      description = `Version ${updater.remoteVersion || 'latest'} successfully installed.`;
+      title = 'App updated';
+      description = 'Your application has been successfully updated.';
       showButtons = false;
       showSpinner = false;
       break;
@@ -2206,9 +2206,7 @@ function UpdateModal({
               color: '#acabaa',
             }}
           >
-            <span>
-              Downloading update (<span style={{ color: '#e7e5e4' }}>{pct}%</span>)
-            </span>
+            <span>Downloading update</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#e7e5e4' }}>{pct}%</span>
           </div>
 
@@ -2307,6 +2305,7 @@ function UpdateModal({
   };
 
   const renderIcon = () => {
+    if (isNearCompletion) return null;
     if (showSpinner) {
       return (
         <div

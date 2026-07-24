@@ -58,6 +58,8 @@ export function resetNav() {
   _lastRouteChangeTime = Date.now();
   clearAutoShow();
   _locked = false;
+  _scrollOffset = 0;
+  _scrollOffsetListeners.forEach((fn) => fn(0));
   if (_hidden) {
     _hidden = false;
     emit(false);

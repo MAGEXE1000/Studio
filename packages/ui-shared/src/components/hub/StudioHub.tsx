@@ -55,6 +55,7 @@ import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
 import { SharedNavigationBar } from '../../navigation/SharedNavigationBar';
 import { useNavigationCoordinator, PageTransition } from '../../navigation/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
+import StudioHubSettingsPanel from '../../features/hub/StudioHubSettingsPanel';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 const GOOEY_SPRING = { type: 'spring', stiffness: 550, damping: 33, mass: 0.45 } as const;
@@ -9621,105 +9622,7 @@ User Agent: [Automatically Generated]
               );
             }
             if (pageId === 'main') {
-              return (
-                <div
-                  style={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <style>{HUB_SETTINGS_CSS}</style>
-                  <div
-                    ref={scrollRef}
-                    style={{
-                      flex: 1,
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      padding: '0 20px',
-                      paddingBottom: 'calc(var(--content-bottom-pad) + 16px)',
-                      willChange: 'transform',
-                      transform: 'translate3d(0, 0, 0)',
-                      WebkitOverflowScrolling: 'touch',
-                    }}
-                    className="no-scrollbar"
-                  >
-                    <div style={{ paddingTop: 32, paddingBottom: 8 }}>
-                      <p
-                        style={{
-                          fontSize: 28,
-                          fontWeight: 800,
-                          color: 'var(--c-text-primary)',
-                          margin: 0,
-                          letterSpacing: '-0.03em',
-                          fontFamily: 'Manrope',
-                        }}
-                      >
-                        Help & Support
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 13,
-                          color: 'var(--c-text-secondary)',
-                          margin: '5px 0 0',
-                          fontWeight: 500,
-                        }}
-                      >
-                        Find documentation, FAQ, apps, and legal policies
-                      </p>
-                    </div>
-
-                    <SettingsSectionLabel delay={70}>Support</SettingsSectionLabel>
-                    <div style={cardStyle}>
-                      <SettingsNavRow
-                        icon="contact_support"
-                        iconColor={accent.from}
-                        title={lang === 'es' ? 'Ayuda y Soporte' : 'Help & Support'}
-                        desc={
-                          lang === 'es'
-                            ? 'Documentación, preguntas frecuentes y diagnósticos'
-                            : 'Documentation, FAQ & diagnostics'
-                        }
-                        onPress={() => navigate('help-center')}
-                        last={Capacitor.isNativePlatform()}
-                        delay={75}
-                      />
-                      {!Capacitor.isNativePlatform() && (
-                        <SettingsNavRow
-                          icon="article"
-                          iconColor={accent.from}
-                          title="Release Notes"
-                          desc="View version history"
-                          onPress={() => navigate('release-notes')}
-                          delay={80}
-                        />
-                      )}
-                      {!Capacitor.isNativePlatform() && (
-                        <SettingsNavRow
-                          icon="install_desktop"
-                          iconColor={accent.from}
-                          title="Download Apps"
-                          desc="Get native mobile and desktop clients"
-                          onPress={() => navigate('download-apps')}
-                          delay={85}
-                        />
-                      )}
-                      {!Capacitor.isNativePlatform() && (
-                        <SettingsNavRow
-                          icon="keyboard"
-                          iconColor={accent.from}
-                          title="Keyboard Shortcuts"
-                          desc="View quick key bindings"
-                          onPress={() => navigate('keyboard-shortcuts')}
-                          last
-                          delay={90}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
+              return <StudioHubSettingsPanel />;
             }
             return null;
           }}

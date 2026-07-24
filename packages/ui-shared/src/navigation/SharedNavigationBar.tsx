@@ -784,29 +784,30 @@ export function SharedNavigationBar({
   }, [isProfileMenuOpen, profileOpenRaw]);
 
   useEffect(() => {
-    switcherOpenRaw.set(isSwitcherOpen ? 1 : 0);
-  }, [isSwitcherOpen, switcherOpenRaw]);
+    scrollOffsetRaw.set(0);
+    scrollOffsetSpring.jump(0);
+  }, [currentApp, items, scrollOffsetRaw, scrollOffsetSpring]);
 
-  // Scale navigation by 25% towards center-center (1.00 -> 0.75) on scroll down with zero vertical translation or hiding
+  // Scale navigation by 15% towards center-center (1.00 -> 0.85) on scroll down with zero vertical translation or hiding
   const containerScale = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 1.0;
-      return 1.00 - (offset as number) * 0.25;
+      return 1.00 - (offset as number) * 0.15;
     }
   );
 
   // Dynamic composition centering for the 5 sub-apps:
-  // On scroll down (1.00 -> 0.75 scale), glass-nav translates subtly right (+14px) towards screen composition center,
-  // and switcherButton translates left (-18px) toward glass-nav so both elements converge symmetrically.
+  // On scroll down (1.00 -> 0.85 scale), glass-nav translates subtly right (+10px) towards screen composition center,
+  // and switcherButton translates left (-12px) toward glass-nav so both elements converge symmetrically.
   const targetDockShift = useMemo(() => {
     if (!showSwitcherButton) return 0;
-    return 14;
+    return 10;
   }, [showSwitcherButton]);
 
   const targetSwitcherShift = useMemo(() => {
     if (!showSwitcherButton) return 0;
-    return -18;
+    return -12;
   }, [showSwitcherButton]);
 
   // Subtle inward horizontal translation towards screen center composition on scroll down

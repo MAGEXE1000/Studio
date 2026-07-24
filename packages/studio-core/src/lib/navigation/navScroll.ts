@@ -252,8 +252,52 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
 
 // ─── Watchdog Recovery System & Diagnostics ───────────────────────────────
 
+let _hiddenStartTime = 0;
+
 export function onStateChanged() {
-  // Pure event-driven state sync
+  // Reset hidden start baseline on explicit state changes
+  if (!_hidden) {
+    _hiddenStartTime = 0;
+  } else if (_hiddenStartTime === 0) {
+    _hiddenStartTime = Date.now();
+  }
+}
+
+function runWatchdogCheck() {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+
+  // 1. Auto-recover if hidden unexpectedly for >2000ms without lock
+  if (_hidden && !_locked) {
+    if (_hiddenStartTime > 0 && now - _hiddenStartTime >= 2000) {
+      _hidden = false;
+      _hiddenStartTime = 0;
+      emit(false);
+      if (_collapsed) {
+        _collapsed = false;
+        emitCollapsed(false);
+      }
+      if ((window as any).__navMetrics) {
+        (window as any).__navMetrics.fallbackActivations++;
+        (window as any).__navMetrics.recoveries++;
+      }
+    }
+  } else if (!_hidden) {
+    _hiddenStartTime = 0;
+  }
+
+  // 2. Failsafe DOM presence audit
+  const wrapper = document.querySelector('.shared-bottom-nav-container-wrapper') as HTMLElement | null;
+  if (wrapper) {
+    const style = window.getComputedStyle(wrapper);
+    if ((style.display === 'none' || style.visibility === 'hidden') && !_locked && !_hidden) {
+      resetNav();
+    }
+  }
+}
+
+if (typeof window !== 'undefined') {
+  setInterval(runWatchdogCheck, 2000);
 }
 
 // Global Event-driven bindings

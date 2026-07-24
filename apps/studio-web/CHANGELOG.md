@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.59
+
+Release Date: 2026-07-23
+
+## Improved
+- Unified Bottom Navigation scroll animation system with shared 30% shrink physics.
+- Fixed Profile menu tap unreliability by deferring pointer capture to drag mode.
+- Added independent 2000ms watchdog recovery system for guaranteed navigation restoration.
+
 # Version 4.2.58
 
 Release Date: 2026-07-23

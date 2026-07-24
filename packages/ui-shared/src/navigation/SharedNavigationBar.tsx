@@ -696,8 +696,6 @@ export function SharedNavigationBar({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
 
-    useBottomNavigationStore.getState().setMotionState('Dragging');
-    e.currentTarget.setPointerCapture(e.pointerId);
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
     const minX = getCenterX(0);
@@ -716,6 +714,9 @@ export function SharedNavigationBar({
     pressTimerRef.current = setTimeout(() => {
       isScrubbingRef.current = true;
       setIsScrubbing(true);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (err) {}
 
       if (
         typeof window !== 'undefined' &&
@@ -728,11 +729,31 @@ export function SharedNavigationBar({
       }
 
       pillX.set(clampedX);
-    }, 200);
+    }, 250);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const dragDistance = Math.abs(e.clientX - startXRef.current);
+    if (!isScrubbingRef.current && dragDistance > 10) {
+      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+      isScrubbingRef.current = true;
+      setIsScrubbing(true);
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (err) {}
+
+      if (
+        typeof window !== 'undefined' &&
+        window.navigator &&
+        typeof window.navigator.vibrate === 'function'
+      ) {
+        try {
+          window.navigator.vibrate(8);
+        } catch (err) {}
+      }
+    }
+
+    if (!isScrubbingRef.current) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
@@ -747,43 +768,24 @@ export function SharedNavigationBar({
     lastXRef.current = e.clientX;
     lastTimeRef.current = now;
 
-    const dragDistance = Math.abs(e.clientX - startXRef.current);
-    if (!isScrubbingRef.current && dragDistance > 10) {
-      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
-      isScrubbingRef.current = true;
-      setIsScrubbing(true);
+    pillX.set(clampedX);
 
+    const skew = Math.max(-10, Math.min(10, velocity * 3.5));
+    pillSkewX.set(skew);
+
+    const progress = relativeX / usableWidth;
+    const hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
+
+    if (hoveredIndex !== scrubbingIndexRef.current) {
+      scrubbingIndexRef.current = hoveredIndex;
       if (
         typeof window !== 'undefined' &&
         window.navigator &&
         typeof window.navigator.vibrate === 'function'
       ) {
         try {
-          window.navigator.vibrate(8);
+          window.navigator.vibrate(5);
         } catch (err) {}
-      }
-    }
-
-    if (isScrubbingRef.current) {
-      pillX.set(clampedX);
-
-      const skew = Math.max(-10, Math.min(10, velocity * 3.5));
-      pillSkewX.set(skew);
-
-      const progress = relativeX / usableWidth;
-      const hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
-
-      if (hoveredIndex !== scrubbingIndexRef.current) {
-        scrubbingIndexRef.current = hoveredIndex;
-        if (
-          typeof window !== 'undefined' &&
-          window.navigator &&
-          typeof window.navigator.vibrate === 'function'
-        ) {
-          try {
-            window.navigator.vibrate(5);
-          } catch (err) {}
-        }
       }
     }
   };
@@ -871,14 +873,14 @@ export function SharedNavigationBar({
         ref={containerRef}
         className="shared-bottom-nav-container-wrapper"
         animate={{
-          y: (!visible || currentItems.length === 0) ? 120 : 0,
-          scale: (collapsed && !searchOpen) ? 0.78 : 1.0,
-          opacity: (!visible || currentItems.length === 0) ? 0 : 1,
+          y: 0,
+          scale: (collapsed && !searchOpen) ? 0.70 : 1.0,
+          opacity: 1,
         }}
         transition={{
           type: 'spring',
-          stiffness: 400,
-          damping: 32,
+          stiffness: 380,
+          damping: 28,
         }}
         style={{
           position: 'fixed',
@@ -1291,11 +1293,6 @@ export function SharedNavigationBar({
             
             <motion.div
               layoutId="search-container"
-              animate={{
-                scale: collapsed ? 0.70 : 1.0,
-                y: collapsed ? 3 : 0,
-              }}
-              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
               className="shared-bottom-nav glass-nav"
               style={{
                 pointerEvents: 'auto',

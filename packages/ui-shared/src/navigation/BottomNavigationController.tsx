@@ -68,10 +68,15 @@ export function BottomNavigationController() {
   );
 
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
+  const routeKey = `${currentRoute?.app || 'hub'}:${currentRoute?.page || 'main'}:${currentRoute?.tab || ''}`;
+  const prevRouteKeyRef = useRef(routeKey);
 
   useEffect(() => {
-    setIsProfileMenuOpen(false);
-  }, [currentRoute]);
+    if (prevRouteKeyRef.current !== routeKey) {
+      prevRouteKeyRef.current = routeKey;
+      setIsProfileMenuOpen(false);
+    }
+  }, [routeKey]);
 
   useEffect(() => {
     if (isSwitcherOpen) {
@@ -384,6 +389,8 @@ export function BottomNavigationController() {
         isSwitcherOpen={isSwitcherOpen}
         setIsSwitcherOpen={setIsSwitcherOpen}
         currentApp={currentApp}
+        onOpenSearch={() => setIsProfileMenuOpen(false)}
+        onOpenProfile={() => setIsProfileMenuOpen((prev) => !prev)}
       />
       <AnimatePresence>
         {isProfileMenuOpen && (
@@ -392,7 +399,10 @@ export function BottomNavigationController() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onPointerDown={() => setIsProfileMenuOpen(false)}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              setIsProfileMenuOpen(false);
+            }}
             style={{
               position: 'fixed',
               inset: 0,

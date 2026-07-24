@@ -225,14 +225,15 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
     };
 
     checkAndBind();
-
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    
+    // Retry immediately on next frame if ref wasn't attached yet
+    let rafId: number | null = null;
     if (!ref.current) {
-      timer = setTimeout(checkAndBind, 150);
+      rafId = requestAnimationFrame(checkAndBind);
     }
 
     return () => {
-      if (timer) clearTimeout(timer);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       const el = lastElementRef.current;
       if (el) {
         _registeredScrollElements.delete(el);

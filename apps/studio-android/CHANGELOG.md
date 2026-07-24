@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.58
+
+Release Date: 2026-07-23
+
+## Improved
+- Polished Bottom Navigation with dynamic highlight resizing and 0 double highlight.
+- Synchronized icon and label rendering for instant appearance without delay.
+- Stabilized Profile menu stability and enforced mutual exclusion between Search and Profile.
+
 # Version 4.2.57
 
 Release Date: 2026-07-23

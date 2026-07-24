@@ -63,23 +63,22 @@ export interface SharedNavigationBarProps {
   isSwitcherOpen: boolean;
   setIsSwitcherOpen: (open: boolean) => void;
   currentApp: string;
+  onOpenSearch?: () => void;
+  onOpenProfile?: () => void;
 }
 
 const NavigationItem = React.memo(
   ({
     item,
     index,
-    pillX,
-    itemWidth,
-    getCenterX,
     onClick,
     isActive,
   }: {
     item: any;
     index: number;
-    pillX: any;
-    itemWidth: number;
-    getCenterX: (idx: number) => number;
+    pillX?: any;
+    itemWidth?: number;
+    getCenterX?: (idx: number) => number;
     onClick: () => void;
     isActive: boolean;
   }) => {
@@ -91,24 +90,43 @@ const NavigationItem = React.memo(
         aria-label={item.label}
         title={item.label}
         layout
-        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 30 }}
         style={{
-          flex: isActive ? '1.5' : '1',
+          flex: isActive ? '1.4' : '1',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: isActive ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
-          border: isActive ? '1px solid rgba(255, 255, 255, 0.22)' : '1px solid transparent',
+          background: 'transparent',
+          border: 'none',
           borderRadius: '9999px',
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1,
-          padding: isActive ? '0 12px' : '0 6px',
+          padding: isActive ? '0 14px' : '0 6px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
+        {isActive && (
+          <motion.div
+            layoutId="nav-active-pill"
+            transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '9999px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
+              border: '1.2px solid rgba(255, 255, 255, 0.32)',
+              boxShadow: 'inset 0 1px 1.5px rgba(255,255,255,0.45), 0 4px 14px rgba(0,0,0,0.25)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+          />
+        )}
+
         <motion.div
           style={{
             display: 'flex',
@@ -116,6 +134,7 @@ const NavigationItem = React.memo(
             justifyContent: 'center',
             gap: '6px',
             position: 'relative',
+            zIndex: 1,
           }}
         >
           {isIconString ? (
@@ -142,20 +161,21 @@ const NavigationItem = React.memo(
             </div>
           )}
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence initial={false}>
             {isActive && item.label && (
               <motion.span
-                initial={{ opacity: 0, width: 0, scale: 0.9 }}
-                animate={{ opacity: 1, width: 'auto', scale: 1 }}
-                exit={{ opacity: 0, width: 0, scale: 0.9 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                 style={{
                   fontSize: '12px',
                   fontWeight: 700,
                   color: '#ffffff',
                   whiteSpace: 'nowrap',
                   letterSpacing: '-0.01em',
-                  overflow: 'hidden',
+                  display: 'inline-block',
+                  lineHeight: 1,
                 }}
               >
                 {item.label}
@@ -176,6 +196,8 @@ export function SharedNavigationBar({
   isSwitcherOpen,
   setIsSwitcherOpen,
   currentApp,
+  onOpenSearch,
+  onOpenProfile,
 }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollOffset = useNavScrollOffset();
@@ -1134,7 +1156,10 @@ export function SharedNavigationBar({
 
                 {isHub && !isSwitcherOpen && (
                   <motion.button
-                    onClick={() => setSearchOpen(true)}
+                    onClick={() => {
+                      if (onOpenSearch) onOpenSearch();
+                      setSearchOpen(true);
+                    }}
                     whileTap={{ scale: 0.95 }}
                     style={{
                       width: `${itemWidth}px`,
@@ -1266,7 +1291,11 @@ export function SharedNavigationBar({
             
             <motion.div
               layoutId="search-container"
-              transition={fastSpring}
+              animate={{
+                scale: collapsed ? 0.70 : 1.0,
+                y: collapsed ? 3 : 0,
+              }}
+              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
               className="shared-bottom-nav glass-nav"
               style={{
                 pointerEvents: 'auto',
@@ -1286,6 +1315,7 @@ export function SharedNavigationBar({
                 position: 'relative',
                 touchAction: 'none',
                 userSelect: 'none',
+                transformOrigin: 'center center',
               }}
             >
               <div
@@ -1302,26 +1332,7 @@ export function SharedNavigationBar({
                   touchAction: 'none',
                 }}
               >
-                {/* Liquid Glass Highlight */}
-                <motion.div
-                  style={{
-                    position: 'absolute',
-                    top: '1px',
-                    height: '50px',
-                    borderRadius: '9999px',
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.03) 100%)',
-                    border: '1.2px solid rgba(255, 255, 255, 0.32)',
-                    boxShadow: 'inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.25)',
-                    backdropFilter: 'blur(16px) saturate(170%) brightness(1.1)',
-                    WebkitBackdropFilter: 'blur(16px) saturate(170%) brightness(1.1)',
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                    transformOrigin: 'center center',
-                    width: glassWidth as any,
-                    x: glassX as any,
-                    skewX: glassSkewX as any,
-                  }}
-                />
+
 
                 {/* Standard Icons Wrapper */}
                 <div
@@ -1354,7 +1365,10 @@ export function SharedNavigationBar({
 
                   {isHub && !isSwitcherOpen && (
                     <motion.button
-                      onClick={() => setSearchOpen(true)}
+                      onClick={() => {
+                        if (onOpenSearch) onOpenSearch();
+                        setSearchOpen(true);
+                      }}
                       whileTap={{ scale: 0.95 }}
                       style={{
                         width: `${itemWidth}px`,

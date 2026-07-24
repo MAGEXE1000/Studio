@@ -78,7 +78,8 @@ const NavigationItem = React.memo(
     isActive,
     isSwitcherOpen,
     activeIdxSpring,
-    onMeasureWidth,
+    onMeasureGeometry,
+    innerWrapperRef,
   }: {
     item: any;
     index: number;
@@ -86,7 +87,8 @@ const NavigationItem = React.memo(
     isActive: boolean;
     isSwitcherOpen?: boolean;
     activeIdxSpring: any;
-    onMeasureWidth?: (index: number, width: number) => void;
+    onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
+    innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
   }) => {
     const isIconString = typeof item.icon === 'string';
     const contentRef = useRef<HTMLDivElement | null>(null);
@@ -97,28 +99,29 @@ const NavigationItem = React.memo(
     const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
     const iconScale = useTransform(distance, [0, 0.45], [1.08, 0.98]);
 
-    useEffect(() => {
-      if (contentRef.current && onMeasureWidth) {
+    const handleMeasure = useCallback(() => {
+      if (contentRef.current && onMeasureGeometry) {
         const rect = contentRef.current.getBoundingClientRect();
-        if (rect.width > 0) {
-          onMeasureWidth(index, rect.width);
+        const parentRect = innerWrapperRef?.current?.getBoundingClientRect();
+        if (rect.width > 0 && parentRect) {
+          const leftOffset = rect.left - parentRect.left;
+          onMeasureGeometry(index, rect.width, leftOffset);
         }
       }
-    }, [index, item.label, item.icon, isSwitcherOpen, isActive, onMeasureWidth]);
+    }, [index, onMeasureGeometry, innerWrapperRef]);
 
     useEffect(() => {
-      if (!contentRef.current || !onMeasureWidth || typeof ResizeObserver === 'undefined') return;
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const w = entry.contentRect?.width || entry.target.getBoundingClientRect().width;
-          if (w > 0) {
-            onMeasureWidth(index, w);
-          }
-        }
+      handleMeasure();
+    }, [index, item.label, item.icon, isSwitcherOpen, isActive, handleMeasure]);
+
+    useEffect(() => {
+      if (!contentRef.current || !onMeasureGeometry || typeof ResizeObserver === 'undefined') return;
+      const observer = new ResizeObserver(() => {
+        handleMeasure();
       });
       observer.observe(contentRef.current);
       return () => observer.disconnect();
-    }, [index, onMeasureWidth]);
+    }, [handleMeasure, onMeasureGeometry]);
 
     return (
       <button
@@ -666,12 +669,17 @@ export function SharedNavigationBar({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [measuredContentWidths, setMeasuredContentWidths] = useState<Record<number, number>>({});
+  const [measuredContentGeometry, setMeasuredContentGeometry] = useState<Record<number, { width: number; centerLeft: number }>>({});
+  const innerWrapperRef = useRef<HTMLDivElement | null>(null);
 
-  const handleMeasureWidth = useCallback((index: number, width: number) => {
-    setMeasuredContentWidths((prev) => {
-      if (prev[index] === width) return prev;
-      return { ...prev, [index]: width };
+  const handleMeasureGeometry = useCallback((index: number, width: number, leftOffset: number) => {
+    const centerLeft = leftOffset + width / 2;
+    setMeasuredContentGeometry((prev) => {
+      const existing = prev[index];
+      if (existing && existing.width === width && Math.abs(existing.centerLeft - centerLeft) < 0.5) {
+        return prev;
+      }
+      return { ...prev, [index]: { width, centerLeft } };
     });
   }, []);
 
@@ -686,17 +694,17 @@ export function SharedNavigationBar({
   const getItemPillWidth = useCallback(
     (item: any, index: number) => {
       if (isSwitcherOpen) return 44;
-      const domWidth = measuredContentWidths[index];
-      if (domWidth && domWidth > 0) {
+      const geom = measuredContentGeometry[index];
+      if (geom && geom.width > 0) {
         // Real DOM measured width + 16px fixed horizontal padding (8px left, 8px right)
-        return Math.max(44, Math.round(domWidth + 16));
+        return Math.max(44, Math.round(geom.width + 16));
       }
       const labelStr = typeof item?.label === 'string' ? item.label : '';
       const len = labelStr.length;
       const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 6.4) : 0);
       return Math.max(44, Math.round(contentW + 16));
     },
-    [isSwitcherOpen, measuredContentWidths]
+    [isSwitcherOpen, measuredContentGeometry]
   );
 
   const itemPillWidths = useMemo(() => {
@@ -719,10 +727,14 @@ export function SharedNavigationBar({
   const getPillX = useCallback(
     (index: number) => {
       const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 72);
+      const geom = measuredContentGeometry[index];
+      if (geom && geom.centerLeft > 0) {
+        return geom.centerLeft - pillW / 2;
+      }
       const centerX = (index + 0.5) * itemWidth;
       return centerX - pillW / 2;
     },
-    [isSwitcherOpen, itemWidth, itemPillWidths]
+    [isSwitcherOpen, itemWidth, itemPillWidths, measuredContentGeometry]
   );
 
   const activeIndex = useMemo(() => {
@@ -784,12 +796,33 @@ export function SharedNavigationBar({
     }
   );
 
+  // Dynamic composition centering math derived from windowWidth and measured barWidth:
+  const targetDockShift = useMemo(() => {
+    if (!showSwitcherButton) return 0;
+    const scaledBarW = barWidth * 0.75;
+    const scaledSwitcherW = 64 * 0.75;
+    const gap = 16;
+    const totalScaledW = scaledBarW + gap + scaledSwitcherW;
+    return -(totalScaledW / 2) + scaledBarW / 2;
+  }, [barWidth, showSwitcherButton]);
+
+  const targetSwitcherShift = useMemo(() => {
+    if (!showSwitcherButton) return 0;
+    const scaledBarW = barWidth * 0.75;
+    const scaledSwitcherW = 64 * 0.75;
+    const gap = 16;
+    const totalScaledW = scaledBarW + gap + scaledSwitcherW;
+    const unscaledSwitcherCenterOffset = barWidth / 2 + 40;
+    const targetSwitcherCenterOffset = totalScaledW / 2 - scaledSwitcherW / 2;
+    return targetSwitcherCenterOffset - unscaledSwitcherCenterOffset;
+  }, [barWidth, showSwitcherButton]);
+
   // Subtle inward horizontal translation towards screen center composition on scroll down
   const navX = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 0;
-      return (offset as number) * (showSwitcherButton ? 12 : 0);
+      return (offset as number) * targetDockShift;
     }
   );
 
@@ -797,7 +830,7 @@ export function SharedNavigationBar({
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 0;
-      return (offset as number) * -12;
+      return (offset as number) * targetSwitcherShift;
     }
   );
 
@@ -811,8 +844,11 @@ export function SharedNavigationBar({
     const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
     const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
 
-    const lowerCenterX = (lowerIdx + 0.5) * itemWidth;
-    const upperCenterX = (upperIdx + 0.5) * itemWidth;
+    const lowerGeom = measuredContentGeometry[lowerIdx];
+    const upperGeom = measuredContentGeometry[upperIdx];
+
+    const lowerCenterX = lowerGeom?.centerLeft ?? (lowerIdx + 0.5) * itemWidth;
+    const upperCenterX = upperGeom?.centerLeft ?? (upperIdx + 0.5) * itemWidth;
 
     const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
     const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
@@ -1369,6 +1405,7 @@ export function SharedNavigationBar({
             }}
           >
             <div
+              ref={innerWrapperRef}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
@@ -1427,7 +1464,8 @@ export function SharedNavigationBar({
                         isActive={isActive}
                         isSwitcherOpen={isSwitcherOpen}
                         activeIdxSpring={activeIdxSpring}
-                        onMeasureWidth={handleMeasureWidth}
+                        onMeasureGeometry={handleMeasureGeometry}
+                        innerWrapperRef={innerWrapperRef}
                       />
                     );
                   })}

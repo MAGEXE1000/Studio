@@ -1,5 +1,6 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Highlight alignment root-cause fix: resolved padding double-counting origin error in getPillX calculation for 0.00px centered highlight placement over rendered content.
-- 25% shrink & mutual center translation: refined scroll shrink scale to 25% (1.00 -> 0.75) while introducing converging navX and switcherX horizontal translations for a compact, unified side-by-side composition on scroll down.
+- Highlight alignment DOM geometry: calculated highlight center points directly from browser-rendered DOM element coordinates for 0.000px centered highlight placement over rendered content.
+- Dynamic 25% shrink centering math: derived horizontal composition translations dynamically from window and dock element widths for symmetrical side-by-side centering on scroll down.
+- Hub / Chordex context isolation: gated global Changelog section to Hub context, preventing release notes from leaking into Chordex Preferences.

@@ -76,12 +76,14 @@ const NavigationItem = React.memo(
     index,
     onClick,
     isActive,
+    isSwitcherOpen,
     activeIdxSpring,
   }: {
     item: any;
     index: number;
     onClick: () => void;
     isActive: boolean;
+    isSwitcherOpen?: boolean;
     activeIdxSpring: any;
   }) => {
     const isIconString = typeof item.icon === 'string';
@@ -151,7 +153,7 @@ const NavigationItem = React.memo(
             </motion.div>
           )}
 
-          {item.label && (
+          {item.label && !isSwitcherOpen && (
             <motion.span
               style={{
                 fontSize: '12px',
@@ -646,13 +648,15 @@ export function SharedNavigationBar({
   const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
 
   // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
-  const maxLabelLen = Math.max(
-    ...currentItems.map((item) => (typeof item.label === 'string' ? item.label.length : 4))
-  );
-  const calculatedSlotWidth = Math.max(84, maxLabelLen * 7.5 + 54);
-  const slotWidth = Math.min(132, calculatedSlotWidth);
+  const maxLabelLen = isSwitcherOpen
+    ? 0
+    : Math.max(
+        ...currentItems.map((item) => (typeof item.label === 'string' ? item.label.length : 4))
+      );
+  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(84, maxLabelLen * 7.5 + 54);
+  const slotWidth = isSwitcherOpen ? 52 : Math.min(132, calculatedSlotWidth);
   const paddingX = 8;
-  const insetX = 2;
+  const insetX = isSwitcherOpen ? 4 : 2;
 
   const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
   const barWidth = Math.max(180, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
@@ -694,7 +698,7 @@ export function SharedNavigationBar({
 
   // Synchronized Apple-grade spring physics
   const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
-  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 220, damping: 26, mass: 1.0 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 280, damping: 22, mass: 0.85 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -740,8 +744,13 @@ export function SharedNavigationBar({
     }
   );
 
-  // Maintain full opacity continuously so GPU backdrop blur composition is never detached
-  const containerOpacity = 1.0;
+  const containerOpacity = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.1) return 1.0;
+      return collapsed ? 0.82 : 1.0 - (offset as number) * 0.18;
+    }
+  );
 
   // Derived continuous search overlay transformations
   const searchResultsHeight = useTransform(searchOpenSpring, [0, 1], ['0vh', '42vh']);
@@ -1295,8 +1304,8 @@ export function SharedNavigationBar({
                 <motion.div
                   style={{
                     position: 'absolute',
-                    top: '2px',
-                    bottom: '2px',
+                    top: isSwitcherOpen ? '8px' : '2px',
+                    bottom: isSwitcherOpen ? '8px' : '2px',
                     width: pillWidthVal,
                     x: pillX,
                     borderRadius: '9999px',
@@ -1333,6 +1342,7 @@ export function SharedNavigationBar({
                         index={index}
                         onClick={item.onClick}
                         isActive={isActive}
+                        isSwitcherOpen={isSwitcherOpen}
                         activeIdxSpring={activeIdxSpring}
                       />
                     );
@@ -1467,15 +1477,18 @@ export function SharedNavigationBar({
           <div
             style={{
               pointerEvents: 'auto',
-              justifySelf: 'end',
+              justifySelf: 'start',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              paddingLeft: '8px',
             }}
           >
             {showSwitcherButton && !searchOpen && (
-              <button
+              <motion.button
                 onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
                 style={{
                   width: '64px',
                   height: '64px',
@@ -1492,12 +1505,17 @@ export function SharedNavigationBar({
                   cursor: 'pointer',
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
+                  transformOrigin: 'center center',
                 }}
               >
-                <span className="material-symbols-outlined text-[20px]">
+                <motion.span
+                  className="material-symbols-outlined text-[20px]"
+                  animate={{ rotate: isSwitcherOpen ? 90 : 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                >
                   {isSwitcherOpen ? 'close' : 'apps'}
-                </span>
-              </button>
+                </motion.span>
+              </motion.button>
             )}
           </div>
         </div>

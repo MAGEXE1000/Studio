@@ -1,7 +1,8 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Single dynamic highlight sizing algorithm: active highlight pill automatically measures label length and layout across all screens (Preferences, App Switcher, Songs, etc.) with generous padding and zero clipping.
-- In-place search bar morphing: global search bar reuses the exact floating pill dimensions of the Bottom Navigation container for a smooth, continuous morphing experience.
-- Visible scale collapse: scroll collapse maintains complete screen visibility (`containerY = 0`) while scaling down 35% with full opacity, blur, shadow, and touch feedback preserved.
-- Unified Motion Engine architecture: 100% preserved with zero re-architecture or routing side effects.
+- Consistent spacing gap: added a subtle 8px gap between the Bottom Navigation dock and the floating App Changer button across all apps and screens.
+- Apple-grade press animation: added tactile press-in scaling (`scale: 0.92`) and spring release with overshoot to the App Changer trigger button.
+- Icons-only App Changer mode: removed text labels in App Changer popup mode for a clean, uncluttered icons-only display.
+- Precision active icon highlight: highlight pill wraps ONLY the active app icon with perfect 44px x 44px circular alignment and zero text/icon clipping.
+- Coordinated collapse and expansion: synchronized spring physics, scale down (1.0 -> 0.65), and elegant fade (1.0 -> 0.82) between Bottom Navigation and App Changer during scrolling.

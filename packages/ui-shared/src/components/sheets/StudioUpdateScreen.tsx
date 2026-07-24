@@ -1,7 +1,6 @@
-import { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UpdaterFlightRecorder, DurationPresets, EasingPresets } from '@workspace/studio-core';
-
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -66,8 +65,6 @@ export default memo(function StudioUpdateScreen({
     return () => mediaQuery.removeEventListener('change', listener);
   }, []);
 
-  const pct = Math.round(progress * 100);
-
   // Disable closing during critical non-cancellable installation steps
   const canClose = [
     'available',
@@ -91,24 +88,41 @@ export default memo(function StudioUpdateScreen({
     'waitingForUserInstallConfirmation',
   ].includes(state);
 
-  // Material 3 Emphasized motion curve (deceleration ease) from central Motion Engine
+  // Material 3 Emphasized motion curve from central Motion Engine
   const emphasizedTransition = { duration: DurationPresets.slow, ease: EasingPresets.emphasized };
 
-  // Premium, high-performance CSS animation styles
+  // Keyframes for border pulse-glow and progress animation matching official HTML spec
   const customKeyframes = `
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 0 0 rgba(103, 156, 255, 0.15); }
+      50% { box-shadow: 0 0 24px 4px rgba(103, 156, 255, 0.3); }
+      100% { box-shadow: 0 0 0 0 rgba(103, 156, 255, 0.15); }
+    }
+    .glow-animation {
+      animation: pulse-glow 3s infinite ease-in-out;
+    }
+    @keyframes updater-spin-m3 {
+      to { transform: rotate(360deg); }
+    }
     @keyframes updater-shimmer-fast {
       0% { transform: translateX(-150%); }
       50% { transform: translateX(100%); }
       100% { transform: translateX(100%); }
     }
-    @keyframes updater-spin-m3 {
-      to { transform: rotate(360deg); }
-    }
-    @keyframes updater-pulse-subtle {
-      0%, 100% { transform: scale(1) translateY(0); }
-      50% { transform: scale(1.025) translateY(-3px); }
-    }
   `;
+
+  // Map icon names to material symbols according to official HTML spec
+  const getSymbolName = () => {
+    if (showSpinner) return 'downloading';
+    if (iconName === 'cloud_download' || iconName === 'download' || iconName === 'system_update') {
+      return 'cloud_download';
+    }
+    if (iconName === 'check_circle' || iconName === 'task_alt') return 'check_circle';
+    if (iconName === 'error' || iconName === 'warning') return 'warning';
+    if (iconName === 'security') return 'security';
+    if (iconName === 'sync') return 'downloading';
+    return iconName || 'cloud_download';
+  };
 
   return (
     <motion.div
@@ -122,15 +136,16 @@ export default memo(function StudioUpdateScreen({
         zIndex: 99999,
         overflow: 'hidden',
         overscrollBehavior: 'none',
-        background: isLight ? 'rgba(235, 235, 240, 0.4)' : 'rgba(10, 10, 12, 0.4)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        background: 'rgba(0, 0, 0, 0.65)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px 16px',
         boxSizing: 'border-box',
+        fontFamily: 'Manrope, sans-serif',
       }}
       role="dialog"
       aria-modal="true"
@@ -138,226 +153,220 @@ export default memo(function StudioUpdateScreen({
     >
       <style>{customKeyframes}</style>
 
-      {/* Top Header Dismiss Row */}
-      {canClose && onClose && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          onClick={onClose}
-          aria-label="Close update panel"
-          style={{
-            position: 'absolute',
-            top: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-            right: 16,
-            width: 38,
-            height: 38,
-            borderRadius: '50%',
-            background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-            border: isLight
-              ? '1px solid rgba(0, 0, 0, 0.06)'
-              : '1px solid rgba(255, 255, 255, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: isLight ? 'rgba(0, 0, 0, 0.8)' : '#ffffff',
-            cursor: 'pointer',
-            zIndex: 10,
-            transition: 'background-color 200ms ease',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-            close
-          </span>
-        </motion.button>
-      )}
-
-      {/* Glassmorphic Display Card */}
+      {/* Glassmorphic Card Container matching official HTML spec */}
       <motion.div
         layout
         transition={emphasizedTransition}
+        className="glow-animation"
         style={{
+          position: 'relative',
           width: '100%',
-          maxWidth: 380,
-          background: isLight ? 'rgba(255, 255, 255, 0.88)' : 'rgba(20, 20, 24, 0.78)',
-          border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: 28,
-          padding: '32px 24px',
+          maxWidth: 384,
+          background: 'rgba(31, 32, 32, 0.75)',
+          border: '1px solid rgba(72, 72, 72, 0.25)',
+          borderRadius: 24,
+          padding: 32,
           boxSizing: 'border-box',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          boxShadow: isLight
-            ? '0 16px 36px rgba(0, 0, 0, 0.08)'
-            : '0 24px 48px rgba(0, 0, 0, 0.45)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           textAlign: 'center',
-          gap: 20,
+          gap: 24,
+          color: '#e7e5e4',
         }}
       >
-        {/* Unified Icon Header with layout morphing */}
+        {/* Close Button matching HTML spec */}
+        {canClose && onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close update panel"
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              background: 'transparent',
+              border: 'none',
+              color: '#acabaa',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 4,
+              borderRadius: '50%',
+              transition: 'color 150ms ease',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
+              close
+            </span>
+          </button>
+        )}
+
+        {/* Icon Circle Header matching HTML spec */}
         <motion.div
           layoutId="updater-icon-container"
           transition={emphasizedTransition}
           style={{
-            width: 72,
-            height: 72,
+            width: 80,
+            height: 80,
             borderRadius: '50%',
-            background: showSpinner
-              ? isLight
-                ? 'rgba(0,0,0,0.03)'
-                : 'rgba(255, 255, 255, 0.03)'
-              : `color-mix(in srgb, ${iconColor} 12%, ${isLight ? 'rgba(255, 255, 255, 0.9)' : 'rgba(20, 20, 24, 0.85)'})`,
-            border: `1.5px solid ${showSpinner ? (isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255, 255, 255, 0.1)') : `color-mix(in srgb, ${iconColor} 24%, transparent)`}`,
+            background: '#252626',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: showSpinner
-              ? 'none'
-              : `0 0 24px color-mix(in srgb, ${iconColor} 15%, transparent)`,
             position: 'relative',
-            animation:
-              isInstalling && !reducedMotion
-                ? 'updater-pulse-subtle 2.5s ease-in-out infinite'
-                : 'none',
-            willChange: 'transform',
+            overflow: 'hidden',
           }}
         >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: showSpinner ? 'rgba(103, 156, 255, 0.15)' : 'rgba(103, 156, 255, 0.1)',
+            }}
+          />
           <AnimatePresence mode="wait">
             <motion.div
-              key={showSpinner ? 'spinner' : iconName}
-              initial={{ opacity: 0, scale: 0.82 }}
+              key={showSpinner ? 'spinner' : getSymbolName()}
+              initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.82 }}
+              exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
             >
               {showSpinner ? (
-                <svg
-                  width={34}
-                  height={34}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                  strokeLinecap="round"
+                <span
+                  className="material-symbols-outlined text-4xl"
                   style={{
+                    fontSize: 36,
+                    color: '#679cff',
+                    fontVariationSettings: "'wght' 300",
                     animation: reducedMotion ? 'none' : 'updater-spin-m3 1.2s linear infinite',
-                    color: iconColor,
-                    willChange: 'transform',
                   }}
                 >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke={isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)'}
-                    strokeWidth={3}
-                  />
-                  <path
-                    d="M12 2a10 10 0 0 1 10 10"
-                    stroke="url(#updater-spinner-grad)"
-                    strokeWidth={3}
-                  />
-                  <defs>
-                    <linearGradient id="updater-spinner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={accentFrom} />
-                      <stop offset="100%" stopColor={accentTo} />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              ) : iconName === 'github' ? (
-                <svg
-                  viewBox="0 0 24 24"
-                  width={30}
-                  height={30}
-                  fill={isLight ? 'rgba(0, 0, 0, 0.95)' : '#ffffff'}
-                  style={{ flexShrink: 0 }}
-                >
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
+                  downloading
+                </span>
               ) : (
                 <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 34, color: iconColor }}
+                  className="material-symbols-outlined text-4xl"
+                  style={{
+                    fontSize: 36,
+                    color: iconColor && iconColor !== purpleFrom ? iconColor : '#679cff',
+                    fontVariationSettings: "'wght' 300",
+                  }}
                 >
-                  {iconName}
+                  {getSymbolName()}
                 </span>
               )}
             </motion.div>
           </AnimatePresence>
         </motion.div>
 
-        {/* Version comparison row */}
+        {/* Headline & Subtitle matching HTML spec */}
+        <motion.div
+          layout="position"
+          transition={emphasizedTransition}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            width: '100%',
+          }}
+        >
+          <h2
+            id="updater-dialog-title"
+            style={{
+              margin: 0,
+              fontFamily: 'Manrope, sans-serif',
+              fontWeight: 700,
+              fontSize: 24,
+              color: '#e7e5e4',
+              lineHeight: 1.25,
+            }}
+          >
+            {title}
+          </h2>
+          <div
+            style={{
+              fontSize: 14,
+              fontFamily: 'Inter, sans-serif',
+              color: '#acabaa',
+              lineHeight: 1.45,
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            {description}
+          </div>
+        </motion.div>
+
+        {/* Version Comparison Box matching HTML spec */}
         {fromVersion && toVersion && (
           <motion.div
             layout="position"
             transition={emphasizedTransition}
             style={{
+              width: '100%',
+              background: '#131313',
+              borderRadius: 12,
+              padding: 16,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 16,
-              background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.03)',
-              border: isLight
-                ? '1px solid rgba(0, 0, 0, 0.06)'
-                : '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: 16,
-              padding: '12px 24px',
-              width: '100%',
+              justifyContent: 'space-between',
               boxSizing: 'border-box',
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
               <span
                 style={{
                   fontSize: 10,
                   textTransform: 'uppercase',
-                  color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
-                  fontWeight: 700,
-                  letterSpacing: '0.05em',
-                  fontFamily: 'Manrope, sans-serif',
+                  letterSpacing: '0.1em',
+                  color: '#acabaa',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
                 }}
               >
                 Current
               </span>
               <span
                 style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: isLight ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)',
-                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: '#e7e5e4',
+                  fontFamily: 'Manrope, sans-serif',
                 }}
               >
                 {fromVersion}
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', color: accentFrom }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                arrow_forward
-              </span>
-            </div>
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#679cff' }}>
+              arrow_forward
+            </span>
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}>
               <span
                 style={{
                   fontSize: 10,
                   textTransform: 'uppercase',
-                  color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)',
-                  fontWeight: 700,
-                  letterSpacing: '0.05em',
-                  fontFamily: 'Manrope, sans-serif',
+                  letterSpacing: '0.1em',
+                  color: '#acabaa',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
                 }}
               >
                 New
               </span>
               <span
                 style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: isLight ? 'rgba(0,0,0,0.95)' : '#ffffff',
-                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: '#e7e5e4',
+                  fontFamily: 'Manrope, sans-serif',
                 }}
               >
                 {toVersion}
@@ -366,41 +375,7 @@ export default memo(function StudioUpdateScreen({
           </motion.div>
         )}
 
-        {/* Text Title */}
-        <motion.h2
-          id="updater-dialog-title"
-          layout="position"
-          transition={emphasizedTransition}
-          style={{
-            margin: 0,
-            fontFamily: 'Manrope, sans-serif',
-            fontWeight: 600,
-            fontSize: 22,
-            letterSpacing: '-0.02em',
-            color: isLight ? '#121214' : '#ffffff',
-          }}
-        >
-          {title}
-        </motion.h2>
-
-        {/* Description Section */}
-        <motion.div
-          layout="position"
-          transition={emphasizedTransition}
-          style={{
-            fontSize: 14,
-            fontFamily: 'Inter, sans-serif',
-            lineHeight: 1.5,
-            color: isLight ? 'rgba(0, 0, 0, 0.65)' : 'rgba(255, 255, 255, 0.7)',
-            width: '100%',
-          }}
-          role="status"
-          aria-live="polite"
-        >
-          {description}
-        </motion.div>
-
-        {/* Dynamic Changelog Area */}
+        {/* Expandable Changelog Accordion matching HTML spec */}
         <AnimatePresence>
           {changelog && (
             <motion.div
@@ -416,7 +391,7 @@ export default memo(function StudioUpdateScreen({
           )}
         </AnimatePresence>
 
-        {/* Linear Progress Section with download speed and time metrics */}
+        {/* Linear Progress Section */}
         {progressComponent}
 
         {/* Indeterminate Installing Progress Bar */}
@@ -442,8 +417,8 @@ export default memo(function StudioUpdateScreen({
                   justifyContent: 'space-between',
                   fontSize: 12,
                   fontWeight: 600,
-                  fontFamily: 'Manrope',
-                  color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)',
+                  fontFamily: 'Manrope, sans-serif',
+                  color: '#e7e5e4',
                 }}
               >
                 <span>Installing update</span>
@@ -452,9 +427,9 @@ export default memo(function StudioUpdateScreen({
               <div
                 style={{
                   width: '100%',
-                  height: 6,
-                  borderRadius: 3,
-                  background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                  height: 4,
+                  borderRadius: 2,
+                  background: '#252626',
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -465,12 +440,11 @@ export default memo(function StudioUpdateScreen({
                     top: 0,
                     bottom: 0,
                     width: '45%',
-                    background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
-                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
+                    borderRadius: 2,
                     animation: reducedMotion
                       ? 'none'
                       : 'updater-shimmer-fast 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1)',
-                    willChange: 'transform',
                   }}
                 />
               </div>
@@ -490,7 +464,7 @@ export default memo(function StudioUpdateScreen({
               style={{
                 margin: 0,
                 fontSize: 12,
-                fontFamily: 'Manrope',
+                fontFamily: 'Manrope, sans-serif',
                 fontWeight: 700,
                 color: '#f59e0b',
                 overflow: 'hidden',
@@ -501,7 +475,7 @@ export default memo(function StudioUpdateScreen({
           )}
         </AnimatePresence>
 
-        {/* Unified Bottom Action Buttons */}
+        {/* Action Buttons matching HTML spec */}
         <AnimatePresence>
           {actionButtons && (
             <motion.div
@@ -514,8 +488,7 @@ export default memo(function StudioUpdateScreen({
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 10,
-                marginTop: 8,
+                gap: 12,
                 overflow: 'hidden',
               }}
             >
@@ -537,7 +510,6 @@ export default memo(function StudioUpdateScreen({
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                marginTop: 12,
                 overflow: 'hidden',
               }}
             >

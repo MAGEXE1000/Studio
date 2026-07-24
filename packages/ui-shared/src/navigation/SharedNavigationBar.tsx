@@ -632,7 +632,7 @@ export function SharedNavigationBar({
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
-  const pillWidth = itemWidth - insetX * 2;
+  const targetPillWidth = Math.max(32, itemWidth - insetX * 2);
 
   const getPillX = useCallback(
     (index: number) => {
@@ -649,6 +649,7 @@ export function SharedNavigationBar({
   }, [currentItems, currentApp, isSwitcherOpen]);
 
   const pillX = useMotionValue(getPillX(activeIndex));
+  const pillWidthVal = useMotionValue(targetPillWidth);
   const pillSkewX = useMotionValue(0);
   const pressureOffset = useMotionValue(0);
 
@@ -661,14 +662,17 @@ export function SharedNavigationBar({
   const lastTimeRef = useRef(0);
   const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Keep pill positioned on active tab when activeIndex changes and not scrubbing
+  // Keep pill positioned and sized smoothly on active tab when activeIndex or layout changes
   useEffect(() => {
     if (!isScrubbingRef.current) {
       animate(pillX, getPillX(activeIndex), {
         ...SpringPresets.soft,
       });
+      animate(pillWidthVal, targetPillWidth, {
+        ...SpringPresets.soft,
+      });
     }
-  }, [activeIndex, getPillX, pillX]);
+  }, [activeIndex, targetPillWidth, getPillX, pillX, pillWidthVal]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -1309,7 +1313,7 @@ export function SharedNavigationBar({
                     position: 'absolute',
                     top: '4px',
                     bottom: '4px',
-                    width: `${pillWidth}px`,
+                    width: pillWidthVal,
                     x: pillX,
                     borderRadius: '9999px',
                     background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',

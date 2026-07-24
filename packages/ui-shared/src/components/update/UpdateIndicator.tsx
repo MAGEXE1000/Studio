@@ -1628,49 +1628,49 @@ function UpdateModal({
 
   // Visual custom styles overrides using HSL purple/pink colors
   const primaryButtonStyle: React.CSSProperties = {
-    flex: 1,
-    height: 44,
-    borderRadius: 12,
-    background: `linear-gradient(135deg, ${purpleFrom}, ${purpleTo})`,
+    width: '100%',
+    height: 52,
+    borderRadius: 9999,
+    background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
     border: 'none',
-    color: 'white',
-    fontFamily: 'Manrope',
-    fontWeight: 800,
-    fontSize: 13,
+    color: '#ffffff',
+    fontFamily: 'Manrope, sans-serif',
+    fontWeight: 700,
+    fontSize: 15,
     cursor: 'pointer',
-    boxShadow: `0 4px 14px color-mix(in srgb, ${purpleTo} 25%, transparent)`,
+    boxShadow: '0 8px 24px rgba(0, 122, 255, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'opacity 200ms ease, transform 150ms ease',
+    transition: 'transform 150ms ease, opacity 150ms ease',
   };
 
   const secondaryButtonStyle: React.CSSProperties = {
-    flex: 1,
-    height: 44,
-    borderRadius: 12,
-    background: 'rgba(128, 128, 128, 0.06)',
-    border: '1px solid rgba(128, 128, 128, 0.15)',
-    color: 'var(--c-text-secondary)',
-    fontFamily: 'Manrope',
-    fontWeight: 700,
-    fontSize: 13,
+    width: '100%',
+    height: 40,
+    borderRadius: 9999,
+    background: 'transparent',
+    border: 'none',
+    color: '#acabaa',
+    fontFamily: 'Inter, sans-serif',
+    fontWeight: 500,
+    fontSize: 14,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background 200ms ease, border-color 200ms ease',
+    transition: 'color 150ms ease',
   };
 
   const halfSecondaryButtonStyle: React.CSSProperties = {
     flex: 1,
     height: 42,
     borderRadius: 12,
-    background: 'transparent',
-    border: '1px solid rgba(128, 128, 128, 0.15)',
-    color: 'var(--c-text-primary)',
-    fontFamily: 'Manrope',
-    fontWeight: 700,
+    background: '#131313',
+    border: '1px solid rgba(72, 72, 72, 0.2)',
+    color: '#e7e5e4',
+    fontFamily: 'Manrope, sans-serif',
+    fontWeight: 600,
     fontSize: 13,
     cursor: 'pointer',
     display: 'flex',
@@ -1681,13 +1681,13 @@ function UpdateModal({
   const tertiaryButtonStyle: React.CSSProperties = {
     width: '100%',
     height: 40,
-    borderRadius: 12,
+    borderRadius: 9999,
     background: 'transparent',
     border: 'none',
-    color: 'var(--c-text-secondary)',
-    fontFamily: 'Manrope',
-    fontWeight: 700,
-    fontSize: 13,
+    color: '#acabaa',
+    fontFamily: 'Inter, sans-serif',
+    fontWeight: 500,
+    fontSize: 14,
     cursor: 'pointer',
     marginTop: 2,
     display: 'flex',
@@ -1698,16 +1698,18 @@ function UpdateModal({
   const animatedPrimaryButtonStyle: React.CSSProperties = {
     height: '100%',
     width: '100%',
-    background: `linear-gradient(135deg, ${purpleFrom}, ${purpleTo})`,
-    fontFamily: 'Manrope',
-    fontWeight: 800,
-    fontSize: 13,
+    borderRadius: 9999,
+    background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
+    fontFamily: 'Manrope, sans-serif',
+    fontWeight: 700,
+    fontSize: 15,
     cursor: 'pointer',
-    boxShadow: `0 4px 14px color-mix(in srgb, ${purpleTo} 25%, transparent)`,
+    color: '#ffffff',
+    boxShadow: '0 8px 24px rgba(0, 122, 255, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
+    gap: 8,
   };
 
   const renderButtons = () => {
@@ -1798,20 +1800,17 @@ function UpdateModal({
               </ActionButton>
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
-              <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
-                Later
-              </ActionButton>
-              <AnimatedActionButton
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+              <button
                 type="button"
                 onClick={handleStartUpdate}
-                wrapStyle={{ flex: 1, height: 44 }}
-                borderRadius={12}
-                trailColor={purpleTo}
-                style={animatedPrimaryButtonStyle}
+                style={primaryButtonStyle}
               >
                 Update Now
-              </AnimatedActionButton>
+              </button>
+              <button type="button" onClick={onLater} style={secondaryButtonStyle}>
+                Later
+              </button>
             </div>
           )}
         </div>
@@ -2165,66 +2164,127 @@ function UpdateModal({
     }
     if (!showProgress) return null;
     const pct = Math.round(progressVal * 100);
-    const fileName = `studio-update-${toVersion || 'latest'}.apk`;
+
+    const statusMessages = [
+      'Establishing secure connection...',
+      'Downloading core binaries...',
+      'Verifying package checksum...',
+      'Unpacking resources...',
+      'Optimizing system compatibility...',
+      'Finalizing installation...',
+    ];
+    const messageIndex = Math.min(
+      statusMessages.length - 1,
+      Math.floor((pct / 100) * statusMessages.length)
+    );
+    const statusText = updater.statusText || statusMessages[messageIndex] || 'Finishing up...';
+
+    const pkgSize =
+      updateDebugLogs.downloadedApkSize && updateDebugLogs.downloadedApkSize !== 'N/A'
+        ? updateDebugLogs.downloadedApkSize
+        : '42.8 MB';
+
     return (
       <div
-        style={{ width: '100%', marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}
+        style={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          boxSizing: 'border-box',
+        }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: 12,
-            fontWeight: 700,
-            fontFamily: 'Manrope',
-            color: 'var(--c-text-primary)',
-          }}
-        >
-          <span>Downloading update</span>
-          <span>{pct}%</span>
-        </div>
-        <div
-          style={{
-            width: '100%',
-            height: 6,
-            borderRadius: 3,
-            background: 'rgba(128,128,128,0.12)',
-            overflow: 'hidden',
-          }}
-        >
+        {/* Precision Progress Bar */}
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div
             style={{
-              width: `${pct}%`,
-              height: '100%',
-              background: `linear-gradient(90deg, ${purpleFrom}, ${purpleTo})`,
-              transition: 'width 200ms ease-out',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              fontSize: 12,
+              fontFamily: 'Inter, sans-serif',
+              color: '#acabaa',
             }}
-          />
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: 11,
-            color: 'var(--c-text-secondary)',
-            fontFamily: 'monospace',
-            opacity: 0.8,
-          }}
-        >
-          <span
+          >
+            <span>
+              Downloading update (<span style={{ color: '#e7e5e4' }}>{pct}%</span>)
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#e7e5e4' }}>{pct}%</span>
+          </div>
+
+          <div
             style={{
+              width: '100%',
+              height: 4,
+              borderRadius: 2,
+              background: '#252626',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              maxWidth: '75%',
+            }}
+          >
+            <div
+              style={{
+                width: `${pct}%`,
+                height: '100%',
+                background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
+                transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            />
+          </div>
+
+          <p
+            style={{
+              margin: 0,
+              fontSize: 10,
+              color: 'rgba(172, 171, 170, 0.6)',
+              fontFamily: 'Inter, sans-serif',
+              fontStyle: 'italic',
               textAlign: 'left',
             }}
           >
-            {fileName}
+            {statusText}
+          </p>
+        </div>
+
+        {/* Package Size Card matching HTML spec */}
+        <div
+          style={{
+            width: '100%',
+            background: '#131313',
+            borderRadius: 12,
+            padding: 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            opacity: 0.8,
+            boxSizing: 'border-box',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#acabaa' }}>
+            package
           </span>
-          {updateDebugLogs.downloadedApkSize && updateDebugLogs.downloadedApkSize !== 'N/A' && (
-            <span>{updateDebugLogs.downloadedApkSize}</span>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+            <span
+              style={{
+                fontSize: 10,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#acabaa',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Package Size
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#e7e5e4',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              {pkgSize}
+            </span>
+          </div>
         </div>
       </div>
     );

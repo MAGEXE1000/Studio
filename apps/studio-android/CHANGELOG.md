@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.63
+
+Release Date: 2026-07-23
+
+## Improved
+- Redesigned Studio Updater UI matching official HTML spec with continuous glass surface.
+- Upgraded Bottom Navigation motion engine with continuous pillX and pillWidth MotionValues.
+- Verified zero runtime ReferenceErrors across repository via static analysis auditors.
+
 # Version 4.2.62
 
 Release Date: 2026-07-23

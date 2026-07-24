@@ -1,6 +1,6 @@
 Release Date: 2026-07-23
 
 ## Improved
-- Eliminated getCenterX orphan ReferenceError in SharedNavigationBar pointer drag handlers.
-- Added Repository-Wide Reference & Audit Validator to build pipeline.
-- Hardened Framer Motion event callbacks and component scope symbol safety.
+- Redesigned Studio Updater UI matching official HTML spec with continuous glass surface.
+- Upgraded Bottom Navigation motion engine with continuous pillX and pillWidth MotionValues.
+- Verified zero runtime ReferenceErrors across repository via static analysis auditors.

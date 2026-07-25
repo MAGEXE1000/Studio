@@ -1,15 +1,15 @@
 {
   "platform": "android",
-  "version": "4.2.86",
-  "versionName": "4.2.86",
+  "version": "4.2.87",
+  "versionName": "4.2.87",
   "versionCode": 40286,
   "version_code": 40286,
-  "commit": "2ee8e3bd",
-  "releasedAt": "7/25/2026, 4:25:37 PM CST",
-  "buildTimestamp": "7/25/2026, 4:25:37 PM CST",
+  "commit": "3afdd9b1",
+  "releasedAt": "7/25/2026, 4:52:03 PM CST",
+  "buildTimestamp": "7/25/2026, 4:52:03 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Global Live Inspector Dock: persistent developer inspection panel available everywhere across Studio (Hub, Settings, Chordex, Groovex, Stagex, Vocalex, sheets, overlays).\n• Full Freeze UI Subsystem: pauses all CSS animations, transitions, MotionValues, and video/audio media for pixel-perfect static frame inspection.\n• DevTools Box Model Shading: Chrome DevTools color-coded overlays (Margin: Amber, Border: Yellow, Padding: Emerald, Content: Blue) with live scroll/resize event synchronization.\n• Element Traversal & Breadcrumbs: interactive breadcrumb trail, parent/child/sibling/layout container traversal, live search, and structured JSON engineering export.",
-  "whatsNew": "• Global Live Inspector Dock: persistent developer inspection panel available everywhere across Studio (Hub, Settings, Chordex, Groovex, Stagex, Vocalex, sheets, overlays).\n• Full Freeze UI Subsystem: pauses all CSS animations, transitions, MotionValues, and video/audio media for pixel-perfect static frame inspection.\n• DevTools Box Model Shading: Chrome DevTools color-coded overlays (Margin: Amber, Border: Yellow, Padding: Emerald, Content: Blue) with live scroll/resize event synchronization.\n• Element Traversal & Breadcrumbs: interactive breadcrumb trail, parent/child/sibling/layout container traversal, live search, and structured JSON engineering export.",
+  "changelog": "• Fixed React Error #300 & #310 hook ordering issues by ensuring all DevTools hooks run unconditionally at top-level.\n• Fixed Event Diagnostics pipeline bug by recording touch and click gestures into the ring buffer continuously from app boot.\n• Unified Copy UX: introduced reusable dark pill `CopyButton` component with microinteractions, inline status transformation (`Copy` -> `Copied!`), and automatic 1.2s revert timer.\n• Enhanced Top Copy Menu: `Copy Everything` exports all logs, warnings, errors, events, system & performance data formatted with clear section headers (`======================== Logs ========================`).\n• Simplified Diagnostics Views: Performance, Network, System Diagnostics, and Storage tabs now feature clean 1-button copy exports with grouped categories.\n• Removed Navigation Stack: deleted legacy navigation trace UI, state, collectors, and dead exports. Expanded search bar to circular-pill design (`borderRadius: 999px`).",
+  "whatsNew": "• Fixed React Error #300 & #310 hook ordering issues by ensuring all DevTools hooks run unconditionally at top-level.\n• Fixed Event Diagnostics pipeline bug by recording touch and click gestures into the ring buffer continuously from app boot.\n• Unified Copy UX: introduced reusable dark pill `CopyButton` component with microinteractions, inline status transformation (`Copy` -> `Copied!`), and automatic 1.2s revert timer.\n• Enhanced Top Copy Menu: `Copy Everything` exports all logs, warnings, errors, events, system & performance data formatted with clear section headers (`======================== Logs ========================`).\n• Simplified Diagnostics Views: Performance, Network, System Diagnostics, and Storage tabs now feature clean 1-button copy exports with grouped categories.\n• Removed Navigation Stack: deleted legacy navigation trace UI, state, collectors, and dead exports. Expanded search bar to circular-pill design (`borderRadius: 999px`).",
   "releaseNotes": {},
   "mandatory": false
 }

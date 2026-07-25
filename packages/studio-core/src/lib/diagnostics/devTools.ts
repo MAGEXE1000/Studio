@@ -366,9 +366,6 @@ export function clearErrors() {
 
 // ── 3. EVENT INSPECTOR ──
 export function recordEvent(type: string, target: string, module = 'general') {
-  const isDevMode = useSettingsStore.getState().settings.developerMode;
-  if (!isDevMode) return;
-
   eventsBuffer.push({
     timestamp: Date.now(),
     type,
@@ -658,9 +655,6 @@ export function initDevToolsFramework() {
 
   // Intercept clicks/gestures for Event Inspecting
   const handleGlobalTouch = (e: Event) => {
-    const isDevMode = useSettingsStore.getState().settings.developerMode;
-    if (!isDevMode) return;
-
     let targetDesc = '';
     const target = e.target as HTMLElement | null;
     if (target) {

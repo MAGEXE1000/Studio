@@ -1,3 +1,5 @@
+import CopyButton from './CopyButton';
+import CopyDropdown from './CopyDropdown';
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
@@ -79,7 +81,7 @@ type TabId =
   | 'events'
   | 'perf'
   | 'state'
-  | 'nav'
+  
   | 'network'
   | 'storage'
   | 'providers';
@@ -481,255 +483,6 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
   );
 };
 
-export interface CopyDropdownProps {
-  moduleName: string;
-  activeTab: string;
-  onCopySuccess: (msg: string) => void;
-  nativeDeviceInfo: any;
-  nativeInstallerDetails: any;
-  localApkDetails: any;
-  nativeLogsList: any[];
-  title?: string;
-}
-
-export const CopyDropdown = ({
-  moduleName,
-  activeTab,
-  onCopySuccess,
-  nativeDeviceInfo,
-  nativeInstallerDetails,
-  localApkDetails,
-  nativeLogsList,
-  title,
-}: CopyDropdownProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
-
-  React.useEffect(() => {
-    const clickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', clickOutside);
-    return () => document.removeEventListener('mousedown', clickOutside);
-  }, []);
-
-  const triggerCopy = async (type: 'all' | 'section' | 'summary' | 'tech') => {
-    setIsOpen(false);
-
-    const fullReport = await getTimelineReport();
-
-    let textToCopy = fullReport;
-    let label = 'Report';
-
-    if (type === 'summary') {
-      const lines = fullReport.split('\n');
-      const healthIndex = lines.findIndex((l) => l.includes('Overall Health'));
-      const problemsIndex = lines.findIndex((l) => l.includes('Detected Problems'));
-      if (healthIndex !== -1 && problemsIndex !== -1) {
-        textToCopy = lines.slice(healthIndex - 1, problemsIndex - 1).join('\n');
-      }
-      label = 'Summary';
-    } else if (type === 'section') {
-      const lines = fullReport.split('\n');
-      const startPattern =
-        moduleName === 'Apps'
-          ? 'Navigation Analysis'
-          : moduleName === 'Performance'
-            ? 'Performance Analysis'
-            : moduleName === 'System'
-              ? 'System Diagnostics'
-              : moduleName === 'Logs'
-                ? 'Logs Analysis'
-                : moduleName === 'Network'
-                  ? 'Network Sniffer'
-                  : '';
-
-      let sectionContent = '';
-      if (startPattern) {
-        const startIndex = lines.findIndex((l) =>
-          l.toLowerCase().includes(startPattern.toLowerCase())
-        );
-        if (startIndex !== -1) {
-          const nextHeaderIndex = lines.findIndex(
-            (l, idx) => idx > startIndex && l.startsWith('====') && !l.includes('Report')
-          );
-          if (nextHeaderIndex !== -1) {
-            sectionContent = lines.slice(startIndex - 1, nextHeaderIndex - 1).join('\n');
-          } else {
-            sectionContent = lines.slice(startIndex - 1).join('\n');
-          }
-        }
-      }
-      textToCopy = sectionContent || fullReport;
-      label = `${moduleName} Section`;
-    } else if (type === 'tech') {
-      const lines = fullReport.split('\n');
-      const appendixIndex = lines.findIndex((l) => l.includes('Technical Appendix'));
-      if (appendixIndex !== -1) {
-        textToCopy = lines.slice(appendixIndex - 1).join('\n');
-      }
-      label = 'Technical Data';
-    }
-
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-      onCopySuccess(`${label} copied to clipboard!`);
-    } catch (err: any) {
-      onCopySuccess(`Copy failed: ${err.message || String(err)}`);
-    }
-  };
-
-  return (
-    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          background: 'var(--studio-accent-from, #679cff)',
-          border: 'none',
-          borderRadius: '999px',
-          color: '#fff',
-          padding: '8px 18px',
-          fontWeight: 700,
-          fontSize: '12px',
-          cursor: 'pointer',
-          transition: 'all 0.15s ease',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-          content_copy
-        </span>
-        <span>{title || 'Copy Diagnostics'}</span>
-        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-          {isOpen ? 'expand_less' : 'expand_more'}
-        </span>
-      </button>
-
-      {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            right: 0,
-            background: 'rgba(25, 25, 28, 0.95)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '12px',
-            padding: '6px',
-            minWidth: '180px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            zIndex: 1000,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-          }}
-        >
-          <button
-            onClick={() => triggerCopy('all')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              padding: '8px 12px',
-              textAlign: 'left',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-            className="hover-bg-item"
-          >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 14, color: 'var(--studio-accent-from, #679cff)' }}
-            >
-              database
-            </span>
-            Copy Everything
-          </button>
-          <button
-            onClick={() => triggerCopy('section')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              padding: '8px 12px',
-              textAlign: 'left',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-            className="hover-bg-item"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#10b981' }}>
-              splitscreen
-            </span>
-            Copy Current Section
-          </button>
-          <button
-            onClick={() => triggerCopy('summary')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              padding: '8px 12px',
-              textAlign: 'left',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-            className="hover-bg-item"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>
-              description
-            </span>
-            Copy Summary
-          </button>
-          <button
-            onClick={() => triggerCopy('tech')}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              padding: '8px 12px',
-              textAlign: 'left',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-            className="hover-bg-item"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#ec4899' }}>
-              terminal
-            </span>
-            Copy Technical Data
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
 export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props) {
   const settings = useSettingsStore((state) => state.settings);
 
@@ -780,7 +533,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       case 'system':
         return 'System Diagnostics';
       case 'logs':
-        return 'Logs & Warnings';
+        return 'Logs';
       case 'performance':
         return 'Performance Diagnostics';
       case 'network':
@@ -1751,19 +1504,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   // Copy Module Diagnostics (Copy Everything)
-  const renderCopyButton = (module: string) => {
-    return (
-      <CopyDropdown
-        moduleName={module}
-        activeTab={activeTab}
-        onCopySuccess={showToast}
-        nativeDeviceInfo={nativeDeviceInfo}
-        nativeInstallerDetails={nativeInstallerDetails}
-        localApkDetails={localApkDetails}
-        nativeLogsList={nativeLogsList}
-      />
-    );
-  };
+  
 
   const handleCopyModuleDiagnostics = (module: string) => {
     const dump: any = {
@@ -1892,7 +1633,179 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   // WarningsInspector moved to file-level
 
-  const renderSubViewHeader = (title: string) => {
+  
+  // Unified Diagnostics Generators for Copy Buttons
+  const buildCopyEverythingReport = () => {
+    const timestamp = new Date().toISOString();
+    let text = `====================================================\n`;
+    text += `STUDIO DEVELOPER DIAGNOSTICS REPORT\n`;
+    text += `Generated: ${timestamp}\n`;
+    text += `App Version: v${APP_VERSION}\n`;
+    text += `====================================================\n\n`;
+
+    text += `========================\nLogs (${logs.length})\n========================\n`;
+    if (logs.length > 0) {
+      logs.forEach((l) => {
+        text += `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}\n`;
+      });
+    } else {
+      text += `No log entries recorded.\n`;
+    }
+    text += `\n`;
+
+    const warnings = logs.filter((l) => l.level === 'warn');
+    text += `========================\nWarnings (${warnings.length})\n========================\n`;
+    if (warnings.length > 0) {
+      warnings.forEach((l) => {
+        text += `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.module}] ${l.message}\n`;
+      });
+    } else {
+      text += `No warnings recorded.\n`;
+    }
+    text += `\n`;
+
+    text += `========================\nErrors (${errors.length})\n========================\n`;
+    if (errors.length > 0) {
+      errors.forEach((e) => {
+        text += `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.message}\n`;
+        if (e.stack) text += `Stack: ${e.stack}\n`;
+      });
+    } else {
+      text += `No errors recorded.\n`;
+    }
+    text += `\n`;
+
+    text += `========================\nEvents (${events.length})\n========================\n`;
+    if (events.length > 0) {
+      events.forEach((evt) => {
+        text += `[${new Date(evt.timestamp).toLocaleTimeString()}] [${evt.module}] ${evt.type} on <${evt.target}>\n`;
+      });
+    } else {
+      text += `No user events recorded.\n`;
+    }
+    text += `\n`;
+
+    text += `========================\nSystem & Environment\n========================\n`;
+    text += `User Agent: ${navigator.userAgent}\n`;
+    text += `Platform: ${navigator.platform}\n`;
+    text += `Screen: ${window.screen.width}x${window.screen.height} (${window.devicePixelRatio}x DPR)\n`;
+    text += `Viewport: ${window.innerWidth}x${window.innerHeight}\n\n`;
+
+    text += `========================\nPerformance Metrics\n========================\n`;
+    if (perf.size > 0) {
+      perf.forEach((v, k) => {
+        text += `${k}: ${v.renders} renders, ${v.mounts} mounts, last render ${v.lastRenderTime}ms\n`;
+      });
+    } else {
+      text += `No performance profiler stats recorded.\n`;
+    }
+
+    return text;
+  };
+
+  const buildCopySectionReport = () => {
+    let title = 'Logs';
+    let text = '';
+    if (activeTab === 'logs') {
+      title = `Logs (${logLevelFilter})`;
+      text = filteredLogs.map((l) => `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}`).join('\n');
+    } else if (activeTab === 'errors') {
+      title = 'Errors';
+      text = errors.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.message}\n${e.stack || ''}`).join('\n');
+    } else if (activeTab === 'events') {
+      title = 'Events';
+      text = events.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.type} -> ${e.target}`).join('\n');
+    }
+    return `========================\n${title}\n========================\n` + (text || 'No data recorded.');
+  };
+
+  const buildPerformanceReport = () => {
+    const profiler = PerformanceProfiler.getInstance();
+    const metrics = perfMetrics || profiler.getMetrics();
+    const warnings = profiler.getWarnings(metrics);
+
+    let text = `========================\nPerformance Diagnostics\n========================\n`;
+    text += `Average FPS: ${metrics.averageFps}\n`;
+    text += `1% Low FPS: ${metrics.low1PercentFps}\n`;
+    text += `JS Thread Avg Delay: ${metrics.jsThreadAverage}ms (Peak: ${metrics.jsThreadPeak}ms)\n`;
+    text += `UI Thread Paint: ${metrics.uiThreadAverage}ms (Peak: ${metrics.uiThreadPeak}ms)\n`;
+    text += `Active Component Renders:\n`;
+    if (perf.size > 0) {
+      perf.forEach((v, k) => {
+        text += ` - ${k}: ${v.renders} renders, ${v.mounts} mounts\n`;
+      });
+    } else {
+      text += ` - None recorded\n`;
+    }
+    if (warnings.length > 0) {
+      text += `\nActive Warnings:\n`;
+      warnings.forEach((w) => {
+        text += ` - [${w.severity}] ${w.title}: ${w.description}\n`;
+      });
+    }
+    return text;
+  };
+
+  const buildNetworkReport = () => {
+    let text = `========================\nNetwork Sniffer Log\n========================\n`;
+    if (network.length > 0) {
+      network.forEach((req) => {
+        text += `[${new Date(req.timestamp).toLocaleTimeString()}] ${req.method} ${req.url} -> Status: ${req.status || 'Pending'} (${req.statusText || ''})\n`;
+      });
+    } else {
+      text += `No network traffic recorded.\n`;
+    }
+    return text;
+  };
+
+  const buildSystemReport = () => {
+    let text = `========================\nSystem Diagnostics\n========================\n`;
+    text += `App Version: ${APP_VERSION}\n`;
+    text += `Native Version: ${Capacitor.isNativePlatform() ? NATIVE_VERSION : 'Web Portal'}\n`;
+    text += `User Agent: ${navigator.userAgent}\n`;
+    text += `Platform: ${navigator.platform}\n`;
+    text += `Screen: ${window.screen.width}x${window.screen.height} (${window.devicePixelRatio}x DPR)\n`;
+    text += `Viewport: ${window.innerWidth}x${window.innerHeight}\n`;
+    text += `Active Module: ${currentApp}\n`;
+    text += `Theme: ${settings.theme} (${settings.accentColor})\n`;
+    return text;
+  };
+
+  const buildStorageReport = () => {
+    let text = `========================\nStorage Diagnostics\n========================\n`;
+    text += `LocalStorage Keys Count: ${localStorage.length}\n\n`;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k) {
+        text += `[${k}]: ${maskSensitiveValue(k, localStorage.getItem(k) || '')}\n`;
+      }
+    }
+    return text;
+  };
+
+  const renderCopyButton = (module: string) => {
+    if (module === 'Logs') {
+      return (
+        <CopyDropdown
+          onCopyEverything={buildCopyEverythingReport}
+          onCopySection={buildCopySectionReport}
+        />
+      );
+    }
+    if (module === 'Performance') {
+      return <CopyButton getTextToCopy={buildPerformanceReport} />;
+    }
+    if (module === 'Network') {
+      return <CopyButton getTextToCopy={buildNetworkReport} />;
+    }
+    if (module === 'System') {
+      return <CopyButton getTextToCopy={buildSystemReport} />;
+    }
+    return <CopyButton getTextToCopy={buildCopyEverythingReport} />;
+  };
+
+
+const renderSubViewHeader = (title: string) => {
     if (!isWebDesktop) return null;
     const handleGoBack = () => {
       NavigationDispatcher.pop();
@@ -1907,7 +1820,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             ? 'Updater'
             : title === 'System Diagnostics'
               ? 'System'
-              : title === 'Logs & Warnings'
+              : title === 'Logs'
                 ? 'Logs'
                 : title === 'Performance Diagnostics'
                   ? 'Performance'
@@ -1924,7 +1837,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             ? 'Updater Updates & Diagnostics'
             : title === 'System Diagnostics'
               ? 'App Store & Module State'
-              : title === 'Logs & Warnings'
+              : title === 'Logs'
                 ? 'Runtime Events & Warnings'
                 : title === 'Performance Diagnostics'
                   ? 'Real-time Metrics & Frame Data'
@@ -1999,17 +1912,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {moduleName && (
-            <CopyDropdown
-              moduleName={moduleName}
-              activeTab={activeTab}
-              onCopySuccess={showToast}
-              nativeDeviceInfo={nativeDeviceInfo}
-              nativeInstallerDetails={nativeInstallerDetails}
-              localApkDetails={localApkDetails}
-              nativeLogsList={nativeLogsList}
-            />
-          )}
+          {moduleName && renderCopyButton(moduleName)}
           {isWebDesktop && (
             <button
               onClick={handleGoBack}
@@ -6003,12 +5906,12 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       >
         {/* Search Input & Copy Section button */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
+          <div style={{ position: 'relative', width: '100%' }}>
             <span
               className="material-symbols-outlined"
               style={{
                 position: 'absolute',
-                left: 14,
+                left: 16,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'rgba(255,255,255,0.4)',
@@ -6022,53 +5925,22 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               type="text"
               value={logSearchQuery}
               onChange={(e) => setLogSearchQuery(e.target.value)}
-              placeholder="Search system events, pids, or threads..."
+              placeholder="Search system events, pids, threads, or messages..."
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
                 background: 'var(--app-surface-high, #1c1c1e)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '12px',
-                padding: '12px 16px 12px 42px',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '999px',
+                padding: '12px 20px 12px 46px',
                 color: '#fff',
                 fontSize: '13px',
-                fontFamily: 'Inter',
+                fontFamily: 'Inter, sans-serif',
                 outline: 'none',
                 transition: 'all 0.15s ease',
               }}
             />
           </div>
-
-          <button
-            onClick={() => {
-              let title = '';
-              let data: any = null;
-              if (activeTab === 'logs') {
-                title = `Logs (${logLevelFilter})`;
-                data = filteredLogs.slice(-100);
-              } else if (activeTab === 'errors') {
-                title = 'Captured Errors';
-                data = errors;
-              } else if (activeTab === 'events') {
-                title = 'System Events';
-                data = events;
-              } else if (activeTab === 'nav') {
-                title = 'Navigation History';
-                data = useNavigationStore.getState().history;
-              }
-              if (data) {
-                const text = `=== ${title} ===\n` + JSON.stringify(data, null, 2);
-                navigator.clipboard
-                  .writeText(text)
-                  .then(() => showToast('Section copied!'))
-                  .catch(() => showToast('Copy failed.'));
-              }
-            }}
-            className="flex items-center gap-1.5 bg-[#ffffff]/05 hover:bg-[#ffffff]/10 text-on-surface px-4 py-2 rounded-full text-xs font-bold transition-all outline-none border border-white/10"
-          >
-            <span className="material-symbols-outlined text-xs">content_copy</span>
-            <span>Copy Section</span>
-          </button>
         </div>
 
         {/* Severity Toggles / Tab Selectors */}
@@ -6132,15 +6004,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 setActiveTab('events');
               },
             },
-            {
-              label: 'Navigation Stack',
-              id: 'nav_tab',
-              active: activeTab === 'nav',
-              color: '#a78bfa',
-              onClick: () => {
-                setActiveTab('nav');
-              },
-            },
           ].map((toggle) => (
             <button
               key={toggle.id}
@@ -6191,7 +6054,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         {activeTab === 'logs' && renderLogsTab()}
         {activeTab === 'errors' && renderErrorsTab()}
         {activeTab === 'events' && renderEventsTab()}
-        {activeTab === 'nav' && renderNavTab()}
+        
         <WarningsInspector logs={logs} showToast={showToast} />
       </div>
     </>
@@ -6703,7 +6566,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               {viewId === 'logs' &&
                 (!isWebDesktop ? (
                   <SettingsScaffold
-                    title="Logs & Warnings"
+                    title="Logs"
                     onBack={handleSubViewBack}
                     toolbarActions={renderCopyButton('Logs')}
                   >
@@ -6718,7 +6581,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       background: 'var(--app-bg)',
                     }}
                   >
-                    {renderSubViewHeader('Logs & Warnings')}
+                    {renderSubViewHeader('Logs')}
                     {renderLogsBody(false)}
                   </div>
                 ))}

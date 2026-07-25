@@ -1,8 +1,8 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Deterministic initial highlight position: synchronous DOM measurement on initial mount places highlight pill directly at target coordinates.
-- Navbar width safeguard: corrected maxBarWidth to reserve space for Search bubble on Hub, preventing search button from being pushed off-screen.
-- Bounded highlight pill clamping: mathematically clamped pillX within dock bounds so highlight never exits navbar container.
-- Micro-interaction hover animations: restored subtle scale micro-interactions (1.08x) on tab items for premium native feedback.
-- Animated 60 FPS tab transitions: configured smooth spring physics across Home, Profile, and Settings tabs.
+- Consolidated Bottom Navigation: unified scroll-hide, inward convergence, and spacing across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex.
+- Hub scroll-hide alignment: Hub Search bubble uses identical spring transforms (targetDockShift, targetSwitcherShift) as Chordex.
+- Groovex centering: fixed layout positioning to guarantee 100% centered bottom navigation and App Changer.
+- Universal scroll-hide: attached capturing touchmove listener in navScroll.ts for seamless scroll-hide across Stagex and Drumex.
+- Apple-like press and drag gesture: added elementFromPoint gesture tracking for smooth highlight gliding across tabs under finger.

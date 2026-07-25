@@ -265,8 +265,34 @@ if (typeof window !== 'undefined') {
       resetNav();
     });
 
-    // Window-level body scroll listener for full-page scrolling layouts
+    // Window-level body scroll & touch capturing listener for universal app scrolling
     let lastWindowY = window.scrollY;
+    let lastTouchY = 0;
+
+    window.addEventListener(
+      'touchstart',
+      (e: TouchEvent) => {
+        if (e.touches[0]) {
+          lastTouchY = e.touches[0].clientY;
+        }
+      },
+      { passive: true, capture: true }
+    );
+
+    window.addEventListener(
+      'touchmove',
+      (e: TouchEvent) => {
+        if (!e.touches[0]) return;
+        const y = e.touches[0].clientY;
+        const dy = lastTouchY - y; // positive when scrolling down
+        if (Math.abs(dy) < 4) return;
+        lastTouchY = y;
+        const deltaRatio = dy / 80;
+        setNavScrollOffset(_scrollOffset + deltaRatio);
+      },
+      { passive: true, capture: true }
+    );
+
     window.addEventListener(
       'scroll',
       () => {

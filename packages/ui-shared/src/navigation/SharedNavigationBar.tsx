@@ -827,18 +827,18 @@ export function SharedNavigationBar({
     }
   );
 
-  // Dynamic composition centering for the 5 sub-apps:
+  // Dynamic composition centering for all 6 modules (Hub, Chordex, Drumex, Stagex, Groovex, Vocalex):
   // On scroll down (1.00 -> 0.85 scale), glass-nav translates subtly right (+10px) towards screen composition center,
-  // and switcherButton translates left (-12px) toward glass-nav so both elements converge symmetrically.
+  // and floating right bubble translates left (-12px) toward glass-nav so both elements converge symmetrically.
   const targetDockShift = useMemo(() => {
-    if (!showSwitcherButton) return 0;
+    if (!hasRightBubble) return 0;
     return 10;
-  }, [showSwitcherButton]);
+  }, [hasRightBubble]);
 
   const targetSwitcherShift = useMemo(() => {
-    if (!showSwitcherButton) return 0;
+    if (!hasRightBubble) return 0;
     return -12;
-  }, [showSwitcherButton]);
+  }, [hasRightBubble]);
 
   // Subtle inward horizontal translation towards screen center composition on scroll down
   const navX = useTransform(
@@ -995,11 +995,21 @@ export function SharedNavigationBar({
     const skew = Math.max(-10, Math.min(10, velocity * 3.5));
     dragSkewRaw.set(skew);
 
-    const progress = relativeX / usableWidth;
-    const hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
+    let hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor((relativeX / usableWidth) * N)));
+    if (typeof document !== 'undefined') {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const itemEl = el?.closest('[data-nav-item-index]');
+      if (itemEl) {
+        const idx = Number(itemEl.getAttribute('data-nav-item-index'));
+        if (!isNaN(idx) && idx >= 0 && idx < N) {
+          hoveredIndex = idx;
+        }
+      }
+    }
 
     if (hoveredIndex !== scrubbingIndexRef.current) {
       scrubbingIndexRef.current = hoveredIndex;
+      activeIdxRaw.set(hoveredIndex);
       if (
         typeof window !== 'undefined' &&
         window.navigator &&

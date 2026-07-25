@@ -713,13 +713,13 @@ export function SharedNavigationBar({
       if (isSwitcherOpen) return 44;
       const geom = measuredContentGeometry[index];
       if (geom && geom.width > 0) {
-        // Real DOM measured width + 16px fixed horizontal padding (8px left, 8px right)
-        return Math.max(44, Math.round(geom.width + 16));
+        // Real DOM measured width + 24px fixed horizontal padding (12px left, 12px right)
+        return Math.max(48, Math.round(geom.width + 24));
       }
       const labelStr = typeof item?.label === 'string' ? item.label : '';
       const len = labelStr.length;
       const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 6.4) : 0);
-      return Math.max(44, Math.round(contentW + 16));
+      return Math.max(48, Math.round(contentW + 24));
     },
     [isSwitcherOpen, measuredContentGeometry]
   );
@@ -1385,43 +1385,7 @@ export function SharedNavigationBar({
 
         {/* Bottom Navigation Dock Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
-          <div style={{ pointerEvents: 'none', display: 'flex', justifyContent: 'flex-end', paddingRight: '12px' }}>
-            {isHub && !searchOpen && (
-              <motion.button
-                onClick={() => {
-                  if (onOpenSearch) onOpenSearch();
-                  setSearchOpen(true);
-                }}
-                whileTap={{ scale: 0.92 }}
-                whileHover={{ scale: 1.04 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
-                style={{
-                  pointerEvents: 'auto',
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: 'rgba(12, 12, 14, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
-                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'rgba(255, 255, 255, 0.60)',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  transformOrigin: 'center center',
-                  scale: containerScale,
-                }}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  search
-                </span>
-              </motion.button>
-            )}
-          </div>
+          <div style={{ pointerEvents: 'none' }} />
 
           <motion.div
             className="shared-bottom-nav glass-nav"
@@ -1470,8 +1434,8 @@ export function SharedNavigationBar({
                 <motion.div
                   style={{
                     position: 'absolute',
-                    top: isSwitcherOpen ? '8px' : '2px',
-                    bottom: isSwitcherOpen ? '8px' : '2px',
+                    top: isSwitcherOpen ? '8px' : '4px',
+                    bottom: isSwitcherOpen ? '8px' : '4px',
                     width: pillWidthVal,
                     x: pillX,
                     borderRadius: '9999px',
@@ -1595,6 +1559,42 @@ export function SharedNavigationBar({
               paddingLeft: '8px',
             }}
           >
+            {isHub && !searchOpen && (
+              <motion.button
+                onClick={() => {
+                  if (onOpenSearch) onOpenSearch();
+                  setSearchOpen(true);
+                }}
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: 'rgba(12, 12, 14, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(25px)',
+                  WebkitBackdropFilter: 'blur(25px)',
+                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.60)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  transformOrigin: 'center center',
+                  scale: containerScale,
+                  x: switcherX,
+                }}
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  search
+                </span>
+              </motion.button>
+            )}
+
             {showSwitcherButton && !searchOpen && (
               <motion.button
                 onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}

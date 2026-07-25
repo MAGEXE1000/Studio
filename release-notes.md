@@ -1,11 +1,7 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Hub Settings active Changelog: integrated scrollable release notes directly above About in all Hub Settings modal interactions.
-- Redesigned Hub Bottom Navigation: dock contains Profile, Home, and Settings.
-- Symmetrical Floating Search Bubble: created separate floating circular search button opposite App Changer on Hub.
-- Direct Profile Navigation: tapping Profile opens Profile screen directly without intermediate popup menu.
-- Highlight Sizing & Small->Large tab transition fix: synchronous DOM rect measurement eliminates measurement lag and pill jumps.
-- Quick Actions auto-hide: Bottom Navigation automatically hides whenever Quick Actions sheet or customization modal opens.
-- Removed search Cancel button from Hub search interface with balanced layout.
-- Removed Theme Changer from Chordex Preferences.
+- Hub Layout polish: moved floating circular Search bubble to the right side of the Hub for perfect visual balance (`[ Bottom Navigation ] [ Search Bubble ]`).
+- Highlight Pill sizing: increased internal padding (+24px horizontal, 4px vertical) for generous breathing room without clipping or overflowing.
+- Updater Progress simplification: removed duplicate secondary blue progress section, maintaining a single primary progress bar.
+- Updater Header polish: removed top icons during download and installation phases so dialogs begin directly with title.

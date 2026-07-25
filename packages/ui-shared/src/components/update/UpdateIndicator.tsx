@@ -2159,133 +2159,7 @@ function UpdateModal({
   };
 
   const renderProgress = () => {
-    if (state === 'installing' || state === 'installedOrReady') {
-      return renderIndeterminateProgress();
-    }
-    if (!showProgress) return null;
-    const pct = Math.round(progressVal * 100);
-
-    const statusMessages = [
-      'Establishing secure connection...',
-      'Downloading core binaries...',
-      'Verifying package checksum...',
-      'Unpacking resources...',
-      'Optimizing system compatibility...',
-      'Finalizing installation...',
-    ];
-    const messageIndex = Math.min(
-      statusMessages.length - 1,
-      Math.floor((pct / 100) * statusMessages.length)
-    );
-    const statusText = updater.statusText || statusMessages[messageIndex] || 'Finishing up...';
-
-    const pkgSize =
-      updateDebugLogs.downloadedApkSize && updateDebugLogs.downloadedApkSize !== 'N/A'
-        ? updateDebugLogs.downloadedApkSize
-        : '42.8 MB';
-
-    return (
-      <div
-        style={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          boxSizing: 'border-box',
-        }}
-      >
-        {/* Precision Progress Bar */}
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-              fontSize: 12,
-              fontFamily: 'Inter, sans-serif',
-              color: '#acabaa',
-            }}
-          >
-            <span>Downloading update</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#e7e5e4' }}>{pct}%</span>
-          </div>
-
-          <div
-            style={{
-              width: '100%',
-              height: 4,
-              borderRadius: 2,
-              background: '#252626',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: `${pct}%`,
-                height: '100%',
-                background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
-                transition: 'width 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            />
-          </div>
-
-          <p
-            style={{
-              margin: 0,
-              fontSize: 10,
-              color: 'rgba(172, 171, 170, 0.6)',
-              fontFamily: 'Inter, sans-serif',
-              fontStyle: 'italic',
-              textAlign: 'left',
-            }}
-          >
-            {statusText}
-          </p>
-        </div>
-
-        {/* Package Size Card matching HTML spec */}
-        <div
-          style={{
-            width: '100%',
-            background: '#131313',
-            borderRadius: 12,
-            padding: 16,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-            opacity: 0.8,
-            boxSizing: 'border-box',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#acabaa' }}>
-            package
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-            <span
-              style={{
-                fontSize: 10,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                color: '#acabaa',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Package Size
-            </span>
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#e7e5e4',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              {pkgSize}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   };
 
   const renderSpinner = () => {
@@ -2305,7 +2179,16 @@ function UpdateModal({
   };
 
   const renderIcon = () => {
-    if (isNearCompletion) return null;
+    if (
+      isNearCompletion ||
+      showProgress ||
+      state === 'downloading' ||
+      state === 'installing' ||
+      state === 'packageinstaller_visible' ||
+      state === 'readyForInstallPrompt'
+    ) {
+      return null;
+    }
     if (showSpinner) {
       return (
         <div

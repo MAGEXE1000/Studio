@@ -10,6 +10,7 @@
     "build:web": "pnpm --filter @workspace/studio-web build",
     "build:android:web": "pnpm --filter @workspace/studio-android build",
     "build:android": "pnpm --filter @workspace/studio-android android:build",
+    "preview:android": "pnpm --filter @workspace/studio-android preview",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

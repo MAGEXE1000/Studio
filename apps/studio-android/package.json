@@ -1,6 +1,6 @@
 {
   "name": "@workspace/studio-android",
-  "version": "4.2.83",
+  "version": "4.2.84",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "build": "vite build --config vite.config.ts",
     "android:sync": "npx cap sync android",
     "android:build": "pnpm build && pnpm android:sync",
+    "preview": "node scripts/preview-android.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node ../../scripts/run-smoke-tests.mjs"
   },

@@ -295,3 +295,14 @@ The following rules govern the development workflow and implementation of all fe
 - Architectural Decision Records (ADRs) live in [`docs/decisions/`](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/docs/decisions/README.md).
 - Every significant architectural choice must be recorded as a numbered ADR.
 - ADRs are permanent — never delete or overwrite them. Superseded decisions are referenced by their replacement.
+
+### K. Android Preview Before Release Workflow
+
+- Every code change targeting Android must be tested and manually approved via the Preview Workflow **BEFORE** running any version bump or triggering the production Release Pipeline.
+- **Preview Command**: `pnpm preview:android` (runs `apps/studio-android/scripts/preview-android.mjs`).
+- **Target Runtime**: Native Android Capacitor shell (`apps/studio-android/android` via Gradle `assembleDebug`).
+- **Output Artifact**: `dist/android-preview.apk` (and ADB auto-install if a physical phone is connected via USB/ADB).
+- **Rules**:
+  1. Never validate Android changes using standalone web build.
+  2. Never bump version, create git release tags, or push to production prior to manual preview testing.
+  3. Never modify OTA metadata, update channels, or release pipelines during preview generation.

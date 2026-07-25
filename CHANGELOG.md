@@ -13,6 +13,15 @@ Conventions:
 - Bullets start with `- ` and use plain English a non-technical user
   can parse. Keep each line short — the modal's text area is narrow.
 
+# Version 4.2.84
+
+Release Date: 2026-07-25
+
+## Improved
+- Livex Developer Inspector: added a complete Chrome DevTools / Layout Inspector suite for native Android with zero runtime overhead when disabled.
+- Dual inspection modes: support for 500ms Long Press gesture and real-time Live Selector canvas dragging.
+- Android Preview Workflow: implemented pnpm preview:android to build and test Preview APKs on connected phone before production release.
+
 # Version 4.2.83
 
 Release Date: 2026-07-25

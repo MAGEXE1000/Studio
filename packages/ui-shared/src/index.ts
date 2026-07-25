@@ -86,3 +86,4 @@ export { ApplicationTransitionEngine } from './components/launch/ApplicationTran
 export { default as InkThemeOverlay } from './components/feature/InkThemeOverlay';
 export { default as html2canvas } from 'html2canvas';
 export * from './components/design-system';
+export * from './components/devtools/inspector';

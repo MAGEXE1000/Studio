@@ -63,6 +63,7 @@ import { SettingsScaffold } from '../layout/StudioLayoutSystem';
 import UpdaterDiagnosticsPage from '../updater-diagnostics/UpdaterDiagnosticsPage';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 import MotionPlaygroundView from './MotionPlaygroundView';
+import { DeveloperInspectorPanel } from './inspector';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -71,7 +72,16 @@ interface Props {
 }
 
 type TabId =
-  'logs' | 'errors' | 'events' | 'perf' | 'state' | 'nav' | 'network' | 'storage' | 'providers';
+  | 'inspector'
+  | 'logs'
+  | 'errors'
+  | 'events'
+  | 'perf'
+  | 'state'
+  | 'nav'
+  | 'network'
+  | 'storage'
+  | 'providers';
 
 interface WarningItem {
   id: string;
@@ -5838,6 +5848,73 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               </div>
             </button>
 
+            {/* Developer Inspector */}
+            <button
+              onClick={() => setSubView('developer_inspector')}
+              className="btn-smooth"
+              style={cardContainerStyle('developer_inspector')}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'start',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                }}
+              >
+                <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 32, color: '#3b82f6', fontVariationSettings: "'FILL' 1" }}
+                  >
+                    search_hands_free
+                  </span>
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 800,
+                        color: 'var(--c-text-primary)',
+                        margin: '0 0 4px',
+                      }}
+                    >
+                      Developer Inspector
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: 'var(--c-text-secondary)',
+                        margin: 0,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      Inspect live DOM elements, React Fiber, styles & Box Model.
+                    </p>
+                  </div>
+                </div>
+                <span style={badgeStyle('stable')}>New</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  marginTop: 16,
+                }}
+              >
+                <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>
+                  Chrome DevTools / Layout Inspector for Android
+                </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}
+                >
+                  arrow_forward
+                </span>
+              </div>
+            </button>
+
             {/* Motion Playground */}
             <button
               onClick={() => setSubView('motion_playground')}
@@ -6138,6 +6215,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           activeView={subView}
           viewOrder={[
             'dashboard',
+            'developer_inspector',
             'apps',
             'stagex',
             'updater_diagnostics',
@@ -6818,6 +6896,26 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
               {viewId === 'motion_playground' && (
                 <MotionPlaygroundView accent={accent} onBack={handleSubViewBack} />
+              )}
+
+              {viewId === 'developer_inspector' && (
+                <SettingsScaffold
+                  title="Developer Inspector"
+                  onBack={handleSubViewBack}
+                >
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      paddingTop: 16,
+                      paddingLeft: 20,
+                      paddingRight: 20,
+                      paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)',
+                    }}
+                  >
+                    <DeveloperInspectorPanel />
+                  </div>
+                </SettingsScaffold>
               )}
             </div>
           )}

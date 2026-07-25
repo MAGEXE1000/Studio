@@ -1,6 +1,6 @@
 Release Date: 2026-07-25
 
 ## Improved
-- Transitions.dev CSS Spring Toggle: replaced all switches across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex with exact spring overshoot double-bounce animation.
-- Bottom Navigation hover stabilization: strictly clamped highlight pill position within navbar bounds at all times.
-- Stable highlight width interpolation: eliminated velocity-based size oscillation and press pressure swelling for smooth 60 FPS finger tracking across tabs.
+- Livex Developer Inspector: added a complete Chrome DevTools / Layout Inspector suite for native Android with zero runtime overhead when disabled.
+- Dual inspection modes: support for 500ms Long Press gesture and real-time Live Selector canvas dragging.
+- Android Preview Workflow: implemented pnpm preview:android to build and test Preview APKs on connected phone before production release.

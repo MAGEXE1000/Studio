@@ -876,12 +876,15 @@ export function SharedNavigationBar({
     const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
     const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
 
-    return currentCenterX - currentPillW / 2 + (dragVal as number);
+    const rawX = currentCenterX - currentPillW / 2 + (dragVal as number);
+    const minX = 4;
+    const maxX = Math.max(minX, usableWidth - currentPillW - 4);
+    return Math.max(minX, Math.min(maxX, rawX));
   });
 
   const pillWidthVal = useTransform(
-    [activeIdxSpring, pressPressureRaw, dragSkewRaw],
-    ([idxVal, pressVal, skewVal]) => {
+    activeIdxSpring,
+    (idxVal) => {
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal as number));
       const lowerIdx = Math.floor(idx);
       const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
@@ -890,8 +893,7 @@ export function SharedNavigationBar({
       const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
       const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
 
-      const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
-      return currentPillW + (pressVal as number) + Math.abs(skewVal as number) * 0.8;
+      return lowerPillW + frac * (upperPillW - lowerPillW);
     }
   );
 

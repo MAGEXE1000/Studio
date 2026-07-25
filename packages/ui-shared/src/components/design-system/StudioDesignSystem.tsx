@@ -6,6 +6,10 @@ import { AnimatedAppHeader } from '../../navigation/AppAnimationSystem';
 import { ProgressiveBlur } from './ProgressiveBlur';
 import AppSpinner from '../loading/AppSpinner';
 
+import { Toggle } from './StudioToggle';
+export { Toggle, Toggle as Switch } from './StudioToggle';
+export type { ToggleProps } from './StudioToggle';
+
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
 export function useStudioDesignSystem() {
   const settings = useSettingsStore((s) => s.settings);

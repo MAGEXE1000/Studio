@@ -1,8 +1,6 @@
-Release Date: 2026-07-24
+Release Date: 2026-07-25
 
 ## Improved
-- Consolidated Bottom Navigation: unified scroll-hide, inward convergence, and spacing across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex.
-- Hub scroll-hide alignment: Hub Search bubble uses identical spring transforms (targetDockShift, targetSwitcherShift) as Chordex.
-- Groovex centering: fixed layout positioning to guarantee 100% centered bottom navigation and App Changer.
-- Universal scroll-hide: attached capturing touchmove listener in navScroll.ts for seamless scroll-hide across Stagex and Drumex.
-- Apple-like press and drag gesture: added elementFromPoint gesture tracking for smooth highlight gliding across tabs under finger.
+- Transitions.dev CSS Spring Toggle: replaced all switches across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex with exact spring overshoot double-bounce animation.
+- Bottom Navigation hover stabilization: strictly clamped highlight pill position within navbar bounds at all times.
+- Stable highlight width interpolation: eliminated velocity-based size oscillation and press pressure swelling for smooth 60 FPS finger tracking across tabs.

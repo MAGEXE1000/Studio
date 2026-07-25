@@ -1,7 +1,8 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Hub Layout polish: moved floating circular Search bubble to the right side of the Hub for perfect visual balance (`[ Bottom Navigation ] [ Search Bubble ]`).
-- Highlight Pill sizing: increased internal padding (+24px horizontal, 4px vertical) for generous breathing room without clipping or overflowing.
-- Updater Progress simplification: removed duplicate secondary blue progress section, maintaining a single primary progress bar.
-- Updater Header polish: removed top icons during download and installation phases so dialogs begin directly with title.
+- Deterministic initial highlight position: synchronous DOM measurement on initial mount places highlight pill directly at target coordinates.
+- Navbar width safeguard: corrected maxBarWidth to reserve space for Search bubble on Hub, preventing search button from being pushed off-screen.
+- Bounded highlight pill clamping: mathematically clamped pillX within dock bounds so highlight never exits navbar container.
+- Micro-interaction hover animations: restored subtle scale micro-interactions (1.08x) on tab items for premium native feedback.
+- Animated 60 FPS tab transitions: configured smooth spring physics across Home, Profile, and Settings tabs.

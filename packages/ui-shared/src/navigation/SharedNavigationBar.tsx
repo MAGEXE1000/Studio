@@ -128,6 +128,7 @@ const NavigationItem = React.memo(
         onClick={onClick}
         aria-label={item.label}
         title={item.label}
+        data-nav-item-index={index}
         style={{
           flex: 1,
           height: '100%',
@@ -145,8 +146,12 @@ const NavigationItem = React.memo(
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        <div
+        <motion.div
           ref={contentRef}
+          data-nav-content="true"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 25, mass: 0.7 }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -197,13 +202,13 @@ const NavigationItem = React.memo(
                 scale: labelScale,
                 maxWidth: isActive ? '120px' : '0px',
                 overflow: 'hidden',
-                transition: 'max-width 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: 'max-width 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease',
               }}
             >
               {item.label}
             </motion.span>
           )}
-        </div>
+        </motion.div>
       </button>
     );
   }
@@ -670,6 +675,7 @@ export function SharedNavigationBar({
   }, []);
 
   const [measuredContentGeometry, setMeasuredContentGeometry] = useState<Record<number, { width: number; centerLeft: number }>>({});
+  const [hasMeasuredInitial, setHasMeasuredInitial] = useState(false);
   const innerWrapperRef = useRef<HTMLDivElement | null>(null);
 
   const handleMeasureGeometry = useCallback((index: number, width: number, leftOffset: number) => {
@@ -706,6 +712,7 @@ export function SharedNavigationBar({
       newGeom[idx] = { width: rect.width, centerLeft };
     });
     setMeasuredContentGeometry(newGeom);
+    setHasMeasuredInitial(true);
   }, [currentItems, isSwitcherOpen, windowWidth]);
 
   const getItemPillWidth = useCallback(
@@ -731,11 +738,12 @@ export function SharedNavigationBar({
   // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
   const maxPillWidth = isSwitcherOpen ? 44 : Math.max(...itemPillWidths, 72);
   const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(76, maxPillWidth + 12);
-  const slotWidth = isSwitcherOpen ? 52 : Math.min(160, calculatedSlotWidth);
+  const slotWidth = isSwitcherOpen ? 52 : Math.min(isHub ? 130 : 160, calculatedSlotWidth);
   const paddingX = 8;
   const insetX = isSwitcherOpen ? 4 : 2;
 
-  const maxBarWidth = windowWidth - 32 - (showSwitcherButton ? 72 : 0);
+  const hasRightBubble = showSwitcherButton || (isHub && !searchOpen);
+  const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 80 : 0);
   const barWidth = Math.max(180, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
@@ -745,13 +753,18 @@ export function SharedNavigationBar({
     (index: number) => {
       const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 72);
       const geom = measuredContentGeometry[index];
+      let rawX: number;
       if (geom && geom.centerLeft > 0) {
-        return geom.centerLeft - pillW / 2;
+        rawX = geom.centerLeft - pillW / 2;
+      } else {
+        const centerX = (index + 0.5) * itemWidth;
+        rawX = centerX - pillW / 2;
       }
-      const centerX = (index + 0.5) * itemWidth;
-      return centerX - pillW / 2;
+      const minX = 4;
+      const maxX = Math.max(minX, usableWidth - pillW - 4);
+      return Math.max(minX, Math.min(maxX, rawX));
     },
-    [isSwitcherOpen, itemWidth, itemPillWidths, measuredContentGeometry]
+    [isSwitcherOpen, itemWidth, itemPillWidths, measuredContentGeometry, usableWidth]
   );
 
   const activeIndex = useMemo(() => {
@@ -1430,7 +1443,7 @@ export function SharedNavigationBar({
               }}
             >
               {/* Continuous Gliding Pill Highlight */}
-              {!searchOpen && (
+              {hasMeasuredInitial && !searchOpen && (
                 <motion.div
                   style={{
                     position: 'absolute',

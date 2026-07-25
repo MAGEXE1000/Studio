@@ -202,13 +202,6 @@ export default function ChordexSettingsPanel() {
             </SettingRow>
           </SettingSection>
 
-          {/* ── APPEARANCE ── */}
-          <SettingSection title={t.settings.sections.appearance}>
-            <SettingRow label={t.settings.rows.theme} desc="Switch between Light and Dark modes">
-              <InkThemeToggle />
-            </SettingRow>
-          </SettingSection>
-
           {/* ── INTELLIGENCE ── */}
           <SettingSection title={t.settings.sections.intelligence}>
             <SettingRow
@@ -489,15 +482,7 @@ export default function ChordexSettingsPanel() {
           </SettingRow>
         </div>
 
-        {/* ── APPEARANCE ── */}
-        <SectionHeader icon="palette" title={t.settings.sections.appearance} />
-        <div style={cardStyle}>
-          <SettingRow label={t.settings.rows.theme} desc="Switch between Light and Dark modes">
-            <InkThemeToggle />
-          </SettingRow>
-        </div>
-
-        {/* ── INTELLIGENCE ── */}
+          {/* ── INTELLIGENCE ── */}
         <SectionHeader icon="psychology" title={t.settings.sections.intelligence} />
         <div style={cardStyle}>
           <SettingRow

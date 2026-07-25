@@ -1,7 +1,11 @@
 Release Date: 2026-07-24
 
 ## Improved
-- Bottom Navigation auto-reset on screen exit: navigation scale and position reset back to default (100% scale) on every route/screen transition.
-- Reduced Bottom Navigation scroll shrink amount to a refined 15% reduction (1.00 -> 0.85) with smooth center spring movement.
-- Unified Hub UI architecture into a single active Hub Settings panel featuring the scrollable Changelog section immediately above About.
-- Refined Updater installation dialog with single progress bar, simplified percentage display, removed top icon on final screen, and added smooth "App updated" confirmation transition.
+- Hub Settings active Changelog: integrated scrollable release notes directly above About in all Hub Settings modal interactions.
+- Redesigned Hub Bottom Navigation: dock contains Profile, Home, and Settings.
+- Symmetrical Floating Search Bubble: created separate floating circular search button opposite App Changer on Hub.
+- Direct Profile Navigation: tapping Profile opens Profile screen directly without intermediate popup menu.
+- Highlight Sizing & Small->Large tab transition fix: synchronous DOM rect measurement eliminates measurement lag and pill jumps.
+- Quick Actions auto-hide: Bottom Navigation automatically hides whenever Quick Actions sheet or customization modal opens.
+- Removed search Cancel button from Hub search interface with balanced layout.
+- Removed Theme Changer from Chordex Preferences.

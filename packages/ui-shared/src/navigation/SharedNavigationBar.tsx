@@ -689,7 +689,24 @@ export function SharedNavigationBar({
 
   const currentItems = isSwitcherOpen ? switcherApps : items || [];
   const N = currentItems.length || 1;
-  const totalSlots = isHub && !isSwitcherOpen ? N + 1 : N;
+  const totalSlots = N;
+
+  React.useLayoutEffect(() => {
+    if (!innerWrapperRef.current) return;
+    const parentRect = innerWrapperRef.current.getBoundingClientRect();
+    if (!parentRect.width) return;
+    const itemEls = innerWrapperRef.current.querySelectorAll('[data-nav-item-index]');
+    if (!itemEls.length) return;
+    const newGeom: Record<number, { width: number; centerLeft: number }> = {};
+    itemEls.forEach((el) => {
+      const idx = Number(el.getAttribute('data-nav-item-index'));
+      const contentEl = (el.querySelector('[data-nav-content]') as HTMLElement) || (el as HTMLElement);
+      const rect = contentEl.getBoundingClientRect();
+      const centerLeft = rect.left - parentRect.left + rect.width / 2;
+      newGeom[idx] = { width: rect.width, centerLeft };
+    });
+    setMeasuredContentGeometry(newGeom);
+  }, [currentItems, isSwitcherOpen, windowWidth]);
 
   const getItemPillWidth = useCallback(
     (item: any, index: number) => {
@@ -1368,7 +1385,43 @@ export function SharedNavigationBar({
 
         {/* Bottom Navigation Dock Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
-          <div style={{ pointerEvents: 'none' }} />
+          <div style={{ pointerEvents: 'none', display: 'flex', justifyContent: 'flex-end', paddingRight: '12px' }}>
+            {isHub && !searchOpen && (
+              <motion.button
+                onClick={() => {
+                  if (onOpenSearch) onOpenSearch();
+                  setSearchOpen(true);
+                }}
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ scale: 1.04 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
+                style={{
+                  pointerEvents: 'auto',
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: 'rgba(12, 12, 14, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backdropFilter: 'blur(25px)',
+                  WebkitBackdropFilter: 'blur(25px)',
+                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'rgba(255, 255, 255, 0.60)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  transformOrigin: 'center center',
+                  scale: containerScale,
+                }}
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  search
+                </span>
+              </motion.button>
+            )}
+          </div>
 
           <motion.div
             className="shared-bottom-nav glass-nav"
@@ -1462,43 +1515,6 @@ export function SharedNavigationBar({
                       />
                     );
                   })}
-
-                  {isHub && !isSwitcherOpen && (
-                    <button
-                      onClick={() => {
-                        if (onOpenSearch) onOpenSearch();
-                        setSearchOpen(true);
-                      }}
-                      style={{
-                        width: `${itemWidth}px`,
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        zIndex: 1,
-                        padding: '0 8px',
-                        outline: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'rgba(255, 255, 255, 0.60)',
-                        }}
-                      >
-                        <span className="material-symbols-outlined text-[20px]">
-                          search
-                        </span>
-                      </div>
-                    </button>
-                  )}
                 </div>
               ) : (
                 /* Embedded Search Input inside stretched bar */
@@ -1558,7 +1574,6 @@ export function SharedNavigationBar({
                         display: 'flex',
                         alignItems: 'center',
                         padding: '4px',
-                        marginRight: '8px',
                       }}
                     >
                       <span className="material-symbols-outlined text-[18px]">
@@ -1566,24 +1581,6 @@ export function SharedNavigationBar({
                       </span>
                     </button>
                   )}
-                  <button
-                    onClick={() => {
-                      setSearchOpen(false);
-                      setSearchQuery('');
-                    }}
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#ffffff',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '4px 10px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {lang === 'es' ? 'Cancelar' : 'Cancel'}
-                  </button>
                 </div>
               )}
             </div>

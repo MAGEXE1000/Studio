@@ -9494,7 +9494,7 @@ User Agent: [Automatically Generated]
   function renderActivePageContent(activePageId: HelpPageId) {
     switch (activePageId) {
       case 'help-center':
-        return renderHelpCenterContent();
+        return <StudioHubSettingsPanel />;
       case 'faq':
         return renderFaqContent();
       case 'release-notes':

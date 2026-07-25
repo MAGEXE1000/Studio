@@ -2197,13 +2197,27 @@ const renderSubViewHeader = (title: string) => {
                 marginBottom: 6,
               }}
             >
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-                [{new Date(err.timestamp).toLocaleTimeString()}] Source: {err.source}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    background: err.count && err.count > 1 ? '#10b981' : '#ef4444',
+                    color: '#fff',
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                  }}
+                >
+                  Occurred: x{err.count || 1}
+                </span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
+                  First: {new Date(err.firstSeen || err.timestamp).toLocaleTimeString()} | Last: {new Date(err.lastSeen || err.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
               <span
                 style={{
-                  background: '#ef4444',
-                  color: '#fff',
+                  background: 'rgba(255,255,255,0.06)',
+                  color: 'rgba(255,255,255,0.7)',
                   fontSize: 9,
                   fontWeight: 900,
                   padding: '2px 6px',

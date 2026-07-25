@@ -1,11 +1,9 @@
 Release Date: 2026-07-25
 
 ## Fixed
-- Fixed React Error #300 & #310 hook ordering issues by ensuring all DevTools hooks run unconditionally at top-level.
-- Fixed Event Diagnostics pipeline bug by recording touch and click gestures into the ring buffer continuously from app boot.
+- Fixed repository-wide React Hook determinism: completed AST static analysis scanning 490 source files (3,586 components and 29 custom hooks) to guarantee zero hook execution order violations.
+- Fixed Empty Error Objects (`console.error {}`) by introducing `normalizeErrorInput(...)` to extract non-enumerable `Error` properties (`message`, `stack`, `name`), Promise rejections, and custom diagnostic objects cleanly.
 
 ## Improved
-- Unified Copy UX: introduced reusable dark pill `CopyButton` component with microinteractions, inline status transformation (`Copy` -> `Copied!`), and automatic 1.2s revert timer.
-- Enhanced Top Copy Menu: `Copy Everything` exports all logs, warnings, errors, events, system & performance data formatted with clear section headers (`======================== Logs ========================`).
-- Simplified Diagnostics Views: Performance, Network, System Diagnostics, and Storage tabs now feature clean 1-button copy exports with grouped categories.
-- Removed Navigation Stack: deleted legacy navigation trace UI, state, collectors, and dead exports. Expanded search bar to circular-pill design (`borderRadius: 999px`).
+- Smart Error Grouping Engine: grouped runtime errors by a stable signature (`module|cleanMessage|firstStackLine`).
+- Deduplication Metadata: maintained `Occurred: x12` count badges, `First seen` timestamp, `Last seen` timestamp, and preserved initial complete stack trace without duplicate listings.

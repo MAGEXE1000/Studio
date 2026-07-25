@@ -26,6 +26,11 @@ export interface NavigationEntry {
 }
 
 export interface ErrorEntry {
+  id?: string;
+  fingerprint?: string;
+  count?: number;
+  firstSeen?: number;
+  lastSeen?: number;
   timestamp: number;
   message: string;
   stack: string;
@@ -195,6 +200,86 @@ export function resetStagexDiagnostics() {
     missingHandlers: [],
   });
   notifyListeners();
+}
+
+
+// Smart Error Normalizer to eliminate 'console.error {}' and format raw values
+export function normalizeErrorInput(...args: any[]): { message: string; stack: string } {
+  if (args.length === 0) {
+    return { message: 'Empty error logged', stack: '' };
+  }
+
+  let messageParts: string[] = [];
+  let extractedStack = '';
+
+  for (const arg of args) {
+    if (arg === null || arg === undefined) {
+      messageParts.push(String(arg));
+      continue;
+    }
+
+    if (arg instanceof Error) {
+      messageParts.push(arg.message || arg.name || 'Unknown Error');
+      if (arg.stack && !extractedStack) {
+        extractedStack = arg.stack;
+      }
+      continue;
+    }
+
+    if (typeof arg === 'object') {
+      if (arg.message && typeof arg.message === 'string') {
+        messageParts.push(arg.message);
+        if (arg.stack && typeof arg.stack === 'string' && !extractedStack) {
+          extractedStack = arg.stack;
+        }
+        continue;
+      }
+
+      if (arg.reason || arg.cause) {
+        const sub = arg.reason || arg.cause;
+        if (sub instanceof Error) {
+          messageParts.push(sub.message);
+          if (sub.stack && !extractedStack) extractedStack = sub.stack;
+        } else if (typeof sub === 'string') {
+          messageParts.push(sub);
+        } else {
+          messageParts.push(JSON.stringify(sub));
+        }
+        continue;
+      }
+
+      // Check non-enumerable properties or JSON stringify
+      try {
+        const json = JSON.stringify(arg);
+        if (json === '{}') {
+          const keys = Object.getOwnPropertyNames(arg);
+          if (keys.length > 0) {
+            const kv = keys.map((k) => `${k}: ${arg[k]}`).join(', ');
+            messageParts.push(`[${arg.constructor?.name || 'Object'}: ${kv}]`);
+          } else {
+            messageParts.push(`[${arg.constructor?.name || 'Empty Object {}'}]`);
+          }
+        } else {
+          messageParts.push(json);
+        }
+      } catch (_) {
+        messageParts.push(String(arg));
+      }
+      continue;
+    }
+
+    messageParts.push(String(arg));
+  }
+
+  const finalMessage = messageParts.filter(Boolean).join(' ') || 'Unknown Error';
+  return { message: finalMessage, stack: extractedStack };
+}
+
+// Generate stable fingerprint for smart error grouping
+export function getErrorFingerprint(module: string, message: string, stack: string): string {
+  const firstStackLine = stack ? stack.split('\n')[0].trim() : '';
+  const cleanMsg = message.replace(/0x[0-9a-fA-F]+/g, '').substring(0, 150);
+  return `${module}|${cleanMsg}|${firstStackLine}`;
 }
 
 let initialized = false;

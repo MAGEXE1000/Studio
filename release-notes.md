@@ -1,6 +1,6 @@
 Release Date: 2026-07-25
 
 ## Improved
-- Livex Developer Inspector: added a complete Chrome DevTools / Layout Inspector suite for native Android with zero runtime overhead when disabled.
-- Dual inspection modes: support for 500ms Long Press gesture and real-time Live Selector canvas dragging.
-- Android Preview Workflow: implemented pnpm preview:android to build and test Preview APKs on connected phone before production release.
+- Material 3 Developer Options: redesigned Developer Options with a native Android Material 3 visual hierarchy, clean card elevation, and Material Symbols icons.
+- Fixed currentApp ReferenceError: resolved the root cause of ReferenceError: currentApp is not defined by cleanly deriving currentApp at top-level component scope in DevToolsDashboard.
+- Standardized Spring Toggle: replaced all custom switches in Developer Options with the canonical CSS spring StudioToggle component.

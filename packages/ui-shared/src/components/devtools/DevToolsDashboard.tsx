@@ -64,6 +64,7 @@ import UpdaterDiagnosticsPage from '../updater-diagnostics/UpdaterDiagnosticsPag
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 import MotionPlaygroundView from './MotionPlaygroundView';
 import { DeveloperInspectorPanel } from './inspector';
+import { Toggle as StudioToggle } from '../design-system/StudioToggle';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -738,6 +739,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const activePanel = chordsRoute?.page || 'library';
   const isWebDesktop = useIsWebDesktop();
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || { app: 'hub' };
+  const currentApp = currentRoute?.app ?? 'hub';
   const subView = useMemo(() => {
     if (
       currentRoute.app === 'hub' &&
@@ -1088,7 +1090,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   const otaStatus = updateDebugLogs.updateDecision || 'Idle';
 
-  const currentApp = useNavigationStore(s => s.history[s.history.length - 1]?.app) || 'hub';
   useEffect(() => {
     if (currentApp !== 'hub' && currentApp !== lastAppRef.current) {
       lastAppRef.current = currentApp;
@@ -6308,7 +6309,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           alignItems: 'center',
                           background: 'var(--app-surface-high)',
                           borderRadius: '999px',
-                          padding: '6px 12px',
+                          padding: '4px 10px',
                           gap: 8,
                           border: '1px solid rgba(128, 128, 128, 0.08)',
                         }}
@@ -6324,42 +6325,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         >
                           Dev Mode
                         </span>
-                        <div
-                          onClick={() => {
-                            const next = !settings.developerMode;
+                        <StudioToggle
+                          size="sm"
+                          value={settings.developerMode}
+                          onChange={(next) => {
                             useSettingsStore.getState().updateSettings({ developerMode: next });
                             showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                           }}
-                          style={{
-                            position: 'relative',
-                            width: 32,
-                            height: 18,
-                            backgroundColor: settings.developerMode
-                              ? 'var(--studio-accent-from, #679cff)'
-                              : 'var(--app-surface-highest)',
-                            borderRadius: 999,
-                            padding: '2px',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            boxSizing: 'border-box',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 14,
-                              height: 14,
-                              backgroundColor: '#ffffff',
-                              borderRadius: '50%',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                              transform: settings.developerMode
-                                ? 'translateX(14px)'
-                                : 'translateX(0px)',
-                              transition: 'transform 0.2s ease',
-                            }}
-                          />
-                        </div>
+                        />
                       </div>
                     </div>
                   )}
@@ -6382,42 +6355,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           >
                             Dev Mode
                           </span>
-                          <div
-                            onClick={() => {
-                              const next = !settings.developerMode;
+                          <StudioToggle
+                            size="sm"
+                            value={settings.developerMode}
+                            onChange={(next) => {
                               useSettingsStore.getState().updateSettings({ developerMode: next });
                               showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                             }}
-                            style={{
-                              position: 'relative',
-                              width: 32,
-                              height: 18,
-                              backgroundColor: settings.developerMode
-                                ? 'var(--studio-accent-from, #679cff)'
-                                : 'var(--app-surface-highest)',
-                              borderRadius: 999,
-                              padding: '2px',
-                              cursor: 'pointer',
-                              transition: 'background-color 0.2s ease',
-                              display: 'flex',
-                              alignItems: 'center',
-                              boxSizing: 'border-box',
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 14,
-                                height: 14,
-                                backgroundColor: '#ffffff',
-                                borderRadius: '50%',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                                transform: settings.developerMode
-                                  ? 'translateX(14px)'
-                                  : 'translateX(0px)',
-                                transition: 'transform 0.2s ease',
-                              }}
-                            />
-                          </div>
+                          />
                         </div>
                       }
                     >
@@ -6498,7 +6443,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                               alignItems: 'center',
                               background: 'var(--app-surface-high)',
                               borderRadius: '999px',
-                              padding: '6px 12px',
+                              padding: '4px 10px',
                               gap: 8,
                               border: '1px solid rgba(128, 128, 128, 0.08)',
                             }}
@@ -6514,42 +6459,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                             >
                               Dev Mode
                             </span>
-                            <div
-                              onClick={() => {
-                                const next = !settings.developerMode;
+                            <StudioToggle
+                              size="sm"
+                              value={settings.developerMode}
+                              onChange={(next) => {
                                 useSettingsStore.getState().updateSettings({ developerMode: next });
                                 showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
                               }}
-                              style={{
-                                position: 'relative',
-                                width: 32,
-                                height: 18,
-                                backgroundColor: settings.developerMode
-                                  ? 'var(--studio-accent-from, #679cff)'
-                                  : 'var(--app-surface-highest)',
-                                borderRadius: 999,
-                                padding: '2px',
-                                cursor: 'pointer',
-                                transition: 'background-color 0.2s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                boxSizing: 'border-box',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: 14,
-                                  height: 14,
-                                  backgroundColor: '#ffffff',
-                                  borderRadius: '50%',
-                                  boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-                                  transform: settings.developerMode
-                                    ? 'translateX(14px)'
-                                    : 'translateX(0px)',
-                                  transition: 'transform 0.2s ease',
-                                }}
-                              />
-                            </div>
+                            />
                           </div>
                         </div>
                       )}

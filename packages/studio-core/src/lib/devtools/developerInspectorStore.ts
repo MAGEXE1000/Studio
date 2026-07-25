@@ -19,6 +19,15 @@ export type GridOverlayMode =
   | 'safeArea'
   | 'touchTargets';
 
+export type DockPosition = 'bottom' | 'side' | 'floating';
+export type FilterCategory = 'all' | 'interactive' | 'animated' | 'react' | 'dom' | 'scrollable';
+
+export interface BreadcrumbItem {
+  name: string;
+  element: HTMLElement;
+  isReact: boolean;
+}
+
 export interface ComponentFiberInfo {
   displayName: string;
   tagName: string;
@@ -36,10 +45,20 @@ export interface ComponentFiberInfo {
   childrenCount: number;
   siblingCount: number;
   renderDepth: number;
+  flexGridInfo?: {
+    display: string;
+    flexDirection?: string;
+    justifyContent?: string;
+    alignItems?: string;
+    gridTemplateColumns?: string;
+    gap?: string;
+  };
 }
 
 export interface InspectorStoreState {
   isEnabled: boolean;
+  isDockOpen: boolean;
+  dockPosition: DockPosition;
   isLiveSelecting: boolean;
   isFrozen: boolean;
   selectedElement: HTMLElement | null;
@@ -47,20 +66,26 @@ export interface InspectorStoreState {
   selectedFiberInfo: ComponentFiberInfo | null;
   activeTab: InspectorTab;
   searchQuery: string;
+  activeFilter: FilterCategory;
   gridOverlay: GridOverlayMode;
   measurePair: [HTMLElement | null, HTMLElement | null];
   showBoxModel: boolean;
   showParentOutline: boolean;
   showChildrenOutline: boolean;
-  
+  breadcrumbs: BreadcrumbItem[];
+
   // Actions
   setIsEnabled: (enabled: boolean) => void;
+  setIsDockOpen: (open: boolean) => void;
+  setDockPosition: (pos: DockPosition) => void;
   setIsLiveSelecting: (selecting: boolean) => void;
   setIsFrozen: (frozen: boolean) => void;
-  setSelectedElement: (el: HTMLElement | null, fiberInfo?: ComponentFiberInfo | null) => void;
+  toggleFreezeUI: () => void;
+  setSelectedElement: (el: HTMLElement | null, fiberInfo?: ComponentFiberInfo | null, breadcrumbs?: BreadcrumbItem[]) => void;
   setHoveredElement: (el: HTMLElement | null) => void;
   setActiveTab: (tab: InspectorTab) => void;
   setSearchQuery: (query: string) => void;
+  setActiveFilter: (filter: FilterCategory) => void;
   setGridOverlay: (grid: GridOverlayMode) => void;
   setMeasurePair: (pair: [HTMLElement | null, HTMLElement | null]) => void;
   setShowBoxModel: (show: boolean) => void;
@@ -73,6 +98,8 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
   persist(
     (set) => ({
       isEnabled: false,
+      isDockOpen: false,
+      dockPosition: 'bottom',
       isLiveSelecting: false,
       isFrozen: false,
       selectedElement: null,
@@ -80,35 +107,43 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
       selectedFiberInfo: null,
       activeTab: 'info',
       searchQuery: '',
+      activeFilter: 'all',
       gridOverlay: 'none',
       measurePair: [null, null],
       showBoxModel: true,
       showParentOutline: true,
       showChildrenOutline: true,
+      breadcrumbs: [],
 
       setIsEnabled: (isEnabled) =>
         set((state) => {
           if (!isEnabled) {
             return {
               isEnabled: false,
+              isDockOpen: false,
               isLiveSelecting: false,
               isFrozen: false,
               selectedElement: null,
               hoveredElement: null,
               selectedFiberInfo: null,
               measurePair: [null, null],
+              breadcrumbs: [],
             };
           }
-          return { isEnabled: true };
+          return { isEnabled: true, isDockOpen: true };
         }),
 
+      setIsDockOpen: (isDockOpen) => set({ isDockOpen }),
+      setDockPosition: (dockPosition) => set({ dockPosition }),
       setIsLiveSelecting: (isLiveSelecting) => set({ isLiveSelecting }),
       setIsFrozen: (isFrozen) => set({ isFrozen }),
-      setSelectedElement: (selectedElement, selectedFiberInfo = null) =>
-        set({ selectedElement, selectedFiberInfo }),
+      toggleFreezeUI: () => set((state) => ({ isFrozen: !state.isFrozen })),
+      setSelectedElement: (selectedElement, selectedFiberInfo = null, breadcrumbs = []) =>
+        set({ selectedElement, selectedFiberInfo, breadcrumbs }),
       setHoveredElement: (hoveredElement) => set({ hoveredElement }),
       setActiveTab: (activeTab) => set({ activeTab }),
       setSearchQuery: (searchQuery) => set({ searchQuery }),
+      setActiveFilter: (activeFilter) => set({ activeFilter }),
       setGridOverlay: (gridOverlay) => set({ gridOverlay }),
       setMeasurePair: (measurePair) => set({ measurePair }),
       setShowBoxModel: (showBoxModel) => set({ showBoxModel }),
@@ -124,14 +159,17 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
           selectedFiberInfo: null,
           activeTab: 'info',
           searchQuery: '',
+          activeFilter: 'all',
           gridOverlay: 'none',
           measurePair: [null, null],
+          breadcrumbs: [],
         }),
     }),
     {
-      name: 'livex_developer_inspector_v1',
+      name: 'livex_developer_inspector_v2',
       partialize: (state) => ({
         isEnabled: state.isEnabled,
+        dockPosition: state.dockPosition,
         showBoxModel: state.showBoxModel,
         showParentOutline: state.showParentOutline,
         showChildrenOutline: state.showChildrenOutline,

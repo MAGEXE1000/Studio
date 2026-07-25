@@ -1,4 +1,4 @@
-import { ComponentFiberInfo } from '@workspace/studio-core';
+import { ComponentFiberInfo, BreadcrumbItem } from '@workspace/studio-core';
 
 /**
  * InspectorEngine
@@ -116,6 +116,16 @@ export function getFiberInfoFromDOMNode(element: HTMLElement | null): ComponentF
     parentName = element.parentElement.tagName.toLowerCase();
   }
 
+  const computed = window.getComputedStyle(element);
+  const flexGridInfo = {
+    display: computed.display,
+    flexDirection: computed.flexDirection,
+    justifyContent: computed.justifyContent,
+    alignItems: computed.alignItems,
+    gridTemplateColumns: computed.gridTemplateColumns,
+    gap: computed.gap,
+  };
+
   const childrenCount = element.children.length;
   const siblingCount = element.parentElement ? element.parentElement.children.length - 1 : 0;
 
@@ -135,6 +145,7 @@ export function getFiberInfoFromDOMNode(element: HTMLElement | null): ComponentF
     childrenCount,
     siblingCount,
     renderDepth: depth,
+    flexGridInfo,
   };
 }
 
@@ -202,7 +213,13 @@ export function getBoxModel(element: HTMLElement): BoxModel {
 export function getParentElement(element: HTMLElement | null): HTMLElement | null {
   if (!element || !element.parentElement) return null;
   let parent: HTMLElement | null = element.parentElement;
-  while (parent && (parent.tagName === 'BODY' || parent.tagName === 'HTML' || parent.getAttribute('data-inspector-overlay') === 'true')) {
+  while (
+    parent &&
+    (parent.tagName === 'BODY' ||
+      parent.tagName === 'HTML' ||
+      parent.getAttribute('data-inspector-overlay') === 'true' ||
+      parent.closest('[data-inspector-dock="true"]'))
+  ) {
     parent = parent.parentElement;
   }
   return parent;
@@ -210,7 +227,13 @@ export function getParentElement(element: HTMLElement | null): HTMLElement | nul
 
 export function getFirstChildElement(element: HTMLElement | null): HTMLElement | null {
   if (!element || element.children.length === 0) return null;
-  return element.children[0] as HTMLElement;
+  for (let i = 0; i < element.children.length; i++) {
+    const child = element.children[i] as HTMLElement;
+    if (child && !child.closest('[data-inspector-dock="true"]')) {
+      return child;
+    }
+  }
+  return null;
 }
 
 export function getPreviousSiblingElement(element: HTMLElement | null): HTMLElement | null {
@@ -223,18 +246,81 @@ export function getNextSiblingElement(element: HTMLElement | null): HTMLElement 
   return element.nextElementSibling as HTMLElement;
 }
 
-/**
- * Find deepest visible element under coordinates x, y excluding inspector overlay
- */
+export function getNearestInteractiveElement(element: HTMLElement | null): HTMLElement | null {
+  if (!element) return null;
+  return element.closest('button, a, input, select, textarea, [role="button"], [tabindex]') as HTMLElement | null;
+}
+
+export function getNearestLayoutContainer(element: HTMLElement | null): HTMLElement | null {
+  if (!element) return null;
+  let curr: HTMLElement | null = element.parentElement;
+  while (curr && curr.tagName !== 'BODY') {
+    const display = window.getComputedStyle(curr).display;
+    if (display.includes('flex') || display.includes('grid')) {
+      return curr;
+    }
+    curr = curr.parentElement;
+  }
+  return null;
+}
+
+export function getBreadcrumbsForElement(element: HTMLElement | null): BreadcrumbItem[] {
+  if (!element) return [];
+  const crumbs: BreadcrumbItem[] = [];
+  let curr: HTMLElement | null = element;
+  while (curr && curr.tagName !== 'BODY' && curr.tagName !== 'HTML') {
+    if (curr.getAttribute('data-inspector-overlay') === 'true' || curr.closest('[data-inspector-dock="true"]')) {
+      curr = curr.parentElement;
+      continue;
+    }
+    const fiber = getFiberInfoFromDOMNode(curr);
+    crumbs.unshift({
+      name: fiber?.displayName || curr.tagName.toLowerCase(),
+      element: curr,
+      isReact: fiber ? fiber.displayName !== curr.tagName.toLowerCase() : false,
+    });
+    curr = curr.parentElement;
+  }
+  return crumbs.slice(-6);
+}
+
 export function getInspectableElementAtPoint(x: number, y: number): HTMLElement | null {
   const elements = document.elementsFromPoint(x, y);
   for (const el of elements) {
     if (el instanceof HTMLElement) {
-      if (el.closest('[data-inspector-overlay="true"]') || el.tagName === 'BODY' || el.tagName === 'HTML') {
+      if (
+        el.closest('[data-inspector-overlay="true"]') ||
+        el.closest('[data-inspector-dock="true"]') ||
+        el.tagName === 'BODY' ||
+        el.tagName === 'HTML'
+      ) {
         continue;
       }
       return el;
     }
   }
   return null;
+}
+
+/**
+ * Freeze UI Engine (Freezes entire Studio interface)
+ */
+export function freezeStudioUI(freeze: boolean) {
+  const root = document.documentElement;
+  if (freeze) {
+    root.classList.add('livex-freeze-ui');
+    root.style.setProperty('--motion-speed-scale', '0');
+    root.style.setProperty('--motion-duration', '0s');
+
+    // Pause all media elements
+    document.querySelectorAll('video, audio').forEach((media) => {
+      try {
+        (media as HTMLMediaElement).pause();
+      } catch (err) {}
+    });
+  } else {
+    root.classList.remove('livex-freeze-ui');
+    root.style.removeProperty('--motion-speed-scale');
+    root.style.removeProperty('--motion-duration');
+  }
 }

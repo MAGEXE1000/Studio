@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigationStore } from '@workspace/studio-core';
-import { InspectorOverlayRenderer } from '../components/devtools/inspector';
+import { InspectorOverlayRenderer, GlobalDeveloperInspectorDock } from '../components/devtools/inspector';
 
 const KeepAliveView = React.memo(
   ({
@@ -292,6 +292,7 @@ export function SharedNavigationContainer({
         );
       })}
       <InspectorOverlayRenderer />
+      <GlobalDeveloperInspectorDock />
     </div>
   );
 }

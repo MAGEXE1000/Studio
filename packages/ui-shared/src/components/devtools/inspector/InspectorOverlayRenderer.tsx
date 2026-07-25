@@ -1,6 +1,13 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDeveloperInspectorStore } from '@workspace/studio-core';
-import { getBoxModel, getInspectableElementAtPoint, getFiberInfoFromDOMNode, BoxModel } from './InspectorEngine';
+import {
+  getBoxModel,
+  getInspectableElementAtPoint,
+  getFiberInfoFromDOMNode,
+  getBreadcrumbsForElement,
+  freezeStudioUI,
+  BoxModel,
+} from './InspectorEngine';
 
 /**
  * InspectorOverlayRenderer
@@ -21,7 +28,6 @@ export const InspectorOverlayRenderer: React.FC = () => {
 
   const setSelectedElement = useDeveloperInspectorStore((s) => s.setSelectedElement);
   const setHoveredElement = useDeveloperInspectorStore((s) => s.setHoveredElement);
-  const setIsLiveSelecting = useDeveloperInspectorStore((s) => s.setIsLiveSelecting);
 
   const [selectedBox, setSelectedBox] = useState<BoxModel | null>(null);
   const [hoveredBox, setHoveredBox] = useState<BoxModel | null>(null);
@@ -32,46 +38,68 @@ export const InspectorOverlayRenderer: React.FC = () => {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
+  // 1. Synchronize Freeze UI State
+  useEffect(() => {
+    freezeStudioUI(isFrozen);
+    return () => {
+      freezeStudioUI(false);
+    };
+  }, [isFrozen]);
+
   // Return null immediately when disabled for ZERO runtime overhead
   if (!isEnabled) return null;
 
-  // 1. Update Box Model measurements when selected or hovered element changes
+  // 2. Update Box Model measurements on element change, scroll, resize or animation frame
   useEffect(() => {
     if (isFrozen) return;
 
-    if (selectedElement && document.body.contains(selectedElement)) {
-      setSelectedBox(getBoxModel(selectedElement));
+    const updateMeasurements = () => {
+      if (selectedElement && document.body.contains(selectedElement)) {
+        setSelectedBox(getBoxModel(selectedElement));
 
-      if (showParentOutline && selectedElement.parentElement) {
-        setParentBox(getBoxModel(selectedElement.parentElement));
-      } else {
-        setParentBox(null);
-      }
-
-      if (showChildrenOutline && selectedElement.children.length > 0) {
-        const boxes: BoxModel[] = [];
-        for (let i = 0; i < Math.min(selectedElement.children.length, 12); i++) {
-          const child = selectedElement.children[i] as HTMLElement;
-          if (child) boxes.push(getBoxModel(child));
+        if (showParentOutline && selectedElement.parentElement) {
+          setParentBox(getBoxModel(selectedElement.parentElement));
+        } else {
+          setParentBox(null);
         }
-        setChildrenBoxes(boxes);
+
+        if (showChildrenOutline && selectedElement.children.length > 0) {
+          const boxes: BoxModel[] = [];
+          for (let i = 0; i < Math.min(selectedElement.children.length, 12); i++) {
+            const child = selectedElement.children[i] as HTMLElement;
+            if (child && !child.closest('[data-inspector-dock="true"]')) {
+              boxes.push(getBoxModel(child));
+            }
+          }
+          setChildrenBoxes(boxes);
+        } else {
+          setChildrenBoxes([]);
+        }
       } else {
+        setSelectedBox(null);
+        setParentBox(null);
         setChildrenBoxes([]);
       }
-    } else {
-      setSelectedBox(null);
-      setParentBox(null);
-      setChildrenBoxes([]);
-    }
 
-    if (hoveredElement && document.body.contains(hoveredElement)) {
-      setHoveredBox(getBoxModel(hoveredElement));
-    } else {
-      setHoveredBox(null);
-    }
+      if (hoveredElement && document.body.contains(hoveredElement)) {
+        setHoveredBox(getBoxModel(hoveredElement));
+      } else {
+        setHoveredBox(null);
+      }
+    };
+
+    updateMeasurements();
+
+    window.addEventListener('scroll', updateMeasurements, { capture: true, passive: true });
+    window.addEventListener('resize', updateMeasurements, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', updateMeasurements, { capture: true });
+      window.removeEventListener('resize', updateMeasurements);
+    };
   }, [selectedElement, hoveredElement, isFrozen, showParentOutline, showChildrenOutline]);
 
-  // 2. Global Capturing Pointer/Touch Listener for Live Selection & Long Press
+  // 3. Global Capturing Pointer/Touch Listener for Live Selection & Long Press
   useEffect(() => {
     if (!isEnabled || isFrozen) return;
 
@@ -85,7 +113,9 @@ export const InspectorOverlayRenderer: React.FC = () => {
         const target = getInspectableElementAtPoint(clientX, clientY);
         if (target && target !== hoveredElement) {
           setHoveredElement(target);
-          setSelectedElement(target, getFiberInfoFromDOMNode(target));
+          const fiberInfo = getFiberInfoFromDOMNode(target);
+          const breadcrumbs = getBreadcrumbsForElement(target);
+          setSelectedElement(target, fiberInfo, breadcrumbs);
         }
       }
     };
@@ -98,7 +128,9 @@ export const InspectorOverlayRenderer: React.FC = () => {
       longPressTimerRef.current = setTimeout(() => {
         const target = getInspectableElementAtPoint(touch.clientX, touch.clientY);
         if (target) {
-          setSelectedElement(target, getFiberInfoFromDOMNode(target));
+          const fiberInfo = getFiberInfoFromDOMNode(target);
+          const breadcrumbs = getBreadcrumbsForElement(target);
+          setSelectedElement(target, fiberInfo, breadcrumbs);
         }
       }, 500);
     };
@@ -133,15 +165,18 @@ export const InspectorOverlayRenderer: React.FC = () => {
     };
   }, [isEnabled, isLiveSelecting, isFrozen, hoveredElement, setHoveredElement, setSelectedElement]);
 
-  // 3. Touch target validator calculation (minimum 48x48dp check)
+  // 4. Touch Target Warnings Calculation (< 44dp targets)
   useEffect(() => {
     if (gridOverlay !== 'touchTargets') {
       setTouchTargetWarnings([]);
       return;
     }
-    const interactiveElements = document.querySelectorAll('button, a, input, select, textarea, [role="button"]');
+    const interactiveElements = document.querySelectorAll(
+      'button, a, input, select, textarea, [role="button"]'
+    );
     const warnings: DOMRect[] = [];
     interactiveElements.forEach((el) => {
+      if (el.closest('[data-inspector-dock="true"]')) return;
       const rect = el.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44)) {
         warnings.push(rect);
@@ -157,7 +192,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
         position: 'fixed',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 999999,
+        zIndex: 999998,
         overflow: 'hidden',
       }}
     >
@@ -196,7 +231,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
         />
       )}
 
-      {/* Touch Target Warnings (red outlines for small targets < 44dp) */}
+      {/* Touch Target Warnings (red outlines for targets < 44dp) */}
       {touchTargetWarnings.map((rect, idx) => (
         <div
           key={idx}
@@ -212,7 +247,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
         />
       ))}
 
-      {/* 2. Parent Outline (Secondary accent) */}
+      {/* 2. Parent Outline (Purple) */}
       {parentBox && (
         <div
           style={{
@@ -227,7 +262,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
         />
       )}
 
-      {/* 3. Children Outlines (Third accent) */}
+      {/* 3. Children Outlines (Cyan) */}
       {childrenBoxes.map((child, idx) => (
         <div
           key={idx}
@@ -278,7 +313,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
             }}
           />
 
-          {/* DevTools Box Model Shading */}
+          {/* DevTools Colored Box Model Shading */}
           {showBoxModel && (
             <>
               {/* Margin Area (Amber) */}
@@ -289,12 +324,24 @@ export const InspectorOverlayRenderer: React.FC = () => {
                   top: `${selectedBox.rect.top - selectedBox.margin.top}px`,
                   width: `${selectedBox.rect.width + selectedBox.margin.left + selectedBox.margin.right}px`,
                   height: `${selectedBox.rect.height + selectedBox.margin.top + selectedBox.margin.bottom}px`,
-                  backgroundColor: 'rgba(245, 158, 11, 0.18)',
-                  border: '1px dashed rgba(245, 158, 11, 0.5)',
+                  backgroundColor: 'rgba(245, 158, 11, 0.28)',
+                  border: '1px dashed rgba(245, 158, 11, 0.6)',
                   pointerEvents: 'none',
                 }}
               />
-              {/* Padding Area (Emerald) */}
+              {/* Border Area (Yellow) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: `${selectedBox.rect.left}px`,
+                  top: `${selectedBox.rect.top}px`,
+                  width: `${selectedBox.rect.width}px`,
+                  height: `${selectedBox.rect.height}px`,
+                  backgroundColor: 'rgba(234, 179, 8, 0.28)',
+                  pointerEvents: 'none',
+                }}
+              />
+              {/* Padding Area (Emerald Green) */}
               <div
                 style={{
                   position: 'absolute',
@@ -302,7 +349,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
                   top: `${selectedBox.content.y - selectedBox.padding.top}px`,
                   width: `${selectedBox.content.width + selectedBox.padding.left + selectedBox.padding.right}px`,
                   height: `${selectedBox.content.height + selectedBox.padding.top + selectedBox.padding.bottom}px`,
-                  backgroundColor: 'rgba(16, 185, 129, 0.18)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.28)',
                   pointerEvents: 'none',
                 }}
               />
@@ -314,7 +361,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
                   top: `${selectedBox.content.y}px`,
                   width: `${selectedBox.content.width}px`,
                   height: `${selectedBox.content.height}px`,
-                  backgroundColor: 'rgba(59, 130, 246, 0.25)',
+                  backgroundColor: 'rgba(59, 130, 246, 0.35)',
                   pointerEvents: 'none',
                 }}
               />
@@ -344,7 +391,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
         </>
       )}
 
-      {/* 6. Measurement Line & Distance Tool (Between 2 elements) */}
+      {/* 6. Measurement Line & Distance Tool */}
       {measurePair[0] && measurePair[1] && (
         <MeasurementLine el1={measurePair[0]} el2={measurePair[1]} />
       )}

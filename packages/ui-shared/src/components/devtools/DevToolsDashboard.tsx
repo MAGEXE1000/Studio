@@ -3,6 +3,7 @@ import CopyDropdown from './CopyDropdown';
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
+  compressReportText,
   useChordStore,
   subscribeToDevTools,
   getLogs,
@@ -26,7 +27,6 @@ import {
   getNavigationEntries,
   clearNavigationEntries,
   NavigationEntry,
-  updaterSimulation,
   triggerSimulatedStatus,
   addJsLog,
   jsLogs,
@@ -1700,7 +1700,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       text += `No performance profiler stats recorded.\n`;
     }
 
-    return text;
+    return compressReportText(text);
   };
 
   const buildCopySectionReport = () => {
@@ -1711,12 +1711,12 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       text = filteredLogs.map((l) => `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}`).join('\n');
     } else if (activeTab === 'errors') {
       title = 'Errors';
-      text = errors.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.message}\n${e.stack || ''}`).join('\n');
+      text = errors.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] (x${e.count || 1}) ${e.message}\n${e.stack || ''}`).join('\n');
     } else if (activeTab === 'events') {
       title = 'Events';
       text = events.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.type} -> ${e.target}`).join('\n');
     }
-    return `========================\n${title}\n========================\n` + (text || 'No data recorded.');
+    return compressReportText(`========================\n${title}\n========================\n` + (text || 'No data recorded.'));
   };
 
   const buildPerformanceReport = () => {
@@ -1743,7 +1743,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         text += ` - [${w.severity}] ${w.title}: ${w.description}\n`;
       });
     }
-    return text;
+    return compressReportText(text);
   };
 
   const buildNetworkReport = () => {
@@ -1755,7 +1755,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     } else {
       text += `No network traffic recorded.\n`;
     }
-    return text;
+    return compressReportText(text);
   };
 
   const buildSystemReport = () => {
@@ -1768,7 +1768,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     text += `Viewport: ${window.innerWidth}x${window.innerHeight}\n`;
     text += `Active Module: ${currentApp}\n`;
     text += `Theme: ${settings.theme} (${settings.accentColor})\n`;
-    return text;
+    return compressReportText(text);
   };
 
   const buildStorageReport = () => {
@@ -1780,7 +1780,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         text += `[${k}]: ${maskSensitiveValue(k, localStorage.getItem(k) || '')}\n`;
       }
     }
-    return text;
+    return compressReportText(text);
   };
 
   const renderCopyButton = (module: string) => {

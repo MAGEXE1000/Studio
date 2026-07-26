@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 export interface ToggleProps {
   checked?: boolean;
@@ -17,7 +17,8 @@ export interface ToggleProps {
 /**
  * Transitions.dev Canonical CSS Spring Toggle Component
  * Source of truth: https://transitions.dev/detail.html?t=toggle
- * Exact CSS timing, overshoot, double bounce, and reduced-motion support.
+ * Fixed: Replaced <label> wrapping <button> to eliminate double-firing events,
+ * flickering, stale UI, layout jumps, and race conditions.
  */
 export const Toggle: React.FC<ToggleProps> = ({
   checked,
@@ -37,24 +38,32 @@ export const Toggle: React.FC<ToggleProps> = ({
   const thumbSize = isSm ? 16 : 20;
   const translateDist = isSm ? 18 : 22;
 
-  const handleClick = (e: React.MouseEvent) => {
+  const isDebouncingRef = useRef(false);
+
+  const handleToggle = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.stopPropagation();
-    if (!disabled) {
-      onChange(!isChecked);
-    }
+    e.preventDefault();
+    if (disabled || isDebouncingRef.current) return;
+
+    isDebouncingRef.current = true;
+    onChange(!isChecked);
+
+    setTimeout(() => {
+      isDebouncingRef.current = false;
+    }, 120);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
     if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onChange(!isChecked);
+      handleToggle(e);
     }
   };
 
   return (
-    <label
+    <div
       className={`transitions-toggle-wrapper ${className}`}
+      onClick={handleToggle}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -72,7 +81,6 @@ export const Toggle: React.FC<ToggleProps> = ({
         aria-checked={isChecked}
         aria-label={ariaLabel || label}
         disabled={disabled}
-        onClick={handleClick}
         onKeyDown={handleKeyDown}
         className="transitions-toggle-root"
         style={{
@@ -93,7 +101,7 @@ export const Toggle: React.FC<ToggleProps> = ({
           outline: 'none',
           padding: 0,
           transition:
-            'background-color 350ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 300ms ease, box-shadow 300ms ease',
+            'background-color 280ms cubic-bezier(0.34, 1.56, 0.64, 1), border-color 250ms ease, box-shadow 250ms ease',
           flexShrink: 0,
         }}
       >
@@ -101,32 +109,35 @@ export const Toggle: React.FC<ToggleProps> = ({
           className="transitions-toggle-thumb"
           style={{
             position: 'absolute',
-            top: '1.5px',
-            left: '1.5px',
+            top: '50%',
+            left: '2px',
             width: `${thumbSize}px`,
             height: `${thumbSize}px`,
             borderRadius: '50%',
             backgroundColor: '#ffffff',
-            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.35)',
-            transform: isChecked ? `translateX(${translateDist}px)` : 'translateX(0px)',
-            transition: 'transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1), width 200ms ease',
+            boxShadow:
+              '0 2px 4px rgba(0, 0, 0, 0.25), 0 0 1px rgba(0, 0, 0, 0.15)',
+            transform: isChecked
+              ? `translate3d(${translateDist}px, -50%, 0)`
+              : 'translate3d(0, -50%, 0)',
+            transition: 'transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1)',
             willChange: 'transform',
           }}
         />
       </button>
+
       {label && (
         <span
           style={{
             fontSize: isSm ? '12px' : '13px',
             fontWeight: 600,
             color: 'var(--c-text-primary, #ffffff)',
-            fontFamily: 'var(--font-body, Inter, sans-serif)',
           }}
         >
           {label}
         </span>
       )}
-    </label>
+    </div>
   );
 };
 

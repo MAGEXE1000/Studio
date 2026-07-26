@@ -169,6 +169,8 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
       name: 'livex_developer_inspector_v2',
       partialize: (state) => ({
         isEnabled: state.isEnabled,
+        isDockOpen: state.isDockOpen,
+        isFrozen: state.isFrozen,
         dockPosition: state.dockPosition,
         showBoxModel: state.showBoxModel,
         showParentOutline: state.showParentOutline,

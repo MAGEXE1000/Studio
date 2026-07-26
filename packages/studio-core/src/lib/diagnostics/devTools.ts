@@ -1,6 +1,7 @@
 import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { useChordStore } from '../../store/useChordStore';
-import { useSettingsStore } from '../../store/useSettingsStore';;
+import { useSettingsStore } from '../../store/useSettingsStore';
+export { compressReportText } from './reportCompressor';
 
 export interface LogEntry {
   id: string;

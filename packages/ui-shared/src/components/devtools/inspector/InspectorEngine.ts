@@ -302,15 +302,93 @@ export function getInspectableElementAtPoint(x: number, y: number): HTMLElement 
   return null;
 }
 
+let freezeListenersActive = false;
+
+function blockFrozenEvent(e: Event) {
+  const target = e.target as HTMLElement | null;
+  if (!target) return;
+
+  // Allow events originating from Developer Inspector controls
+  if (
+    target.closest('[data-inspector-dock="true"]') ||
+    target.closest('[data-inspector-overlay="true"]')
+  ) {
+    return;
+  }
+
+  // Block ALL application interaction completely
+  e.preventDefault();
+  e.stopPropagation();
+  if (typeof (e as any).stopImmediatePropagation === 'function') {
+    (e as any).stopImmediatePropagation();
+  }
+}
+
 /**
- * Freeze UI Engine (Freezes entire Studio interface)
+ * Freeze UI Engine (Freezes 100% of Studio interface except inspector controls)
  */
 export function freezeStudioUI(freeze: boolean) {
   const root = document.documentElement;
+  const STYLE_ID = 'livex-freeze-ui-style';
+
   if (freeze) {
     root.classList.add('livex-freeze-ui');
     root.style.setProperty('--motion-speed-scale', '0');
     root.style.setProperty('--motion-duration', '0s');
+
+    // Inject airtight global CSS freeze rules
+    if (!document.getElementById(STYLE_ID)) {
+      const styleEl = document.createElement('style');
+      styleEl.id = STYLE_ID;
+      styleEl.textContent = `
+        html.livex-freeze-ui body * {
+          pointer-events: none !important;
+          user-select: none !important;
+          touch-action: none !important;
+          animation-play-state: paused !important;
+          transition: none !important;
+        }
+        html.livex-freeze-ui body {
+          overflow: hidden !important;
+          touch-action: none !important;
+          user-select: none !important;
+        }
+        html.livex-freeze-ui [data-inspector-dock="true"],
+        html.livex-freeze-ui [data-inspector-dock="true"] *,
+        html.livex-freeze-ui [data-inspector-overlay="true"],
+        html.livex-freeze-ui [data-inspector-overlay="true"] * {
+          pointer-events: auto !important;
+          user-select: auto !important;
+          touch-action: auto !important;
+        }
+      `;
+      document.head.appendChild(styleEl);
+    }
+
+    // Register capturing event listeners for total input freezing
+    if (!freezeListenersActive && typeof window !== 'undefined') {
+      freezeListenersActive = true;
+      const frozenEvents = [
+        'click',
+        'dblclick',
+        'mousedown',
+        'mouseup',
+        'pointerdown',
+        'pointerup',
+        'touchstart',
+        'touchmove',
+        'touchend',
+        'keydown',
+        'keyup',
+        'wheel',
+        'contextmenu',
+        'focusin',
+        'focusout',
+      ];
+      frozenEvents.forEach((evt) => {
+        window.addEventListener(evt, blockFrozenEvent, { capture: true, passive: false });
+      });
+    }
 
     // Pause all media elements
     document.querySelectorAll('video, audio').forEach((media) => {
@@ -322,5 +400,32 @@ export function freezeStudioUI(freeze: boolean) {
     root.classList.remove('livex-freeze-ui');
     root.style.removeProperty('--motion-speed-scale');
     root.style.removeProperty('--motion-duration');
+
+    const styleEl = document.getElementById(STYLE_ID);
+    if (styleEl) styleEl.remove();
+
+    if (freezeListenersActive && typeof window !== 'undefined') {
+      freezeListenersActive = false;
+      const frozenEvents = [
+        'click',
+        'dblclick',
+        'mousedown',
+        'mouseup',
+        'pointerdown',
+        'pointerup',
+        'touchstart',
+        'touchmove',
+        'touchend',
+        'keydown',
+        'keyup',
+        'wheel',
+        'contextmenu',
+        'focusin',
+        'focusout',
+      ];
+      frozenEvents.forEach((evt) => {
+        window.removeEventListener(evt, blockFrozenEvent, { capture: true } as any);
+      });
+    }
   }
 }

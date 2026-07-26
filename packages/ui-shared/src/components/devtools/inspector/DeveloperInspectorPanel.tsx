@@ -1,3 +1,4 @@
+import CopyButton from '../CopyButton';
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useMemo } from 'react';
 import {
@@ -488,13 +489,11 @@ export const DeveloperInspectorPanel: React.FC = () => {
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={cardTitleStyle}>React Props</div>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(selectedFiberInfo?.props, 'Props')}
-                  style={smallBtnStyle}
-                >
-                  Copy Props
-                </button>
+                <CopyButton
+                  getTextToCopy={() => JSON.stringify(selectedFiberInfo?.props || {}, null, 2)}
+                  label="Copy Props"
+                  size="sm"
+                />
               </div>
               <pre style={codeBlockStyle}>
                 {JSON.stringify(selectedFiberInfo?.props || {}, null, 2)}
@@ -504,13 +503,11 @@ export const DeveloperInspectorPanel: React.FC = () => {
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={cardTitleStyle}>React State</div>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(selectedFiberInfo?.state, 'State')}
-                  style={smallBtnStyle}
-                >
-                  Copy State
-                </button>
+                <CopyButton
+                  getTextToCopy={() => JSON.stringify(selectedFiberInfo?.state || {}, null, 2)}
+                  label="Copy State"
+                  size="sm"
+                />
               </div>
               <pre style={codeBlockStyle}>
                 {JSON.stringify(selectedFiberInfo?.state || {}, null, 2)}
@@ -523,7 +520,14 @@ export const DeveloperInspectorPanel: React.FC = () => {
         {activeTab === 'styles' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={cardStyle}>
-              <div style={cardTitleStyle}>Computed Layout & Styles</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={cardTitleStyle}>Computed Layout & Styles</div>
+                <CopyButton
+                  getTextToCopy={() => JSON.stringify(computedStyles || {}, null, 2)}
+                  label="Copy Styles"
+                  size="sm"
+                />
+              </div>
               <pre style={codeBlockStyle}>
                 {JSON.stringify(computedStyles || {}, null, 2)}
               </pre>

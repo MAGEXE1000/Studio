@@ -170,7 +170,6 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
       partialize: (state) => ({
         isEnabled: state.isEnabled,
         isDockOpen: state.isDockOpen,
-        isFrozen: state.isFrozen,
         dockPosition: state.dockPosition,
         showBoxModel: state.showBoxModel,
         showParentOutline: state.showParentOutline,

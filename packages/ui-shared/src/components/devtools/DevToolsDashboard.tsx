@@ -342,25 +342,19 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
       {showWarnings && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCopyAll();
-              }}
-
-              style={{
-                padding: '4px 8px',
-                borderRadius: '6px',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#fff',
-                fontSize: '10px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Copy All Warnings
-            </button>
+            <CopyButton
+              getTextToCopy={() =>
+                appWarnings
+                  .map(
+                    (w) =>
+                      `[${new Date(w.timestamp).toISOString()}] [${w.module}] [${w.level.toUpperCase()}] [${w.source || 'unknown'}] ${w.message}`
+                  )
+                  .join('\n')
+              }
+              label="Copy All Warnings"
+              copiedLabel="Copied All Warnings!"
+              size="sm"
+            />
           </div>
 
           <div

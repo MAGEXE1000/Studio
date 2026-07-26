@@ -1,7 +1,8 @@
-import { NavigationDispatcher } from '@workspace/studio-core';
+import { NavigationDispatcher, addError } from '@workspace/studio-core';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { useChordStore, globalUpdateState, useSettingsStore, useBottomNavigationStore } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
+import CopyButton from '../devtools/CopyButton';
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const CHAR_MAP: Record<string, number> = {};
@@ -496,12 +497,21 @@ export class ErrorBoundary extends Component<Props, State> {
   public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.errorTimestamp = Date.now();
 
-    // Log safe diagnostics to console
+    // Log safe diagnostics to console and devTools pipeline
     console.error(`Uncaught error inside boundary [${this.props.moduleName || 'Global'}]:`, {
       message: error?.message,
       name: error?.name,
       componentStack: errorInfo?.componentStack?.slice(0, 1000),
     });
+
+    try {
+      addError({
+        message: error?.message || 'Uncaught Error Boundary Exception',
+        stack: error?.stack || errorInfo?.componentStack || '',
+        source: `ErrorBoundary:${this.props.moduleName || 'Global'}`,
+        module: this.props.moduleName || 'general',
+      });
+    } catch (_) {}
 
     // Reset transition active lock on error
     if (typeof window !== 'undefined') {
@@ -760,39 +770,22 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {isRootApp && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                <Button
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8, alignItems: 'center' }}>
+                <CopyButton
+                  getTextToCopy={() => localStorage.getItem('studio_rootapp_error_boundary_log') || '[]'}
+                  label="Copy RootApp Error Log"
+                  copiedLabel="Copied Log!"
                   size="sm"
-                  onClick={() => {
-                    try {
-                      const logs =
-                        localStorage.getItem('studio_rootapp_error_boundary_log') || '[]';
-                      navigator.clipboard.writeText(logs);
-                      alert('RootApp error log copied!');
-                    } catch (_) {
-                      alert('Failed to copy');
-                    }
-                  }}
-                >
-                  Copy RootApp Error Log
-                </Button>
-                <Button
-                  variant="danger"
+                />
+                <CopyButton
+                  getTextToCopy={() =>
+                    localStorage.getItem('studio_rootapp_last_symbolicated_report') || 'No symbolicated report found'
+                  }
+                  label="Copy Symbolicated React Error Report"
+                  copiedLabel="Copied Report!"
                   size="sm"
-                  onClick={() => {
-                    try {
-                      const report =
-                        localStorage.getItem('studio_rootapp_last_symbolicated_report') ||
-                        'No symbolicated report found';
-                      navigator.clipboard.writeText(report);
-                      alert('Symbolicated React Error Report copied!');
-                    } catch (_) {
-                      alert('Failed to copy');
-                    }
-                  }}
-                >
-                  COPY SYMBOLICATED REACT ERROR REPORT
-                </Button>
+                  style={{ background: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
+                />
               </div>
             )}
           </div>

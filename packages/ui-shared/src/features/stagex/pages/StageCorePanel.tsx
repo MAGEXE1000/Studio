@@ -687,10 +687,17 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       try {
         const win = iframeRef.current?.contentWindow as
           (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
+        const targetView =
+          curView === 'Setup' || curView === 'SetupHub'
+            ? 'SetupHub'
+            : curView === 'Preferences' || curView === 'Assistant'
+              ? 'Assistant'
+              : curView;
+
         if (win && typeof win.switchView === 'function') {
-          win.switchView(curView);
+          win.switchView(targetView);
         } else {
-          callIframe('switchView', curView);
+          callIframe('switchView', targetView);
           if (retries < 15) {
             // Retry for up to ~3 seconds
             retries++;

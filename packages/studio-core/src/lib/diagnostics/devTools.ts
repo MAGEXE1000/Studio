@@ -430,12 +430,34 @@ export function addError(err: Omit<ErrorEntry, 'timestamp'>) {
   const isFirestore =
     err.message.includes('@firebase/firestore') || err.message.toLowerCase().includes('firestore');
 
-  errorsBuffer.push({
-    ...err,
-    module: isFirestore ? 'network' : err.module,
-    source: isFirestore ? 'Firestore' : err.source,
-    timestamp: Date.now(),
-  });
+  const mod = isFirestore ? 'network' : err.module;
+  const src = isFirestore ? 'Firestore' : err.source;
+  const fingerprint = err.fingerprint || getErrorFingerprint(mod, err.message, err.stack || '');
+  const now = Date.now();
+
+  const existingIndex = errorsBuffer.findIndex(
+    (e) => (e.fingerprint && e.fingerprint === fingerprint) || (e.message === err.message && e.module === mod)
+  );
+
+  if (existingIndex >= 0) {
+    const existing = errorsBuffer[existingIndex];
+    existing.count = (existing.count || 1) + 1;
+    existing.lastSeen = now;
+    existing.timestamp = now;
+  } else {
+    const id = err.id || Math.random().toString(36).substring(2, 9);
+    errorsBuffer.push({
+      ...err,
+      id,
+      fingerprint,
+      count: 1,
+      firstSeen: now,
+      lastSeen: now,
+      module: mod,
+      source: src,
+      timestamp: now,
+    });
+  }
 
   if (errorsBuffer.length > MAX_ITEMS) errorsBuffer.shift();
   notifyListeners();

@@ -40,18 +40,19 @@ export const InspectorOverlayRenderer: React.FC = () => {
 
   // 1. Synchronize Freeze UI State
   useEffect(() => {
+    if (!isEnabled) {
+      freezeStudioUI(false);
+      return;
+    }
     freezeStudioUI(isFrozen);
     return () => {
       freezeStudioUI(false);
     };
-  }, [isFrozen]);
-
-  // Return null immediately when disabled for ZERO runtime overhead
-  if (!isEnabled) return null;
+  }, [isEnabled, isFrozen]);
 
   // 2. Update Box Model measurements on element change, scroll, resize or animation frame
   useEffect(() => {
-    if (isFrozen) return;
+    if (!isEnabled || isFrozen) return;
 
     const updateMeasurements = () => {
       if (selectedElement && document.body.contains(selectedElement)) {
@@ -97,7 +98,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
       window.removeEventListener('scroll', updateMeasurements, { capture: true });
       window.removeEventListener('resize', updateMeasurements);
     };
-  }, [selectedElement, hoveredElement, isFrozen, showParentOutline, showChildrenOutline]);
+  }, [isEnabled, selectedElement, hoveredElement, isFrozen, showParentOutline, showChildrenOutline]);
 
   // 3. Global Capturing Pointer/Touch Listener for Live Selection & Long Press
   useEffect(() => {
@@ -167,7 +168,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
 
   // 4. Touch Target Warnings Calculation (< 44dp targets)
   useEffect(() => {
-    if (gridOverlay !== 'touchTargets') {
+    if (!isEnabled || gridOverlay !== 'touchTargets') {
       setTouchTargetWarnings([]);
       return;
     }
@@ -183,7 +184,10 @@ export const InspectorOverlayRenderer: React.FC = () => {
       }
     });
     setTouchTargetWarnings(warnings);
-  }, [gridOverlay]);
+  }, [isEnabled, gridOverlay]);
+
+  // Return null when disabled AFTER all hooks have executed unconditionally
+  if (!isEnabled) return null;
 
   return (
     <div

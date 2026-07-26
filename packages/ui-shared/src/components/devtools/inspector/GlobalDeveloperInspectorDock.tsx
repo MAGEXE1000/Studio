@@ -81,25 +81,26 @@ export const GlobalDeveloperInspectorDock: React.FC = () => {
         </button>
       )}
 
-      {/* 2. Samsung Edge Panel Right Drawer */}
+      {/* 2. Samsung Edge Panel Right Floating Drawer */}
       <div
         style={{
           position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: isWebDesktop ? '400px' : '88vw',
+          top: 12,
+          right: 12,
+          bottom: 12,
+          width: isWebDesktop ? '330px' : 'min(340px, 85vw)',
           pointerEvents: isDockOpen ? 'auto' : 'none',
-          background: 'rgba(14, 14, 18, 0.95)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderLeft: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '-12px 0 48px rgba(0, 0, 0, 0.7)',
+          background: 'rgba(14, 14, 18, 0.92)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 20,
+          boxShadow: '-8px 16px 40px rgba(0, 0, 0, 0.6)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          transform: isDockOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.28s cubic-bezier(0.32, 0.72, 0, 1)',
+          transform: isDockOpen ? 'translateX(0)' : 'translateX(calc(100% + 24px))',
+          transition: 'transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1)',
           zIndex: 999999,
         }}
       >

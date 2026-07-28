@@ -183,11 +183,11 @@ export const SaxophoneView: React.FC<SaxophoneViewProps> = ({
         <motion.path
           d="M152 55 L144 85 L144 140"
           fill="none"
-          stroke={isPressed('OCTAVE') ? accentColor : '#d97706'}
+          stroke={isPressed('octave') ? accentColor : '#d97706'}
           strokeWidth="3"
-          animate={{ x: isPressed('OCTAVE') ? -1 : 0 }}
+          animate={{ x: isPressed('octave') ? -1 : 0 }}
         />
-        {renderKeyPad('OCTAVE', 138, 75, 10, '8va')}
+        {renderKeyPad('octave', 138, 75, 10, '8va')}
 
         {/* ── MAIN SAXOPHONE TUBE BODY ── */}
         <path d="M148 110 L148 520 C148 580 230 580 230 500 C230 420 280 400 280 360" fill="none" stroke="url(#sax-brass-grad)" strokeWidth="36" strokeLinecap="round" />
@@ -201,45 +201,45 @@ export const SaxophoneView: React.FC<SaxophoneViewProps> = ({
 
         {/* ── PALM KEYS (LH High D, Eb, F) ── */}
         <g id="palm-keys">
-          {renderKeyPad('PALM_D', 124, 150, 9, 'D', 'rect', 20, 12)}
-          {renderKeyPad('PALM_EB', 114, 170, 9, 'E♭', 'rect', 20, 12)}
-          {renderKeyPad('PALM_F', 108, 190, 9, 'F', 'rect', 20, 12)}
+          {renderKeyPad('lh_d', 124, 150, 9, 'D', 'rect', 20, 12)}
+          {renderKeyPad('lh_eb', 114, 170, 9, 'E♭', 'rect', 20, 12)}
+          {renderKeyPad('lh_f', 108, 190, 9, 'F', 'rect', 20, 12)}
         </g>
 
         {/* ── UPPER STACK (LH 1, 2, 3 & Bis) ── */}
         <g id="upper-stack">
-          {renderKeyPad('LH_1', 148, 160, 15, '1')}
-          {renderKeyPad('BIS', 124, 190, 8, 'B')}
-          {renderKeyPad('LH_2', 148, 210, 15, '2')}
-          {renderKeyPad('LH_3', 148, 260, 15, '3')}
-          {renderKeyPad('LH_GSHARP', 118, 290, 11, 'G♯', 'rect', 22, 14)}
+          {renderKeyPad('lh1', 148, 160, 15, '1')}
+          {renderKeyPad('bis', 124, 190, 8, 'B')}
+          {renderKeyPad('lh2', 148, 210, 15, '2')}
+          {renderKeyPad('lh3', 148, 260, 15, '3')}
+          {renderKeyPad('lh_gsharp', 118, 290, 11, 'G♯', 'rect', 22, 14)}
         </g>
 
         {/* ── LOWER STACK (RH 4, 5, 6) ── */}
         <g id="lower-stack">
-          {renderKeyPad('RH_4', 148, 340, 15, '4')}
-          {renderKeyPad('RH_5', 148, 390, 15, '5')}
-          {renderKeyPad('RH_6', 148, 440, 15, '6')}
+          {renderKeyPad('rh1', 148, 340, 15, '4')}
+          {renderKeyPad('rh2', 148, 390, 15, '5')}
+          {renderKeyPad('rh3', 148, 440, 15, '6')}
         </g>
 
         {/* ── SIDE KEYS (High E, Side C, Side Bb) ── */}
         <g id="side-keys">
-          {renderKeyPad('SIDE_E', 178, 330, 9, 'E', 'rect', 20, 12)}
-          {renderKeyPad('SIDE_C', 178, 360, 9, 'C', 'rect', 20, 12)}
-          {renderKeyPad('SIDE_BB', 178, 390, 9, 'B♭', 'rect', 20, 12)}
+          {renderKeyPad('rh_side_e', 178, 330, 9, 'E', 'rect', 20, 12)}
+          {renderKeyPad('rh_side_c', 178, 360, 9, 'C', 'rect', 20, 12)}
+          {renderKeyPad('rh_side_bb', 178, 390, 9, 'B♭', 'rect', 20, 12)}
         </g>
 
         {/* ── PINKY TABLES ── */}
         {/* LH Table */}
         <g id="lh-pinky-table">
-          {renderKeyPad('LOW_CSHARP', 112, 320, 9, 'C♯', 'rect', 20, 11)}
-          {renderKeyPad('LOW_B', 112, 340, 9, 'B', 'rect', 20, 11)}
-          {renderKeyPad('LOW_BB', 112, 360, 9, 'B♭', 'rect', 20, 11)}
+          {renderKeyPad('lh_low_csharp', 112, 320, 9, 'C♯', 'rect', 20, 11)}
+          {renderKeyPad('lh_low_b', 112, 340, 9, 'B', 'rect', 20, 11)}
+          {renderKeyPad('lh_low_bb', 112, 360, 9, 'B♭', 'rect', 20, 11)}
         </g>
         {/* RH Table */}
         <g id="rh-pinky-table">
-          {renderKeyPad('RH_EB', 176, 460, 10, 'E♭', 'rect', 22, 12)}
-          {renderKeyPad('RH_C', 176, 485, 10, 'C', 'rect', 22, 12)}
+          {renderKeyPad('rh_low_eb', 176, 460, 10, 'E♭', 'rect', 22, 12)}
+          {renderKeyPad('rh_low_c', 176, 485, 10, 'C', 'rect', 22, 12)}
         </g>
       </svg>
     </div>

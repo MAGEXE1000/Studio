@@ -1,6 +1,8 @@
 import type { Instrument } from '../../data/chords';
+import { instrumentPlatform, type InstrumentStatus } from './instrumentPlatform';
+import { playRecordedSaxophoneSample, stopAllSaxophoneSamples } from '../audio/saxophoneSampleAudio';
 
-export type InstrumentStatus = 'active' | 'coming_soon';
+export type { InstrumentStatus };
 
 export interface InstrumentConfig {
   id: Instrument;
@@ -55,10 +57,33 @@ export const INSTRUMENT_REGISTRY: Record<Instrument, InstrumentConfig> = {
   },
 };
 
+// Register Saxophone in Platform Manager
+instrumentPlatform.register({
+  metadata: INSTRUMENT_REGISTRY.saxophone,
+  navigation: {
+    tabs: [
+      { id: 'practice', labelKey: 'practice', icon: 'graphic_eq' },
+      { id: 'library', labelKey: 'library', icon: 'library' },
+      { id: 'settings', labelKey: 'settings', icon: 'settings' },
+    ],
+    defaultTab: 'practice',
+  },
+  audio: {
+    playNote: (opt) =>
+      playRecordedSaxophoneSample({
+        writtenNote: opt.note,
+        variant: opt.variant as any,
+        duration: opt.duration,
+        gain: opt.gain,
+      }),
+    stopAll: () => stopAllSaxophoneSamples(),
+  },
+});
+
 export function getInstrumentConfig(inst: Instrument): InstrumentConfig {
   return INSTRUMENT_REGISTRY[inst] || INSTRUMENT_REGISTRY.guitar;
 }
 
 export function getNavTabsForInstrument(inst: Instrument): string[] {
-  return getInstrumentConfig(inst).navTabs;
+  return instrumentPlatform.getNavTabs(inst);
 }

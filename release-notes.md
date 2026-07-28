@@ -1,9 +1,7 @@
 Release Date: 2026-07-28
 
 ## Added
-- Transformed Chordex into a multi-instrument platform supporting Guitar, Saxophone, and future slots for Piano and Bass.
-- Implemented Global Instrument Selector in Preferences with instant app adaptation and session persistence.
-- Implemented Saxophone Practice Mode with interactive vector-based saxophone, pad key animations, touch targets, and low-latency acoustic WebAudio synthesis.
-- Implemented Alto (Eb), Tenor (Bb), and Baritone (Eb) transpositions with concert and written pitch displays.
-- Implemented reusable Saxophone Fingering Engine supporting low Bb3 to high F#6, alternate fingerings, palm keys, side keys, and pinky clusters.
-- Adapted bottom navigation dynamically to Practice, Library, Preferences when Saxophone mode is active.
+- Architected a modular Multi-Instrument Platform with decoupled InstrumentRegistry, NavigationProvider, AudioProvider, PracticeEngine, and LibraryProvider.
+- Integrated real recorded saxophone multisamples derived from Versilian Community Sample Library (VCSL CC0) with natural pitch interpolation, velocity scaling, and decay release tails.
+- Expanded Saxophone Practice Mode with 6 interactive learning modes: Free Play, Learn Notes, Quiz (score & streak tracking), Playback (animated scale player), Scales, and Exercises.
+- Enhanced vector SVG Saxophone visual renderer with rod linkages, spring physics, and haptic feedback.

@@ -1,51 +1,107 @@
-import React, { useState, useCallback } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   SAX_FINGERINGS,
   SAX_VARIANTS,
   getConcertNote,
-  playSaxophoneNote,
+  playRecordedSaxophoneSample,
   type SaxophoneVariant,
   type SaxKeyId,
 } from '@workspace/studio-core';
 import { SaxophoneView } from '../components/SaxophoneView';
 
+export type SaxPracticeMode = 'free' | 'learn' | 'quiz' | 'playback' | 'scales' | 'exercises';
+
 export const SaxophonePracticePanel: React.FC = () => {
   const [variant, setVariant] = useState<SaxophoneVariant>('alto');
-  const [selectedNoteIdx, setSelectedNoteIdx] = useState<number>(6); // Default F4 (index 6)
+  const [practiceMode, setPracticeMode] = useState<SaxPracticeMode>('free');
+  const [selectedNoteIdx, setSelectedNoteIdx] = useState<number>(6); // F4 default
   const [activeKeysOverride, setActiveKeysOverride] = useState<SaxKeyId[] | null>(null);
+
+  // Quiz Mode state
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizStreak, setQuizStreak] = useState(0);
+  const [quizTargetIdx, setQuizTargetIdx] = useState<number>(() => Math.floor(Math.random() * SAX_FINGERINGS.length));
+  const [quizFeedback, setQuizFeedback] = useState<'correct' | 'wrong' | null>(null);
+
+  // Playback Mode state
+  const [isPlayingSequence, setIsPlayingSequence] = useState(false);
 
   const currentFingering = SAX_FINGERINGS[selectedNoteIdx] || SAX_FINGERINGS[0];
   const concertNote = getConcertNote(currentFingering.writtenNote, variant);
 
   const handlePlaySound = useCallback(() => {
-    playSaxophoneNote({
+    playRecordedSaxophoneSample({
       writtenNote: currentFingering.writtenNote,
       variant,
-      duration: 2.0,
+      duration: 2.2,
     });
   }, [currentFingering.writtenNote, variant]);
 
   const handleKeyToggle = (keyId: SaxKeyId) => {
-    setActiveKeysOverride((prev) => {
-      const current = prev || [...currentFingering.keys];
-      if (current.includes(keyId)) {
-        return current.filter((k) => k !== keyId);
-      }
-      return [...current, keyId];
-    });
+    const nextKeys = activeKeysOverride
+      ? activeKeysOverride.includes(keyId)
+        ? activeKeysOverride.filter((k) => k !== keyId)
+        : [...activeKeysOverride, keyId]
+      : [...currentFingering.keys, keyId];
+
+    setActiveKeysOverride(nextKeys);
     handlePlaySound();
+
+    // Learn & Quiz verification
+    if (practiceMode === 'quiz') {
+      const targetKeys = SAX_FINGERINGS[quizTargetIdx].keys;
+      const isMatch =
+        nextKeys.length === targetKeys.length && nextKeys.every((k) => targetKeys.includes(k));
+
+      if (isMatch) {
+        setQuizFeedback('correct');
+        setQuizScore((s) => s + 100);
+        setQuizStreak((st) => st + 1);
+        setTimeout(() => {
+          setQuizFeedback(null);
+          setQuizTargetIdx(Math.floor(Math.random() * SAX_FINGERINGS.length));
+          setActiveKeysOverride([]);
+        }, 1200);
+      }
+    }
   };
 
   const handleNoteChange = (newIdx: number) => {
     const nextIdx = Math.max(0, Math.min(SAX_FINGERINGS.length - 1, newIdx));
     setSelectedNoteIdx(nextIdx);
     setActiveKeysOverride(null);
-    playSaxophoneNote({
+    playRecordedSaxophoneSample({
       writtenNote: SAX_FINGERINGS[nextIdx].writtenNote,
       variant,
       duration: 1.5,
     });
+  };
+
+  // Automated scale playback sequence
+  const startScalePlayback = () => {
+    if (isPlayingSequence) return;
+    setIsPlayingSequence(true);
+
+    const scaleIndices = [4, 6, 8, 9, 11, 13, 15, 16]; // C4 Major Scale notes
+    let step = 0;
+
+    const interval = setInterval(() => {
+      if (step >= scaleIndices.length) {
+        clearInterval(interval);
+        setIsPlayingSequence(false);
+        return;
+      }
+      const idx = scaleIndices[step];
+      setSelectedNoteIdx(idx);
+      setActiveKeysOverride(null);
+      playRecordedSaxophoneSample({
+        writtenNote: SAX_FINGERINGS[idx].writtenNote,
+        variant,
+        duration: 1.2,
+      });
+      step++;
+    }, 700);
   };
 
   return (
@@ -63,7 +119,7 @@ export const SaxophonePracticePanel: React.FC = () => {
         boxSizing: 'border-box',
       }}
     >
-      {/* Header & Variant Selector */}
+      {/* Title & Transposition Variant Tabs */}
       <div
         style={{
           display: 'flex',
@@ -77,7 +133,7 @@ export const SaxophonePracticePanel: React.FC = () => {
           Saxophone Practice
         </div>
 
-        {/* Variant Tabs */}
+        {/* Sax Variant Selector */}
         <div
           style={{
             display: 'flex',
@@ -98,13 +154,13 @@ export const SaxophonePracticePanel: React.FC = () => {
                   setActiveKeysOverride(null);
                 }}
                 style={{
-                  padding: '6px 16px',
+                  padding: '6px 14px',
                   borderRadius: 8,
                   border: 'none',
                   background: isActive ? '#f59e0b' : 'transparent',
                   color: isActive ? '#000' : '#a1a1aa',
                   fontWeight: 700,
-                  fontSize: 13,
+                  fontSize: 12,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                 }}
@@ -114,9 +170,52 @@ export const SaxophonePracticePanel: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Practice Mode Selector Tabs */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: 6,
+            marginTop: 4,
+          }}
+        >
+          {[
+            { id: 'free', label: 'Free Play' },
+            { id: 'learn', label: 'Learn Notes' },
+            { id: 'quiz', label: 'Quiz' },
+            { id: 'playback', label: 'Playback' },
+            { id: 'scales', label: 'Scales' },
+            { id: 'exercises', label: 'Exercises' },
+          ].map((m) => {
+            const isActive = practiceMode === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={() => {
+                  setPracticeMode(m.id as SaxPracticeMode);
+                  setActiveKeysOverride(null);
+                }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  border: isActive ? '1px solid #f59e0b' : '1px solid rgba(255,255,255,0.1)',
+                  background: isActive ? 'rgba(245, 158, 11, 0.15)' : 'rgba(24,24,27,0.6)',
+                  color: isActive ? '#f59e0b' : '#a1a1aa',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Main Pitch & Fingering Card */}
+      {/* Main Interactive Saxophone Card */}
       <div
         style={{
           background: 'rgba(24, 24, 27, 0.8)',
@@ -131,52 +230,82 @@ export const SaxophonePracticePanel: React.FC = () => {
           marginBottom: 20,
         }}
       >
-        {/* Note Display & Playback Button */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            maxWidth: 360,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase' }}>
-              Written Pitch
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>
-              {currentFingering.displayNote}
-            </div>
-            <div style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
-              Concert Pitch: {concertNote}
-            </div>
-          </div>
-
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={handlePlaySound}
+        {/* Mode Banner / Target info */}
+        {practiceMode === 'quiz' ? (
+          <div
             style={{
-              width: 54,
-              height: 54,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-              border: 'none',
-              color: '#000',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)',
+              justifyContent: 'space-between',
+              width: '100%',
+              maxWidth: 360,
+              background: 'rgba(245, 158, 11, 0.1)',
+              padding: '12px 16px',
+              borderRadius: 12,
+              border: '1px solid rgba(245, 158, 11, 0.3)',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>
-              volume_up
-            </span>
-          </motion.button>
-        </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b' }}>
+                QUIZ TARGET NOTE
+              </div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#fff' }}>
+                {SAX_FINGERINGS[quizTargetIdx].displayNote}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: '#a1a1aa' }}>SCORE</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#38bdf8' }}>{quizScore}</div>
+              <div style={{ fontSize: 10, color: '#f59e0b' }}>Streak: {quizStreak} 🔥</div>
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              maxWidth: 360,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase' }}>
+                Written Pitch
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>
+                {currentFingering.displayNote}
+              </div>
+              <div style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+                Concert Pitch: {concertNote}
+              </div>
+            </div>
 
-        {/* Note Stepper Controls */}
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onClick={handlePlaySound}
+              style={{
+                width: 54,
+                height: 54,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                border: 'none',
+                color: '#000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 28 }}>
+                volume_up
+              </span>
+            </motion.button>
+          </div>
+        )}
+
+        {/* Note Steppers & Playback Controls */}
         <div
           style={{
             display: 'flex',
@@ -204,9 +333,27 @@ export const SaxophonePracticePanel: React.FC = () => {
             ◄ Prev Note
           </button>
 
-          <span style={{ fontSize: 13, opacity: 0.7 }}>
-            {selectedNoteIdx + 1} / {SAX_FINGERINGS.length}
-          </span>
+          {practiceMode === 'scales' || practiceMode === 'playback' ? (
+            <button
+              onClick={startScalePlayback}
+              disabled={isPlayingSequence}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 10,
+                background: '#f59e0b',
+                border: 'none',
+                color: '#000',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              {isPlayingSequence ? 'Playing...' : 'Play Scale'}
+            </button>
+          ) : (
+            <span style={{ fontSize: 13, opacity: 0.7 }}>
+              {selectedNoteIdx + 1} / {SAX_FINGERINGS.length}
+            </span>
+          )}
 
           <button
             onClick={() => handleNoteChange(selectedNoteIdx + 1)}
@@ -226,7 +373,7 @@ export const SaxophonePracticePanel: React.FC = () => {
           </button>
         </div>
 
-        {/* Interactive Vector Saxophone Chart */}
+        {/* Interactive Vector Saxophone Graphic */}
         <SaxophoneView
           fingering={currentFingering}
           activeKeys={activeKeysOverride || undefined}

@@ -186,7 +186,7 @@ export function romanToChordId(roman: string, key: Key): string | null {
  */
 export function romanLabel(roman: string): string {
   // Strip our internal "_h" tag (harmonic-minor V) and replace with V
-  return roman.replace(/_h$/, '').replace(/°/, '°');
+  return roman.replace(/_h$/, '');
 }
 
 /** Pretty key label honouring the user's flat preference. */

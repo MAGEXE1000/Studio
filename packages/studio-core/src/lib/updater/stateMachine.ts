@@ -437,7 +437,16 @@ export function startUpdateSession(startedBy: string, trigger: string) {
     return activeUpdateSession;
   }
   
-  const sId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  let sId = 'session_' + Date.now();
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    sId += '_' + crypto.randomUUID();
+  } else if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    sId += '_' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  } else {
+    sId += '_' + Math.random().toString(36).substring(2, 11);
+  }
   activeUpdateSession = {
     sessionId: sId,
     creationTimestamp: Date.now(),

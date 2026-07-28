@@ -12098,20 +12098,9 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
 
             logIframeDiagnostic('sc-command-received', { fn: fn });
 
+            var ALLOWED_FN = ['switchView', 'toggleSCDial', 'toggleGigMode', 'stageGoBack', 'openPresetsPanel', 'exportPDFWithOptions', 'addItemToStage', 'reportStagexState', 'updateCanvasBg'];
             var handler = null;
-            if (fn === 'switchView') {
-              handler = window.switchView;
-            } else if (fn === 'toggleSCDial') {
-              handler = window.toggleSCDial;
-            } else if (fn === 'toggleGigMode') {
-              handler = window.toggleGigMode;
-            } else if (fn === 'stageGoBack') {
-              handler = window.stageGoBack;
-            } else if (fn === 'openPresetsPanel') {
-              handler = window.openPresetsPanel;
-            } else if (fn === 'exportPDFWithOptions') {
-              handler = window.exportPDFWithOptions;
-            } else {
+            if (ALLOWED_FN.indexOf(fn) !== -1 && typeof window[fn] === 'function') {
               handler = window[fn];
             }
 

@@ -1,36 +1,42 @@
 import React from 'react';
-import type { SaxKeyId, SaxFingering } from '@workspace/studio-core';
+import { motion } from 'motion/react';
+import type { SaxFingering, SaxKeyId } from '@workspace/studio-core';
 
-interface SaxophoneViewProps {
-  fingering?: SaxFingering | null;
+export interface SaxophoneViewProps {
+  fingering: SaxFingering;
   activeKeys?: SaxKeyId[];
   onKeyToggle?: (keyId: SaxKeyId) => void;
-  interactive?: boolean;
-  size?: number | string;
   accentColor?: string;
   variantName?: string;
 }
 
+/**
+ * Production-Grade Interactive Vector Alto Saxophone Diagram.
+ * Accurately renders the anatomical structure of a real saxophone:
+ *  - Mouthpiece & Neck (Gooseneck)
+ *  - Upper Stack (Keys 1, 2, 3, Bis, Octave)
+ *  - Lower Stack (Keys 4, 5, 6)
+ *  - Palm Keys (D, Eb, F)
+ *  - Side Keys (High E, Side C, Side Bb)
+ *  - Pinky Tables (LH G#, Low Bb, B, C# / RH Eb, C)
+ *  - Mechanical Rod Linkages & Key Guards
+ *  - Bell & Bow Flare
+ */
 export const SaxophoneView: React.FC<SaxophoneViewProps> = ({
   fingering,
-  activeKeys: forcedActiveKeys,
+  activeKeys,
   onKeyToggle,
-  interactive = true,
-  size = '100%',
-  accentColor = '#3b82f6',
+  accentColor = '#f59e0b',
   variantName = 'Alto Saxophone',
 }) => {
-  const activeKeysSet = new Set<SaxKeyId>(
-    forcedActiveKeys || fingering?.keys || []
-  );
+  const currentKeys = activeKeys || fingering.keys;
 
-  const isKeyActive = (keyId: SaxKeyId) => activeKeysSet.has(keyId);
+  const isPressed = (keyId: SaxKeyId) => currentKeys.includes(keyId);
 
   const handleKeyClick = (keyId: SaxKeyId) => {
-    if (!interactive) return;
-    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
       try {
-        navigator.vibrate(12);
+        window.navigator.vibrate(12);
       } catch (_) {}
     }
     if (onKeyToggle) {
@@ -38,12 +44,93 @@ export const SaxophoneView: React.FC<SaxophoneViewProps> = ({
     }
   };
 
-  const keyColor = (keyId: SaxKeyId) => {
-    return isKeyActive(keyId) ? accentColor : '#27272a';
-  };
+  const renderKeyPad = (
+    keyId: SaxKeyId,
+    cx: number,
+    cy: number,
+    r: number,
+    label: string,
+    shape: 'circle' | 'ellipse' | 'rect' = 'circle',
+    rectW = 24,
+    rectH = 14
+  ) => {
+    const pressed = isPressed(keyId);
 
-  const keyBorder = (keyId: SaxKeyId) => {
-    return isKeyActive(keyId) ? '#60a5fa' : '#52525b';
+    return (
+      <g
+        key={keyId}
+        onClick={() => handleKeyClick(keyId)}
+        style={{ cursor: 'pointer', outline: 'none' }}
+      >
+        <motion.g
+          animate={{
+            scale: pressed ? 0.92 : 1,
+            y: pressed ? 1.5 : 0,
+          }}
+          transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+        >
+          {/* Key shadow */}
+          {shape === 'circle' && (
+            <circle cx={cx} cy={cy + 2} r={r} fill="rgba(0,0,0,0.4)" />
+          )}
+
+          {/* Key Body / Pad */}
+          {shape === 'circle' ? (
+            <circle
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill={pressed ? accentColor : 'url(#gold-key-grad)'}
+              stroke={pressed ? '#ffffff' : '#d97706'}
+              strokeWidth={pressed ? 2 : 1.5}
+              style={{
+                filter: pressed ? `drop-shadow(0 0 8px ${accentColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          ) : (
+            <rect
+              x={cx - rectW / 2}
+              y={cy - rectH / 2}
+              width={rectW}
+              height={rectH}
+              rx={6}
+              fill={pressed ? accentColor : 'url(#gold-key-grad)'}
+              stroke={pressed ? '#ffffff' : '#d97706'}
+              strokeWidth={pressed ? 2 : 1.5}
+              style={{
+                filter: pressed ? `drop-shadow(0 0 8px ${accentColor})` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                transition: 'all 0.15s ease',
+              }}
+            />
+          )}
+
+          {/* Inner Pearl Inlay */}
+          {shape === 'circle' && r > 10 && (
+            <circle
+              cx={cx}
+              cy={cy}
+              r={r * 0.55}
+              fill={pressed ? '#ffffff' : 'url(#pearl-inlay-grad)'}
+              opacity={0.9}
+            />
+          )}
+
+          {/* Key Label Text */}
+          <text
+            x={cx}
+            y={cy + 4}
+            textAnchor="middle"
+            fill={pressed ? '#000000' : '#ffffff'}
+            fontSize={r > 12 ? 10 : 8}
+            fontWeight="800"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {label}
+          </text>
+        </motion.g>
+      </g>
+    );
   };
 
   return (
@@ -53,411 +140,108 @@ export const SaxophoneView: React.FC<SaxophoneViewProps> = ({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        width: size,
-        maxWidth: 420,
-        margin: '0 auto',
-        userSelect: 'none',
+        width: '100%',
+        maxWidth: 380,
         position: 'relative',
       }}
     >
       <svg
-        viewBox="0 0 300 720"
-        style={{
-          width: '100%',
-          height: 'auto',
-          maxHeight: 650,
-          filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.6))',
-        }}
+        viewBox="0 0 320 680"
+        width="100%"
+        height="100%"
+        style={{ overflow: 'visible', filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.6))' }}
       >
         <defs>
-          <linearGradient id="saxBrass" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f59e0b" />
-            <stop offset="40%" stopColor="#d97706" />
-            <stop offset="70%" stopColor="#b45309" />
-            <stop offset="100%" stopColor="#78350f" />
+          {/* Metallic Saxophone Brass Gradient */}
+          <linearGradient id="sax-brass-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#78350f" />
+            <stop offset="20%" stopColor="#f59e0b" />
+            <stop offset="50%" stopColor="#fef3c7" />
+            <stop offset="80%" stopColor="#d97706" />
+            <stop offset="100%" stopColor="#451a03" />
           </linearGradient>
 
-          <linearGradient id="saxSilver" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#e4e4e7" />
-            <stop offset="50%" stopColor="#a1a1aa" />
-            <stop offset="100%" stopColor="#52525b" />
+          {/* Key Gold Gradient */}
+          <linearGradient id="gold-key-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#b45309" />
           </linearGradient>
 
-          <filter id="keyGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
+          {/* Pearl Inlay Gradient */}
+          <radialGradient id="pearl-inlay-grad" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="70%" stopColor="#e2e8f0" />
+            <stop offset="100%" stopColor="#cbd5e1" />
+          </radialGradient>
         </defs>
 
-        {/* 1. Saxophone Body (Neck + Upper Tube + Lower Body + Bell) */}
-        {/* Neck Curve */}
-        <path
-          d="M 120 40 Q 90 20 80 50 L 95 110 Q 115 110 135 110"
+        {/* ── MOUTHPIECE & NECK ── */}
+        <path d="M152 20 h16 v25 h-16 z" fill="#18181b" stroke="#3f3f46" strokeWidth="1" />
+        <path d="M150 45 Q160 70 160 110" fill="none" stroke="url(#sax-brass-grad)" strokeWidth="14" strokeLinecap="round" />
+
+        {/* Octave Key Arm & Rod */}
+        <motion.path
+          d="M152 55 L144 85 L144 140"
           fill="none"
-          stroke="url(#saxBrass)"
-          strokeWidth="14"
-          strokeLinecap="round"
-        />
-
-        {/* Mouthpiece */}
-        <path d="M 115 35 L 130 30 L 125 45 Z" fill="#18181b" />
-
-        {/* Main Body Tube */}
-        <rect x="125" y="100" width="30" height="420" rx="8" fill="url(#saxBrass)" />
-
-        {/* Bell Curve */}
-        <path
-          d="M 155 490 Q 230 520 240 400 Q 250 320 190 310 Q 155 310 155 490"
-          fill="url(#saxBrass)"
-          stroke="#78350f"
+          stroke={isPressed('OCTAVE') ? accentColor : '#d97706'}
           strokeWidth="3"
+          animate={{ x: isPressed('OCTAVE') ? -1 : 0 }}
         />
-        {/* Bell Opening Lip */}
-        <ellipse cx="210" cy="360" rx="42" ry="70" fill="none" stroke="#fef08a" strokeWidth="5" />
+        {renderKeyPad('OCTAVE', 138, 75, 10, '8va')}
 
-        {/* Rod Mechanism Backbone Lines */}
-        <line x1="120" y1="110" x2="120" y2="510" stroke="url(#saxSilver)" strokeWidth="3" />
-        <line x1="160" y1="110" x2="160" y2="510" stroke="url(#saxSilver)" strokeWidth="3" />
+        {/* ── MAIN SAXOPHONE TUBE BODY ── */}
+        <path d="M148 110 L148 520 C148 580 230 580 230 500 C230 420 280 400 280 360" fill="none" stroke="url(#sax-brass-grad)" strokeWidth="36" strokeLinecap="round" />
 
-        {/* 2. KEYS & PAD MECHANISMS */}
+        {/* Bell Flare */}
+        <path d="M260 380 Q290 340 310 320" fill="none" stroke="url(#sax-brass-grad)" strokeWidth="48" strokeLinecap="round" />
 
-        {/* OCTAVE KEY (Top Back Thumb) */}
-        <g
-          onClick={() => handleKeyClick('octave')}
-          style={{ cursor: interactive ? 'pointer' : 'default' }}
-        >
-          <rect
-            x="95"
-            y="115"
-            width="22"
-            height="14"
-            rx="5"
-            fill={keyColor('octave')}
-            stroke={keyBorder('octave')}
-            strokeWidth="2"
-            filter={isKeyActive('octave') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="106" y="125" fill="#fff" fontSize="9" fontWeight="800" textAnchor="middle">
-            OCT
-          </text>
+        {/* Mechanical Main Rod Assembly Linkages */}
+        <line x1="134" y1="130" x2="134" y2="480" stroke="#b45309" strokeWidth="4" />
+        <line x1="166" y1="130" x2="166" y2="480" stroke="#78350f" strokeWidth="3" />
+
+        {/* ── PALM KEYS (LH High D, Eb, F) ── */}
+        <g id="palm-keys">
+          {renderKeyPad('PALM_D', 124, 150, 9, 'D', 'rect', 20, 12)}
+          {renderKeyPad('PALM_EB', 114, 170, 9, 'E♭', 'rect', 20, 12)}
+          {renderKeyPad('PALM_F', 108, 190, 9, 'F', 'rect', 20, 12)}
         </g>
 
-        {/* LEFT HAND PALM KEYS (D, Eb, F) */}
-        <g onClick={() => handleKeyClick('lh_d')} style={{ cursor: 'pointer' }}>
-          <path
-            d="M 100 145 C 80 140, 80 160, 100 160 Z"
-            fill={keyColor('lh_d')}
-            stroke={keyBorder('lh_d')}
-            strokeWidth="2"
-          />
-          <text x="88" y="154" fill="#fff" fontSize="8" fontWeight="bold">
-            D
-          </text>
-        </g>
-        <g onClick={() => handleKeyClick('lh_eb')} style={{ cursor: 'pointer' }}>
-          <path
-            d="M 100 165 C 75 160, 75 180, 100 180 Z"
-            fill={keyColor('lh_eb')}
-            stroke={keyBorder('lh_eb')}
-            strokeWidth="2"
-          />
-          <text x="84" y="174" fill="#fff" fontSize="8" fontWeight="bold">
-            E♭
-          </text>
-        </g>
-        <g onClick={() => handleKeyClick('lh_f')} style={{ cursor: 'pointer' }}>
-          <path
-            d="M 100 185 C 75 180, 75 200, 100 200 Z"
-            fill={keyColor('lh_f')}
-            stroke={keyBorder('lh_f')}
-            strokeWidth="2"
-          />
-          <text x="86" y="194" fill="#fff" fontSize="8" fontWeight="bold">
-            F
-          </text>
+        {/* ── UPPER STACK (LH 1, 2, 3 & Bis) ── */}
+        <g id="upper-stack">
+          {renderKeyPad('LH_1', 148, 160, 15, '1')}
+          {renderKeyPad('BIS', 124, 190, 8, 'B')}
+          {renderKeyPad('LH_2', 148, 210, 15, '2')}
+          {renderKeyPad('LH_3', 148, 260, 15, '3')}
+          {renderKeyPad('LH_GSHARP', 118, 290, 11, 'G♯', 'rect', 22, 14)}
         </g>
 
-        {/* FRONT F KEY */}
-        <g onClick={() => handleKeyClick('front_f')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="140"
-            r="8"
-            fill={keyColor('front_f')}
-            stroke={keyBorder('front_f')}
-            strokeWidth="2"
-          />
-          <text x="140" y="143" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle">
-            FF
-          </text>
+        {/* ── LOWER STACK (RH 4, 5, 6) ── */}
+        <g id="lower-stack">
+          {renderKeyPad('RH_4', 148, 340, 15, '4')}
+          {renderKeyPad('RH_5', 148, 390, 15, '5')}
+          {renderKeyPad('RH_6', 148, 440, 15, '6')}
         </g>
 
-        {/* LEFT HAND MAIN STACK (1, Bis, 2, 3) */}
-        {/* Key 1 (B) */}
-        <g onClick={() => handleKeyClick('lh1')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="165"
-            r="13"
-            fill={keyColor('lh1')}
-            stroke={keyBorder('lh1')}
-            strokeWidth="2.5"
-            filter={isKeyActive('lh1') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="140" y="169" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">
-            1
-          </text>
+        {/* ── SIDE KEYS (High E, Side C, Side Bb) ── */}
+        <g id="side-keys">
+          {renderKeyPad('SIDE_E', 178, 330, 9, 'E', 'rect', 20, 12)}
+          {renderKeyPad('SIDE_C', 178, 360, 9, 'C', 'rect', 20, 12)}
+          {renderKeyPad('SIDE_BB', 178, 390, 9, 'B♭', 'rect', 20, 12)}
         </g>
 
-        {/* Bis Key (Bb) */}
-        <g onClick={() => handleKeyClick('bis')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="192"
-            r="8"
-            fill={keyColor('bis')}
-            stroke={keyBorder('bis')}
-            strokeWidth="2"
-          />
-          <text x="140" y="195" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle">
-            BIS
-          </text>
+        {/* ── PINKY TABLES ── */}
+        {/* LH Table */}
+        <g id="lh-pinky-table">
+          {renderKeyPad('LOW_CSHARP', 112, 320, 9, 'C♯', 'rect', 20, 11)}
+          {renderKeyPad('LOW_B', 112, 340, 9, 'B', 'rect', 20, 11)}
+          {renderKeyPad('LOW_BB', 112, 360, 9, 'B♭', 'rect', 20, 11)}
         </g>
-
-        {/* Key 2 (A) */}
-        <g onClick={() => handleKeyClick('lh2')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="218"
-            r="13"
-            fill={keyColor('lh2')}
-            stroke={keyBorder('lh2')}
-            strokeWidth="2.5"
-            filter={isKeyActive('lh2') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="140" y="222" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">
-            2
-          </text>
-        </g>
-
-        {/* Key 3 (G) */}
-        <g onClick={() => handleKeyClick('lh3')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="252"
-            r="13"
-            fill={keyColor('lh3')}
-            stroke={keyBorder('lh3')}
-            strokeWidth="2.5"
-            filter={isKeyActive('lh3') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="140" y="256" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">
-            3
-          </text>
-        </g>
-
-        {/* G# KEY */}
-        <g onClick={() => handleKeyClick('lh_gsharp')} style={{ cursor: 'pointer' }}>
-          <rect
-            x="96"
-            y="245"
-            width="22"
-            height="14"
-            rx="4"
-            fill={keyColor('lh_gsharp')}
-            stroke={keyBorder('lh_gsharp')}
-            strokeWidth="2"
-          />
-          <text x="107" y="255" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle">
-            G♯
-          </text>
-        </g>
-
-        {/* LEFT HAND PINKY CLUSTER (Low G#, Low C#, Low B, Low Bb) */}
-        <g onClick={() => handleKeyClick('lh_low_csharp')} style={{ cursor: 'pointer' }}>
-          <rect
-            x="90"
-            y="270"
-            width="18"
-            height="14"
-            rx="3"
-            fill={keyColor('lh_low_csharp')}
-            stroke={keyBorder('lh_low_csharp')}
-            strokeWidth="2"
-          />
-          <text x="99" y="280" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle">
-            C♯
-          </text>
-        </g>
-
-        <g onClick={() => handleKeyClick('lh_low_b')} style={{ cursor: 'pointer' }}>
-          <rect
-            x="90"
-            y="288"
-            width="18"
-            height="14"
-            rx="3"
-            fill={keyColor('lh_low_b')}
-            stroke={keyBorder('lh_low_b')}
-            strokeWidth="2"
-          />
-          <text x="99" y="298" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle">
-            B
-          </text>
-        </g>
-
-        <g onClick={() => handleKeyClick('lh_low_bb')} style={{ cursor: 'pointer' }}>
-          <rect
-            x="90"
-            y="306"
-            width="18"
-            height="14"
-            rx="3"
-            fill={keyColor('lh_low_bb')}
-            stroke={keyBorder('lh_low_bb')}
-            strokeWidth="2"
-          />
-          <text x="99" y="316" fill="#fff" fontSize="7" fontWeight="bold" textAnchor="middle">
-            B♭
-          </text>
-        </g>
-
-        {/* RIGHT HAND MAIN STACK (4, 5, 6) */}
-        {/* Key 4 (F) */}
-        <g onClick={() => handleKeyClick('rh1')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="340"
-            r="13"
-            fill={keyColor('rh1')}
-            stroke={keyBorder('rh1')}
-            strokeWidth="2.5"
-            filter={isKeyActive('rh1') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="140" y="344" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">
-            4
-          </text>
-        </g>
-
-        {/* Key 5 (E) */}
-        <g onClick={() => handleKeyClick('rh2')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="374"
-            r="13"
-            fill={keyColor('rh2')}
-            stroke={keyBorder('rh2')}
-            strokeWidth="2.5"
-            filter={isKeyActive('rh2') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="140" y="378" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">
-            5
-          </text>
-        </g>
-
-        {/* Key 6 (D) */}
-        <g onClick={() => handleKeyClick('rh3')} style={{ cursor: 'pointer' }}>
-          <circle
-            cx="140"
-            cy="408"
-            r="13"
-            fill={keyColor('rh3')}
-            stroke={keyBorder('rh3')}
-            strokeWidth="2.5"
-            filter={isKeyActive('rh3') ? 'url(#keyGlow)' : undefined}
-          />
-          <text x="140" y="412" fill="#fff" fontSize="11" fontWeight="800" textAnchor="middle">
-            6
-          </text>
-        </g>
-
-        {/* RIGHT HAND SIDE KEYS (Side E, Side C, Side Bb) */}
-        <g onClick={() => handleKeyClick('rh_side_e')} style={{ cursor: 'pointer' }}>
-          <path
-            d="M 160 325 C 180 320, 180 340, 160 340 Z"
-            fill={keyColor('rh_side_e')}
-            stroke={keyBorder('rh_side_e')}
-            strokeWidth="2"
-          />
-          <text x="174" y="334" fill="#fff" fontSize="8" fontWeight="bold">
-            E
-          </text>
-        </g>
-        <g onClick={() => handleKeyClick('rh_side_c')} style={{ cursor: 'pointer' }}>
-          <path
-            d="M 160 348 C 180 343, 180 363, 160 363 Z"
-            fill={keyColor('rh_side_c')}
-            stroke={keyBorder('rh_side_c')}
-            strokeWidth="2"
-          />
-          <text x="174" y="357" fill="#fff" fontSize="8" fontWeight="bold">
-            C
-          </text>
-        </g>
-        <g onClick={() => handleKeyClick('rh_side_bb')} style={{ cursor: 'pointer' }}>
-          <path
-            d="M 160 371 C 180 366, 180 386, 160 386 Z"
-            fill={keyColor('rh_side_bb')}
-            stroke={keyBorder('rh_side_bb')}
-            strokeWidth="2"
-          />
-          <text x="174" y="380" fill="#fff" fontSize="8" fontWeight="bold">
-            B♭
-          </text>
-        </g>
-
-        {/* RIGHT HAND PINKY CLUSTER (Low C, Low Eb) */}
-        <g onClick={() => handleKeyClick('rh_low_eb')} style={{ cursor: 'pointer' }}>
-          <rect
-            x="162"
-            y="420"
-            width="20"
-            height="15"
-            rx="4"
-            fill={keyColor('rh_low_eb')}
-            stroke={keyBorder('rh_low_eb')}
-            strokeWidth="2"
-          />
-          <text x="172" y="431" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle">
-            E♭
-          </text>
-        </g>
-
-        <g onClick={() => handleKeyClick('rh_low_c')} style={{ cursor: 'pointer' }}>
-          <rect
-            x="162"
-            y="440"
-            width="20"
-            height="15"
-            rx="4"
-            fill={keyColor('rh_low_c')}
-            stroke={keyBorder('rh_low_c')}
-            strokeWidth="2"
-          />
-          <text x="172" y="451" fill="#fff" fontSize="8" fontWeight="bold" textAnchor="middle">
-            C
-          </text>
+        {/* RH Table */}
+        <g id="rh-pinky-table">
+          {renderKeyPad('RH_EB', 176, 460, 10, 'E♭', 'rect', 22, 12)}
+          {renderKeyPad('RH_C', 176, 485, 10, 'C', 'rect', 22, 12)}
         </g>
       </svg>
-
-      {/* Label and fingering details */}
-      <div
-        style={{
-          marginTop: 12,
-          textAlign: 'center',
-          color: '#e4e4e7',
-          fontFamily: 'Manrope, sans-serif',
-        }}
-      >
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#f59e0b' }}>
-          {variantName}
-        </div>
-        {fingering && (
-          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
-            {fingering.description}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

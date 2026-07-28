@@ -343,6 +343,146 @@ export const BAKAI_ICON_LIBRARY: Record<string, BakaiIconDef> = {
       { d: 'M5 12h14' },
       { d: 'M12 5l7 7-7 7' }
     ]
+  },
+  download: {
+    name: 'download',
+    paths: [
+      { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' },
+      { d: 'M7 10l5 5 5-5' },
+      { d: 'M12 15V3' }
+    ]
+  },
+  upload: {
+    name: 'upload',
+    paths: [
+      { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' },
+      { d: 'M17 8l-5-5-5 5' },
+      { d: 'M12 3v12' }
+    ]
+  },
+  favorite: {
+    name: 'favorite',
+    paths: [
+      { d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' }
+    ]
+  },
+  tune: {
+    name: 'tune',
+    paths: [
+      { d: 'M4 21v-7' },
+      { d: 'M4 10V3' },
+      { d: 'M12 21v-9' },
+      { d: 'M12 8V3' },
+      { d: 'M20 21v-5' },
+      { d: 'M20 12V3' },
+      { d: 'M1 14h6' },
+      { d: 'M9 8h6' },
+      { d: 'M17 16h6' }
+    ]
+  },
+  volume_up: {
+    name: 'volume_up',
+    paths: [
+      { d: 'M11 5L6 9H2v6h4l5 4V5z' },
+      { d: 'M15.54 8.46a5 5 0 0 1 0 7.07' },
+      { d: 'M19.07 4.93a10 10 0 0 1 0 14.14' }
+    ]
+  },
+  volume_off: {
+    name: 'volume_off',
+    paths: [
+      { d: 'M11 5L6 9H2v6h4l5 4V5z' },
+      { d: 'M23 9l-6 6' },
+      { d: 'M17 9l6 6' }
+    ]
+  },
+  chevron_down: {
+    name: 'chevron_down',
+    paths: [
+      { d: 'M6 9l6 6 6-6' }
+    ]
+  },
+  chevron_up: {
+    name: 'chevron_up',
+    paths: [
+      { d: 'M18 15l-6-6-6 6' }
+    ]
+  },
+  apps: {
+    name: 'apps',
+    paths: [
+      { type: 'rect', rectProps: { x: 4, y: 4, width: 6, height: 6, rx: 1 }, d: '' },
+      { type: 'rect', rectProps: { x: 14, y: 4, width: 6, height: 6, rx: 1 }, d: '' },
+      { type: 'rect', rectProps: { x: 4, y: 14, width: 6, height: 6, rx: 1 }, d: '' },
+      { type: 'rect', rectProps: { x: 14, y: 14, width: 6, height: 6, rx: 1 }, d: '' }
+    ]
+  },
+  history: {
+    name: 'history',
+    paths: [
+      { d: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8' },
+      { d: 'M3 3v5h5' },
+      { d: 'M12 7v5l4 2' }
+    ]
+  },
+  bug_report: {
+    name: 'bug_report',
+    paths: [
+      { d: 'M12 2a4 4 0 0 0-4 4v1H5a1 1 0 0 0 0 2h3v2H4a1 1 0 0 0 0 2h4v1a4 4 0 0 0 8 0v-1h4a1 1 0 0 0 0-2h-4v-2h3a1 1 0 0 0 0-2h-3V6a4 4 0 0 0-4-4z' }
+    ]
+  },
+  speed: {
+    name: 'speed',
+    paths: [
+      { d: 'M12 14l3-5' },
+      { d: 'M3.34 19a10 10 0 1 1 17.32 0' }
+    ]
+  },
+  memory: {
+    name: 'memory',
+    paths: [
+      { type: 'rect', rectProps: { x: 6, y: 6, width: 12, height: 12, rx: 2 }, d: '' },
+      { d: 'M9 2v4' },
+      { d: 'M15 2v4' },
+      { d: 'M9 18v4' },
+      { d: 'M15 18v4' },
+      { d: 'M2 9h4' },
+      { d: 'M2 15h4' },
+      { d: 'M18 9h4' },
+      { d: 'M18 15h4' }
+    ]
+  },
+  code: {
+    name: 'code',
+    paths: [
+      { d: 'M16 18l6-6-6-6' },
+      { d: 'M8 6l-6 6 6 6' }
+    ]
+  },
+  terminal: {
+    name: 'terminal',
+    paths: [
+      { d: 'M4 17l6-5-6-5' },
+      { d: 'M12 19h8' }
+    ]
+  },
+  help: {
+    name: 'help',
+    paths: [
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 10 }, d: '' },
+      { d: 'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3' },
+      { d: 'M12 17h.01' }
+    ]
+  },
+  share: {
+    name: 'share',
+    paths: [
+      { type: 'circle', circleProps: { cx: 18, cy: 5, r: 3 }, d: '' },
+      { type: 'circle', circleProps: { cx: 6, cy: 12, r: 3 }, d: '' },
+      { type: 'circle', circleProps: { cx: 18, cy: 19, r: 3 }, d: '' },
+      { d: 'M8.59 13.51l6.83 3.98' },
+      { d: 'M15.41 6.51l-6.82 3.98' }
+    ]
   }
 };
 

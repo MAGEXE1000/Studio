@@ -18,6 +18,7 @@ import {
   GroovexLogo,
   VocalexLogo,
 } from '../components/icons/ChordexLogo';
+import { AnimatedIcon } from '../components/icons/AnimatedIcon';
 
 function useStartupComplete() {
   const [complete, setComplete] = useState(() => {
@@ -162,18 +163,12 @@ const NavigationItem = React.memo(
           }}
         >
           {isIconString ? (
-            <motion.span
-              className="material-symbols-outlined text-[20px]"
-              style={{
-                fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                color: '#ffffff',
-                fontSize: '20px',
-                scale: iconScale,
-                transition: 'font-variation-settings 150ms ease',
-              }}
-            >
-              {item.icon}
-            </motion.span>
+            <AnimatedIcon
+              name={item.icon as string}
+              size={20}
+              color="#ffffff"
+              state={isActive ? 'active' : 'inactive'}
+            />
           ) : (
             <motion.div
               style={{

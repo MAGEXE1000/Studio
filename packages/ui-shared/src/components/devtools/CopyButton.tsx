@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { AnimatedIcon } from '../icons/AnimatedIcon';
 
 export interface CopyButtonProps {
   getTextToCopy: () => string | Promise<string>;
@@ -123,17 +124,12 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
         ...style,
       }}
     >
-      <span
-        className="material-symbols-outlined"
-        style={{
-          fontSize: isSmall ? 15 : 17,
-          color: hasError ? '#ef4444' : isCopied ? '#10b981' : 'var(--c-text-secondary, #94a3b8)',
-          transform: isCopied ? 'scale(1.15) rotate(0deg)' : 'scale(1)',
-          transition: 'transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease',
-        }}
-      >
-        {hasError ? 'error' : isCopied ? 'check' : 'content_copy'}
-      </span>
+      <AnimatedIcon
+        name={hasError ? 'error' : isCopied ? 'check' : 'copy'}
+        size={isSmall ? 15 : 17}
+        color={hasError ? '#ef4444' : isCopied ? '#10b981' : 'var(--c-text-secondary, #94a3b8)'}
+        state={hasError ? 'error' : isCopied ? 'success' : 'inactive'}
+      />
       <span>{hasError ? 'Copy Failed' : isCopied ? copiedLabel : label}</span>
     </button>
   );

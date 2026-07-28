@@ -1,6 +1,6 @@
 Release Date: 2026-07-28
 
 ## Added
-- Completed 100% application-wide icon system audit, replacing all remaining legacy material icon elements with Bakai AnimatedIcon components.
-- Added specialized domain stroke icons for Recorder (mic, record, waveform), Coach (learning, exercise, progress, score, target, achievement), and Settings.
-- Standardized state-driven microinteraction physics and spring transitions across all navigation, settings, and developer tool components.
+- Rebuilt icon interaction system with physical mechanical feedback, touch compression down to 0.86 scale, anticipation, and spring overshoot.
+- Implemented velocity-stretching active pill animation in Liquid Bottom Navigation that stretches horizontally during slide movements.
+- Synchronized tab icon and label spring motion with continuous Liquid Surface backdrop filter adaptation.

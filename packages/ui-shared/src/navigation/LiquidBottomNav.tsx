@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { AnimatedIcon } from '../components/icons/AnimatedIcon';
 
 export interface NavItem {
@@ -23,10 +23,19 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
   accentColor = '#f59e0b',
   isProfileOpen = false,
 }) => {
+  const [prevIndex, setPrevIndex] = useState(0);
+
   const activeIndex = Math.max(
     0,
     items.findIndex((item) => item.id === activeId || (item.id === 'profile' && isProfileOpen))
   );
+
+  const isMovingRight = activeIndex > prevIndex;
+
+  const handleSelect = (item: NavItem, idx: number) => {
+    setPrevIndex(activeIndex);
+    onItemSelect(item);
+  };
 
   return (
     <div
@@ -35,8 +44,8 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
         display: 'flex',
         alignItems: 'center',
         background: 'rgba(18, 18, 22, 0.88)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
         borderRadius: 28,
         padding: '6px 10px',
         border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -47,7 +56,7 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
         boxSizing: 'border-box',
       }}
     >
-      {/* Morphing Liquid Active Pill Background */}
+      {/* Morphing & Velocity-Stretching Liquid Active Pill Background */}
       <motion.div
         layoutId="liquidActiveNavPill"
         style={{
@@ -57,29 +66,31 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
           left: 10,
           width: `calc((100% - 20px) / ${items.length})`,
           borderRadius: 22,
-          background: `linear-gradient(135deg, ${accentColor}25, ${accentColor}40)`,
-          border: `1px solid ${accentColor}60`,
-          boxShadow: `0 4px 16px ${accentColor}30`,
+          background: `linear-gradient(135deg, ${accentColor}28, ${accentColor}45)`,
+          border: `1.2px solid ${accentColor}70`,
+          boxShadow: `0 4px 18px ${accentColor}35`,
           zIndex: 0,
         }}
         animate={{
           x: `${activeIndex * 100}%`,
+          scaleX: [1, 1.15, 0.96, 1], // Physical stretch during slide velocity
         }}
         transition={{
           type: 'spring',
-          stiffness: 450,
-          damping: 32,
+          stiffness: 480,
+          damping: 30,
+          mass: 0.8,
         }}
       />
 
-      {/* Nav Item Buttons with Bakai Animated Icons */}
-      {items.map((item) => {
+      {/* Nav Item Buttons with Physical Reactive Bakai Icons & Label Springs */}
+      {items.map((item, idx) => {
         const isActive = activeId === item.id || (item.id === 'profile' && isProfileOpen);
 
         return (
           <button
             key={item.id}
-            onClick={() => onItemSelect(item)}
+            onClick={() => handleSelect(item, idx)}
             style={{
               position: 'relative',
               zIndex: 1,
@@ -94,16 +105,29 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
               color: isActive ? accentColor : '#a1a1aa',
               cursor: 'pointer',
               outline: 'none',
-              transition: 'color 0.2s ease',
+              transition: 'color 0.22s ease',
             }}
           >
+            {/* Reactive Icon with synchronized spring motion */}
             <AnimatedIcon
               name={item.icon || 'info'}
               size={22}
               color={isActive ? accentColor : '#a1a1aa'}
               state={isActive ? 'active' : 'inactive'}
             />
-            <span
+
+            {/* Synchronized Label Slide & Fade */}
+            <motion.span
+              animate={{
+                y: isActive ? -1 : 0,
+                opacity: isActive ? 1 : 0.7,
+                scale: isActive ? 1.05 : 1,
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 420,
+                damping: 25,
+              }}
               style={{
                 fontSize: 10,
                 fontWeight: isActive ? 800 : 600,
@@ -112,7 +136,7 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
               }}
             >
               {item.label}
-            </span>
+            </motion.span>
           </button>
         );
       })}

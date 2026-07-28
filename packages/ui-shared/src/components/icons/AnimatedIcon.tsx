@@ -36,25 +36,30 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
 }) => {
   const iconDef = getBakaiIcon(name);
 
-  // Motion physics configuration matching Bakai interaction philosophy
+  // Motion physics configuration matching Bakai physical interaction philosophy
   const getStateVariants = () => {
     switch (state) {
       case 'active':
       case 'selected':
-        return { scale: 1.1, rotate: 0, opacity: 1 };
+        return {
+          scale: [0.92, 1.16, 1.08],
+          rotate: [0, -4, 0],
+          y: -1.5,
+          opacity: 1,
+        };
       case 'pressed':
-        return { scale: 0.88, rotate: -4, opacity: 0.9 };
+        return { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 };
       case 'loading':
-        return { scale: 1, rotate: 360, opacity: 0.8 };
+        return { scale: 1, rotate: 360, opacity: 0.85 };
       case 'disabled':
-        return { scale: 0.95, rotate: 0, opacity: 0.4 };
+        return { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 };
       case 'success':
-        return { scale: [1, 1.25, 1], rotate: [0, -8, 0], opacity: 1 };
+        return { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 };
       case 'warning':
       case 'error':
-        return { scale: 1.15, rotate: [0, -6, 6, -3, 0], opacity: 1 };
+        return { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 };
       default:
-        return { scale: 1, rotate: 0, opacity: 0.85 };
+        return { scale: 1, rotate: 0, y: 0, opacity: 0.85 };
     }
   };
 
@@ -73,10 +78,12 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
         ...style,
       }}
       animate={getStateVariants()}
+      whileHover={{ scale: 1.08, y: -1 }}
+      whileTap={{ scale: 0.86, rotate: -3, y: 1 }}
       transition={
         isSpinning
-          ? { repeat: Infinity, duration: 1.2, ease: 'linear' }
-          : { type: 'spring', stiffness: 420, damping: 24 }
+          ? { repeat: Infinity, duration: 1.1, ease: 'linear' }
+          : { type: 'spring', stiffness: 480, damping: 26, mass: 0.75 }
       }
       onClick={onClick}
     >
@@ -100,9 +107,9 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
                 cy={p.circleProps.cy}
                 r={p.circleProps.r}
                 fill={p.fill ? color : 'none'}
-                initial={{ pathLength: 0.85, opacity: 0 }}
+                initial={{ pathLength: 0.8, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.25, delay: idx * 0.04 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25, delay: idx * 0.03 }}
               />
             );
           }
@@ -118,7 +125,7 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
                 fill={p.fill ? color : 'none'}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.25, delay: idx * 0.04 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25, delay: idx * 0.03 }}
               />
             );
           }
@@ -127,9 +134,9 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
               key={idx}
               d={p.d}
               fill={p.fill ? color : 'none'}
-              initial={{ pathLength: 0.85, opacity: 0 }}
+              initial={{ pathLength: 0.8, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 0.25, delay: idx * 0.04 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25, delay: idx * 0.03 }}
             />
           );
         })}

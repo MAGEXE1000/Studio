@@ -32,7 +32,11 @@ jobs:
     name: 1. Preflight & Fail-Fast Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+  preflight:
+    name: 1. Preflight & Fail-Fast Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
@@ -64,11 +68,11 @@ jobs:
           echo "✓ Tag uniqueness preflight complete."
 
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fe394c31ac53f741083ec0e6ea1859d39e07216f # v4.0.0
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ff640009e01be55777c3 # v4.1.0
         with:
           node-version: 24
           cache: pnpm
@@ -124,27 +128,27 @@ jobs:
       REINSTALL_REQUIRED: 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fe394c31ac53f741083ec0e6ea1859d39e07216f # v4.0.0
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ff640009e01be55777c3 # v4.1.0
         with:
           node-version: 24
           cache: pnpm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
         with:
           distribution: temurin
           java-version: 21
 
       - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@dbbdc201f5d6ba5e9919e487f9754736f86640f8 # v3.5.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -173,10 +177,11 @@ jobs:
       - name: Run Android Release Orchestration Script
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
           cd apps/studio-android
           PRERELEASE_FLAG=""
-          if [ "${{ inputs.release_type }}" = "prerelease" ]; then
+          if [ "$RELEASE_TYPE" = "prerelease" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
           node scripts/release-firebase.mjs $PRERELEASE_FLAG > build.log 2>&1 || {
@@ -187,14 +192,14 @@ jobs:
           }
 
       - name: Upload Firebase Hosting Metadata Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: firebase-public-metadata
           path: firebase-public/
           retention-days: 1
 
       - name: Upload Release Verification Report Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: release-verification-report
           path: |
@@ -210,17 +215,17 @@ jobs:
     needs: build_and_package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ff640009e01be55777c3 # v4.1.0
         with:
           node-version: 24
 
       - name: Download Release Verification Report Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: release-verification-report
 
@@ -246,19 +251,19 @@ jobs:
     needs: [build_and_package, signing_verification]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
 
       - name: Download Firebase Hosting Metadata Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: firebase-public-metadata
           path: firebase-public/
 
       - name: Deploy Update Metadata to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: FirebaseExtended/action-hosting-deploy@a06cf2436b72023eee6385efb1c1df348e3fd651 # v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'

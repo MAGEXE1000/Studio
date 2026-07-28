@@ -2026,6 +2026,8 @@ export default function App() {
       return () => {};
     }
 
+    let isCancelled = false;
+
     (window as any).__navigationDiagnostics = (window as any).__navigationDiagnostics || {
       returnAttempts: 0,
       failedReturns: 0,
@@ -2036,6 +2038,7 @@ export default function App() {
     const diag = (window as any).__navigationDiagnostics;
     diag.returnAttempts++;
     setTimeout(() => {
+      if (isCancelled) return;
       try {
         localStorage.setItem('studio_black_screen_diagnostics', JSON.stringify(diag));
       } catch (_) {}
@@ -2175,6 +2178,7 @@ export default function App() {
     let statePayload: any = null;
 
     const runCheckPass = () => {
+      if (isCancelled) return;
       statePayload = (window as any).__captureBlackScreenState?.();
       if (!statePayload) {
         runWatchdogVerdict(false, 'Capture state not ready');
@@ -2284,11 +2288,12 @@ export default function App() {
 
       if (gracePeriodActive) {
         consecutiveFailures = 0;
-        timer = setTimeout(runCheckPass, checkInterval);
+        if (!isCancelled) timer = setTimeout(runCheckPass, checkInterval);
         return;
       }
 
       const evaluateVerdict = (finalBlocked: boolean, finalReason: string, paintData?: any) => {
+        if (isCancelled) return;
         if (finalBlocked) {
           consecutiveFailures++;
           if (consecutiveFailures >= maxRetries) {
@@ -2297,7 +2302,7 @@ export default function App() {
             );
             runWatchdogVerdict(true, finalReason, paintData);
           } else {
-            timer = setTimeout(runCheckPass, checkInterval);
+            if (!isCancelled) timer = setTimeout(runCheckPass, checkInterval);
           }
         } else {
           consecutiveFailures = 0;
@@ -2308,6 +2313,7 @@ export default function App() {
       if (!isBlocked) {
         runPaintVerification()
           .then((paintData) => {
+            if (isCancelled) return;
             const isVisuallyBlack = paintData.paintState === 'visually_black';
             const domExists = paintData.domExists;
             const visuallyBlackAndDomExists = isVisuallyBlack && domExists;
@@ -2319,6 +2325,7 @@ export default function App() {
             }
           })
           .catch((err) => {
+            if (isCancelled) return;
             console.error('Watchdog paint verification failed:', err);
             evaluateVerdict(false, '');
           });
@@ -2329,7 +2336,10 @@ export default function App() {
 
     timer = setTimeout(runCheckPass, 1200);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isCancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [appMode]);
 
   // Keep window globals updated for lifecycle logging

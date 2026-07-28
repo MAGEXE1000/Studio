@@ -104,7 +104,3 @@ export * from './repositories/GroovexStemRepository';
 export * from './repositories/AuthRepository';
 export * from './repositories/UserRepository';
 
-export * from './store/useSettingsStore';
-export * from './repositories/VocalexRepository';
-export * from './repositories/AuthRepository';
-

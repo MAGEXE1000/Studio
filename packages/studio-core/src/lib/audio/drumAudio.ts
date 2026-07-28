@@ -2716,11 +2716,16 @@ class DrumScheduler {
 
 export const drumScheduler = new DrumScheduler();
 
+let _lastActivePatternId: string | null = null;
+let _lastActivePatternRef: unknown = null;
+
 // Subscribe to active pattern changes in useDrumStore to update the scheduler immediately
 useDrumStore.subscribe((state) => {
   const activePattern =
     state.patterns.find((p) => p.id === state.activePatternId) ?? state.patterns[0];
-  if (activePattern) {
+  if (activePattern && (activePattern.id !== _lastActivePatternId || activePattern !== _lastActivePatternRef)) {
+    _lastActivePatternId = activePattern.id;
+    _lastActivePatternRef = activePattern;
     drumScheduler.updatePattern(activePattern);
   }
 });

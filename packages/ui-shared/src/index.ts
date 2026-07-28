@@ -1,4 +1,3 @@
-import { DurationPresets, SpringPresets } from '@workspace/studio-core';
 // Export everything from ui-shared
 export { default as AppSpinner } from './components/AppSpinner';
 export { default as ElasticSlider } from './components/ElasticSlider';

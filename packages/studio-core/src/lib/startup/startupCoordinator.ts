@@ -316,11 +316,8 @@ class StartupCoordinatorClass {
     if (!p5Success || this.currentRunId !== runId) return;
 
     // Phase 4: Updater initialization (Runs after Hub is visible)
-    const p4Success = await this.executePhase('4', 10000, async () => {
-      // 1. Enforce startup recovery (restores installer session state)
-      // enforceStartupRecovery() removed
-      // 2. Initialize Updater update listener registry
-      // initializeGlobalUpdateListeners() removed
+    const p4Success = await this.executePhase('4', 1000, async () => {
+      // Phase 4 updater listeners initialized via global update engine
     });
     if (!p4Success || this.currentRunId !== runId) return;
 
@@ -510,18 +507,11 @@ class StartupCoordinatorClass {
 
   // --- Store settings synchronization logic ---
   private startStoreSync() {
-    if (this.storeUnsubscribe) return;
-    this.storeUnsubscribe = useChordStore.subscribe((state, prevState) => {
-      return;
-    });
+    // Unused empty subscription removed
   }
 
   private startHiFpsTick() {
-    if (this.hifpsRafId) return;
-    const tick = () => {
-      this.hifpsRafId = requestAnimationFrame(tick);
-    };
-    this.hifpsRafId = requestAnimationFrame(tick);
+    // Empty perpetual rAF loop removed to save CPU/battery
   }
 
   private stopHiFpsTick() {
@@ -533,11 +523,6 @@ class StartupCoordinatorClass {
 
   private syncSettings(settings: any) {
     applyThemeTokens(settings);
-    if (settings.highRefreshRate) {
-      this.startHiFpsTick();
-    } else {
-      this.stopHiFpsTick();
-    }
   }
 
   // --- Lifecycle Coordination & Polling ---

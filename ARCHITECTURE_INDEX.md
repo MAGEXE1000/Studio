@@ -1,4 +1,3 @@
-import { DurationPresets, EasingPresets } from '@workspace/studio-core';
 # Studio Architecture Index
 
 > **Last updated:** 2026-07-10 (Sprint B — Navigation Module Refactor)
@@ -523,13 +522,15 @@ Android-only component overrides and re-exports. Currently thin — primarily re
 | --------------------------------- | ------------------------------------- |
 | src/index.ts                      | Public barrel                         |
 | src/components/StageCorePanel.tsx | Android-specific Stage panel override |
+| src/watchdog/paintVerification.ts | HTML5 Canvas DOM paint verification   |
 
 #### Exports
 
-`	ypescript
-export { BottomNav, UpdateIndicator, UpdateDiagnosticsSheet, StudioUpdateScreen } from '@workspace/ui-shared';
+```typescript
+export { SharedNavigationBar, UpdateIndicator, UpdateDiagnosticsSheet, StudioUpdateScreen } from '@workspace/ui-shared';
 export { default as StageCorePanel } from './components/StageCorePanel';
-`
+export { runPaintVerification } from './watchdog/paintVerification';
+```
 
 #### Dependencies
 

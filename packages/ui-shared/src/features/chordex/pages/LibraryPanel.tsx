@@ -360,6 +360,8 @@ function RelatedPlayBtn({
   );
 }
 
+import { SaxophonePracticePanel } from './SaxophonePracticePanel';
+
 export default function LibraryPanel() {
   const isWebDesktop = useIsWebDesktop();
   const currentRoute = useNavigationStore(useShallow((s) => s.history[s.history.length - 1])) || {
@@ -376,6 +378,10 @@ export default function LibraryPanel() {
   const recentChords = useChordStore(useShallow((s) => s.recentChords));
   const favorites = useChordStore(useShallow((s) => s.favorites));
   const settings = useSettingsStore(useShallow((s) => s.settings));
+
+  if (settings.instrument === 'saxophone') {
+    return <SaxophonePracticePanel />;
+  }
 
   const toggleFavorite = useChordStore(useShallow((s) => s.toggleFavorite));
   const addToProgression = useChordStore(useShallow((s) => s.addToProgression));

@@ -1,12 +1,9 @@
-Release Date: 2026-07-26
+Release Date: 2026-07-28
 
-## Fixed
-- Fixed Developer Inspector Rules of Hooks violation by guaranteeing unconditional hook execution order across toggle enable/disable cycles, eliminating React Error #300 and #310 crashes.
-- Fixed freeze persistence issue by excluding `isFrozen` state from store hydration on page reload.
-- Fixed Stagex Setup screen black rendering by mapping `Setup` to `SetupHub` and `Preferences` to `Assistant` in the view switching pipeline so iframe receives valid view targets.
-- Fixed error duplication in DevTools by implementing smart error fingerprinting deduplication and tracking occurrence count, first seen, and last seen timestamps.
-
-## Improved
-- Redesigned Developer Inspector dock into a sleek 320px floating Edge card with translucent backdrop blur and smooth spring physics.
-- Standardized all error boundary recovery actions and warning inspect actions to use the canonical `CopyButton` component.
-- Connected `ErrorBoundary.componentDidCatch` exceptions directly into the devTools error buffer pipeline.
+## Added
+- Transformed Chordex into a multi-instrument platform supporting Guitar, Saxophone, and future slots for Piano and Bass.
+- Implemented Global Instrument Selector in Preferences with instant app adaptation and session persistence.
+- Implemented Saxophone Practice Mode with interactive vector-based saxophone, pad key animations, touch targets, and low-latency acoustic WebAudio synthesis.
+- Implemented Alto (Eb), Tenor (Bb), and Baritone (Eb) transpositions with concert and written pitch displays.
+- Implemented reusable Saxophone Fingering Engine supporting low Bb3 to high F#6, alternate fingerings, palm keys, side keys, and pinky clusters.
+- Adapted bottom navigation dynamically to Practice, Library, Preferences when Saxophone mode is active.

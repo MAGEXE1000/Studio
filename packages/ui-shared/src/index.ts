@@ -19,6 +19,8 @@ export { default as FourStringDiagram } from './components/FourStringDiagram';
 export { default as ChordDiagram } from './components/ChordDiagram';
 export * from './components/StudioSkeleton';
 export { LibraryPanel } from './features/chordex';
+export { SaxophonePracticePanel } from './features/chordex/pages/SaxophonePracticePanel';
+export { SaxophoneView } from './features/chordex/components/SaxophoneView';
 export { default as SettingsPanel } from './panels/SettingsPanel';
 export { default as ChordexSettingsPanel } from './features/chordex/ChordexSettingsPanel';
 export { default as StudioHubSettingsPanel } from './features/hub/StudioHubSettingsPanel';

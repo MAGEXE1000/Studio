@@ -315,12 +315,26 @@ export function BottomNavigationController() {
     }
 
     if (currentApp === 'chords') {
-      const sections = APP_SECTIONS.chords || [];
+      const isSax = settings.instrument === 'saxophone';
+      const sections = isSax
+        ? [
+            { id: 'practice', labelKey: 'practice', icon: 'graphic_eq' },
+            { id: 'library', labelKey: 'library', icon: 'library' },
+            { id: 'settings', labelKey: 'settings', icon: 'settings' },
+          ]
+        : APP_SECTIONS.chords || [];
+
       return sections.map((sec) => {
         const isActive = activeTab === sec.id || activePage === sec.id;
         let iconElement: React.ReactNode;
         if (sec.id === 'songs') {
           iconElement = <IconSongs active={isActive} />;
+        } else if (sec.id === 'practice') {
+          iconElement = (
+            <span className="material-symbols-outlined" style={{ fontSize: 22, color: isActive ? 'var(--c-accent-from, #f59e0b)' : 'var(--c-text-muted)' }}>
+              graphic_eq
+            </span>
+          );
         } else if (sec.id === 'library') {
           iconElement = <IconLibrary active={isActive} />;
         } else if (sec.id === 'settings') {
@@ -332,7 +346,7 @@ export function BottomNavigationController() {
         return {
           key: sec.id,
           icon: iconElement,
-          label: getTranslation(sec.labelKey),
+          label: sec.id === 'practice' ? 'Practice' : getTranslation(sec.labelKey),
           isActive,
           onClick: () => {
             NavigationDispatcher.push({ app: 'chords', page: sec.id as any, tab: sec.id as any });

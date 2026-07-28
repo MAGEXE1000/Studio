@@ -7,6 +7,10 @@ import {
   useT,
   useIsWebDesktop,
   useSettingsStore,
+  INSTRUMENT_REGISTRY,
+  type InstrumentConfig,
+  NavigationDispatcher,
+  type Instrument,
 } from '@workspace/studio-core';
 import React, { useRef } from 'react';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../components/SettingControls';
@@ -72,6 +76,88 @@ export default function ChordexSettingsPanel() {
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar space-y-6">
+          {/* ── INSTRUMENT ── */}
+          <SettingSection title="Global Instrument">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
+              {Object.values(INSTRUMENT_REGISTRY).map((inst: InstrumentConfig) => {
+                const currentInst = settings.instrument || 'guitar';
+                const isActive = currentInst === inst.id;
+                const isSoon = inst.status === 'coming_soon';
+
+                return (
+                  <div
+                    key={inst.id}
+                    onClick={() => {
+                      if (!isSoon) {
+                        useSettingsStore.getState().updateSettings({ instrument: inst.id as Instrument });
+                        if (inst.id === 'saxophone') {
+                          NavigationDispatcher.replace({ app: 'chords', page: 'practice' as any, tab: 'practice' as any });
+                        } else {
+                          NavigationDispatcher.replace({ app: 'chords', page: 'songs' as any, tab: 'songs' as any });
+                        }
+                      }
+                    }}
+                    style={{
+                      background: isActive ? 'rgba(245, 158, 11, 0.12)' : 'var(--c-surface-high)',
+                      borderColor: isActive ? '#f59e0b' : 'var(--c-border)',
+                      cursor: isSoon ? 'not-allowed' : 'pointer',
+                      opacity: isSoon ? 0.6 : 1,
+                    }}
+                    className="flex items-center justify-between p-3.5 rounded-xl border transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: 24,
+                          color: isActive ? '#f59e0b' : 'var(--c-text-muted)',
+                        }}
+                      >
+                        {inst.icon}
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              fontSize: 14,
+                              color: isActive ? '#f59e0b' : 'var(--c-text-primary)',
+                            }}
+                          >
+                            {inst.name}
+                          </span>
+                          {inst.badge && (
+                            <span
+                              style={{
+                                fontSize: 9,
+                                fontWeight: 800,
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                background: inst.badge === 'NEW' ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                                color: inst.badge === 'NEW' ? '#000' : '#a1a1aa',
+                              }}
+                            >
+                              {inst.badge}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2 }}>
+                          {inst.subtitle}
+                        </div>
+                      </div>
+                    </div>
+
+                    {isActive && (
+                      <span className="material-symbols-outlined" style={{ color: '#f59e0b', fontSize: 20 }}>
+                        check_circle
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </SettingSection>
+
           {/* ── TUNING ── */}
           <SettingSection title={t.settings.sections.tuning}>
             <SettingRow
@@ -309,6 +395,88 @@ export default function ChordexSettingsPanel() {
           >
             {t.settings.subtitle}
           </p>
+        </div>
+
+        {/* ── INSTRUMENT ── */}
+        <SectionHeader icon="music_note" title="Global Instrument" />
+        <div style={cardStyle} className="mb-6">
+          {Object.values(INSTRUMENT_REGISTRY).map((inst: InstrumentConfig, idx: number) => {
+            const currentInst = settings.instrument || 'guitar';
+            const isActive = currentInst === inst.id;
+            const isSoon = inst.status === 'coming_soon';
+
+            return (
+              <button
+                key={inst.id}
+                onClick={() => {
+                  if (!isSoon) {
+                    useSettingsStore.getState().updateSettings({ instrument: inst.id as Instrument });
+                    if (inst.id === 'saxophone') {
+                      NavigationDispatcher.replace({ app: 'chords', page: 'practice' as any, tab: 'practice' as any });
+                    } else {
+                      NavigationDispatcher.replace({ app: 'chords', page: 'songs' as any, tab: 'songs' as any });
+                    }
+                  }
+                }}
+                disabled={isSoon}
+                className="w-full text-left transition-colors flex items-center justify-between p-4"
+                style={{
+                  borderBottom: idx < Object.values(INSTRUMENT_REGISTRY).length - 1 ? '1px solid var(--c-border-subtle)' : 'none',
+                  opacity: isSoon ? 0.5 : 1,
+                  background: isActive ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: 22,
+                      color: isActive ? '#f59e0b' : 'var(--c-text-muted)',
+                    }}
+                  >
+                    {inst.icon}
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 'var(--font-base)',
+                          color: isActive ? '#f59e0b' : 'var(--c-text-primary)',
+                          fontFamily: 'Manrope',
+                        }}
+                      >
+                        {inst.name}
+                      </span>
+                      {inst.badge && (
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 800,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: inst.badge === 'NEW' ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+                            color: inst.badge === 'NEW' ? '#000' : '#a1a1aa',
+                          }}
+                        >
+                          {inst.badge}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--c-text-secondary)', marginTop: 2 }}>
+                      {inst.subtitle}
+                    </div>
+                  </div>
+                </div>
+
+                {isActive && (
+                  <span className="material-symbols-outlined" style={{ color: '#f59e0b', fontSize: 20 }}>
+                    check_circle
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {/* ── TUNING ── */}

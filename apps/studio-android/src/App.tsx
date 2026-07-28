@@ -24,6 +24,9 @@ const LibraryPanel = lazy(() =>
 const SettingsPanel = lazy(() =>
   import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel }))
 );
+const SaxophonePracticePanel = lazy(() =>
+  import('@workspace/ui-shared').then((m: any) => ({ default: m.SaxophonePracticePanel }))
+);
 const SongsPanel = lazy(() =>
   import('@workspace/ui-shared').then((m) => ({ default: m.SongsPanel }))
 );
@@ -2757,6 +2760,7 @@ const SubAppWrapper = memo(function SubAppWrapper({
                         {(panel) => (
                           <>
                             {panel === 'songs' && <SongsPanel />}
+                            {panel === 'practice' && <SaxophonePracticePanel />}
                             {panel === 'library' && <LibraryPanel />}
                             {panel === 'settings' && <SettingsPanel />}
                           </>

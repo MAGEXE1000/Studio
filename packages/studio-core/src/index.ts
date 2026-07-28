@@ -43,8 +43,10 @@ export * from './lib/userAvatar';
 export * from './lib/useStatusBar';
 export * from './lib/useT';
 export * from './lib/utilities';
+export * from './lib/instruments/instrumentRegistry';
+export * from './lib/instruments/saxophoneEngine';
+export * from './lib/audio/saxophoneAudio';
 export * from './lib/syncBackends/index';
-
 
 export { type Language, default as translations } from './lib/i18n';
 export * from './lib/devTools';

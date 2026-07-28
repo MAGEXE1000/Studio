@@ -42,7 +42,7 @@ export type ChordType =
   | '7b5'
   | '7alt';
 
-export type Instrument = 'guitar' | 'piano' | 'bass';
+export type Instrument = 'guitar' | 'saxophone' | 'piano' | 'bass';
 
 export interface GuitarFret {
   string: number; // 1 = high E, 6 = low E

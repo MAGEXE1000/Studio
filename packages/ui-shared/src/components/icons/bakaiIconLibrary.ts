@@ -483,6 +483,131 @@ export const BAKAI_ICON_LIBRARY: Record<string, BakaiIconDef> = {
       { d: 'M8.59 13.51l6.83 3.98' },
       { d: 'M15.41 6.51l-6.82 3.98' }
     ]
+  },
+  mic: {
+    name: 'mic',
+    paths: [
+      { d: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z' },
+      { d: 'M19 10v2a7 7 0 0 1-14 0v-2' },
+      { d: 'M12 19v3' },
+      { d: 'M8 22h8' }
+    ]
+  },
+  record: {
+    name: 'record',
+    paths: [
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 6 }, fill: true, d: '' },
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 10 }, d: '' }
+    ]
+  },
+  waveform: {
+    name: 'waveform',
+    paths: [
+      { d: 'M4 9v6' },
+      { d: 'M8 5v14' },
+      { d: 'M12 3v18' },
+      { d: 'M16 7v10' },
+      { d: 'M20 11v2' }
+    ]
+  },
+  learning: {
+    name: 'learning',
+    paths: [
+      { d: 'M22 10v6M2 10l10-5 10 5-10 5z' },
+      { d: 'M6 12v5c3 3 9 3 12 0v-5' }
+    ]
+  },
+  exercise: {
+    name: 'exercise',
+    paths: [
+      { d: 'M6.5 6.5l11 11' },
+      { d: 'M21 21l-4.35-4.35' },
+      { type: 'circle', circleProps: { cx: 6.5, cy: 6.5, r: 2.5 }, d: '' },
+      { type: 'circle', circleProps: { cx: 17.5, cy: 17.5, r: 2.5 }, d: '' }
+    ]
+  },
+  progress: {
+    name: 'progress',
+    paths: [
+      { d: 'M23 6l-9.5 9.5-5-5L1 18' },
+      { d: 'M17 6h6v6' }
+    ]
+  },
+  score: {
+    name: 'score',
+    paths: [
+      { d: 'M6 9H4.5a2.5 2.5 0 0 1 0-5H6' },
+      { d: 'M18 9h1.5a2.5 2.5 0 0 0 0-5H18' },
+      { d: 'M4 22h16' },
+      { d: 'M10 14.66V17c0 .55-.45 1-1 1H7v2h10v-2h-2c-.55 0-1-.45-1-1v-2.34' },
+      { d: 'M18 2H6v7a6 6 0 0 0 12 0V2z' }
+    ]
+  },
+  target: {
+    name: 'target',
+    paths: [
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 10 }, d: '' },
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 6 }, d: '' },
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 2 }, d: '' }
+    ]
+  },
+  achievement: {
+    name: 'achievement',
+    paths: [
+      { type: 'circle', circleProps: { cx: 12, cy: 8, r: 6 }, d: '' },
+      { d: 'M15.477 12.89L17 22l-5-3-5 3 1.523-9.11' }
+    ]
+  },
+  color_lens: {
+    name: 'color_lens',
+    paths: [
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 10 }, d: '' },
+      { type: 'circle', circleProps: { cx: 8, cy: 9, r: 1.5 }, fill: true, d: '' },
+      { type: 'circle', circleProps: { cx: 12, cy: 7, r: 1.5 }, fill: true, d: '' },
+      { type: 'circle', circleProps: { cx: 16, cy: 9, r: 1.5 }, fill: true, d: '' },
+      { type: 'circle', circleProps: { cx: 15, cy: 14, r: 1.5 }, fill: true, d: '' }
+    ]
+  },
+  language: {
+    name: 'language',
+    paths: [
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 10 }, d: '' },
+      { d: 'M2 12h20' },
+      { d: 'M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' }
+    ]
+  },
+  storage: {
+    name: 'storage',
+    paths: [
+      { type: 'rect', rectProps: { x: 2, y: 3, width: 20, height: 6, rx: 2 }, d: '' },
+      { type: 'rect', rectProps: { x: 2, y: 15, width: 20, height: 6, rx: 2 }, d: '' },
+      { d: 'M6 6h.01' },
+      { d: 'M6 18h.01' }
+    ]
+  },
+  developer_mode: {
+    name: 'developer_mode',
+    paths: [
+      { d: 'M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4' },
+      { d: 'M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4' },
+      { d: 'M9 12l-2-2 2-2' },
+      { d: 'M15 12l2-2-2-2' }
+    ]
+  },
+  music_note: {
+    name: 'music_note',
+    paths: [
+      { d: 'M9 18V5l12-2v13' },
+      { type: 'circle', circleProps: { cx: 6, cy: 18, r: 3 }, d: '' },
+      { type: 'circle', circleProps: { cx: 18, cy: 16, r: 3 }, d: '' }
+    ]
+  },
+  content_copy: {
+    name: 'content_copy',
+    paths: [
+      { type: 'rect', rectProps: { x: 9, y: 9, width: 13, height: 13, rx: 2 }, d: '' },
+      { d: 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1' }
+    ]
   }
 };
 

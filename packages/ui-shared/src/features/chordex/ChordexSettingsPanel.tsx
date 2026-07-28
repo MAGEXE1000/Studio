@@ -16,6 +16,7 @@ import React, { useRef } from 'react';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../components/SettingControls';
 import { IconSongs, IconLibrary, IconSettings } from '../../components/NavIcons';
 import InkThemeToggle from '../../components/typography/InkThemeToggle';
+import { AnimatedIcon } from '../../components/icons/AnimatedIcon';
 
 export default function ChordexSettingsPanel() {
   const settings = useSettingsStore((s) => s.settings);
@@ -148,9 +149,7 @@ export default function ChordexSettingsPanel() {
                     </div>
 
                     {isActive && (
-                      <span className="material-symbols-outlined" style={{ color: '#f59e0b', fontSize: 20 }}>
-                        check_circle
-                      </span>
+                      <AnimatedIcon name="check" size={20} color="#f59e0b" state="success" />
                     )}
                   </div>
                 );
@@ -521,12 +520,7 @@ export default function ChordexSettingsPanel() {
                     {tun.value}
                   </p>
                   {isActive && (
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ color: acc.from, fontSize: '18px' }}
-                    >
-                      check
-                    </span>
+                    <AnimatedIcon name="check" size={18} color={acc.from} state="success" />
                   )}
                 </div>
               </button>

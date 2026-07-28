@@ -1,10 +1,12 @@
-Release Date: 2026-07-25
+Release Date: 2026-07-26
 
 ## Fixed
-- Fixed StudioToggle double-firing and flickering by eliminating `<label>` wrapping `<button>` structure and implementing smooth 60 FPS CSS spring transitions.
-- Fixed Freeze UI interaction leaking: injected airtight global CSS rules and capturing event listeners to block 100% of application touches, clicks, scrolls, gestures, navigation, and keyboard inputs while leaving Developer Inspector controls fully active.
+- Fixed Developer Inspector Rules of Hooks violation by guaranteeing unconditional hook execution order across toggle enable/disable cycles, eliminating React Error #300 and #310 crashes.
+- Fixed freeze persistence issue by excluding `isFrozen` state from store hydration on page reload.
+- Fixed Stagex Setup screen black rendering by mapping `Setup` to `SetupHub` and `Preferences` to `Assistant` in the view switching pipeline so iframe receives valid view targets.
+- Fixed error duplication in DevTools by implementing smart error fingerprinting deduplication and tracking occurrence count, first seen, and last seen timestamps.
 
 ## Improved
-- Redesigned Debug Panel to a sleek Samsung Edge Panel style collapsible right-side drawer with translucent handle, 60 FPS spring slide transition, and blurred backdrop filter.
-- Standardized all Copy buttons across the Developer Inspector with a shared `CopyButton` component featuring spring scale animations, crossfade icons (`content_copy` -> `check`), label swaps, 1.4s auto-revert, and fallback clipboard handling.
-- Global Report Compression: introduced `compressReportText(...)` utility to ensure all copied diagnostic reports remain concise (< 10 pages / < 250 lines).
+- Redesigned Developer Inspector dock into a sleek 320px floating Edge card with translucent backdrop blur and smooth spring physics.
+- Standardized all error boundary recovery actions and warning inspect actions to use the canonical `CopyButton` component.
+- Connected `ErrorBoundary.componentDidCatch` exceptions directly into the devTools error buffer pipeline.

@@ -1,8 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { motion, useAnimationControls } from 'motion/react';
-import { getBakaiIcon, type BakaiIconPath } from '../../../shared/icons/bakaiIconLibrary';
-import { useNavigationAnimation } from './NavigationAnimationProvider';
-import { getMotionVariantForIcon } from './NavigationMotionVariants';
+import React, { useEffect, useRef } from 'react';
+import {
+  SettingsIcon,
+  SlidersHorizontalIcon,
+  HomeIcon,
+  SearchIcon,
+  UserIcon,
+  FoldersIcon,
+  HistoryIcon,
+  GraduationCapIcon,
+  GripIcon,
+  PlayIcon,
+  PlusIcon,
+  SparklesIcon,
+  LayersIcon,
+  MicIcon,
+  BellIcon,
+  CompassIcon,
+  HeartIcon,
+  DownloadIcon,
+  ActivityIcon,
+  ClockIcon,
+  FileTextIcon,
+  EyeIcon,
+  LockIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  XIcon,
+  CheckIcon,
+  RefreshCWIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+} from '../../../components/ui';
+import {
+  Music,
+  Book,
+  Folder,
+  List,
+  Disc,
+  Grid,
+  Star,
+  Share2,
+  Sliders,
+  type LucideProps,
+} from 'lucide-react';
 
 export interface AnimatedNavigationIconProps {
   itemKey: string;
@@ -14,6 +56,81 @@ export interface AnimatedNavigationIconProps {
   isActive: boolean;
 }
 
+interface AnimatedIconHandle {
+  startAnimation: () => void;
+  stopAnimation: () => void;
+}
+
+// Map of canonical icon names to official Lucide Animated components
+const OFFICIAL_ANIMATED_ICONS: Record<string, React.ForwardRefExoticComponent<any>> = {
+  settings: SettingsIcon,
+  'preferences-gear': SettingsIcon,
+  'sliders-horizontal': SlidersHorizontalIcon,
+  preferences: SlidersHorizontalIcon,
+  slidersHorizontal: SlidersHorizontalIcon,
+  home: HomeIcon,
+  search: SearchIcon,
+  user: UserIcon,
+  profile: UserIcon,
+  account: UserIcon,
+  folders: FoldersIcon,
+  library: FoldersIcon,
+  history: HistoryIcon,
+  recents: HistoryIcon,
+  takes: HistoryIcon,
+  'graduation-cap': GraduationCapIcon,
+  practice: GraduationCapIcon,
+  learn: GraduationCapIcon,
+  grip: GripIcon,
+  devtools: GripIcon,
+  play: PlayIcon,
+  plus: PlusIcon,
+  sparkles: SparklesIcon,
+  discover: SparklesIcon,
+  layers: LayersIcon,
+  stage: LayersIcon,
+  mic: MicIcon,
+  vocalex: MicIcon,
+  bell: BellIcon,
+  notifications: BellIcon,
+  compass: CompassIcon,
+  heart: HeartIcon,
+  download: DownloadIcon,
+  activity: ActivityIcon,
+  clock: ClockIcon,
+  'file-text': FileTextIcon,
+  lyrics: FileTextIcon,
+  eye: EyeIcon,
+  lock: LockIcon,
+  'arrow-left': ArrowLeftIcon,
+  'arrow-right': ArrowRightIcon,
+  'chevron-right': ChevronRightIcon,
+  'chevron-down': ChevronDownIcon,
+  x: XIcon,
+  check: CheckIcon,
+  'refresh-cw': RefreshCWIcon,
+  copy: CopyIcon,
+  'external-link': ExternalLinkIcon,
+};
+
+// Static fallback icons for icons without an official animated package
+const STATIC_FALLBACK_ICONS: Record<string, React.ComponentType<LucideProps>> = {
+  music: Music,
+  chords: Music,
+  book: Book,
+  songbook: Book,
+  catalog: Book,
+  folder: Folder,
+  list: List,
+  disc: Disc,
+  groovex: Disc,
+  grid: Grid,
+  drums: Grid,
+  star: Star,
+  share: Share2,
+  sliders: Sliders,
+};
+
 export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
   itemKey,
   iconName,
@@ -23,109 +140,44 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
   strokeWidth = 2,
   isActive,
 }) => {
-  const { currentTab, previousTab } = useNavigationAnimation();
-  const controls = useAnimationControls();
-  
-  // Track if we've mounted to avoid animating on initial load unless required
-  const [hasMounted, setHasMounted] = useState(false);
+  const iconRef = useRef<AnimatedIconHandle | null>(null);
+  const prevActiveRef = useRef<boolean>(isActive);
 
-  // We use the iconName for the variant lookup if available, otherwise fallback to itemKey
-  const variantKey = iconName || itemKey;
-  const variantGetter = getMotionVariantForIcon(variantKey);
-  const variants = variantGetter();
+  // Normalize key name
+  const key = (iconName || itemKey).toLowerCase();
 
+  // Strict state-change trigger logic
   useEffect(() => {
-    if (!hasMounted) {
-      setHasMounted(true);
-      // Initialize state immediately without animating
-      controls.set(isActive ? variants.active : variants.inactive);
-      return;
+    if (isActive && !prevActiveRef.current) {
+      iconRef.current?.startAnimation();
+    } else if (!isActive && prevActiveRef.current) {
+      iconRef.current?.stopAnimation();
     }
+    prevActiveRef.current = isActive;
+  }, [isActive]);
 
-    // Core logic: ONLY animate if this tab just became active
-    if (isActive && currentTab === itemKey && previousTab !== itemKey) {
-      controls.start(variants.active);
-    } else if (!isActive) {
-      // Smoothly transition to inactive state if we're no longer active
-      controls.start(variants.inactive);
-    }
-  }, [isActive, currentTab, previousTab, itemKey, controls, hasMounted, variants.active, variants.inactive]);
+  if (iconNode) {
+    return <div style={{ width: size, height: size, color }}>{iconNode}</div>;
+  }
 
-  const renderContent = () => {
-    if (iconNode) {
-      return iconNode;
-    }
+  const AnimatedComponent = OFFICIAL_ANIMATED_ICONS[key];
+  if (AnimatedComponent) {
+    return (
+      <div style={{ width: size, height: size, color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+        <AnimatedComponent ref={iconRef} size={size} />
+      </div>
+    );
+  }
 
-    if (iconName) {
-      const iconDef = getBakaiIcon(iconName);
-      if (!iconDef || !iconDef.paths) return null;
+  const StaticComponent = STATIC_FALLBACK_ICONS[key];
+  if (StaticComponent) {
+    return <StaticComponent size={size} color={color} strokeWidth={strokeWidth} />;
+  }
 
-      return (
-        <svg
-          width={size}
-          height={size}
-          viewBox={iconDef.viewBox || '0 0 24 24'}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ width: '100%', height: '100%', overflow: 'visible' }}
-        >
-          {iconDef.paths.map((p: BakaiIconPath, idx: number) => {
-            if (p.type === 'circle' && p.circleProps) {
-              return (
-                <circle
-                  key={idx}
-                  cx={p.circleProps.cx}
-                  cy={p.circleProps.cy}
-                  r={p.circleProps.r}
-                  fill={p.fill ? color : 'none'}
-                />
-              );
-            }
-            if (p.type === 'rect' && p.rectProps) {
-              return (
-                <rect
-                  key={idx}
-                  x={p.rectProps.x}
-                  y={p.rectProps.y}
-                  width={p.rectProps.width}
-                  height={p.rectProps.height}
-                  rx={p.rectProps.rx || 0}
-                  fill={p.fill ? color : 'none'}
-                />
-              );
-            }
-            return (
-              <path
-                key={idx}
-                d={p.d}
-                fill={p.fill ? color : 'none'}
-              />
-            );
-          })}
-        </svg>
-      );
-    }
-
-    return null;
-  };
-
+  // Generic fallback: render HomeIcon
   return (
-    <motion.div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: size,
-        height: size,
-        color, // ensure child SVGs inherit color
-      }}
-      initial={(isActive ? variants.active : variants.inactive) as any}
-      animate={controls}
-    >
-      {renderContent()}
-    </motion.div>
+    <div style={{ width: size, height: size, color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <HomeIcon ref={iconRef} size={size} />
+    </div>
   );
 };

@@ -1,7 +1,7 @@
 Release Date: 2026-07-29
 
 ## Added
-- Upgraded the complete navigation system across all applications (Hub, Chordex, StageX, Drumex, Groovex, Vocalex, Settings, Profile, Search) to use a unified, state-driven animated navigation icon system.
-- Replaced touch/press-based icon triggers with clean navigation-state triggers (animations play once upon entering active state; re-taps ignored).
-- Created reusable NavigationAnimationProvider, AnimatedNavigationIcon, and NavigationMotionVariants infrastructure with 60 FPS GPU-bound spring physics.
-- Resolved circular dependencies across core modules for clean, robust production builds.
+- Migrated the complete navigation system across all applications (Hub, Livex, Chordex, StageX, Drumex, Groovex, Vocalex, Discover, Practice, Settings, Profile, Search, Developer Tools) to use official Lucide Animated components.
+- Installed 32 official Lucide Animated icon packages via official shadcn CLI integration into UI Shared components.
+- Enforced strict navigation state-transition animation triggers (animations play once upon entering active state; re-taps and touch events ignored).
+- Unified all Preferences screens to use the official Lucide Animated Sliders Horizontal component and Settings to use the official Lucide Animated Settings component.

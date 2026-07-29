@@ -181,7 +181,15 @@ export function decryptSync(ciphertext: string, keySeed: string): string {
   if (!ciphertext) return '';
 
   if (ciphertext.startsWith('v3:')) {
-    // Synchronous call to a v3 payload is not directly supported; return empty or fallback
+    const parts = ciphertext.split(':');
+    if (parts.length >= 5) {
+      try {
+        const syncPayload = bytesToString(hexToBytes(parts[4]));
+        if (syncPayload) {
+          return decryptSync(syncPayload, keySeed);
+        }
+      } catch (_) {}
+    }
     return '';
   }
 
@@ -211,17 +219,13 @@ export function secureReadLocal(key: string, userUid = 'guest_user'): string | n
 
     const cryptoKey = deriveUserKey(userUid);
 
-    // If payload is legacy v2 or v1, decrypt via legacy reader and schedule async v3 migration
-    if (raw.startsWith('v2:') || (raw.length > 9 && raw.charAt(8) === ':')) {
+    // Decrypt v3, v2 or legacy encrypted payloads
+    if (raw.startsWith('v3:') || raw.startsWith('v2:') || (raw.length > 9 && raw.charAt(8) === ':')) {
       const decrypted = decryptSync(raw, cryptoKey);
       if (decrypted) {
-        reportMigration(key, raw.startsWith('v2:') ? 'v2' : 'v1', 'v3');
-        // Auto-migrate in background to v3 Web Crypto format
-        void encryptAESGCM(decrypted, cryptoKey).then((v3Cipher) => {
-          if (v3Cipher) {
-            localStorage.setItem(key, v3Cipher);
-          }
-        });
+        if (raw.startsWith('v2:')) {
+          reportMigration(key, 'v2', 'v3');
+        }
         return decrypted;
       }
     }
@@ -244,10 +248,11 @@ export function secureWriteLocal(key: string, value: string, userUid = 'guest_us
     const syncEncrypted = encryptSync(value, cryptoKey);
     localStorage.setItem(key, syncEncrypted);
 
-    // Upgrade asynchronously to v3 AES-GCM
+    // Upgrade asynchronously to v3 AES-GCM with dual sync representation
     void encryptAESGCM(value, cryptoKey).then((v3Cipher) => {
       if (v3Cipher) {
-        localStorage.setItem(key, v3Cipher);
+        const dualPayload = `${v3Cipher}:${bytesToHex(stringToBytes(syncEncrypted))}`;
+        localStorage.setItem(key, dualPayload);
       }
     });
   } catch {

@@ -36,6 +36,39 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
 }) => {
   const iconDef = getBakaiIcon(name);
 
+  // Icon-specific physics mapping matching functional motion guidelines
+  const getIconSpecificHover = () => {
+    const lower = name.toLowerCase();
+    if (lower.includes('setting') || lower.includes('gear')) {
+      return { rotate: 90, scale: 1.08 };
+    }
+    if (lower.includes('bell') || lower.includes('notification')) {
+      return { rotate: [0, -14, 14, -8, 4, 0], scale: 1.08 };
+    }
+    if (lower.includes('sync') || lower.includes('refresh') || lower.includes('update')) {
+      return { rotate: 180, scale: 1.08 };
+    }
+    if (lower.includes('search')) {
+      return { scale: 1.14, x: 1, y: -1 };
+    }
+    if (lower.includes('download')) {
+      return { y: 2, scale: 1.08 };
+    }
+    if (lower.includes('upload')) {
+      return { y: -2, scale: 1.08 };
+    }
+    if (lower.includes('profile') || lower.includes('user') || lower.includes('account')) {
+      return { scale: 1.1, y: -1 };
+    }
+    if (lower.includes('favorite') || lower.includes('heart') || lower.includes('star')) {
+      return { scale: 1.2, rotate: -4 };
+    }
+    if (lower.includes('lock') || lower.includes('security') || lower.includes('shield')) {
+      return { scale: 1.12, rotate: [0, -6, 0] };
+    }
+    return { scale: 1.08, y: -1 };
+  };
+
   // Motion physics configuration matching Bakai physical interaction philosophy
   const getStateVariants = () => {
     switch (state) {
@@ -78,7 +111,7 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
         ...style,
       }}
       animate={getStateVariants()}
-      whileHover={{ scale: 1.08, y: -1 }}
+      whileHover={getIconSpecificHover()}
       whileTap={{ scale: 0.86, rotate: -3, y: 1 }}
       transition={
         isSpinning

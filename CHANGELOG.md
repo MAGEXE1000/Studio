@@ -11,6 +11,14 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.01
+
+Release Date: 2026-07-28
+
+## Added
+- Resolved Appearance settings persistence root cause for v3 encrypted state hydration across restarts, cold starts, and web refreshes.
+- Complete icon coverage and context-aware 60 FPS micro-interactions across all Studio applications and screens.
+
 # Version 4.3.00
 
 Release Date: 2026-07-28

@@ -1,9 +1,9 @@
 {
   "platform": "android",
-  "version": "4.3.01",
-  "versionName": "4.3.01",
-  "versionCode": 40301,
-  "version_code": 40301,
+  "version": "4.3.02",
+  "versionName": "4.3.02",
+  "versionCode": 40302,
+  "version_code": 40302,
   "commit": "5e0b3cde",
   "releasedAt": "7/28/2026, 5:30:55 PM CST",
   "buildTimestamp": "7/28/2026, 5:30:55 PM CST",

@@ -865,20 +865,17 @@ public class AppInstallerPlugin extends Plugin {
             }
             File apkFile = new File(cacheDir, fileName);
             
-            long existingLength = 0;
+            // Delete any existing stale file to prevent Range resume corruption across releases
             if (apkFile.exists()) {
-                existingLength = apkFile.length();
-                logNativeInstrumentation(getContext(), methodTag, callId, "STEP", "Found existing file of size: " + existingLength + " bytes");
+                logNativeInstrumentation(getContext(), methodTag, callId, "STEP", "Purging existing stale file before fresh download: " + apkFile.getAbsolutePath());
+                apkFile.delete();
             }
             
             java.net.URL url = new java.net.URL(urlString);
             connection = (java.net.HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(true);
-            
-            // Set range header if we want to resume
-            if (existingLength > 0) {
-                connection.setRequestProperty("Range", "bytes=" + existingLength + "-");
-            }
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(30000);
             
             int redirectCount = 0;
             int status = connection.getResponseCode();
@@ -892,48 +889,26 @@ public class AppInstallerPlugin extends Plugin {
                 url = new java.net.URL(newUrl);
                 connection = (java.net.HttpURLConnection) url.openConnection();
                 connection.setInstanceFollowRedirects(true);
-                if (existingLength > 0) {
-                    connection.setRequestProperty("Range", "bytes=" + existingLength + "-");
-                }
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(30000);
                 status = connection.getResponseCode();
                 redirectCount++;
             }
 
-            boolean isResume = (status == 206); // HTTP_PARTIAL
-            if (status != java.net.HttpURLConnection.HTTP_OK && !isResume) {
-                // If resume request failed (e.g. 416 Range Not Satisfiable), clear the file and restart from 0
-                if (existingLength > 0) {
-                    logNativeInstrumentation(getContext(), methodTag, callId, "STEP", "Range request failed (status " + status + "). Restarting from scratch.");
-                    apkFile.delete();
-                    existingLength = 0;
-                    connection = (java.net.HttpURLConnection) url.openConnection();
-                    connection.setInstanceFollowRedirects(true);
-                    status = connection.getResponseCode();
-                    if (status != java.net.HttpURLConnection.HTTP_OK) {
-                        throw new Exception("Server returned non-OK status: " + status);
-                    }
-                } else {
-                    throw new Exception("Server returned non-OK status: " + status);
-                }
+            if (status != java.net.HttpURLConnection.HTTP_OK) {
+                throw new Exception("Server returned non-OK status: " + status + " for URL: " + url.toString());
             }
 
-            long totalBytesRead = isResume ? existingLength : 0;
+            long totalBytesRead = 0;
             long fileLength = connection.getContentLength();
-            if (fileLength > 0) {
-                fileLength += totalBytesRead; // Total size is content length + existing
-            }
             
             logNativeInstrumentation(getContext(), methodTag, callId, "STEP", "Connected. Status: " + status + ", Total file size: " + fileLength + " bytes");
             input = new java.io.BufferedInputStream(connection.getInputStream());
             
             output = new java.io.RandomAccessFile(apkFile, "rw");
-            if (isResume) {
-                output.seek(existingLength);
-            } else {
-                output.setLength(0); // Truncate existing file if starting new download
-            }
+            output.setLength(0); // Truncate existing file if starting new download
 
-            byte[] data = new byte[8192];
+            byte[] data = new byte[16384];
             int count;
             int lastProgress = 0;
             
@@ -959,6 +934,7 @@ public class AppInstallerPlugin extends Plugin {
             try {
                 if (output != null) output.close();
                 if (input != null) input.close();
+                if (connection != null) connection.disconnect();
             } catch (Exception ignored) {}
         }
     }

@@ -90,7 +90,7 @@ public class UpdateDownloadService extends Service {
 
                 // Stage: Downloading update...
                 updateProgressNotification("Downloading update...", 0, true);
-                File apkFile = downloadFile(url, fileName);
+                File apkFile = downloadFile(url, fileName, expectedHash);
                 
                 // Stage: Verifying APK...
                 updateProgressNotification("Verifying APK...", 100, true);
@@ -270,7 +270,7 @@ public class UpdateDownloadService extends Service {
         }).start();
     }
 
-    private File downloadFile(String urlString, String fileName) throws Exception {
+    private File downloadFile(String urlString, String fileName, String expectedHash) throws Exception {
         BufferedInputStream input = null;
         RandomAccessFile output = null;
         HttpURLConnection connection = null;
@@ -283,18 +283,26 @@ public class UpdateDownloadService extends Service {
                 fileName = "update.apk";
             }
             File apkFile = new File(cacheDir, fileName);
-            long existingLength = 0;
-            if (apkFile.exists()) {
-                existingLength = apkFile.length();
+            
+            // Check if existing cached APK matches the target expected SHA-256
+            if (apkFile.exists() && expectedHash != null && !expectedHash.isEmpty()) {
+                if (verifySha256(apkFile, expectedHash)) {
+                    Log.i(TAG, "[OTA] Existing cached file matches expected SHA-256. Skipping download. Path: " + apkFile.getAbsolutePath());
+                    return apkFile;
+                } else {
+                    Log.i(TAG, "[OTA] Existing cached file does not match expected SHA-256. Purging stale APK.");
+                    apkFile.delete();
+                }
+            } else if (apkFile.exists()) {
+                // Stale file present without expected hash verification, clear to avoid corruption
+                apkFile.delete();
             }
 
             URL url = new URL(urlString);
             connection = (HttpURLConnection) url.openConnection();
             connection.setInstanceFollowRedirects(true);
-
-            if (existingLength > 0) {
-                connection.setRequestProperty("Range", "bytes=" + existingLength + "-");
-            }
+            connection.setConnectTimeout(15000);
+            connection.setReadTimeout(30000);
 
             int redirectCount = 0;
             int status = connection.getResponseCode();
@@ -307,45 +315,26 @@ public class UpdateDownloadService extends Service {
                 url = new URL(newUrl);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setInstanceFollowRedirects(true);
-                if (existingLength > 0) {
-                    connection.setRequestProperty("Range", "bytes=" + existingLength + "-");
-                }
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(30000);
                 status = connection.getResponseCode();
                 redirectCount++;
             }
 
-            boolean isResume = (status == 206);
-            if (status != HttpURLConnection.HTTP_OK && !isResume) {
-                if (existingLength > 0) {
-                    apkFile.delete();
-                    existingLength = 0;
-                    connection = (HttpURLConnection) url.openConnection();
-                    connection.setInstanceFollowRedirects(true);
-                    status = connection.getResponseCode();
-                    if (status != HttpURLConnection.HTTP_OK) {
-                        throw new Exception("Server returned non-OK status: " + status);
-                    }
-                } else {
-                    throw new Exception("Server returned non-OK status: " + status);
-                }
+            if (status != HttpURLConnection.HTTP_OK) {
+                throw new Exception("Server returned non-OK HTTP status: " + status + " for URL: " + url.toString());
             }
 
-            long totalBytesRead = isResume ? existingLength : 0;
             long fileLength = connection.getContentLength();
-            if (fileLength > 0) {
-                fileLength += totalBytesRead;
-            }
+            Log.i(TAG, "[OTA] Downloading clean stream. Status: " + status + ", Content-Length: " + fileLength + " bytes");
 
             input = new BufferedInputStream(connection.getInputStream());
             output = new RandomAccessFile(apkFile, "rw");
-            if (isResume) {
-                output.seek(existingLength);
-            } else {
-                output.setLength(0);
-            }
+            output.setLength(0); // Truncate cleanly from byte 0
 
-            byte[] data = new byte[8192];
+            byte[] data = new byte[16384];
             int count;
+            long totalBytesRead = 0;
             int lastProgress = 0;
 
             while ((count = input.read(data)) != -1) {
@@ -360,20 +349,31 @@ public class UpdateDownloadService extends Service {
                 }
             }
 
+            output.close();
+            input.close();
+            Log.i(TAG, "[OTA] Download complete. Total bytes saved: " + totalBytesRead + " to " + apkFile.getAbsolutePath());
             return apkFile;
         } finally {
-            if (output != null) output.close();
-            if (input != null) input.close();
+            if (output != null) try { output.close(); } catch (Exception ignored) {}
+            if (input != null) try { input.close(); } catch (Exception ignored) {}
             if (connection != null) connection.disconnect();
         }
     }
 
     private boolean verifySha256(File file, String expectedHash) {
-        if (expectedHash == null || expectedHash.isEmpty()) return true;
+        if (expectedHash == null || expectedHash.trim().isEmpty()) {
+            Log.i(TAG, "[OTA] verifySha256 skipped: no expected hash provided.");
+            return true;
+        }
+        String cleanExpected = expectedHash.trim().toLowerCase();
+        if (cleanExpected.replace("0", "").isEmpty()) {
+            Log.i(TAG, "[OTA] verifySha256 skipped: all-zero expected hash.");
+            return true;
+        }
         try {
             java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
             java.io.InputStream fis = new java.io.FileInputStream(file);
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[16384];
             int count;
             while ((count = fis.read(buffer)) > 0) {
                 digest.update(buffer, 0, count);
@@ -386,8 +386,12 @@ public class UpdateDownloadService extends Service {
                 if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
-            return hexString.toString().equalsIgnoreCase(expectedHash);
+            String computedHash = hexString.toString().toLowerCase();
+            boolean matches = computedHash.equals(cleanExpected);
+            Log.i(TAG, "[OTA SHA-256 CHECK] Computed: " + computedHash + " | Expected: " + cleanExpected + " | Matches: " + matches);
+            return matches;
         } catch (Exception e) {
+            Log.e(TAG, "[OTA SHA-256 CHECK] Error computing SHA-256: " + e.getMessage(), e);
             return false;
         }
     }

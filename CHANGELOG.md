@@ -11,6 +11,14 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.02
+
+Release Date: 2026-07-28
+
+## Added
+- Resolved Android OTA downloader file resume corruption root cause to guarantee 100% accurate SHA-256 validation across releases.
+- Hardened native AppInstaller and UpdateDownloadService cache purging and stream truncation.
+
 # Version 4.3.01
 
 Release Date: 2026-07-28

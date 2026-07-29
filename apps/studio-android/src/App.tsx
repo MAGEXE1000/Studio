@@ -1052,11 +1052,11 @@ export default function App() {
         recoveryLog.push(logEntry);
         localStorage.setItem('studio_hub_mount_recovery_log', JSON.stringify(recoveryLog));
 
-        if (typeof (window as any).__forceRerenderApp === 'function') {
-          (window as any).__forceRerenderApp();
+        if (typeof window.__forceRerenderApp === 'function') {
+          window.__forceRerenderApp();
         }
 
-        (window as any).studioTransitionActive = false;
+        window.studioTransitionActive = false;
         useSettingsStore.getState().updateSettings({ appMode: 'hub' });
 
         requestAnimationFrame(() => {

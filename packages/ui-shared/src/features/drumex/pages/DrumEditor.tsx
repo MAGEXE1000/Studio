@@ -20,6 +20,7 @@ import {
   useSettingsStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
+import { DrumTransportBar } from '../components/DrumTransportBar';
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {

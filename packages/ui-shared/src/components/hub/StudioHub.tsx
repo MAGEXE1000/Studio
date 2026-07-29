@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, motionValue, animate, Reorder } from 'motion/react';
+import { HubAppGrid } from './components/HubAppGrid';
 import {
   StudioLogo,
   ChordexLogo,

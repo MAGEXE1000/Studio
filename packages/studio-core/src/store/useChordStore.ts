@@ -7,6 +7,8 @@ import { secureReadLocal, secureWriteLocal } from '../lib/security';
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
 import { useSettingsStore, settingsController, type Theme, type AccentColor, type AnimationSpeed, type DisplayDensity, type Language, type ActivePanel, type AppKey, type PerAppVisuals, type AppSettings, type SettingsStore } from './useSettingsStore';
 import { NavigationDispatcher } from '../lib/navigation/NavigationDispatcher';
+import type { SongSliceState } from './slices/songSlice';
+import type { ChordSliceState } from './slices/chordSlice';
 
 
 // Re-exported from i18n.ts so the store and the translation system always
@@ -55,22 +57,8 @@ export interface SongPreset {
   updatedAt: number;
 }
 
-interface ChordStore {
-  selectedChordId: string | null;
-  favorites: string[];
-  recentChords: string[];
-  progressions: Progression[];
-  currentProgressionChords: string[];
-
-  multiSelectChords: string[];
-  isMultiChordMode: boolean;
-  presets: SongPreset[];
-  activePresetId: string | null;
-  transpositions: Record<string, number>; // presetId → semitone offset (view-only, not stored in preset)
-  customChords: CustomChord[];
-  chordUsage: Record<string, number>;
+interface ChordStore extends SongSliceState, ChordSliceState {
   activityLog?: any[];
-  libraryActiveType: ChordType | 'all' | null;
 
   settings: AppSettings;
   settingsController: typeof settingsController;
@@ -706,9 +694,22 @@ export const useChordStore = create<ChordStore>()(
         return rest;
       },
       storage: createJSONStorage(() => ({
-        getItem: (name) => secureReadLocal(name),
+        getItem: (name) => {
+          try {
+            return secureReadLocal(name);
+          } catch (err) {
+            console.warn(`[useChordStore] Error reading storage key "${name}":`, err);
+            return null;
+          }
+        },
         setItem: (name, value) => secureWriteLocal(name, value),
-        removeItem: (name) => localStorage.removeItem(name),
+        removeItem: (name) => {
+          try {
+            localStorage.removeItem(name);
+          } catch (err) {
+            console.warn(`[useChordStore] Error removing storage key "${name}":`, err);
+          }
+        },
       })),
     }
   )

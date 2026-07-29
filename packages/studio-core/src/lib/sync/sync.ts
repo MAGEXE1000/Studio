@@ -16,6 +16,7 @@ import type { LabSession, LabLayer } from '../../repositories/VocalexRepository'
 import { useChordStore } from '../../store/useChordStore';
 import { secureReadLocal, secureWriteLocal } from '../utilities/security';
 import { logActivity } from '../diagnostics/activityLogger';
+import { SyncOrchestrator } from './syncOrchestrator';
 
 /**
  * Cloud sync engine for Chordex / Drumex / StageX / Vocalex.

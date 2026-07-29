@@ -23,6 +23,7 @@ import {
   useSettingsStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
+import { SongCardGrid } from '../components/SongCardGrid';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';

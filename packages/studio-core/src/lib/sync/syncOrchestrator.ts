@@ -1,4 +1,4 @@
-export type SyncPhase = 'idle' | 'pending' | 'running' | 'retry' | 'failed' | 'completed';
+export type SyncPhase = 'idle' | 'pending' | 'running' | 'retry' | 'failed' | 'completed' | 'syncing' | 'success' | 'error';
 
 export interface SyncState {
   phase: SyncPhase;

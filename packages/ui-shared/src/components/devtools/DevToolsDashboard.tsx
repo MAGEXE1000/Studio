@@ -67,6 +67,8 @@ import { SharedNavigationContainer } from '../../navigation/SharedNavigationCont
 import MotionPlaygroundView from './MotionPlaygroundView';
 import { DeveloperInspectorPanel } from './inspector';
 import { Toggle as StudioToggle } from '../design-system/StudioToggle';
+import { DevToolsOverviewTab } from './tabs/DevToolsOverviewTab';
+import { DevToolsPerformanceTab } from './tabs/DevToolsPerformanceTab';
 
 interface Props {
   accent: { from: string; mid?: string; to: string };

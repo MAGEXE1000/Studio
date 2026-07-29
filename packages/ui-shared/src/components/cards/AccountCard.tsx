@@ -11,6 +11,8 @@ import StudioAuthCard from './StudioAuthCard';
 import { isFirebaseConfigured, type AuthUser, authRepository } from "@workspace/studio-core";
 import { AVATAR_ICONS, getUserAvatar, setUserAvatar, subscribeUserAvatar, type AvatarIcon } from "@workspace/studio-core";
 import StudioPricingSection from '../feature/StudioPricingSection';
+import { AccountProfileHeader } from './components/AccountProfileHeader';
+import { AccountSyncSection } from './components/AccountSyncSection';
 
 
 function compressAndResizeImage(file: File, maxWidth = 256, maxHeight = 256): Promise<Blob> {

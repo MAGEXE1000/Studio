@@ -11,6 +11,14 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.00
+
+Release Date: 2026-07-28
+
+## Added
+- Comprehensive production release bump to v4.3.00 with multi-manifest version synchronization across Android, Web, and OTA metadata channels.
+- Hardened deployment integrity, zero-regression performance safeguards, and Web Crypto API AES-GCM 256 state persistence.
+
 # Version 4.2.99
 
 Release Date: 2026-07-28

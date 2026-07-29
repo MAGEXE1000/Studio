@@ -1,8 +1,41 @@
 import { getChordByName, normalizeChordName } from '../../data/chords';
 import { type SongChart, type SongChartSection, type ChordMarker } from '../../data/songs';
-import { NormalizedSection, NormalizedChordChart, NormalizedChordMarker } from './chordService';
 import { cleanHtmlToPlainText, cleanChordLookupName, validateChord, decodeHtmlEntities } from './chordFormatting';
 import { LyricsResult } from './lyricsService';
+
+export interface NormalizedChordMarker {
+  chord: string;
+  offset: number; // character offset in lyrics line
+  timestamp?: number; // absolute start time in ms
+}
+
+export interface NormalizedLyricsLine {
+  lyrics: string;
+  chords: NormalizedChordMarker[];
+  lineIndex: number;
+  timestamp?: number; // start time in ms
+  duration?: number; // duration in ms
+}
+
+export interface NormalizedSection {
+  name: string;
+  lines: NormalizedLyricsLine[];
+}
+
+export interface NormalizedChordChart {
+  songId: string;
+  title: string;
+  artist: string;
+  key: string;
+  capo?: number;
+  tuning?: string;
+  sections: NormalizedSection[];
+  source: string; // e.g. 'builtin', 'user', 'lrclib'
+  licenseInfo?: string;
+  confidence?: number; // 0.0 to 1.0
+  chartStatus?: 'verified' | 'user' | 'provider' | 'unavailable';
+  importDiagnostics?: string[];
+}
 
 
 // Helper to convert plain/synced lyrics from LRCLIB into normalized lyrics lines

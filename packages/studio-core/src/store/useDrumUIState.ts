@@ -1,6 +1,5 @@
 import { StateCreator } from 'zustand';
 import { DrumInstrument, DrumPrefs, DEFAULT_DRUM_PREFS, KIT_INSTRUMENTS } from './drumTypes';
-import { DrumStoreFull } from './useDrumStore';
 
 export interface DrumUIStateSlice {
   activeInstruments: DrumInstrument[];
@@ -11,7 +10,7 @@ export interface DrumUIStateSlice {
   updateDrumPrefs: (patch: Partial<DrumPrefs>) => void;
 }
 
-export const createDrumUIStateSlice: StateCreator<DrumStoreFull, [], [], DrumUIStateSlice> = (set, get) => ({
+export const createDrumUIStateSlice: StateCreator<any, [], [], DrumUIStateSlice> = (set, get) => ({
   activeInstruments: KIT_INSTRUMENTS.house,
   drumPrefs: { ...DEFAULT_DRUM_PREFS },
 

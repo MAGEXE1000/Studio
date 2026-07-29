@@ -1,6 +1,7 @@
 Release Date: 2026-07-29
 
 ## Added
-- Production release v4.3.04 with complete preferences persistence, 60 FPS bottom navigation touch micro-animations, and full icon library coverage across all sub-applications.
-- Web Crypto API AES-GCM 256 state persistence hardening and synchronous v2 payload fallback restoration across restart and cold-start boundaries.
-- Context-aware AnimatedIcon micro-animations for mobile touch gestures and active tab state transitions.
+- Upgraded the complete navigation system across all applications (Hub, Chordex, StageX, Drumex, Groovex, Vocalex, Settings, Profile, Search) to use a unified, state-driven animated navigation icon system.
+- Replaced touch/press-based icon triggers with clean navigation-state triggers (animations play once upon entering active state; re-taps ignored).
+- Created reusable NavigationAnimationProvider, AnimatedNavigationIcon, and NavigationMotionVariants infrastructure with 60 FPS GPU-bound spring physics.
+- Resolved circular dependencies across core modules for clean, robust production builds.

@@ -5,7 +5,6 @@ import { supabase, isSupabaseConfigured, setFirebaseIdToken, getSupabaseConfigDe
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage, getFirebaseProjectId, getFirebaseConfigDetails } from "../firebase";
 import { getStableDeviceId, getDeviceDetails, classifyDeviceSession } from "../syncEngine";
 import { APP_VERSION, APP_COMMIT_SHA } from "../appVersion";
-import { SupabaseRealtimeProvider } from './supabaseRealtime';
 export async function init(provider: any): Promise<void> {
     provider.deviceId = getStableDeviceId();
     provider.diagState.currentDeviceId = provider.deviceId;

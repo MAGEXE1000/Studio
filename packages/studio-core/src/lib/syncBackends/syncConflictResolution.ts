@@ -5,7 +5,6 @@ import { supabase, isSupabaseConfigured, setFirebaseIdToken, getSupabaseConfigDe
 import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage, getFirebaseProjectId, getFirebaseConfigDetails } from "../firebase";
 import { getStableDeviceId, getDeviceDetails, classifyDeviceSession } from "../syncEngine";
 import { APP_VERSION, APP_COMMIT_SHA } from "../appVersion";
-import { SupabaseRealtimeProvider } from './supabaseRealtime';
 export async function updateProfile(provider: any, patch: Partial<UserProfile>): Promise<void> {
     const uid = provider.userId;
     const nowStr = new Date().toLocaleString();

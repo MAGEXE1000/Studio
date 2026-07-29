@@ -1,10 +1,37 @@
-import { resetUpdateTimeline, TimelineEvent } from './logger';
 import { activePipelineContext } from './stateMachine';
 import { Capacitor } from '@capacitor/core';
 import { APP_VERSION } from '../appVersion';
 import { globalUpdateState, startUpdateSession, activeUpdateSession, transitionListeners } from './stateMachine';
 import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 import { logProgressStage, parseStackTrace, logTimelineEvent } from './logger';
+import {
+  updateSessions,
+  activeSessionId,
+  setActiveSessionId,
+  saveSessions,
+  getActiveSession,
+  deleteUpdateSession,
+  deleteAllUpdateSessions,
+  isAppInstallerAvailable,
+  type TimelineEvent,
+  type WorkflowTransition,
+  type CloseEvent,
+  type UpToDateEvent,
+  type UpdateSession,
+  MAX_HISTORY_SIZE,
+} from './updateSessions';
+
+export {
+  updateSessions,
+  activeSessionId,
+  saveSessions,
+  getActiveSession,
+  deleteUpdateSession,
+  deleteAllUpdateSessions,
+  isAppInstallerAvailable,
+  MAX_HISTORY_SIZE,
+};
+export type { TimelineEvent, WorkflowTransition, CloseEvent, UpToDateEvent, UpdateSession };
 
 export interface UpdateDiagnostics {
   exceptionMessage: string | null;
@@ -484,7 +511,7 @@ export function resetUpdateDiagnostics() {
     }
   });
 
-  resetUpdateTimeline();
+  deleteAllUpdateSessions();
 }
 
 
@@ -743,25 +770,7 @@ export function nextJsCallId(): number {
 }
 
 
-export function isAppInstallerAvailable(): boolean {
-  const cap = (window as any).Capacitor;
-  if (!cap) return false;
-  if (typeof cap.isNativePlatform === 'function' && !cap.isNativePlatform()) {
-    return false;
-  }
-  const isPluginAvail = cap.isPluginAvailable?.('AppInstaller') ?? false;
-  if (!isPluginAvail) return false;
-  const plugin = cap.Plugins?.AppInstaller;
-  if (!plugin) return false;
 
-  return (
-    typeof plugin.downloadApk === 'function' &&
-    (typeof plugin.verifyApkSha256 === 'function' || typeof plugin.verifySha256 === 'function') &&
-    typeof plugin.installApk === 'function' &&
-    (typeof plugin.openInstallPermissionSettings === 'function' ||
-      typeof plugin.openUnknownAppSourcesSettings === 'function')
-  );
-}
 
 
 export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'unknown') {
@@ -788,7 +797,7 @@ export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'un
   } catch (_) {}
 
   const sessionId = `Session #${nextNum}`;
-  activeSessionId = sessionId;
+  setActiveSessionId(sessionId);
 
   let model = 'Web Browser';
   let osVer = 'N/A';
@@ -823,37 +832,7 @@ export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'un
 }
 
 
-export function saveSessions() {
-  if (updateSessions.length > MAX_HISTORY_SIZE) {
-    updateSessions = updateSessions.slice(-MAX_HISTORY_SIZE);
-  }
-  try {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('studio:update_sessions_history', JSON.stringify(updateSessions));
-      if (activeSessionId) {
-        localStorage.setItem('studio:active_update_session_id', activeSessionId);
-      } else {
-        localStorage.removeItem('studio:active_update_session_id');
-      }
-    }
-  } catch (_) {}
-}
 
-
-export function deleteUpdateSession(id: string) {
-  updateSessions = updateSessions.filter((s) => s.id !== id);
-  if (activeSessionId === id) {
-    activeSessionId = null;
-  }
-  saveSessions();
-}
-
-
-export function deleteAllUpdateSessions() {
-  updateSessions = [];
-  activeSessionId = null;
-  saveSessions();
-}
 
 
 export function getUpdateSessions(): UpdateSession[] {
@@ -1013,12 +992,7 @@ export function getUpdateSessions(): UpdateSession[] {
 }
 
 
-export function getActiveSession(): UpdateSession | null {
-  const sessions = getUpdateSessions();
-  if (sessions.length === 0) return null;
-  const active = sessions.find((s) => s.id === activeSessionId) || sessions[sessions.length - 1];
-  return active || null;
-}
+
 
 
 export function exportSessionSubset(
@@ -1183,91 +1157,10 @@ export function exportSessionSubset(
 }
 
 
-export interface UpdateSession {
-  id: string;
-  sessionNumber: number;
-  startTime: string; // ISO String
-  startTimestamp: number;
-  endTime: string | null;
-  durationMs: number | null;
-  result: 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'IN_PROGRESS' | 'FINISHED' | 'ABORTED';
-  version: string | null;
-  buildType: string;
-  deviceModel: string;
-  androidVersion: string;
-  timeline: TimelineEvent[];
-  transitions: WorkflowTransition[];
-  closeEvent: CloseEvent | null;
-  upToDateEvent: UpToDateEvent | null;
-  stateDurations: Record<string, number>;
-  noUpdateDetails?: {
-    callerInfo: string;
-    stackTrace: string;
-    previousState: string;
-    currentState: string;
-    pipelineId: string;
-    sessionId: string;
-    lifecycleState: string;
-    activityState: string;
-    reason: string;
-    timestamp: string;
-  } | null;
-}
 
 
-export interface WorkflowTransition {
-  timestamp: string; // HH:MM:SS
-  absoluteTimestamp: number;
-  previousState: string;
-  nextState: string;
-  caller: string;
-  file: string;
-  functionName: string;
-  reason: string;
-  thread: string;
-  elapsedTimeMs: number;
-  sessionId: string;
-  pipelineId: string | number | null;
-  durationMs: number;
-  screen?: string;
-  lifecycleState?: string;
-  packageInstallerStatus?: string | number | null;
-  progress?: number;
-}
 
-
-export interface CloseEvent {
-  timestamp: string;
-  functionName: string;
-  file: string;
-  caller: string;
-  reason: string;
-  stackTrace: string;
-  currentState: string;
-  previousState: string;
-  sessionId: string;
-}
-
-
-export interface UpToDateEvent {
-  timestamp: string;
-  functionName: string;
-  file: string;
-  caller: string;
-  stackTrace: string;
-  previousState: string;
-  currentState: string;
-  sessionId: string;
-  reason: string;
-  triggerType: 'AUTOMATIC' | 'USER ACTION';
-}
-
-export let updateSessions: UpdateSession[] = [];
-
-export let activeSessionId: string | null = null;
-
-
-export const MAX_HISTORY_SIZE = 25;let checkCallIdCounter = 0;
+let checkCallIdCounter = 0;
 export function formatOffsetTime(offsetMs: number): string {
   const min = Math.floor(offsetMs / 60000);
   const sec = Math.floor((offsetMs % 60000) / 1000);

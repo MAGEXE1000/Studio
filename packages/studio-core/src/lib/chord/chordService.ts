@@ -1,5 +1,5 @@
 import { cleanChordLookupName, decodeHtmlEntities, cleanHtmlToPlainText, validateChord } from './chordFormatting';
-import { parsePlainChart, parseCifraStyleHtml, isChordProFormat, mapLyricsResultToSections, validateChartChords } from './chordParser';
+import { parsePlainChart, parseCifraStyleHtml, isChordProFormat, mapLyricsResultToSections, validateChartChords, type NormalizedSection, type NormalizedChordChart, type NormalizedChordMarker, type NormalizedLyricsLine } from './chordParser';
 export * from './chordFormatting';
 export * from './chordParser';
 export * from './chordTransposer';
@@ -9,39 +9,6 @@ import { getChordByName, normalizeChordName } from '../../data/chords';
 import { fetchLyricsOnline, type LyricsResult } from './lyricsService';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 
-export interface NormalizedChordMarker {
-  chord: string;
-  offset: number; // character offset in lyrics line
-  timestamp?: number; // absolute start time in ms
-}
-
-export interface NormalizedLyricsLine {
-  lyrics: string;
-  chords: NormalizedChordMarker[];
-  lineIndex: number;
-  timestamp?: number; // start time in ms
-  duration?: number; // duration in ms
-}
-
-export interface NormalizedSection {
-  name: string;
-  lines: NormalizedLyricsLine[];
-}
-
-export interface NormalizedChordChart {
-  songId: string;
-  title: string;
-  artist: string;
-  key: string;
-  capo?: number;
-  tuning?: string;
-  sections: NormalizedSection[];
-  source: string; // e.g. 'builtin', 'user', 'lrclib'
-  licenseInfo?: string;
-  confidence: number; // 0.0 to 1.0
-  chartStatus: 'verified' | 'user' | 'provider' | 'unavailable';
-  importDiagnostics?: string[];
-}
 
 export interface ChordChartProvider {
   id: string;

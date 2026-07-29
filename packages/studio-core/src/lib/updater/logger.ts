@@ -1,4 +1,4 @@
-import { isAppInstallerAvailable, updateSessions, activeSessionId, saveSessions, getActiveSession, deleteAllUpdateSessions } from './metrics';
+import { isAppInstallerAvailable, updateSessions, activeSessionId, saveSessions, getActiveSession, deleteAllUpdateSessions, TimelineEvent } from './updateSessions';
 import { startUpdateSession } from './stateMachine';
 import { Capacitor } from '@capacitor/core';
 import { globalUpdateState, activePipelineContext } from './stateMachine';
@@ -292,17 +292,7 @@ export interface InstallLockEvent {
 }
 
 
-export interface TimelineEvent {
-  timestamp: string; // HH:MM:SS
-  absoluteTimestamp: number;
-  offset: string; // MM:SS.mmm
-  offsetMs: number;
-  module: string;
-  event: string;
-  state: string;
-  reason: string;
-  durationMs?: number;
-}
+
 
 
 // Keep legacy interfaces for compatibility if needed

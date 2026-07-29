@@ -3,8 +3,6 @@ import {
   DrumPattern, DrumInstrument, DrumHit, DrumMeasure, DrumSong, GrooveEntry, GrooveTag, KitType,
   uid, defaultPattern, emptyMeasure, randomNewNoteVelocity, clampVelocity, clampLoopRange, INST_VARIATIONS
 } from './drumTypes';
-import { DrumStoreFull } from './useDrumStore';
-
 export interface DrumPatternSlice {
   patterns: DrumPattern[];
   activePatternId: string | null;
@@ -46,7 +44,7 @@ export interface DrumPatternSlice {
   duplicateGroove: (id: string) => string;
 }
 
-export const createDrumPatternSlice: StateCreator<DrumStoreFull, [], [], DrumPatternSlice> = (set, get) => ({
+export const createDrumPatternSlice: StateCreator<any, [], [], DrumPatternSlice> = (set, get) => ({
   patterns: [defaultPattern()],
   activePatternId: defaultPattern().id, // Overwritten by state initialisation logic
   drumSongs: [],

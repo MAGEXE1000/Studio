@@ -358,7 +358,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
           setChartDiagnostics({
             provider: chart.source,
             success: true,
-            confidence: chart.confidence,
+            confidence: chart.confidence ?? 1.0,
             type: chart.sections.some((s) => s.lines.some((l) => l.timestamp !== undefined))
               ? 'synced'
               : 'plain',

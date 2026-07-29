@@ -1,6 +1,5 @@
 import { StateCreator } from 'zustand';
 import { DrumInstrument, InstFX, InstPlugin, HouseMic, HouseCrashModel, CymbalPack, KitType, KIT_INSTRUMENTS } from './drumTypes';
-import { DrumStoreFull } from './useDrumStore';
 
 export interface DrumPlaybackSlice {
   soundMap: Partial<Record<DrumInstrument, string>>;
@@ -26,7 +25,7 @@ export interface DrumPlaybackSlice {
   setCymbalPack: (pack: CymbalPack) => void;
 }
 
-export const createDrumPlaybackSlice: StateCreator<DrumStoreFull, [], [], DrumPlaybackSlice> = (set, get) => ({
+export const createDrumPlaybackSlice: StateCreator<any, [], [], DrumPlaybackSlice> = (set, get) => ({
   soundMap: {},
   volumeMap: {},
   masterVolume: 0.82,

@@ -1,21 +1,5 @@
-import { SONG_CATALOG } from './catalogFetcher';
-export interface StemInfo {
-  name: string;
-  label: string;
-  icon: string;
-}
-export interface SongMeta {
-  id: string;
-  title: string;
-  artist: string;
-  source: string;
-  bpm: number;
-  key: string;
-  duration: string;
-  stems: StemInfo[];
-  genre: string;
-  hasStems: boolean;
-}
+import { SONG_CATALOG, type StemInfo, type SongMeta } from './catalogFetcher';
+export type { StemInfo, SongMeta };
 
 
 export function getArtists(): string[] {

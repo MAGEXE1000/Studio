@@ -2,21 +2,21 @@ import type { Variants } from 'motion/react';
 
 // Common spring configs for consistent physics across navigation
 export const navSpringConfig = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 450,
   damping: 25,
   mass: 0.8,
 };
 
 export const slowSpringConfig = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 300,
   damping: 20,
   mass: 1,
 };
 
 export const snappySpringConfig = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 550,
   damping: 22,
   mass: 0.6,

@@ -122,7 +122,7 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
         height: size,
         color, // ensure child SVGs inherit color
       }}
-      initial={isActive ? variants.active : variants.inactive}
+      initial={(isActive ? variants.active : variants.inactive) as any}
       animate={controls}
     >
       {renderContent()}

@@ -1,4 +1,21 @@
-import { StemInfo, SongMeta } from './catalogParser';
+export interface StemInfo {
+  name: string;
+  label: string;
+  icon: string;
+}
+export interface SongMeta {
+  id: string;
+  title: string;
+  artist: string;
+  source: string;
+  bpm: number;
+  key: string;
+  duration: string;
+  stems: StemInfo[];
+  genre: string;
+  hasStems: boolean;
+}
+
 const RB_STEMS: StemInfo[] = [
   { name: 'kick', label: 'Kick', icon: 'layers' },
   { name: 'snare', label: 'Snare', icon: 'target' },

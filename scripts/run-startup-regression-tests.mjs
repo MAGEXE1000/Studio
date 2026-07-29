@@ -67,10 +67,16 @@ async function runStartupRegressionTests() {
 
   // Test 3: Authoritative Success Model Check
   assertTest('UpdateIndicator.tsx authoritative success checks', () => {
-    const updatePath = path.join(
+    let updatePath = path.join(
       repoRoot,
-      'packages/ui-shared/src/components/update/UpdateIndicator.tsx'
+      'packages/ui-shared/src/features/updater/components/UpdateIndicator.tsx'
     );
+    if (!fs.existsSync(updatePath)) {
+      updatePath = path.join(
+        repoRoot,
+        'packages/ui-shared/src/components/update/UpdateIndicator.tsx'
+      );
+    }
     const content = fs.readFileSync(updatePath, 'utf8');
 
     // Assert that getLastInstallResult is not used on boot (success screen removed)

@@ -11,6 +11,16 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.2.98
+
+Release Date: 2026-07-28
+
+## Added
+- Upgraded security engine to Web Crypto API (AES-GCM 256) with PBKDF2 key derivation and automatic legacy payload migration.
+- Integrated lifecycle-aware RenderScheduler and event-driven DOM observation to eliminate 100% of idle polling loops.
+- Completed architectural integration of giant sub-components, Zustand store domain slices, sync orchestrators, and typed window declarations.
+- Enforced deterministic cloud synchronization states (idle, pending, running, retry, failed, completed).
+
 # Version 4.2.97
 
 Release Date: 2026-07-28

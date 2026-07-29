@@ -58,6 +58,9 @@ jobs:
       - name: Enforce Import Boundaries
         run: pnpm lint:imports
 
+      - name: Platform Scope Check
+        run: pnpm scope:check --platform shared
+
       - name: Lint
         run: pnpm lint
 
@@ -66,3 +69,4 @@ jobs:
 
       - name: Build Web
         run: pnpm build:web
+

@@ -1,10 +1,11 @@
-export type SyncPhase = 'idle' | 'syncing' | 'success' | 'error';
+export type SyncPhase = 'idle' | 'pending' | 'running' | 'retry' | 'failed' | 'completed';
 
 export interface SyncState {
   phase: SyncPhase;
   lastSyncedAt: number | null;
   lastError: string | null;
   pendingCount: number;
+  retryCount: number;
 }
 
 type SyncStateListener = (state: SyncState) => void;
@@ -15,12 +16,14 @@ class SyncOrchestratorClass {
     lastSyncedAt: null,
     lastError: null,
     pendingCount: 0,
+    retryCount: 0,
   };
 
   private listeners = new Set<SyncStateListener>();
   private inFlightRunPromise: Promise<void> | null = null;
   private hasPendingFollowup = false;
   private currentEpoch = 0;
+  private maxRetries = 3;
 
   public getState(): SyncState {
     return { ...this.state };
@@ -52,31 +55,60 @@ class SyncOrchestratorClass {
     if (this.inFlightRunPromise) {
       if (!this.hasPendingFollowup) {
         this.hasPendingFollowup = true;
+        this.updateState({ phase: 'pending', pendingCount: this.state.pendingCount + 1 });
       }
       return this.inFlightRunPromise;
     }
 
-    this.updateState({ phase: 'syncing', lastError: null });
+    this.updateState({ phase: 'running', lastError: null });
 
     this.inFlightRunPromise = (async () => {
-      try {
-        await runFn();
-        this.updateState({ phase: 'success', lastSyncedAt: Date.now() });
+      let attempts = 0;
+      let success = false;
 
-        // Auto revert back to idle phase after 1.8s
-        setTimeout(() => {
-          if (this.state.phase === 'success') {
-            this.updateState({ phase: 'idle' });
+      while (attempts <= this.maxRetries && !success) {
+        try {
+          attempts++;
+          await runFn();
+          success = true;
+          this.updateState({
+            phase: 'completed',
+            lastSyncedAt: Date.now(),
+            pendingCount: Math.max(0, this.state.pendingCount - 1),
+            retryCount: 0,
+          });
+
+          // Auto revert back to idle phase after 2s
+          setTimeout(() => {
+            if (this.state.phase === 'completed') {
+              this.updateState({ phase: 'idle' });
+            }
+          }, 2000);
+        } catch (err: any) {
+          const errMsg = err?.message || String(err);
+          if (attempts <= this.maxRetries) {
+            this.updateState({
+              phase: 'retry',
+              lastError: errMsg,
+              retryCount: attempts,
+            });
+            // Backoff delay
+            await new Promise((r) => setTimeout(r, 1000 * attempts));
+          } else {
+            // Terminal failure - state set to failed
+            this.updateState({
+              phase: 'failed',
+              lastError: errMsg,
+            });
           }
-        }, 1800);
-      } catch (err: any) {
-        this.updateState({ phase: 'error', lastError: err?.message || String(err) });
-      } finally {
-        this.inFlightRunPromise = null;
-        if (this.hasPendingFollowup) {
-          this.hasPendingFollowup = false;
-          void this.enqueueRun(runFn);
         }
+      }
+
+      this.inFlightRunPromise = null;
+
+      if (this.hasPendingFollowup) {
+        this.hasPendingFollowup = false;
+        void this.enqueueRun(runFn);
       }
     })();
 

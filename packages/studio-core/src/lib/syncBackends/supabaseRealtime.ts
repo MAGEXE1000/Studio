@@ -6,25 +6,28 @@ import { getFirebaseAuth, getFirebaseDb, getFirebaseStorage, getFirebaseProjectI
 
 import { getStableDeviceId, getDeviceDetails, classifyDeviceSession } from "../syncEngine";
 import { APP_VERSION, APP_COMMIT_SHA } from "../appVersion";
+import { init, dispose, getCurrentUserId, updateDiag } from "./syncAuth";
+import { clearSubscriptions, startPeriodicRefetch, refetchAllData, setupRealtimeAndPresence, subscribeProfile, subscribeAppearanceSettings, subscribePreferences, subscribeDevices, subscribeSyncProbe, getProfile, getAppearanceSettings, getPreferences } from "./syncState";
+import { updateProfile, updateAppearanceSettings, updatePreferences, registerCurrentDevice, heartbeatNow } from "./syncConflictResolution";
 
 export class SupabaseRealtimeProvider implements SyncBackendProvider {
   providerName = 'supabase-realtime';
 
-  private userId: string | null = null;
-  private deviceId: string = 'unknown';
-  private versionCode: number = 0;
-  private unsubs: Unsubscribe[] = [];
+  userId: string | null = null;
+  deviceId: string = 'unknown';
+  versionCode: number = 0;
+  unsubs: Unsubscribe[] = [];
 
   // Callbacks
-  private devicesCallbacks = new Set<DevicesListener>();
-  private profileCallbacks = new Set<ProfileListener>();
-  private appearanceCallbacks = new Set<AppearanceListener>();
-  private preferencesCallbacks = new Set<PreferencesListener>();
-  private probeCallbacks = new Set<ProbeListener>();
-  private diagnosticsCallbacks = new Set<DiagnosticsListener>();
+  devicesCallbacks = new Set<DevicesListener>();
+  profileCallbacks = new Set<ProfileListener>();
+  appearanceCallbacks = new Set<AppearanceListener>();
+  preferencesCallbacks = new Set<PreferencesListener>();
+  probeCallbacks = new Set<ProbeListener>();
+  diagnosticsCallbacks = new Set<DiagnosticsListener>();
 
   // Diagnostic State
-  private diagState: Partial<SyncDiagnostics> = {
+  diagState: Partial<SyncDiagnostics> = {
     activeSyncProvider: 'supabase-realtime',
     authProvider: 'firebase',
     databaseProvider: 'supabase',
@@ -191,10 +194,10 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     probeRowsReceived: 0,
   };
 
-  private realtimeChannel: any = null;
-  private refetchInterval: any = null;
+  realtimeChannel: any = null;
+  refetchInterval: any = null;
 
-  private processError(e: any): string {
+  processError(e: any): string {
     if (!e) return 'None';
     const errorMsg = e.message || String(e);
     const errorCode = e.code || 'None';
@@ -220,423 +223,35 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
   }
 
   async init(): Promise<void> {
-    this.deviceId = getStableDeviceId();
-    this.diagState.currentDeviceId = this.deviceId;
-
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const { AppInstaller } = await import('../apkDownloader');
-        const installedDetails = await AppInstaller.getInstalledAppDetails();
-        this.versionCode = installedDetails.versionCode || 0;
-        this.diagState.versionCode = this.versionCode;
-      } catch (e) {
-      }
-    }
-
-    // Subscribe to Firebase Auth and dynamically acquire the token
-    const unsubAuth = authRepository.subscribeAuth(async (user) => {
-      if (user) {
-        this.userId = user.uid;
-        this.diagState.firebaseAuthUid = user.uid;
-        this.diagState.supabaseUserId = user.uid;
-        this.diagState.authUid = user.uid;
-        this.diagState.authEmail = user.email || 'N/A';
-        this.diagState.authReady = true;
-        this.diagState.syncEngineStatus = 'active';
-        this.diagState.lastAuthChangeAt = new Date().toLocaleString();
-
-        try {
-          const rawUser = getFirebaseAuth()?.currentUser;
-          if (!rawUser) throw new Error('No active Firebase user instance');
-          const token = await rawUser.getIdToken();
-          setFirebaseIdToken(token);
-          this.diagState.firestoreInitSource = 'firebase-auth-token-bridged';
-
-          // Setup Realtime Channels and Initial registration
-          this.setupRealtimeAndPresence(user.uid);
-          await this.registerCurrentDevice('init-auth');
-          await this.heartbeatNow('init-auth');
-          this.startPeriodicRefetch(user.uid);
-        } catch (e: any) {
-          console.error('[supabaseRealtime] Token retrieval failed:', e);
-          const errorMsg = this.processError(e);
-          this.updateDiag({
-            syncEngineInitError: errorMsg,
-            syncEngineStatus: 'error',
-          });
-        }
-      } else {
-        this.userId = null;
-        setFirebaseIdToken(null);
-        this.clearSubscriptions();
-        this.diagState.firebaseAuthUid = 'Not signed in';
-        this.diagState.supabaseUserId = 'N/A';
-        this.diagState.authUid = 'Not signed in';
-        this.diagState.authEmail = 'N/A';
-        this.diagState.authReady = false;
-        this.diagState.syncEngineStatus = 'inactive';
-        this.diagState.lastAuthChangeAt = new Date().toLocaleString();
-        this.updateDiag({});
-      }
-    });
-
-    this.unsubs.push(() => {
-      unsubAuth();
-      this.clearSubscriptions();
-    });
+      { return init(this); }
   }
 
   async dispose(): Promise<void> {
-    this.unsubs.forEach((u) => u());
-    this.unsubs = [];
-    this.clearSubscriptions();
+      { return dispose(this); }
   }
 
   async getCurrentUserId(): Promise<string | null> {
-    return this.userId;
+      { return getCurrentUserId(this); }
   }
 
-  private updateDiag(patch: Partial<SyncDiagnostics>) {
-    const configDetails = getSupabaseConfigDetails();
-    const fbDetails = getFirebaseConfigDetails();
-    const firebaseIdTokenAvailable = getFirebaseIdToken() ? 'Yes' : 'No';
-
-    // Firebase Diagnostics mapping
-    const firebaseDiag = {
-      firebaseAppsCount: fbDetails.appsCount,
-      firebaseAppName: fbDetails.appName,
-      firebaseProjectId: fbDetails.projectId,
-      firebaseAppId: fbDetails.appId,
-      firebaseAuthAvailable: Boolean(getFirebaseAuth()),
-      firebaseAuthUid: this.userId || 'Not signed in',
-      firebaseIdTokenAvailable,
-    };
-
-    // Supabase Diagnostics mapping
-    const uid = this.userId;
-    const deviceId = this.deviceId;
-
-    // Check if client is actually ready and URL/Anon key are configured
-    const clientReady = configDetails.supabaseClientReady;
-
-    // supabaseDbAvailable: Yes only if Supabase client exists AND can attempt a query (i.e. is ready). If client is not ready, it must be false/No.
-    const supabaseDbAvailable = clientReady;
-    const supabaseStorageAvailable = clientReady;
-
-    const supabaseDiag = {
-      supabaseUrlConfigured: configDetails.supabaseUrlConfigured,
-      supabaseUrlHost: configDetails.supabaseUrlHost,
-      supabaseAnonKeyConfigured: configDetails.supabaseAnonKeyConfigured,
-      supabaseAnonKeyPrefix: configDetails.supabaseAnonKeyPrefix,
-      supabaseAnonKeyLength: configDetails.supabaseAnonKeyLength,
-      supabaseClientReady: clientReady,
-      supabaseAuthBridgeReady: configDetails.firebaseAuthBridgeReady,
-      supabaseUserId: uid || 'N/A',
-      mappedUserId: uid || 'N/A',
-      rlsUserId: uid || 'N/A',
-      activeSyncProvider: 'supabase-realtime',
-      databaseProvider: 'supabase',
-      supabaseDbAvailable,
-      supabaseStorageAvailable,
-      supabaseAuthStrategy: 'Third-Party Auth (Firebase Auth Token)',
-
-      probeTable: 'sync_probe',
-      probeRowId: uid && deviceId ? `${uid}:${deviceId}` : 'N/A',
-      devicesTable: 'user_devices',
-      deviceRowId: uid && deviceId ? `${uid}:${deviceId}` : 'N/A',
-      directWriteTable: 'debug_writes',
-      directWriteRowId: uid && deviceId ? `${uid}:${deviceId}` : 'N/A',
-      profileTable: 'user_profiles',
-      appearanceTable: 'user_appearance_settings',
-      preferencesTable: 'user_preferences',
-      versionCode: this.versionCode,
-    };
-
-    this.diagState = {
-      ...this.diagState,
-      ...firebaseDiag,
-      ...supabaseDiag,
-      ...configDetails, // Overwrite with actual supabaseClient config details
-      ...patch,
-    } as SyncDiagnostics;
-
-    this.diagState.activeListenerCount =
-      (this.devicesCallbacks.size > 0 ? 1 : 0) +
-      (this.profileCallbacks.size > 0 ? 1 : 0) +
-      (this.appearanceCallbacks.size > 0 ? 1 : 0) +
-      (this.preferencesCallbacks.size > 0 ? 1 : 0) +
-      (this.probeCallbacks.size > 0 ? 1 : 0);
-
-    this.diagnosticsCallbacks.forEach((cb) => cb(this.diagState as SyncDiagnostics));
+  updateDiag(patch: Partial<SyncDiagnostics>) {
+      { updateDiag(this, patch); }
   }
 
-  private clearSubscriptions() {
-    if (this.realtimeChannel) {
-      this.realtimeChannel.unsubscribe();
-      this.realtimeChannel = null;
-    }
-    if (this.refetchInterval) {
-      clearInterval(this.refetchInterval);
-      this.refetchInterval = null;
-    }
-    this.diagState.realtimeConnected = false;
+  clearSubscriptions() {
+      { clearSubscriptions(this); }
   }
 
-  private startPeriodicRefetch(userId: string) {
-    if (this.refetchInterval) clearInterval(this.refetchInterval);
-    this.refetchInterval = setInterval(() => {
-      this.refetchAllData(userId, 'periodic-fallback');
-    }, 15000);
+  startPeriodicRefetch(userId: string) {
+      { startPeriodicRefetch(this, userId); }
   }
 
-  private async refetchAllData(userId: string, source: string) {
-    if (!supabase) return;
-    const nowStr = new Date().toLocaleString();
-    this.updateDiag({ lastManualRefetchAt: nowStr, lastAction: `Refetch data (${source})` });
-
-    try {
-      // 1. Fetch user profile
-      const { data: profile, error: profileErr } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (profileErr) throw profileErr;
-      if (profile) {
-        this.updateDiag({
-          cloudDisplayName: profile.display_name || 'N/A',
-          cloudPhotoURL: profile.photo_url || 'N/A',
-          profileLastSnapshotAt: nowStr,
-          profileListenerStatus: 'active',
-        });
-        const mappedProfile: UserProfile = {
-          displayName: profile.display_name,
-          photoURL: profile.photo_url,
-          avatarIcon: profile.avatar_icon,
-        };
-        this.profileCallbacks.forEach((cb) => cb(mappedProfile));
-      }
-
-      // 2. Fetch appearance
-      const { data: appearance, error: appearanceErr } = await supabase
-        .from('user_appearance_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (appearanceErr) throw appearanceErr;
-      if (appearance) {
-        this.updateDiag({
-          cloudTheme: appearance.theme || 'N/A',
-          cloudAccentColor: appearance.accent_color || 'N/A',
-          appearanceLastSnapshotAt: nowStr,
-          appearanceListenerStatus: 'active',
-        });
-        const mappedAppearance: AppearanceSettings = {
-          theme: appearance.theme,
-          accentColor: appearance.accent_color,
-          customAccentHue: Number(appearance.custom_accent_hue || 220),
-          palette: appearance.palette,
-          language: appearance.language,
-        };
-        this.appearanceCallbacks.forEach((cb) => cb(mappedAppearance));
-      }
-
-      // 3. Fetch preferences
-      const { data: preferences, error: preferencesErr } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (preferencesErr) throw preferencesErr;
-      if (preferences) {
-        this.updateDiag({
-          cloudPreferences: preferences.studio_preferences || null,
-          preferencesLastSnapshotAt: nowStr,
-          preferencesListenerStatus: 'active',
-        });
-        const mappedPreferences: UserPreferences = {
-          studioPreferences: preferences.studio_preferences,
-          modulePreferences: preferences.module_preferences,
-        };
-        this.preferencesCallbacks.forEach((cb) => cb(mappedPreferences));
-      }
-
-      // 4. Fetch devices
-      const { data: devices, error: devicesErr } = await supabase
-        .from('user_devices')
-        .select('*')
-        .eq('user_id', userId);
-      if (devicesErr) throw devicesErr;
-      if (devices) {
-        const mappedDevices: SyncDevice[] = devices.map((d: any) => ({
-          id: d.id,
-          deviceId: d.device_id,
-          userId: d.user_id,
-          platform: d.platform || 'unknown',
-          deviceType: d.device_type || 'desktop',
-          shortName: d.short_name || 'Device',
-          displayName: d.display_name || 'Device',
-          technicalName: d.technical_name || 'Device',
-          appVersion: d.app_version || 'N/A',
-          versionCode: d.version_code || 0,
-          buildType: d.build_type || 'Web',
-          browser: d.browser || 'Browser',
-          os: d.os || 'OS',
-          model: d.model || 'Model',
-          manufacturer: d.manufacturer || 'Manufacturer',
-          signedIn: d.signed_in,
-          currentSession: d.current_session,
-          syncStatus: d.sync_status,
-          classification: classifyDeviceSession(
-            {
-              deviceId: d.device_id,
-              id: d.id,
-              lastActiveAt: d.last_active_at ? new Date(d.last_active_at).getTime() : 0,
-              signedIn: d.signed_in,
-              currentSession: d.current_session,
-              syncStatus: d.sync_status,
-            },
-            this.deviceId
-          ).classification,
-          classificationReason: classifyDeviceSession(
-            {
-              deviceId: d.device_id,
-              id: d.id,
-              lastActiveAt: d.last_active_at ? new Date(d.last_active_at).getTime() : 0,
-              signedIn: d.signed_in,
-              currentSession: d.current_session,
-              syncStatus: d.sync_status,
-            },
-            this.deviceId
-          ).reason,
-        }));
-        this.updateDiag({
-          devices: mappedDevices,
-          devicesLastSnapshotAt: nowStr,
-          devicesSnapshotCount: devices.length,
-          devicesListenerStatus: 'active',
-        });
-        this.devicesCallbacks.forEach((cb) => cb(mappedDevices));
-      }
-
-      // 5. Fetch probes
-      const { data: probes, error: probesErr } = await supabase
-        .from('sync_probe')
-        .select('*')
-        .eq('user_id', userId);
-      if (probesErr) throw probesErr;
-      if (probes) {
-        const mappedProbes: ProbeDoc[] = probes.map((p: any) => ({
-          id: p.id,
-          deviceId: p.device_id,
-          platform: p.platform || 'unknown',
-          shortName: p.short_name || 'Unknown',
-          appVersion: p.app_version || 'N/A',
-          buildType: p.build_type || 'Web',
-          nonce: p.nonce || 'None',
-          writtenAt: p.written_at ? new Date(p.written_at).getTime() : Date.now(),
-          updatedAt: p.updated_at ? new Date(p.updated_at).getTime() : Date.now(),
-        }));
-
-        const deviceIds = mappedProbes.map((p) => p.deviceId);
-        const nonces = mappedProbes.map((p) => p.nonce);
-
-        this.updateDiag({
-          probeDocs: mappedProbes,
-          lastProbeSnapshotAt: nowStr,
-          probeDocumentsReceived: probes.length,
-          probeRowsReceived: probes.length,
-          probeDeviceIdsReceived: deviceIds,
-          probeNoncesReceived: nonces,
-          androidProbeDetected: mappedProbes.some((p) => p.platform === 'android'),
-          webProbeDetected: mappedProbes.some((p) => p.platform === 'web'),
-          probeListenerStatus: 'active',
-        });
-        this.probeCallbacks.forEach((cb) => cb(mappedProbes));
-      }
-
-      this.updateDiag({
-        lastSuccessfulSyncAt: nowStr,
-        dbAvailable: true,
-      });
-    } catch (e: any) {
-      const errorMsg = this.processError(e);
-      this.updateDiag({
-        lastErrorCode: e.code || 'fetch-error',
-        lastErrorMessage: errorMsg,
-      });
-    }
+  async refetchAllData(userId: string, source: string) {
+      { return refetchAllData(this, userId, source); }
   }
 
-  private setupRealtimeAndPresence(userId: string) {
-    if (!supabase) return;
-    this.clearSubscriptions();
-
-    this.updateDiag({
-      devicesListenerStatus: 'attaching',
-      profileListenerStatus: 'attaching',
-      appearanceListenerStatus: 'attaching',
-      preferencesListenerStatus: 'attaching',
-      probeListenerStatus: 'attaching',
-      probeListenerAttachedAt: new Date().toLocaleString(),
-    });
-
-    // Initialize Realtime Channel
-    this.realtimeChannel = supabase.channel(`sync-realtime:${userId}`);
-
-    this.realtimeChannel
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_profiles', filter: `user_id=eq.${userId}` },
-        (payload: any) => {
-          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-          this.refetchAllData(userId, 'realtime-user-profiles-event');
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_appearance_settings',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload: any) => {
-          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-          this.refetchAllData(userId, 'realtime-appearance-event');
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_preferences', filter: `user_id=eq.${userId}` },
-        (payload: any) => {
-          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-          this.refetchAllData(userId, 'realtime-preferences-event');
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user_devices', filter: `user_id=eq.${userId}` },
-        (payload: any) => {
-          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-          this.refetchAllData(userId, 'realtime-devices-event');
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'sync_probe', filter: `user_id=eq.${userId}` },
-        (payload: any) => {
-          this.updateDiag({ lastRealtimeEventAt: new Date().toLocaleString() });
-          this.refetchAllData(userId, 'realtime-probe-event');
-        }
-      )
-      .subscribe((status: string) => {
-        const isConnected = status === 'SUBSCRIBED';
-        this.updateDiag({ realtimeConnected: isConnected });
-      });
-
-    // Initial Fetch
-    this.refetchAllData(userId, 'realtime-initial-mount');
+  setupRealtimeAndPresence(userId: string) {
+      { setupRealtimeAndPresence(this, userId); }
   }
 
   async directWriteTest() {
@@ -807,389 +422,55 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
   }
 
   subscribeSyncProbe(callback: ProbeListener): Unsubscribe {
-    this.probeCallbacks.add(callback);
-    return () => {
-      this.probeCallbacks.delete(callback);
-    };
+      { return subscribeSyncProbe(this, callback); }
   }
 
   async registerCurrentDevice(reason: string) {
-    const uid = this.userId;
-    const deviceId = this.deviceId;
-    const nowStr = new Date().toLocaleString();
-    const startTime = Date.now();
-
-    this.updateDiag({
-      lastDeviceWriteAttemptedAt: nowStr,
-      deviceRegistrationStatus: 'pending',
-      lastDeviceRegistrationReason: reason,
-      inFlightWriteStatus: true,
-      deviceWritePath: `user_devices/${uid}/${deviceId}`,
-    });
-
-    if (!supabase || !uid) {
-      const errStr = 'Unauthenticated session';
-      this.updateDiag({
-        lastDeviceWriteError: errStr,
-        deviceRegistrationStatus: 'failed',
-        inFlightWriteStatus: false,
-      });
-      return { success: false, error: errStr };
-    }
-
-    let currentRevision = 0;
-    try {
-      const { data, error } = await supabase
-        .from('user_devices')
-        .select('revision')
-        .eq('id', `${uid}:${deviceId}`)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) {
-        currentRevision = Number(data.revision || 0);
-      }
-    } catch (e) {
-    }
-
-    const details = getDeviceDetails();
-    const payload = {
-      id: `${uid}:${deviceId}`,
-      user_id: uid,
-      device_id: deviceId,
-      platform: Capacitor.isNativePlatform() ? 'android' : 'web',
-      device_type: Capacitor.isNativePlatform() ? 'phone' : 'desktop',
-      short_name: details.shortName,
-      display_name: details.displayName,
-      technical_name: details.technicalName,
-      app_version: APP_VERSION,
-      version_code: this.versionCode,
-      build_type: Capacitor.isNativePlatform() ? 'Native Release' : 'Web',
-      browser: details.browser,
-      os: details.os,
-      model: details.model,
-      manufacturer: details.manufacturer,
-      signed_in: true,
-      current_session: true,
-      sync_status: 'active',
-      last_seen_at: new Date().toISOString(),
-      last_active_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      updated_by_device: deviceId,
-      revision: currentRevision + 1,
-      schema_version: 'studio-sync-v1',
-    };
-
-    try {
-      const { error } = await supabase.from('user_devices').upsert(payload);
-      if (error) throw error;
-
-      this.updateDiag({
-        lastDeviceWriteSuccess: nowStr,
-        lastDeviceWriteError: 'None',
-        lastDeviceWriteDurationMs: Date.now() - startTime,
-        deviceRegistrationStatus: 'registered',
-        inFlightWriteStatus: false,
-      });
-
-      this.refetchAllData(uid, 'device-registered');
-      return { success: true };
-    } catch (e: any) {
-      const errorMsg = this.processError(e);
-      this.updateDiag({
-        lastDeviceWriteError: errorMsg,
-        deviceRegistrationStatus: 'failed',
-        inFlightWriteStatus: false,
-      });
-      return { success: false, error: errorMsg };
-    }
+      { return registerCurrentDevice(this, reason); }
   }
 
   async heartbeatNow(reason: string) {
-    const uid = this.userId;
-    const deviceId = this.deviceId;
-    const nowStr = new Date().toLocaleString();
-
-    if (!supabase || !uid) {
-      const errStr = 'Unauthenticated';
-      this.updateDiag({ lastHeartbeatError: errStr });
-      return { success: false, error: errStr };
-    }
-
-    try {
-      const { error } = await supabase.from('user_devices').upsert({
-        id: `${uid}:${deviceId}`,
-        user_id: uid,
-        device_id: deviceId,
-        last_seen_at: new Date().toISOString(),
-        last_active_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        updated_by_device: deviceId,
-      });
-      if (error) throw error;
-
-      this.updateDiag({
-        lastHeartbeatSuccess: nowStr,
-        lastHeartbeatError: 'None',
-      });
-      return { success: true };
-    } catch (e: any) {
-      const errorMsg = this.processError(e);
-      this.updateDiag({ lastHeartbeatError: errorMsg });
-      return { success: false, error: errorMsg };
-    }
+      { return heartbeatNow(this, reason); }
   }
 
   subscribeDevices(callback: DevicesListener): Unsubscribe {
-    this.devicesCallbacks.add(callback);
-    return () => {
-      this.devicesCallbacks.delete(callback);
-    };
+      { return subscribeDevices(this, callback); }
   }
 
   async getProfile(): Promise<UserProfile | null> {
-    const uid = this.userId;
-    if (!supabase || !uid) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', uid)
-        .maybeSingle();
-      if (error) throw error;
-      return data
-        ? {
-            displayName: data.display_name,
-            photoURL: data.photo_url,
-            avatarIcon: data.avatar_icon,
-          }
-        : null;
-    } catch (e: any) {
-      this.processError(e);
-      return null;
-    }
+      { return getProfile(this); }
   }
 
   async updateProfile(patch: Partial<UserProfile>): Promise<void> {
-    const uid = this.userId;
-    const nowStr = new Date().toLocaleString();
-    if (!supabase || !uid) return;
-
-    let currentRevision = 0;
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('revision')
-        .eq('user_id', uid)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) {
-        currentRevision = Number(data.revision || 0);
-      }
-    } catch (e) {
-    }
-
-    const payload: any = {
-      user_id: uid,
-      updated_at: new Date().toISOString(),
-      updated_by_device: this.deviceId,
-      revision: currentRevision + 1,
-      schema_version: 'studio-sync-v1',
-    };
-
-    if (patch.displayName !== undefined) payload.display_name = patch.displayName;
-    if (patch.photoURL !== undefined) payload.photo_url = patch.photoURL;
-    if (patch.avatarIcon !== undefined) payload.avatar_icon = patch.avatarIcon;
-
-    try {
-      const { error } = await supabase.from('user_profiles').upsert(payload);
-      if (error) throw error;
-
-      this.updateDiag({
-        lastProfileWriteSuccess: nowStr,
-        lastProfileWriteError: 'None',
-        profileSyncResult: 'success',
-      });
-
-      this.refetchAllData(uid, 'profile-update');
-    } catch (e: any) {
-      const errorMsg = this.processError(e);
-      this.updateDiag({
-        lastProfileWriteError: errorMsg,
-        profileSyncResult: 'failed',
-      });
-      throw e;
-    }
+      { return updateProfile(this, patch); }
   }
 
   subscribeProfile(callback: ProfileListener): Unsubscribe {
-    this.profileCallbacks.add(callback);
-    return () => {
-      this.profileCallbacks.delete(callback);
-    };
+      { return subscribeProfile(this, callback); }
   }
 
   async getAppearanceSettings(): Promise<AppearanceSettings | null> {
-    const uid = this.userId;
-    if (!supabase || !uid) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_appearance_settings')
-        .select('*')
-        .eq('user_id', uid)
-        .maybeSingle();
-      if (error) throw error;
-      return data
-        ? {
-            theme: data.theme,
-            accentColor: data.accent_color,
-            customAccentHue: Number(data.custom_accent_hue || 220),
-            palette: data.palette,
-            language: data.language,
-          }
-        : null;
-    } catch (e: any) {
-      this.processError(e);
-      return null;
-    }
+      { return getAppearanceSettings(this); }
   }
 
   async updateAppearanceSettings(patch: Partial<AppearanceSettings>): Promise<void> {
-    const uid = this.userId;
-    const nowStr = new Date().toLocaleString();
-    if (!supabase || !uid) return;
-
-    let currentRevision = 0;
-    try {
-      const { data, error } = await supabase
-        .from('user_appearance_settings')
-        .select('revision')
-        .eq('user_id', uid)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) {
-        currentRevision = Number(data.revision || 0);
-      }
-    } catch (e) {
-    }
-
-    const payload: any = {
-      user_id: uid,
-      updated_at: new Date().toISOString(),
-      updated_by_device: this.deviceId,
-      revision: currentRevision + 1,
-      schema_version: 'studio-sync-v1',
-    };
-
-    if (patch.theme !== undefined) payload.theme = patch.theme;
-    if (patch.accentColor !== undefined) payload.accent_color = patch.accentColor;
-    if (patch.customAccentHue !== undefined) payload.custom_accent_hue = patch.customAccentHue;
-    if (patch.palette !== undefined) payload.palette = patch.palette;
-    if (patch.language !== undefined) payload.language = patch.language;
-
-    try {
-      const { error } = await supabase.from('user_appearance_settings').upsert(payload);
-      if (error) throw error;
-
-      this.updateDiag({
-        lastAppearanceWriteSuccess: nowStr,
-        lastAppearanceWriteError: 'None',
-        appearanceSyncResult: 'success',
-      });
-
-      this.refetchAllData(uid, 'appearance-update');
-    } catch (e: any) {
-      const errorMsg = this.processError(e);
-      this.updateDiag({
-        lastAppearanceWriteError: errorMsg,
-        appearanceSyncResult: 'failed',
-      });
-      throw e;
-    }
+      { return updateAppearanceSettings(this, patch); }
   }
 
   subscribeAppearanceSettings(callback: AppearanceListener): Unsubscribe {
-    this.appearanceCallbacks.add(callback);
-    return () => {
-      this.appearanceCallbacks.delete(callback);
-    };
+      { return subscribeAppearanceSettings(this, callback); }
   }
 
   async getPreferences(): Promise<UserPreferences | null> {
-    const uid = this.userId;
-    if (!supabase || !uid) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', uid)
-        .maybeSingle();
-      if (error) throw error;
-      return data
-        ? {
-            studioPreferences: data.studio_preferences,
-            modulePreferences: data.module_preferences,
-          }
-        : null;
-    } catch (e: any) {
-      this.processError(e);
-      return null;
-    }
+      { return getPreferences(this); }
   }
 
   async updatePreferences(patch: any): Promise<void> {
-    const uid = this.userId;
-    const nowStr = new Date().toLocaleString();
-    if (!supabase || !uid) return;
-
-    let currentRevision = 0;
-    try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('revision')
-        .eq('user_id', uid)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) {
-        currentRevision = Number(data.revision || 0);
-      }
-    } catch (e) {
-    }
-
-    try {
-      const { error } = await supabase.from('user_preferences').upsert({
-        user_id: uid,
-        studio_preferences: patch,
-        module_preferences: {},
-        updated_at: new Date().toISOString(),
-        updated_by_device: this.deviceId,
-        revision: currentRevision + 1,
-        schema_version: 'studio-sync-v1',
-      });
-      if (error) throw error;
-
-      this.updateDiag({
-        lastPreferencesWriteSuccess: nowStr,
-        lastPreferencesWriteError: 'None',
-      });
-
-      this.refetchAllData(uid, 'preferences-update');
-    } catch (e: any) {
-      const errorMsg = this.processError(e);
-      this.updateDiag({
-        lastPreferencesWriteError: errorMsg,
-      });
-      throw e;
-    }
+      { return updatePreferences(this, patch); }
   }
 
   subscribePreferences(callback: PreferencesListener): Unsubscribe {
-    this.preferencesCallbacks.add(callback);
-    return () => {
-      this.preferencesCallbacks.delete(callback);
-    };
+      { return subscribePreferences(this, callback); }
   }
 
   async uploadProfilePhoto(file: File | Blob): Promise<string> {

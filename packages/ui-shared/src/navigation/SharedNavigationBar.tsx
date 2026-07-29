@@ -1211,7 +1211,7 @@ export function SharedNavigationBar({
       <motion.div
         key="navigation-bar-wrapper"
         ref={containerRef}
-        className="shared-bottom-nav-container-wrapper"
+        className="shared-bottom-navbar-wrapper"
         style={{
           position: 'fixed',
           bottom: 'max(14px, env(safe-area-inset-bottom))',

@@ -221,7 +221,7 @@ function runWatchdogCheck() {
     _hiddenStartTime = 0;
   }
 
-  const wrapper = document.querySelector('.shared-bottom-nav-container-wrapper') as HTMLElement | null;
+  const wrapper = document.querySelector('.shared-bottom-navbar-wrapper') as HTMLElement | null;
   if (wrapper) {
     const style = window.getComputedStyle(wrapper);
     if ((style.display === 'none' || style.visibility === 'hidden') && !_locked && !_hidden) {

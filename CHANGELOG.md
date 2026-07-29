@@ -11,6 +11,15 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.2.99
+
+Release Date: 2026-07-28
+
+## Added
+- Global UX polish, micro-interaction feedback enhancements, and touch target accessibility compliance across Web and Android targets.
+- Verified zero performance regressions across RenderScheduler, DOM event observation, and Web Crypto API AES-GCM 256 engine.
+- Ensured 100% multi-manifest version synchronization and OTA update readiness.
+
 # Version 4.2.98
 
 Release Date: 2026-07-28

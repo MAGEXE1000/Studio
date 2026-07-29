@@ -125,8 +125,6 @@ export function ScrollScaffold({
         paddingBottom: bottomSpacing
           ? 'var(--content-bottom-pad)'
           : 'max(var(--spacing-md), env(safe-area-inset-bottom, 16px))',
-        willChange: 'transform',
-        transform: 'translate3d(0, 0, 0)',
         ...style,
       }}
       className={`studio-scroll-scaffold no-scrollbar ${className}`}

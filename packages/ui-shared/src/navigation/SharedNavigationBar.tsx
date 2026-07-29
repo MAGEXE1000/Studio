@@ -32,15 +32,15 @@ function useStartupComplete() {
     const check = () => {
       if ((window as any).__studioStartupComplete) {
         setComplete(true);
-        clearInterval(interval);
       }
     };
 
-    const interval = setInterval(check, 100);
+    check();
+    window.addEventListener('studio-startup-complete', check);
     window.addEventListener('studio-launch-complete', check);
 
     return () => {
-      clearInterval(interval);
+      window.removeEventListener('studio-startup-complete', check);
       window.removeEventListener('studio-launch-complete', check);
     };
   }, [complete]);
@@ -1069,6 +1069,13 @@ export function SharedNavigationBar({
     setIsScrubbing(false);
   };
 
+  const lastProfileToggleTimeRef = useRef(0);
+  useEffect(() => {
+    if (isProfileMenuOpen) {
+      lastProfileToggleTimeRef.current = Date.now();
+    }
+  }, [isProfileMenuOpen]);
+
   if (!visible) return null;
 
   return (
@@ -1077,6 +1084,7 @@ export function SharedNavigationBar({
       <motion.div
         onPointerDown={(e) => {
           e.stopPropagation();
+          if (Date.now() - lastProfileToggleTimeRef.current < 250) return;
           setProfileMenuOpen(false);
         }}
         style={{

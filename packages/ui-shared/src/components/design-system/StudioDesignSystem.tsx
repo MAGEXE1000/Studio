@@ -106,7 +106,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           opacity: disabled ? 0.5 : 1,
           outline: 'none',
           transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
-          willChange: 'transform',
           ...style,
         }}
         disabled={disabled || loading}
@@ -848,7 +847,6 @@ export function FloatingButton({ icon, style, className = '', ...props }: Floati
         boxShadow: 'var(--elevation-high)',
         cursor: 'pointer',
         outline: 'none',
-        willChange: 'transform',
         ...style,
       }}
       className={`studio-fab ${className}`}

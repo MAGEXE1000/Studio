@@ -13,6 +13,7 @@ import {
 import { logInstallLockEvent } from '../updater/diagnostics';
 import { seedAudioAssets } from '../storage/assetCache';
 import { UpdaterFlightRecorder } from '../updater/flightRecorder';
+import { RenderScheduler } from '../performance/renderScheduler';
 
 export interface StartupPhase {
   name: string;
@@ -529,6 +530,7 @@ class StartupCoordinatorClass {
   private setupLifecycleListeners() {
     this.addEventListener(document, 'visibilitychange', () => {
       if (document.visibilityState === 'visible') {
+        RenderScheduler.wake('user_interaction', 2000);
         const settings = useSettingsStore.getState().settings;
         if (settings.highRefreshRate) {
           this.startHiFpsTick();
@@ -540,6 +542,7 @@ class StartupCoordinatorClass {
           'visibilitychange visible'
         );
       } else {
+        RenderScheduler.sleep('user_interaction');
         this.stopHiFpsTick();
         this.stopPeriodicUpdatePolling();
       }

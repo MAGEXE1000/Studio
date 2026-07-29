@@ -230,10 +230,6 @@ function runWatchdogCheck() {
   }
 }
 
-if (typeof window !== 'undefined') {
-  setInterval(runWatchdogCheck, 2000);
-}
-
 // Global Event-driven bindings
 if (typeof window !== 'undefined') {
   try {
@@ -246,15 +242,18 @@ if (typeof window !== 'undefined') {
       if (activeRouteStr !== lastActiveRoute) {
         lastActiveRoute = activeRouteStr;
         resetNav();
+        runWatchdogCheck();
       }
     });
 
     window.addEventListener('focus', () => {
       resetNav();
+      runWatchdogCheck();
     });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         resetNav();
+        runWatchdogCheck();
       }
     });
 

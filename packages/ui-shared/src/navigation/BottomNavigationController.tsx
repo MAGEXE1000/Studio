@@ -14,6 +14,7 @@ import {
   getUserAvatar,
   subscribeUserAvatar,
   useBackHandler,
+  useShallow,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
 import { IconSongs, IconLibrary, IconSettings } from '../components/icons/NavIcons';
@@ -255,18 +256,27 @@ export function BottomNavigationController() {
         document.querySelector('.hide-global-nav') !== null;
       setHasDOMHiddenIndicator(isFullscreen || isModalOpen || hasHideClass);
     };
-    
-    checkDOM();
-    const interval = setInterval(checkDOM, 500);
 
-    window.addEventListener('click', checkDOM, { passive: true });
-    window.addEventListener('touchstart', checkDOM, { passive: true });
-    window.addEventListener('resize', checkDOM);
+    checkDOM();
+
+    // Event-driven reactive DOM observer replaces periodic polling loop
+    const observer = new MutationObserver(() => {
+      checkDOM();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'role'],
+    });
+
+    document.addEventListener('fullscreenchange', checkDOM);
+    window.addEventListener('resize', checkDOM, { passive: true });
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('click', checkDOM);
-      window.removeEventListener('touchstart', checkDOM);
+      observer.disconnect();
+      document.removeEventListener('fullscreenchange', checkDOM);
       window.removeEventListener('resize', checkDOM);
     };
   }, []);

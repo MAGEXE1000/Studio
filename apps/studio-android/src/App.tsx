@@ -944,16 +944,12 @@ export default function App() {
       });
     } catch (_) {}
 
-    flushSync(() => {
-      useNavigationStore.getState().setTransition(null, false);
-      setShowHub(false);
-    });
+    useNavigationStore.getState().setTransition(null, false);
+    setShowHub(false);
 
     setTimeout(() => {
-      flushSync(() => {
-        setHubRenderKey((k) => k + 1);
-        setShowHub(true);
-      });
+      setHubRenderKey((k) => k + 1);
+      setShowHub(true);
 
       // Log full rebuild status
       setTimeout(() => {
@@ -1060,10 +1056,8 @@ export default function App() {
           (window as any).__forceRerenderApp();
         }
 
-        flushSync(() => {
-          (window as any).studioTransitionActive = false;
-          useSettingsStore.getState().updateSettings({ appMode: 'hub' });
-        });
+        (window as any).studioTransitionActive = false;
+        useSettingsStore.getState().updateSettings({ appMode: 'hub' });
 
         requestAnimationFrame(() => {
           const checkApp = document.querySelector('.app-container');
@@ -2097,12 +2091,10 @@ export default function App() {
 
         if (finalReason === 'HUB_ROOT_MISSING') {
           const actualFrom = previousAppModeRef.current || 'none';
-          flushSync(() => {
-            setHubRenderKey((k) => k + 1);
-            useNavigationStore.getState().setTransition(null, false);
-            lastActiveAppRef.current = 'chords';
-            useSettingsStore.getState().updateSettings({ appMode: 'hub' });
-          });
+          setHubRenderKey((k) => k + 1);
+          useNavigationStore.getState().setTransition(null, false);
+          lastActiveAppRef.current = 'chords';
+          useSettingsStore.getState().updateSettings({ appMode: 'hub' });
           (window as any).__navigationTraceHistory = (window as any).__navigationTraceHistory || [];
           (window as any).__navigationTraceHistory.push({
             fromApp: actualFrom,

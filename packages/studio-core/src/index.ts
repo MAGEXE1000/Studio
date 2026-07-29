@@ -66,6 +66,8 @@ export * from './lib/updater/updaterSimulation';
 export * from './lib/startupCoordinator';
 export * from './lib/themeEngine';
 export * from './lib/performanceProfiler';
+export * from './lib/performance/renderScheduler';
+export * from './lib/performance/devPerformanceMonitor';
 
 // Navigation Core Foundation (Sprint 9.1)
 export * from './lib/navigation/navigationTypes';

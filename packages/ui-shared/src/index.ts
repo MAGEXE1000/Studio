@@ -1,94 +1,94 @@
 // Export everything from ui-shared
-export { default as AppSpinner } from './components/AppSpinner';
-export { default as ElasticSlider } from './components/ElasticSlider';
-export { default as GradientBorderCard } from './components/GradientBorderCard';
-export { default as SmartLoading, AppLoadingScreen } from './components/SmartLoading';
+export { default as AppSpinner } from './shared/loading/AppSpinner';
+export { default as ElasticSlider } from './shared/progress/ElasticSlider';
+export { default as GradientBorderCard } from './shared/cards/GradientBorderCard';
+export { default as SmartLoading, AppLoadingScreen } from './shared/loading/SmartLoading';
 export { SharedNavigationContainer } from './navigation/SharedNavigationContainer';
-export { default as StudioCountUpPercentage } from './components/StudioCountUpPercentage';
-export { default as StudioProgressBar } from './components/StudioProgressBar';
-export { default as StudioThemeToggler } from './components/StudioThemeToggler';
-export { default as InkThemeToggle } from './components/typography/InkThemeToggle';
-export { default as StudioTitleReveal } from './components/StudioTitleReveal';
-export { default as StudioUpdateAuroraBackground } from './components/StudioUpdateAuroraBackground';
-export { ErrorBoundary } from './components/ErrorBoundary';
-export * from './components/ChordexLogo';
-export { default as PianoDiagram } from './components/PianoDiagram';
-export { default as GuitarDiagram } from './components/GuitarDiagram';
-export { default as FourStringDiagram } from './components/FourStringDiagram';
-export { default as ChordDiagram } from './components/ChordDiagram';
-export * from './components/StudioSkeleton';
+export { default as StudioCountUpPercentage } from './shared/progress/StudioCountUpPercentage';
+export { default as StudioProgressBar } from './shared/progress/StudioProgressBar';
+export { default as StudioThemeToggler } from './shared/typography/StudioThemeToggler';
+export { default as InkThemeToggle } from './shared/typography/InkThemeToggle';
+export { default as StudioTitleReveal } from './shared/typography/StudioTitleReveal';
+export { default as StudioUpdateAuroraBackground } from './features/updater/components/StudioUpdateAuroraBackground';
+export { ErrorBoundary } from './shared/feedback/ErrorBoundary';
+export * from './features/chordex/icons/ChordexLogo';
+export { default as PianoDiagram } from './features/chordex/diagrams/PianoDiagram';
+export { default as GuitarDiagram } from './features/chordex/diagrams/GuitarDiagram';
+export { default as FourStringDiagram } from './features/chordex/diagrams/FourStringDiagram';
+export { default as ChordDiagram } from './features/chordex/diagrams/ChordDiagram';
+export * from './shared/loading/StudioSkeleton';
 export { LibraryPanel } from './features/chordex';
-export { AnimatedIcon } from './components/icons/AnimatedIcon';
-export * from './components/icons/bakaiIconLibrary';
-export { LiquidSurfaceEngine } from './components/liquid/LiquidSurfaceEngine';
-export { LiquidBottomNav } from './navigation/LiquidBottomNav';
+export { AnimatedIcon } from './shared/icons/AnimatedIcon';
+export * from './shared/icons/bakaiIconLibrary';
+export { LiquidSurfaceEngine } from './shared/liquid/LiquidSurfaceEngine';
+export { LiquidBottomNav } from './features/hub/navigation/LiquidBottomNav';
 export { SaxophonePracticePanel } from './features/chordex/pages/SaxophonePracticePanel';
 export { SaxophoneView } from './features/chordex/components/SaxophoneView';
 export { default as SettingsPanel } from './panels/SettingsPanel';
-export { default as ChordexSettingsPanel } from './features/chordex/ChordexSettingsPanel';
-export { default as StudioHubSettingsPanel } from './features/hub/StudioHubSettingsPanel';
-export { default as HubChangelogSection } from './features/hub/HubChangelogSection';
+export { default as ChordexSettingsPanel } from './features/chordex/settings/ChordexSettingsPanel';
+export { default as StudioHubSettingsPanel } from './features/hub/settings/StudioHubSettingsPanel';
+export { default as HubChangelogSection } from './features/hub/settings/HubChangelogSection';
 export { SongsPanel } from './features/chordex';
 export { DrumEditor } from './features/drumex';
 export { GroovexApp } from './features/groovex';
 export { VocalexApp } from './features/vocalex';
 export { StageCorePanel } from './features/stagex';
-export { default as StudioHub } from './components/StudioHub';
-export * from './components/NavIcons';
-export * from './navigation/AppAnimationSystem';
-export { SongPracticeView } from './components/SongPracticeView';
+export { default as StudioHub } from './features/hub/components/StudioHub';
+export * from './features/hub/icons/NavIcons';
+export * from './features/hub/animations/AppAnimationSystem';
+export { SongPracticeView } from './features/chordex/pages/SongPracticeView';
 
 // Remaining components in ui-shared/components
-export { default as AccountCard } from './components/AccountCard';
-export { default as ApplyToSheet } from './components/ApplyToSheet';
-export { default as ChangelogSheet } from './components/ChangelogSheet';
-export { default as CustomChordBuilder } from './components/CustomChordBuilder';
-export { default as DisabledAccountScreen } from './components/DisabledAccountScreen';
-export * from './components/DownloadIcon';
-export { default as PendingDeletionScreen } from './components/PendingDeletionScreen';
-export { default as ProgressionGenerator } from './components/ProgressionGenerator';
-export * from './components/ScrollFade';
-export * from './components/SettingControls';
-export { default as StudioAuthCard } from './components/StudioAuthCard';
-export { default as StudioPricingSection } from './components/StudioPricingSection';
-export { default as StudioUpdateScreen } from './components/StudioUpdateScreen';
-export { default as ProfileDropdown } from './components/kokonutui/profile-dropdown';
+export { default as AccountCard } from './features/auth/components/AccountCard';
+export { default as ApplyToSheet } from './features/chordex/components/ApplyToSheet';
+export { default as ChangelogSheet } from './features/chordex/components/ChangelogSheet';
+export { default as CustomChordBuilder } from './features/chordex/components/CustomChordBuilder';
+export { default as DisabledAccountScreen } from './features/auth/screens/DisabledAccountScreen';
+export * from './shared/icons/DownloadIcon';
+export { default as PendingDeletionScreen } from './features/auth/screens/PendingDeletionScreen';
+export { default as ProgressionGenerator } from './features/chordex/components/ProgressionGenerator';
+export * from './shared/typography/ScrollFade';
+export * from './shared/typography/SettingControls';
+export { default as StudioAuthCard } from './features/auth/components/StudioAuthCard';
+export { default as StudioPricingSection } from './features/auth/components/StudioPricingSection';
+export { default as StudioUpdateScreen } from './features/updater/components/StudioUpdateScreen';
+export { default as ProfileDropdown } from './features/auth/components/ProfileDropdown';
 
 // Animata
-export { default as AnimatedActionButton } from './components/animata/container/animated-border-trail';
-export { default as StudioSpinner } from './components/animata/progress/spinner';
+export { default as AnimatedActionButton } from './shared/animata/container/animated-border-trail';
+export { default as StudioSpinner } from './shared/animata/progress/spinner';
 
 // Lottie
-export { default as AppLottie } from './components/lottie/AppLottie';
-export { default as EmptyStateLottie } from './components/lottie/EmptyStateLottie';
-export { default as LoadingLottie } from './components/lottie/LoadingLottie';
-export { default as MicWavesLottie } from './components/lottie/MicWavesLottie';
-export { default as MusicNotesLottie } from './components/lottie/MusicNotesLottie';
-export { default as NoResultsLottie } from './components/lottie/NoResultsLottie';
-export { default as SuccessLottie } from './components/lottie/SuccessLottie';
-export { default as VinylLottie } from './components/lottie/VinylLottie';
+export { default as AppLottie } from './shared/lottie/AppLottie';
+export { default as EmptyStateLottie } from './shared/lottie/EmptyStateLottie';
+export { default as LoadingLottie } from './shared/lottie/LoadingLottie';
+export { default as MicWavesLottie } from './shared/lottie/MicWavesLottie';
+export { default as MusicNotesLottie } from './shared/lottie/MusicNotesLottie';
+export { default as NoResultsLottie } from './shared/lottie/NoResultsLottie';
+export { default as SuccessLottie } from './shared/lottie/SuccessLottie';
+export { default as VinylLottie } from './shared/lottie/VinylLottie';
 
 // UI
-export * from './components/ui/encrypted-text';
+export * from './shared/ui/encrypted-text';
 
 export { useGroovexStore } from './features/groovex';
-export { default as WebAppSectionDock } from './components/WebAppSectionDock';
-export { default as DevToolsDashboard } from './components/DevToolsDashboard';
+export { default as WebAppSectionDock } from './shared/layout/WebAppSectionDock';
+export { default as DevToolsDashboard } from './features/devtools/components/DevToolsDashboard';
 
 // BottomNav removed (architectural unification)
-export { default as UpdateIndicator } from './components/UpdateIndicator';
-export { default as UpdateDiagnosticsSheet } from './components/UpdateDiagnosticsSheet';
-export * from './components/StudioLayoutSystem';
-export { ProgressiveBlur } from './components/design-system/ProgressiveBlur';
-export { ActionButton } from './components/design-system/StudioDesignSystem';
-export { SharedNavigationBar } from './navigation/SharedNavigationBar';
-export { BottomNavigationController } from './navigation/BottomNavigationController';
+export { default as UpdateIndicator } from './features/updater/components/UpdateIndicator';
+export { default as UpdateDiagnosticsSheet } from './features/updater/sheets/UpdateDiagnosticsSheet';
+export * from './shared/layout/StudioLayoutSystem';
+export { ProgressiveBlur } from './shared/design-system/ProgressiveBlur';
+export { ActionButton } from './shared/design-system/StudioDesignSystem';
+export { SharedNavigationBar } from './features/hub/navigation/SharedNavigationBar';
+export { BottomNavigationController } from './features/hub/navigation/BottomNavigationController';
 export {
   LaunchAnimationEngine,
   type LaunchPreset,
-} from './components/launch/LaunchAnimationEngine';
-export { ApplicationTransitionEngine } from './components/launch/ApplicationTransitionEngine';
-export { default as InkThemeOverlay } from './components/feature/InkThemeOverlay';
+} from './features/hub/animations/LaunchAnimationEngine';
+export { ApplicationTransitionEngine } from './features/hub/animations/ApplicationTransitionEngine';
+export { default as InkThemeOverlay } from './shared/theme/InkThemeOverlay';
 export { default as html2canvas } from 'html2canvas';
-export * from './components/design-system';
-export * from './components/devtools/inspector';
+export * from './shared/design-system';
+export * from './features/devtools/inspector';

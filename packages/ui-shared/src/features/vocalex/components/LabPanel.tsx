@@ -1,13 +1,13 @@
 import { createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher, vocalexRepository } from "@workspace/studio-core";
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import ElasticSlider from '../../../components/progress/ElasticSlider';
-import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
-import MicWavesLottie from '../../../components/lottie/MicWavesLottie';
+import ElasticSlider from '../../../shared/progress/ElasticSlider';
+import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
+import MicWavesLottie from '../../../shared/lottie/MicWavesLottie';
 import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
-import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
+import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
+import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
 
 const SESSION_ICONS = [
   'graphic_eq',

@@ -7,20 +7,20 @@ import {
   getSharedNavTransform,
   getSharedNavOpacity,
   SHARED_NAV_TRANSITION,
-} from '../../../navigation/navStyles';
-import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
-import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
-import SmartLoading from '../../../components/loading/SmartLoading';
-import { StagexPanelSkeleton } from '../../../components/loading/StudioSkeleton';
-import { Toolbar, ActionButton } from '../../../components/design-system/StudioDesignSystem';
+} from '../../hub/navigation/navStyles';
+import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
+import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
+import SmartLoading from '../../../shared/loading/SmartLoading';
+import { StagexPanelSkeleton } from '../../../shared/loading/StudioSkeleton';
+import { Toolbar, ActionButton } from '../../../shared/design-system/StudioDesignSystem';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
-import { Button, Input } from '../../../components/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
+import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
+import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
 import {
   SharedNavigationBar,
   type SharedNavigationItem,
-} from '../../../navigation/SharedNavigationBar';
+} from '../../hub/navigation/SharedNavigationBar';
 
 import { STAGEX_LIBRARY, STAGEX_ICON_MAP, CATEGORY_ICONS, CATEGORY_LABELS, HIDE_IFRAME_UI, HIDE_IFRAME_UI_MOBILE, getSimplifiedView } from '../constants';
 import { type StageWin, StageLibraryItem } from '../types';

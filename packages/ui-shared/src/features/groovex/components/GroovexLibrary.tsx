@@ -8,12 +8,12 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useMemo, useRef } from 'react';
-import NoResultsLottie from '../../../components/lottie/NoResultsLottie';
+import NoResultsLottie from '../../../shared/lottie/NoResultsLottie';
 import { SONG_CATALOG, getArtists, getGenres } from '../services/songCatalog';
 import type { SongMeta } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
-import { SearchBar } from '../../../components/design-system/StudioDesignSystem';
+import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
+import { SearchBar } from '../../../shared/design-system/StudioDesignSystem';
 
 export default function GroovexLibrary() {
   const searchQuery = useGroovexStore(useShallow((s) => s.searchQuery));

@@ -7,16 +7,16 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { extractWaveformPeaks, blobToAudioBuffer, type TakeRecord, vocalexRepository } from "@workspace/studio-core";
-import LoadingLottie from '../../../components/lottie/LoadingLottie';
-import SmartLoading from '../../../components/loading/SmartLoading';
-import { VocalexTakesSkeleton } from '../../../components/loading/StudioSkeleton';
-import EmptyStateLottie from '../../../components/lottie/EmptyStateLottie';
+import LoadingLottie from '../../../shared/lottie/LoadingLottie';
+import SmartLoading from '../../../shared/loading/SmartLoading';
+import { VocalexTakesSkeleton } from '../../../shared/loading/StudioSkeleton';
+import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
 import { analyzeAudio, type VocalAnalysis, type AnalysisLabels } from '../services/vocalAnalysis';
 import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
-import { Button } from '../../../components/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../components/layout/StudioLayoutSystem';
+import { Button } from '../../../shared/design-system/StudioDesignSystem';
+import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
 
 import RecordingView from './RecordingView';
 import TakeDetailView from './TakeDetailView';

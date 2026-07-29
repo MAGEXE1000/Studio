@@ -6,13 +6,13 @@ import {
   SHARED_NAV_TRANSITION,
   getSharedNavTransform,
   getSharedNavOpacity,
-} from '../../../navigation/navStyles';
-import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
+} from '../../hub/navigation/navStyles';
+import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import {
   SharedNavigationBar,
   type SharedNavigationItem,
-} from '../../../navigation/SharedNavigationBar';
+} from '../../hub/navigation/SharedNavigationBar';
 
 const GroovexLibrary = lazy(() => import('../components/GroovexLibrary'));
 const GroovexPlayer = lazy(() => import('../components/GroovexPlayer'));

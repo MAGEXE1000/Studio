@@ -9,7 +9,7 @@ import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { useNavigationStore } from '../../store/useNavigationStore';
 import { useChordStore } from '../../store/useChordStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
-import { logProgressStage } from './diagnostics';
+import { logProgressStage } from './logger';
 import { globalUpdateState } from './stateMachine';
 
 export function logDiagnosticEvent(event: string, details?: any) {

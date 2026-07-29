@@ -1,14 +1,11 @@
-/**
- * Navigation Module — ui-shared
- *
- * Single barrel for all navigation UI concerns:
- *   - navStyles         — shared CSS transform/transition helpers
- *   - SharedNavigationContainer — CSS-animation panel switcher (no Framer dep)
- *   - AppAnimationSystem — Framer Motion presets, PageTransition, AppEntryTransition
- *   - BottomNav         — mobile bottom navigation bar with LiquidGlass effect
- */
+// navigation/index.ts — Shared navigation framework + re-export shims
 
-export * from './navStyles';
-export * from './SharedNavigationContainer';
-export * from './AppAnimationSystem';
-export * from './SharedNavigationBar';
+// Shared framework (stays here)
+export { SharedNavigationContainer } from './SharedNavigationContainer';
+
+// Re-export shims for backward compatibility (moved to features/hub)
+export { SharedNavigationBar } from '../features/hub/navigation/SharedNavigationBar';
+export { BottomNavigationController } from '../features/hub/navigation/BottomNavigationController';
+export { LiquidBottomNav } from '../features/hub/navigation/LiquidBottomNav';
+export * from '../features/hub/animations/AppAnimationSystem';
+export * from '../features/hub/navigation/navStyles';

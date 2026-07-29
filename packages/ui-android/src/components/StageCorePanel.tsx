@@ -1,4 +1,4 @@
-import { Button, Toolbar } from '@workspace/ui-shared/src/components/design-system/StudioDesignSystem';
+import { Button, Toolbar } from '@workspace/ui-shared/src/shared/design-system/StudioDesignSystem';
 import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';

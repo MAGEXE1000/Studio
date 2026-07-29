@@ -8,9 +8,9 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import VinylLottie from '../../../components/lottie/VinylLottie';
-import LoadingLottie from '../../../components/lottie/LoadingLottie';
-import { GroovexMixerSkeleton } from '../../../components/loading/StudioSkeleton';
+import VinylLottie from '../../../shared/lottie/VinylLottie';
+import LoadingLottie from '../../../shared/lottie/LoadingLottie';
+import { GroovexMixerSkeleton } from '../../../shared/loading/StudioSkeleton';
 import { SONG_CATALOG } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
 import {
@@ -40,8 +40,8 @@ import {
 import { groovexStemRepository,
   type DownloadProgress,
  } from "@workspace/studio-core";
-import StudioProgressBar from '../../../components/progress/StudioProgressBar';
-import StudioCountUpPercentage from '../../../components/progress/StudioCountUpPercentage';
+import StudioProgressBar from '../../../shared/progress/StudioProgressBar';
+import StudioCountUpPercentage from '../../../shared/progress/StudioCountUpPercentage';
 
 type PlayerPhase = 'idle' | 'downloading' | 'ready';
 

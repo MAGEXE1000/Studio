@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Input } from '../../../../components/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../../components/layout/StudioLayoutSystem';
+import { Button, Input } from '../../../../shared/design-system/StudioDesignSystem';
+import { DialogScaffold } from '../../../../shared/layout/StudioLayoutSystem';
 // Note: You will need to fix imports if they are missing.
 
 interface ExportPdfDialogProps {

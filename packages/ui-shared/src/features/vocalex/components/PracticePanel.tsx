@@ -1,7 +1,7 @@
-﻿import { useT } from '@workspace/studio-core';
+import { useT } from '@workspace/studio-core';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { setVocalexBack } from '../utils/headerBack';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
+import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
 
 interface Tip {
   title: string;

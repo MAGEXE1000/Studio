@@ -1,5 +1,5 @@
 import React from 'react';
-import { Toolbar, ActionButton } from '../../../components/design-system/StudioDesignSystem';
+import { Toolbar, ActionButton } from '../../../shared/design-system/StudioDesignSystem';
 
 interface StageToolbarProps {
   curView: string;

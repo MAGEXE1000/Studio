@@ -24,18 +24,18 @@ import { SharedNavigationContainer } from '../../../navigation/SharedNavigationC
 import {
   SharedNavigationBar,
   type SharedNavigationItem,
-} from '../../../navigation/SharedNavigationBar';
+} from '../../hub/navigation/SharedNavigationBar';
 
 import { subscribeVocalexBack } from '../utils/headerBack';
 import {
   SHARED_NAV_TRANSITION,
   getSharedNavTransform,
   getSharedNavOpacity,
-} from '../../../navigation/navStyles';
-import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
-import { Card } from '../../../components/design-system/StudioDesignSystem';
+} from '../../hub/navigation/navStyles';
+import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
+import { Card } from '../../../shared/design-system/StudioDesignSystem';
 
-import { IconSettings } from '../../../components/icons/NavIcons';
+import { IconSettings } from '../../hub/icons/NavIcons';
 
 const CoachPanelLazy = lazy(() =>
   import('../components/CoachPanel').then((m) => ({ default: m.default || m }))

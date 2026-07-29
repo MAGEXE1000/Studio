@@ -9,12 +9,12 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import ElasticSlider from '../../../components/progress/ElasticSlider';
+import ElasticSlider from '../../../shared/progress/ElasticSlider';
 import { useGroovexStore } from '../state/useGroovexStore';
 // // import { groovexStemRepository,   type SongCacheInfo } from "@workspace/studio-core";
 import { SONG_CATALOG } from '../services/songCatalog';
-import { Toggle, SettingSection, SettingRow } from '../../../components/typography/SettingControls';
-import { Card } from '../../../components/design-system/StudioDesignSystem';
+import { Toggle, SettingSection, SettingRow } from '../../../shared/typography/SettingControls';
+import { Card } from '../../../shared/design-system/StudioDesignSystem';
 
 export default function GroovexPreferences() {
   const t = useT();

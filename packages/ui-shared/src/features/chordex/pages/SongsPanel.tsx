@@ -25,27 +25,27 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { SongCardGrid } from '../components/SongCardGrid';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import AnimatedActionButton from '../../../components/animata/container/animated-border-trail';
+import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import { Capacitor } from '@capacitor/core';
-import SuccessLottie from '../../../components/lottie/SuccessLottie';
-import MusicNotesLottie from '../../../components/lottie/MusicNotesLottie';
-import LiveMode from '../../../components/feature/LiveMode';
+import SuccessLottie from '../../../shared/lottie/SuccessLottie';
+import MusicNotesLottie from '../../../shared/lottie/MusicNotesLottie';
+import LiveMode from '../../chordex/components/LiveMode';
 import CustomChordBuilder, {
   CustomMiniDiagram,
-} from '../../../components/feature/CustomChordBuilder';
-import ChordDiagram from '../../../components/diagrams/ChordDiagram';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
+} from '../../chordex/components/CustomChordBuilder';
+import ChordDiagram from '../../chordex/diagrams/ChordDiagram';
+import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
 import {
   DialogScaffold,
   ScreenScaffold,
   ScrollScaffold,
-} from '../../../components/layout/StudioLayoutSystem';
+} from '../../../shared/layout/StudioLayoutSystem';
 import {
   Button,
   EmptyState,
   Input,
   SearchBar,
-} from '../../../components/design-system/StudioDesignSystem';
+} from '../../../shared/design-system/StudioDesignSystem';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);

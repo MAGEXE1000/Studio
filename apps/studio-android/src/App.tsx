@@ -6,11 +6,11 @@ import { useChordStore, ACCENT_COLORS, useIsWebDesktop, useStudioPreferences, lo
 
 import { TolgeeProvider } from '@tolgee/react';
 
-import { StudioHubSkeleton } from '@workspace/ui-shared/src/components/StudioSkeleton';
-import { ErrorBoundary } from '@workspace/ui-shared/src/components/ErrorBoundary';
-import { AppEntryTransition, useAnimationSpeed,  } from '@workspace/ui-shared/src/navigation/AppAnimationSystem';
+import { StudioHubSkeleton } from '@workspace/ui-shared/src/shared/loading/StudioSkeleton';
+import { ErrorBoundary } from '@workspace/ui-shared/src/shared/feedback/ErrorBoundary';
+import { AppEntryTransition, useAnimationSpeed,  } from '@workspace/ui-shared/src/features/hub/animations/AppAnimationSystem';
 import { SubAppScaffold, ScreenScaffold, SharedNavigationContainer, LaunchAnimationEngine, ApplicationTransitionEngine, BottomNavigationController,  } from '@workspace/ui-shared';
-import { ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo,  } from '@workspace/ui-shared/src/components/ChordexLogo';
+import { ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo,  } from '@workspace/ui-shared/src/features/chordex/icons/ChordexLogo';
 
 const SharedNavigationBar = lazy(() =>
   import('@workspace/ui-shared').then((m) => ({ default: m.SharedNavigationBar }))

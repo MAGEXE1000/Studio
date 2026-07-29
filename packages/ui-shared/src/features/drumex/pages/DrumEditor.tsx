@@ -27,7 +27,7 @@ import {
   SHARED_NAV_TRANSITION,
   getSharedNavTransform,
   getSharedNavOpacity,
-} from '../../../navigation/navStyles';
+} from '../../hub/navigation/navStyles';
 
 const MetronomeIcon = ({ size = 16 }: { size?: number }) => (
   <svg
@@ -46,15 +46,15 @@ const MetronomeIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-import ElasticSlider from '../../../components/progress/ElasticSlider';
+import ElasticSlider from '../../../shared/progress/ElasticSlider';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import {
   SharedNavigationBar,
   type SharedNavigationItem,
-} from '../../../navigation/SharedNavigationBar';
-import EmptyStateLottie from '../../../components/lottie/EmptyStateLottie';
-import LoadingLottie from '../../../components/lottie/LoadingLottie';
-import SuccessLottie from '../../../components/lottie/SuccessLottie';
+} from '../../hub/navigation/SharedNavigationBar';
+import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
+import LoadingLottie from '../../../shared/lottie/LoadingLottie';
+import SuccessLottie from '../../../shared/lottie/SuccessLottie';
 import {
   useDrumStore,
   KIT_INSTRUMENTS,
@@ -120,18 +120,18 @@ import {
 } from '@workspace/studio-core';
 
 import DrumPrefsPanel from './DrumPrefsPanel';
-import { AnimatedAppHeader, StaggeredReveal } from '../../../navigation/AppAnimationSystem';
-import WebAppSectionDock from '../../../components/feature/WebAppSectionDock';
+import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
+import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import {
   DialogScaffold,
   ScreenScaffold,
   ScrollScaffold,
-} from '../../../components/layout/StudioLayoutSystem';
-import { Button, EmptyState, Input } from '../../../components/design-system/StudioDesignSystem';
+} from '../../../shared/layout/StudioLayoutSystem';
+import { Button, EmptyState, Input } from '../../../shared/design-system/StudioDesignSystem';
 import {
   Toggle as ToggleComponent,
   SegmentedControl,
-} from '../../../components/typography/SettingControls';
+} from '../../../shared/typography/SettingControls';
 
 // â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LABEL_W = 72;

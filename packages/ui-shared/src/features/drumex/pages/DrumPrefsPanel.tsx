@@ -10,8 +10,8 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useState, useEffect } from 'react';
-import { Toggle, SectionHeader, SettingRow } from '../../../components/typography/SettingControls';
-import { Card } from '../../../components/design-system/StudioDesignSystem';
+import { Toggle, SectionHeader, SettingRow } from '../../../shared/typography/SettingControls';
+import { Card } from '../../../shared/design-system/StudioDesignSystem';
 
 function IconDrumSongs({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.6;

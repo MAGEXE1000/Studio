@@ -1,9 +1,22 @@
 # Studio Architecture Index
 
-> **Last updated:** 2026-07-10 (Sprint B — Navigation Module Refactor)
-> **Version:** 4.0.4 (Beta)
+> **Last updated:** 2026-07-29
+> **Version:** 4.3.04
 > **Scope:** Full monorepo — all apps, packages, and lib layers
 > **Purpose:** Permanent, read-only reference. Do NOT modify application behavior to satisfy this document.
+
+## AI Agent Quick Start
+
+If you are an AI agent working on this repository, read these documents in order:
+
+1. **This document** — for monorepo structure and dependency graph
+2. **[FEATURE_MAP.md](FEATURE_MAP.md)** — to locate any feature's implementation files
+3. **[WHERE_IS_EVERYTHING.md](WHERE_IS_EVERYTHING.md)** — quick-reference lookup by concept
+4. **[HOW_TO_IMPLEMENT_FEATURES.md](HOW_TO_IMPLEMENT_FEATURES.md)** — step-by-step recipes
+5. **[COMMON_MODIFICATION_POINTS.md](COMMON_MODIFICATION_POINTS.md)** — files commonly modified per change type
+6. **[STATE_FLOW.md](STATE_FLOW.md)** — all stores, persistence, and data flow
+7. **[DEBUGGING_GUIDE.md](DEBUGGING_GUIDE.md)** — structured debugging for common issues
+8. **[AGENTS.md](AGENTS.md)** — platform-scope policy and engineering protocol
 
 ---
 
@@ -18,6 +31,10 @@
 7. [UI Sub-Modules (ui-shared)](#7-ui-sub-modules-ui-shared)
 8. [Platform Ownership Map](#8-platform-ownership-map)
 9. [Known Technical Debt](#9-known-technical-debt)
+10. [Startup Sequence](#10-startup-sequence)
+11. [State Management Map](#11-state-management-map)
+12. [Persistence Map](#12-persistence-map)
+13. [Routing Map](#13-routing-map)
 
 ---
 
@@ -1160,6 +1177,118 @@ As defined in AGENTS.md §3:
 | Hardcoded server.url in Capacitor config       | pps/studio-android/capacitor.config.ts | Low — only affects dev builds                                |
 | Manual routing without type-safe route library | pps/studio-web/src/App.tsx             | Low — no type-safe route generation                          |
 | data/progressions.ts is 111 KB of static data  | studio-core/src/data/progressions.ts   | Low — could be lazily imported to reduce initial bundle size |
+
+---
+
+## 10. Startup Sequence
+
+The app boot is orchestrated by `StartupCoordinator` (in `studio-core/src/lib/startupCoordinator.ts` → `startup/`).
+
+### 7-Phase Boot Sequence
+
+```
+Phase 1: Native Init       → Capacitor platform detection, status bar, orientation
+Phase 2: Theme Init         → applyThemeTokens(), AMOLED mode, accent color
+Phase 3: Navigation Init    → Initialize navigation store, restore default route
+Phase 4: Updater Init       → OTA version check, update eligibility
+Phase 5: Hub Init           → StudioHub mount, LaunchAnimationEngine
+Phase 6: Background Services → Sync engine, push notifications, asset preload
+Phase 7: Dev Tools           → Performance profiler, dev overlay (if enabled)
+```
+
+### Key Files
+
+- **Coordinator**: `studio-core/src/lib/startupCoordinator.ts` → `startup/`
+- **Web entry**: `apps/studio-web/src/App.tsx` → calls `StartupCoordinator`
+- **Android entry**: `apps/studio-android/src/App.tsx` → calls `StartupCoordinator`
+- **Loading screen**: `ui-shared/src/components/SmartLoading.tsx`
+- **Launch animation**: `ui-shared/src/components/launch/LaunchAnimationEngine.tsx`
+
+The coordinator implements a watchdog timer that fails the sequence if any phase stalls. `notifyHubMounted()` is called by `StudioHub` after first render.
+
+---
+
+## 11. State Management Map
+
+All state management uses **Zustand 5**. See [STATE_FLOW.md](STATE_FLOW.md) for detailed flow diagrams.
+
+| Store | Location | Persisted | Scope |
+|-------|----------|-----------|-------|
+| `useChordStore` | `store/useChordStore.ts` | ✅ Encrypted localStorage | App settings, chord state, songs |
+| `useDrumStore` | `store/useDrumStore.ts` | ✅ Encrypted localStorage | Drum patterns, kit, mixer |
+| `useNavigationStore` | `lib/navigation/useNavigationStore.ts` | ❌ | Route history, transitions |
+| `useSettingsStore` | `store/useSettingsStore.ts` | ✅ localStorage | Settings |
+| `useBottomNavigationStore` | `lib/navigation/useBottomNavigationStore.ts` | ❌ | Nav visibility |
+| `useApplicationTransitionStore` | `lib/navigation/useApplicationTransitionStore.ts` | ❌ | App switching |
+| `useGroovexStore` | `ui-shared/features/groovex/useGroovexStore.ts` | ❌ | Playback state |
+| `developerInspectorStore` | `lib/devtools/developerInspectorStore.ts` | ❌ | Dev tools |
+
+---
+
+## 12. Persistence Map
+
+| Data | Storage Backend | Module |
+|------|-----------------|--------|
+| App settings (theme, language, prefs) | Encrypted localStorage | `useChordStore` → `secureWriteLocal` |
+| Drum patterns & kit config | Encrypted localStorage | `useDrumStore` → `secureWriteLocal` |
+| Settings | localStorage | `useSettingsStore` → persist |
+| Vocalex recording takes | IndexedDB | `repositories/VocalexRepository.ts` |
+| Groovex stem cache | IndexedDB / Capacitor Filesystem | `features/groovex/stemCache.ts` |
+| Cloud sync data | Firestore / Supabase | `lib/sync/` + `lib/syncBackends/` |
+| Native preferences | Capacitor Preferences API | `lib/nativePrefs.ts` |
+| Downloaded APK cache | Capacitor Filesystem | `lib/updater/cacheManager.ts` |
+| Update flight recorder | In-memory ring buffer | `lib/updater/flightRecorder.ts` |
+
+---
+
+## 13. Routing Map
+
+Studio uses a **custom typed navigation system** — there is no React Router.
+
+### Route Shape
+
+```typescript
+interface NavigationRoute {
+  app: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+  tab?: string;    // sub-tab within the app
+  page?: string;   // specific page/view
+  subView?: string; // nested sub-view
+  id?: string;     // entity ID (song, chord, etc.)
+  type?: string;   // entity type discriminator
+}
+```
+
+### Navigation API
+
+All navigation goes through `NavigationDispatcher` (static class):
+
+```typescript
+NavigationDispatcher.push(route)    // Push route onto stack
+NavigationDispatcher.pop()          // Pop top route
+NavigationDispatcher.replace(route) // Replace current route
+NavigationDispatcher.popTo(fn)      // Pop back to matching route
+NavigationDispatcher.reset(stack)   // Replace entire stack
+```
+
+### Route Resolution
+
+1. `NavigationDispatcher.push(route)` is called
+2. `validation.normalizeAndValidateRoute(route)` validates the route
+3. `NavigationCoordinator.resolveDefaults(route)` fills in default tabs/pages
+4. `lockTransition(transitionType)` sets a 300ms animation lock
+5. `useNavigationStore.setState()` updates the history stack
+6. `SharedNavigationContainer` re-renders the correct panel
+
+### App ↔ Panel Mapping
+
+| App Key | Root Panel | Sub-tabs defined in |
+|---------|-----------|--------------------|
+| `hub` | StudioHub main screen | — |
+| `chords` | Chordex feature | `appRegistry.ts` → `APP_SECTIONS.chords` |
+| `drums` | Drumex feature | `appRegistry.ts` → `APP_SECTIONS.drums` |
+| `stage` | Stagex feature | `appRegistry.ts` → `APP_SECTIONS.stage` |
+| `groovex` | Groovex feature | `appRegistry.ts` → `APP_SECTIONS.groovex` |
+| `vocalex` | Vocalex feature | `appRegistry.ts` → `APP_SECTIONS.vocalex` |
 
 ---
 

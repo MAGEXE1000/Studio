@@ -91,4 +91,65 @@ apps/studio-android/public/version.json
 apps/studio-web/public/version.json
 pr-body.md
 
+# ── One-off fix scripts & debugging detritus ──────────────────────────────────
+# These are temporary scripts created during debugging sessions.
+# They are not source code and should not be committed.
+fix_*.js
+fix_*.py
+fix_*.ps1
+fixup.js
+exact_line_fixer.py
+run_ast_fix.js
+remove_syncEngine.js
+check_dup.py
+check_braces.js
+bump.js
+capture.js
+search.js
+extract.js
+extractFaq.js
+find_ota.js
+test_brace.js
 
+# ── Temporary build/debug artifacts ───────────────────────────────────────────
+temp.js
+temp_app.js
+before.js
+before_utf8.js
+before_braces.txt
+errors.json
+eslint-report.json
+knip-report.json
+ota_search_results.txt
+ota_search_results_precise.txt
+ota_files_ps.txt
+file_list.txt
+diff.txt
+diff2.txt
+css_diff.patch
+audit_debt.txt
+
+# ── Orphaned root-level files ─────────────────────────────────────────────────
+android-only.css
+web-only.css
+common.css
+TakesPanel_old.tsx
+RecordingView.txt
+TakeDetailView.txt
+TakeListItem.txt
+vocalex.png
+
+# ── Stale release verification artifacts ──────────────────────────────────────
+release-state.json
+release-verification-report.json
+release-verification-report.md
+performance-benchmark.json
+performance-baseline.md
+performance-hotspots.md
+semgrep-results.json
+
+# ── Temp directories ──────────────────────────────────────────────────────────
+temp_ast/
+scratch/
+session_logs/
+.temp-forensics/

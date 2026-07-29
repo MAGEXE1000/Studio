@@ -1,15 +1,15 @@
 {
   "platform": "android",
-  "version": "4.3.06",
-  "versionName": "4.3.06",
+  "version": "4.3.07",
+  "versionName": "4.3.07",
   "versionCode": 40306,
   "version_code": 40306,
-  "commit": "42d8ee11",
-  "releasedAt": "7/29/2026, 3:58:40 PM CST",
-  "buildTimestamp": "7/29/2026, 3:58:40 PM CST",
+  "commit": "83f8dfa3",
+  "releasedAt": "7/29/2026, 4:46:33 PM CST",
+  "buildTimestamp": "7/29/2026, 4:46:33 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Migrated the complete navigation system across all applications (Hub, Livex, Chordex, StageX, Drumex, Groovex, Vocalex, Discover, Practice, Settings, Profile, Search, Developer Tools) to use official Lucide Animated components.\n• Installed 32 official Lucide Animated icon packages via official shadcn CLI integration into UI Shared components.\n• Enforced strict navigation state-transition animation triggers (animations play once upon entering active state; re-taps and touch events ignored).\n• Unified all Preferences screens to use the official Lucide Animated Sliders Horizontal component and Settings to use the official Lucide Animated Settings component.",
-  "whatsNew": "• Migrated the complete navigation system across all applications (Hub, Livex, Chordex, StageX, Drumex, Groovex, Vocalex, Discover, Practice, Settings, Profile, Search, Developer Tools) to use official Lucide Animated components.\n• Installed 32 official Lucide Animated icon packages via official shadcn CLI integration into UI Shared components.\n• Enforced strict navigation state-transition animation triggers (animations play once upon entering active state; re-taps and touch events ignored).\n• Unified all Preferences screens to use the official Lucide Animated Sliders Horizontal component and Settings to use the official Lucide Animated Settings component.",
+  "changelog": "• Migrated remaining application icons (Hub, Chordex, StageX, Drumex, Groovex, Vocalex) to official Lucide Animated components.\n• Installed 11 additional official Lucide Animated icon packages via official shadcn CLI integration.\n• Renamed Drumex Songs to Beats (using official Drum component) and Groovex Library to Rhythms (using official Layers component).\n• Removed all generic Home fallback icons and ensured Audio-Lines plays once on tab activation without infinite looping.",
+  "whatsNew": "• Migrated remaining application icons (Hub, Chordex, StageX, Drumex, Groovex, Vocalex) to official Lucide Animated components.\n• Installed 11 additional official Lucide Animated icon packages via official shadcn CLI integration.\n• Renamed Drumex Songs to Beats (using official Drum component) and Groovex Library to Rhythms (using official Layers component).\n• Removed all generic Home fallback icons and ensured Audio-Lines plays once on tab activation without infinite looping.",
   "releaseNotes": {},
   "mandatory": false
 }

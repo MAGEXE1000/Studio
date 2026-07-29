@@ -93,10 +93,10 @@ export function BottomNavigationController() {
     if (key === 'library') return t.navigation?.library || 'Library';
     if (key === 'settings') return t.navigation?.settings || 'Preferences';
     if (key === 'chords') return t.navigation?.chords || 'Chords';
-    if (key === 'drumSongs') return t.navigation?.drumSongs || 'Songs';
+    if (key === 'drumSongs' || key === 'drumBeats') return t.navigation?.drumBeats || 'Beats';
     if (key === 'drumPatterns') return t.navigation?.drumPatterns || 'Patterns';
     if (key === 'drumPreferences') return t.navigation?.drumPreferences || 'Preferences';
-    if (key === 'groovexLibrary') return t.navigation?.groovexLibrary || 'Library';
+    if (key === 'groovexLibrary' || key === 'groovexRhythms') return t.navigation?.groovexRhythms || 'Rhythms';
     if (key === 'groovexPreferences') return t.navigation?.groovexPreferences || 'Preferences';
     if (key === 'vocalexCoach') return t.navigation?.vocalexCoach || 'Coach';
     if (key === 'vocalexRecorder') return t.navigation?.vocalexRecorder || 'Recorder';
@@ -314,7 +314,7 @@ export function BottomNavigationController() {
         },
         {
           key: 'settings',
-          icon: 'settings',
+          icon: 'cog',
           label: 'Settings',
           isActive: activeTab === 'settings' && activePage !== 'profile',
           onClick: () => {
@@ -336,22 +336,7 @@ export function BottomNavigationController() {
 
       return sections.map((sec) => {
         const isActive = activeTab === sec.id || activePage === sec.id;
-        let iconElement: React.ReactNode;
-        if (sec.id === 'songs') {
-          iconElement = <IconSongs active={isActive} />;
-        } else if (sec.id === 'practice') {
-          iconElement = (
-            <span className="material-symbols-outlined" style={{ fontSize: 22, color: isActive ? 'var(--c-accent-from, #f59e0b)' : 'var(--c-text-muted)' }}>
-              graphic_eq
-            </span>
-          );
-        } else if (sec.id === 'library') {
-          iconElement = <IconLibrary active={isActive} />;
-        } else if (sec.id === 'settings') {
-          iconElement = <IconSettings active={isActive} />;
-        } else {
-          iconElement = sec.icon;
-        }
+        const iconElement = sec.icon;
 
         return {
           key: sec.id,

@@ -6,32 +6,31 @@ export interface AppSection {
 
 export const APP_SECTIONS: Record<string, AppSection[]> = {
   chords: [
-    { id: 'songs', labelKey: 'songs', icon: 'music_note' },
-    { id: 'library', labelKey: 'library', icon: 'folder_open' },
-    { id: 'settings', labelKey: 'settings', icon: 'tune' },
+    { id: 'songs', labelKey: 'songs', icon: 'audio-lines' },
+    { id: 'library', labelKey: 'library', icon: 'gallery-vertical-end' },
+    { id: 'settings', labelKey: 'settings', icon: 'sliders-horizontal' },
   ],
   drums: [
-    { id: 'songs', labelKey: 'drumSongs', icon: 'queue_music' },
-    { id: 'patterns', labelKey: 'drumPatterns', icon: 'grid_view' },
-    { id: 'prefs', labelKey: 'drumPreferences', icon: 'tune' },
+    { id: 'beats', labelKey: 'drumBeats', icon: 'drum' },
+    { id: 'patterns', labelKey: 'drumPatterns', icon: 'blocks' },
+    { id: 'prefs', labelKey: 'drumPreferences', icon: 'sliders-horizontal' },
   ],
   groovex: [
-    { id: 'library', labelKey: 'groovexLibrary', icon: 'library_music' },
-    { id: 'preferences', labelKey: 'groovexPreferences', icon: 'tune' },
+    { id: 'rhythms', labelKey: 'groovexRhythms', icon: 'layers' },
+    { id: 'preferences', labelKey: 'groovexPreferences', icon: 'sliders-horizontal' },
   ],
   vocalex: [
-    { id: 'coach', labelKey: 'vocalexCoach', icon: 'school' },
+    { id: 'coach', labelKey: 'vocalexCoach', icon: 'graduation-cap' },
     { id: 'recorder', labelKey: 'vocalexRecorder', icon: 'mic' },
-    { id: 'takes', labelKey: 'vocalexTakes', icon: 'history' },
-    { id: 'preferences', labelKey: 'vocalexPreferences', icon: 'tune' },
+    { id: 'takes', labelKey: 'vocalexTakes', icon: 'clap' },
+    { id: 'preferences', labelKey: 'vocalexPreferences', icon: 'sliders-horizontal' },
   ],
   stage: [
-    { id: 'Editor', labelKey: 'stagexStage', icon: 'grid_view' },
-    { id: 'Setup', labelKey: 'stagexSetup', icon: 'folder_open' },
-    { id: 'Preferences', labelKey: 'stagexPreferences', icon: 'tune' },
+    { id: 'Editor', labelKey: 'stagexStage', icon: 'layout-panel-top' },
+    { id: 'Setup', labelKey: 'stagexSetup', icon: 'layers' },
+    { id: 'Preferences', labelKey: 'stagexPreferences', icon: 'sliders-horizontal' },
   ],
 };
-
 
 export interface AppManifest {
   id: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
@@ -41,9 +40,9 @@ export interface AppManifest {
 }
 
 export const REGISTERED_APPS: AppManifest[] = [
-  { id: 'chords', labelKey: 'Chords', icon: 'music_note', themeColor: '#3b82f6' },
-  { id: 'drums', labelKey: 'Drums', icon: 'album', themeColor: '#f59e0b' },
-  { id: 'stage', labelKey: 'Stage', icon: 'grid_view', themeColor: '#8b5cf6' },
-  { id: 'groovex', labelKey: 'GrooveX', icon: 'library_music', themeColor: '#ec4899' },
+  { id: 'chords', labelKey: 'Chords', icon: 'audio-lines', themeColor: '#3b82f6' },
+  { id: 'drums', labelKey: 'Drums', icon: 'drum', themeColor: '#f59e0b' },
+  { id: 'stage', labelKey: 'Stage', icon: 'layout-panel-top', themeColor: '#8b5cf6' },
+  { id: 'groovex', labelKey: 'GrooveX', icon: 'layers', themeColor: '#ec4899' },
   { id: 'vocalex', labelKey: 'Vocalex', icon: 'mic', themeColor: '#10b981' },
 ];

@@ -11,6 +11,16 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.07
+
+Release Date: 2026-07-29
+
+## Added
+- Migrated remaining application icons (Hub, Chordex, StageX, Drumex, Groovex, Vocalex) to official Lucide Animated components.
+- Installed 11 additional official Lucide Animated icon packages via official shadcn CLI integration.
+- Renamed Drumex Songs to Beats (using official Drum component) and Groovex Library to Rhythms (using official Layers component).
+- Removed all generic Home fallback icons and ensured Audio-Lines plays once on tab activation without infinite looping.
+
 # Version 4.3.06
 
 Release Date: 2026-07-29

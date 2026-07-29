@@ -222,11 +222,19 @@ export function secureReadLocal(key: string, userUid = 'guest_user'): string | n
     // Decrypt v3, v2 or legacy encrypted payloads
     if (raw.startsWith('v3:') || raw.startsWith('v2:') || (raw.length > 9 && raw.charAt(8) === ':')) {
       const decrypted = decryptSync(raw, cryptoKey);
-      if (decrypted) {
+      if (decrypted && decrypted.trim().length > 0) {
         if (raw.startsWith('v2:')) {
           reportMigration(key, 'v2', 'v3');
         }
         return decrypted;
+      }
+      // If raw starts with encrypted prefix but decryptSync fails, check if raw itself is valid JSON
+      try {
+        JSON.parse(raw);
+        return raw;
+      } catch {
+        // DO NOT return raw ciphertext! Return null so Zustand falls back gracefully without corrupting storage!
+        return null;
       }
     }
 
@@ -244,14 +252,16 @@ export function secureWriteLocal(key: string, value: string, userUid = 'guest_us
     }
     const cryptoKey = deriveUserKey(userUid);
 
-    // Save initial sync representation
+    // Save initial sync representation immediately so synchronous reads never fail
     const syncEncrypted = encryptSync(value, cryptoKey);
-    localStorage.setItem(key, syncEncrypted);
+    const syncHex = bytesToHex(stringToBytes(syncEncrypted));
+    const initialPayload = `v3:00000000000000000000000000000000:000000000000000000000000:${syncHex}`;
+    localStorage.setItem(key, initialPayload);
 
-    // Upgrade asynchronously to v3 AES-GCM with dual sync representation
+    // Upgrade asynchronously to full AES-GCM while preserving dual sync representation
     void encryptAESGCM(value, cryptoKey).then((v3Cipher) => {
       if (v3Cipher) {
-        const dualPayload = `${v3Cipher}:${bytesToHex(stringToBytes(syncEncrypted))}`;
+        const dualPayload = `${v3Cipher}:${syncHex}`;
         localStorage.setItem(key, dualPayload);
       }
     });

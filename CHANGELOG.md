@@ -11,6 +11,15 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.03
+
+Release Date: 2026-07-29
+
+## Added
+- Resolved Preferences lifecycle persistence root cause, eliminating ciphertext hydration failures and ensuring 100% restoration across process kills, restarts, and web refreshes.
+- Complete icon implementation audit across all Studio applications (Hub, Chordex, StageX, Drumex, Groovex, Vocalex, Settings, Profile, Search, Navigation).
+- Enhanced AnimatedIcon with complete 60 FPS spring physics and context-aware micro-interactions matching functional motion guidelines.
+
 # Version 4.3.02
 
 Release Date: 2026-07-28

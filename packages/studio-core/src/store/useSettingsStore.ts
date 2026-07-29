@@ -150,6 +150,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultTab: 'library',
   defaultDrumTab: 'songs',
   defaultStageView: 'Editor',
+  defaultVocalexTab: 'coach',
+  defaultGroovexView: 'library',
   startupApp: 'hub',
   hubUserName: '',
   highRefreshRate: false,
@@ -258,6 +260,22 @@ export const useSettingsStore = create<SettingsStore>()(
           }
         }
         return persistedState;
+      },
+      merge: (persistedState: any, currentState: SettingsStore) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return currentState;
+        }
+        const settings = persistedState.settings
+          ? { ...currentState.settings, ...persistedState.settings }
+          : currentState.settings;
+        const lastSession = persistedState.lastSession
+          ? { ...currentState.lastSession, ...persistedState.lastSession }
+          : currentState.lastSession;
+        return {
+          ...currentState,
+          settings,
+          lastSession,
+        };
       },
       storage: createJSONStorage(() => ({
         getItem: () => settingsRepository.readRawState(),

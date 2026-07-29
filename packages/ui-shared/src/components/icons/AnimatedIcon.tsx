@@ -42,13 +42,16 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
     if (lower.includes('setting') || lower.includes('gear')) {
       return { rotate: 90, scale: 1.08 };
     }
+    if (lower.includes('preference') || lower.includes('slider')) {
+      return { rotate: [0, 6, -6, 0], scale: 1.08 };
+    }
     if (lower.includes('bell') || lower.includes('notification')) {
       return { rotate: [0, -14, 14, -8, 4, 0], scale: 1.08 };
     }
     if (lower.includes('sync') || lower.includes('refresh') || lower.includes('update')) {
       return { rotate: 180, scale: 1.08 };
     }
-    if (lower.includes('search')) {
+    if (lower.includes('search') || lower.includes('magnifier')) {
       return { scale: 1.14, x: 1, y: -1 };
     }
     if (lower.includes('download')) {
@@ -57,11 +60,65 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
     if (lower.includes('upload')) {
       return { y: -2, scale: 1.08 };
     }
-    if (lower.includes('profile') || lower.includes('user') || lower.includes('account')) {
+    if (lower.includes('library') || lower.includes('book')) {
+      return { scale: 1.12, rotate: -2 };
+    }
+    if (lower.includes('favorite') || lower.includes('heart')) {
+      return { scale: 1.2, rotate: -4 };
+    }
+    if (lower.includes('bookmark')) {
+      return { scale: 1.12, y: -2 };
+    }
+    if (lower.includes('theme') || lower.includes('sun') || lower.includes('moon')) {
+      return { rotate: 30, scale: 1.12 };
+    }
+    if (lower.includes('profile') || lower.includes('user') || lower.includes('avatar') || lower.includes('account')) {
+      return { scale: 1.1, y: -1.5 };
+    }
+    if (lower.includes('music') || lower.includes('note') || lower.includes('song')) {
+      return { y: [-1, -3, 0], scale: 1.12 };
+    }
+    if (lower.includes('stage') || lower.includes('spotlight')) {
+      return { rotate: [0, 8, -8, 0], scale: 1.1 };
+    }
+    if (lower.includes('lyric') || lower.includes('text')) {
+      return { scale: 1.1, x: 1 };
+    }
+    if (lower.includes('practice') || lower.includes('metronome')) {
+      return { scale: [1, 1.15, 1], rotate: [0, 6, -6, 0] };
+    }
+    if (lower.includes('record') || lower.includes('mic')) {
+      return { scale: [1, 1.2, 1] };
+    }
+    if (lower.includes('equalizer') || lower.includes('bar')) {
       return { scale: 1.1, y: -1 };
     }
-    if (lower.includes('favorite') || lower.includes('heart') || lower.includes('star')) {
-      return { scale: 1.2, rotate: -4 };
+    if (lower.includes('bluetooth')) {
+      return { scale: 1.15 };
+    }
+    if (lower.includes('wifi') || lower.includes('signal')) {
+      return { scale: 1.12, y: -1 };
+    }
+    if (lower.includes('cloud')) {
+      return { x: 2, scale: 1.08 };
+    }
+    if (lower.includes('home')) {
+      return { scale: 1.1, y: -1 };
+    }
+    if (lower.includes('back') || lower.includes('arrow-left')) {
+      return { x: -3, scale: 1.05 };
+    }
+    if (lower.includes('copy')) {
+      return { scale: 1.12, x: 1, y: -1 };
+    }
+    if (lower.includes('share')) {
+      return { scale: 1.15, rotate: 12 };
+    }
+    if (lower.includes('save') || lower.includes('check')) {
+      return { scale: 1.18, rotate: [0, -6, 0] };
+    }
+    if (lower.includes('delete') || lower.includes('trash')) {
+      return { y: -2, rotate: -8, scale: 1.08 };
     }
     if (lower.includes('lock') || lower.includes('security') || lower.includes('shield')) {
       return { scale: 1.12, rotate: [0, -6, 0] };

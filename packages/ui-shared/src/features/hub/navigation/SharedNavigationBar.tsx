@@ -18,7 +18,8 @@ import {
   GroovexLogo,
   VocalexLogo,
 } from '../../chordex/icons/ChordexLogo';
-import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
+import { AnimatedNavigationIcon } from './AnimatedNavigationIcon';
+import { NavigationAnimationProvider } from './NavigationAnimationProvider';
 
 function useStartupComplete() {
   const [complete, setComplete] = useState(() => {
@@ -150,8 +151,7 @@ const NavigationItem = React.memo(
         <motion.div
           ref={contentRef}
           data-nav-content="true"
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.94 }}
+          
           transition={{ type: 'spring', stiffness: 420, damping: 25, mass: 0.7 }}
           style={{
             display: 'flex',
@@ -163,24 +163,21 @@ const NavigationItem = React.memo(
           }}
         >
           {isIconString ? (
-            <AnimatedIcon
-              name={item.icon as string}
+            <AnimatedNavigationIcon
+              itemKey={item.key}
+              iconName={item.icon as string}
               size={20}
               color="#ffffff"
-              state={isActive ? 'active' : 'inactive'}
+              isActive={isActive}
             />
           ) : (
-            <motion.div
-              style={{
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                scale: iconScale,
-              }}
-            >
-              {item.icon}
-            </motion.div>
+            <AnimatedNavigationIcon
+              itemKey={item.key}
+              iconNode={item.icon}
+              size={20}
+              color="#ffffff"
+              isActive={isActive}
+            />
           )}
 
           {item.label && !isSwitcherOpen && (
@@ -1076,10 +1073,19 @@ export function SharedNavigationBar({
     }
   }, [isProfileMenuOpen]);
 
+  const activeTabKey = useMemo(() => {
+    const currentItems = isSwitcherOpen ? switcherApps : items;
+    const activeItem = currentItems.find((item: any) =>
+      isSwitcherOpen ? item.key === currentApp : item.isActive
+    );
+    return activeItem?.key || null;
+  }, [items, switcherApps, isSwitcherOpen, currentApp]);
+
   if (!visible) return null;
 
   return (
-    <>
+    <NavigationAnimationProvider activeTab={activeTabKey}>
+      <>
       {/* Profile Click-Outside Backdrop */}
       <motion.div
         onPointerDown={(e) => {
@@ -1663,6 +1669,7 @@ export function SharedNavigationBar({
         </div>
       </motion.div>
     </>
+    </NavigationAnimationProvider>
   );
 }
 

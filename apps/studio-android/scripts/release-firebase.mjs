@@ -75,7 +75,7 @@ if (existsSync(appVersionPath)) {
   }
   const currentVersion = nativeVersionMatches[0][1];
   const semverRegex =
-    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+    /^\d+\.\d+\.\d+(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
   if (!semverRegex.test(currentVersion)) {
     console.error(
       `release-firebase: âœ— Invalid semantic version format for NATIVE_VERSION: ${currentVersion}`

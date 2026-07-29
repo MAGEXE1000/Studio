@@ -608,6 +608,49 @@ export const BAKAI_ICON_LIBRARY: Record<string, BakaiIconDef> = {
       { type: 'rect', rectProps: { x: 9, y: 9, width: 13, height: 13, rx: 2 }, d: '' },
       { d: 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1' }
     ]
+  },
+  folder_open: {
+    name: 'folder_open',
+    paths: [
+      { d: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' }
+    ]
+  },
+  queue_music: {
+    name: 'queue_music',
+    paths: [
+      { d: 'M3 6h12' },
+      { d: 'M3 10h12' },
+      { d: 'M3 14h8' },
+      { d: 'M17 14V6l4-1v9' },
+      { type: 'circle', circleProps: { cx: 15.5, cy: 17, r: 2.5 }, d: '' }
+    ]
+  },
+  grid_view: {
+    name: 'grid_view',
+    paths: [
+      { type: 'rect', rectProps: { x: 3, y: 3, width: 7, height: 7, rx: 1 }, d: '' },
+      { type: 'rect', rectProps: { x: 14, y: 3, width: 7, height: 7, rx: 1 }, d: '' },
+      { type: 'rect', rectProps: { x: 3, y: 14, width: 7, height: 7, rx: 1 }, d: '' },
+      { type: 'rect', rectProps: { x: 14, y: 14, width: 7, height: 7, rx: 1 }, d: '' }
+    ]
+  },
+  library_music: {
+    name: 'library_music',
+    paths: [
+      { d: 'M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z' },
+      { type: 'rect', rectProps: { x: 8, y: 2, width: 14, height: 14, rx: 2 }, d: '' },
+      { d: 'M13 12V6l5-1v5' },
+      { type: 'circle', circleProps: { cx: 12, cy: 12, r: 1.5 }, d: '' },
+      { type: 'circle', circleProps: { cx: 17, cy: 10, r: 1.5 }, d: '' }
+    ]
+  },
+  school: {
+    name: 'school',
+    paths: [
+      { d: 'M22 10L12 5 2 10l10 5 10-5z' },
+      { d: 'M6 12v5c0 1 3 3 6 3s6-2 6-3v-5' },
+      { d: 'M22 10v6' }
+    ]
   }
 };
 

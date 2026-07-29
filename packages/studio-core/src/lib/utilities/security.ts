@@ -31,7 +31,7 @@ export function bytesToHex(bytes: Uint8Array): string {
 export function hexToBytes(hex: string): Uint8Array {
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
-    bytes[i] = parseInt(hex.slice(i, i + 2), 16);
+    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
   }
   return bytes;
 }
@@ -252,15 +252,15 @@ export function secureWriteLocal(key: string, value: string, userUid = 'guest_us
     }
     const cryptoKey = deriveUserKey(userUid);
 
-    // Save initial sync representation immediately so synchronous reads never fail
+    // Write a v2 synchronous payload immediately so cold-start reads always succeed
     const syncEncrypted = encryptSync(value, cryptoKey);
-    const syncHex = bytesToHex(stringToBytes(syncEncrypted));
-    const initialPayload = `v3:00000000000000000000000000000000:000000000000000000000000:${syncHex}`;
-    localStorage.setItem(key, initialPayload);
+    localStorage.setItem(key, syncEncrypted);
 
-    // Upgrade asynchronously to full AES-GCM while preserving dual sync representation
+    // Upgrade asynchronously to full AES-GCM with dual sync representation
+    const syncHex = bytesToHex(stringToBytes(syncEncrypted));
     void encryptAESGCM(value, cryptoKey).then((v3Cipher) => {
       if (v3Cipher) {
+        // 5-part format: v3:salt:iv:cipherHex:syncHex — decryptSync extracts parts[4]
         const dualPayload = `${v3Cipher}:${syncHex}`;
         localStorage.setItem(key, dualPayload);
       }

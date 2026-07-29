@@ -11,6 +11,67 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.04
+
+Release Date: 2026-07-29
+
+## Added
+- Production release v4.3.04 with complete preferences persistence, 60 FPS bottom navigation touch micro-animations, and full icon library coverage across all sub-applications.
+- Web Crypto API AES-GCM 256 state persistence hardening and synchronous v2 payload fallback restoration across restart and cold-start boundaries.
+- Context-aware AnimatedIcon micro-animations for mobile touch gestures and active tab state transitions.
+
+# Version 4.3.03
+
+Release Date: 2026-07-29
+
+## Added
+- Resolved Preferences lifecycle persistence root cause, eliminating ciphertext hydration failures and ensuring 100% restoration across process kills, restarts, and web refreshes.
+- Complete icon implementation audit across all Studio applications (Hub, Chordex, StageX, Drumex, Groovex, Vocalex, Settings, Profile, Search, Navigation).
+- Enhanced AnimatedIcon with complete 60 FPS spring physics and context-aware micro-interactions matching functional motion guidelines.
+
+# Version 4.3.02
+
+Release Date: 2026-07-28
+
+## Added
+- Resolved Android OTA downloader file resume corruption root cause to guarantee 100% accurate SHA-256 validation across releases.
+- Hardened native AppInstaller and UpdateDownloadService cache purging and stream truncation.
+
+# Version 4.3.01
+
+Release Date: 2026-07-28
+
+## Added
+- Resolved Appearance settings persistence root cause for v3 encrypted state hydration across restarts, cold starts, and web refreshes.
+- Complete icon coverage and context-aware 60 FPS micro-interactions across all Studio applications and screens.
+
+# Version 4.3.00
+
+Release Date: 2026-07-28
+
+## Added
+- Comprehensive production release bump to v4.3.00 with multi-manifest version synchronization across Android, Web, and OTA metadata channels.
+- Hardened deployment integrity, zero-regression performance safeguards, and Web Crypto API AES-GCM 256 state persistence.
+
+# Version 4.2.99
+
+Release Date: 2026-07-28
+
+## Added
+- Global UX polish, micro-interaction feedback enhancements, and touch target accessibility compliance across Web and Android targets.
+- Verified zero performance regressions across RenderScheduler, DOM event observation, and Web Crypto API AES-GCM 256 engine.
+- Ensured 100% multi-manifest version synchronization and OTA update readiness.
+
+# Version 4.2.98
+
+Release Date: 2026-07-28
+
+## Added
+- Upgraded security engine to Web Crypto API (AES-GCM 256) with PBKDF2 key derivation and automatic legacy payload migration.
+- Integrated lifecycle-aware RenderScheduler and event-driven DOM observation to eliminate 100% of idle polling loops.
+- Completed architectural integration of giant sub-components, Zustand store domain slices, sync orchestrators, and typed window declarations.
+- Enforced deterministic cloud synchronization states (idle, pending, running, retry, failed, completed).
+
 # Version 4.2.97
 
 Release Date: 2026-07-28

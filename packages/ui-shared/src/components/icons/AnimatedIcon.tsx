@@ -126,17 +126,31 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
     return { scale: 1.08, y: -1 };
   };
 
+  // Build icon-specific tap animation for mobile touch interactions
+  const getIconSpecificTap = () => {
+    const hoverAnim = getIconSpecificHover();
+    // Combine the icon's unique motion with a press-down scale for tactile feedback
+    return {
+      ...hoverAnim,
+      scale: 0.88,
+    };
+  };
+
   // Motion physics configuration matching Bakai physical interaction philosophy
   const getStateVariants = () => {
+    const iconHover = getIconSpecificHover();
     switch (state) {
       case 'active':
-      case 'selected':
+      case 'selected': {
+        // Blend icon-specific personality into the active state transition
+        const iconRotate = typeof iconHover.rotate === 'number' ? iconHover.rotate * 0.5 : undefined;
         return {
           scale: [0.92, 1.16, 1.08],
-          rotate: [0, -4, 0],
-          y: -1.5,
+          rotate: iconRotate !== undefined ? [0, iconRotate, 0] : [0, -4, 0],
+          y: typeof iconHover.y === 'number' ? iconHover.y : -1.5,
           opacity: 1,
         };
+      }
       case 'pressed':
         return { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 };
       case 'loading':
@@ -169,7 +183,7 @@ export const AnimatedIcon: React.FC<AnimatedIconProps> = ({
       }}
       animate={getStateVariants()}
       whileHover={getIconSpecificHover()}
-      whileTap={{ scale: 0.86, rotate: -3, y: 1 }}
+      whileTap={getIconSpecificTap()}
       transition={
         isSpinning
           ? { repeat: Infinity, duration: 1.1, ease: 'linear' }

@@ -12025,30 +12025,124 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
          * React parent posts { type:'sc-call', fn:'functionName', arg?:'...' }  *
          * We look up the function in window and call it.  This works even when   *
          * contentWindow direct access is restricted by the Android WebView.      */
+        var logIframeDiagnostic = window.logIframeDiagnostic || function () {};
+
         window.addEventListener(
           'message',
           function (e) {
+            var origin = e.origin || '';
             var isAllowedOrigin =
-              !e.origin ||
-              e.origin === window.location.origin ||
-              e.origin === 'https://localhost' ||
-              e.origin === 'http://localhost' ||
-              e.origin === 'capacitor://localhost';
-            if (!isAllowedOrigin) return;
+              !origin ||
+              origin === 'null' ||
+              origin === 'about:blank' ||
+              origin === window.location.origin ||
+              origin.indexOf('https://localhost') === 0 ||
+              origin.indexOf('http://localhost') === 0 ||
+              origin.indexOf('capacitor://localhost') === 0;
+
+            if (!isAllowedOrigin) {
+              logIframeDiagnostic('sc-origin-rejected', {
+                actual: origin,
+                expected: window.location.origin,
+              });
+              return;
+            }
+
+            if (e.data && e.data.type === 'sc-back-request') {
+              var consumed = false;
+              if (typeof window.stageGoBack === 'function') {
+                consumed = window.stageGoBack();
+              }
+              window.parent.postMessage({ type: 'sc-back-response', consumed: consumed }, '*');
+              if (typeof window.reportStagexState === 'function') {
+                window.reportStagexState();
+              }
+              return;
+            }
+
+            if (e.data && e.data.type === 'requestSceneInfo') {
+              if (typeof window.__getSceneInfo === 'function') {
+                var info = window.__getSceneInfo();
+                window.parent.postMessage({ type: 'sc-scene-info', info: info }, '*');
+              }
+              return;
+            }
+
             if (!e.data || e.data.type !== 'sc-call') return;
             var fn = e.data.fn;
             var arg = e.data.arg;
             var msgId = e.data.msgId;
             if (typeof fn !== 'string') return;
-            var target = window[fn];
-            if (typeof target === 'function') {
+
+            logIframeDiagnostic('sc-command-received', { fn: fn });
+
+            var ALLOWED_FN = [
+              'switchView',
+              'toggleSCDial',
+              'toggleGigMode',
+              'stageGoBack',
+              'openPresetsPanel',
+              'exportPDFWithOptions',
+              'addItemToStage',
+              'reportStagexState',
+              'updateCanvasBg',
+            ];
+            var handler = null;
+            if (ALLOWED_FN.indexOf(fn) !== -1 && typeof window[fn] === 'function') {
+              handler = window[fn];
+            }
+
+            if (typeof handler === 'function') {
               try {
-                arg !== undefined ? target(arg) : target();
+                arg !== undefined ? handler(arg) : handler();
+                logIframeDiagnostic('sc-command-dispatched', { fn: fn });
                 if (msgId) {
-                  window.parent.postMessage({ type: 'sc-ack', msgId: msgId, fn: fn }, '*');
+                  window.parent.postMessage(
+                    {
+                      type: 'sc-ack',
+                      msgId: msgId,
+                      command: fn,
+                      status: 'success',
+                      handlerName: fn,
+                      error: '',
+                    },
+                    '*'
+                  );
+                  logIframeDiagnostic('sc-ack-sent', { fn: fn, msgId: msgId });
                 }
               } catch (err) {
-                /* ignore */
+                logIframeDiagnostic('sc-command-handler-error', {
+                  fn: fn,
+                  error: err ? err.message || String(err) : 'Unknown error',
+                });
+                if (msgId) {
+                  window.parent.postMessage(
+                    {
+                      type: 'sc-nack',
+                      msgId: msgId,
+                      command: fn,
+                      status: 'error',
+                      handlerName: fn,
+                      error: err ? err.message || String(err) : 'Unknown error',
+                    },
+                    '*'
+                  );
+                }
+              }
+            } else {
+              logIframeDiagnostic('sc-command-handler-missing', { fn: fn });
+              if (msgId) {
+                window.parent.postMessage(
+                  {
+                    type: 'sc-nack',
+                    msgId: msgId,
+                    command: fn,
+                    status: 'missing',
+                    handlerName: fn,
+                    error: 'Handler missing, unapproved, or not a function',
+                  },
+                  '*'
+                );
               }
             }
           },

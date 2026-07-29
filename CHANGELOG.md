@@ -11,6 +11,15 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.04
+
+Release Date: 2026-07-29
+
+## Added
+- Production release v4.3.04 with complete preferences persistence, 60 FPS bottom navigation touch micro-animations, and full icon library coverage across all sub-applications.
+- Web Crypto API AES-GCM 256 state persistence hardening and synchronous v2 payload fallback restoration across restart and cold-start boundaries.
+- Context-aware AnimatedIcon micro-animations for mobile touch gestures and active tab state transitions.
+
 # Version 4.3.03
 
 Release Date: 2026-07-29

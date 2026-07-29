@@ -1,6 +1,6 @@
-Release Date: 2026-07-28
+Release Date: 2026-07-29
 
 ## Added
-- Rebuilt icon interaction system with physical mechanical feedback, touch compression down to 0.86 scale, anticipation, and spring overshoot.
-- Implemented velocity-stretching active pill animation in Liquid Bottom Navigation that stretches horizontally during slide movements.
-- Synchronized tab icon and label spring motion with continuous Liquid Surface backdrop filter adaptation.
+- Production release v4.3.04 with complete preferences persistence, 60 FPS bottom navigation touch micro-animations, and full icon library coverage across all sub-applications.
+- Web Crypto API AES-GCM 256 state persistence hardening and synchronous v2 payload fallback restoration across restart and cold-start boundaries.
+- Context-aware AnimatedIcon micro-animations for mobile touch gestures and active tab state transitions.

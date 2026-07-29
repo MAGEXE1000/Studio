@@ -220,6 +220,7 @@ export function SharedNavigationContainer({
 
   return (
     <div className={`m3-nav-container ${className}`} style={style}>
+      {/* Security Audit Note: Static CSS rules only — no dynamic or user-controlled string interpolation */}
       <style
         dangerouslySetInnerHTML={{
           __html: `

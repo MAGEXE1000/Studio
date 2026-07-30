@@ -39,6 +39,8 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
   return (
     <NavigationAnimationProvider activeTab={activeId}>
       <div
+        role="tablist"
+        aria-label="Main Navigation"
         style={{
           position: 'relative',
           display: 'flex',
@@ -56,41 +58,19 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
           boxSizing: 'border-box',
         }}
       >
-        {/* Morphing & Velocity-Stretching Liquid Active Pill Background */}
-        <motion.div
-          layoutId="liquidActiveNavPill"
-          style={{
-            position: 'absolute',
-            top: 6,
-            bottom: 6,
-            left: 10,
-            width: `calc((100% - 20px) / ${items.length})`,
-            borderRadius: 22,
-            background: `linear-gradient(135deg, ${accentColor}28, ${accentColor}45)`,
-            border: `1.2px solid ${accentColor}70`,
-            boxShadow: `0 4px 18px ${accentColor}35`,
-            zIndex: 0,
-          }}
-          animate={{
-            x: `${activeIndex * 100}%`,
-            scaleX: [1, 1.15, 0.96, 1], // Physical stretch during slide velocity
-          }}
-          transition={{
-            type: 'spring',
-            stiffness: 480,
-            damping: 30,
-            mass: 0.8,
-          }}
-        />
-
         {/* Nav Item Buttons with Physical Reactive Bakai Icons & Label Springs */}
         {items.map((item, idx) => {
           const isActive = activeId === item.id || (item.id === 'profile' && isProfileOpen);
 
           return (
-            <button
+            <motion.button
               key={item.id}
+              role="tab"
+              aria-selected={isActive}
+              aria-label={item.label}
               onClick={() => handleSelect(item, idx)}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               style={{
                 position: 'relative',
                 zIndex: 1,
@@ -99,7 +79,8 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '8px 0',
+                padding: '6px 0',
+                minHeight: 44,
                 border: 'none',
                 background: 'transparent',
                 color: isActive ? accentColor : '#a1a1aa',
@@ -108,6 +89,27 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                 transition: 'color 0.22s ease',
               }}
             >
+              {/* Morphing & Centered Active Pill Background */}
+              {isActive && (
+                <motion.div
+                  layoutId="liquidActiveNavPill"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 22,
+                    background: `linear-gradient(135deg, ${accentColor}28, ${accentColor}45)`,
+                    border: `1.2px solid ${accentColor}70`,
+                    boxShadow: `0 4px 18px ${accentColor}35`,
+                    zIndex: 0,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 420,
+                    damping: 30,
+                    mass: 0.8,
+                  }}
+                />
+              )}
               {/* Reactive Icon with synchronized spring motion */}
               <AnimatedNavigationIcon
                 itemKey={item.id}
@@ -134,11 +136,12 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                   fontWeight: isActive ? 800 : 600,
                   marginTop: 3,
                   letterSpacing: '-0.01em',
+                  fontVariantNumeric: 'tabular-nums',
                 }}
               >
                 {item.label}
               </motion.span>
-            </button>
+            </motion.button>
           );
         })}
       </div>

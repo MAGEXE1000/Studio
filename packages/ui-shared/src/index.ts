@@ -4,6 +4,7 @@ export { default as ElasticSlider } from './shared/progress/ElasticSlider';
 export { default as GradientBorderCard } from './shared/cards/GradientBorderCard';
 export { default as SmartLoading, AppLoadingScreen } from './shared/loading/SmartLoading';
 export { SharedNavigationContainer } from './navigation/SharedNavigationContainer';
+export { StudioPageTransition, UNIFIED_NAV_TRANSITION } from './components/StudioPageTransition';
 export { default as StudioCountUpPercentage } from './shared/progress/StudioCountUpPercentage';
 export { default as StudioProgressBar } from './shared/progress/StudioProgressBar';
 export { default as StudioThemeToggler } from './shared/typography/StudioThemeToggler';

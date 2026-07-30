@@ -311,9 +311,13 @@ export function SidebarMenuButton({
   const { open } = useSidebar();
 
   return (
-    <button
+    <motion.button
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      className={`w-full flex items-center justify-start gap-3 px-3 py-2.5 rounded-xl border-none text-left cursor-pointer transition-all duration-150 relative group hover:bg-[var(--sidebar-hover-bg)] ${className}`}
+      whileTap={{ scale: 0.96 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+      className={`w-full flex items-center justify-start gap-3 px-3 py-2.5 rounded-xl border-none text-left cursor-pointer relative group hover:bg-[var(--sidebar-hover-bg)] ${className}`}
       title={!open ? tooltip || undefined : undefined}
       style={{
         background: active ? 'var(--sidebar-active-bg, rgba(255, 255, 255, 0.07))' : 'transparent',
@@ -321,9 +325,11 @@ export function SidebarMenuButton({
         fontFamily: 'Manrope, sans-serif',
         fontWeight: active ? 700 : 500,
         fontSize: '13px',
+        minHeight: '44px',
         boxSizing: 'border-box',
         outline: 'none',
         WebkitTapHighlightColor: 'transparent',
+        transition: 'background 0.15s ease, color 0.15s ease',
         ...style,
       }}
       {...props}
@@ -340,7 +346,7 @@ export function SidebarMenuButton({
         />
       )}
       {children}
-    </button>
+    </motion.button>
   );
 }
 

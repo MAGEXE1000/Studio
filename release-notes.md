@@ -1,7 +1,7 @@
 Release Date: 2026-07-29
 
 ## Added
-- Migrated remaining application icons (Hub, Chordex, StageX, Drumex, Groovex, Vocalex) to official Lucide Animated components.
-- Installed 11 additional official Lucide Animated icon packages via official shadcn CLI integration.
-- Renamed Drumex Songs to Beats (using official Drum component) and Groovex Library to Rhythms (using official Layers component).
-- Removed all generic Home fallback icons and ensured Audio-Lines plays once on tab activation without infinite looping.
+- Enhanced desktop sidebar and dock navigation buttons with tactile press scale scaling (`whileTap={{ scale: 0.96 }}`) and explicit ARIA tab semantics (`role="tab"`, `aria-selected`).
+- Enforced minimum 44px touch target bounds across desktop and mobile navigation components.
+- Refined tooltip enter/exit animations with subtle 6px offset transitions and tabular numeric label formatting (`tabular-nums`).
+- Executed complete engineering audit and Matt Pocock / Jakub Krehel skill suite integration.

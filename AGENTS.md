@@ -4,6 +4,22 @@ This document is the authoritative platform-scope policy for all developers and 
 
 ---
 
+## Agent skills
+
+### Issue tracker
+
+Tracked using GitHub Issues via `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical triage vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Multi-package monorepo context layout. See `docs/agents/domain.md`.
+
+---
+
 ## 1. Task Classification System
 
 Every task must be classified into one of the following platform scopes:

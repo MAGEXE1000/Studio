@@ -78,10 +78,10 @@ function DockItem({
       <AnimatePresence>
         {isHovered && (
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6, scale: 0.9 }}
-            transition={SpringPresets.soft}
+            exit={{ opacity: 0, y: 4, scale: 0.96 }}
+            transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
             style={{
               position: 'absolute',
               bottom: '100%',
@@ -98,8 +98,9 @@ function DockItem({
                 : '1px solid rgba(255, 255, 255, 0.12)',
               color: isLight ? '#09090b' : '#ffffff',
               fontSize: '12px',
-              fontWeight: 700,
-              fontFamily: 'Manrope, sans-serif',
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+              fontVariantNumeric: 'tabular-nums',
               whiteSpace: 'nowrap',
               pointerEvents: 'none',
               zIndex: 1000,
@@ -113,10 +114,13 @@ function DockItem({
 
       <motion.button
         ref={ref}
+        role="tab"
+        aria-selected={isActive}
         onClick={onClick}
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        whileTap={reduceMotion ? {} : { scale: 0.96 }}
         style={{
           width: reduceMotion ? 46 : size,
           height: reduceMotion ? 46 : size,

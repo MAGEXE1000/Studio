@@ -148,10 +148,39 @@ const NavigationItem = React.memo(
           WebkitTapHighlightColor: 'transparent',
         }}
       >
+        {/* Morphing & 100% Centered Shared Active Pill Background */}
+        {isActive && !isSwitcherOpen && (
+          <motion.div
+            layoutId="sharedActiveNavPill"
+            style={{
+              position: 'absolute',
+              top: 4,
+              bottom: 4,
+              left: 4,
+              right: 4,
+              borderRadius: '9999px',
+              background:
+                'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
+              border: '1.2px solid rgba(255, 255, 255, 0.32)',
+              boxShadow:
+                'inset 0 1px 1.5px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 420,
+              damping: 30,
+              mass: 0.8,
+            }}
+          />
+        )}
+
         <motion.div
           ref={contentRef}
           data-nav-content="true"
-          
           transition={{ type: 'spring', stiffness: 420, damping: 25, mass: 0.7 }}
           style={{
             display: 'flex',
@@ -736,7 +765,7 @@ export function SharedNavigationBar({
 
   const hasRightBubble = showSwitcherButton || (isHub && !searchOpen);
   const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 80 : 0);
-  const barWidth = Math.max(180, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
+  const barWidth = Math.max(280, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
@@ -1463,27 +1492,6 @@ export function SharedNavigationBar({
                 touchAction: 'none',
               }}
             >
-              {/* Continuous Gliding Pill Highlight */}
-              {hasMeasuredInitial && !searchOpen && (
-                <motion.div
-                  style={{
-                    position: 'absolute',
-                    top: isSwitcherOpen ? '8px' : '4px',
-                    bottom: isSwitcherOpen ? '8px' : '4px',
-                    width: pillWidthVal,
-                    x: pillX,
-                    borderRadius: '9999px',
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
-                    border: '1.2px solid rgba(255, 255, 255, 0.32)',
-                    boxShadow: 'inset 0 1px 1.5px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                  }}
-                />
-              )}
-
               {/* Standard Navigation Items */}
               {!searchOpen ? (
                 <div

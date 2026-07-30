@@ -16,6 +16,7 @@ import React, { useRef } from 'react';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shared/typography/SettingControls';
 import InkThemeToggle from '../../../shared/typography/InkThemeToggle';
 import HubChangelogSection from './HubChangelogSection';
+import { StudioPageTransition } from '../../../components/StudioPageTransition';
 
 export default function StudioHubSettingsPanel() {
   const settings = useSettingsStore((s) => s.settings);
@@ -38,7 +39,8 @@ export default function StudioHubSettingsPanel() {
   const isWebDesktop = useIsWebDesktop();
 
   return (
-    <div className="flex flex-col h-full overflow-hidden app-bg">
+    <StudioPageTransition pageKey="hub-settings-panel">
+      <div className="flex flex-col h-full overflow-hidden app-bg">
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto no-scrollbar px-5"
@@ -151,5 +153,6 @@ export default function StudioHubSettingsPanel() {
         </div>
       </div>
     </div>
+  </StudioPageTransition>
   );
 }

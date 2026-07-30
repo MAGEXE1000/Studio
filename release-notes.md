@@ -1,7 +1,7 @@
 Release Date: 2026-07-29
 
 ## Added
-- Unified navigation transition architecture across all sub-apps and screens using Framer Motion projection (`StudioPageTransition`).
-- Solved bottom navigation active highlight alignment at the root cause by embedding `layoutId="liquidActiveNavPill"` directly inside active item buttons.
-- Eliminated abrupt navigation bar geometry jumps during tab switching across apps with different item counts.
-- Enforced 100% centered highlight positioning across all screen orientations and font scaling sizes.
+- Integrated `StudioPageTransition` unified motion architecture directly into real runtime view containers (`SharedNavigationContainer.tsx`, `StudioHubSettingsPanel.tsx`, `AppAnimationSystem.tsx`).
+- Resolved Bottom Navigation highlight centering at the root cause in `SharedNavigationBar.tsx` by projecting active pill layout bounds directly inside `<NavigationItem>` buttons with zero offset lag.
+- Fixed bottom navigation bar width calculations in `SharedNavigationBar.tsx` to eliminate size snapping when switching between 4-slot Hub, 3-slot Chordex, and 2-slot Groovex views.
+- Removed legacy hardcoded CSS class transitions (`m3-nav-*`, `spring-in`, `content-enter`, `library-tab-fade`) across all application screens.

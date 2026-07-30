@@ -219,14 +219,13 @@ export function AppEntryTransition({
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 16, scale: 0.972 }}
+      initial={{ opacity: 0, y: 6, scale: 0.995 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={transition}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       style={{
         width: '100%',
         height: '100%',
         ...style,
-        willChange: 'transform, opacity',
       }}
     >
       {children}

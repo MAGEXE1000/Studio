@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.16",
-  "versionName": "4.3.16",
-  "versionCode": 40316,
-  "version_code": 40316,
-  "commit": "8a5ce52d",
-  "releasedAt": "7/31/2026, 8:51:38 AM CST",
-  "buildTimestamp": "7/31/2026, 8:51:38 AM CST",
+  "version": "4.3.17",
+  "versionName": "4.3.17",
+  "versionCode": 40317,
+  "version_code": 40317,
+  "commit": "fb11f0c1",
+  "releasedAt": "7/31/2026, 8:59:40 AM CST",
+  "buildTimestamp": "7/31/2026, 8:59:40 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.\n• Patched OTA updater version check logic for seamless web update fallbacks.",
-  "whatsNew": "• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.\n• Patched OTA updater version check logic for seamless web update fallbacks.",
+  "changelog": "• Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.\n• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
+  "whatsNew": "• Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.\n• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
   "releaseNotes": {
     "improved": [
+      "Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.",
       "Unified Appearance screen settings into a single cohesive card.",
-      "Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
-      "Patched OTA updater version check logic for seamless web update fallbacks."
+      "Restored MagicUI clip-path Ink Toggle view transitions for theme changes."
     ]
   },
   "mandatory": false

@@ -32,10 +32,11 @@ env:
   ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
   EXPECTED_SIGNATURE_SHA256: "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
   REINSTALL_REQUIRED: "true"
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
 
 jobs:
   preflight:
-    name: "Preflight & Fail-Fast Validation"
+    name: "1. Preflight & Fail-Fast Validation"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
@@ -72,7 +73,7 @@ jobs:
           fi
 
   build:
-    name: "Build, Package & Sign"
+    name: "2. Build, Package & Sign"
     needs: preflight
     runs-on: ubuntu-latest
     steps:
@@ -160,7 +161,7 @@ jobs:
             release-notes.md
 
   verify:
-    name: "Signing & Contract Verification"
+    name: "3. Signing & Contract Verification"
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -284,7 +285,7 @@ jobs:
           echo "✓ All release verification checks passed successfully!"
 
   publish:
-    name: "Publish, Deploy & Report"
+    name: "4. Publish, Deploy & Report"
     needs: verify
     runs-on: ubuntu-latest
     steps:

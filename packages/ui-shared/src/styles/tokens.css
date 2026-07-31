@@ -28,9 +28,9 @@
   --color-surface-container-highest: var(--app-surface-highest);
   --color-surface-bright: #2c2c2c;
   --color-surface-variant: #252626;
-  --color-on-surface: #e7e5e4;
-  --color-on-surface-variant: #acabaa;
-  --color-on-background: #e7e5e4;
+  --color-on-surface: var(--c-text-primary);
+  --color-on-surface-variant: var(--c-text-secondary);
+  --color-on-background: var(--c-text-primary);
   --color-background: var(--app-bg);
   --color-outline: #767575;
   --color-outline-variant: #484848;

@@ -452,7 +452,8 @@ async function executeCheckForUpdateInternal(
     return globalUpdateState;
   }
 
-  if (!isManual && current !== 'IDLE') {
+  const allowedStates = ['IDLE', 'NO_UPDATE_AVAILABLE', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY'];
+  if (!isManual && !allowedStates.includes(current)) {
     return globalUpdateState;
   }
 
@@ -975,7 +976,10 @@ export function checkForUpdate(
     'INSTALL_SUCCESS',
   ].includes(current);
 
-  if (isUpdateSessionActive() || current !== 'IDLE') {
+  const allowedStates = ['IDLE', 'NO_UPDATE_AVAILABLE', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY'];
+  const isBlocked = isUpdateSessionActive() || !allowedStates.includes(current);
+
+  if (isBlocked) {
     if (!isManual) {
       logTimelineEvent('UpdateCore', 'CHECK_REJECTED_ACTIVE_SESSION', `state: ${current}`);
 

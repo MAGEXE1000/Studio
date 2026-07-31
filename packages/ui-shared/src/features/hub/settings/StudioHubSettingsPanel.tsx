@@ -6,6 +6,7 @@ import {
   NavigationDispatcher,
 } from '@workspace/studio-core';
 import { StudioPageTransition } from '../../../components/StudioPageTransition';
+import { Toggle } from '../../../shared/typography/SettingControls';
 import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
 
 /**
@@ -85,50 +86,43 @@ export default function StudioHubSettingsPanel() {
     <StudioPageTransition pageKey="hub-settings-panel">
       <div className="font-body-md text-body-md min-h-screen pb-stack-lg app-bg text-on-surface">
         {/* Compact Top App Bar */}
-        <header className="w-full sticky top-0 z-50 flex flex-col justify-end px-margin-mobile pt-stack-md pb-stack-sm bg-black/60 backdrop-blur-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleBack}
-                aria-label="Go Back"
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-on-surface text-[22px]">
-                  arrow_back
-                </span>
-              </button>
-              <div className="flex flex-col">
-                <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-background">
-                  Appearance
-                </h1>
-                <p className="text-on-surface-variant font-label-md opacity-60">
-                  Personalize your Livex experience.
-                </p>
-              </div>
-            </div>
+        <header className="w-full flex items-center justify-between px-margin-mobile pt-stack-md pb-stack-sm bg-transparent">
+          <div className="flex items-center gap-3">
             <button
-              id="theme-cycler"
               type="button"
-              onClick={handleThemeCycle}
-              aria-label="Cycle Theme"
-              className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90 duration-300 cursor-pointer"
+              onClick={handleBack}
+              aria-label="Go Back"
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200 cursor-pointer"
             >
-              <span
-                id="theme-icon"
-                className={`material-symbols-outlined transition-all duration-300 text-[20px] ${
-                  themeState === 0
-                    ? 'text-primary'
-                    : themeState === 1
-                      ? 'text-on-surface-variant'
-                      : 'text-tertiary'
-                }`}
-                style={{ transform: `rotate(${themeState * 120}deg)` }}
-              >
-                {themeState === 0 ? 'light_mode' : themeState === 1 ? 'dark_mode' : 'brightness_6'}
+              <span className="material-symbols-outlined text-on-surface text-[24px]">
+                arrow_back
               </span>
             </button>
+            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-background font-bold">
+              Appearance
+            </h1>
           </div>
+          <button
+            id="theme-cycler"
+            type="button"
+            onClick={handleThemeCycle}
+            aria-label="Cycle Theme"
+            className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90 duration-300 cursor-pointer"
+          >
+            <span
+              id="theme-icon"
+              className={`material-symbols-outlined transition-all duration-300 text-[22px] ${
+                themeState === 0
+                  ? 'text-primary'
+                  : themeState === 1
+                    ? 'text-on-surface-variant'
+                    : 'text-tertiary'
+              }`}
+              style={{ transform: `rotate(${themeState * 120}deg)` }}
+            >
+              {themeState === 0 ? 'light_mode' : themeState === 1 ? 'dark_mode' : 'brightness_6'}
+            </span>
+          </button>
         </header>
 
         <main className="px-margin-mobile space-y-4 mt-2 max-w-2xl mx-auto">
@@ -239,19 +233,10 @@ export default function StudioHubSettingsPanel() {
                 </p>
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.highContrast ?? false}
-                onChange={(e) =>
-                  settingsController.updateSettings({ highContrast: e.target.checked })
-                }
-                className="sr-only peer switch-toggle"
-              />
-              <div className="w-10 h-5 bg-surface-container-highest rounded-full peer-focus:ring-2 peer-focus:ring-primary/20 transition-all switch-bg">
-                <div className="absolute top-0.5 left-0.5 bg-on-surface-variant w-4 h-4 rounded-full transition-all duration-300 switch-dot" />
-              </div>
-            </label>
+            <Toggle
+              value={settings.highContrast ?? false}
+              onChange={(v) => settingsController.updateSettings({ highContrast: v })}
+            />
           </section>
 
           {/* Section 5: Workspace & Performance */}
@@ -276,19 +261,10 @@ export default function StudioHubSettingsPanel() {
                     </div>
                   </div>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.hapticFeedback ?? true}
-                    onChange={(e) =>
-                      settingsController.updateSettings({ hapticFeedback: e.target.checked })
-                    }
-                    className="sr-only peer switch-toggle"
-                  />
-                  <div className="w-10 h-5 bg-surface-container-highest rounded-full transition-all switch-bg">
-                    <div className="absolute top-0.5 left-0.5 bg-on-surface-variant w-4 h-4 rounded-full transition-all duration-300 switch-dot" />
-                  </div>
-                </label>
+                <Toggle
+                  value={settings.hapticFeedback ?? true}
+                  onChange={(v) => settingsController.updateSettings({ hapticFeedback: v })}
+                />
               </div>
 
               {/* Row 2: High Refresh Rate */}
@@ -306,19 +282,10 @@ export default function StudioHubSettingsPanel() {
                     </div>
                   </div>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.highRefreshRate ?? true}
-                    onChange={(e) =>
-                      settingsController.updateSettings({ highRefreshRate: e.target.checked })
-                    }
-                    className="sr-only peer switch-toggle"
-                  />
-                  <div className="w-10 h-5 bg-surface-container-highest rounded-full transition-all switch-bg">
-                    <div className="absolute top-0.5 left-0.5 bg-on-surface-variant w-4 h-4 rounded-full transition-all duration-300 switch-dot" />
-                  </div>
-                </label>
+                <Toggle
+                  value={settings.highRefreshRate ?? true}
+                  onChange={(v) => settingsController.updateSettings({ highRefreshRate: v })}
+                />
               </div>
 
               {/* Row 3: Performance Mode */}
@@ -336,19 +303,10 @@ export default function StudioHubSettingsPanel() {
                     </div>
                   </div>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.performanceMode ?? false}
-                    onChange={(e) =>
-                      settingsController.updateSettings({ performanceMode: e.target.checked })
-                    }
-                    className="sr-only peer switch-toggle"
-                  />
-                  <div className="w-10 h-5 bg-surface-container-highest rounded-full transition-all switch-bg">
-                    <div className="absolute top-0.5 left-0.5 bg-on-surface-variant w-4 h-4 rounded-full transition-all duration-300 switch-dot" />
-                  </div>
-                </label>
+                <Toggle
+                  value={settings.performanceMode ?? false}
+                  onChange={(v) => settingsController.updateSettings({ performanceMode: v })}
+                />
               </div>
             </div>
           </section>

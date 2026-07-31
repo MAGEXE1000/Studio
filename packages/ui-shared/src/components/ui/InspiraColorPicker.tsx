@@ -86,6 +86,7 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
   const [saturation, setSaturation] = useState<number>(initialHsl.s || 80);
   const [lightness, setLightness] = useState<number>(initialHsl.l || 70);
   const [opacity, setOpacity] = useState<number>(100);
+  const [showCanvas, setShowCanvas] = useState(false);
 
   const [presets, setPresets] = useState<string[]>([
     '#ADC6FF',
@@ -200,38 +201,36 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
   };
 
   return (
-    <div className={`bg-surface-container-lowest rounded-lg p-4 custom-shadow flex flex-col gap-4 ${className}`}>
+    <div className={`bg-surface-container-lowest rounded-lg p-3.5 custom-shadow flex flex-col gap-3 ${className}`}>
       <div className="flex items-center justify-between">
-        <h3 className="font-title-md text-title-md text-on-surface">Accent Color</h3>
+        <h3 className="font-title-md text-title-md text-on-surface font-bold text-[14px]">Accent Color</h3>
       </div>
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Color Picker Visual Canvas */}
-        <div
-          ref={canvasRef}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          className="relative w-full aspect-[4/3] md:w-56 md:h-48 rounded-lg overflow-hidden color-canvas flex items-center justify-center cursor-crosshair select-none"
-          style={{ backgroundColor: `hsl(${hue}, 100%, 50%)` }}
+      
+      <div className="flex items-center gap-3">
+        {/* Active color box toggling canvas */}
+        <button
+          type="button"
+          onClick={() => setShowCanvas(!showCanvas)}
+          className="w-12 h-12 rounded-lg cursor-pointer flex-shrink-0 border border-outline-variant/30 shadow-md relative overflow-hidden transition-transform duration-200 active:scale-95 group focus:outline-none"
+          style={{ backgroundColor: currentColorHex }}
+          title={showCanvas ? "Hide color canvas" : "Show color canvas"}
         >
-          <div
-            className="w-5 h-5 border-2 border-white rounded-full shadow-lg absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75"
-            style={{
-              top: `${Math.max(5, Math.min(95, 100 - lightness))}%`,
-              left: `${Math.max(5, Math.min(95, saturation))}%`,
-            }}
-          />
-        </div>
+          <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span className="material-symbols-outlined text-[18px] text-white">
+              {showCanvas ? "expand_less" : "expand_more"}
+            </span>
+          </div>
+        </button>
 
-        {/* Sliders & Previews */}
-        <div className="flex-1 space-y-4">
-          <div className="space-y-3">
+        {/* Sliders & Badges */}
+        <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-2">
+          {/* Sliders stacked */}
+          <div className="space-y-2">
             {/* Hue Slider */}
-            <div className="space-y-1.5">
-              <label className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-[10px]">
-                Hue
-              </label>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-extrabold text-on-surface-variant w-8 tracking-wider">HUE</span>
               <div
-                className="h-3 w-full rounded-full relative cursor-pointer"
+                className="h-2 flex-1 rounded-full relative cursor-pointer"
                 style={{
                   background:
                     'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
@@ -246,19 +245,17 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
                 />
                 <div
-                  className="h-5 w-5 bg-white rounded-full border-4 border-surface shadow-sm -mt-1 absolute pointer-events-none transform -translate-x-1/2"
+                  className="h-4 w-4 bg-white rounded-full border-2 border-surface-container shadow-sm absolute top-1/2 -mt-2 pointer-events-none transform -translate-x-1/2"
                   style={{ left: `${(hue / 360) * 100}%` }}
                 />
               </div>
             </div>
 
             {/* Opacity Slider */}
-            <div className="space-y-1.5">
-              <label className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-[10px]">
-                Opacity
-              </label>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-extrabold text-on-surface-variant w-8 tracking-wider">OPAC</span>
               <div
-                className="h-3 w-full rounded-full bg-surface-container relative cursor-pointer"
+                className="h-2 flex-1 rounded-full bg-surface-container relative cursor-pointer"
                 style={{
                   backgroundImage:
                     'linear-gradient(45deg, #1c1c1c 25%, transparent 25%), linear-gradient(-45deg, #1c1c1c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1c1c1c 75%), linear-gradient(-45deg, transparent 75%, #1c1c1c 75%)',
@@ -280,7 +277,7 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
                     className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
                   />
                   <div
-                    className="h-5 w-5 bg-white rounded-full border-4 border-surface shadow-sm -mt-1 absolute pointer-events-none transform -translate-x-1/2"
+                    className="h-4 w-4 bg-white rounded-full border-2 border-surface-container shadow-sm absolute top-1/2 -mt-2 pointer-events-none transform -translate-x-1/2"
                     style={{ left: `${opacity}%` }}
                   />
                 </div>
@@ -289,25 +286,46 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
           </div>
 
           {/* HEX / RGB Badges */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-surface-container rounded p-2 flex justify-between items-center">
-              <span className="font-label-md text-on-surface-variant text-[10px]">HEX</span>
-              <div className="font-body-md font-semibold text-on-surface uppercase">
+          <div className="flex gap-2 items-center justify-end">
+            <div className="bg-surface-container rounded px-2 py-0.5 flex items-center gap-1.5 border border-outline-variant/10">
+              <span className="font-label-md text-on-surface-variant text-[9px]">HEX</span>
+              <span className="font-body-md font-bold text-on-surface text-[11px] uppercase">
                 {currentColorHex.toUpperCase()}
-              </div>
+              </span>
             </div>
-            <div className="bg-surface-container rounded p-2 flex justify-between items-center">
-              <span className="font-label-md text-on-surface-variant text-[10px]">RGB</span>
-              <div className="font-body-md font-semibold text-on-surface">
-                {currentRgb.r}, {currentRgb.g}, {currentRgb.b}
-              </div>
+            <div className="bg-surface-container rounded px-2 py-0.5 flex items-center gap-1.5 border border-outline-variant/10">
+              <span className="font-label-md text-on-surface-variant text-[9px]">RGB</span>
+              <span className="font-body-md font-bold text-on-surface text-[11px]">
+                {currentRgb.r},{currentRgb.g},{currentRgb.b}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Color Picker Visual Canvas (Expandable) */}
+      {showCanvas && (
+        <div className="flex justify-center border-t border-surface-variant/10 pt-3 mt-1 spring-in">
+          <div
+            ref={canvasRef}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            className="relative w-full aspect-[2.2/1] rounded-lg overflow-hidden color-canvas cursor-crosshair select-none"
+            style={{ backgroundColor: `hsl(${hue}, 100%, 50%)` }}
+          >
+            <div
+              className="w-4 h-4 border-2 border-white rounded-full shadow-lg absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
+              style={{
+                top: `${Math.max(3, Math.min(97, 100 - lightness))}%`,
+                left: `${Math.max(3, Math.min(97, saturation))}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Presets */}
-      <div className="flex flex-wrap gap-2.5 pt-3 border-t border-surface-variant/20">
+      <div className="flex flex-wrap gap-2 pt-2 border-t border-surface-variant/10">
         {presets.map((hex, idx) => {
           const isSelected = currentColorHex.toLowerCase() === hex.toLowerCase();
           return (
@@ -316,7 +334,7 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
               type="button"
               onClick={() => handlePresetSelect(hex)}
               style={{ backgroundColor: hex }}
-              className={`w-8 h-8 rounded-full transition-transform hover:scale-105 ${
+              className={`w-7 h-7 rounded-full transition-transform hover:scale-105 cursor-pointer ${
                 isSelected
                   ? 'ring-2 ring-primary/60 ring-offset-2 ring-offset-surface-container-lowest scale-105'
                   : ''
@@ -327,10 +345,10 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
         <button
           type="button"
           onClick={handleAddPreset}
-          className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant active:scale-95"
+          className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant active:scale-95 cursor-pointer"
           title="Add current color to presets"
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <span className="material-symbols-outlined text-[16px]">add</span>
         </button>
       </div>
     </div>

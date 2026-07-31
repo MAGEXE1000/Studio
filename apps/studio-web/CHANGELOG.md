@@ -10,7 +10,46 @@ that bundle.
 Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
-- Bullets start with `- ` and use plain English a non-technical user
+
+## 4.3.29
+
+Release Date: 2026-07-31
+
+### Added
+- Architecturally separated Chordex Preferences and Hub Appearance pages to resolve visual state leakage.
+- Resolved updater background loop stagnation by allowing auto-checks from terminal non-active states.
+- Polished Appearance screen header to keep only back button, large title, and horizontally aligned theme changer.
+- Compressed Accent Color section to hide 2D canvas under an expandable active color preview box.
+- Audited contrast and readability across Light, Dark, AMOLED themes, remapping theme variables dynamically.
+- Replaced custom switch UI controls with the canonical Toggle component.
+
+## 4.3.28
+
+Release Date: 2026-07-31
+
+### Added
+- Rebuilt Livex Appearance screen from scratch matching the HTML visual source of truth specification.
+- Integrated 2D color canvas picker with Hue & Opacity sliders, HEX/RGB badges, and color presets.
+- Implemented Display Density, Text Size, High Contrast, Haptics, ProMotion, and Performance Boost controls.
+
+## 4.3.27
+
+Release Date: 2026-07-31
+
+### Fixed
+- Completely purged legacy inline Appearance implementation from StudioHub component tree.
+- Removed unused legacy SingleThemeToggleRow component and exports.
+- Pinned Release Pipeline workflow checkout ref to github.sha across all stages for guaranteed commit parity.
+
+## 4.3.26
+
+Release Date: 2026-07-31
+
+### Fixed
+- Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.
+- Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.
+- Added comprehensive runtime logging for Appearance component mounting and Updater execution state.
+
 ## 4.3.25
 
 Release Date: 2026-07-31

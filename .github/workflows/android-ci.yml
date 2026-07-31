@@ -77,11 +77,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Typecheck Android
-        run: pnpm typecheck:android
-
       - name: Build Web and Android Web Assets
         run: pnpm build
+
+      - name: Typecheck Android
+        run: pnpm typecheck:android
 
       - name: Capacitor Sync
         run: pnpm --filter @workspace/studio-android android:sync

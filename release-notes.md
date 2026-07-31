@@ -1,7 +1,6 @@
 Release Date: 2026-07-31
 
 ### Improved
-- Completely rebuilt Appearance screen with single animated Lucide Theme Morpher (White → Dark → AMOLED).
-- Full Inspira UI Color Picker integration with live contrast calculations and format conversions.
-- Fixed Firebase Hosting release metadata artifact download in Stage 4 publish pipeline.
-- Upgraded setup-gradle action to v4 with Actions Cache v2 support.
+- Optimized checkout speed with shallow fetch-depth: 1 across all release workflow jobs.
+- Pinned Node 24 compatible action versions (checkout@v4.2.2, setup-node@v4.2.0, setup-java@v4.7.0, setup-gradle@v4.3.0).
+- Eliminated Node 20 deprecation warnings across all GitHub Actions workflows.

@@ -38,15 +38,15 @@ jobs:
     name: "Preflight & Fail-Fast Validation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.2.0
         with:
           node-version: 24
           cache: pnpm
@@ -76,26 +76,26 @@ jobs:
     needs: preflight
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.2.0
         with:
           node-version: 24
           cache: pnpm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4.7.0
         with:
           distribution: temurin
           java-version: 21
 
       - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4.3.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -103,25 +103,47 @@ jobs:
       - name: Decode Android Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/studio-android/android/app/release.keystore
-
-      - name: Verify Keystore File
-        run: |
           if [ ! -s apps/studio-android/android/app/release.keystore ]; then
             echo "::error::release.keystore is missing or empty!"
             exit 1
           fi
 
-      - name: Run Android Release Script
+      - name: Verify Pre-Build Production Keystore Fingerprint
+        run: |
+          keytool -list -v -keystore apps/studio-android/android/app/release.keystore -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > cert.txt
+          FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | cut -d':' -f2- | tr -d '[:space:]:' | tr '[:upper:]' '[:lower:]')
+          EXPECTED="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
+          echo "Detected Keystore SHA-256: $FINGERPRINT"
+          echo "Expected Production SHA-256: $EXPECTED"
+          if [ "$FINGERPRINT" != "$EXPECTED" ]; then
+            echo "::error::CRITICAL SECURITY FAILURE: Decoded release.keystore SHA-256 fingerprint ($FINGERPRINT) does not match expected production certificate ($EXPECTED)!"
+            exit 1
+          fi
+          echo "✓ Production Keystore Pre-Build Fingerprint Verified."
+
+      - name: Run Android Release Orchestration Script
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
           cd apps/studio-android
-          node scripts/release-firebase.mjs --no-bump > build.log 2>&1 || {
+          PRERELEASE_FLAG=""
+          if [ "$RELEASE_TYPE" = "prerelease" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          node scripts/release-firebase.mjs $PRERELEASE_FLAG > build.log 2>&1 || {
             status=$?
             echo "::error::Android release script failed with status $status"
             cat build.log
             exit $status
           }
+
+      - name: Upload Firebase Hosting Metadata Artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: firebase-public-metadata
+          path: firebase-public/
+          retention-days: 1
 
       - name: Write and Update Release Metadata
         run: |
@@ -142,21 +164,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.2.0
         with:
           node-version: 24
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4.7.0
         with:
           distribution: temurin
           java-version: 21
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: release-artifacts
 
@@ -266,16 +288,16 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.2.0
         with:
           node-version: 24
 
       - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.1.9
         with:
           name: release-artifacts
 

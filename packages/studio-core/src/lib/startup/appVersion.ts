@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.20';
-export const WEB_VERSION = '4.3.20';
+export const NATIVE_VERSION = '4.3.21';
+export const WEB_VERSION = '4.3.21';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -61,10 +61,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Completely rebuilt Appearance screen with single animated Lucide Theme Morpher (White → Dark → AMOLED).",
-      "Full Inspira UI Color Picker integration with live contrast calculations and format conversions.",
-      "Fixed Firebase Hosting release metadata artifact download in Stage 4 publish pipeline.",
-      "Upgraded setup-gradle action to v4 with Actions Cache v2 support.",
+      "Optimized checkout speed with shallow fetch-depth: 1 across all release workflow jobs.",
+      "Pinned Node 24 compatible action versions (checkout@v4.2.2, setup-node@v4.2.0, setup-java@v4.7.0, setup-gradle@v4.3.0).",
+      "Eliminated Node 20 deprecation warnings across all GitHub Actions workflows.",
     ],
   },
 ];

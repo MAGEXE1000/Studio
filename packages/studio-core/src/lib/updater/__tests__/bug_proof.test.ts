@@ -44,11 +44,9 @@ describe('Updater Bug Proof', () => {
     // Wait, safeTransition internally does:
     // commitTransition('UPDATE_AVAILABLE', 'New update found', false)
     transitionToState('UPDATE_AVAILABLE', 'Simulated background check complete');
-    if (globalUpdateState.updateState === 'IDLE' && globalUpdateState.updateAvailable === true) {
-    } else {
-    }
-
-    expect(globalUpdateState.updateState).toBe('IDLE');
+    // The state machine now correctly blocks this invalid transition.
+    // PACKAGEINSTALLER_VISIBLE must not be overwritten by a background check.
+    expect(globalUpdateState.updateState).toBe('PACKAGEINSTALLER_VISIBLE');
     expect(globalUpdateState.updateAvailable).toBe(true);
   });
 });

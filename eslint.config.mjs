@@ -72,6 +72,17 @@ export default tseslint.config(
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
+
+      // ── Tier 1: ERROR — violations cause runtime crashes or logic bugs ──
+      'react-hooks/rules-of-hooks': 'error',   // Hook ordering violations = runtime crash
+      'no-redeclare': 'error',                  // Shadowing causes silent bugs
+      'no-self-assign': 'error',                // Dead code / copy-paste bug
+      'no-duplicate-case': 'error',             // Unreachable switch branch
+      'no-fallthrough': 'error',                // Unintentional case fall-through
+      'no-func-assign': 'error',                // Overwriting function declarations
+      'getter-return': 'error',                 // Getter without return = undefined
+
+      // ── Tier 2: WARN — code quality issues to address incrementally ──
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-require-imports': 'warn',
@@ -82,25 +93,17 @@ export default tseslint.config(
       'no-empty': 'warn',
       'prefer-const': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
-
       '@typescript-eslint/no-unused-expressions': 'warn',
-      'no-redeclare': 'warn',
-      'no-self-assign': 'warn',
       'no-cond-assign': 'warn',
       '@typescript-eslint/no-this-alias': 'warn',
-      'no-duplicate-case': 'warn',
-      'no-fallthrough': 'warn',
       'no-sparse-arrays': 'warn',
-      'no-func-assign': 'warn',
       'no-control-regex': 'warn',
       'no-prototype-builtins': 'warn',
-      'getter-return': 'warn',
       '@typescript-eslint/no-array-constructor': 'warn',
       'no-constant-binary-expression': 'warn',
       'no-case-declarations': 'warn',
       'no-irregular-whitespace': 'warn',
       'react-hooks/immutability': 'warn',
-      'react-hooks/rules-of-hooks': 'warn',
       '@typescript-eslint/ban-ts-comment': 'warn',
       'no-extra-boolean-cast': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',
@@ -110,13 +113,27 @@ export default tseslint.config(
       'react/jsx-no-comment-textnodes': 'warn',
       'react/display-name': 'warn',
 
-      // Livex Custom Architectural Rules
-      // Set to 'warn' initially to prevent breaking the build on existing violations
+      // ── Livex Custom Architectural Rules ──
       'livex/no-hardcoded-colors': 'warn',
       'livex/no-inline-springs': 'warn',
-      'livex/no-stores-outside-core': 'warn',
+      'livex/no-stores-outside-core': 'warn',   // Architectural boundary: stores belong in studio-core (rule has false positives for stores already in core)
       'livex/no-cross-feature-imports': 'error',
       'livex/no-raw-ui-primitives': 'warn',
+    },
+  },
+  // ── Targeted overrides for God Files with known conditional-hook violations ──
+  // These files have inline sub-components that call hooks conditionally.
+  // They will be decomposed in Phase 2, which eliminates the violations structurally.
+  // Until then, keep the rule as warn for these specific files only.
+  {
+    files: [
+      'apps/studio-android/src/App.tsx',
+      'apps/studio-android/src/EmergencyDebugOverlay.tsx',
+      'packages/ui-shared/src/features/groovex/components/GroovexPlayer.tsx',
+      'packages/ui-web/src/landing/StudioLandingPage.tsx',
+    ],
+    rules: {
+      'react-hooks/rules-of-hooks': 'warn', // Phase 2: decompose → error
     },
   },
   prettierConfig // Must be last to disable conflicting rules

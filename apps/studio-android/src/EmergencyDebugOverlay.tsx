@@ -33,7 +33,15 @@ const recentLogs: Array<{
   timestamp: number;
 }> = [];
 
-if (typeof window !== 'undefined' && !(window as any).__logsIntercepted) {
+// Only intercept console methods when debug mode is explicitly enabled.
+// This avoids per-call overhead (JSON.stringify, categorization, circular buffer)
+// for 100% of production users who don't have debug mode active.
+const isDebugModeForLogs =
+  typeof window !== 'undefined' &&
+  (localStorage.getItem('studio_debug_mode') === 'true' ||
+    (window as any).__studio_debug_mode === true);
+
+if (isDebugModeForLogs && !(window as any).__logsIntercepted) {
   (window as any).__logsIntercepted = true;
   const originalLog = console.log;
   const originalWarn = console.warn;

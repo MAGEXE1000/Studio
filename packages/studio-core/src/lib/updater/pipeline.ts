@@ -1,11 +1,3 @@
-const updaterSimulation: Record<string, any> = {};
-
-const addJsLog = (...args: any[]) => {};
-const setSimulateStatusCallback = (...args: any[]) => {};
-const triggerSimulatedStatus = (...args: any[]) => {};
-const isSimulationActive = () => false;
-const simulateStatusCallback = null as any;
-
 import { Capacitor } from '@capacitor/core';
 /**
  * updater/pipeline.ts
@@ -100,6 +92,15 @@ import {
 } from './sessionStorage';
 import { getPackageInstallerStatusName } from './packageInstallerStatus';
 import { getUpdateHistory, logUpdateTransition } from './updateHistory';
+
+// ─── Simulation Stubs (dev-time hooks, intentionally no-op in production) ──
+// These provide named hooks for updater simulation scenarios (download failures,
+// SHA mismatches, forced updates, etc.). They are referenced throughout the
+// pipeline but are inactive unless explicitly wired up during development.
+const updaterSimulation: Record<string, any> = {};
+function addJsLog(_msg: string): void {}
+function setSimulateStatusCallback(_cb: any): void {}
+let simulateStatusCallback: ((data: any) => void) | null = null;
 
 // ─── Pipeline Error ────────────────────────────────────────────────────────
 

@@ -9,7 +9,6 @@ import {
   normalizeAndValidateRoute,
   isRouteEqual,
   detectRecursion,
-  isTransitionLocked,
   isRootRouteOnly,
 } from './validation.js';
 
@@ -20,9 +19,6 @@ export class NavigationDispatcher {
    * Pushes a new route onto the stack, applying guards and calculating transition direction.
    */
   public static push(route: Partial<NavigationRoute>): void {
-    const timestamp = new Date().toISOString();
-    // Transition is allowed to interrupt immediately (lock check removed)
-
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
     const store = useNavigationStore.getState();
     const current = store.history[store.history.length - 1];
@@ -50,9 +46,6 @@ export class NavigationDispatcher {
    * Replaces the current top route on the stack.
    */
   public static replace(route: Partial<NavigationRoute>): void {
-    const timestamp = new Date().toISOString();
-    // Transition is allowed to interrupt immediately (lock check removed)
-
     const nextRoute = NavigationCoordinator.resolveDefaultRoute(normalizeAndValidateRoute(route));
     const store = useNavigationStore.getState();
 
@@ -66,9 +59,6 @@ export class NavigationDispatcher {
    * Pops the top route from the stack.
    */
   public static pop(): void {
-    const timestamp = new Date().toISOString();
-    // Transition is allowed to interrupt immediately (lock check removed)
-
     const store = useNavigationStore.getState();
     if (isRootRouteOnly(store.history)) {
       return;
@@ -90,9 +80,6 @@ export class NavigationDispatcher {
    * Pops the stack back to the first route matching the predicate.
    */
   public static popTo(predicate: (route: NavigationRoute) => boolean): void {
-    const timestamp = new Date().toISOString();
-    // Transition is allowed to interrupt immediately (lock check removed)
-
     const store = useNavigationStore.getState();
     const index = store.history.findIndex(predicate);
 
@@ -158,7 +145,6 @@ export class NavigationDispatcher {
    * Opens an application by name.
    */
   public static openApp(appKey: NavigationRoute['app']): void {
-    const timestamp = new Date().toISOString();
     if (this.currentApp() === appKey) return;
     this.push({ app: appKey });
   }
@@ -167,7 +153,6 @@ export class NavigationDispatcher {
    * Closes the current application and returns to the hub.
    */
   public static closeApp(): void {
-    const timestamp = new Date().toISOString();
     this.openApp('hub');
   }
 
@@ -175,7 +160,6 @@ export class NavigationDispatcher {
    * Switches to a specific tab in the current application.
    */
   public static switchTab(tab: NavigationRoute['tab']): void {
-    const timestamp = new Date().toISOString();
     const current = this.currentRoute();
     if (current.tab === tab) return;
     this.push({ app: current.app, tab });
@@ -206,7 +190,6 @@ export class NavigationDispatcher {
    * Internal helper to lock transitioning state and auto-release it.
    */
   private static lockTransition(type: TransitionType): void {
-    const timestamp = new Date().toISOString();
     const store = useNavigationStore.getState();
     store.setTransition(type, true);
 

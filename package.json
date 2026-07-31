@@ -20,6 +20,8 @@
     "typecheck:android": "pnpm run typecheck:libs && pnpm --filter @workspace/studio-android typecheck",
     "test:web": "pnpm --filter @workspace/studio-web test",
     "test:android": "pnpm --filter @workspace/studio-android test",
+    "test:core": "pnpm --filter @workspace/studio-core test",
+    "test": "pnpm --filter @workspace/studio-core test",
     "version:web": "node scripts/version-manager.mjs web",
     "version:android": "node scripts/version-manager.mjs android",
     "lint:imports": "node scripts/enforce-import-boundaries.mjs",

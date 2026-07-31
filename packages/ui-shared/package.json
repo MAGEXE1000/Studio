@@ -34,6 +34,7 @@
     "i18next": "^26.3.6",
     "jspdf": "^4.2.1",
     "lottie-react": "^2.4.1",
+    "lucide-animated": "^1.0.5",
     "lucide-react": "catalog:",
     "material-symbols": "^0.45.7",
     "motion": "^12.42.2",

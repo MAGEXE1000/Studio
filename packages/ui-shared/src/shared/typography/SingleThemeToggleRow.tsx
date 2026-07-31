@@ -29,25 +29,30 @@ export default function SingleThemeToggleRow() {
     const startX = rect.left + rect.width / 2;
     const startY = rect.top + rect.height / 2;
 
-    // Calculate next theme state
+    // Calculate next theme state & amoled flag
     let nextThemeStr = 'dark';
+    let nextAmoled = false;
+
     if (activeState === 'light') {
       nextThemeStr = 'dark';
+      nextAmoled = false;
     } else if (activeState === 'dark') {
-      nextThemeStr = 'dark'; // amoled mode
+      nextThemeStr = 'dark';
+      nextAmoled = true;
     } else {
       nextThemeStr = 'light';
+      nextAmoled = false;
     }
 
     if (typeof (window as any).__triggerThemeTransition === 'function') {
-      (window as any).__triggerThemeTransition(nextThemeStr, false, startX, startY, () => {
+      (window as any).__triggerThemeTransition(nextThemeStr, nextAmoled, startX, startY, () => {
         settingsController.cycleNextTheme();
         isTransitioningRef.current = false;
       });
     } else {
       ThemeTransitionEngine.startTransition({
         nextTheme: nextThemeStr,
-        amoled: activeState === 'dark',
+        amoled: nextAmoled,
         startX,
         startY,
         updateFn: () => {

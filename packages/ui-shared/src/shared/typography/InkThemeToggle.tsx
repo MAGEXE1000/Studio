@@ -34,23 +34,28 @@ export default function InkThemeToggle({
     const startY = rect.top + rect.height / 2;
 
     let nextThemeStr = 'dark';
+    let nextAmoled = false;
+
     if (activeState === 'light') {
       nextThemeStr = 'dark';
+      nextAmoled = false;
     } else if (activeState === 'dark') {
       nextThemeStr = 'dark';
+      nextAmoled = true;
     } else {
       nextThemeStr = 'light';
+      nextAmoled = false;
     }
 
     if (typeof (window as any).__triggerThemeTransition === 'function') {
-      (window as any).__triggerThemeTransition(nextThemeStr, false, startX, startY, () => {
+      (window as any).__triggerThemeTransition(nextThemeStr, nextAmoled, startX, startY, () => {
         settingsController.cycleNextTheme();
         isTransitioningRef.current = false;
       });
     } else {
       ThemeTransitionEngine.startTransition({
         nextTheme: nextThemeStr,
-        amoled: activeState === 'dark',
+        amoled: nextAmoled,
         startX,
         startY,
         updateFn: () => {

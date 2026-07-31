@@ -90,6 +90,9 @@ export function SharedAppShell({
   
   const [hubRenderKey, setHubRenderKey] = useState(0);
   const [showHub, setShowHub] = useState(true);
+  useEffect(() => {
+    BackDispatcher.initialize();
+  }, []);
 
   // Bi-directional synchronization between navigation stack and settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);

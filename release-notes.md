@@ -1,8 +1,9 @@
 Release Date: 2026-07-31
 
 ## Fixed
-- Fixed application startup mixed-theme regression by implementing synchronous `<head>` theme restoration in `index.html` and immediate module-level token binding in `useSettingsStore.ts`.
-- Restored frame-0 theme consistency across root application container, dialogs, and Bottom Navigation bar before initial layout paint.
+- Restored hardware back button, browser popstate, and GPU-friendly touch edge-swipe back navigation gestures across Hub, Settings, Chordex, Drumex, StageX, Groovex, and Vocalex.
+- Purged legacy 4-card theme mode section and completed architectural separation between Studio Hub Settings and Chordex Preferences.
 
-## Improved
-- Hardened Version Consistency Pipeline (`verify-versions-consistency.mjs`, `sync-version.mjs`) to automatically synchronize `root package.json`, `apps/studio-web/package.json`, `apps/studio-android/package.json`, `appVersion.ts`, `build.gradle`, and version manifests in lockstep across the monorepo.
+## Added
+- Implemented single Appearance row with official `lucide-animated` state morphing icons (`SunIcon`, `MoonIcon`, `SunMoonIcon`) cycling White -> Dark -> AMOLED -> White.
+- Integrated 60 FPS liquid reveal theme transition engine with exact touch coordinate clipping.

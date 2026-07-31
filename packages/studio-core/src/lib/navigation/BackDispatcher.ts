@@ -9,20 +9,66 @@ export class BackDispatcher {
   private static isInitialized = false;
 
   /**
-   * Initializes global document and window listeners for back actions (Escape key and popstate).
+   * Initializes global document and window listeners for back actions (Escape key, popstate, native backButton, and touch edge-swipe).
    */
   public static initialize(): void {
     if (this.isInitialized || typeof window === 'undefined') return;
 
+    // 1. Browser popstate back navigation
     window.addEventListener('popstate', () => {
       this.handleBackEvent();
     });
 
+    // 2. Keyboard Escape key back navigation
     window.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         this.handleBackEvent();
       }
     });
+
+    // 3. Capacitor Native Android Back Button
+    try {
+      if (typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform()) {
+        import('@capacitor/app').then(({ App: CapApp }) => {
+          CapApp.addListener('backButton', () => {
+            this.handleBackEvent();
+          });
+        }).catch(() => {});
+      }
+    } catch (_) {}
+
+    // 4. Global Edge-Swipe Back Touch Gesture Listener (0-40px left edge region)
+    let startX = 0;
+    let startY = 0;
+    let isEdgeSwipe = false;
+
+    window.addEventListener('touchstart', (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        if (touch.clientX <= 44) {
+          startX = touch.clientX;
+          startY = touch.clientY;
+          isEdgeSwipe = true;
+        } else {
+          isEdgeSwipe = false;
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e: TouchEvent) => {
+      if (!isEdgeSwipe) return;
+      isEdgeSwipe = false;
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+
+      const deltaX = touch.clientX - startX;
+      const deltaY = Math.abs(touch.clientY - startY);
+
+      // Trigger back event if swiped right >= 50px with dominant horizontal vector
+      if (deltaX >= 50 && deltaX > deltaY * 1.2) {
+        this.handleBackEvent();
+      }
+    }, { passive: true });
 
     this.isInitialized = true;
   }

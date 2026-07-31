@@ -11,6 +11,15 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 
+## 4.3.31
+
+Release Date: 2026-07-31
+
+### Added
+- Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.
+- Automated the version propagation chain to guarantee identical version metadata across all build outputs.
+- Synchronized version manifests across the repository.
+
 ## 4.3.30
 
 Release Date: 2026-07-31

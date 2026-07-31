@@ -1,22 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.30",
-  "versionName": "4.3.30",
-  "versionCode": 40330,
-  "version_code": 40330,
-  "commit": "b403034b",
-  "releasedAt": "7/31/2026, 5:12:28 PM CST",
-  "buildTimestamp": "7/31/2026, 5:12:28 PM CST",
+  "version": "4.3.31",
+  "versionName": "4.3.31",
+  "versionCode": 40331,
+  "version_code": 40331,
+  "commit": "2841675e",
+  "releasedAt": "7/31/2026, 5:34:34 PM CST",
+  "buildTimestamp": "7/31/2026, 5:34:34 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Introduced a premium segmented theme selector (Light, Dark, AMOLED) using Lucide React icons.\n• Implemented seamless theme switching animations using the motion/react Framer Motion package.\n• Restored correct active highlight indicator and smooth transitions for the App Changer switcher.\n• Cleaned up duplicate header bars and aligned page components to match Drumex Preferences style.\n• Optimized vertical space of Accent Color section with an expandable canvas preview box.",
-  "whatsNew": "• Introduced a premium segmented theme selector (Light, Dark, AMOLED) using Lucide React icons.\n• Implemented seamless theme switching animations using the motion/react Framer Motion package.\n• Restored correct active highlight indicator and smooth transitions for the App Changer switcher.\n• Cleaned up duplicate header bars and aligned page components to match Drumex Preferences style.\n• Optimized vertical space of Accent Color section with an expandable canvas preview box.",
+  "changelog": "• Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.\n• Automated the version propagation chain to guarantee identical version metadata across all build outputs.\n• Synchronized version manifests across the repository.",
+  "whatsNew": "• Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.\n• Automated the version propagation chain to guarantee identical version metadata across all build outputs.\n• Synchronized version manifests across the repository.",
   "releaseNotes": {
     "added": [
-      "Introduced a premium segmented theme selector (Light, Dark, AMOLED) using Lucide React icons.",
-      "Implemented seamless theme switching animations using the motion/react Framer Motion package.",
-      "Restored correct active highlight indicator and smooth transitions for the App Changer switcher.",
-      "Cleaned up duplicate header bars and aligned page components to match Drumex Preferences style.",
-      "Optimized vertical space of Accent Color section with an expandable canvas preview box."
+      "Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.",
+      "Automated the version propagation chain to guarantee identical version metadata across all build outputs.",
+      "Synchronized version manifests across the repository."
     ]
   },
   "mandatory": false

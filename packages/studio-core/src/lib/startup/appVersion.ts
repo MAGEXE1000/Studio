@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.30';
-export const NATIVE_VERSION_CODE = 40329;
-export const WEB_VERSION = '4.3.30';
+export const NATIVE_VERSION = '4.3.31';
+export const NATIVE_VERSION_CODE = 40331;
+export const WEB_VERSION = '4.3.31';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -93,11 +93,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Introduced a premium segmented theme selector (Light, Dark, AMOLED) using Lucide React icons.",
-      "Implemented seamless theme switching animations using the motion/react Framer Motion package.",
-      "Restored correct active highlight indicator and smooth transitions for the App Changer switcher.",
-      "Cleaned up duplicate header bars and aligned page components to match Drumex Preferences style.",
-      "Optimized vertical space of Accent Color section with an expandable canvas preview box.",
+      "Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.",
+      "Automated the version propagation chain to guarantee identical version metadata across all build outputs.",
+      "Synchronized version manifests across the repository.",
     ],
   },
 ];

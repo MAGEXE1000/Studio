@@ -8,8 +8,8 @@ android {
         applicationId "com.chordex.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40330
-        versionName "4.3.30"
+        versionCode 40331
+        versionName "4.3.31"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -174,3 +174,40 @@ tasks.whenTaskAdded { task ->
         }
     }
 }
+
+task buildWebAssets(type: Exec) {
+    inputs.dir("../../src")
+    inputs.dir("../../public")
+    inputs.dir("../../../../packages/studio-core/src")
+    inputs.dir("../../../../packages/ui-shared/src")
+    inputs.file("../../package.json")
+    inputs.file("../../vite.config.ts")
+    outputs.dir("../../dist/android-web")
+
+    workingDir "../../"
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'pnpm build'
+    } else {
+        commandLine 'pnpm', 'build'
+    }
+}
+
+task capacitorSync(type: Exec) {
+    dependsOn buildWebAssets
+    inputs.dir("../../dist/android-web")
+    outputs.dir("src/main/assets/public")
+
+    workingDir "../../"
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        commandLine 'cmd', '/c', 'npx cap sync android'
+    } else {
+        commandLine 'npx', 'cap', 'sync', 'android'
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
+        task.dependsOn capacitorSync
+    }
+}
+

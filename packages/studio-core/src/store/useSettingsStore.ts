@@ -287,6 +287,8 @@ export const useSettingsStore = create<SettingsStore>()(
 );
 
 if (typeof window !== 'undefined') {
+  // Synchronously apply tokens for frame-0 rendering
+  applyThemeTokens(useSettingsStore.getState().settings);
   useSettingsStore.subscribe((state) => {
     applyThemeTokens(state.settings);
   });

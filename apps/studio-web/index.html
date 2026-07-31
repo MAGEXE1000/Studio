@@ -1,7 +1,63 @@
 <!doctype html>
 <!-- v8 — pro intro with real app logos that fly into hub positions -->
-<html lang="en" class="dark">
+<html lang="en">
   <head>
+    <script>
+      (function() {
+        try {
+          var isLight = false;
+          var isAmoled = false;
+          var raw = localStorage.getItem('settings-storage-v1') || localStorage.getItem('chord-explorer-storage-v3');
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            var settings = (parsed && parsed.state && parsed.state.settings) || parsed.settings;
+            if (settings) {
+              var theme = settings.theme || 'light';
+              if (theme === 'light') isLight = true;
+              else if (theme === 'system') {
+                isLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+              }
+              isAmoled = !!settings.amoledMode;
+            }
+          } else {
+            isLight = true;
+          }
+          var doc = document.documentElement;
+          if (isLight) {
+            doc.classList.add('light');
+            doc.classList.remove('dark');
+            doc.style.setProperty('--c-background', '#f4f4f5');
+            doc.style.setProperty('--c-surface-lowest', '#e4e4e7');
+            doc.style.setProperty('--c-surface-low', '#ececed');
+            doc.style.setProperty('--c-surface-mid', '#f4f4f5');
+            doc.style.setProperty('--c-surface-high', '#fafafa');
+            doc.style.setProperty('--c-surface-highest', '#ffffff');
+            doc.style.setProperty('--c-border', 'rgba(0, 0, 0, 0.08)');
+          } else {
+            doc.classList.add('dark');
+            doc.classList.remove('light');
+            if (isAmoled) {
+              doc.classList.add('amoled');
+              doc.style.setProperty('--c-background', '#000000');
+              doc.style.setProperty('--c-surface-lowest', '#000000');
+              doc.style.setProperty('--c-surface-low', '#030303');
+              doc.style.setProperty('--c-surface-mid', '#080808');
+              doc.style.setProperty('--c-surface-high', '#0d0d0d');
+              doc.style.setProperty('--c-surface-highest', '#121212');
+            } else {
+              doc.classList.remove('amoled');
+              doc.style.setProperty('--c-background', '#09090b');
+              doc.style.setProperty('--c-surface-lowest', '#0e0e11');
+              doc.style.setProperty('--c-surface-low', '#131316');
+              doc.style.setProperty('--c-surface-mid', '#191a1e');
+              doc.style.setProperty('--c-surface-high', '#1f2025');
+              doc.style.setProperty('--c-surface-highest', '#25262c');
+            }
+            doc.style.setProperty('--c-border', 'rgba(255, 255, 255, 0.08)');
+          }
+        } catch(e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta
       name="viewport"

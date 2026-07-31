@@ -11,6 +11,17 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.13
+
+Release Date: 2026-07-31
+
+## Fixed
+- Fixed application startup mixed-theme regression by implementing synchronous `<head>` theme restoration in `index.html` and immediate module-level token binding in `useSettingsStore.ts`.
+- Restored frame-0 theme consistency across root application container, dialogs, and Bottom Navigation bar before initial layout paint.
+
+## Improved
+- Hardened Version Consistency Pipeline (`verify-versions-consistency.mjs`, `sync-version.mjs`) to automatically synchronize `root package.json`, `apps/studio-web/package.json`, `apps/studio-android/package.json`, `appVersion.ts`, `build.gradle`, and version manifests in lockstep across the monorepo.
+
 # Version 4.3.12
 
 Release Date: 2026-07-31

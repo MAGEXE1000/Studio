@@ -11,6 +11,7 @@ execSync('node scripts/verify-all-references.mjs', { stdio: 'inherit' });
 execSync('node scripts/verify-navigation-integrity.mjs', { stdio: 'inherit' });
 
 const paths = {
+  rootPkg: path.join(repoRoot, 'package.json'),
   webPkg: path.join(repoRoot, 'apps/studio-web/package.json'),
   androidPkg: path.join(repoRoot, 'apps/studio-android/package.json'),
   appVersionTs: path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts'),
@@ -18,6 +19,7 @@ const paths = {
   changelog: path.join(repoRoot, 'CHANGELOG.md'),
   releaseNotes: path.join(repoRoot, 'release-notes.md'),
   versionJson: path.join(repoRoot, 'apps/studio-android/public/version.json'),
+  webVersionJson: path.join(repoRoot, 'apps/studio-web/public/version.json'),
   appReleaseJson: path.join(repoRoot, 'apps/studio-android/public/app-release.json'),
   releaseManifest: path.join(repoRoot, 'release-manifest.json'),
 };
@@ -64,13 +66,19 @@ function assertVersion(filePath, detectedVersion, label) {
   console.log(`✓ ${label} matches version ${EXPECTED_VERSION} (${filePath})`);
 }
 
-// 2. Web package.json
+// 2. Root package.json
+if (fs.existsSync(paths.rootPkg)) {
+  const rootPkg = JSON.parse(fs.readFileSync(paths.rootPkg, 'utf8'));
+  assertVersion(paths.rootPkg, rootPkg.version, 'package.json (root)');
+}
+
+// 3. Web package.json
 if (fs.existsSync(paths.webPkg)) {
   const webPkg = JSON.parse(fs.readFileSync(paths.webPkg, 'utf8'));
   assertVersion(paths.webPkg, webPkg.version, 'apps/studio-web/package.json');
 }
 
-// 3. Android package.json
+// 4. Android package.json
 if (fs.existsSync(paths.androidPkg)) {
   const androidPkg = JSON.parse(fs.readFileSync(paths.androidPkg, 'utf8'));
   assertVersion(paths.androidPkg, androidPkg.version, 'apps/studio-android/package.json');

@@ -303,18 +303,65 @@ if (preserveNewer && fs.existsSync(outPath)) {
 fs.writeFileSync(outPath, JSON.stringify(payload, null, 2) + '\n', 'utf8');
 console.log(`sync-version: ✓ wrote ${path.relative(root, outPath)} (version=${version})`);
 
-// Sync package.json version
-const pkgPath = path.join(root, 'package.json');
-if (fs.existsSync(pkgPath)) {
-  try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-    if (pkg.version !== version) {
-      pkg.version = version;
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-      console.log(`sync-version: ✓ updated package.json version to ${version}`);
+// Sync package.json across all workspace packages (root, web, android)
+const targetsToSync = [
+  path.join(repoRoot, 'package.json'),
+  path.join(repoRoot, 'apps/studio-android/package.json'),
+  path.join(repoRoot, 'apps/studio-web/package.json'),
+];
+
+targetsToSync.forEach((targetPkgPath) => {
+  if (fs.existsSync(targetPkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(targetPkgPath, 'utf8'));
+      if (pkg.version !== version) {
+        pkg.version = version;
+        fs.writeFileSync(targetPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+        console.log(`sync-version: ✓ updated ${path.relative(repoRoot, targetPkgPath)} version to ${version}`);
+      }
+    } catch (err) {
+      console.error(`sync-version: ✗ failed to sync ${targetPkgPath}:`, err);
     }
+  }
+});
+
+// Also write web version.json if web public dir exists
+const webOutPath = path.join(repoRoot, 'apps/studio-web/public/version.json');
+try {
+  fs.mkdirSync(path.dirname(webOutPath), { recursive: true });
+  fs.writeFileSync(webOutPath, JSON.stringify({ ...payload, platform: 'web' }, null, 2) + '\n', 'utf8');
+  console.log(`sync-version: ✓ synchronized web version.json to ${version}`);
+} catch (err) {
+  console.warn('sync-version: ⚠ Could not write web version.json:', err);
+}
+
+// Sync app-release.json if present
+const appReleasePath = path.join(repoRoot, 'apps/studio-android/public/app-release.json');
+if (fs.existsSync(appReleasePath)) {
+  try {
+    const arj = JSON.parse(fs.readFileSync(appReleasePath, 'utf8'));
+    arj.version = version;
+    arj.versionName = version;
+    arj.versionCode = versionCode;
+    fs.writeFileSync(appReleasePath, JSON.stringify(arj, null, 2) + '\n', 'utf8');
+    console.log(`sync-version: ✓ updated app-release.json version to ${version}`);
   } catch (err) {
-    console.error('sync-version: ✗ failed to sync package.json:', err);
+    console.warn('sync-version: ⚠ Could not update app-release.json:', err);
+  }
+}
+
+// Sync release-manifest.json if present
+const releaseManifestPath = path.join(repoRoot, 'release-manifest.json');
+if (fs.existsSync(releaseManifestPath)) {
+  try {
+    const rm = JSON.parse(fs.readFileSync(releaseManifestPath, 'utf8'));
+    rm.releaseVersion = version;
+    rm.versionName = version;
+    rm.versionCode = versionCode;
+    fs.writeFileSync(releaseManifestPath, JSON.stringify(rm, null, 2) + '\n', 'utf8');
+    console.log(`sync-version: ✓ updated release-manifest.json version to ${version}`);
+  } catch (err) {
+    console.warn('sync-version: ⚠ Could not update release-manifest.json:', err);
   }
 }
 

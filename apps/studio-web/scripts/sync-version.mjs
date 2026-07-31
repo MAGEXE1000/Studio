@@ -116,17 +116,24 @@ fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, JSON.stringify(payload, null, 2) + '\n', 'utf8');
 console.log(`sync-version (web): ✓ wrote ${path.relative(root, outPath)} (version=${version})`);
 
-// 4. Sync package.json version
-const pkgPath = path.join(root, 'package.json');
-if (fs.existsSync(pkgPath)) {
-  try {
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-    if (pkg.version !== version) {
-      pkg.version = version;
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-      console.log(`sync-version (web): ✓ updated package.json version to ${version}`);
+// 4. Sync package.json across all workspace packages (root, web, android)
+const targetsToSync = [
+  path.join(repoRoot, 'package.json'),
+  path.join(repoRoot, 'apps/studio-android/package.json'),
+  path.join(repoRoot, 'apps/studio-web/package.json'),
+];
+
+targetsToSync.forEach((targetPkgPath) => {
+  if (fs.existsSync(targetPkgPath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(targetPkgPath, 'utf8'));
+      if (pkg.version !== version) {
+        pkg.version = version;
+        fs.writeFileSync(targetPkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+        console.log(`sync-version (web): ✓ updated ${path.relative(repoRoot, targetPkgPath)} version to ${version}`);
+      }
+    } catch (err) {
+      console.error(`sync-version (web): ✗ failed to sync ${targetPkgPath}:`, err);
     }
-  } catch (err) {
-    console.error('sync-version (web): ✗ failed to sync package.json:', err);
   }
-}
+});

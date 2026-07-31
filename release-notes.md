@@ -1,8 +1,8 @@
 Release Date: 2026-07-31
 
+## Fixed
+- Fixed application startup mixed-theme regression by implementing synchronous `<head>` theme restoration in `index.html` and immediate module-level token binding in `useSettingsStore.ts`.
+- Restored frame-0 theme consistency across root application container, dialogs, and Bottom Navigation bar before initial layout paint.
+
 ## Improved
-- Completed Studio Theme System stabilization pass with full White (`light`), Dark (`dark`), and AMOLED (`amoled`) theme support across Updater dialogs and indicators (`StudioUpdateScreen.tsx`, `UpdateIndicator.tsx`).
-- Simplified OTA download progress UI with single `Downloading update` status label above the progress bar and exact 1:1 progress precision (percentage on far right only).
-- Sanitized UTF-8 encoding pipeline across release notes parsing and changelog sheets to eliminate corrupted Mojibake sequences (`•`, ``, `…`).
-- Fixed Chordex tab navigation sync regression in `SubAppWrapper` (`SharedAppShell.tsx`), restoring tab switching between Songs, Practice, Library, and Settings.
-- Refactored Pinned Actions UI in Studio Hub to use White Theme surface tokens instead of hardcoded dark glass backgrounds.
+- Hardened Version Consistency Pipeline (`verify-versions-consistency.mjs`, `sync-version.mjs`) to automatically synchronize `root package.json`, `apps/studio-web/package.json`, `apps/studio-android/package.json`, `appVersion.ts`, `build.gradle`, and version manifests in lockstep across the monorepo.

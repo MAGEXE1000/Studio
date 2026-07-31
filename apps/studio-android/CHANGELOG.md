@@ -11,6 +11,14 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+## 4.3.24
+
+Release Date: 2026-07-31
+
+## Fixed
+- Restored canonical 4.3.15 baseline, removing regressed v4.0.x UI paths and rebuilding correct Appearance architecture.
+- Re-applied 4-stage Release Pipeline fixes for CI/CD optimization.
+
 # Version 4.3.15
 
 Release Date: 2026-07-31

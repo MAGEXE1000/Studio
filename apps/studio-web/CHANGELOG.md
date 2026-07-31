@@ -11,6 +11,67 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+# Version 4.3.11
+
+Release Date: 2026-07-31
+
+## Added
+- Complete Studio Theme System redesign establishing White Theme (`light`) as the primary default application theme across all 6 Studio sub-apps (Hub, Chordex, Drumex, StageX, Groovex, Vocalex).
+- Replaced legacy 4-card Theme Mode selector with a single animated Appearance toggle row aligned to the far right, featuring official `lucide-animated` state morphing (`SunIcon`, `MoonIcon`, `SunMoonIcon`).
+- Implemented Ink Toggle liquid reveal animation (`ThemeTransitionEngine.ts`) with organic expanding reveal, soft metaball easing, and zero white flash visual synchronization.
+- Redesigned Bottom Navigation bar for White Theme with subtle elevation shadows, light glass backdrop blur, and dark icon/label contrast.
+- Standardized section headers, typography hierarchy, and UI surface design tokens across the entire monorepo.
+
+# Version 4.3.10
+
+Release Date: 2026-07-29
+
+## Added
+- Integrated `StudioPageTransition` unified motion architecture directly into real runtime view containers (`SharedNavigationContainer.tsx`, `StudioHubSettingsPanel.tsx`, `AppAnimationSystem.tsx`).
+- Resolved Bottom Navigation highlight centering at the root cause in `SharedNavigationBar.tsx` by projecting active pill layout bounds directly inside `<NavigationItem>` buttons with zero offset lag.
+- Fixed bottom navigation bar width calculations in `SharedNavigationBar.tsx` to eliminate size snapping when switching between 4-slot Hub, 3-slot Chordex, and 2-slot Groovex views.
+- Removed legacy hardcoded CSS class transitions (`m3-nav-*`, `spring-in`, `content-enter`, `library-tab-fade`) across all application screens.
+
+# Version 4.3.09
+
+Release Date: 2026-07-29
+
+## Added
+- Unified navigation transition architecture across all sub-apps and screens using Framer Motion projection (`StudioPageTransition`).
+- Solved bottom navigation active highlight alignment at the root cause by embedding `layoutId="liquidActiveNavPill"` directly inside active item buttons.
+- Eliminated abrupt navigation bar geometry jumps during tab switching across apps with different item counts.
+- Enforced 100% centered highlight positioning across all screen orientations and font scaling sizes.
+
+# Version 4.3.08
+
+Release Date: 2026-07-29
+
+## Added
+- Enhanced desktop sidebar and dock navigation buttons with tactile press scale scaling (`whileTap={{ scale: 0.96 }}`) and explicit ARIA tab semantics (`role="tab"`, `aria-selected`).
+- Enforced minimum 44px touch target bounds across desktop and mobile navigation components.
+- Refined tooltip enter/exit animations with subtle 6px offset transitions and tabular numeric label formatting (`tabular-nums`).
+- Executed complete engineering audit and Matt Pocock / Jakub Krehel skill suite integration.
+
+# Version 4.3.07
+
+Release Date: 2026-07-29
+
+## Added
+- Migrated remaining application icons (Hub, Chordex, StageX, Drumex, Groovex, Vocalex) to official Lucide Animated components.
+- Installed 11 additional official Lucide Animated icon packages via official shadcn CLI integration.
+- Renamed Drumex Songs to Beats (using official Drum component) and Groovex Library to Rhythms (using official Layers component).
+- Removed all generic Home fallback icons and ensured Audio-Lines plays once on tab activation without infinite looping.
+
+# Version 4.3.06
+
+Release Date: 2026-07-29
+
+## Added
+- Migrated the complete navigation system across all applications (Hub, Livex, Chordex, StageX, Drumex, Groovex, Vocalex, Discover, Practice, Settings, Profile, Search, Developer Tools) to use official Lucide Animated components.
+- Installed 32 official Lucide Animated icon packages via official shadcn CLI integration into UI Shared components.
+- Enforced strict navigation state-transition animation triggers (animations play once upon entering active state; re-taps and touch events ignored).
+- Unified all Preferences screens to use the official Lucide Animated Sliders Horizontal component and Settings to use the official Lucide Animated Settings component.
+
 # Version 4.3.05
 
 Release Date: 2026-07-29

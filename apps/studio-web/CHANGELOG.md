@@ -11,6 +11,61 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+## 4.3.24
+
+Release Date: 2026-07-31
+
+### Improved
+- Restored verified canonical v4.3.15 baseline with zero UI regressions.
+- Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.
+- Pinned Node 24 compatible GitHub Action versions across release workflows.
+
+# Version 4.3.15
+
+Release Date: 2026-07-31
+
+## Fixed
+- Resolved OTA updater detection failure by comparing Firebase and GitHub Releases, adding strict HTTP cache control headers, and enforcing semver fallback comparison.
+- Replaced updater download progress presentation with official COSS Progress component featuring right-aligned exact percentage and zero duplicated sub-labels.
+
+## Added
+- Completely rebuilt Appearance screen as the new reference implementation for Settings with cleaner hierarchy, glassmorphism cards, and premium spacing.
+- Integrated Inspira UI Color Picker supporting Hex, RGB, RGBA, HSL, HSLA, custom swatches, and WCAG AA contrast ratio indicators.
+
+# Version 4.3.14
+
+Release Date: 2026-07-31
+
+## Fixed
+- Restored hardware back button, browser popstate, and GPU-friendly touch edge-swipe back navigation gestures across Hub, Settings, Chordex, Drumex, StageX, Groovex, and Vocalex.
+- Purged legacy 4-card theme mode section and completed architectural separation between Studio Hub Settings and Chordex Preferences.
+
+## Added
+- Implemented single Appearance row with official `lucide-animated` state morphing icons (`SunIcon`, `MoonIcon`, `SunMoonIcon`) cycling White -> Dark -> AMOLED -> White.
+- Integrated 60 FPS liquid reveal theme transition engine with exact touch coordinate clipping.
+
+# Version 4.3.13
+
+Release Date: 2026-07-31
+
+## Fixed
+- Fixed application startup mixed-theme regression by implementing synchronous `<head>` theme restoration in `index.html` and immediate module-level token binding in `useSettingsStore.ts`.
+- Restored frame-0 theme consistency across root application container, dialogs, and Bottom Navigation bar before initial layout paint.
+
+## Improved
+- Hardened Version Consistency Pipeline (`verify-versions-consistency.mjs`, `sync-version.mjs`) to automatically synchronize `root package.json`, `apps/studio-web/package.json`, `apps/studio-android/package.json`, `appVersion.ts`, `build.gradle`, and version manifests in lockstep across the monorepo.
+
+# Version 4.3.12
+
+Release Date: 2026-07-31
+
+## Improved
+- Completed Studio Theme System stabilization pass with full White (`light`), Dark (`dark`), and AMOLED (`amoled`) theme support across Updater dialogs and indicators (`StudioUpdateScreen.tsx`, `UpdateIndicator.tsx`).
+- Simplified OTA download progress UI with single `Downloading update` status label above the progress bar and exact 1:1 progress precision (percentage on far right only).
+- Sanitized UTF-8 encoding pipeline across release notes parsing and changelog sheets to eliminate corrupted Mojibake sequences (`â€¢`, `â€‹`, `â€¦`).
+- Fixed Chordex tab navigation sync regression in `SubAppWrapper` (`SharedAppShell.tsx`), restoring tab switching between Songs, Practice, Library, and Settings.
+- Refactored Pinned Actions UI in Studio Hub to use White Theme surface tokens instead of hardcoded dark glass backgrounds.
+
 # Version 4.3.11
 
 Release Date: 2026-07-31

@@ -48,8 +48,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.15';
-export const WEB_VERSION = '4.3.15';
+export const NATIVE_VERSION = '4.3.24';
+export const WEB_VERSION = '4.3.24';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -89,6 +89,14 @@ export interface ChangelogSection {
 }
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
+  {
+    heading: "Improved",
+    items: [
+      "Restored verified canonical v4.3.15 baseline with zero UI regressions.",
+      "Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.",
+      "Pinned Node 24 compatible GitHub Action versions across release workflows.",
+    ],
+  },
 ];
 
 export interface ReleaseHistoryItem {

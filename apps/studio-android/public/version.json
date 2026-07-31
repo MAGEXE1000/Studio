@@ -1,15 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.15",
-  "versionName": "4.3.15",
-  "versionCode": 40314,
-  "version_code": 40314,
-  "commit": "b836786c",
-  "releasedAt": "7/31/2026, 12:37:38 AM CST",
-  "buildTimestamp": "7/31/2026, 12:37:38 AM CST",
+  "version": "4.3.24",
+  "versionName": "4.3.24",
+  "versionCode": 40324,
+  "version_code": 40324,
+  "commit": "d78f0778",
+  "releasedAt": "7/31/2026, 12:55:03 PM CST",
+  "buildTimestamp": "7/31/2026, 12:55:03 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Resolved OTA updater detection failure by comparing Firebase and GitHub Releases, adding strict HTTP cache control headers, and enforcing semver fallback comparison.\n• Replaced updater download progress presentation with official COSS Progress component featuring right-aligned exact percentage and zero duplicated sub-labels.\n• Completely rebuilt Appearance screen as the new reference implementation for Settings with cleaner hierarchy, glassmorphism cards, and premium spacing.\n• Integrated Inspira UI Color Picker supporting Hex, RGB, RGBA, HSL, HSLA, custom swatches, and WCAG AA contrast ratio indicators.",
-  "whatsNew": "• Resolved OTA updater detection failure by comparing Firebase and GitHub Releases, adding strict HTTP cache control headers, and enforcing semver fallback comparison.\n• Replaced updater download progress presentation with official COSS Progress component featuring right-aligned exact percentage and zero duplicated sub-labels.\n• Completely rebuilt Appearance screen as the new reference implementation for Settings with cleaner hierarchy, glassmorphism cards, and premium spacing.\n• Integrated Inspira UI Color Picker supporting Hex, RGB, RGBA, HSL, HSLA, custom swatches, and WCAG AA contrast ratio indicators.",
-  "releaseNotes": {},
+  "changelog": "• Restored verified canonical v4.3.15 baseline with zero UI regressions.\n• Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.\n• Pinned Node 24 compatible GitHub Action versions across release workflows.",
+  "whatsNew": "• Restored verified canonical v4.3.15 baseline with zero UI regressions.\n• Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.\n• Pinned Node 24 compatible GitHub Action versions across release workflows.",
+  "releaseNotes": {
+    "improved": [
+      "Restored verified canonical v4.3.15 baseline with zero UI regressions.",
+      "Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.",
+      "Pinned Node 24 compatible GitHub Action versions across release workflows."
+    ]
+  },
   "mandatory": false
 }

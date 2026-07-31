@@ -27,6 +27,9 @@ permissions:
   contents: write
   actions: read
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+
 jobs:
   # =========================================================================
   # JOB 1: PREFLIGHT & FAIL-FAST VALIDATION (~10 seconds)
@@ -35,7 +38,7 @@ jobs:
     name: 1. Preflight & Fail-Fast Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
@@ -126,7 +129,7 @@ jobs:
       REINSTALL_REQUIRED: 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
@@ -213,7 +216,7 @@ jobs:
     needs: build_and_package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none
@@ -249,7 +252,7 @@ jobs:
     needs: [build_and_package, signing_verification]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 1
           filter: blob:none

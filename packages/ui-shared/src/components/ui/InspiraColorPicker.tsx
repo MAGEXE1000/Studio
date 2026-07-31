@@ -201,31 +201,27 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
   };
 
   return (
-    <div className={`bg-surface-container-lowest rounded-lg p-3.5 custom-shadow flex flex-col gap-3 ${className}`}>
-      <div className="flex items-center justify-between">
-        <h3 className="font-title-md text-title-md text-on-surface font-bold text-[14px]">Accent Color</h3>
-      </div>
-      
-      <div className="flex items-center gap-3">
+    <div className={`flex flex-col gap-3 w-full ${className}`}>
+      <div className="flex items-center gap-4">
         {/* Active color box toggling canvas */}
         <button
           type="button"
           onClick={() => setShowCanvas(!showCanvas)}
-          className="w-12 h-12 rounded-lg cursor-pointer flex-shrink-0 border border-outline-variant/30 shadow-md relative overflow-hidden transition-transform duration-200 active:scale-95 group focus:outline-none"
+          className="w-11 h-11 rounded-lg cursor-pointer flex-shrink-0 border border-outline-variant/30 shadow-md relative overflow-hidden transition-transform duration-200 active:scale-95 group focus:outline-none"
           style={{ backgroundColor: currentColorHex }}
           title={showCanvas ? "Hide color canvas" : "Show color canvas"}
         >
           <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="material-symbols-outlined text-[18px] text-white">
+            <span className="material-symbols-outlined text-[16px] text-white">
               {showCanvas ? "expand_less" : "expand_more"}
             </span>
           </div>
         </button>
 
         {/* Sliders & Badges */}
-        <div className="flex-1 min-w-0 grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="flex-1 min-w-0 flex items-center gap-4">
           {/* Sliders stacked */}
-          <div className="space-y-2">
+          <div className="flex-1 flex flex-col gap-1.5 justify-center">
             {/* Hue Slider */}
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-extrabold text-on-surface-variant w-8 tracking-wider">HUE</span>
@@ -286,16 +282,16 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
           </div>
 
           {/* HEX / RGB Badges */}
-          <div className="flex gap-2 items-center justify-end">
-            <div className="bg-surface-container rounded px-2 py-0.5 flex items-center gap-1.5 border border-outline-variant/10">
-              <span className="font-label-md text-on-surface-variant text-[9px]">HEX</span>
-              <span className="font-body-md font-bold text-on-surface text-[11px] uppercase">
+          <div className="flex flex-col gap-1 items-end justify-center min-w-[75px] pr-1">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] font-bold text-on-surface-variant/60 font-mono">HEX</span>
+              <span className="font-mono font-bold text-on-surface text-[11px] uppercase">
                 {currentColorHex.toUpperCase()}
               </span>
             </div>
-            <div className="bg-surface-container rounded px-2 py-0.5 flex items-center gap-1.5 border border-outline-variant/10">
-              <span className="font-label-md text-on-surface-variant text-[9px]">RGB</span>
-              <span className="font-body-md font-bold text-on-surface text-[11px]">
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] font-bold text-on-surface-variant/60 font-mono">RGB</span>
+              <span className="font-mono text-on-surface-variant text-[10px]">
                 {currentRgb.r},{currentRgb.g},{currentRgb.b}
               </span>
             </div>
@@ -310,7 +306,7 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
             ref={canvasRef}
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
-            className="relative w-full aspect-[2.2/1] rounded-lg overflow-hidden color-canvas cursor-crosshair select-none"
+            className="relative w-full aspect-[2.5/1] rounded-lg overflow-hidden color-canvas cursor-crosshair select-none"
             style={{ backgroundColor: `hsl(${hue}, 100%, 50%)` }}
           >
             <div

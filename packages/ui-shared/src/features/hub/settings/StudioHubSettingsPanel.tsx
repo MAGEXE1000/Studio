@@ -2,16 +2,25 @@ import React from 'react';
 import {
   useSettingsStore,
   settingsController,
-  ThemeTransitionEngine,
-  NavigationDispatcher,
+  ACCENT_COLORS,
 } from '@workspace/studio-core';
 import { StudioPageTransition } from '../../../components/StudioPageTransition';
-import { Toggle } from '../../../shared/typography/SettingControls';
+import {
+  SettingSection,
+  SettingRow,
+  SegmentedControl,
+  Toggle,
+} from '../../../shared/typography/SettingControls';
 import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
+import { motion } from 'motion/react';
 
 /**
- * StudioHubSettingsPanel — Faithfully Rebuilt Livex Appearance Reference Implementation
- * Direct 1:1 React Conversion of the HTML Source of Truth Specification.
+ * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
+ *
+ * Design System Specifications:
+ * - Cleaner, elevated visual hierarchy matching Drumex/Groovex Preferences.
+ * - Reuses existing segmented controls, cards, spacing tokens, and typography.
+ * - Premium theme switcher animation via motion wrapper.
  */
 export default function StudioHubSettingsPanel() {
   const settings = useSettingsStore((s) => s.settings);
@@ -30,288 +39,169 @@ export default function StudioHubSettingsPanel() {
     } catch (_) {}
   }, []);
 
-  const currentTheme = settings.theme ?? 'dark';
-  const isAmoled = settings.amoledMode ?? false;
+  const acc = React.useMemo(() => {
+    const hubAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'purple';
+    return hubAccentKey === 'custom'
+      ? {
+          from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
+          mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
+          to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
+        }
+      : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.purple);
+  }, [settings.perApp?.hub?.accentColor, settings.accentColor, settings.customAccentHue]);
 
-  // Theme cycler state: 0 = Light, 1 = Dark, 2 = AMOLED
-  const themeState = currentTheme === 'light' ? 0 : isAmoled ? 2 : 1;
+  const themeStyles = React.useMemo(() => {
+    const theme = settings.theme ?? 'dark';
+    const isAmoled = settings.amoledMode ?? false;
 
-  const handleThemeCycle = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-
-    let nextTheme = 'dark';
-    let nextAmoled = false;
-
-    if (themeState === 0) {
-      nextTheme = 'dark';
-      nextAmoled = false;
-    } else if (themeState === 1) {
-      nextTheme = 'dark';
-      nextAmoled = true;
-    } else {
-      nextTheme = 'light';
-      nextAmoled = false;
+    if (theme === 'light') {
+      return {
+        '--app-bg': '#f4f4f5',
+        '--app-surface-lowest': '#e4e4e7',
+        '--app-surface-low': '#ececed',
+        '--app-surface': '#f4f4f5',
+        '--app-surface-high': '#fafafa',
+        '--app-surface-highest': '#ffffff',
+        '--c-text-primary': '#18181b',
+        '--c-text-secondary': '#52525b',
+        '--c-border': 'rgba(0, 0, 0, 0.08)',
+        '--elevation-low': '0 2px 8px rgba(0,0,0,0.05)',
+        '--elevation-mid': '0 8px 24px rgba(0,0,0,0.08)',
+        '--c-accent-from': acc.from,
+        '--c-accent-to': acc.to,
+        '--c-accent-mid': acc.mid,
+      };
     }
-
-    if (typeof (window as any).__triggerThemeTransition === 'function') {
-      (window as any).__triggerThemeTransition(nextTheme, nextAmoled, x, y, () => {
-        settingsController.cycleNextTheme();
-      });
-    } else {
-      ThemeTransitionEngine.startTransition({
-        nextTheme,
-        amoled: nextAmoled,
-        startX: x,
-        startY: y,
-        updateFn: () => {
-          settingsController.cycleNextTheme();
-        },
-      });
+    if (theme === 'dark' && isAmoled) {
+      return {
+        '--app-bg': '#000000',
+        '--app-surface-lowest': '#000000',
+        '--app-surface-low': '#030303',
+        '--app-surface': '#080808',
+        '--app-surface-high': '#0d0d0d',
+        '--app-surface-highest': '#121212',
+        '--c-text-primary': '#ffffff',
+        '--c-text-secondary': '#a1a1aa',
+        '--c-border': 'rgba(255, 255, 255, 0.12)',
+        '--elevation-low': '0 2px 8px rgba(0,0,0,0.4)',
+        '--elevation-mid': '0 8px 24px rgba(0,0,0,0.6)',
+        '--c-accent-from': acc.from,
+        '--c-accent-to': acc.to,
+        '--c-accent-mid': acc.mid,
+      };
     }
-  };
-
-  const handleBack = () => {
-    try {
-      NavigationDispatcher.pop();
-    } catch (_) {
-      if (typeof window !== 'undefined' && window.history.length > 1) {
-        window.history.back();
-      }
-    }
-  };
+    // Default Dark Theme
+    return {
+      '--app-bg': '#09090b',
+      '--app-surface-lowest': '#0e0e11',
+      '--app-surface-low': '#131316',
+      '--app-surface': '#191a1e',
+      '--app-surface-high': '#1f2025',
+      '--app-surface-highest': '#25262c',
+      '--c-text-primary': '#e7e5e4',
+      '--c-text-secondary': '#acabaa',
+      '--c-border': 'rgba(255, 255, 255, 0.08)',
+      '--elevation-low': '0 2px 8px rgba(0,0,0,0.3)',
+      '--elevation-mid': '0 8px 24px rgba(0,0,0,0.4)',
+      '--c-accent-from': acc.from,
+      '--c-accent-to': acc.to,
+      '--c-accent-mid': acc.mid,
+    };
+  }, [settings.theme, settings.amoledMode, acc]);
 
   return (
     <StudioPageTransition pageKey="hub-settings-panel">
-      <div className="font-body-md text-body-md min-h-screen pb-stack-lg app-bg text-on-surface">
-        {/* Compact Top App Bar */}
-        <header className="w-full flex items-center justify-between px-margin-mobile pt-stack-md pb-stack-sm bg-transparent">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleBack}
-              aria-label="Go Back"
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-200 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-on-surface text-[24px]">
-                arrow_back
-              </span>
-            </button>
-            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-background font-bold">
-              Appearance
-            </h1>
-          </div>
-          <button
-            id="theme-cycler"
-            type="button"
-            onClick={handleThemeCycle}
-            aria-label="Cycle Theme"
-            className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center hover:bg-surface-container-high transition-all active:scale-90 duration-300 cursor-pointer"
-          >
-            <span
-              id="theme-icon"
-              className={`material-symbols-outlined transition-all duration-300 text-[22px] ${
-                themeState === 0
-                  ? 'text-primary'
-                  : themeState === 1
-                    ? 'text-on-surface-variant'
-                    : 'text-tertiary'
-              }`}
-              style={{ transform: `rotate(${themeState * 120}deg)` }}
-            >
-              {themeState === 0 ? 'light_mode' : themeState === 1 ? 'dark_mode' : 'brightness_6'}
-            </span>
-          </button>
-        </header>
-
-        <main className="px-margin-mobile space-y-4 mt-2 max-w-2xl mx-auto">
-          {/* Section 1: Accent Color */}
-          <section className="w-full">
-            <InspiraColorPicker />
-          </section>
-
-          {/* Combined Grid for Density & Text Scale */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Display Density */}
-            <section className="bg-surface-container-lowest rounded-lg p-4 custom-shadow flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[20px]">
-                  grid_view
-                </span>
-                <h3 className="font-title-md text-title-md text-on-surface">Density</h3>
-              </div>
-              <div className="bg-surface-container p-1 rounded-full flex">
-                <button
-                  type="button"
-                  onClick={() => settingsController.updateSettings({ displayDensity: 'compact' })}
-                  className={`flex-1 py-1.5 px-2 rounded-full font-label-md text-[11px] transition-all segmented-item cursor-pointer ${
-                    settings.displayDensity === 'compact' ? 'active' : ''
-                  }`}
-                >
-                  Compact
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    settingsController.updateSettings({ displayDensity: 'comfortable' })
-                  }
-                  className={`flex-1 py-1.5 px-2 rounded-full font-label-md text-[11px] transition-all segmented-item cursor-pointer ${
-                    (settings.displayDensity || 'comfortable') === 'comfortable' ? 'active' : ''
-                  }`}
-                >
-                  Standard
-                </button>
-                <button
-                  type="button"
-                  onClick={() => settingsController.updateSettings({ displayDensity: 'spacious' })}
-                  className={`flex-1 py-1.5 px-2 rounded-full font-label-md text-[11px] transition-all segmented-item cursor-pointer ${
-                    settings.displayDensity === 'spacious' ? 'active' : ''
-                  }`}
-                >
-                  Spacious
-                </button>
-              </div>
-              <p className="text-on-surface-variant font-body-md text-[12px] opacity-60">
-                Adjust screen layout density.
-              </p>
-            </section>
-
-            {/* Text Scale */}
-            <section className="bg-surface-container-lowest rounded-lg p-4 custom-shadow flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[20px]">
-                  text_fields
-                </span>
-                <h3 className="font-title-md text-title-md text-on-surface">Text Size</h3>
-              </div>
-              <div className="bg-surface-container p-1 rounded-full flex">
-                <button
-                  type="button"
-                  onClick={() => settingsController.updateSettings({ fontSize: 'small' })}
-                  className={`flex-1 py-1.5 px-2 rounded-full font-label-md text-[11px] transition-all segmented-item cursor-pointer ${
-                    settings.fontSize === 'small' ? 'active' : ''
-                  }`}
-                >
-                  Small
-                </button>
-                <button
-                  type="button"
-                  onClick={() => settingsController.updateSettings({ fontSize: 'medium' })}
-                  className={`flex-1 py-1.5 px-2 rounded-full font-label-md text-[11px] transition-all segmented-item cursor-pointer ${
-                    (settings.fontSize || 'medium') === 'medium' ? 'active' : ''
-                  }`}
-                >
-                  Medium
-                </button>
-                <button
-                  type="button"
-                  onClick={() => settingsController.updateSettings({ fontSize: 'large' })}
-                  className={`flex-1 py-1.5 px-2 rounded-full font-label-md text-[11px] transition-all segmented-item cursor-pointer ${
-                    settings.fontSize === 'large' ? 'active' : ''
-                  }`}
-                >
-                  Large
-                </button>
-              </div>
-              <p className="text-on-surface-variant font-body-md text-[12px] opacity-60">
-                Scale global typography.
-              </p>
-            </section>
-          </div>
-
-          {/* Section 4: Accessibility */}
-          <section className="bg-surface-container-lowest rounded-lg p-4 custom-shadow flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-[20px]">
-                visibility
-              </span>
-              <div>
-                <h3 className="font-title-md text-title-md text-on-surface">High Contrast</h3>
-                <p className="text-on-surface-variant font-body-md text-[12px] opacity-60">
-                  Sharpen text for better readability.
-                </p>
-              </div>
+      <motion.div
+        animate={themeStyles}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          boxSizing: 'border-box',
+          background: 'var(--app-bg)',
+          color: 'var(--c-text-primary)',
+        }}
+      >
+        <div
+          className="flex-1 overflow-y-auto no-scrollbar px-margin-mobile py-4 space-y-6"
+          style={{
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)',
+          }}
+        >
+          {/* Accent Color Section */}
+          <SettingSection title="Accent Color">
+            <div className="p-3">
+              <InspiraColorPicker />
             </div>
-            <Toggle
-              value={settings.highContrast ?? false}
-              onChange={(v) => settingsController.updateSettings({ highContrast: v })}
-            />
-          </section>
+          </SettingSection>
 
-          {/* Section 5: Workspace & Performance */}
-          <section className="bg-surface-container-lowest rounded-lg p-4 custom-shadow flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[20px]">speed</span>
-              <h3 className="font-title-md text-title-md text-on-surface">Performance</h3>
-            </div>
-            <div className="space-y-1">
-              {/* Row 1: Haptic Feedback */}
-              <div className="flex items-center justify-between p-2 rounded-md hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-on-surface-variant text-[18px]">
-                    vibration
-                  </span>
-                  <div>
-                    <div className="font-body-md font-semibold text-on-surface text-[14px]">
-                      Haptics
-                    </div>
-                    <div className="text-on-surface-variant text-[12px] opacity-60">
-                      Subtle tactile responses.
-                    </div>
-                  </div>
-                </div>
-                <Toggle
-                  value={settings.hapticFeedback ?? true}
-                  onChange={(v) => settingsController.updateSettings({ hapticFeedback: v })}
-                />
-              </div>
+          {/* Interface Scaling Section */}
+          <SettingSection title="Interface Scaling">
+            <SettingRow label="Display Density" desc="Adjust screen layout density">
+              <SegmentedControl
+                value={settings.displayDensity || 'comfortable'}
+                options={[
+                  { value: 'compact', label: 'Compact' },
+                  { value: 'comfortable', label: 'Standard' },
+                  { value: 'spacious', label: 'Spacious' },
+                ]}
+                onChange={(v) => settingsController.updateSettings({ displayDensity: v })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="density-control"
+              />
+            </SettingRow>
+            <SettingRow label="Text Size" desc="Scale global typography">
+              <SegmentedControl
+                value={settings.fontSize || 'medium'}
+                options={[
+                  { value: 'small', label: 'Small' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'large', label: 'Large' },
+                ]}
+                onChange={(v) => settingsController.updateSettings({ fontSize: v })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="font-size-control"
+              />
+            </SettingRow>
+          </SettingSection>
 
-              {/* Row 2: High Refresh Rate */}
-              <div className="flex items-center justify-between p-2 rounded-md hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-on-surface-variant text-[18px]">
-                    bolt
-                  </span>
-                  <div>
-                    <div className="font-body-md font-semibold text-on-surface text-[14px]">
-                      ProMotion
-                    </div>
-                    <div className="text-on-surface-variant text-[12px] opacity-60">
-                      Enable 120Hz smooth scrolling.
-                    </div>
-                  </div>
-                </div>
-                <Toggle
-                  value={settings.highRefreshRate ?? true}
-                  onChange={(v) => settingsController.updateSettings({ highRefreshRate: v })}
-                />
-              </div>
+          {/* Accessibility Section */}
+          <SettingSection title="Accessibility">
+            <SettingRow label="High Contrast" desc="Sharpen text and interface elements for better readability">
+              <Toggle
+                value={settings.highContrast ?? false}
+                onChange={(v) => settingsController.updateSettings({ highContrast: v })}
+              />
+            </SettingRow>
+          </SettingSection>
 
-              {/* Row 3: Performance Mode */}
-              <div className="flex items-center justify-between p-2 rounded-md hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-on-surface-variant text-[18px]">
-                    rocket_launch
-                  </span>
-                  <div>
-                    <div className="font-body-md font-semibold text-on-surface text-[14px]">
-                      Performance Boost
-                    </div>
-                    <div className="text-on-surface-variant text-[12px] opacity-60">
-                      Optimize for heavy tasks.
-                    </div>
-                  </div>
-                </div>
-                <Toggle
-                  value={settings.performanceMode ?? false}
-                  onChange={(v) => settingsController.updateSettings({ performanceMode: v })}
-                />
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
+          {/* Performance Section */}
+          <SettingSection title="Performance & Interaction">
+            <SettingRow label="Haptics" desc="Subtle tactile feedback for gestures and controls">
+              <Toggle
+                value={settings.hapticFeedback ?? true}
+                onChange={(v) => settingsController.updateSettings({ hapticFeedback: v })}
+              />
+            </SettingRow>
+            <SettingRow label="ProMotion" desc="Enable 120Hz smooth scrolling rendering pipeline">
+              <Toggle
+                value={settings.highRefreshRate ?? true}
+                onChange={(v) => settingsController.updateSettings({ highRefreshRate: v })}
+              />
+            </SettingRow>
+            <SettingRow label="Performance Boost" desc="Optimize system rendering engine for heavy audio/visual tasks">
+              <Toggle
+                value={settings.performanceMode ?? false}
+                onChange={(v) => settingsController.updateSettings({ performanceMode: v })}
+              />
+            </SettingRow>
+          </SettingSection>
+        </div>
+      </motion.div>
     </StudioPageTransition>
   );
 }

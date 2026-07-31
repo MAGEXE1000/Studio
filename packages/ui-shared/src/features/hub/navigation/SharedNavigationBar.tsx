@@ -131,7 +131,9 @@ const NavigationItem = React.memo(
       ? isActive
         ? '#0f172a'
         : 'rgba(15, 23, 42, 0.55)'
-      : '#ffffff';
+      : isActive
+        ? '#ffffff'
+        : 'rgba(255, 255, 255, 0.45)';
 
     return (
       <button
@@ -157,9 +159,9 @@ const NavigationItem = React.memo(
         }}
       >
         {/* Morphing & 100% Centered Shared Active Pill Background */}
-        {isActive && !isSwitcherOpen && (
+        {isActive && (
           <motion.div
-            layoutId="sharedActiveNavPill"
+            layoutId={isSwitcherOpen ? 'sharedActiveSwitcherPill' : 'sharedActiveNavPill'}
             style={{
               position: 'absolute',
               top: 4,

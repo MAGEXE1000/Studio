@@ -56,6 +56,7 @@ import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
 import { useNavigationCoordinator, PageTransition } from '../animations/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import StudioHubSettingsPanel from '../settings/StudioHubSettingsPanel';
+import PremiumThemeSwitcher from '../settings/PremiumThemeSwitcher';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 const GOOEY_SPRING = { type: 'spring', stiffness: 550, damping: 33, mass: 0.45 } as const;
@@ -7538,6 +7539,8 @@ User Agent: [Automatically Generated]
                     settings
                   </span>
                 </button>
+              ) : pageId === 'appearance' ? (
+                <PremiumThemeSwitcher />
               ) : undefined;
 
               return (

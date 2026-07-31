@@ -1,5 +1,7 @@
 ## 4.3.19
 
+Release Date: 2026-07-31
+
 ### Improved
 - Enforced main-only git workflow policy across documentation, scripts, and CI workflows.
 - Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).

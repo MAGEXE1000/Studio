@@ -1,4 +1,4 @@
 ### Improved
-- Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.
-- Unified Appearance screen settings into a single cohesive card.
-- Restored MagicUI clip-path Ink Toggle view transitions for theme changes.
+- Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).
+- Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.
+- Complete OTA system purge and dynamic theme COSS Progress updater integration.

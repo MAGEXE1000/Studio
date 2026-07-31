@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UpdaterFlightRecorder } from '@workspace/studio-core';
+import COSSProgress from '../progress/COSSProgress';
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -347,22 +348,14 @@ export default function StudioUpdateScreen({
               transition={emphasizedTransition}
               style={{ width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 8 }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 700, fontFamily: 'Manrope', color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)' }}>
-                <span>Downloading update</span>
-                <span>{pct}%</span>
-              </div>
-              
-              <div style={{ width: '100%', height: 6, borderRadius: 3, background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${pct}%` }}
-                  transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-                  style={{
-                    height: '100%',
-                    background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
-                  }} 
-                />
-              </div>
+              <COSSProgress
+                value={pct}
+                label="Downloading update"
+                accentFrom={accentFrom}
+                accentTo={accentTo}
+                isLight={isLight}
+                showPercentage={true}
+              />
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, fontFamily: 'Inter, monospace', color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)' }}>
                 <span>

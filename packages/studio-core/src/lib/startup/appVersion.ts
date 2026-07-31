@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.17';
-export const WEB_VERSION = '4.3.17';
+export const NATIVE_VERSION = '4.3.18';
+export const WEB_VERSION = '4.3.18';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -39,7 +39,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-31'; // 4.3.17
+export const APP_VERSION_DATE = '2026-07-31'; // 4.3.18
 
 export const APP_COMMIT_SHA = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_GIT_COMMIT_SHA : 'efd2b1a3';
 export const APP_BUILD_TIMESTAMP = (typeof import.meta !== 'undefined' && (import.meta as any).env) ? (import.meta as any).env.VITE_BUILD_TIMESTAMP : '7/31/2026, 8:45:00 AM CST';
@@ -61,9 +61,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.",
-      "Unified Appearance screen settings into a single cohesive card.",
-      "Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
+      "Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).",
+      "Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.",
+      "Complete OTA system purge and dynamic theme COSS Progress updater integration.",
     ],
   },
 ];

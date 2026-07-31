@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.17",
-  "versionName": "4.3.17",
-  "versionCode": 40317,
-  "version_code": 40317,
-  "commit": "fb11f0c1",
-  "releasedAt": "7/31/2026, 8:59:40 AM CST",
-  "buildTimestamp": "7/31/2026, 8:59:40 AM CST",
+  "version": "4.3.18",
+  "versionName": "4.3.18",
+  "versionCode": 40318,
+  "version_code": 40318,
+  "commit": "e09477cc",
+  "releasedAt": "7/31/2026, 9:40:54 AM CST",
+  "buildTimestamp": "7/31/2026, 9:40:54 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.\n• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
-  "whatsNew": "• Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.\n• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
+  "changelog": "• Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).\n• Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.\n• Complete OTA system purge and dynamic theme COSS Progress updater integration.",
+  "whatsNew": "• Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).\n• Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.\n• Complete OTA system purge and dynamic theme COSS Progress updater integration.",
   "releaseNotes": {
     "improved": [
-      "Restored 4-stage multi-job GitHub Actions Release Pipeline architecture.",
-      "Unified Appearance screen settings into a single cohesive card.",
-      "Restored MagicUI clip-path Ink Toggle view transitions for theme changes."
+      "Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).",
+      "Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.",
+      "Complete OTA system purge and dynamic theme COSS Progress updater integration."
     ]
   },
   "mandatory": false

@@ -25,6 +25,27 @@ export class BackDispatcher {
       }
     });
 
+    // Native touch edge-swipe gesture support
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    window.addEventListener('touchstart', (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e: TouchEvent) => {
+      if (e.changedTouches.length === 1 && touchStartX < 40) {
+        const deltaX = e.changedTouches[0].clientX - touchStartX;
+        const deltaY = e.changedTouches[0].clientY - touchStartY;
+        if (deltaX > 80 && Math.abs(deltaY) < 50) {
+          this.handleBackEvent();
+        }
+      }
+    }, { passive: true });
+
     this.isInitialized = true;
   }
 

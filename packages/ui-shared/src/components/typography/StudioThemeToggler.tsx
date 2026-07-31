@@ -1,28 +1,8 @@
 import { type Theme } from '@workspace/studio-core';
-/**
- * StudioThemeToggler — Animated 4-mode theme picker.
- *
- * Implements the MagicUI AnimatedThemeToggler clip-path view-transition
- * (circle / square / diamond / star etc.) adapted for 4 modes:
- *   System · Light · Dark · AMOLED
- *
- * Animation contract:
- *   1. On selection, DOM theme classes are applied synchronously inside
- *      `startViewTransition → flushSync` so the browser snapshot captures
- *      the new state correctly.
- *   2. The JS `Element.animate()` on `::view-transition-new(root)` drives the
- *      clip-path reveal from the clicked button's centre.
- *   3. `onChange(theme, amoledMode)` is called in `transition.finished.finally`
- *      so it fires after the animation — the zustand/App.tsx effect re-applies
- *      the same classes (no-op visually).
- *   4. Falls back to instant class swap + immediate `onChange` when the
- *      View Transitions API is unavailable.
- */
-
 import { useCallback } from 'react';
 import { flushSync } from 'react-dom';
-
-// ── Types ─────────────────────────────────────────────────────────────────
+import { Sun, Moon, SunMoon } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export type TransitionVariant =
   | 'circle'
@@ -38,57 +18,40 @@ export interface StudioThemeTogglerProps {
   currentAmoled: boolean;
   accentFrom: string;
   onChange: (theme: Theme, amoledMode: boolean) => void;
-  labels?: {
-    system?: string;
-    light?: string;
-    dark?: string;
-    amoled?: string;
-  };
+  labels?: any;
   variant?: TransitionVariant;
-  /** Animation duration in ms. Default 500 — feels fluid without being slow. */
   duration?: number;
 }
-
-// ── Static option list ────────────────────────────────────────────────────
-
-type LabelKey = 'system' | 'light' | 'dark' | 'amoled';
-
-const OPTIONS: { theme: Theme; amoled: boolean; icon: string; key: LabelKey; def: string }[] = [
-  { theme: 'system', amoled: false, icon: 'brightness_auto', key: 'system', def: 'System' },
-  { theme: 'light',  amoled: false, icon: 'light_mode',      key: 'light',  def: 'Light'  },
-  { theme: 'dark',   amoled: false, icon: 'dark_mode',       key: 'dark',   def: 'Dark'   },
-  { theme: 'dark',   amoled: true,  icon: 'contrast',        key: 'amoled', def: 'AMOLED' },
-];
-
-// ── Component ─────────────────────────────────────────────────────────────
 
 export default function StudioThemeToggler({
   currentTheme,
   currentAmoled,
   accentFrom,
   onChange,
-  labels,
   variant = 'circle',
   duration = 500,
 }: StudioThemeTogglerProps) {
+  // Determine current mode: 'white' | 'dark' | 'amoled'
+  const mode = currentAmoled
+    ? 'amoled'
+    : currentTheme === 'dark'
+    ? 'dark'
+    : 'white';
 
-  const handleSelect = useCallback((
-    btn: HTMLButtonElement,
-    newTheme: Theme,
-    newAmoled: boolean,
-  ) => {
-    const alreadyActive = newAmoled
-      ? currentAmoled
-      : newTheme === currentTheme && !currentAmoled;
-    if (alreadyActive) return;
+  const getNextMode = (): { theme: Theme; amoled: boolean } => {
+    if (mode === 'white') return { theme: 'dark', amoled: false };
+    if (mode === 'dark') return { theme: 'dark', amoled: true };
+    return { theme: 'light', amoled: false };
+  };
 
+  const handleToggle = useCallback((btn: HTMLButtonElement) => {
+    const next = getNextMode();
     const root = document.documentElement;
     const isTransitioning = root.dataset.studioThemeVt === 'active';
     if (isTransitioning) return;
 
-    // Fallback if View Transitions API is not available
     if (!document.startViewTransition) {
-      onChange(newTheme, newAmoled);
+      onChange(next.theme, next.amoled);
       return;
     }
 
@@ -104,17 +67,12 @@ export default function StudioThemeToggler({
     let clipFrom = `circle(0px at ${x}px ${y}px)`;
     let clipTo = `circle(${endRadius}px at ${x}px ${y}px)`;
 
-    switch (variant) {
-      case 'square':
-      case 'rectangle':
-        clipFrom = `inset(${y}px ${window.innerWidth - x}px ${window.innerHeight - y}px ${x}px)`;
-        clipTo = `inset(0px 0px 0px 0px)`;
-        break;
-      case 'diamond':
-        clipFrom = `polygon(${x}px ${y}px, ${x}px ${y}px, ${x}px ${y}px, ${x}px ${y}px)`;
-        clipTo = `polygon(50% -50%, 150% 50%, 50% 150%, -50% 50%)`;
-        break;
-      // Other variants can be added, falling back to circle for now
+    if (variant === 'square' || variant === 'rectangle') {
+      clipFrom = `inset(${y}px ${window.innerWidth - x}px ${window.innerHeight - y}px ${x}px)`;
+      clipTo = `inset(0px 0px 0px 0px)`;
+    } else if (variant === 'diamond') {
+      clipFrom = `polygon(${x}px ${y}px, ${x}px ${y}px, ${x}px ${y}px, ${x}px ${y}px)`;
+      clipTo = `polygon(50% -50%, 150% 50%, 50% 150%, -50% 50%)`;
     }
 
     root.dataset.studioThemeVt = 'active';
@@ -123,7 +81,7 @@ export default function StudioThemeToggler({
 
     const transition = document.startViewTransition(() => {
       flushSync(() => {
-        onChange(newTheme, newAmoled);
+        onChange(next.theme, next.amoled);
       });
     });
 
@@ -135,7 +93,7 @@ export default function StudioThemeToggler({
         ],
         {
           duration,
-          easing: 'ease-in',
+          easing: 'ease-in-out',
           pseudoElement: '::view-transition-new(root)',
         }
       );
@@ -146,75 +104,48 @@ export default function StudioThemeToggler({
       root.style.removeProperty('--studio-theme-vt-duration');
       root.style.removeProperty('--studio-theme-vt-clip-from');
     });
-  }, [currentTheme, currentAmoled, onChange, variant, duration]);
+  }, [mode, onChange, variant, duration]);
+
+  const IconComponent = mode === 'white' ? Sun : mode === 'dark' ? Moon : SunMoon;
+  const labelText = mode === 'white' ? 'White Theme' : mode === 'dark' ? 'Dark Theme' : 'AMOLED Theme';
 
   return (
-    <div
+    <button
+      type="button"
+      className="btn-smooth"
+      onClick={(e) => handleToggle(e.currentTarget)}
+      title={`Current: ${labelText}. Click to toggle.`}
+      aria-label={`Current: ${labelText}. Click to toggle theme.`}
       style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-        gap: 8,
+        position: 'relative',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 42,
+        height: 42,
+        borderRadius: '50%',
+        background: `color-mix(in srgb, ${accentFrom} 15%, var(--app-surface-high, rgba(255,255,255,0.08)))`,
+        border: `1.5px solid color-mix(in srgb, ${accentFrom} 40%, transparent)`,
+        color: accentFrom,
+        cursor: 'pointer',
+        boxShadow: `0 2px 12px color-mix(in srgb, ${accentFrom} 25%, transparent)`,
+        transition: 'all 240ms cubic-bezier(0.34,1.56,0.64,1)',
+        WebkitTapHighlightColor: 'transparent',
       }}
     >
-      {OPTIONS.map((opt, i) => {
-        const isActive = opt.amoled
-          ? currentAmoled
-          : currentTheme === opt.theme && !currentAmoled;
-        const label = labels?.[opt.key] ?? opt.def;
-
-        return (
-          <button
-            key={i}
-            type="button"
-            className="btn-smooth"
-            onClick={(e) => handleSelect(e.currentTarget, opt.theme, opt.amoled)}
-            style={{
-              padding: '12px 6px',
-              borderRadius: 12,
-              background: isActive
-                ? `color-mix(in srgb, ${accentFrom} 18%, transparent)`
-                : 'var(--app-surface-high)',
-              border: `1.5px solid ${isActive ? accentFrom : 'transparent'}`,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 6,
-              transition: 'background 200ms ease, border-color 200ms ease, transform 160ms cubic-bezier(0.34,1.56,0.64,1)',
-              cursor: 'pointer',
-              transform: isActive ? 'scale(1.04)' : 'scale(1)',
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-            }}
-          >
-            <span
-              className="material-symbols-outlined"
-              style={{
-                fontSize: 22,
-                color: isActive ? accentFrom : 'var(--c-text-secondary)',
-                fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                transition: 'color 200ms ease, font-variation-settings 200ms ease',
-                filter: isActive
-                  ? `drop-shadow(0 0 6px color-mix(in srgb, ${accentFrom} 40%, transparent))`
-                  : 'none',
-              }}
-            >
-              {opt.icon}
-            </span>
-            <p
-              style={{
-                color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
-                fontFamily: 'Manrope',
-                fontWeight: 700,
-                fontSize: 'var(--font-xs)',
-                transition: 'color 200ms ease',
-                margin: 0,
-              }}
-            >
-              {label}
-            </p>
-          </button>
-        );
-      })}
-    </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={mode}
+          initial={{ rotate: -90, scale: 0.5, opacity: 0 }}
+          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+          exit={{ rotate: 90, scale: 0.5, opacity: 0 }}
+          transition={{ duration: 0.28, ease: 'backOut' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <IconComponent size={22} strokeWidth={2.2} />
+        </motion.div>
+      </AnimatePresence>
+    </button>
   );
 }
+

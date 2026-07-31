@@ -15,6 +15,7 @@ import {
 import React, { useRef } from 'react';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shared/typography/SettingControls';
 import InkThemeToggle from '../../../shared/typography/InkThemeToggle';
+import SingleThemeToggleRow from '../../../shared/typography/SingleThemeToggleRow';
 import HubChangelogSection from './HubChangelogSection';
 import { StudioPageTransition } from '../../../components/StudioPageTransition';
 
@@ -107,9 +108,7 @@ export default function StudioHubSettingsPanel() {
         {/* ── APPEARANCE ── */}
         <SectionHeader icon="palette" title={t.settings.sections.appearance} />
         <div style={cardStyle}>
-          <SettingRow label={t.settings.rows.theme} desc="Switch between Light and Dark modes">
-            <InkThemeToggle />
-          </SettingRow>
+          <SingleThemeToggleRow />
         </div>
 
         {/* ── CHANGELOG & RELEASE NOTES (IMMEDIATELY ABOVE ABOUT) ── */}

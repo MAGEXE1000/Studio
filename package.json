@@ -68,5 +68,8 @@
         }
       }
     }
+  },
+  "dependencies": {
+    "lucide-animated": "^1.0.5"
   }
 }

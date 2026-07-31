@@ -78,6 +78,7 @@ const NavigationItem = React.memo(
     index,
     onClick,
     isActive,
+    isLight = false,
     isSwitcherOpen,
     activeIdxSpring,
     onMeasureGeometry,
@@ -87,6 +88,7 @@ const NavigationItem = React.memo(
     index: number;
     onClick: () => void;
     isActive: boolean;
+    isLight?: boolean;
     isSwitcherOpen?: boolean;
     activeIdxSpring: any;
     onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
@@ -125,6 +127,12 @@ const NavigationItem = React.memo(
       return () => observer.disconnect();
     }, [handleMeasure, onMeasureGeometry]);
 
+    const iconColor = isLight
+      ? isActive
+        ? '#0f172a'
+        : 'rgba(15, 23, 42, 0.55)'
+      : '#ffffff';
+
     return (
       <button
         onClick={onClick}
@@ -159,11 +167,15 @@ const NavigationItem = React.memo(
               left: 4,
               right: 4,
               borderRadius: '9999px',
-              background:
-                'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
-              border: '1.2px solid rgba(255, 255, 255, 0.32)',
-              boxShadow:
-                'inset 0 1px 1.5px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25)',
+              background: isLight
+                ? 'linear-gradient(135deg, rgba(0, 0, 0, 0.07) 0%, rgba(0, 0, 0, 0.03) 100%)'
+                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
+              border: isLight
+                ? '1.2px solid rgba(0, 0, 0, 0.10)'
+                : '1.2px solid rgba(255, 255, 255, 0.32)',
+              boxShadow: isLight
+                ? 'inset 0 1px 1.5px rgba(255, 255, 255, 0.9), 0 4px 14px rgba(0, 0, 0, 0.05)'
+                : 'inset 0 1px 1.5px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
               pointerEvents: 'none',
@@ -196,7 +208,7 @@ const NavigationItem = React.memo(
               itemKey={item.key}
               iconName={item.icon as string}
               size={20}
-              color="#ffffff"
+              color={iconColor}
               isActive={isActive}
             />
           ) : (
@@ -204,7 +216,7 @@ const NavigationItem = React.memo(
               itemKey={item.key}
               iconNode={item.icon}
               size={20}
-              color="#ffffff"
+              color={iconColor}
               isActive={isActive}
             />
           )}
@@ -214,7 +226,7 @@ const NavigationItem = React.memo(
               style={{
                 fontSize: '12px',
                 fontWeight: 700,
-                color: '#ffffff',
+                color: isLight ? '#0f172a' : '#ffffff',
                 whiteSpace: 'nowrap',
                 letterSpacing: '-0.01em',
                 display: 'inline-block',
@@ -1459,9 +1471,11 @@ export function SharedNavigationBar({
               maxWidth: `${barWidth}px`,
               height: '64px',
               borderRadius: '9999px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              background: 'rgba(12, 12, 14, 0.45)',
-              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+              background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
+              boxShadow: isLight
+                ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
+                : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
               backdropFilter: 'blur(25px)',
               WebkitBackdropFilter: 'blur(25px)',
               display: 'flex',
@@ -1514,6 +1528,7 @@ export function SharedNavigationBar({
                         index={index}
                         onClick={item.onClick}
                         isActive={isActive}
+                        isLight={isLight}
                         isSwitcherOpen={isSwitcherOpen}
                         activeIdxSpring={activeIdxSpring}
                         onMeasureGeometry={handleMeasureGeometry}
@@ -1539,7 +1554,7 @@ export function SharedNavigationBar({
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      color: '#ffffff',
+                      color: isLight ? '#0f172a' : '#ffffff',
                       opacity: 0.6,
                       marginRight: '8px',
                     }}
@@ -1561,7 +1576,7 @@ export function SharedNavigationBar({
                       background: 'transparent',
                       border: 'none',
                       outline: 'none',
-                      color: '#ffffff',
+                      color: isLight ? '#0f172a' : '#ffffff',
                       fontSize: '16px',
                       fontFamily: 'Inter, sans-serif',
                       textOverflow: 'ellipsis',
@@ -1575,7 +1590,7 @@ export function SharedNavigationBar({
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: 'rgba(255, 255, 255, 0.6)',
+                        color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -1614,15 +1629,17 @@ export function SharedNavigationBar({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: 'rgba(12, 12, 14, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
+                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
                   backdropFilter: 'blur(25px)',
                   WebkitBackdropFilter: 'blur(25px)',
-                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                  boxShadow: isLight
+                    ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
+                    : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'rgba(255, 255, 255, 0.60)',
+                  color: isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.60)',
                   cursor: 'pointer',
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
@@ -1647,15 +1664,19 @@ export function SharedNavigationBar({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: 'rgba(12, 12, 14, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
+                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
                   backdropFilter: 'blur(25px)',
                   WebkitBackdropFilter: 'blur(25px)',
-                  boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                  boxShadow: isLight
+                    ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
+                    : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
+                  color: isLight
+                    ? (isSwitcherOpen ? '#0f172a' : 'rgba(15, 23, 42, 0.75)')
+                    : (isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)'),
                   cursor: 'pointer',
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',

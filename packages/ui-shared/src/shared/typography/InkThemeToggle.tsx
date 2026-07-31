@@ -1,5 +1,7 @@
 import React, { useRef, useCallback } from 'react';
-import { useChordStore, ThemeTransitionEngine, useSettingsStore } from '@workspace/studio-core';
+import { useSettingsStore, settingsController, ThemeTransitionEngine } from '@workspace/studio-core';
+import { SunIcon, MoonIcon, SunMoonIcon } from 'lucide-animated';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function InkThemeToggle({
   className,
@@ -9,19 +11,20 @@ export default function InkThemeToggle({
   style?: React.CSSProperties;
 }) {
   const settings = useSettingsStore((s) => s.settings);
-
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isTransitioningRef = useRef(false);
 
-  // Resolve current active theme mode
-  const currentTheme = settings.theme ?? 'dark';
-  const isLight =
-    currentTheme === 'light' ||
-    (currentTheme === 'system' &&
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-color-scheme: light)').matches);
+  const currentTheme = settings.theme ?? 'light';
+  const isAmoled = settings.amoledMode ?? false;
 
-  const handleToggle = useCallback(async () => {
+  const activeState: 'light' | 'dark' | 'amoled' =
+    currentTheme === 'dark'
+      ? isAmoled
+        ? 'amoled'
+        : 'dark'
+      : 'light';
+
+  const handleToggle = useCallback(() => {
     if (isTransitioningRef.current || !buttonRef.current) return;
     isTransitioningRef.current = true;
 
@@ -29,56 +32,93 @@ export default function InkThemeToggle({
     const rect = btn.getBoundingClientRect();
     const startX = rect.left + rect.width / 2;
     const startY = rect.top + rect.height / 2;
-    const nextTheme = isLight ? 'dark' : 'light';
+
+    let nextThemeStr = 'dark';
+    if (activeState === 'light') {
+      nextThemeStr = 'dark';
+    } else if (activeState === 'dark') {
+      nextThemeStr = 'dark';
+    } else {
+      nextThemeStr = 'light';
+    }
 
     if (typeof (window as any).__triggerThemeTransition === 'function') {
-      (window as any).__triggerThemeTransition(nextTheme, false, startX, startY, () => {
-        useSettingsStore.getState().updateSettings({
-          theme: nextTheme,
-          amoledMode: false,
-        });
+      (window as any).__triggerThemeTransition(nextThemeStr, false, startX, startY, () => {
+        settingsController.cycleNextTheme();
         isTransitioningRef.current = false;
       });
     } else {
       ThemeTransitionEngine.startTransition({
-        nextTheme,
-        amoled: false,
+        nextTheme: nextThemeStr,
+        amoled: activeState === 'dark',
         startX,
         startY,
         updateFn: () => {
-          useSettingsStore.getState().updateSettings({
-            theme: nextTheme,
-            amoledMode: false,
-          });
+          settingsController.cycleNextTheme();
           isTransitioningRef.current = false;
         },
       });
     }
-  }, [isLight]);
+  }, [activeState]);
 
   return (
     <button
       ref={buttonRef}
       type="button"
       onClick={handleToggle}
-      className={`w-10 h-10 flex items-center justify-center rounded-full glass-surface text-on-surface hover:bg-white/5 active:scale-90 transition-transform ${className || ''}`}
+      aria-label={`Current Theme: ${activeState}. Tap to cycle.`}
+      className={`w-10 h-10 flex items-center justify-center rounded-full transition-transform active:scale-90 hover:scale-105 ${className || ''}`}
       style={{
+        background: 'var(--c-surface-high)',
         border: '1px solid var(--c-border)',
+        color: 'var(--c-text-primary)',
         cursor: 'pointer',
         outline: 'none',
         WebkitTapHighlightColor: 'transparent',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         ...style,
       }}
     >
-      <span
-        className="material-symbols-outlined select-none"
-        style={{
-          fontSize: '20px',
-          fontVariationSettings: "'FILL' 0",
-        }}
-      >
-        {isLight ? 'dark_mode' : 'light_mode'}
-      </span>
+      <AnimatePresence mode="wait" initial={false}>
+        {activeState === 'light' && (
+          <motion.div
+            key="sun"
+            initial={{ rotate: -90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+            className="flex items-center justify-center"
+          >
+            <SunIcon size={20} color="var(--c-text-primary)" />
+          </motion.div>
+        )}
+
+        {activeState === 'dark' && (
+          <motion.div
+            key="moon"
+            initial={{ rotate: -90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+            className="flex items-center justify-center"
+          >
+            <MoonIcon size={20} color="var(--c-text-primary)" />
+          </motion.div>
+        )}
+
+        {activeState === 'amoled' && (
+          <motion.div
+            key="sunmoon"
+            initial={{ rotate: -90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+            className="flex items-center justify-center"
+          >
+            <SunMoonIcon size={20} color="var(--c-text-primary)" />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </button>
   );
 }

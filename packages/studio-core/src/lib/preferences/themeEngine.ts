@@ -26,7 +26,7 @@ export interface ThemeConfig {
 export function applyThemeTokens(settings: any) {
   if (typeof document === 'undefined') return;
 
-  const globalTheme = settings?.theme ?? 'dark';
+  const globalTheme = settings?.theme ?? 'light';
   const globalAccent = settings?.accentColor ?? 'blue';
   const globalAmoled = settings?.amoledMode ?? false;
 

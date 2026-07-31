@@ -124,7 +124,7 @@ export const ACCENT_COLORS = new Proxy(rawAccentColors, {
 // Default values to use if there is no previous state.
 const DEFAULT_SETTINGS: AppSettings = {
   instrument: 'guitar',
-  theme: 'dark',
+  theme: 'light',
   showNoteNames: true,
   showIntervals: false,
   tuning: 'Standard (EADGBE)',
@@ -182,12 +182,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   syncBackendProvider: (import.meta.env.VITE_SYNC_BACKEND_PROVIDER as any) || 'supabase-realtime',
   launchAnimationPreset: 'fluid_surface',
   perApp: {
-    hub: { theme: 'dark', accentColor: 'blue', amoledMode: false },
-    chords: { theme: 'dark', accentColor: 'blue', amoledMode: false },
-    drums: { theme: 'dark', accentColor: 'blue', amoledMode: false },
-    stage: { theme: 'dark', accentColor: 'blue', amoledMode: false },
-    vocalex: { theme: 'dark', accentColor: 'blue', amoledMode: false },
-    groovex: { theme: 'dark', accentColor: 'blue', amoledMode: false },
+    hub: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    chords: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    drums: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    stage: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    vocalex: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    groovex: { theme: 'light', accentColor: 'blue', amoledMode: false },
   },
 };
 
@@ -300,5 +300,34 @@ export const settingsController = {
   updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => {
     useSettingsStore.getState().updatePerApp(apps, patch);
     applyThemeTokens(useSettingsStore.getState().settings);
-  }
+  },
+  cycleNextTheme: () => {
+    const current = useSettingsStore.getState().settings;
+    const currentTheme = current.theme ?? 'light';
+    const isAmoled = current.amoledMode ?? false;
+
+    let nextTheme: Theme = 'light';
+    let nextAmoled = false;
+
+    if (currentTheme === 'light') {
+      // White -> Dark
+      nextTheme = 'dark';
+      nextAmoled = false;
+    } else if (currentTheme === 'dark' && !isAmoled) {
+      // Dark -> AMOLED
+      nextTheme = 'dark';
+      nextAmoled = true;
+    } else {
+      // AMOLED (or any other) -> White
+      nextTheme = 'light';
+      nextAmoled = false;
+    }
+
+    useSettingsStore.getState().updateSettings({
+      theme: nextTheme,
+      amoledMode: nextAmoled,
+    });
+    applyThemeTokens(useSettingsStore.getState().settings);
+    return { theme: nextTheme, amoledMode: nextAmoled };
+  },
 };

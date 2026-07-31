@@ -93,3 +93,4 @@ export { default as InkThemeOverlay } from './shared/theme/InkThemeOverlay';
 export { default as html2canvas } from 'html2canvas';
 export * from './shared/design-system';
 export * from './features/devtools/inspector';
+export { SharedAppShell, type SharedAppShellProps } from './shared/layout/SharedAppShell';

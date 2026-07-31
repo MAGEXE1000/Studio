@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.21",
-  "versionName": "4.3.21",
-  "versionCode": 40321,
-  "version_code": 40321,
-  "commit": "aa9507b3",
-  "releasedAt": "7/31/2026, 10:35:06 AM CST",
-  "buildTimestamp": "7/31/2026, 10:35:06 AM CST",
+  "version": "4.3.22",
+  "versionName": "4.3.22",
+  "versionCode": 40322,
+  "version_code": 40322,
+  "commit": "0f3c59e4",
+  "releasedAt": "7/31/2026, 11:20:00 AM CST",
+  "buildTimestamp": "7/31/2026, 11:20:00 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Optimized checkout speed with shallow fetch-depth: 1 across all release workflow jobs.\n• Pinned Node 24 compatible action versions (checkout@v4.2.2, setup-node@v4.2.0, setup-java@v4.7.0, setup-gradle@v4.3.0).\n• Eliminated Node 20 deprecation warnings across all GitHub Actions workflows.",
-  "whatsNew": "• Optimized checkout speed with shallow fetch-depth: 1 across all release workflow jobs.\n• Pinned Node 24 compatible action versions (checkout@v4.2.2, setup-node@v4.2.0, setup-java@v4.7.0, setup-gradle@v4.3.0).\n• Eliminated Node 20 deprecation warnings across all GitHub Actions workflows.",
+  "changelog": "• Validated v4.3.15 visual baseline architecture with clean top-row Lucide Theme Morpher (White → Dark → AMOLED).\n• Full Inspira UI Color Picker integration with live contrast calculations and moved-up Display Density / Text Scale controls.\n• Optimized 4-Stage Release Pipeline (6m 27s execution time) with shallow fetch-depth and zero Node deprecation warnings.",
+  "whatsNew": "• Validated v4.3.15 visual baseline architecture with clean top-row Lucide Theme Morpher (White → Dark → AMOLED).\n• Full Inspira UI Color Picker integration with live contrast calculations and moved-up Display Density / Text Scale controls.\n• Optimized 4-Stage Release Pipeline (6m 27s execution time) with shallow fetch-depth and zero Node deprecation warnings.",
   "releaseNotes": {
     "improved": [
-      "Optimized checkout speed with shallow fetch-depth: 1 across all release workflow jobs.",
-      "Pinned Node 24 compatible action versions (checkout@v4.2.2, setup-node@v4.2.0, setup-java@v4.7.0, setup-gradle@v4.3.0).",
-      "Eliminated Node 20 deprecation warnings across all GitHub Actions workflows."
+      "Validated v4.3.15 visual baseline architecture with clean top-row Lucide Theme Morpher (White → Dark → AMOLED).",
+      "Full Inspira UI Color Picker integration with live contrast calculations and moved-up Display Density / Text Scale controls.",
+      "Optimized 4-Stage Release Pipeline (6m 27s execution time) with shallow fetch-depth and zero Node deprecation warnings."
     ]
   },
   "mandatory": false

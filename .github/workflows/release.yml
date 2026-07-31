@@ -264,7 +264,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: firebase-public-metadata
-          path: firebase-public/
+          path: firebase-public-metadata-temp
+
+      - name: Prepare Firebase Public Directory
+        run: |
+          rm -rf firebase-public
+          mv firebase-public-metadata-temp firebase-public
 
       - name: Deploy Update Metadata to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

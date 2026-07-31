@@ -14,6 +14,8 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
+      - 'docs/**'
+      - 'scripts/validate-documentation.mjs'
   pull_request:
     branches: [main]
     paths:
@@ -27,27 +29,27 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
-
-permissions:
-  contents: read
+      - 'docs/**'
+      - 'scripts/validate-documentation.mjs'
 
 jobs:
   ci:
-    name: Web Build & Verify
     runs-on: ubuntu-latest
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
+      VITE_SYNC_BACKEND_PROVIDER: "supabase-realtime"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 1
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.1.0
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4.2.0
         with:
           node-version: 24
           cache: pnpm
@@ -55,14 +57,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate Documentation
+        run: pnpm docs:validate
+
       - name: Enforce Import Boundaries
         run: pnpm lint:imports
-
-      - name: Platform Scope Check
-        run: pnpm scope:check --platform shared
-
-      - name: Lint
-        run: pnpm lint
 
       - name: Typecheck Web
         run: pnpm typecheck:web

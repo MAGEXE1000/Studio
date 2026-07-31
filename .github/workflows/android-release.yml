@@ -1,19 +1,16 @@
-name: Release Pipeline
+name: Android Release Pipeline
 
 on:
   workflow_dispatch:
     inputs:
-      release_type:
-        description: "Release Type"
+      version_name:
+        description: "Android versionName (e.g., x.y.z)"
         required: true
-        default: "both"
-        type: choice
-        options:
-          - "both"
-          - "ota"
-          - "apk"
+      version_code:
+        description: "Android versionCode (e.g., integer)"
+        required: true
       note:
-        description: "Optional release note"
+        description: "Release notes / changelog entry"
         required: false
         default: ""
 
@@ -21,36 +18,41 @@ permissions:
   contents: write
   actions: read
 
-env:
-  STUDIO_PRODUCTION_RELEASE: "true"
-  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-  VITE_SYNC_BACKEND_PROVIDER: "supabase-realtime"
-  ANDROID_HOME: /usr/local/lib/android/sdk
-  ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-  ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-  ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-  EXPECTED_SIGNATURE_SHA256: "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
-  REINSTALL_REQUIRED: "true"
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
-
 jobs:
-  preflight:
-    name: "1. Preflight & Fail-Fast Validation"
+  release:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.2.2
-        with:
-          fetch-depth: 1
+    env:
+      STUDIO_PRODUCTION_RELEASE: "true"
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SYNC_BACKEND_PROVIDER: "supabase-realtime"
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      EXPECTED_SIGNATURE_SHA256: "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
 
-      - uses: pnpm/action-setup@v4.1.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4.2.0
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -72,163 +74,92 @@ jobs:
             exit 1
           fi
 
-  build:
-    name: "2. Build, Package & Sign"
-    needs: preflight
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.2.2
-        with:
-          fetch-depth: 1
-
-      - uses: pnpm/action-setup@v4.1.0
-        with:
-          version: 10.26.1
-
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - uses: actions/setup-java@v4.7.0
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v4.3.0
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Set Release Version
+        run: |
+          pnpm version:android --name "${{ github.event.inputs.version_name }}" --code "${{ github.event.inputs.version_code }}"
 
       - name: Decode Android Keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/studio-android/android/app/release.keystore
+
+      - name: Verify Keystore File
+        run: |
           if [ ! -s apps/studio-android/android/app/release.keystore ]; then
             echo "::error::release.keystore is missing or empty!"
             exit 1
           fi
 
-      - name: Verify Pre-Build Production Keystore Fingerprint
-        run: |
-          keytool -list -v -keystore apps/studio-android/android/app/release.keystore -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > cert.txt
-          FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | cut -d':' -f2- | tr -d '[:space:]:' | tr '[:upper:]' '[:lower:]')
-          EXPECTED="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
-          echo "Detected Keystore SHA-256: $FINGERPRINT"
-          echo "Expected Production SHA-256: $EXPECTED"
-          if [ "$FINGERPRINT" != "$EXPECTED" ]; then
-            echo "::error::CRITICAL SECURITY FAILURE: Decoded release.keystore SHA-256 fingerprint ($FINGERPRINT) does not match expected production certificate ($EXPECTED)!"
-            exit 1
-          fi
-          echo "✓ Production Keystore Pre-Build Fingerprint Verified."
-
-      - name: Run Android Release Orchestration Script
+      - name: Run Android Release Script
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
           cd apps/studio-android
-          PRERELEASE_FLAG=""
-          if [ "$RELEASE_TYPE" = "prerelease" ]; then
-            PRERELEASE_FLAG="--prerelease"
-          fi
-          node scripts/release-firebase.mjs --no-bump $PRERELEASE_FLAG > build.log 2>&1 || {
+          node scripts/release-firebase.mjs --no-bump --version "${{ github.event.inputs.version_name }}" > build.log 2>&1 || {
             status=$?
             echo "::error::Android release script failed with status $status"
             cat build.log
             exit $status
           }
 
-      - name: Upload Firebase Hosting Metadata Artifact
-        uses: actions/upload-artifact@v4.6.1
-        with:
-          name: firebase-public-metadata
-          path: firebase-public/
-          retention-days: 1
-
       - name: Write and Update Release Metadata
         run: |
           cd apps/studio-android
           node scripts/generate-release-metadata.mjs
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: |
-            apps/studio-android/android/app/build/outputs/apk/release/app-release.apk
-            firebase-public/app-release.json
-            release-notes.md
-
-  verify:
-    name: "3. Signing & Contract Verification"
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.2.2
-        with:
-          fetch-depth: 1
-
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: 24
-
-      - uses: actions/setup-java@v4.7.0
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.9
-        with:
-          name: release-artifacts
-
       - name: Verify Release APK and Metadata
         run: |
           APK_PATH="apps/studio-android/android/app/build/outputs/apk/release/app-release.apk"
           
+          # 1. Verify APK exists
           if [ ! -f "$APK_PATH" ]; then
             echo "::error::Release APK does not exist at $APK_PATH"
             exit 1
           fi
           
+          # 2. Find aapt
           AAPT_PATH=$(find $ANDROID_HOME/build-tools -name aapt -type f | head -n 1)
           if [ -z "$AAPT_PATH" ]; then
             echo "::error::Could not find aapt utility"
             exit 1
           fi
           
+          # 3. Dump badging
           BADGING=$($AAPT_PATH dump badging "$APK_PATH")
           
+          # 4. Verify package is com.chordex.app
           if ! echo "$BADGING" | grep -q "package: name='com.chordex.app'"; then
             echo "::error::Invalid package name! Expected com.chordex.app"
             exit 1
           fi
           
-          REQ_VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
-          REQ_CODE=$(node -e "const fs = require('fs'); const src = fs.readFileSync('apps/studio-android/android/app/build.gradle', 'utf8'); const m = src.match(/versionCode\s+(\d+)/); console.log(m ? m[1] : 'unknown');")
-          
+          # 5. Verify requested versionName matches
+          REQ_VERSION="${{ github.event.inputs.version_name }}"
           if ! echo "$BADGING" | grep -q "versionName='$REQ_VERSION'"; then
             echo "::error::VersionName mismatch! Expected $REQ_VERSION"
             exit 1
           fi
           
+          # 6. Verify requested versionCode matches
+          REQ_CODE="${{ github.event.inputs.version_code }}"
           if ! echo "$BADGING" | grep -q "versionCode='$REQ_CODE'"; then
             echo "::error::VersionCode mismatch! Expected $REQ_CODE"
             exit 1
           fi
           
+          # 7. Verify APK is non-debuggable
           if echo "$BADGING" | grep -q "application-debuggable"; then
             echo "::error::Release APK is debuggable! This is unsafe."
             exit 1
           fi
           
+          # 8. Find apksigner
           APKSIGNER_PATH=$(find $ANDROID_HOME/build-tools -name apksigner -type f | head -n 1)
           if [ -z "$APKSIGNER_PATH" ]; then
             echo "::error::Could not find apksigner utility"
             exit 1
           fi
           
+          # 9. Verify signing certificate SHA-256 fingerprint
           SIGNINFO=$($APKSIGNER_PATH verify --print-certs "$APK_PATH")
           FINGERPRINT=$(echo "$SIGNINFO" | grep -i "SHA-256 digest" | head -n 1 | awk '{print $NF}' | tr -d ':' | tr '[:upper:]' '[:lower:]')
           EXPECTED_FINGERPRINT="900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
@@ -239,9 +170,11 @@ jobs:
             exit 1
           fi
           
+          # 10. Calculate APK SHA-256
           APK_SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
           echo "Calculated APK SHA-256: $APK_SHA256"
           
+          # 11. Calculate APK size
           APK_SIZE=$(stat -c%s "$APK_PATH")
           echo "Calculated APK size: $APK_SIZE bytes"
           if [ "$APK_SIZE" -le 0 ]; then
@@ -249,6 +182,7 @@ jobs:
             exit 1
           fi
           
+          # 12. Verify release metadata matches the actual APK
           METADATA_PATH="firebase-public/app-release.json"
           if [ ! -f "$METADATA_PATH" ]; then
             echo "::error::Release metadata file $METADATA_PATH does not exist!"
@@ -284,46 +218,20 @@ jobs:
           
           echo "✓ All release verification checks passed successfully!"
 
-  publish:
-    name: "4. Publish, Deploy & Report"
-    needs: verify
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.2.2
-        with:
-          fetch-depth: 1
-
-      - uses: actions/setup-node@v4.2.0
-        with:
-          node-version: 24
-
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4.1.9
-        with:
-          name: release-artifacts
-
       - name: Upload APK Asset to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          VERSION="${{ github.event.inputs.version_name }}"
           TAG="v$VERSION"
           if ! gh release view "$TAG" > /dev/null 2>&1; then
-            gh release create "$TAG" --title "$TAG" --notes "${{ github.event.inputs.note }}" --prerelease
-          else
-            gh release edit "$TAG" --notes "${{ github.event.inputs.note }}"
+            gh release create "$TAG" --title "Studio v$VERSION" --notes "${{ github.event.inputs.note }}" --prerelease
           fi
           FILE_NAME="studio-$VERSION.apk"
           HASH_NAME="studio-$VERSION.sha256"
           cp apps/studio-android/android/app/build/outputs/apk/release/app-release.apk "./$FILE_NAME"
-          sha256sum "./$FILE_NAME" > "./$HASH_NAME"
+          sha256sum "$FILE_NAME" > "./$HASH_NAME"
           gh release upload "$TAG" "./$FILE_NAME" "./$HASH_NAME" --clobber
-
-      - name: Download Firebase Public Metadata Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: firebase-public-metadata
-          path: firebase-public
 
       - name: Deploy Update Metadata to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -337,7 +245,7 @@ jobs:
         run: |
           echo "Waiting 15s for Firebase CDN propagation..."
           sleep 15
-          NATIVE_VER=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
+          NATIVE_VER="${{ github.event.inputs.version_name }}"
           
           echo "--- Fetching app-release.json ---"
           APP_JSON=$(curl -sf --retry 3 "https://studio-30f44.web.app/app-release.json")
@@ -349,16 +257,3 @@ jobs:
           fi
 
           echo "✓ Android Release Post-deploy verification passed"
-
-      - name: Generate Release Summary Report
-        run: |
-          VERSION=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")
-          echo "# 🚀 Studio Release Pipeline Summary (v$VERSION)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## 📋 Master Release Checklist" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Preflight & Fail-Fast Validation**: Dependencies, imports & signing secrets verified" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Build, Package & Sign**: Android APK & release metadata compiled" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Signing & Contract Verification**: AAPT badging & SHA-256 fingerprint verified" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Publish, Deploy & Report**: GitHub Release assets & Firebase metadata deployed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔒 READY FOR PRODUCTION RELEASE" >> $GITHUB_STEP_SUMMARY

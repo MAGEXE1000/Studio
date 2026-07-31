@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.0.66"
-$VersionCode = "40066"
-$ReleaseNote = "v4.0.66 - Android Launch Preloading, Isolated Search, and Optimized Verification Transitions"
+$VersionName = "4.0.67"
+$VersionCode = "40067"
+$ReleaseNote = "v4.0.67 - Unified Appearance Screen, View Transition Ink Reveal, and OTA Versioning Fix"
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

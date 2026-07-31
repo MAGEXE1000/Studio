@@ -55,7 +55,7 @@ export function compareVersions(
   const isVerNameValid = !!parsedRemoteSemver && remote.version !== 'V' && remote.version !== 'v';
   
   let isVerCodeValid = true;
-  if (localVersionCode !== undefined && localVersionCode !== null) {
+  if (localVersionCode !== undefined && localVersionCode !== null && remote.versionCode !== undefined && remote.versionCode !== null) {
     const rawVersionCode = remote.versionCode;
     const versionCode = typeof rawVersionCode === 'number' ? rawVersionCode : (typeof rawVersionCode === 'string' ? parseInt(rawVersionCode, 10) : undefined);
     isVerCodeValid = (versionCode !== undefined && typeof versionCode === 'number' && !isNaN(versionCode) && versionCode > 0);

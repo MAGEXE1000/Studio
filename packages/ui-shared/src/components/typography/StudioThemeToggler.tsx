@@ -86,8 +86,67 @@ export default function StudioThemeToggler({
     const isTransitioning = root.dataset.studioThemeVt === 'active';
     if (isTransitioning) return;
 
-    onChange(newTheme, newAmoled);
-  }, [currentTheme, currentAmoled, onChange]);
+    // Fallback if View Transitions API is not available
+    if (!document.startViewTransition) {
+      onChange(newTheme, newAmoled);
+      return;
+    }
+
+    const rect = btn.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    let clipFrom = `circle(0px at ${x}px ${y}px)`;
+    let clipTo = `circle(${endRadius}px at ${x}px ${y}px)`;
+
+    switch (variant) {
+      case 'square':
+      case 'rectangle':
+        clipFrom = `inset(${y}px ${window.innerWidth - x}px ${window.innerHeight - y}px ${x}px)`;
+        clipTo = `inset(0px 0px 0px 0px)`;
+        break;
+      case 'diamond':
+        clipFrom = `polygon(${x}px ${y}px, ${x}px ${y}px, ${x}px ${y}px, ${x}px ${y}px)`;
+        clipTo = `polygon(50% -50%, 150% 50%, 50% 150%, -50% 50%)`;
+        break;
+      // Other variants can be added, falling back to circle for now
+    }
+
+    root.dataset.studioThemeVt = 'active';
+    root.style.setProperty('--studio-theme-vt-duration', `${duration}ms`);
+    root.style.setProperty('--studio-theme-vt-clip-from', clipFrom);
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        onChange(newTheme, newAmoled);
+      });
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        [
+          { clipPath: clipFrom },
+          { clipPath: clipTo },
+        ],
+        {
+          duration,
+          easing: 'ease-in',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    });
+
+    transition.finished.finally(() => {
+      delete root.dataset.studioThemeVt;
+      root.style.removeProperty('--studio-theme-vt-duration');
+      root.style.removeProperty('--studio-theme-vt-clip-from');
+    });
+  }, [currentTheme, currentAmoled, onChange, variant, duration]);
 
   return (
     <div

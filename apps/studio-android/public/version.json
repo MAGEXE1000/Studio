@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.0.66",
-  "versionName": "4.0.66",
-  "versionCode": 40066,
-  "version_code": 40066,
-  "commit": "c36f04b4",
-  "releasedAt": "7/13/2026, 12:24:01 AM CST",
-  "buildTimestamp": "7/13/2026, 12:24:01 AM CST",
+  "version": "4.0.67",
+  "versionName": "4.0.67",
+  "versionCode": 40067,
+  "version_code": 40067,
+  "commit": "87f2b2a4",
+  "releasedAt": "7/31/2026, 8:43:51 AM CST",
+  "buildTimestamp": "7/31/2026, 8:43:51 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Added background bundle preloading to prevent sub-app launch ready timeouts.\n• Isolated search typing states in Chordex to completely prevent parent re-renders.\n• Optimized updater integrity checks and transitions from 300ms to 10ms.",
-  "whatsNew": "• Added background bundle preloading to prevent sub-app launch ready timeouts.\n• Isolated search typing states in Chordex to completely prevent parent re-renders.\n• Optimized updater integrity checks and transitions from 300ms to 10ms.",
+  "changelog": "• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.\n• Patched OTA updater version check logic for seamless web update fallbacks.",
+  "whatsNew": "• Unified Appearance screen settings into a single cohesive card.\n• Restored MagicUI clip-path Ink Toggle view transitions for theme changes.\n• Patched OTA updater version check logic for seamless web update fallbacks.",
   "releaseNotes": {
     "improved": [
-      "Added background bundle preloading to prevent sub-app launch ready timeouts.",
-      "Isolated search typing states in Chordex to completely prevent parent re-renders.",
-      "Optimized updater integrity checks and transitions from 300ms to 10ms."
+      "Unified Appearance screen settings into a single cohesive card.",
+      "Restored MagicUI clip-path Ink Toggle view transitions for theme changes.",
+      "Patched OTA updater version check logic for seamless web update fallbacks."
     ]
   },
   "mandatory": false

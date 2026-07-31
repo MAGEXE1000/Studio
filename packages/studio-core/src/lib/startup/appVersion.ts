@@ -48,8 +48,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.26';
-export const WEB_VERSION = '4.3.26';
+export const NATIVE_VERSION = '4.3.27';
+export const WEB_VERSION = '4.3.27';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -92,9 +92,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.",
-      "Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.",
-      "Added comprehensive runtime logging for Appearance component mounting and Updater execution state.",
+      "Completely purged legacy inline Appearance implementation from StudioHub component tree.",
+      "Removed unused legacy SingleThemeToggleRow component and exports.",
+      "Pinned Release Pipeline workflow checkout ref to github.sha across all stages for guaranteed commit parity.",
     ],
   },
 ];

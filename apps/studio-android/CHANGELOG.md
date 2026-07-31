@@ -10,7 +10,15 @@ that bundle.
 Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
-- Bullets start with `- ` and use plain English a non-technical user
+## 4.3.27
+
+Release Date: 2026-07-31
+
+### Fixed
+- Completely purged legacy inline Appearance implementation from StudioHub component tree.
+- Removed unused legacy SingleThemeToggleRow component and exports.
+- Pinned Release Pipeline workflow checkout ref to github.sha across all stages for guaranteed commit parity.
+
 ## 4.3.26
 
 Release Date: 2026-07-31

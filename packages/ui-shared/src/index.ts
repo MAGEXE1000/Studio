@@ -7,7 +7,6 @@ export { SharedNavigationContainer } from './navigation/SharedNavigationContaine
 export { StudioPageTransition, UNIFIED_NAV_TRANSITION } from './components/StudioPageTransition';
 export { default as StudioCountUpPercentage } from './shared/progress/StudioCountUpPercentage';
 export { default as StudioProgressBar } from './shared/progress/StudioProgressBar';
-export { default as SingleThemeToggleRow } from './shared/typography/SingleThemeToggleRow';
 export { default as InkThemeToggle } from './shared/typography/InkThemeToggle';
 export { default as StudioTitleReveal } from './shared/typography/StudioTitleReveal';
 export { default as StudioUpdateAuroraBackground } from './features/updater/components/StudioUpdateAuroraBackground';

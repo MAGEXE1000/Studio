@@ -1,6 +1,6 @@
 Release Date: 2026-07-31
 
-### Fixed
-- Completely purged legacy inline Appearance implementation from StudioHub component tree.
-- Removed unused legacy SingleThemeToggleRow component and exports.
-- Pinned Release Pipeline workflow checkout ref to github.sha across all stages for guaranteed commit parity.
+### Added
+- Rebuilt Livex Appearance screen from scratch matching the HTML visual source of truth specification.
+- Integrated 2D color canvas picker with Hue & Opacity sliders, HEX/RGB badges, and color presets.
+- Implemented Display Density, Text Size, High Contrast, Haptics, ProMotion, and Performance Boost controls.

@@ -58,6 +58,25 @@
   --radius-full: 9999px;
 }
 
+/* ===== Livex Appearance HTML Spec Helper Styles ===== */
+.custom-shadow {
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+}
+.color-canvas {
+  background: linear-gradient(to bottom, transparent, #000), linear-gradient(to right, #fff, transparent);
+}
+.switch-toggle:checked + .switch-bg {
+  background-color: var(--c-accent-from, #adc6ff) !important;
+}
+.switch-toggle:checked + .switch-bg .switch-dot {
+  transform: translateX(16px) !important;
+  background-color: #00285c !important;
+}
+.segmented-item.active {
+  background-color: var(--c-accent-from, #adc6ff) !important;
+  color: #00285c !important;
+}
+
 /* ===== Typed CSS custom properties — enables native color animation ===== */
 @property --app-bg {
   syntax: '<color>';

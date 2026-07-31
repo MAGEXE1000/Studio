@@ -56,6 +56,7 @@ export interface AppSettings {
   startupApp: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
   hubUserName: string;
   highRefreshRate: boolean;
+  highContrast?: boolean;
   lowLatencyMode: boolean;
   performanceMode: boolean;
   chordAssistant: boolean;

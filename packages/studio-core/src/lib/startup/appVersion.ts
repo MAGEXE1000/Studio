@@ -48,8 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.27';
-export const WEB_VERSION = '4.3.27';
+export const NATIVE_VERSION = '4.3.28';
+export const NATIVE_VERSION_CODE = 40328;
+export const WEB_VERSION = '4.3.28';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -90,11 +91,11 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Completely purged legacy inline Appearance implementation from StudioHub component tree.",
-      "Removed unused legacy SingleThemeToggleRow component and exports.",
-      "Pinned Release Pipeline workflow checkout ref to github.sha across all stages for guaranteed commit parity.",
+      "Rebuilt Livex Appearance screen from scratch matching the HTML visual source of truth specification.",
+      "Integrated 2D color canvas picker with Hue & Opacity sliders, HEX/RGB badges, and color presets.",
+      "Implemented Display Density, Text Size, High Contrast, Haptics, ProMotion, and Performance Boost controls.",
     ],
   },
 ];

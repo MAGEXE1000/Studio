@@ -28,7 +28,6 @@ export { default as StudioProgressBar } from './progress/StudioProgressBar';
 export { default as StudioCountUpPercentage } from './progress/StudioCountUpPercentage';
 
 // Typography
-export { default as StudioThemeToggler } from './typography/StudioThemeToggler';
 export { default as InkThemeToggle } from './typography/InkThemeToggle';
 export { default as StudioTitleReveal } from './typography/StudioTitleReveal';
 export * from './typography/ScrollFade';

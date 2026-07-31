@@ -1,8 +1,8 @@
 Release Date: 2026-07-31
 
-## Added
-- Complete Studio Theme System redesign establishing White Theme (`light`) as the primary default application theme across all 6 Studio sub-apps (Hub, Chordex, Drumex, StageX, Groovex, Vocalex).
-- Replaced legacy 4-card Theme Mode selector with a single animated Appearance toggle row aligned to the far right, featuring official `lucide-animated` state morphing (`SunIcon`, `MoonIcon`, `SunMoonIcon`).
-- Implemented Ink Toggle liquid reveal animation (`ThemeTransitionEngine.ts`) with organic expanding reveal, soft metaball easing, and zero white flash visual synchronization.
-- Redesigned Bottom Navigation bar for White Theme with subtle elevation shadows, light glass backdrop blur, and dark icon/label contrast.
-- Standardized section headers, typography hierarchy, and UI surface design tokens across the entire monorepo.
+## Improved
+- Completed Studio Theme System stabilization pass with full White (`light`), Dark (`dark`), and AMOLED (`amoled`) theme support across Updater dialogs and indicators (`StudioUpdateScreen.tsx`, `UpdateIndicator.tsx`).
+- Simplified OTA download progress UI with single `Downloading update` status label above the progress bar and exact 1:1 progress precision (percentage on far right only).
+- Sanitized UTF-8 encoding pipeline across release notes parsing and changelog sheets to eliminate corrupted Mojibake sequences (`•`, ``, `…`).
+- Fixed Chordex tab navigation sync regression in `SubAppWrapper` (`SharedAppShell.tsx`), restoring tab switching between Songs, Practice, Library, and Settings.
+- Refactored Pinned Actions UI in Studio Hub to use White Theme surface tokens instead of hardcoded dark glass backgrounds.

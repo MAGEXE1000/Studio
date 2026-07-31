@@ -96,7 +96,20 @@ if (!fs.existsSync(localChangelogPath)) {
   process.exit(1);
 }
 
-const changelogText = fs.readFileSync(localChangelogPath, 'utf8');
+function cleanMojibake(str) {
+  if (!str) return '';
+  return str
+    .replace(/â€¢/g, '•')
+    .replace(/â€‹/g, '')
+    .replace(/â€¦/g, '…')
+    .replace(/â€”/g, '—')
+    .replace(/â€“/g, '–')
+    .replace(/â€™/g, "'")
+    .replace(/â€\x9d/g, '"')
+    .replace(/â€\x9c/g, '"');
+}
+
+const changelogText = cleanMojibake(fs.readFileSync(localChangelogPath, 'utf8'));
 const changelogRawLines = changelogText.split(/\r?\n/);
 let inSection = false;
 let sectionLines = [];

@@ -43,8 +43,21 @@ const version = versionMatch[1];
 // 3. Open and parse CHANGELOG.md if exists
 let changelog = '';
 let releaseNotes = undefined;
+function cleanMojibake(str) {
+  if (!str) return '';
+  return str
+    .replace(/â€¢/g, '•')
+    .replace(/â€‹/g, '')
+    .replace(/â€¦/g, '…')
+    .replace(/â€”/g, '—')
+    .replace(/â€“/g, '–')
+    .replace(/â€™/g, "'")
+    .replace(/â€\x9d/g, '"')
+    .replace(/â€\x9c/g, '"');
+}
+
 if (fs.existsSync(localChangelogPath)) {
-  const changelogText = fs.readFileSync(localChangelogPath, 'utf8');
+  const changelogText = cleanMojibake(fs.readFileSync(localChangelogPath, 'utf8'));
   const esc = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`^##\\s+${esc}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, 'm');
   const match = changelogText.match(re);

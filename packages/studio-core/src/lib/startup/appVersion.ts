@@ -22,12 +22,34 @@
  * pure semver so comparisons are unambiguous.
  */
 
+/**
+ * Normalizes Mojibake corrupted character sequences resulting from double-encoding or Windows-1252/ANSI interpretation of UTF-8 strings.
+ */
+export function sanitizeUTF8String(str: string | null | undefined): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/â€¢/g, '•')
+    .replace(/â€‹/g, '')
+    .replace(/â€¦/g, '…')
+    .replace(/â€”/g, '—')
+    .replace(/â€“/g, '–')
+    .replace(/â€™/g, "'")
+    .replace(/â€\x9d/g, '"')
+    .replace(/â€\x9c/g, '"')
+    .replace(/Ã¡/g, 'á')
+    .replace(/Ã©/g, 'é')
+    .replace(/Ã­/g, 'í')
+    .replace(/Ã³/g, 'ó')
+    .replace(/Ãº/g, 'ú')
+    .replace(/Ã±/g, 'ñ');
+}
+
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.11';
-export const WEB_VERSION = '4.3.11';
+export const NATIVE_VERSION = '4.3.12';
+export const WEB_VERSION = '4.3.12';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||

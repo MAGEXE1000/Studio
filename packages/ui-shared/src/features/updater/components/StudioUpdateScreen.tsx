@@ -162,8 +162,8 @@ export default memo(function StudioUpdateScreen({
           position: 'relative',
           width: '100%',
           maxWidth: 384,
-          background: 'rgba(31, 32, 32, 0.75)',
-          border: '1px solid rgba(72, 72, 72, 0.25)',
+          background: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(31, 32, 32, 0.75)',
+          border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(72, 72, 72, 0.25)',
           borderRadius: 24,
           padding: 32,
           boxSizing: 'border-box',
@@ -174,7 +174,8 @@ export default memo(function StudioUpdateScreen({
           alignItems: 'center',
           textAlign: 'center',
           gap: 24,
-          color: '#e7e5e4',
+          color: isLight ? '#0f172a' : '#e7e5e4',
+          boxShadow: isLight ? '0 20px 50px rgba(0, 0, 0, 0.12)' : '0 24px 48px rgba(0, 0, 0, 0.4)',
         }}
       >
         {/* Close Button matching HTML spec */}
@@ -189,7 +190,7 @@ export default memo(function StudioUpdateScreen({
               right: 16,
               background: 'transparent',
               border: 'none',
-              color: '#acabaa',
+              color: isLight ? '#64748b' : '#acabaa',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -213,7 +214,7 @@ export default memo(function StudioUpdateScreen({
             width: 80,
             height: 80,
             borderRadius: '50%',
-            background: '#252626',
+            background: isLight ? '#f1f5f9' : '#252626',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -283,7 +284,7 @@ export default memo(function StudioUpdateScreen({
               fontFamily: 'Manrope, sans-serif',
               fontWeight: 700,
               fontSize: 24,
-              color: '#e7e5e4',
+              color: isLight ? '#0f172a' : '#e7e5e4',
               lineHeight: 1.25,
             }}
           >
@@ -293,7 +294,7 @@ export default memo(function StudioUpdateScreen({
             style={{
               fontSize: 14,
               fontFamily: 'Inter, sans-serif',
-              color: '#acabaa',
+              color: isLight ? '#475569' : '#acabaa',
               lineHeight: 1.45,
             }}
             role="status"
@@ -310,7 +311,8 @@ export default memo(function StudioUpdateScreen({
             transition={emphasizedTransition}
             style={{
               width: '100%',
-              background: '#131313',
+              background: isLight ? '#f8fafc' : '#131313',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : 'none',
               borderRadius: 12,
               padding: 16,
               display: 'flex',
@@ -325,7 +327,7 @@ export default memo(function StudioUpdateScreen({
                   fontSize: 10,
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
-                  color: '#acabaa',
+                  color: isLight ? '#64748b' : '#acabaa',
                   fontFamily: 'Inter, sans-serif',
                   fontWeight: 600,
                 }}
@@ -336,7 +338,7 @@ export default memo(function StudioUpdateScreen({
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
-                  color: '#e7e5e4',
+                  color: isLight ? '#0f172a' : '#e7e5e4',
                   fontFamily: 'Manrope, sans-serif',
                 }}
               >
@@ -354,7 +356,7 @@ export default memo(function StudioUpdateScreen({
                   fontSize: 10,
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
-                  color: '#acabaa',
+                  color: isLight ? '#64748b' : '#acabaa',
                   fontFamily: 'Inter, sans-serif',
                   fontWeight: 600,
                 }}
@@ -365,7 +367,7 @@ export default memo(function StudioUpdateScreen({
                 style={{
                   fontSize: 14,
                   fontWeight: 700,
-                  color: '#e7e5e4',
+                  color: isLight ? '#0f172a' : '#e7e5e4',
                   fontFamily: 'Manrope, sans-serif',
                 }}
               >

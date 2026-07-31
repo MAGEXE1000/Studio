@@ -376,6 +376,11 @@ const SubAppWrapper = memo(function SubAppWrapper({
 }) {
   const [cachedApp] = useState<AppKey>(app);
   const [cachedPanel, setCachedPanel] = useState(activePanel);
+
+  useEffect(() => {
+    setCachedPanel(activePanel);
+  }, [activePanel]);
+
   const isActive = settings.appMode === cachedApp;
 
   if (!isActive) return null;

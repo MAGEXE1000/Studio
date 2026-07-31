@@ -879,71 +879,23 @@ function ActionButton({
 
 const DownloadProgressIndicator = React.memo(
   ({ updater, toVersion, accentFrom, accentTo, isLight }: any) => {
-    const [interpolatedProgress, setInterpolatedProgress] = useState(0);
+    const rawProgress = typeof updater.progress === 'number' ? updater.progress : 0;
+    const pct = Math.min(100, Math.max(0, Math.round(rawProgress * 100)));
 
-    useEffect(() => {
-      let target = 0;
-      const s = updater.updateState;
-      if (s === 'FETCH_APK_INFORMATION') {
-        target = 0.05;
-      } else if (s === 'DOWNLOAD_APK') {
-        target = 0.05 + updater.progress * 0.8; // 5% to 85%
-      } else if (s === 'VERIFY_SHA256') {
-        target = 0.88;
-      } else if (s === 'PREPARING_INSTALL') {
-        target = 0.92;
-      } else if (s === 'WAITING_USER_CONFIRMATION' || s === 'PACKAGEINSTALLER_VISIBLE') {
-        target = 0.96;
-      } else if (s === 'INSTALLING') {
-        target = 0.98;
-      } else if (s === 'INSTALL_SUCCESS') {
-        target = 1.0;
-      }
-
-      let animationFrameId: number;
-      const step = () => {
-        setInterpolatedProgress((prev) => {
-          const diff = target - prev;
-          if (Math.abs(diff) < 0.002) {
-            return target;
-          }
-          const next = prev + diff * 0.12;
-          animationFrameId = requestAnimationFrame(step);
-          return next;
-        });
-      };
-      animationFrameId = requestAnimationFrame(step);
-      return () => cancelAnimationFrame(animationFrameId);
-    }, [updater.progress, updater.updateState]);
-
-    const pct = Math.round(interpolatedProgress * 100);
-
-    let statusText = 'Preparing...';
-    let subText = 'Do not close the application.';
-
+    let statusText = 'Downloading update';
     const s = updater.updateState;
-    if (s === 'DOWNLOAD_APK' || s === 'FETCH_APK_INFORMATION') {
-      statusText = `Downloading update (${pct}%)`;
-      subText = updater.statusText || 'Studio is downloading the latest app package.';
-    } else if (pct >= 95) {
-      statusText = 'Almost ready...';
-      subText = 'Finalizing installation before handing over to Android installer.';
-    } else if (s === 'VERIFY_SHA256') {
-      statusText = 'Verifying checksum...';
-      subText = 'Checking integrity of the download package.';
+    if (s === 'VERIFY_SHA256') {
+      statusText = 'Verifying checksum';
     } else if (s === 'PREPARING_INSTALL') {
-      statusText = 'Preparing installation...';
-      subText = 'Configuring Android packages.';
+      statusText = 'Preparing installation';
     } else if (
       s === 'INSTALLING' ||
       s === 'PACKAGEINSTALLER_VISIBLE' ||
       s === 'WAITING_USER_CONFIRMATION'
     ) {
-      statusText = 'Installing update...';
-      subText = 'Handing over to Android installer. Please follow system prompts.';
+      statusText = 'Installing update';
     } else if (s === 'INSTALL_SUCCESS') {
-      statusText = 'Finalizing...';
-      subText = 'Update completed successfully.';
+      statusText = 'Update complete';
     }
 
     return (
@@ -963,7 +915,7 @@ const DownloadProgressIndicator = React.memo(
             justifyContent: 'space-between',
             fontSize: 13,
             fontWeight: 700,
-            fontFamily: 'Manrope',
+            fontFamily: 'Manrope, sans-serif',
             color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)',
           }}
         >
@@ -978,28 +930,17 @@ const DownloadProgressIndicator = React.memo(
             borderRadius: 3,
             background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
             overflow: 'hidden',
+            position: 'relative',
           }}
         >
           <div
             style={{
               height: '100%',
               width: `${pct}%`,
-              background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})`,
-              transition: 'width 80ms ease-out',
+              background: `linear-gradient(90deg, ${accentFrom || '#679cff'}, ${accentTo || '#007aff'})`,
+              transition: 'width 120ms ease-out',
             }}
           />
-        </div>
-
-        <div
-          style={{
-            fontSize: 11.5,
-            fontFamily: 'Inter',
-            color: isLight ? 'rgba(0, 0, 0, 0.55)' : 'rgba(255, 255, 255, 0.55)',
-            textAlign: 'left',
-            lineHeight: 1.45,
-          }}
-        >
-          {subText}
         </div>
       </div>
     );

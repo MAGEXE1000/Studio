@@ -37,7 +37,6 @@ import {
   BentoSettingCard,
   BentoSettingRow,
 } from '../../../shared/typography/SettingControls';
-import StudioThemeToggler from '../../../shared/typography/StudioThemeToggler';
 import ApplyToSheet from '../../chordex/components/ApplyToSheet';
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
 import GradientBorderCard from '../../../shared/cards/GradientBorderCard';
@@ -1548,11 +1547,13 @@ export default function StudioHub() {
                                     width: '48px',
                                     height: '48px',
                                     borderRadius: '50%',
-                                    background: 'rgba(12, 12, 14, 0.45)',
-                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                    background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(12, 12, 14, 0.45)',
+                                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
                                     backdropFilter: 'blur(25px)',
                                     WebkitBackdropFilter: 'blur(25px)',
-                                    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                                    boxShadow: isLight
+                                      ? '0 6px 20px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9)'
+                                      : '0 8px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',

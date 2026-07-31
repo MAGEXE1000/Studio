@@ -6,6 +6,7 @@ import {
   APP_CHANGELOG_SECTIONS,
   getChangelogSections,
   type ChangelogSection,
+  sanitizeUTF8String,
 } from '@workspace/studio-core';
 import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
 
@@ -117,7 +118,7 @@ export default function ChangelogSheet({
                 }}
               >
                 {sec.items.map((line, j) => {
-                  const cleanedLine = line.replace(/^[-*•]\s*/, '').trim();
+                  const cleanedLine = sanitizeUTF8String(line.replace(/^[-*•]\s*/, '')).trim();
                   return (
                     <li
                       key={j}

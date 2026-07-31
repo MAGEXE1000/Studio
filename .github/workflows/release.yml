@@ -131,7 +131,7 @@ jobs:
           if [ "$RELEASE_TYPE" = "prerelease" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
-          node scripts/release-firebase.mjs $PRERELEASE_FLAG > build.log 2>&1 || {
+          node scripts/release-firebase.mjs --no-bump $PRERELEASE_FLAG > build.log 2>&1 || {
             status=$?
             echo "::error::Android release script failed with status $status"
             cat build.log

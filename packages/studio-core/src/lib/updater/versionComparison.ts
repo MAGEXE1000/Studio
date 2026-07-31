@@ -104,10 +104,14 @@ export function compareVersions(
     remote.versionCode !== undefined &&
     remote.versionCode !== null
   ) {
-    // Both versionCodes available: use versionCode as the single source of truth
+    // Both versionCodes available: use versionCode as primary, fall back to semver if codes match
     if (remote.versionCode > localVersionCode) {
       isUpgrade = true;
     } else if (remote.versionCode < localVersionCode) {
+      isDowngrade = true;
+    } else if (nameComparison > 0) {
+      isUpgrade = true;
+    } else if (nameComparison < 0) {
       isDowngrade = true;
     } else {
       isUpToDate = true;

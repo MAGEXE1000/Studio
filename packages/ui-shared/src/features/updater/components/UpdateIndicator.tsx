@@ -49,6 +49,7 @@ import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
 import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
 import { DownloadIcon } from '../../../shared/icons/DownloadIcon';
+import CossProgress from '../../../components/ui/progress';
 
 import { enableLiquidGlass, tagLiquidTarget, untagLiquidTarget } from '@workspace/studio-core';
 
@@ -2353,14 +2354,19 @@ function UpdateModal({
   // Render buttons
   const actionButtons = renderButtons();
 
+  const rawProgress = typeof updater.progress === 'number' ? updater.progress : 0;
+  const downloadPct = Math.min(100, Math.max(0, Math.round(rawProgress * 100)));
+
   const progressComponent = showProgress ? (
-    <DownloadProgressIndicator
-      updater={updater}
-      toVersion={toVersion}
-      accentFrom={accentFrom}
-      accentTo={accentTo}
-      isLight={isLight}
-    />
+    <div className="w-full my-2">
+      <CossProgress
+        value={downloadPct}
+        label="Downloading update"
+        showPercentage={true}
+        accentFrom={accentFrom || 'var(--c-accent-from, #679cff)'}
+        accentTo={accentTo || 'var(--c-accent-to, #007aff)'}
+      />
+    </div>
   ) : undefined;
 
   return (

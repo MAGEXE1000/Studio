@@ -52,6 +52,7 @@ export function versionJsonUrls(): string[] {
   } else {
     const localBase = import.meta.env.BASE_URL || '/';
     urls.push(`${localBase}version.json?t=${t}`);
+    urls.push(`${remoteBase}/version.json?t=${t}`);
   }
   return urls;
 }
@@ -61,6 +62,11 @@ async function fetchOne(url: string, signal: AbortSignal): Promise<RemoteVersion
     const res = await fetch(url, {
       method: 'GET',
       cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
       signal,
     });
     if (!res.ok) {
@@ -510,16 +516,21 @@ export async function fetchRemoteVersion(signal?: AbortSignal): Promise<RemoteVe
     }
   }
 
-  // If Firebase version info is fetched successfully, return immediately (avoiding rate-limiting & CORS GitHub calls)
-  if (firebaseRes && firebaseRes.version) {
-    return firebaseRes;
-  }
-
-  // 2. Fallback path: Query GitHub releases (only if Firebase is offline/failed)
+  // 2. Query GitHub releases to ensure we pick the highest available release
   let githubRes: RemoteVersionInfo | null = null;
   try {
     githubRes = await fetchLatestFromGitHub(sig);
   } catch (err) {
+  }
+
+  if (firebaseRes && githubRes && firebaseRes.version && githubRes.version) {
+    const comp = compareSemver(githubRes.version, firebaseRes.version);
+    if (comp > 0) {
+      logPipelineTrace(caller, 'METADATA_SOURCE_SELECTION', { firebase: firebaseRes.version, github: githubRes.version }, { selected: 'github' });
+      return githubRes;
+    }
+    logPipelineTrace(caller, 'METADATA_SOURCE_SELECTION', { firebase: firebaseRes.version, github: githubRes.version }, { selected: 'firebase' });
+    return firebaseRes;
   }
 
   const finalRemote = firebaseRes || githubRes;

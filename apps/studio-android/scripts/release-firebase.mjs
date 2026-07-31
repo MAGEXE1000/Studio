@@ -606,11 +606,11 @@ const releaseNotesFile = path.join(repoRoot, 'release-notes.md');
 
 const runGh = (args) => {
   const env = { ...process.env };
-  if (env.GITHUB_TOKEN && !env.GITHUB_TOKEN.startsWith('ghp_') && !env.GITHUB_TOKEN.startsWith('github_pat_')) {
-    delete env.GITHUB_TOKEN;
-  }
   if (env.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {
     delete env.GITHUB_TOKEN;
+  }
+  if (env.GH_TOKEN === 'github_pat_antigravitydummytoken') {
+    delete env.GH_TOKEN;
   }
   const normalizedArgs = args.map(arg => typeof arg === 'string' ? arg.replace(/\\/g, '/') : arg);
   return spawnSync('gh', normalizedArgs, {

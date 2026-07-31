@@ -13,8 +13,8 @@ import {
   isAppInstallerAvailable,
 } from '@workspace/studio-core';
 import React, { useRef } from 'react';
-import { Toggle, SectionHeader, SettingRow } from '../../../shared/typography/SettingControls';
-import SingleThemeToggleRow from '../../../shared/typography/SingleThemeToggleRow';
+import { Toggle, SectionHeader, SettingRow, SegmentedControl } from '../../../shared/typography/SettingControls';
+import InkThemeToggle from '../../../shared/typography/InkThemeToggle';
 import HubChangelogSection from './HubChangelogSection';
 import { StudioPageTransition } from '../../../components/StudioPageTransition';
 import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
@@ -25,8 +25,10 @@ import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
  * Design System Specifications:
  * - Cleaner, elevated visual hierarchy with curated spacing tokens.
  * - Glassmorphic surface cards with dark/light/AMOLED mode adaptability.
- * - Single-row Theme Mode selector with animated Lucide morphing icons (White -> Dark -> AMOLED).
+ * - Single animated Lucide Theme Morpher icon positioned on far right of Appearance header.
+ * - Theme Mode body section completely removed in favor of single header morpher toggle with Ink ripple transition.
  * - Integrated Inspira UI Color Picker supporting Hex, RGB, RGBA, HSL, HSLA, swatches & WCAG contrast.
+ * - Display Density & Text Scale controls.
  * - Zero technical debt or obsolete card grid layouts.
  */
 export default function StudioHubSettingsPanel() {
@@ -95,17 +97,56 @@ export default function StudioHubSettingsPanel() {
           </div>
 
           {/* ── REBUILT APPEARANCE & THEME SECTION ── */}
-          <SectionHeader icon="palette" title={t.settings.sections.appearance || 'Appearance & Theme'} />
+          <SectionHeader
+            icon="palette"
+            title={t.settings.sections.appearance || 'Appearance'}
+            rightElement={<InkThemeToggle />}
+          />
           <div style={cardStyle} className="mb-6">
-            {/* Single Theme Toggle Row (White -> Dark -> AMOLED) */}
-            <SingleThemeToggleRow />
-
             {/* Inspira UI Color Picker Row */}
             <SettingRow
               label="Accent Color Palette"
               desc="Choose workspace accent palette or input custom HEX / RGB / HSL"
             >
               <InspiraColorPicker />
+            </SettingRow>
+
+            {/* Display Density */}
+            <SettingRow
+              label="Display Density"
+              desc="Adjust spatial padding and container boundaries"
+            >
+              <SegmentedControl
+                value={settings.displayDensity || 'comfortable'}
+                options={[
+                  { value: 'compact', label: 'Compact' },
+                  { value: 'comfortable', label: 'Comfortable' },
+                  { value: 'spacious', label: 'Spacious' },
+                ]}
+                onChange={(v) => useSettingsStore.getState().updateSettings({ displayDensity: v as any })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="density-control"
+              />
+            </SettingRow>
+
+            {/* Text Scale */}
+            <SettingRow
+              label="Text Scale"
+              desc="Scale system typography and UI text sizes"
+            >
+              <SegmentedControl
+                value={settings.fontSize || 'medium'}
+                options={[
+                  { value: 'small', label: 'Small' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'large', label: 'Large' },
+                ]}
+                onChange={(v) => useSettingsStore.getState().updateSettings({ fontSize: v as any })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="font-control"
+              />
             </SettingRow>
 
             {/* High Contrast Mode Toggle */}

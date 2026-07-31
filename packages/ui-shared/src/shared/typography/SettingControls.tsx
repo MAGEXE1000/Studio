@@ -6,30 +6,35 @@ export { Toggle, type ToggleProps } from '../design-system/StudioToggle';
 export const SectionHeader = memo(function SectionHeader({
   icon,
   title,
+  rightElement,
 }: {
   icon: string;
   title: string;
+  rightElement?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2 mb-3 mt-6 spring-in">
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: '16px', color: 'var(--c-text-secondary)' }}
-      >
-        {icon}
-      </span>
-      <p
-        style={{
-          color: 'var(--c-text-secondary)',
-          fontFamily: 'Manrope',
-          fontWeight: 700,
-          fontSize: 'var(--font-xs)',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {title}
-      </p>
+    <div className="flex items-center justify-between mb-3 mt-6 spring-in">
+      <div className="flex items-center gap-2">
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: '16px', color: 'var(--c-text-secondary)' }}
+        >
+          {icon}
+        </span>
+        <p
+          style={{
+            color: 'var(--c-text-secondary)',
+            fontFamily: 'Manrope',
+            fontWeight: 700,
+            fontSize: 'var(--font-xs)',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+          }}
+        >
+          {title}
+        </p>
+      </div>
+      {rightElement && <div>{rightElement}</div>}
     </div>
   );
 });

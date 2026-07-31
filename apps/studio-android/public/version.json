@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.24",
-  "versionName": "4.3.24",
-  "versionCode": 40324,
-  "version_code": 40324,
-  "commit": "d78f0778",
-  "releasedAt": "7/31/2026, 12:55:03 PM CST",
-  "buildTimestamp": "7/31/2026, 12:55:03 PM CST",
+  "version": "4.3.25",
+  "versionName": "4.3.25",
+  "versionCode": 40325,
+  "version_code": 40325,
+  "commit": "85639fdd",
+  "releasedAt": "7/31/2026, 1:28:19 PM CST",
+  "buildTimestamp": "7/31/2026, 1:28:19 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Restored verified canonical v4.3.15 baseline with zero UI regressions.\n• Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.\n• Pinned Node 24 compatible GitHub Action versions across release workflows.",
-  "whatsNew": "• Restored verified canonical v4.3.15 baseline with zero UI regressions.\n• Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.\n• Pinned Node 24 compatible GitHub Action versions across release workflows.",
+  "changelog": "• Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.\n• Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.\n• Added Display Density and Text Scale segmented controls.\n• Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases.",
+  "whatsNew": "• Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.\n• Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.\n• Added Display Density and Text Scale segmented controls.\n• Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases.",
   "releaseNotes": {
     "improved": [
-      "Restored verified canonical v4.3.15 baseline with zero UI regressions.",
-      "Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.",
-      "Pinned Node 24 compatible GitHub Action versions across release workflows."
+      "Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.",
+      "Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.",
+      "Added Display Density and Text Scale segmented controls.",
+      "Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases."
     ]
   },
   "mandatory": false

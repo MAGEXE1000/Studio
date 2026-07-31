@@ -48,8 +48,8 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.24';
-export const WEB_VERSION = '4.3.24';
+export const NATIVE_VERSION = '4.3.25';
+export const WEB_VERSION = '4.3.25';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -64,7 +64,7 @@ export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
 /** Release date for the CURRENT bundle, shown alongside the version pill
  *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-23'; // 4.2.30
+export const APP_VERSION_DATE = '2026-07-31';
 
 export const APP_COMMIT_SHA =
   typeof import.meta !== 'undefined' && (import.meta as any).env
@@ -73,7 +73,7 @@ export const APP_COMMIT_SHA =
 export const APP_BUILD_TIMESTAMP =
   typeof import.meta !== 'undefined' && (import.meta as any).env
     ? (import.meta as any).env.VITE_BUILD_TIMESTAMP
-    : '7/21/2026, 8:40:00 PM CST';
+    : '7/31/2026, 1:25:00 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -92,9 +92,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Restored verified canonical v4.3.15 baseline with zero UI regressions.",
-      "Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.",
-      "Pinned Node 24 compatible GitHub Action versions across release workflows.",
+      "Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.",
+      "Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.",
+      "Added Display Density and Text Scale segmented controls.",
+      "Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases.",
     ],
   },
 ];

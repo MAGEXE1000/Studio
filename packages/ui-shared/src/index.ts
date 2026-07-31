@@ -26,7 +26,6 @@ export { LiquidBottomNav } from './features/hub/navigation/LiquidBottomNav';
 export { SaxophonePracticePanel } from './features/chordex/pages/SaxophonePracticePanel';
 export { SaxophoneView } from './features/chordex/components/SaxophoneView';
 export { default as SettingsPanel } from './panels/SettingsPanel';
-export { default as ChordexSettingsPanel } from './features/chordex/settings/ChordexSettingsPanel';
 export { default as StudioHubSettingsPanel } from './features/hub/settings/StudioHubSettingsPanel';
 export { default as HubChangelogSection } from './features/hub/settings/HubChangelogSection';
 export { SongsPanel } from './features/chordex';

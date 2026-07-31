@@ -7793,7 +7793,8 @@ User Agent: [Automatically Generated]
       case 'general':
         return renderGeneralContent();
       case 'appearance':
-        return renderAppearanceContent();
+        console.log('[APPEARANCE-RUNTIME-PROOF] StudioHub renderActivePageContent rendering StudioHubSettingsPanel for page: appearance');
+        return <StudioHubSettingsPanel />;
       case 'language':
         return renderLanguageContent();
       case 'privacy':

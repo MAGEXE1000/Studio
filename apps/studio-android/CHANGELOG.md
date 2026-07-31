@@ -11,6 +11,15 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 - Bullets start with `- ` and use plain English a non-technical user
+## 4.3.26
+
+Release Date: 2026-07-31
+
+### Fixed
+- Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.
+- Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.
+- Added comprehensive runtime logging for Appearance component mounting and Updater execution state.
+
 ## 4.3.25
 
 Release Date: 2026-07-31

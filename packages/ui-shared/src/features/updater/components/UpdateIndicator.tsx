@@ -401,10 +401,20 @@ export default function UpdateIndicator({
 
   // Auto-open update modal immediately when update is available, unless dismissed/later'ed.
   useEffect(() => {
+    console.log('[UPDATER-RUNTIME-PROOF]', {
+      localVersion: APP_VERSION_LABEL,
+      remoteVersion: updater.remoteVersion,
+      updateAvailable: updater.updateAvailable,
+      updateState: updater.updateState,
+      openState: open,
+      wasLater: readLaterVersion() === updater.remoteVersion,
+      wasAutoOpened: readAutoOpenedVersion() === updater.remoteVersion,
+      timestamp: new Date().toISOString(),
+    });
+
     if (updater.updateAvailable && updater.remoteVersion) {
       const wasLater = readLaterVersion() === updater.remoteVersion;
-      const wasAutoOpened = readAutoOpenedVersion() === updater.remoteVersion;
-      if (!wasLater && !wasAutoOpened) {
+      if (!wasLater) {
         writeAutoOpenedVersion(updater.remoteVersion);
         setOpen(true);
       }

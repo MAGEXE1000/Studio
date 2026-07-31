@@ -34,6 +34,19 @@ import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
 export default function StudioHubSettingsPanel() {
   const settings = useSettingsStore((s) => s.settings);
 
+  React.useEffect(() => {
+    console.log('[APPEARANCE-RUNTIME-PROOF]', {
+      component: 'StudioHubSettingsPanel',
+      filename: 'StudioHubSettingsPanel.tsx',
+      importPath: '@workspace/ui-shared/src/features/hub/settings/StudioHubSettingsPanel.tsx',
+      renderPath: 'App.tsx -> SharedAppShell -> StudioHub -> renderActivePageContent -> StudioHubSettingsPanel',
+      mountedAt: new Date().toISOString()
+    });
+    try {
+      (window as any).__lastMountedAppearanceComponent = 'StudioHubSettingsPanel';
+    } catch (_) {}
+  }, []);
+
   const acc =
     ACCENT_COLORS[settings.perApp?.hub?.accentColor ?? settings.accentColor] ??
     ACCENT_COLORS.purple;

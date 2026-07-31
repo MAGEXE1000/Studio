@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.25",
-  "versionName": "4.3.25",
-  "versionCode": 40325,
-  "version_code": 40325,
-  "commit": "85639fdd",
-  "releasedAt": "7/31/2026, 1:28:19 PM CST",
-  "buildTimestamp": "7/31/2026, 1:28:19 PM CST",
+  "version": "4.3.26",
+  "versionName": "4.3.26",
+  "versionCode": 40326,
+  "version_code": 40326,
+  "commit": "6b54481a",
+  "releasedAt": "7/31/2026, 2:08:20 PM CST",
+  "buildTimestamp": "7/31/2026, 2:08:20 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.\n• Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.\n• Added Display Density and Text Scale segmented controls.\n• Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases.",
-  "whatsNew": "• Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.\n• Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.\n• Added Display Density and Text Scale segmented controls.\n• Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases.",
+  "changelog": "• Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.\n• Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.\n• Added comprehensive runtime logging for Appearance component mounting and Updater execution state.",
+  "whatsNew": "• Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.\n• Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.\n• Added comprehensive runtime logging for Appearance component mounting and Updater execution state.",
   "releaseNotes": {
-    "improved": [
-      "Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.",
-      "Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.",
-      "Added Display Density and Text Scale segmented controls.",
-      "Resolved APK update identity issue to ensure normal in-place upgrade installation over prior releases."
+    "fixed": [
+      "Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.",
+      "Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.",
+      "Added comprehensive runtime logging for Appearance component mounting and Updater execution state."
     ]
   },
   "mandatory": false

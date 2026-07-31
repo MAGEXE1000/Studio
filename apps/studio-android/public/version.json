@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.19",
-  "versionName": "4.3.19",
-  "versionCode": 40319,
-  "version_code": 40319,
-  "commit": "73c98354",
-  "releasedAt": "7/31/2026, 10:10:05 AM CST",
-  "buildTimestamp": "7/31/2026, 10:10:05 AM CST",
+  "version": "4.3.20",
+  "versionName": "4.3.20",
+  "versionCode": 40320,
+  "version_code": 40320,
+  "commit": "ec894289",
+  "releasedAt": "7/31/2026, 10:17:46 AM CST",
+  "buildTimestamp": "7/31/2026, 10:17:46 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Enforced main-only git workflow policy across documentation, scripts, and CI workflows.\n• Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).\n• Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.",
-  "whatsNew": "• Enforced main-only git workflow policy across documentation, scripts, and CI workflows.\n• Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).\n• Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.",
+  "changelog": "• Completely rebuilt Appearance screen with single animated Lucide Theme Morpher (White → Dark → AMOLED).\n• Full Inspira UI Color Picker integration with live contrast calculations and format conversions.\n• Fixed Firebase Hosting release metadata artifact download in Stage 4 publish pipeline.\n• Upgraded setup-gradle action to v4 with Actions Cache v2 support.",
+  "whatsNew": "• Completely rebuilt Appearance screen with single animated Lucide Theme Morpher (White → Dark → AMOLED).\n• Full Inspira UI Color Picker integration with live contrast calculations and format conversions.\n• Fixed Firebase Hosting release metadata artifact download in Stage 4 publish pipeline.\n• Upgraded setup-gradle action to v4 with Actions Cache v2 support.",
   "releaseNotes": {
     "improved": [
-      "Enforced main-only git workflow policy across documentation, scripts, and CI workflows.",
-      "Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).",
-      "Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview."
+      "Completely rebuilt Appearance screen with single animated Lucide Theme Morpher (White → Dark → AMOLED).",
+      "Full Inspira UI Color Picker integration with live contrast calculations and format conversions.",
+      "Fixed Firebase Hosting release metadata artifact download in Stage 4 publish pipeline.",
+      "Upgraded setup-gradle action to v4 with Actions Cache v2 support."
     ]
   },
   "mandatory": false

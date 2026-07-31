@@ -26,8 +26,8 @@ import { useMemo } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.19';
-export const WEB_VERSION = '4.3.19';
+export const NATIVE_VERSION = '4.3.20';
+export const WEB_VERSION = '4.3.20';
 const cap = (typeof window !== 'undefined' && (window as any).Capacitor) || (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) || Capacitor;
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
@@ -61,9 +61,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Enforced main-only git workflow policy across documentation, scripts, and CI workflows.",
-      "Single animated Lucide Theme Morpher icon button (White → Dark → AMOLED).",
-      "Full Inspira UI Color Picker supporting HEX, RGB, HSL, alpha, swatches, and contrast preview.",
+      "Completely rebuilt Appearance screen with single animated Lucide Theme Morpher (White → Dark → AMOLED).",
+      "Full Inspira UI Color Picker integration with live contrast calculations and format conversions.",
+      "Fixed Firebase Hosting release metadata artifact download in Stage 4 publish pipeline.",
+      "Upgraded setup-gradle action to v4 with Actions Cache v2 support.",
     ],
   },
 ];

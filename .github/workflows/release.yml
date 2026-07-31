@@ -1,4 +1,4 @@
-﻿name: Release Pipeline
+name: Release Pipeline
 
 on:
   workflow_dispatch:
@@ -295,6 +295,12 @@ jobs:
           cp apps/studio-android/android/app/build/outputs/apk/release/app-release.apk "./$FILE_NAME"
           sha256sum "./$FILE_NAME" > "./$HASH_NAME"
           gh release upload "$TAG" "./$FILE_NAME" "./$HASH_NAME" --clobber
+
+      - name: Download Firebase Public Metadata Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firebase-public-metadata
+          path: firebase-public
 
       - name: Deploy Update Metadata to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

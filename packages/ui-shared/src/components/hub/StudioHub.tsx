@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from '../icons/ChordexLogo';
 import { Toggle, SectionHeader, SettingRow, SegmentedControl, COLOR_OPTIONS, BentoSettingCard, BentoSettingRow } from '../typography/SettingControls';
 import StudioThemeToggler from '../typography/StudioThemeToggler';
+import InspiraColorPicker from '../color/InspiraColorPicker';
 import ApplyToSheet from '../sheets/ApplyToSheet';
 import ChangelogSheet from '../sheets/ChangelogSheet';
 import GradientBorderCard from '../cards/GradientBorderCard';
@@ -3598,130 +3599,72 @@ User Agent: [Automatically Generated]
   }
 
   function renderAppearanceContent() {
+    const currentColor = accent.from || '#3b82f6';
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", paddingBottom: 24 }}>
-        <SettingsSectionLabel>{(t.hub as { studioSettings?: { themeSection?: string } }).studioSettings?.themeSection ?? "Theme & Appearance"}</SettingsSectionLabel>
+        {/* Top Row: Title + Animated Theme Morpher Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 4px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, fontFamily: 'Manrope', color: 'var(--c-text-primary)' }}>
+              {t.settings.sections.appearance || "Appearance"}
+            </h3>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
+              Customize theme, accent color, density, and scale
+            </p>
+          </div>
+          <StudioThemeToggler
+            currentTheme={hubVis.theme}
+            currentAmoled={hubVis.amoledMode ?? false}
+            accentFrom={accent.from}
+            onChange={(theme, amoledMode) => requestChange({ theme, amoledMode })}
+          />
+        </div>
+
+        {/* Accent Color Section with Inspira UI Color Picker */}
+        <SettingsSectionLabel>{t.settings.rows.accentColor || "Accent Color"}</SettingsSectionLabel>
         <div style={cardStyle}>
-          <div style={{ padding: isWebDesktop ? "16px 0px 12px" : "16px 16px 12px", borderBottom: "1px solid rgba(128,128,128,0.08)" }}>
-            <StudioThemeToggler
-              currentTheme={hubVis.theme}
-              currentAmoled={hubVis.amoledMode ?? false}
-              accentFrom={accent.from}
-              onChange={(theme, amoledMode) => requestChange({ theme, amoledMode })}
-              labels={{
-                system: t.settings.rows.themeSystem,
-                light:  t.settings.rows.themeLight,
-                dark:   t.settings.rows.themeDark,
-                amoled: t.hub.amoled,
+          <div style={{ padding: isWebDesktop ? "16px 0px" : "16px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <InspiraColorPicker
+              color={currentColor}
+              onChange={(newColor) => {
+                requestChange({ accentColor: 'custom' });
+                updateSettings({ accentColor: 'custom' });
+                document.documentElement.style.setProperty('--c-accent-from', newColor);
+                document.documentElement.style.setProperty('--c-accent-to', newColor);
+                document.documentElement.style.setProperty('--c-accent-mid', newColor);
               }}
             />
-            {(() => {
-              const isDynActive = hubVis.theme === "dynamic" && !hubVis.amoledMode;
-              return (
-                <button
-                  onClick={() => requestChange({ theme: "dynamic" as Theme, amoledMode: false })}
-                  className="btn-smooth"
-                  style={{
-                    width: "100%", marginTop: 8, padding: "11px 14px", borderRadius: 12,
-                    background: isDynActive ? `${accent.from}22` : "var(--app-surface-high)",
-                    border: `1.5px solid ${isDynActive ? accent.from + "66" : "transparent"}`,
-                    display: "flex", alignItems: "center", gap: 12,
-                    transition: "background 200ms ease, border-color 200ms ease, transform 160ms cubic-bezier(0.34,1.56,0.64,1)",
-                    cursor: "pointer",
-                    transform: isDynActive ? "scale(1.02)" : "scale(1)",
-                  }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: isDynActive ? accent.from : "var(--c-text-secondary)", fontVariationSettings: isDynActive ? "'FILL' 1" : "'FILL' 0", transition: "color 200ms ease", flexShrink: 0, filter: isDynActive ? `drop-shadow(0 0 6px ${accent.from}66)` : "none" }}>schedule</span>
-                  <div style={{ textAlign: "left" }}>
-                    <p style={{ color: isDynActive ? "var(--c-text-primary)" : "var(--c-text-secondary)", fontFamily: "Manrope", fontWeight: 700, fontSize: "var(--font-xs)", margin: 0, transition: "color 200ms ease" }}>{(t.hub as { studioSettings?: { dynamic?: string } }).studioSettings?.dynamic ?? "Dynamic"}</p>
-                    <p style={{ color: "var(--c-text-secondary)", fontFamily: "Inter", fontSize: 10.5, margin: "2px 0 0", opacity: 0.75 }}>{
-                      (t.hub as { studioSettings?: { dynamicHelper?: (a: string, b: string) => string } }).studioSettings?.dynamicHelper?.(
-                        formatHour(settings.dynamicLightStart ?? 7),
-                        formatHour(settings.dynamicLightEnd ?? 20),
-                      ) ?? `Light ${formatHour(settings.dynamicLightStart ?? 7)} – ${formatHour(settings.dynamicLightEnd ?? 20)} · Dark at night`
-                    }</p>
-                  </div>
-                </button>
-              );
-            })()}
-            {hubVis.theme === "dynamic" && !hubVis.amoledMode && (() => {
-              const lStart = settings.dynamicLightStart ?? 7;
-              const lEnd   = settings.dynamicLightEnd   ?? 20;
-              return (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, padding: "8px 0 4px" }}>
-                  {([
-                    { label: (t.hub as { studioSettings?: { lightFrom?: string } }).studioSettings?.lightFrom ?? "Light from", val: lStart, onDec: () => updateSettings({ dynamicLightStart: Math.max(0, lStart - 1) }), onInc: () => updateSettings({ dynamicLightStart: Math.min(lEnd - 1, lStart + 1) }) },
-                    { label: (t.hub as { studioSettings?: { darkFrom?: string } }).studioSettings?.darkFrom ?? "Dark from",  val: lEnd,   onDec: () => updateSettings({ dynamicLightEnd: Math.max(lStart + 1, lEnd - 1) }), onInc: () => updateSettings({ dynamicLightEnd: Math.min(23, lEnd + 1) }) },
-                  ] as { label: string; val: number; onDec: () => void; onInc: () => void }[]).map(({ label, val, onDec, onInc }) => (
-                    <div key={label} style={{ background: `${accent.from}12`, borderRadius: 12, padding: "10px 12px" }}>
-                      <p style={{ fontFamily: "Manrope", fontWeight: 700, fontSize: 10, color: "var(--c-text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 6px" }}>{label}</p>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                        <button onClick={onDec} className="btn-smooth" style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(128,128,128,0.12)", border: "none", outline: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--c-text-secondary)" }}>remove</span>
-                        </button>
-                        <span style={{ fontFamily: "Manrope", fontWeight: 800, fontSize: 14, color: "var(--c-text-primary)", minWidth: 40, textAlign: "center" }}>{formatHour(val)}</span>
-                        <button onClick={onInc} className="btn-smooth" style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(128,128,128,0.12)", border: "none", outline: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--c-text-secondary)" }}>add</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-          <div style={{ padding: isWebDesktop ? "14px 0px 12px" : "14px 16px 12px" }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--c-text-secondary)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 10px", fontFamily: "Manrope" }}>{t.settings.rows.accentColor}</p>
-            <div className="hub-accent-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
-              {COLOR_OPTIONS.map(c => {
-                const isActive = hubVis.accentColor === c.id;
-                return (
-                  <button key={c.id} onClick={() => requestChange({ accentColor: c.id as PerAppVisuals["accentColor"] })} className="btn-smooth"
-                    style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 12, background: isActive ? `${c.to}22` : "var(--app-surface-high)", border: `1.5px solid ${isActive ? c.to + "66" : "transparent"}`, transition: "background-color 200ms ease, border-color 200ms ease" }}>
-                    <span style={{ width: 16, height: 16, borderRadius: "50%", background: `linear-gradient(135deg, ${c.from}, ${c.to})`, flexShrink: 0, boxShadow: isActive ? `0 0 8px ${c.to}55` : "none", transition: "box-shadow 200ms ease", display: "block" }} />
-                    <span style={{ color: isActive ? "var(--c-text-primary)" : "var(--c-text-secondary)", fontFamily: "Manrope", fontWeight: 700, fontSize: "var(--font-xs)", transition: "color 200ms ease" }}>{(t.settings.colors as Record<string, string>)[c.id]}</span>
-                  </button>
-                );
-              })}
-            </div>
-            {(() => {
-              const isCustom = hubVis.accentColor === "custom";
-              const hue = settings.customAccentHue ?? 220;
-              return (
-                <>
-                  <button
-                    onClick={() => requestChange({ accentColor: "custom" })}
-                    className="btn-smooth"
-                    style={{ marginTop: 8, width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 12, background: isCustom ? `hsla(${hue}, 75%, 65%, 0.13)` : "var(--app-surface-high)", border: `1.5px solid ${isCustom ? `hsla(${hue}, 75%, 65%, 0.4)` : "transparent"}`, transition: "background-color 200ms ease, border-color 200ms ease", outline: "none", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}>
-                    <span style={{ width: 16, height: 16, borderRadius: "50%", background: `linear-gradient(135deg, hsl(${hue}, 75%, 65%), hsl(${(hue + 25) % 360}, 85%, 42%))`, flexShrink: 0, display: "block", boxShadow: isCustom ? `0 0 8px hsla(${hue}, 75%, 55%, 0.5)` : "none", transition: "box-shadow 200ms ease" }} />
-                    <span style={{ color: isCustom ? "var(--c-text-primary)" : "var(--c-text-secondary)", fontFamily: "Manrope", fontWeight: 700, fontSize: "var(--font-xs)", transition: "color 200ms ease" }}>{(t.hub as { studioSettings?: { custom?: string } }).studioSettings?.custom ?? "Custom"}</span>
-                  </button>
-                  {isCustom && (
-                    <div style={{ marginTop: 10 }}>
-                      <p style={{ fontFamily: "Manrope", fontWeight: 700, fontSize: 10, color: "var(--c-text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>{(t.hub as { studioSettings?: { colorLabel?: string } }).studioSettings?.colorLabel ?? "Color"}</p>
-                      <input
-                        type="range" className="hue-slider"
-                        min={0} max={359} value={hue}
-                        onChange={e => updateSettings({ customAccentHue: Number(e.target.value) })}
-                        style={{
-                          background: "linear-gradient(to right, hsl(0,80%,55%), hsl(30,80%,55%), hsl(60,80%,55%), hsl(90,80%,55%), hsl(120,80%,55%), hsl(150,80%,55%), hsl(180,80%,55%), hsl(210,80%,55%), hsl(240,80%,55%), hsl(270,80%,55%), hsl(300,80%,55%), hsl(330,80%,55%), hsl(360,80%,55%))",
-                          "--slider-hue": String(hue)
-                        } as React.CSSProperties}
-                      />
-                    </div>
-                  )}
-                </>
-              );
-            })()}
           </div>
         </div>
 
-        <SettingsSectionLabel>{t.settings.sections.display}</SettingsSectionLabel>
+        {/* Display Density & Text Scale */}
+        <SettingsSectionLabel>{t.settings.sections.display || "Display & Layout"}</SettingsSectionLabel>
         <div style={cardStyle}>
           <SettingRow label={t.settings.rows.density} desc={t.settings.rows.densityDesc}>
-            <SegmentedControl<DisplayDensity> value={settings.displayDensity} options={[{ value: "compact", label: t.settings.rows.compact }, { value: "comfortable", label: t.settings.rows.normal }, { value: "spacious", label: t.settings.rows.airy }]} onChange={v => updateSettings({ displayDensity: v })} accentFrom={accent.from} accentTo={accent.to} />
+            <SegmentedControl<DisplayDensity>
+              value={settings.displayDensity}
+              options={[
+                { value: "compact", label: t.settings.rows.compact },
+                { value: "comfortable", label: t.settings.rows.normal },
+                { value: "spacious", label: t.settings.rows.airy }
+              ]}
+              onChange={v => updateSettings({ displayDensity: v })}
+              accentFrom={accent.from}
+              accentTo={accent.to}
+            />
           </SettingRow>
           <SettingRow label={t.settings.rows.fontSize} desc={t.settings.rows.fontSizeDesc}>
-            <SegmentedControl<"small" | "medium" | "large"> value={settings.fontSize} options={[{ value: "small", label: "S" }, { value: "medium", label: "M" }, { value: "large", label: "L" }]} onChange={v => updateSettings({ fontSize: v })} accentFrom={accent.from} accentTo={accent.to} />
+            <SegmentedControl<"small" | "medium" | "large">
+              value={settings.fontSize}
+              options={[
+                { value: "small", label: "S" },
+                { value: "medium", label: "M" },
+                { value: "large", label: "L" }
+              ]}
+              onChange={v => updateSettings({ fontSize: v })}
+              accentFrom={accent.from}
+              accentTo={accent.to}
+            />
           </SettingRow>
         </div>
       </div>

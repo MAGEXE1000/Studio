@@ -1,5 +1,10 @@
 Release Date: 2026-08-01
 
-### Fixed
-- Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.
-- Restored Phase 4 Updater startup recovery check and listener registrations.
+### Added
+- This is a temporary release created exclusively to validate the Studio updater pipeline.
+- Updater validation build.
+- Release pipeline verification.
+- Version propagation verification.
+- Firebase metadata verification.
+- GitHub Release verification.
+- APK signing verification.

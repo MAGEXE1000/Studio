@@ -11,6 +11,19 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 
+## 4.3.36
+
+Release Date: 2026-08-01
+
+### Added
+- This is a temporary release created exclusively to validate the Studio updater pipeline.
+- Updater validation build.
+- Release pipeline verification.
+- Version propagation verification.
+- Firebase metadata verification.
+- GitHub Release verification.
+- APK signing verification.
+
 ## 4.3.35
 
 Release Date: 2026-08-01

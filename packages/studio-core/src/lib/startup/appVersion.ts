@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.35';
-export const NATIVE_VERSION_CODE = 40335;
-export const WEB_VERSION = '4.3.35';
+export const NATIVE_VERSION = '4.3.36';
+export const NATIVE_VERSION_CODE = 40336;
+export const WEB_VERSION = '4.3.36';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'edf65b59';
+export const APP_COMMIT_SHA = '3137cd0a';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 12:29:54 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 12:45:21 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,10 +96,15 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.",
-      "Restored Phase 4 Updater startup recovery check and listener registrations.",
+      "This is a temporary release created exclusively to validate the Studio updater pipeline.",
+      "Updater validation build.",
+      "Release pipeline verification.",
+      "Version propagation verification.",
+      "Firebase metadata verification.",
+      "GitHub Release verification.",
+      "APK signing verification.",
     ],
   },
 ];
@@ -111,6 +116,14 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.3.35',
+    date: '2026-08-01',
+    highlights: [
+      'Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.',
+      'Restored Phase 4 Updater startup recovery check and listener registrations.',
+    ],
+  },
   {
     version: '4.3.34',
     date: '2026-07-31',

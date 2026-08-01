@@ -36,6 +36,7 @@ import {
   COLOR_OPTIONS,
   BentoSettingCard,
   BentoSettingRow,
+  SettingSection,
 } from '../../../shared/typography/SettingControls';
 import ApplyToSheet from '../../chordex/components/ApplyToSheet';
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
@@ -811,7 +812,7 @@ export default function StudioHub() {
       case 'updater':
         setTab('settings');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' });
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' });
         }, 150);
         break;
       case 'settings':
@@ -3131,6 +3132,32 @@ function GlobalHint() {
   );
 }
 
+function getUpdaterStatusText(updater: any, lang: string) {
+  if (updater.loading) {
+    if (['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL'].includes(updater.updateState)) {
+      return lang === 'es' ? 'Descargando…' : 'Downloading...';
+    }
+    if (updater.updateState === 'INSTALLING') {
+      return lang === 'es' ? 'Instalando…' : 'Installing...';
+    }
+    return lang === 'es' ? 'Buscando actualizaciones…' : 'Checking for updates...';
+  }
+  
+  if (updater.updateState === 'WAITING_USER_CONFIRMATION' || updater.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+    return lang === 'es' ? 'Listo para instalar' : 'Ready to install';
+  }
+  
+  if (['INSTALL_FAILED', 'RECOVERY'].includes(updater.updateState)) {
+    return lang === 'es' ? 'Error al instalar' : 'Failed';
+  }
+  
+  if (updater.updateAvailable) {
+    return lang === 'es' ? 'Actualización disponible' : 'Update available';
+  }
+  
+  return lang === 'es' ? 'Estás al día' : 'Up to date';
+}
+
 function HubUpdaterPage({
   className,
   style,
@@ -3138,673 +3165,273 @@ function HubUpdaterPage({
   accent,
   onBack,
   hideHeader,
+  onNavigate,
 }: {
   className?: string;
-  style: React.CSSProperties;
+  style?: React.CSSProperties;
   cardStyle: React.CSSProperties;
   accent: { from: string; to: string; mid: string };
   onBack: () => void;
   hideHeader?: boolean;
+  onNavigate: (pageId: SettingsPageId) => void;
 }) {
   const updater = useAppUpdate();
-  const isWebDesktop = useIsWebDesktop();
   const settings = useSettingsStore((state) => state.settings);
   const lang = settings.language ?? 'en';
-  const changelogSections = getChangelogSections(lang);
-  const [changelogExpanded, setChangelogExpanded] = useState(false);
-  const isChangelogTooLong =
-    changelogSections.length > 2 || changelogSections.some((s) => s.items.length > 3);
 
-  const L =
-    lang === 'es'
-      ? {
-          title: 'Actualizaciones',
-          latestRelease: 'Última versión',
-          currentVersion: 'Versión actual',
-          checking: 'Buscando actualizaciones…',
-          upToDate: 'Estás al día',
-          upToDateDesc: 'Estás usando la versión más reciente de Studio.',
-          updateAvailable: 'Actualización disponible',
-          updateAvailableDesc: 'Una nueva versión de Studio está lista.',
-          updateNow: 'Actualizar ahora',
-          checkForUpdates: 'Buscar actualizaciones',
-          whatsNew: 'Novedades en esta versión',
-          showFullChangelog: 'Ver registro de cambios completo',
-          hideChangelog: 'Ocultar registro de cambios',
-          reinstallRequired: 'Requiere reinstalación',
-          reinstallDesc:
-            'Esta versión requiere reinstalar Studio debido a un cambio de certificado de firma.',
-        }
-      : {
-          title: 'Updates',
-          latestRelease: 'Latest Release',
-          currentVersion: 'Current version',
-          checking: 'Checking for updates…',
-          upToDate: "You're up to date",
-          upToDateDesc: "You're running the latest version of Studio.",
-          updateAvailable: 'Update available',
-          updateAvailableDesc: 'A new version of Studio is ready to install.',
-          updateNow: 'Update Now',
-          checkForUpdates: 'Check for Updates',
-          whatsNew: "What's new in this version",
-          showFullChangelog: 'Show full changelog',
-          hideChangelog: 'Hide changelog',
-          reinstallRequired: 'Reinstall required',
-          reinstallDesc:
-            'This version requires reinstalling Studio due to a signing certificate change.',
-        };
+  const [autoUpdates, setAutoUpdates] = useState(() => {
+    return localStorage.getItem('studio:automatic_updates') !== 'false';
+  });
+  const [releaseChannel, setReleaseChannel] = useState<'stable' | 'beta' | 'developer'>(() => {
+    return (localStorage.getItem('studio:release_channel') as 'stable' | 'beta' | 'developer') || 'beta';
+  });
 
-  const isChecking = updater.loading;
-  const hasUpdate = updater.updateAvailable;
-  const isReinstall = Capacitor.isNativePlatform() && updater.reinstallRequired;
-
-  const statusConfig = isChecking
-    ? { color: accent.from, label: L.checking, icon: 'refresh' as const, pulse: true }
-    : hasUpdate
-      ? isReinstall
-        ? { color: '#f87171', label: L.reinstallRequired, icon: 'warning' as const, pulse: false }
-        : {
-            color: '#f59e0b',
-            label: L.updateAvailable,
-            icon: 'system_update' as const,
-            pulse: false,
-          }
-      : { color: '#4ade80', label: L.upToDate, icon: 'check_circle' as const, pulse: false };
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr + 'T00:00:00');
-      return d.toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
+  const handleToggleAutoUpdates = (val: boolean) => {
+    setAutoUpdates(val);
+    localStorage.setItem('studio:automatic_updates', String(val));
   };
 
-  const getCategoryStyle = (heading: string) => {
-    const key = heading.toLowerCase();
-    const colors = {
-      added: { bg: 'rgba(74, 222, 128, 0.12)', text: '#4ade80' },
-      improved: { bg: `color-mix(in srgb, ${accent.from} 12%, transparent)`, text: accent.from },
-      fixed: { bg: 'rgba(251, 191, 36, 0.12)', text: '#fbbf24' },
-      changed: { bg: 'rgba(147, 130, 220, 0.12)', text: '#9382dc' },
-    };
-    return colors[key] || { bg: 'rgba(128,128,128,0.1)', text: 'var(--c-text-secondary)' };
+  const handleChangeChannel = (val: 'stable' | 'beta' | 'developer') => {
+    setReleaseChannel(val);
+    localStorage.setItem('studio:release_channel', val);
   };
-
-  const showRecoveryStatus = Capacitor.isNativePlatform();
-  const recoveryStatusText = updater.recoveryMode
-    ? lang === 'es'
-      ? 'Recuperación Activa (Fallos consecutivos: ' + updater.consecutiveFailures + ')'
-      : 'Recovery Mode Active (Consecutive failures: ' + updater.consecutiveFailures + ')'
-    : lang === 'es'
-      ? 'Estable (Normal)'
-      : 'Stable (Normal)';
 
   return (
-    <div className={className} style={style}>
-      <style>
-        {HUB_SETTINGS_CSS}
-        {`
-        @keyframes updater-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-        @keyframes updater-check-spin {
-          to { transform: rotate(360deg); }
-        }
-        .updater-hero-card {
-          position: relative;
-          border-radius: 20px;
-          overflow: hidden;
-          margin: 0 0 16px;
-        }
-        .updater-hero-bg {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg,
-            color-mix(in srgb, ${accent.from} 15%, transparent),
-            color-mix(in srgb, ${accent.to} 8%, transparent)
-          );
-          pointer-events: none;
-        }
-        .updater-hero-inner {
-          position: relative;
-          padding: 22px 20px 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        .updater-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-family: Manrope, sans-serif;
-          font-weight: 700;
-          font-size: 11px;
-          letter-spacing: 0.03em;
-          text-transform: uppercase;
-          width: fit-content;
-        }
-        .updater-version-headline {
-          font-family: Manrope, sans-serif;
-          font-weight: 800;
-          font-size: 32px;
-          letter-spacing: -0.035em;
-          line-height: 1.1;
-          color: var(--c-text-primary);
-          margin: 0;
-        }
-        .updater-status-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 14px;
-          border-radius: 12px;
-          background: rgba(128,128,128,0.06);
-          border: 1px solid rgba(128,128,128,0.08);
-        }
-        .updater-status-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        .updater-cta-btn {
-          width: 100%;
-          padding: 14px 20px;
-          border-radius: 14px;
-          border: none;
-          font-family: Manrope, sans-serif;
-          font-weight: 800;
-          font-size: 14px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justifyContent: center;
-          gap: 8px;
-          transition: transform 120ms ease, box-shadow 200ms ease;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .updater-cta-btn:active {
-          transform: scale(0.97);
-        }
-        .updater-changelog-section {
-          padding: 14px 18px;
-          border-bottom: 1px solid rgba(128,128,128,0.06);
-        }
-        .updater-changelog-section:last-child {
-          border-bottom: none;
-        }
-        .updater-changelog-heading {
-          display: inline-flex;
-          align-items: center;
-          padding: 3px 9px;
-          border-radius: 6px;
-          font-family: Manrope, sans-serif;
-          font-weight: 700;
-          font-size: 11.5px;
-          letter-spacing: 0.02em;
-          margin-bottom: 10px;
-        }
-        .updater-changelog-item {
-          display: flex;
-          gap: 10px;
-          padding: 4px 0;
-          font-family: Inter, sans-serif;
-          font-size: var(--font-sm, 13px);
-          line-height: 1.5;
-          color: var(--c-text-secondary);
-        }
-        .updater-changelog-bullet {
-          flex-shrink: 0;
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          margin-top: 7px;
-        }
-      `}
-      </style>
-      {!isWebDesktop && !hideHeader && <SettingsSubHeader title={L.title} onBack={onBack} />}
+    <div className={className} style={{ ...style, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <SettingSection title={lang === 'es' ? 'SISTEMA DE ACTUALIZACIONES' : 'UPDATE SYSTEM'}>
+        {/* Current Version */}
+        <SettingRow
+          label={lang === 'es' ? 'Versión actual' : 'Current Version'}
+          desc={`${APP_VERSION_TAG} ${APP_VERSION} (Build ${APP_VERSION_DATE})`}
+        >
+          <span style={{ fontSize: 12, color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+            {lang === 'es' ? 'Instalado' : 'Installed'}
+          </span>
+        </SettingRow>
 
-      {/* ── 2. CURRENT INSTALLED VERSION & CHECKER ── */}
-      <div
-        className="updater-hero-card spring-in"
-        style={{ ...cardStyle, margin: 0, marginBottom: 16 }}
-      >
-        <div className="updater-hero-bg" />
-        <div className="updater-hero-inner">
-          {/* Badge */}
-          <div
-            className="updater-badge"
-            style={{
-              background: hasUpdate
-                ? isReinstall
-                  ? 'rgba(248,113,113,0.12)'
-                  : `color-mix(in srgb, ${accent.from} 14%, transparent)`
-                : 'rgba(74,222,128,0.12)',
-              color: hasUpdate ? (isReinstall ? '#f87171' : accent.from) : '#4ade80',
-            }}
-          >
+        {/* Check for Updates */}
+        <SettingRow
+          label={lang === 'es' ? 'Buscar actualizaciones' : 'Check for Updates'}
+          desc={getUpdaterStatusText(updater, lang)}
+        >
+          {updater.loading ? (
             <span
               className="material-symbols-outlined"
               style={{
-                fontSize: 13,
-                fontVariationSettings: "'FILL' 1",
+                fontSize: 18,
+                color: accent.from,
+                animation: 'updater-check-spin 1s linear infinite',
+                display: 'inline-block',
               }}
             >
-              {statusConfig.icon}
+              refresh
             </span>
-            {hasUpdate ? L.latestRelease : L.upToDate}
-          </div>
-
-          {/* Version Headline */}
-          <h1 className="updater-version-headline">
-            {hasUpdate ? (
-              <>v{updater.remoteVersion}</>
-            ) : (
-              <>
-                v{APP_VERSION}
-                <span className="updater-version-tag">{APP_VERSION_TAG}</span>
-              </>
-            )}
-          </h1>
-
-          {/* Status Row */}
-          <div className="updater-status-row">
-            {isChecking ? (
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 16,
-                  color: accent.from,
-                  animation: 'updater-check-spin 1s linear infinite',
-                  flexShrink: 0,
-                }}
-              >
-                refresh
-              </span>
-            ) : (
-              <div
-                className="updater-status-dot"
-                style={{
-                  background: statusConfig.color,
-                  boxShadow: `0 0 8px ${statusConfig.color}66`,
-                  animation: statusConfig.pulse
-                    ? 'updater-pulse 1.5s ease-in-out infinite'
-                    : 'none',
-                }}
-              />
-            )}
-            <span
+          ) : updater.updateAvailable ? (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
+              className="btn-smooth animate-click"
               style={{
-                fontFamily: 'Manrope, sans-serif',
-                fontWeight: 600,
-                fontSize: 'var(--font-sm, 13px)',
-                color: 'var(--c-text-primary)',
-                flex: 1,
-              }}
-            >
-              {statusConfig.label}
-            </span>
-            {!hasUpdate && !isChecking && (
-              <span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 11.5,
-                  color: 'var(--c-text-tertiary)',
-                }}
-              >
-                {formatDate(APP_VERSION_DATE)}
-              </span>
-            )}
-          </div>
-
-          {/* Reinstall Warning */}
-          {hasUpdate && isReinstall && (
-            <div
-              style={{
+                padding: '6px 14px',
+                borderRadius: 10,
+                background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                color: 'white',
+                border: 'none',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: `0 4px 10px color-mix(in srgb, ${accent.to} 20%, transparent)`,
                 display: 'flex',
-                alignItems: 'flex-start',
-                gap: 10,
-                padding: '12px 14px',
-                borderRadius: 12,
-                background: 'rgba(248,113,113,0.08)',
-                border: '1px solid rgba(248,113,113,0.15)',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 16,
-                  color: '#f87171',
-                  flexShrink: 0,
-                  marginTop: 1,
-                  fontVariationSettings: "'FILL' 1",
-                }}
-              >
-                warning
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
+                  ? 'install_mobile'
+                  : 'download'}
               </span>
-              <div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontFamily: 'Manrope',
-                    fontWeight: 700,
-                    fontSize: 12.5,
-                    color: '#f87171',
-                  }}
-                >
-                  {L.reinstallRequired}
-                </p>
-                <p
-                  style={{
-                    margin: '4px 0 0',
-                    fontFamily: 'Inter',
-                    fontSize: 11.5,
-                    color: 'var(--c-text-secondary)',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {L.reinstallDesc}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* CTA Button */}
-          {hasUpdate ? (
-            Capacitor.isNativePlatform() ? (
-              <button
-                className="updater-cta-btn"
-                onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
-                style={{
-                  background: isReinstall
-                    ? 'linear-gradient(135deg, #f87171, #ef4444)'
-                    : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  color: '#fff',
-                  boxShadow: isReinstall
-                    ? '0 4px 20px rgba(248,113,113,0.3)'
-                    : `0 4px 20px color-mix(in srgb, ${accent.to} 30%, transparent)`,
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
-                >
-                  {isReinstall ? 'download' : 'system_update'}
-                </span>
-                {L.updateNow}
-              </button>
-            ) : (
-              <button
-                className="updater-cta-btn"
-                onClick={() => window.location.reload()}
-                style={{
-                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  color: '#fff',
-                  boxShadow: `0 4px 20px color-mix(in srgb, ${accent.to} 30%, transparent)`,
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
-                >
-                  refresh
-                </span>
-                {lang === 'es' ? 'Recargar Studio' : 'Refresh Studio'}
-              </button>
-            )
+              {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
+                ? (lang === 'es' ? 'Instalar' : 'Install Update')
+                : (lang === 'es' ? 'Continuar' : 'Continue Update')}
+            </button>
           ) : (
             <button
-              className="updater-cta-btn"
               onClick={async () => {
                 await updater.checkNow();
               }}
-              disabled={isChecking}
+              className="btn-smooth animate-click"
               style={{
-                background: 'rgba(128,128,128,0.08)',
-                color: isChecking ? 'var(--c-text-tertiary)' : 'var(--c-text-primary)',
-                border: '1px solid rgba(128,128,128,0.12)',
-                cursor: isChecking ? 'default' : 'pointer',
+                padding: '6px 14px',
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.06)',
+                color: 'var(--c-text-primary)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 18,
-                  animation: isChecking ? 'updater-check-spin 1s linear infinite' : 'none',
-                }}
-              >
-                refresh
-              </span>
-              {L.checkForUpdates}
+              {lang === 'es' ? 'Buscar' : 'Check Now'}
             </button>
           )}
+        </SettingRow>
 
-          {/* ── 3. COLLAPSIBLE CHANGELOG ── */}
-          {changelogSections.length > 0 && (
-            <div
-              style={{
-                borderTop: '1px solid rgba(128, 128, 128, 0.12)',
-                paddingTop: 16,
-                marginTop: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: 'Manrope, sans-serif',
-                  fontWeight: 700,
-                  fontSize: 12,
-                  color: 'var(--c-text-secondary)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  margin: 0,
-                }}
-              >
-                {L.whatsNew}
-              </p>
+        {/* Automatic Updates */}
+        <SettingRow
+          label={lang === 'es' ? 'Actualizaciones automáticas' : 'Automatic Updates'}
+          desc={lang === 'es' ? 'Buscar y descargar compilaciones en segundo plano' : 'Check and download builds in the background'}
+        >
+          <Toggle
+            checked={autoUpdates}
+            onChange={handleToggleAutoUpdates}
+          />
+        </SettingRow>
 
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  borderRadius: 12,
-                  background: 'rgba(128, 128, 128, 0.04)',
-                  border: '1px solid rgba(128, 128, 128, 0.06)',
-                  overflow: 'hidden',
-                }}
-              >
-                {(isChangelogTooLong && !changelogExpanded
-                  ? changelogSections.slice(0, 2)
-                  : changelogSections
-                ).map((section, si) => (
-                  <div
-                    key={si}
-                    className="updater-changelog-section"
-                    style={{
-                      padding: '12px 14px',
-                      borderBottom:
-                        si ===
-                        (isChangelogTooLong && !changelogExpanded
-                          ? Math.min(2, changelogSections.length)
-                          : changelogSections.length) -
-                          1
-                          ? 'none'
-                          : '1px solid rgba(128,128,128,0.06)',
-                    }}
-                  >
-                    <div
-                      className="updater-changelog-heading"
-                      style={{
-                        background: getCategoryStyle(section.heading).bg,
-                        color: getCategoryStyle(section.heading).text,
-                        marginBottom: 8,
-                      }}
-                    >
-                      {section.heading}
-                    </div>
-                    {(isChangelogTooLong && !changelogExpanded
-                      ? section.items.slice(0, 3)
-                      : section.items
-                    ).map((item, ii) => {
-                      const cleanedItem = item.replace(/^[-*•]\s*/, '').trim();
-                      return (
-                        <div key={ii} className="updater-changelog-item" style={{ padding: '4px 0', display: 'flex', alignItems: 'flex-start', gap: 6, lineHeight: '1.6' }}>
-                          <div
-                            className="updater-changelog-bullet"
-                            style={{
-                              background: getCategoryStyle(section.heading).text,
-                              opacity: 0.6,
-                              marginTop: 6,
-                              flexShrink: 0,
-                            }}
-                          />
-                          <span>{cleanedItem}</span>
-                        </div>
-                      );
-                    })}
-                    {isChangelogTooLong && !changelogExpanded && section.items.length > 3 && (
-                      <div
-                        style={{
-                          paddingLeft: 15,
-                          paddingTop: 2,
-                          fontFamily: 'Inter',
-                          fontSize: 11,
-                          color: 'var(--c-text-tertiary)',
-                        }}
-                      >
-                        +{section.items.length - 3} more
-                      </div>
-                    )}
-                  </div>
-                ))}
+        {/* Release Channel */}
+        <SettingRow
+          label={lang === 'es' ? 'Canal de lanzamientos' : 'Release Channel'}
+          desc={lang === 'es' ? 'Seleccionar estabilidad de compilaciones' : 'Select stability of system builds'}
+        >
+          <SegmentedControl
+            value={releaseChannel}
+            options={[
+              { value: 'stable', label: lang === 'es' ? 'Estable' : 'Stable' },
+              { value: 'beta', label: 'Beta' },
+              { value: 'developer', label: lang === 'es' ? 'Desarrollo' : 'Dev' },
+            ]}
+            onChange={handleChangeChannel}
+            accentFrom={accent.from}
+            accentTo={accent.to}
+            layoutId="updater-release-channel"
+          />
+        </SettingRow>
 
-                {isChangelogTooLong && (
-                  <button
-                    type="button"
-                    onClick={() => setChangelogExpanded(!changelogExpanded)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      width: '100%',
-                      padding: '10px 14px',
-                      border: 'none',
-                      background: 'transparent',
-                      color: accent.from,
-                      fontFamily: 'Manrope',
-                      fontWeight: 700,
-                      fontSize: 'var(--font-sm, 12px)',
-                      cursor: 'pointer',
-                      borderTop: '1px solid rgba(128,128,128,0.06)',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                      {changelogExpanded ? 'expand_less' : 'expand_more'}
-                    </span>
-                    {changelogExpanded ? L.hideChangelog : L.showFullChangelog}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── 1. OFFICIAL RELEASE DOWNLOADS (Recovery Section) ── */}
-      <div
-        className="spring-in"
-        style={{
-          ...cardStyle,
-          margin: 0,
-          marginBottom: 16,
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 24, color: accent.from }}>
-            download
-          </span>
-          <strong style={{ fontFamily: 'Manrope', fontSize: 16 }}>
-            {lang === 'es' ? 'Descargas Oficiales' : 'Official Release Downloads'}
-          </strong>
-        </div>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {lang === 'es'
-            ? 'Studio publica cada versión oficial firmada directamente en GitHub. Puede descargar la última compilación si la actualización automática del sistema falla.'
-            : 'Studio publishes every official production release on GitHub. You can safely download and install the latest signed release directly from the repository if the automatic updater fails.'}
-        </p>
-
-        {showRecoveryStatus && (
-          <div
+        {/* Update Diagnostics */}
+        <SettingRow
+          label={lang === 'es' ? 'Diagnósticos de actualización' : 'Update Diagnostics'}
+          desc={lang === 'es' ? 'Copiar informes de depuración y estado del actualizador' : 'Copy debug reports and check recovery logs'}
+        >
+          <button
+            onClick={async () => {
+              try {
+                const report = await updater.getDiagnosticsReport();
+                await navigator.clipboard.writeText(report);
+                if (typeof (window as any).showDevToast === 'function') {
+                  (window as any).showDevToast(lang === 'es' ? 'Copiado al portapapeles' : 'Copied report to clipboard');
+                } else {
+                  alert(lang === 'es' ? 'Copiado al portapapeles' : 'Diagnostics report copied to clipboard!');
+                }
+              } catch (e) {
+                alert(e instanceof Error ? e.message : String(e));
+              }
+            }}
+            className="btn-smooth animate-click"
             style={{
+              padding: '6px 14px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.06)',
+              color: 'var(--c-text-primary)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              background: 'rgba(128,128,128,0.04)',
-              padding: '10px 14px',
-              borderRadius: '12px',
-              border: '1px solid rgba(128,128,128,0.06)',
+              gap: 4,
             }}
           >
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-tertiary)' }}>
-              {lang === 'es' ? 'Estado de Recuperación' : 'Recovery Status'}
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              content_copy
             </span>
-            <span
+            {lang === 'es' ? 'Copiar' : 'Copy'}
+          </button>
+        </SettingRow>
+
+        {/* Changelog */}
+        <SettingRow
+          label={lang === 'es' ? 'Historial de cambios' : 'Changelog'}
+          desc={lang === 'es' ? 'Ver notas de lanzamiento completas' : 'View full chronological release notes'}
+        >
+          <button
+            onClick={() => onNavigate('changelog')}
+            className="btn-smooth animate-click"
+            style={{
+              padding: '6px 14px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.06)',
+              color: 'var(--c-text-primary)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              history
+            </span>
+            {lang === 'es' ? 'Ver' : 'View'}
+          </button>
+        </SettingRow>
+      </SettingSection>
+
+      {/* About this Update */}
+      {updater.updateAvailable && updater.changelog && (
+        <SettingSection title={lang === 'es' ? 'ACERCA DE ESTA ACTUALIZACIÓN' : 'ABOUT THIS UPDATE'}>
+          <div style={{ padding: '14px 20px', color: 'var(--c-text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 10px 0', fontWeight: 700, color: 'var(--c-text-primary)' }}>
+              {lang === 'es' ? 'Novedades en v' : "What's new in v"}{updater.remoteVersion}:
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {updater.changelog.split('\n').map((line, idx) => {
+                const cleanLine = line.replace(/^[•\s*-]+/g, '').trim();
+                if (!cleanLine) return null;
+                return (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <span style={{ color: accent.from, marginTop: 1 }}>•</span>
+                    <span>{cleanLine}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </SettingSection>
+      )}
+
+      {/* Recovery official releases link */}
+      {Capacitor.isNativePlatform() && (
+        <SettingSection title={lang === 'es' ? 'RECUPERACIÓN' : 'RECOVERY'}>
+          <SettingRow
+            label={lang === 'es' ? 'Descargas oficiales' : 'Official Downloads'}
+            desc={lang === 'es' ? 'Descargar compilaciones firmadas desde GitHub' : 'Download signed production builds from GitHub'}
+          >
+            <button
+              onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
+              className="btn-smooth animate-click"
               style={{
-                fontSize: 12,
+                padding: '6px 14px',
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.06)',
+                color: 'var(--c-text-primary)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                fontSize: 11,
                 fontWeight: 700,
-                color: updater.recoveryMode ? '#ef4444' : '#22c55e',
-                background: updater.recoveryMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
-                padding: '2px 8px',
-                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
-              {recoveryStatusText}
-            </span>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
-          className="btn-smooth animate-click"
-          style={{
-            height: 42,
-            borderRadius: 12,
-            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-            border: 'none',
-            color: 'white',
-            fontFamily: 'Manrope',
-            fontWeight: 800,
-            fontSize: 13,
-            cursor: 'pointer',
-            boxShadow: `0 4px 14px color-mix(in srgb, ${accent.to} 25%, transparent)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
-        >
-          <svg viewBox="0 0 24 24" width={18} height={18} fill="white" style={{ flexShrink: 0 }}>
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-          </svg>
-          {lang === 'es' ? 'Descargar de GitHub' : 'Download from GitHub'}
-        </button>
-      </div>
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                download
+              </span>
+              GitHub
+            </button>
+          </SettingRow>
+        </SettingSection>
+      )}
     </div>
   );
 }
@@ -3963,22 +3590,14 @@ function HubSettings({
           t.hub.studioSettings.applicationLabel || (lang === 'es' ? 'Aplicación' : 'Application'),
         items: [
           {
-            id: 'release-notes' as const,
-            icon: 'article',
-            label:
-              t.hub.studioSettings.releaseTitle ||
-              (lang === 'es' ? 'Notas de Lanzamiento' : 'Release Notes'),
-          },
-          {
-            id: 'changelog' as const,
-            icon: 'history',
-            label: lang === 'es' ? 'Historial de Cambios' : 'Changelog',
+            id: 'updater' as const,
+            icon: 'system_update',
+            label: lang === 'es' ? 'Actualizador' : 'Updater',
           },
           {
             id: 'about' as const,
             icon: 'info',
-            label:
-              t.settings.sections.about || (lang === 'es' ? 'Acerca de Studio' : 'About & Version'),
+            label: lang === 'es' ? 'Acerca de Livex' : 'About Livex',
           },
           ...(settings.developerMode
             ? [
@@ -7423,6 +7042,21 @@ User Agent: [Automatically Generated]
         return renderReleaseNotesContent();
       case 'changelog':
         return renderChangelogContent();
+      case 'updater':
+        return (
+          <SettingsScaffold
+            title={getPageTitle('updater')}
+            onBack={goBack}
+          >
+            <HubUpdaterPage
+              cardStyle={cardStyle}
+              accent={accent}
+              onBack={goBack}
+              hideHeader={true}
+              onNavigate={navigate}
+            />
+          </SettingsScaffold>
+        );
       case 'help-center':
         return renderHelpCenterContent();
       case 'faq':
@@ -7443,6 +7077,7 @@ User Agent: [Automatically Generated]
     const standardScrollPages: SettingsPageId[] = [
       'general',
       'updater',
+      'changelog',
       'appearance',
       'language',
       'privacy',
@@ -7470,6 +7105,7 @@ User Agent: [Automatically Generated]
             'main',
             'general',
             'updater',
+            'changelog',
             'appearance',
             'language',
             'privacy',
@@ -7971,6 +7607,83 @@ User Agent: [Automatically Generated]
 
                         <motion.div
                           whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('updater')}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            padding: 12,
+                            borderRadius: 10,
+                            cursor: 'pointer',
+                          }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'rgba(255,255,255,0.03)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                            }}
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                            >
+                              system_update
+                            </span>
+                          </div>
+                          <div
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: 'var(--c-text-primary)',
+                                fontFamily: 'Inter',
+                              }}
+                            >
+                              {lang === 'es' ? 'Actualizador' : 'Updater'}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 11,
+                                color: 'var(--c-text-secondary)',
+                                opacity: 0.7,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                              }}
+                            >
+                              {getUpdaterStatusText(updater, lang)}
+                              {updater.updateAvailable && (
+                                <span
+                                  style={{
+                                    width: 6,
+                                    height: 6,
+                                    borderRadius: '50%',
+                                    background: '#ef4444',
+                                    display: 'inline-block',
+                                  }}
+                                />
+                              )}
+                            </span>
+                          </div>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
+                          >
+                            chevron_right
+                          </span>
+                        </motion.div>
+
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => navigate('about')}
                           style={{
                             display: 'flex',
@@ -8012,7 +7725,7 @@ User Agent: [Automatically Generated]
                                 fontFamily: 'Inter',
                               }}
                             >
-                              About Studio
+                              About Livex
                             </span>
                             <span
                               style={{
@@ -8294,7 +8007,18 @@ User Agent: [Automatically Generated]
                       >
                         {item.icon}
                       </span>
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate" style={{ flex: 1 }}>{item.label}</span>
+                      {item.id === 'updater' && updater.updateAvailable && (
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: '#ef4444',
+                            marginRight: 4,
+                          }}
+                        />
+                      )}
                     </button>
                   );
                 })}

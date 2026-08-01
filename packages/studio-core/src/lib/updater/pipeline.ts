@@ -967,6 +967,18 @@ export function checkForUpdate(
     `${traceMsg} | Stack: ${stackTrace.slice(0, 300)}`
   );
 
+  if (!isManual) {
+    try {
+      const autoUpdates = localStorage.getItem('studio:automatic_updates') !== 'false';
+      if (!autoUpdates) {
+        const msg = 'checkForUpdate() automatic update check disabled by user preferences';
+        console.log(`[UPDATER-TRACE] ${msg}`);
+        logTimelineEvent('UpdateCore', 'CHECK_REJECTED_AUTO_DISABLED', 'Automatic updates are disabled');
+        return Promise.resolve(globalUpdateState);
+      }
+    } catch (_) {}
+  }
+
   const current = globalUpdateState.updateState;
   const isBusy = [
     'FETCH_APK_INFORMATION',
@@ -1584,6 +1596,29 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       `Call #${callId} resolved (web reload completed)`
     );
     return Promise.resolve();
+  }
+
+  // Check for Unknown Sources permission on Android before transitioning or calling triggerNativeInstall
+  if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
+    try {
+      const { AppInstaller } = await import('../apkDownloader');
+      const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
+      if (!hasPerm) {
+        logTimelineEvent('UpdateCore', 'MISSING_INSTALL_PERMISSION', 'Redirecting to unknown sources settings');
+        updateActiveSession({
+          installStep: 'permission_settings',
+        });
+        updateGlobalState({ statusText: 'Waiting for permission...' });
+        await AppInstaller.openUnknownAppSourcesSettings();
+        void logProgressStage(
+          '[INSTRUMENTATION] applyUpdate EXIT',
+          `Call #${callId} exit early (waiting for unknown sources permission)`
+        );
+        return Promise.resolve();
+      }
+    } catch (e) {
+      console.error('Failed to verify install permission:', e);
+    }
   }
 
   if (globalUpdateState.updateState !== 'WAITING_USER_CONFIRMATION') {

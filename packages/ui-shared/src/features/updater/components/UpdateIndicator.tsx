@@ -501,11 +501,6 @@ export default function UpdateIndicator({
         onLater={() => setOpen(false)}
         onClose={() => {
           setOpen(false);
-          const isFailed =
-            updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
-          if (isFailed) {
-            updater.dismissUpdate();
-          }
         }}
         installFailedReason={installFailedReason}
         setInstallFailedReason={setInstallFailedReason}
@@ -615,7 +610,6 @@ export default function UpdateIndicator({
     // pill visible in the corner so the user always has a one-tap
     // path back to update.
     setOpen(false);
-    updater.dismissUpdate();
     if (updater.remoteVersion) {
       writeLaterVersion(updater.remoteVersion);
       setLaterVersion(updater.remoteVersion);
@@ -813,11 +807,6 @@ export default function UpdateIndicator({
         onLater={handleLater}
         onClose={() => {
           setOpen(false);
-          const isFailed =
-            updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';
-          if (isFailed) {
-            updater.dismissUpdate();
-          }
           if (phase === 'banner') {
             setPhase('pill');
             markBannerShown();

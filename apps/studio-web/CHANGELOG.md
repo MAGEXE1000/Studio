@@ -11,6 +11,23 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 
+## 4.3.32
+
+Release Date: 2026-07-31
+
+### Added
+- Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.
+- Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.
+
+## 4.3.31
+
+Release Date: 2026-07-31
+
+### Added
+- Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.
+- Automated the version propagation chain to guarantee identical version metadata across all build outputs.
+- Synchronized version manifests across the repository.
+
 ## 4.3.30
 
 Release Date: 2026-07-31

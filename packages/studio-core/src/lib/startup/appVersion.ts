@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.31';
-export const NATIVE_VERSION_CODE = 40331;
-export const WEB_VERSION = '4.3.31';
+export const NATIVE_VERSION = '4.3.32';
+export const NATIVE_VERSION_CODE = 40332;
+export const WEB_VERSION = '4.3.32';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -63,18 +63,23 @@ export const APP_VERSION_TAG = 'Beta';
 /** Human-readable label rendered in Settings → About. */
 export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
 
-/** Release date for the CURRENT bundle, shown alongside the version pill
- *  in the changelog sheet. ISO-8601 (`YYYY-MM-DD`). */
-export const APP_VERSION_DATE = '2026-07-31';
+/**
+ * Local date this build was stamped (e.g. "July 24, 2026").
+ * Stamped by `scripts/sync-version.mjs` on build.
+ */
+export const APP_VERSION_DATE = '7/31/2026';
 
-export const APP_COMMIT_SHA =
-  typeof import.meta !== 'undefined' && (import.meta as any).env
-    ? (import.meta as any).env.VITE_GIT_COMMIT_SHA
-    : 'a1b2c3d4';
-export const APP_BUILD_TIMESTAMP =
-  typeof import.meta !== 'undefined' && (import.meta as any).env
-    ? (import.meta as any).env.VITE_BUILD_TIMESTAMP
-    : '7/31/2026, 1:25:00 PM CST';
+/**
+ * Git commit hash this build was generated from.
+ * Stamped by `scripts/sync-version.mjs` on build.
+ */
+export const APP_COMMIT_SHA = '8fde06f7';
+
+/**
+ * Unix epoch timestamp this build was generated.
+ * Stamped by `scripts/sync-version.mjs` on build.
+ */
+export const APP_BUILD_TIMESTAMP = '7/31/2026, 10:11:46 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -93,9 +98,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.",
-      "Automated the version propagation chain to guarantee identical version metadata across all build outputs.",
-      "Synchronized version manifests across the repository.",
+      "Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.",
+      "Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.",
     ],
   },
 ];

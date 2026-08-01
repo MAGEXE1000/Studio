@@ -8,8 +8,8 @@ android {
         applicationId "com.chordex.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40331
-        versionName "4.3.31"
+        versionCode 40332
+        versionName "4.3.32"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -69,6 +69,11 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
+    }
+    sourceSets {
+        main {
+            assets.exclude('public/**')
+        }
     }
 }
 
@@ -175,39 +180,78 @@ tasks.whenTaskAdded { task ->
     }
 }
 
-task buildWebAssets(type: Exec) {
-    inputs.dir("../../src")
-    inputs.dir("../../public")
-    inputs.dir("../../../../packages/studio-core/src")
-    inputs.dir("../../../../packages/ui-shared/src")
-    inputs.file("../../package.json")
-    inputs.file("../../vite.config.ts")
-    outputs.dir("../../dist/android-web")
+abstract class BuildWebAssetsTask extends DefaultTask {
+    @InputFiles
+    abstract ConfigurableFileCollection getSourceFiles()
 
-    workingDir "../../"
-    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        commandLine 'cmd', '/c', 'pnpm build'
-    } else {
-        commandLine 'pnpm', 'build'
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void run() {
+        execOperations.exec {
+            workingDir project.file("../..")
+            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                commandLine 'cmd', '/c', 'pnpm build'
+            } else {
+                commandLine 'pnpm', 'build'
+            }
+        }
     }
 }
 
-task capacitorSync(type: Exec) {
-    dependsOn buildWebAssets
-    inputs.dir("../../dist/android-web")
-    outputs.dir("src/main/assets/public")
+abstract class CapacitorSyncTask extends DefaultTask {
+    @InputDirectory
+    abstract DirectoryProperty getWebBuildDir()
 
-    workingDir "../../"
-    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        commandLine 'cmd', '/c', 'npx cap sync android'
-    } else {
-        commandLine 'npx', 'cap', 'sync', 'android'
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDir()
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void run() {
+        execOperations.exec {
+            workingDir project.file("../..")
+            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+                commandLine 'cmd', '/c', 'pnpm android:sync'
+            } else {
+                commandLine 'pnpm', 'android:sync'
+            }
+        }
+
+        project.copy {
+            from "src/main/assets/public"
+            into outputDir
+        }
     }
 }
 
-tasks.whenTaskAdded { task ->
-    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
-        task.dependsOn capacitorSync
-    }
+androidComponents {
+    onVariants(selector().all(), { variant ->
+        def buildWebTask = tasks.register("buildWebAssets${variant.name.capitalize()}", BuildWebAssetsTask) {
+            sourceFiles.from(
+                fileTree(dir: "../../src"),
+                fileTree(dir: "../../public"),
+                fileTree(dir: "../../../../packages/studio-core/src"),
+                fileTree(dir: "../../../../packages/ui-shared/src"),
+                file("../../package.json"),
+                file("../../vite.config.ts")
+            )
+            outputDir.set(layout.projectDirectory.dir("../../dist/android-web"))
+        }
+
+        def capSyncTask = tasks.register("capacitorSync${variant.name.capitalize()}", CapacitorSyncTask) {
+            webBuildDir.set(buildWebTask.flatMap { it.outputDir })
+            outputDir.set(layout.buildDirectory.dir("intermediates/capacitor-assets/${variant.name}"))
+        }
+
+        variant.sources.assets.addGeneratedSourceDirectory(capSyncTask, { it.outputDir })
+    })
 }
+
 

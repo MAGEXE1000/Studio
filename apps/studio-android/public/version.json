@@ -1,20 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.31",
-  "versionName": "4.3.31",
-  "versionCode": 40331,
-  "version_code": 40331,
-  "commit": "2841675e",
-  "releasedAt": "7/31/2026, 5:34:34 PM CST",
-  "buildTimestamp": "7/31/2026, 5:34:34 PM CST",
+  "version": "4.3.32",
+  "versionName": "4.3.32",
+  "versionCode": 40332,
+  "version_code": 40332,
+  "commit": "8fde06f7",
+  "releasedAt": "7/31/2026, 10:11:46 PM CST",
+  "buildTimestamp": "7/31/2026, 10:11:46 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.\n• Automated the version propagation chain to guarantee identical version metadata across all build outputs.\n• Synchronized version manifests across the repository.",
-  "whatsNew": "• Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.\n• Automated the version propagation chain to guarantee identical version metadata across all build outputs.\n• Synchronized version manifests across the repository.",
+  "changelog": "• Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.\n• Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.",
+  "whatsNew": "• Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.\n• Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.",
   "releaseNotes": {
     "added": [
-      "Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.",
-      "Automated the version propagation chain to guarantee identical version metadata across all build outputs.",
-      "Synchronized version manifests across the repository."
+      "Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.",
+      "Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API."
     ]
   },
   "mandatory": false

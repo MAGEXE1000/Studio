@@ -240,20 +240,10 @@ class StartupCoordinatorClass {
       const storeState = useChordStore.getState();
       const settings = useSettingsStore.getState().settings;
 
-      // Restore last session check
-      if (!settings.restoreLastSession) {
-        const defaultApp = settings.startupApp || 'hub';
-        NavigationDispatcher.openApp(defaultApp);
-
-        const { useNavigationStore } = await import('../../store/useNavigationStore');
-        const defaultRoute: any = { app: defaultApp, tab: 'home' };
-        if (defaultApp === 'chords') defaultRoute.page = 'library';
-        else if (defaultApp === 'groovex') defaultRoute.page = 'library';
-        else if (defaultApp === 'vocalex') defaultRoute.page = 'practice';
-        else if (defaultApp === 'drums') defaultRoute.page = 'songs';
-        else if (defaultApp === 'stage') defaultRoute.page = 'Editor';
-        useNavigationStore.getState().setHistory([defaultRoute]);
-      }
+      // Enforce landing on Studio Hub -> Home unconditionally on cold launch
+      NavigationDispatcher.openApp('hub');
+      const { useNavigationStore } = await import('../../store/useNavigationStore');
+      useNavigationStore.getState().setHistory([{ app: 'hub', tab: 'home' }]);
 
       // Seed navigation trace
       const active = NavigationDispatcher.currentApp();

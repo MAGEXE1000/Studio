@@ -85,7 +85,6 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
   const [hue, setHue] = useState<number>(settings.customAccentHue ?? initialHsl.h);
   const [saturation, setSaturation] = useState<number>(initialHsl.s || 80);
   const [lightness, setLightness] = useState<number>(initialHsl.l || 70);
-  const [opacity, setOpacity] = useState<number>(100);
   const [showCanvas, setShowCanvas] = useState(false);
 
   const [presets, setPresets] = useState<string[]>([
@@ -221,12 +220,12 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
         {/* Sliders & Badges */}
         <div className="flex-1 min-w-0 flex items-center gap-4">
           {/* Sliders stacked */}
-          <div className="flex-1 flex flex-col gap-1.5 justify-center">
+          <div className="flex-1 flex flex-col justify-center py-1">
             {/* Hue Slider */}
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-extrabold text-on-surface-variant w-8 tracking-wider">HUE</span>
               <div
-                className="h-2 flex-1 rounded-full relative cursor-pointer"
+                className="h-3 flex-1 rounded-full relative cursor-pointer"
                 style={{
                   background:
                     'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
@@ -241,42 +240,9 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
                 />
                 <div
-                  className="h-4 w-4 bg-white rounded-full border-2 border-surface-container shadow-sm absolute top-1/2 -mt-2 pointer-events-none transform -translate-x-1/2"
+                  className="h-[18px] w-[18px] bg-white rounded-full border-2 border-surface-container shadow-sm absolute top-1/2 -mt-[9px] pointer-events-none transform -translate-x-1/2"
                   style={{ left: `${(hue / 360) * 100}%` }}
                 />
-              </div>
-            </div>
-
-            {/* Opacity Slider */}
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-extrabold text-on-surface-variant w-8 tracking-wider">OPAC</span>
-              <div
-                className="h-2 flex-1 rounded-full bg-surface-container relative cursor-pointer"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(45deg, #1c1c1c 25%, transparent 25%), linear-gradient(-45deg, #1c1c1c 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1c1c1c 75%), linear-gradient(-45deg, transparent 75%, #1c1c1c 75%)',
-                  backgroundSize: '6px 6px',
-                }}
-              >
-                <div
-                  className="h-full w-full rounded-full relative"
-                  style={{
-                    background: `linear-gradient(to right, transparent, ${currentColorHex})`,
-                  }}
-                >
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={opacity}
-                    onChange={(e) => setOpacity(Number(e.target.value))}
-                    className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                  />
-                  <div
-                    className="h-4 w-4 bg-white rounded-full border-2 border-surface-container shadow-sm absolute top-1/2 -mt-2 pointer-events-none transform -translate-x-1/2"
-                    style={{ left: `${opacity}%` }}
-                  />
-                </div>
               </div>
             </div>
           </div>

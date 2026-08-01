@@ -1,5 +1,7 @@
 Release Date: 2026-07-31
 
 ### Added
-- Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.
-- Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.
+- Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.
+- Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.
+- Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.
+- Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.

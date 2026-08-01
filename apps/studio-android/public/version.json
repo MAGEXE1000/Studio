@@ -1,19 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.32",
-  "versionName": "4.3.32",
-  "versionCode": 40332,
-  "version_code": 40332,
-  "commit": "8fde06f7",
-  "releasedAt": "7/31/2026, 10:11:46 PM CST",
-  "buildTimestamp": "7/31/2026, 10:11:46 PM CST",
+  "version": "4.3.33",
+  "versionName": "4.3.33",
+  "versionCode": 40333,
+  "version_code": 40333,
+  "commit": "4a64462e",
+  "releasedAt": "7/31/2026, 10:49:32 PM CST",
+  "buildTimestamp": "7/31/2026, 10:49:32 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.\n• Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.",
-  "whatsNew": "• Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.\n• Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.",
+  "changelog": "• Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.\n• Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.\n• Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.\n• Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.",
+  "whatsNew": "• Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.\n• Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.\n• Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.\n• Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.",
   "releaseNotes": {
     "added": [
-      "Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.",
-      "Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API."
+      "Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.",
+      "Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.",
+      "Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.",
+      "Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations."
     ]
   },
   "mandatory": false

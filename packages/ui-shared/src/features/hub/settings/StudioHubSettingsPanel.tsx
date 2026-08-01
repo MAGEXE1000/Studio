@@ -12,7 +12,6 @@ import {
   Toggle,
 } from '../../../shared/typography/SettingControls';
 import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
-import { motion } from 'motion/react';
 
 /**
  * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
@@ -50,70 +49,9 @@ export default function StudioHubSettingsPanel() {
       : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.purple);
   }, [settings.perApp?.hub?.accentColor, settings.accentColor, settings.customAccentHue]);
 
-  const themeStyles = React.useMemo(() => {
-    const theme = settings.theme ?? 'dark';
-    const isAmoled = settings.amoledMode ?? false;
-
-    if (theme === 'light') {
-      return {
-        '--app-bg': '#f4f4f5',
-        '--app-surface-lowest': '#e4e4e7',
-        '--app-surface-low': '#ececed',
-        '--app-surface': '#f4f4f5',
-        '--app-surface-high': '#fafafa',
-        '--app-surface-highest': '#ffffff',
-        '--c-text-primary': '#18181b',
-        '--c-text-secondary': '#52525b',
-        '--c-border': 'rgba(0, 0, 0, 0.08)',
-        '--elevation-low': '0 2px 8px rgba(0,0,0,0.05)',
-        '--elevation-mid': '0 8px 24px rgba(0,0,0,0.08)',
-        '--c-accent-from': acc.from,
-        '--c-accent-to': acc.to,
-        '--c-accent-mid': acc.mid,
-      };
-    }
-    if (theme === 'dark' && isAmoled) {
-      return {
-        '--app-bg': '#000000',
-        '--app-surface-lowest': '#000000',
-        '--app-surface-low': '#030303',
-        '--app-surface': '#080808',
-        '--app-surface-high': '#0d0d0d',
-        '--app-surface-highest': '#121212',
-        '--c-text-primary': '#ffffff',
-        '--c-text-secondary': '#a1a1aa',
-        '--c-border': 'rgba(255, 255, 255, 0.12)',
-        '--elevation-low': '0 2px 8px rgba(0,0,0,0.4)',
-        '--elevation-mid': '0 8px 24px rgba(0,0,0,0.6)',
-        '--c-accent-from': acc.from,
-        '--c-accent-to': acc.to,
-        '--c-accent-mid': acc.mid,
-      };
-    }
-    // Default Dark Theme
-    return {
-      '--app-bg': '#09090b',
-      '--app-surface-lowest': '#0e0e11',
-      '--app-surface-low': '#131316',
-      '--app-surface': '#191a1e',
-      '--app-surface-high': '#1f2025',
-      '--app-surface-highest': '#25262c',
-      '--c-text-primary': '#e7e5e4',
-      '--c-text-secondary': '#acabaa',
-      '--c-border': 'rgba(255, 255, 255, 0.08)',
-      '--elevation-low': '0 2px 8px rgba(0,0,0,0.3)',
-      '--elevation-mid': '0 8px 24px rgba(0,0,0,0.4)',
-      '--c-accent-from': acc.from,
-      '--c-accent-to': acc.to,
-      '--c-accent-mid': acc.mid,
-    };
-  }, [settings.theme, settings.amoledMode, acc]);
-
   return (
     <StudioPageTransition pageKey="hub-settings-panel">
-      <motion.div
-        animate={themeStyles}
-        transition={{ duration: 0.5, ease: 'easeInOut' }}
+      <div
         style={{
           width: '100%',
           height: '100%',
@@ -201,7 +139,7 @@ export default function StudioHubSettingsPanel() {
             </SettingRow>
           </SettingSection>
         </div>
-      </motion.div>
+      </div>
     </StudioPageTransition>
   );
 }

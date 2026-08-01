@@ -39,10 +39,11 @@ export function BottomNavigationController() {
   const launchingApp = useApplicationTransitionStore((s) => s.launchingApp);
   const isTransitioning = transitionState !== 'IDLE';
 
-  const settings = useSettingsStore((s) => s.settings);
+  const theme = useSettingsStore((s) => s.settings.theme);
+  const instrument = useSettingsStore((s) => s.settings.instrument);
   const isLight =
-    settings.theme === 'light' ||
-    (settings.theme === 'system' &&
+    theme === 'light' ||
+    (theme === 'system' &&
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
 
@@ -325,7 +326,7 @@ export function BottomNavigationController() {
     }
 
     if (currentApp === 'chords') {
-      const isSax = settings.instrument === 'saxophone';
+      const isSax = instrument === 'saxophone';
       const sections = isSax
         ? [
             { id: 'practice', labelKey: 'practice', icon: 'graphic_eq' },

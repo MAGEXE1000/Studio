@@ -40,21 +40,18 @@ class ThemeTransitionEngineImpl {
           }
           ::view-transition-old(root) {
             z-index: 1;
+            opacity: 1 !important;
           }
           ::view-transition-new(root) {
             z-index: 999999;
-            animation: theme-reveal-clip 500ms cubic-bezier(0.25, 1, 0.5, 1) both;
+            animation: theme-reveal-clip 350ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
           }
           @keyframes theme-reveal-clip {
             from {
               clip-path: circle(0px at var(--theme-transition-x) var(--theme-transition-y));
-              filter: brightness(1.2) contrast(1.25) saturate(1.4) blur(4px);
-              transform: scale(0.98);
             }
             to {
               clip-path: circle(150% at var(--theme-transition-x) var(--theme-transition-y));
-              filter: brightness(1) contrast(1) saturate(1) blur(0px);
-              transform: scale(1);
             }
           }
         `;
@@ -62,6 +59,7 @@ class ThemeTransitionEngineImpl {
       }
 
       try {
+        document.documentElement.classList.add('theme-transitioning');
         const transition = doc.startViewTransition(() => {
           updateFn();
         });
@@ -69,6 +67,7 @@ class ThemeTransitionEngineImpl {
       } catch (e) {
         updateFn();
       } finally {
+        document.documentElement.classList.remove('theme-transitioning');
         this.isTransitioning = false;
       }
     } else {

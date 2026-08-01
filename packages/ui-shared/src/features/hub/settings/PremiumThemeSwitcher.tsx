@@ -4,14 +4,15 @@ import { Sun, Moon, SunMoon } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export default function PremiumThemeSwitcher() {
-  const settings = useSettingsStore((s) => s.settings);
-  const currentTheme = settings.theme ?? 'dark';
-  const isAmoled = settings.amoledMode ?? false;
+  const currentTheme = useSettingsStore((s) => s.settings.theme ?? 'dark');
+  const isAmoled = useSettingsStore((s) => s.settings.amoledMode ?? false);
+  const hubAccent = useSettingsStore((s) => s.settings.perApp?.hub?.accentColor);
+  const globalAccent = useSettingsStore((s) => s.settings.accentColor);
 
   const activeValue = currentTheme === 'light' ? 'light' : isAmoled ? 'amoled' : 'dark';
 
   const acc =
-    ACCENT_COLORS[settings.perApp?.hub?.accentColor ?? settings.accentColor] ??
+    ACCENT_COLORS[hubAccent ?? globalAccent] ??
     ACCENT_COLORS.purple;
 
   const handleSetTheme = (mode: 'light' | 'dark' | 'amoled', e: React.MouseEvent<HTMLButtonElement>) => {

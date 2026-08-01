@@ -59,6 +59,41 @@ public class MainActivity extends BridgeActivity {
         // manually in MainActivity. Do not remove or rename this plugin registration.
         registerPlugin(AppInstallerPlugin.class);
         super.onCreate(savedInstanceState);
+
+        // Enforce maximum refresh rate (e.g. 120 Hz) for high-end displays
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            try {
+                android.view.Window window = getWindow();
+                if (window != null) {
+                    android.view.WindowManager.LayoutParams layoutParams = window.getAttributes();
+                    android.view.Display display = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                        display = getDisplay();
+                    } else {
+                        display = window.getWindowManager().getDefaultDisplay();
+                    }
+                    if (display != null) {
+                        android.view.Display.Mode[] modes = display.getSupportedModes();
+                        android.view.Display.Mode highestMode = null;
+                        float maxRate = 0;
+                        for (android.view.Display.Mode mode : modes) {
+                            if (mode.getRefreshRate() > maxRate) {
+                                maxRate = mode.getRefreshRate();
+                                highestMode = mode;
+                            }
+                        }
+                        if (highestMode != null && maxRate >= 90f) {
+                            layoutParams.preferredDisplayModeId = highestMode.getModeId();
+                            window.setAttributes(layoutParams);
+                            android.util.Log.i("LivexRefreshRate", "Configured preferred display mode: ModeId=" + highestMode.getModeId() + ", RefreshRate=" + maxRate + " Hz");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                android.util.Log.e("LivexRefreshRate", "Failed to configure preferred display mode: " + e.getMessage());
+            }
+        }
+
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         scheduleUpdateBackgroundCheck();
 
@@ -67,6 +102,7 @@ public class MainActivity extends BridgeActivity {
         if (this.bridge != null && this.bridge.getWebView() != null) {
             android.util.Log.i("LivexBoot", "WebView initialized at " + android.os.SystemClock.elapsedRealtime() + "ms since boot");
             this.bridge.getWebView().setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            this.bridge.getWebView().setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null);
             
             // Pass native boot timings to WebView
             final long webViewInitTime = android.os.SystemClock.elapsedRealtime();

@@ -267,8 +267,7 @@ export function SharedNavigationBar({
   const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
 
-  const settings = useSettingsStore((s) => s.settings);
-  const lang = settings?.language ?? 'en';
+  const lang = useSettingsStore((s) => s.settings?.language ?? 'en');
 
   const searchOpen = useBottomNavigationStore((s) => s.isSearchOpen);
   const setSearchOpen = useBottomNavigationStore((s) => s.setSearchOpen);

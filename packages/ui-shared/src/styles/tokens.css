@@ -201,6 +201,16 @@
     --c-text-muted 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Disable transitions during theme reveal to ensure instant capture by View Transition engine */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning ::before,
+.theme-transitioning ::after {
+  transition: none !important;
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+}
+
 :root.amoled {
   --app-bg: #000000;
   --app-surface-lowest: #000000;

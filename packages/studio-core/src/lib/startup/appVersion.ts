@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.41';
-export const NATIVE_VERSION_CODE = 40341;
-export const WEB_VERSION = '4.3.41';
+export const NATIVE_VERSION = '4.3.42';
+export const NATIVE_VERSION_CODE = 40342;
+export const WEB_VERSION = '4.3.42';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '55aa4fbb';
+export const APP_COMMIT_SHA = '51f5f59c';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 5:12:34 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 5:28:15 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,7 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.",
+      "Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.",
     ],
   },
 ];
@@ -110,6 +110,13 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.3.41',
+    date: '2026-08-01',
+    highlights: [
+      'Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.',
+    ],
+  },
   {
     version: '4.3.40',
     date: '2026-08-01',

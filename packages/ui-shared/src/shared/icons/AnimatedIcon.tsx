@@ -58,6 +58,34 @@ function getAnimatedIconComponent(name: string) {
     normName = 'shield-check';
   } else if (normName === 'bug_report') {
     normName = 'bug';
+  } else if (normName === 'content_copy') {
+    normName = 'copy';
+  } else if (normName === 'delete' || normName === 'delete_forever') {
+    normName = 'trash-2';
+  } else if (normName === 'warning') {
+    normName = 'triangle-alert';
+  } else if (normName === 'star_outline') {
+    normName = 'star';
+  } else if (normName === 'visibility') {
+    normName = 'eye';
+  } else if (normName === 'visibility_off') {
+    normName = 'eye-off';
+  } else if (normName === 'progress_activity') {
+    normName = 'loader-circle';
+  } else if (normName === 'output') {
+    normName = 'log-out';
+  } else if (normName === 'publish') {
+    normName = 'arrow-up-to-line';
+  } else if (normName === 'smart_button') {
+    normName = 'square-play';
+  } else if (normName === 'volume_up') {
+    normName = 'volume-2';
+  } else if (normName === 'mop') {
+    normName = 'brush';
+  } else if (normName === 'open_in_new') {
+    normName = 'external-link';
+  } else if (normName === 'restart_alt') {
+    normName = 'refresh-cw';
   } else if (normName === 'group') {
     normName = 'users';
   } else if (normName === 'analytics') {

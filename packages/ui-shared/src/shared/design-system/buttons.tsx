@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
+import { AnimatedIcon } from '../icons/AnimatedIcon';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 // ── 1. Button ──────────────────────────────────────────────────────────────
@@ -88,13 +89,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...(props as any)}
       >
         {loading ? (
-          <span className="material-symbols-outlined animate-spin" style={{ fontSize: '1.2em' }}>
-            progress_activity
-          </span>
+          <AnimatedIcon name="loader-circle" state="loading" size={16} />
         ) : icon ? (
-          <span className="material-symbols-outlined" style={{ fontSize: '1.3em' }}>
-            {icon}
-          </span>
+          <AnimatedIcon name={icon} size={16} />
         ) : null}
         {children}
       </motion.button>
@@ -133,9 +130,7 @@ export function FloatingButton({ icon, style, className = '', ...props }: Floati
       className={`studio-fab ${className}`}
       {...(props as any)}
     >
-      <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
-        {icon}
-      </span>
+      <AnimatedIcon name={icon} size={24} />
     </motion.button>
   );
 }
@@ -471,20 +466,13 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 
       {/* Animated Icon morph */}
       <AnimatePresence mode="wait" initial={false}>
-        <motion.span
+        <AnimatedIcon
           key={getIconName()}
-          className="material-symbols-outlined select-none"
-          style={{
-            fontSize: `${iconSize}px`,
-            lineHeight: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          {...getIconAnimationProps()}
-        >
-          {getIconName()}
-        </motion.span>
+          name={getIconName()}
+          size={iconSize}
+          state={success ? 'success' : activeLoading ? 'loading' : 'inactive'}
+          color="currentColor"
+        />
       </AnimatePresence>
 
       {children && <span style={{ marginLeft: '8px', lineHeight: 1 }}>{children}</span>}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { checkForUpdate, downloadUpdate, applyUpdate } from '@workspace/studio-core';
+import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 
 interface ProductionActionsProps {
   showToast: (msg: string) => void;
@@ -54,9 +55,7 @@ export default function ProductionActions({
         className="bg-black hover:bg-white/5 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
-          <span className={`material-symbols-outlined ${checking ? 'animate-spin' : ''}`}>
-            refresh
-          </span>
+          <AnimatedIcon name="refresh" state={checking ? 'loading' : 'inactive'} size={24} color="currentColor" />
         </div>
         <div>
           <span className="block font-bold text-on-surface">Check for Updates</span>
@@ -75,9 +74,7 @@ export default function ProductionActions({
         className="bg-black hover:bg-white/5 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full border border-outline-variant/10 text-left outline-none active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
-          <span className={`material-symbols-outlined ${downloading ? 'animate-bounce' : ''}`}>
-            download
-          </span>
+          <AnimatedIcon name="download" state={downloading ? 'loading' : 'inactive'} size={24} color="currentColor" />
         </div>
         <div>
           <span className="block font-bold text-on-surface">Download APK</span>
@@ -102,9 +99,7 @@ export default function ProductionActions({
         className="bg-tertiary hover:brightness-110 p-5 rounded-xl flex flex-col items-start gap-4 transition-all group disabled:opacity-50 disabled:cursor-not-allowed w-full text-left outline-none shadow-xl active:scale-[0.98]"
       >
         <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-          <span className={`material-symbols-outlined ${completing ? 'animate-pulse' : ''}`}>
-            play_arrow
-          </span>
+          <AnimatedIcon name="play" state={completing ? 'loading' : 'inactive'} size={24} color="currentColor" />
         </div>
         <div>
           <span className="block font-bold text-white">Complete Flow</span>

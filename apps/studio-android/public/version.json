@@ -1,18 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.41",
-  "versionName": "4.3.41",
-  "versionCode": 40341,
-  "version_code": 40341,
-  "commit": "55aa4fbb",
-  "releasedAt": "8/1/2026, 5:12:34 PM CST",
-  "buildTimestamp": "8/1/2026, 5:12:34 PM CST",
+  "version": "4.3.42",
+  "versionName": "4.3.42",
+  "versionCode": 40342,
+  "version_code": 40342,
+  "commit": "51f5f59c",
+  "releasedAt": "8/1/2026, 5:28:15 PM CST",
+  "buildTimestamp": "8/1/2026, 5:28:15 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.",
-  "whatsNew": "• Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.",
+  "changelog": "• Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.",
+  "whatsNew": "• Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.",
   "releaseNotes": {
     "added": [
-      "Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system."
+      "Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system."
     ]
   },
   "mandatory": false

@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect } from 'react';
+import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import {
   useT,
   startDiagnosticsSession,
@@ -1136,15 +1137,11 @@ export function HelpAccordion({
                 gap: 4,
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: securityState === 'auditing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {securityState === 'auditing' ? 'sync' : 'security'}
-              </span>
+              <AnimatedIcon
+                name={securityState === 'auditing' ? 'sync' : 'security'}
+                state={securityState === 'auditing' ? 'loading' : 'inactive'}
+                size={14}
+              />
               {securityState === 'auditing'
                 ? t.help.accordion.diagnosticsCard.btnAuditing || 'Auditing...'
                 : t.help.accordion.diagnosticsCard.btnSecurityAudit || 'Security Audit'}
@@ -1167,15 +1164,11 @@ export function HelpAccordion({
                 gap: 4,
               }}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: resetState === 'repairing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {resetState === 'repairing' ? 'sync' : 'restart_alt'}
-              </span>
+              <AnimatedIcon
+                name={resetState === 'repairing' ? 'sync' : 'restart_alt'}
+                state={resetState === 'repairing' ? 'loading' : 'inactive'}
+                size={14}
+              />
               {resetState === 'repairing'
                 ? t.help.accordion.diagnosticsCard.btnResetting || 'Resetting...'
                 : t.help.accordion.diagnosticsCard.btnResetReload || 'Reset & Reload'}
@@ -1199,9 +1192,7 @@ export function HelpAccordion({
                 gap: 4,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                bug_report
-              </span>
+              <AnimatedIcon name="bug_report" size={14} />
               {diagEnabled
                 ? t.help.accordion.diagnosticsCard.btnDiagOn || 'Diagnostics: ON'
                 : t.help.accordion.diagnosticsCard.btnDiagOff || 'Diagnostics Overlay'}
@@ -1241,9 +1232,7 @@ export function HelpAccordion({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="material-symbols-outlined" style={{ color: accent.to, fontSize: 22 }}>
-              system_update
-            </span>
+            <AnimatedIcon name="system_update" size={22} color={accent.to} />
             <h4
               style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}
             >
@@ -1276,9 +1265,7 @@ export function HelpAccordion({
                 gap: 4,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                {diagActive ? 'pause_circle' : 'play_circle'}
-              </span>
+              <AnimatedIcon name={diagActive ? 'pause-circle' : 'play-circle'} size={14} />
               {diagActive
                 ? lang === 'es'
                   ? 'Modo Diagnóstico: ACTIVO'
@@ -1306,9 +1293,7 @@ export function HelpAccordion({
                     gap: 4,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                    content_copy
-                  </span>
+                  <AnimatedIcon name="content_copy" size={14} />
                   {lang === 'es' ? 'Copiar Registro' : 'Copy Trace'}
                 </button>
 
@@ -1328,9 +1313,7 @@ export function HelpAccordion({
                     gap: 4,
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                    share
-                  </span>
+                  <AnimatedIcon name="share" size={14} />
                   {lang === 'es' ? 'Compartir' : 'Share Trace'}
                 </button>
               </>
@@ -1438,18 +1421,16 @@ export function HelpAccordion({
                   >
                     {item.question}
                   </span>
-                  <span
-                    className="material-symbols-outlined"
+                  <AnimatedIcon
+                    name="chevron-down"
+                    size={20}
+                    color={isOpen ? accent.from : 'var(--c-text-secondary)'}
                     style={{
                       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                       transition:
                         'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), color 200ms ease',
-                      fontSize: 20,
-                      color: isOpen ? accent.from : 'var(--c-text-secondary)',
                     }}
-                  >
-                    expand_more
-                  </span>
+                  />
                 </button>
                 <div
                   style={{
@@ -1507,12 +1488,7 @@ export function HelpAccordion({
                       >
                         {audioState === 'testing' ? (
                           <>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}
-                            >
-                              sync
-                            </span>
+                            <AnimatedIcon name="sync" state="loading" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Probando Altavoces...'
@@ -1523,9 +1499,7 @@ export function HelpAccordion({
                           </>
                         ) : audioState === 'success' ? (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              check_circle
-                            </span>
+                            <AnimatedIcon name="check_circle" state="success" size={16} />
                             <span>
                               {lang === 'es'
                                 ? '¡Altavoz Activo!'
@@ -1536,9 +1510,7 @@ export function HelpAccordion({
                           </>
                         ) : (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              volume_up
-                            </span>
+                            <AnimatedIcon name="volume_up" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Reiniciar y Probar Sonido'
@@ -1581,12 +1553,7 @@ export function HelpAccordion({
                       >
                         {syncState === 'syncing' ? (
                           <>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}
-                            >
-                              sync
-                            </span>
+                            <AnimatedIcon name="sync" state="loading" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Sincronizando de Nuevo...'
@@ -1597,9 +1564,7 @@ export function HelpAccordion({
                           </>
                         ) : syncState === 'success' ? (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              check_circle
-                            </span>
+                            <AnimatedIcon name="check_circle" state="success" size={16} />
                             <span>
                               {lang === 'es'
                                 ? '¡Sincronización Exitosa!'
@@ -1610,9 +1575,7 @@ export function HelpAccordion({
                           </>
                         ) : syncState === 'error' ? (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              error
-                            </span>
+                            <AnimatedIcon name="error" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Error al Sincronizar'
@@ -1623,9 +1586,7 @@ export function HelpAccordion({
                           </>
                         ) : (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              cloud_sync
-                            </span>
+                            <AnimatedIcon name="cloud_sync" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Forzar Sincronización Completa'
@@ -1670,12 +1631,7 @@ export function HelpAccordion({
                       >
                         {cacheState === 'clearing' ? (
                           <>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}
-                            >
-                              sync
-                            </span>
+                            <AnimatedIcon name="sync" state="loading" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Limpiando Caché...'
@@ -1686,9 +1642,7 @@ export function HelpAccordion({
                           </>
                         ) : cacheState === 'success' ? (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              check_circle
-                            </span>
+                            <AnimatedIcon name="check_circle" state="success" size={16} />
                             <span>
                               {lang === 'es'
                                 ? '¡Caché Limpia!'
@@ -1699,9 +1653,7 @@ export function HelpAccordion({
                           </>
                         ) : (
                           <>
-                            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                              mop
-                            </span>
+                            <AnimatedIcon name="mop" size={16} />
                             <span>
                               {lang === 'es'
                                 ? 'Vaciar Caché y Temporales'
@@ -1748,12 +1700,7 @@ export function HelpAccordion({
                         >
                           {securityState === 'auditing' ? (
                             <>
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 16, animation: 'spin 1s linear infinite' }}
-                              >
-                                sync
-                              </span>
+                              <AnimatedIcon name="sync" state="loading" size={16} />
                               <span>
                                 {lang === 'es'
                                   ? 'Realizando Auditoría...'
@@ -1764,9 +1711,7 @@ export function HelpAccordion({
                             </>
                           ) : securityState === 'success' ? (
                             <>
-                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                                check_circle
-                              </span>
+                              <AnimatedIcon name="check_circle" state="success" size={16} />
                               <span>
                                 {lang === 'es'
                                   ? '¡Auditoría Completa!'
@@ -1777,9 +1722,7 @@ export function HelpAccordion({
                             </>
                           ) : (
                             <>
-                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                                security
-                              </span>
+                              <AnimatedIcon name="security" size={16} />
                               <span>
                                 {lang === 'es'
                                   ? 'Auditar Claves y Encriptación'
@@ -1856,9 +1799,7 @@ export function HelpAccordion({
               gap: 8,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              open_in_new
-            </span>
+            <AnimatedIcon name="open_in_new" size={16} color="currentColor" />
             GitHub Repository
           </a>
         </div>

@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.41"
-$VersionCode = "40341"
-$ReleaseNote = "Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system."
+$VersionName = "4.3.42"
+$VersionCode = "40342"
+$ReleaseNote = "Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

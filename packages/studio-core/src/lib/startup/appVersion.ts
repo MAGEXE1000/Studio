@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.38';
+export const NATIVE_VERSION = '4.3.39';
 export const NATIVE_VERSION_CODE = 40338;
-export const WEB_VERSION = '4.3.38';
+export const WEB_VERSION = '4.3.39';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '56890262';
+export const APP_COMMIT_SHA = 'e35d4c33';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 12:39:27 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 1:37:57 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).",
-      "Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.",
-      "Added role=\"dialog\" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.",
-      "Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline.",
+      "Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).",
+      "Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.",
+      "Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.",
+      "Nested the Changelog timeline history directly inside the Settings Updater detail pane.",
+      "Built a developer-only Inspector Route Tracer overlay to trace active screens, route paths, overlay state, and active theme variables.",
+      "Injected an Unknown Sources check inside the native updater to automatically direct users to Android settings and resume the installation flow.",
     ],
   },
 ];

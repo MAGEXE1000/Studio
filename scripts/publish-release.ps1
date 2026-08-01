@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.2.52"
-$VersionCode = "40252"
-$ReleaseNote = "Release v4.2.52 - Resolved updater diagnostics simulation mode leak causing false installation failures, enabled global window capturing scroll-hide navigation across all sub-apps, polished Profile popup tab toggle and background closure behaviors, and implemented Android back button handling for overlays."
+$VersionName = "4.3.39"
+$VersionCode = "40339"
+$ReleaseNote = "Overhauled settings navigation structure, restored Updater entries, integrated inline Changelog timeline, implemented developer Inspector Route Tracer overlay, and refined global spacing & density systems."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()
@@ -16,29 +16,7 @@ node apps/studio-android/scripts/sync-version.mjs
 node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
-git add packages/studio-core/src/lib/startup/appVersion.ts
-git add packages/studio-core/src/lib/navigation/navScroll.ts
-git add packages/studio-core/src/lib/notifications/NotificationService.ts
-git add packages/studio-core/src/lib/updater/stateMachine.ts
-git add packages/studio-core/src/lib/updater/updaterSimulation.ts
-git add packages/ui-shared/src/navigation/BottomNavigationController.tsx
-git add packages/ui-shared/src/components/sheets/UpdateDiagnosticsSheet.tsx
-git add packages/ui-shared/src/components/updater-diagnostics/UpdaterDiagnosticsPage.tsx
-git add packages/ui-shared/src/navigation/AppAnimationSystem.tsx
-git add packages/ui-shared/src/features/drumex/pages/DrumPrefsPanel.tsx
-git add packages/ui-shared/src/panels/SettingsPanel.tsx
-git add packages/ui-shared/src/components/hub/StudioHub.tsx
-git add packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx
-git add packages/ui-android/src/components/StageCorePanel.tsx
-git add apps/studio-android/CHANGELOG.md
-git add apps/studio-android/android/app/build.gradle
-git add apps/studio-android/package.json
-git add apps/studio-android/public/version.json
-git add apps/studio-web/CHANGELOG.md
-git add apps/studio-web/package.json
-git add CHANGELOG.md
-git add release-notes.md
-git add scripts/publish-release.ps1
+git add -u
 
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."

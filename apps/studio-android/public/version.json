@@ -1,21 +1,23 @@
 {
   "platform": "android",
-  "version": "4.3.38",
-  "versionName": "4.3.38",
-  "versionCode": 40338,
-  "version_code": 40338,
-  "commit": "56890262",
-  "releasedAt": "8/1/2026, 12:39:27 PM CST",
-  "buildTimestamp": "8/1/2026, 12:39:27 PM CST",
+  "version": "4.3.39",
+  "versionName": "4.3.39",
+  "versionCode": 40339,
+  "version_code": 40339,
+  "commit": "e35d4c33",
+  "releasedAt": "8/1/2026, 1:37:57 PM CST",
+  "buildTimestamp": "8/1/2026, 1:37:57 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).\n• Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.\n• Added role=\"dialog\" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.\n• Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline.",
-  "whatsNew": "• Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).\n• Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.\n• Added role=\"dialog\" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.\n• Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline.",
+  "changelog": "• Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).\n• Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.\n• Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.\n• Nested the Changelog timeline history directly inside the Settings Updater detail pane.\n• Built a developer-only Inspector Route Tracer overlay to trace active screens, route paths, overlay state, and active theme variables.\n• Injected an Unknown Sources check inside the native updater to automatically direct users to Android settings and resume the installation flow.",
+  "whatsNew": "• Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).\n• Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.\n• Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.\n• Nested the Changelog timeline history directly inside the Settings Updater detail pane.\n• Built a developer-only Inspector Route Tracer overlay to trace active screens, route paths, overlay state, and active theme variables.\n• Injected an Unknown Sources check inside the native updater to automatically direct users to Android settings and resume the installation flow.",
   "releaseNotes": {
     "added": [
-      "Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).",
-      "Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.",
-      "Added role=\"dialog\" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.",
-      "Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline."
+      "Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).",
+      "Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.",
+      "Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.",
+      "Nested the Changelog timeline history directly inside the Settings Updater detail pane.",
+      "Built a developer-only Inspector Route Tracer overlay to trace active screens, route paths, overlay state, and active theme variables.",
+      "Injected an Unknown Sources check inside the native updater to automatically direct users to Android settings and resume the installation flow."
     ]
   },
   "mandatory": false

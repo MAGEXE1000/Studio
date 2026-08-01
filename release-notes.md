@@ -1,7 +1,9 @@
 Release Date: 2026-08-01
 
 ### Added
-- Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).
-- Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.
-- Added role="dialog" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.
-- Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline.
+- Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).
+- Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.
+- Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.
+- Nested the Changelog timeline history directly inside the Settings Updater detail pane.
+- Built a developer-only Inspector Route Tracer overlay to trace active screens, route paths, overlay state, and active theme variables.
+- Injected an Unknown Sources check inside the native updater to automatically direct users to Android settings and resume the installation flow.

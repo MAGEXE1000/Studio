@@ -94,7 +94,7 @@ export default function GroovexPreferences() {
           maxWidth: 600,
           margin: isWebDesktop ? '0' : '0 auto',
           padding: isWebDesktop ? '24px' : '0 20px',
-          paddingBottom: 'var(--content-bottom-pad)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
         }}
       >
         {isWebDesktop ? (

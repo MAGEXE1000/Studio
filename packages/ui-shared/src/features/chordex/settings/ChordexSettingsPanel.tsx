@@ -366,7 +366,7 @@ export default function ChordexSettingsPanel() {
         ref={scrollRef}
         className="flex-1 overflow-y-auto no-scrollbar px-5"
         style={{
-          paddingBottom: 'var(--content-bottom-pad)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
           paddingTop: isWebDesktop ? '20px' : '0',
         }}
       >

@@ -28,6 +28,8 @@ export {
   activeUpdateSession,
   loadPersistedSession,
   verifyAndCleanCaches,
+  updateActiveSession,
+  isUpdateDismissed,
 } from './stateMachine';
 export type {
   AppUpdateState,

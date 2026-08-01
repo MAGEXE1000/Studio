@@ -77,6 +77,18 @@ export function dismissUpdate(): void {
   const ver = globalUpdateState.remoteVersion;
   if (ver) {
     addToStoredList('studio:dismissedVersions', ver);
+    try {
+      const storedVer = localStorage.getItem('studio:dismissed_update_version');
+      let count = 0;
+      if (storedVer === ver) {
+        const countStr = localStorage.getItem('studio:dismissed_update_count');
+        count = countStr ? parseInt(countStr, 10) : 0;
+      }
+      count += 1;
+      localStorage.setItem('studio:dismissed_update_version', ver);
+      localStorage.setItem('studio:dismissed_update_count', String(count));
+      localStorage.setItem('studio:dismissed_update_timestamp', String(Date.now()));
+    } catch (_) {}
   }
   if (globalUpdateState.updateState === 'INSTALL_SUCCESS') {
     localStorage.setItem('studio:lastShownDoneVersion', APP_VERSION);

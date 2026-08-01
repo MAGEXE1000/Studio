@@ -316,11 +316,13 @@ class StartupCoordinatorClass {
     // Phase 4: Updater initialization (Runs after Hub is visible)
     const p4Success = await this.executePhase('4', 10000, async () => {
       try {
-        const { enforceStartupRecovery, initializeGlobalUpdateListeners } = await import('../updater/pipeline');
+        const { enforceStartupRecovery, initializeGlobalUpdateListeners, checkAndRecoverInstallState } = await import('../updater/pipeline');
         // 1. Enforce startup recovery (restores installer session state)
         await enforceStartupRecovery();
         // 2. Initialize update listener registry
         initializeGlobalUpdateListeners();
+        // 3. Trigger initial install state recovery check
+        void checkAndRecoverInstallState();
       } catch (err: any) {
         console.error('[StartupCoordinator] Phase 4 Updater init failed:', err);
         throw err;

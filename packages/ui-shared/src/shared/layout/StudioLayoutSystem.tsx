@@ -209,7 +209,7 @@ export function SettingsScaffold({
       <ScrollScaffold
         bottomSpacing={false}
         disableScrollHide={true}
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 24px)' }}
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)' }}
       >
         {children}
       </ScrollScaffold>

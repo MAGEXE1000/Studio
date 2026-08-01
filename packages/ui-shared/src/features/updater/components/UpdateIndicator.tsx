@@ -1161,10 +1161,12 @@ function UpdateModal({
   const handleInstallApk = async () => {
     try {
       if (Capacitor.isNativePlatform()) {
-        const { AppInstaller } = await import('@workspace/studio-core');
+        const { AppInstaller, updateActiveSession } = await import('@workspace/studio-core');
         const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
         if (!hasPerm) {
           setPermissionBlocked(true);
+          updateActiveSession({ installStep: 'permission_settings' });
+          await AppInstaller.openUnknownAppSourcesSettings();
           return;
         }
       }
@@ -1178,7 +1180,8 @@ function UpdateModal({
 
   const handleOpenSettings = async () => {
     try {
-      const { AppInstaller } = await import('@workspace/studio-core');
+      const { AppInstaller, updateActiveSession } = await import('@workspace/studio-core');
+      updateActiveSession({ installStep: 'permission_settings' });
       await AppInstaller.openUnknownAppSourcesSettings();
     } catch (err) {
       console.error('[UpdateIndicator] Failed to open settings:', err);

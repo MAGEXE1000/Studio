@@ -78,6 +78,11 @@ export interface ActiveUpdateSession {
   updateType: 'updater' | 'apk' | 'both' | 'none';
   changelog: string | null;
   releaseNotes: string[] | StructuredReleaseNotes | null;
+  installStep?: 'idle' | 'downloading' | 'downloaded' | 'permission_settings' | 'installing' | 'completed' | 'failed';
+  downloadVerification?: 'pending' | 'verified' | 'failed';
+  apkPath?: string | null;
+  nativeInstallerTriggered?: boolean;
+  recoveryReason?: string | null;
 }
 
 export function verifyAndCleanCaches() {
@@ -187,6 +192,13 @@ export function loadPersistedSession(): ActiveUpdateSession | null {
   } catch (e) {
   }
   return null;
+}
+
+export function updateActiveSession(fields: Partial<ActiveUpdateSession>) {
+  if (activeUpdateSession) {
+    activeUpdateSession = { ...activeUpdateSession, ...fields };
+    saveSession();
+  }
 }
 
 function saveSession() {
@@ -931,6 +943,20 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   }
 
   // Update active session details
+  const activeFlowStates = [
+    'UPDATE_AVAILABLE',
+    'FETCH_APK_INFORMATION',
+    'DOWNLOAD_APK',
+    'VERIFY_SHA256',
+    'PREPARING_INSTALL',
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING'
+  ];
+  if (!activeUpdateSession && activeFlowStates.includes(state)) {
+    startUpdateSession('automatic', `FSM Transition to ${state}`);
+  }
+
   if (activeUpdateSession) {
     activeUpdateSession.previousState = current;
     activeUpdateSession.currentState = state;
@@ -940,7 +966,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         localStorage.removeItem('studio:active_update_session');
       } catch (_) {}
     } else {
-  console.log(`[UPDATER-TRACE] transitionToState() COMMITTED ${current} -> ${state} (reason=${reason})`);
+      console.log(`[UPDATER-TRACE] transitionToState() COMMITTED ${current} -> ${state} (reason=${reason})`);
       saveSession();
     }
   }
@@ -1031,4 +1057,39 @@ export function handleWatchdogTimeout(errorMsg: string) {
     recoveryMode: true
   });
   transitionToState('RECOVERY', 'Watchdog timeout', errorMsg);
+}
+
+export function isUpdateDismissed(version: string, isManual = false): boolean {
+  if (isManual) return false;
+  try {
+    if (typeof localStorage === 'undefined') return false;
+    const dismissedListStr = localStorage.getItem('studio:dismissedVersions');
+    if (!dismissedListStr) return false;
+    const dismissedList = JSON.parse(dismissedListStr);
+    if (!Array.isArray(dismissedList) || !dismissedList.includes(version)) {
+      return false;
+    }
+    
+    // Checked if version is dismissed, check exponential timeout
+    const storedVer = localStorage.getItem('studio:dismissed_update_version');
+    if (storedVer === version) {
+      const countStr = localStorage.getItem('studio:dismissed_update_count');
+      const count = countStr ? parseInt(countStr, 10) : 1;
+      const timestampStr = localStorage.getItem('studio:dismissed_update_timestamp');
+      const timestamp = timestampStr ? parseInt(timestampStr, 10) : 0;
+      const elapsed = Date.now() - timestamp;
+      
+      let interval = 0;
+      if (count === 1) {
+        interval = 15 * 60 * 1000; // 15 min
+      } else if (count === 2) {
+        interval = 2 * 60 * 60 * 1000; // 2 hours
+      } else {
+        interval = 24 * 60 * 60 * 1000; // 24 hours
+      }
+      
+      return elapsed < interval;
+    }
+  } catch (_) {}
+  return true;
 }

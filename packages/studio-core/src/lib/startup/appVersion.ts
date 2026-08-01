@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.36';
-export const NATIVE_VERSION_CODE = 40336;
-export const WEB_VERSION = '4.3.36';
+export const NATIVE_VERSION = '4.3.37';
+export const NATIVE_VERSION_CODE = 40337;
+export const WEB_VERSION = '4.3.37';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '3137cd0a';
+export const APP_COMMIT_SHA = '56ac0065';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 12:45:21 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 11:44:23 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,13 +98,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "This is a temporary release created exclusively to validate the Studio updater pipeline.",
-      "Updater validation build.",
-      "Release pipeline verification.",
-      "Version propagation verification.",
-      "Firebase metadata verification.",
-      "GitHub Release verification.",
-      "APK signing verification.",
+      "Overhauled the Settings & Appearance layout with unified Material 3 aesthetics.",
+      "Relocated Language preferences directly within the Appearance settings panel.",
+      "Implemented an animated, rounded Bottom Sheet dialog for immediate language selection.",
+      "Added a non-intrusive reactive Update Available alert card on the settings dashboard.",
+      "Set scroll safety bottom padding across all settings panels to prevent navigation overlays.",
+      "Ensured resilient update sessions that survive backgrounding, rotations, and permission settings.",
     ],
   },
 ];

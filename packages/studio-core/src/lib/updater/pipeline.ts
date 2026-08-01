@@ -39,6 +39,9 @@ import {
   verifyAndCleanCaches,
   isPostInstallSessionActive,
   getPostInstallSessionInfo,
+  activeUpdateSession,
+  updateActiveSession,
+  isUpdateDismissed,
 } from './stateMachine';
 
 import {
@@ -786,8 +789,7 @@ async function executeCheckForUpdateInternal(
       : 'version.json';
 
     if (updateAvailable) {
-      const dismissedList = getStoredList('studio:dismissedVersions');
-      const isDismissed = dismissedList.includes(remote.version);
+      const isDismissed = isUpdateDismissed(remote.version, isManual);
       const isLater = laterVersion === remote.version;
 
       if (!isManual && (isDismissed || isLater)) {
@@ -1185,6 +1187,7 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
     if (!safeTransition('FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'Starting APK package download')) {
       return;
     }
+    updateActiveSession({ installStep: 'downloading' });
     updateDebugLogs.downloadStatus = `Update started: apk\nAPK URL: ${apkUrl}`;
     updateGlobalState({ progress: 0.0, statusText: 'Entering progress screen...' });
     logTimelineEvent('UpdateCore', 'DOWNLOAD_STARTED', `Version: ${ver}`);
@@ -1468,6 +1471,11 @@ async function downloadUpdateInternal(trigger?: string): Promise<void> {
       localStorage.setItem('studio:downloadedApkPath', filePath);
       localStorage.setItem('studio:downloadedApkVersion', ver);
       addToStoredList('studio:downloadedVersions', ver);
+      updateActiveSession({
+        installStep: 'downloaded',
+        downloadVerification: 'verified',
+        apkPath: filePath,
+      });
 
       logDetailedJsTrace(
         'downloadUpdate',
@@ -1651,6 +1659,10 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       void logProgressStage('Session committed', 'Handing over to PackageInstaller');
       UpdatePipelineCoordinator.setStage('AWAIT_INSTALLER_LAUNCH');
 
+      updateActiveSession({
+        installStep: 'installing',
+        nativeInstallerTriggered: true,
+      });
       const res = await triggerNativeInstall(filePath);
       updateGlobalState({ statusText: 'Waiting for installer...' });
       logTimelineEvent(
@@ -1715,7 +1727,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
 
 // ─── Recovery check ───────────────────────────────────────────────────────
 
-async function checkAndRecoverInstallState() {
+export async function checkAndRecoverInstallState() {
   const currentState = globalUpdateState.updateState;
   const allowedStates = ['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'];
   if (!allowedStates.includes(currentState)) {
@@ -1723,6 +1735,31 @@ async function checkAndRecoverInstallState() {
   }
 
   logTimelineEvent('RecoveryManager', 'RECOVERY_CHECK_START', `currentState=${currentState}`);
+
+  // Permission Auto-Resume Check
+  if (activeUpdateSession?.installStep === 'permission_settings') {
+    try {
+      const { AppInstaller } = await import('../apkDownloader');
+      const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
+      if (hasPerm) {
+        logTimelineEvent('RecoveryManager', 'RECOVERY_PERMISSION_GRANTED', 'Permission granted, resuming install');
+        updateActiveSession({
+          installStep: 'installing',
+          nativeInstallerTriggered: true,
+        });
+        void applyUpdate('Recovery: Permission auto-resume');
+        return;
+      }
+    } catch (_) {}
+    return;
+  }
+
+  // Skip getLastInstallResult check if the native installer was never triggered in this session.
+  const isInstallerTriggered = activeUpdateSession?.nativeInstallerTriggered === true;
+  if (!isInstallerTriggered) {
+    logTimelineEvent('RecoveryManager', 'RECOVERY_CHECK_SKIPPED', 'Native installer not launched yet for current session');
+    return;
+  }
 
   const shouldSimulate = !Capacitor.isNativePlatform() || !isAppInstallerAvailable();
   if (!shouldSimulate) {

@@ -570,6 +570,7 @@ function useStartupComplete() {
 
 export default function StudioHub() {
   const settings = useSettingsStore((state) => state.settings);
+  const updater = useAppUpdate();
   const currentApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   const startupComplete = useStartupComplete();
@@ -3831,6 +3832,7 @@ function HubSettings({
   renderDevToast?: () => React.ReactNode;
 }) {
   const settings = useSettingsStore((state) => state.settings);
+  const updater = useAppUpdate();
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const updatePerApp = useSettingsStore((state) => state.updatePerApp);
   const historyLength = useNavigationStore((s) => s.history.length);
@@ -7571,7 +7573,7 @@ User Agent: [Automatically Generated]
                       overflowY: 'auto',
                       overflowX: 'hidden',
                       padding: '0 20px',
-                      paddingBottom: 'calc(var(--content-bottom-pad) + 52px)',
+                      paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
                       WebkitOverflowScrolling: 'touch',
                     }}
                     className="no-scrollbar"
@@ -7602,6 +7604,77 @@ User Agent: [Automatically Generated]
                         Livex System
                       </p>
                     </div>
+
+                    {/* Minimal Update Card */}
+                    {updater.updateAvailable && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}10)`,
+                          border: `1px solid ${accent.from}30`,
+                          borderRadius: 16,
+                          padding: 16,
+                          marginBottom: 20,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 12,
+                          boxShadow: `0 4px 20px ${accent.from}08`,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 24 }}>
+                            system_update
+                          </span>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
+                              Update available
+                            </p>
+                            <p style={{ margin: 0, fontSize: 12, color: 'var(--c-text-secondary)', opacity: 0.8, fontFamily: 'Inter' }}>
+                              Version {updater.remoteVersion}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('updater')}
+                            style={{
+                              flex: 1,
+                              padding: '10px 16px',
+                              borderRadius: 12,
+                              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                              color: '#ffffff',
+                              border: 'none',
+                              fontSize: 13,
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              boxShadow: `0 4px 12px ${accent.from}30`,
+                            }}
+                          >
+                            Update
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              updater.dismissUpdate();
+                            }}
+                            style={{
+                              padding: '10px 16px',
+                              borderRadius: 12,
+                              background: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              color: 'var(--c-text-secondary)',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Dismiss
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
 
                     {/* Preferences Group */}
                     <div style={{ marginBottom: 24 }}>
@@ -7694,68 +7767,6 @@ User Agent: [Automatically Generated]
                           </span>
                         </motion.div>
 
-                        <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('language')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
-                          }}
-                          className="hover:bg-white/5 transition-colors"
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                            >
-                              translate
-                            </span>
-                          </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
-                              }}
-                            >
-                              Language
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 11,
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                              }}
-                            >
-                              {lang.toUpperCase()}
-                            </span>
-                          </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
-                        </motion.div>
                       </div>
                     </div>
 
@@ -7988,7 +7999,7 @@ User Agent: [Automatically Generated]
                                 fontFamily: 'Inter',
                               }}
                             >
-                              About
+                              About Studio
                             </span>
                             <span
                               style={{
@@ -7997,7 +8008,7 @@ User Agent: [Automatically Generated]
                                 opacity: 0.7,
                               }}
                             >
-                              Beta program info & legal
+                              Version {APP_VERSION}
                             </span>
                           </div>
                           <span

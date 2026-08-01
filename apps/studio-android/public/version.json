@@ -1,21 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.33",
-  "versionName": "4.3.33",
+  "version": "4.3.34",
+  "versionName": "4.3.34",
   "versionCode": 40333,
   "version_code": 40333,
-  "commit": "4a64462e",
-  "releasedAt": "7/31/2026, 10:49:32 PM CST",
-  "buildTimestamp": "7/31/2026, 10:49:32 PM CST",
+  "commit": "10a27096",
+  "releasedAt": "7/31/2026, 11:11:14 PM CST",
+  "buildTimestamp": "7/31/2026, 11:11:14 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.\n• Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.\n• Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.\n• Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.",
-  "whatsNew": "• Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.\n• Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.\n• Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.\n• Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.",
+  "changelog": "• Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.",
+  "whatsNew": "• Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.",
   "releaseNotes": {
     "added": [
-      "Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.",
-      "Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.",
-      "Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.",
-      "Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations."
+      "Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration."
     ]
   },
   "mandatory": false

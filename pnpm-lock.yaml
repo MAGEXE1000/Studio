@@ -1152,6 +1152,9 @@ importers:
 
   scripts:
     devDependencies:
+      '@capacitor/core':
+        specifier: ^8.4.1
+        version: 8.4.1
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.1

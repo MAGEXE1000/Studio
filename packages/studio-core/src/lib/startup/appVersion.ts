@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.33';
-export const NATIVE_VERSION_CODE = 40333;
-export const WEB_VERSION = '4.3.33';
+export const NATIVE_VERSION = '4.3.34';
+export const NATIVE_VERSION_CODE = 40334;
+export const WEB_VERSION = '4.3.34';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '7/31/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '4a64462e';
+export const APP_COMMIT_SHA = '10a27096';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '7/31/2026, 10:49:32 PM CST';
+export const APP_BUILD_TIMESTAMP = '7/31/2026, 11:11:14 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.",
-      "Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.",
-      "Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.",
-      "Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.",
+      "Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.",
     ],
   },
 ];

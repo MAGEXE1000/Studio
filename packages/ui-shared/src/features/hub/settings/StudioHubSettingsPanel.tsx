@@ -90,18 +90,23 @@ export default function StudioHubSettingsPanel() {
       <div
         style={{
           width: '100%',
-          height: '100%',
           display: 'flex',
           flexDirection: 'column',
           boxSizing: 'border-box',
-          background: 'var(--app-bg)',
+          background: 'transparent',
           color: 'var(--c-text-primary)',
         }}
       >
         <div
-          className="flex-1 overflow-y-auto no-scrollbar px-margin-mobile py-4 space-y-6"
           style={{
-            paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--density-section-gap, 24px)',
+            paddingLeft: 'var(--density-pad, 16px)',
+            paddingRight: 'var(--density-pad, 16px)',
+            paddingTop: 'var(--spacing-md, 16px)',
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
+            boxSizing: 'border-box',
           }}
         >
           {/* Accent Color Section */}

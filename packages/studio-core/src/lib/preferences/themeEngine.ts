@@ -163,18 +163,69 @@ export function applyThemeTokens(settings: any) {
     isLightMode ? 'rgba(239, 68, 68, 0.05)' : 'rgba(239, 68, 68, 0.15)'
   );
 
-  // 3. Spacing Tokens
-  root.style.setProperty('--spacing-xs', '4px');
-  root.style.setProperty('--spacing-sm', '8px');
-  root.style.setProperty('--spacing-md', '16px');
-  root.style.setProperty('--spacing-lg', '24px');
-  root.style.setProperty('--spacing-xl', '32px');
+  // 3. Spacing Tokens & Density System
+  const spacingDefs = {
+    compact: { xs: '3px', sm: '6px', md: '12px', lg: '18px', xl: '24px' },
+    comfortable: { xs: '4px', sm: '8px', md: '16px', lg: '24px', xl: '32px' },
+    spacious: { xs: '6px', sm: '12px', md: '22px', lg: '32px', xl: '44px' },
+  };
+  const sp = spacingDefs[settings.displayDensity as keyof typeof spacingDefs] || spacingDefs.comfortable;
+  root.style.setProperty('--spacing-xs', sp.xs);
+  root.style.setProperty('--spacing-sm', sp.sm);
+  root.style.setProperty('--spacing-md', sp.md);
+  root.style.setProperty('--spacing-lg', sp.lg);
+  root.style.setProperty('--spacing-xl', sp.xl);
 
   // Sync density-aware layout spacing
   const densities = {
-    compact: { pad: '10px', rowPad: '10px 20px', gap: '8px', cardGap: '6px' },
-    comfortable: { pad: '16px', rowPad: '14px 20px', gap: '12px', cardGap: '10px' },
-    spacious: { pad: '22px', rowPad: '20px 24px', gap: '18px', cardGap: '16px' },
+    compact: {
+      pad: '10px',
+      rowPad: '10px 16px',
+      gap: '8px',
+      cardGap: '6px',
+      btnPadding: '6px 12px',
+      btnFontSize: '11px',
+      iconSize: '18px',
+      listItemPadding: '8px 12px',
+      listItemGap: '8px',
+      sectionGap: '10px',
+      cardRadius: '8px',
+      sheetPadding: '12px 16px',
+      navItemPadding: '6px',
+      navGap: '8px',
+    },
+    comfortable: {
+      pad: '16px',
+      rowPad: '14px 20px',
+      gap: '12px',
+      cardGap: '10px',
+      btnPadding: '10px 16px',
+      btnFontSize: '13px',
+      iconSize: '22px',
+      listItemPadding: '12px 18px',
+      listItemGap: '12px',
+      sectionGap: '16px',
+      cardRadius: '12px',
+      sheetPadding: '16px 20px',
+      navItemPadding: '10px',
+      navGap: '12px',
+    },
+    spacious: {
+      pad: '22px',
+      rowPad: '20px 24px',
+      gap: '18px',
+      cardGap: '16px',
+      btnPadding: '14px 22px',
+      btnFontSize: '15px',
+      iconSize: '26px',
+      listItemPadding: '18px 24px',
+      listItemGap: '18px',
+      sectionGap: '24px',
+      cardRadius: '18px',
+      sheetPadding: '24px 28px',
+      navItemPadding: '14px',
+      navGap: '18px',
+    },
   };
   const d = (densities as any)[settings.displayDensity] || densities.comfortable;
   root.style.setProperty('--c-space-pad', d.pad);
@@ -186,13 +237,26 @@ export function applyThemeTokens(settings: any) {
   root.style.setProperty('--density-row-pad', d.rowPad);
   root.style.setProperty('--density-gap', d.gap);
   root.style.setProperty('--density-card-gap', d.cardGap);
+
+  // Advanced Density system variables
+  root.style.setProperty('--density-button-padding', d.btnPadding);
+  root.style.setProperty('--density-button-font-size', d.btnFontSize);
+  root.style.setProperty('--density-icon-size', d.iconSize);
+  root.style.setProperty('--density-list-item-padding', d.listItemPadding);
+  root.style.setProperty('--density-list-item-gap', d.listItemGap);
+  root.style.setProperty('--density-section-gap', d.sectionGap);
+  root.style.setProperty('--density-card-radius', d.cardRadius);
+  root.style.setProperty('--density-bottom-sheet-padding', d.sheetPadding);
+  root.style.setProperty('--density-nav-item-padding', d.navItemPadding);
+  root.style.setProperty('--density-nav-gap', d.navGap);
+
   root.setAttribute('data-density', settings.displayDensity);
 
   // 4. Radius Tokens
   root.style.setProperty('--radius-xs', '0.25rem');
   root.style.setProperty('--radius-sm', '0.5rem');
   root.style.setProperty('--radius-md', '0.75rem');
-  root.style.setProperty('--radius-lg', '1rem');
+  root.style.setProperty('--radius-lg', d.cardRadius); // Make standard radius adaptive
   root.style.setProperty('--radius-xl', '1.25rem');
   root.style.setProperty('--radius-2xl', '1.5rem');
   root.style.setProperty('--radius-3xl', '2rem');
@@ -216,22 +280,21 @@ export function applyThemeTokens(settings: any) {
     large: { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
   };
   const s = (sizes as any)[settings.fontSize] || sizes.medium;
-  root.style.setProperty('--font-base', s.base);
-  root.style.setProperty('--font-sm', s.sm);
-  root.style.setProperty('--font-xs', s.xs);
-  root.style.setProperty('--font-lg', s.lg);
-  root.style.setProperty('--font-xl', s.xl);
-  root.style.setProperty('--font-hero', s.hero);
-  root.style.fontSize = s.base;
-  root.setAttribute('data-text-scale', settings.fontSize);
-
-  // Apply zoom/scale to document.body for immediate live updates to density
-  const densityScales = {
-    compact: 0.90,
+  const densityFontScale = {
+    compact: 0.92,
     comfortable: 1.0,
-    spacious: 1.10,
+    spacious: 1.08,
   };
-  const ds = densityScales[settings.displayDensity as keyof typeof densityScales] || 1.0;
+  const dfs = densityFontScale[settings.displayDensity as keyof typeof densityFontScale] || 1.0;
+
+  root.style.setProperty('--font-base', `calc(${s.base} * ${dfs})`);
+  root.style.setProperty('--font-sm', `calc(${s.sm} * ${dfs})`);
+  root.style.setProperty('--font-xs', `calc(${s.xs} * ${dfs})`);
+  root.style.setProperty('--font-lg', `calc(${s.lg} * ${dfs})`);
+  root.style.setProperty('--font-xl', `calc(${s.xl} * ${dfs})`);
+  root.style.setProperty('--font-hero', `calc(${s.hero} * ${dfs})`);
+  root.style.fontSize = `calc(${s.base} * ${dfs})`;
+  root.setAttribute('data-text-scale', settings.fontSize);
 
   if (root) {
     (root.style as any).zoom = '';
@@ -241,10 +304,10 @@ export function applyThemeTokens(settings: any) {
   }
 
   if (typeof document !== 'undefined' && document.body) {
-    document.body.style.zoom = String(ds);
-    document.body.style.width = `calc(100% / ${ds})`;
-    document.body.style.height = `calc(100% / ${ds})`;
-    document.body.style.minHeight = `calc(100vh / ${ds})`;
+    document.body.style.zoom = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
+    document.body.style.minHeight = '';
   }
 
   // 7. Motion Tokens

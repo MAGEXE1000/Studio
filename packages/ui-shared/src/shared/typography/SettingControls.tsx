@@ -54,8 +54,10 @@ export function SettingRow({
     <div
       className="flex items-center justify-between gap-4"
       style={{
-        padding: '14px 20px',
-        paddingLeft: indent ? '28px' : '20px',
+        padding: 'var(--density-row-pad, 14px 20px)',
+        paddingLeft: indent
+          ? 'calc(var(--spacing-md, 16px) * 1.75)'
+          : 'var(--spacing-md, 16px)',
         borderBottom: '1px solid rgba(128,128,128,0.08)',
       }}
     >
@@ -124,10 +126,10 @@ export function SegmentedControl<T extends string>({
             onClick={() => onChange(opt.value)}
             className="btn-smooth relative outline-none cursor-pointer"
             style={{
-              padding: '6px 14px',
+              padding: 'var(--density-button-padding, 6px 14px)',
               borderRadius: '9999px',
               fontFamily: 'var(--font-headline, Manrope)',
-              fontSize: '11px',
+              fontSize: 'var(--density-button-font-size, 11px)',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
@@ -204,10 +206,10 @@ export function BentoSettingCard({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
-        padding: '16px',
+        padding: 'var(--density-row-pad, 16px)',
         background: 'var(--app-surface-high)',
         border: '1px solid rgba(128, 128, 128, 0.06)',
-        borderRadius: 'var(--radius-xl)',
+        borderRadius: 'var(--density-card-radius, var(--radius-xl))',
         cursor: 'pointer',
         textAlign: 'left',
         boxSizing: 'border-box',
@@ -215,12 +217,12 @@ export function BentoSettingCard({
         animationDelay: `${delay}ms`,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--density-list-item-gap, 16px)', minWidth: 0, flex: 1 }}>
         <div
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
+            width: 'calc(var(--density-icon-size, 22px) * 2)',
+            height: 'calc(var(--density-icon-size, 22px) * 2)',
+            borderRadius: 'var(--density-card-radius, 12px)',
             background: 'var(--app-surface-highest)',
             display: 'flex',
             alignItems: 'center',
@@ -232,7 +234,7 @@ export function BentoSettingCard({
           <span
             className="material-symbols-outlined"
             style={{
-              fontSize: 22,
+              fontSize: 'var(--density-icon-size, 22px)',
               color: iconColor || 'var(--studio-accent-from, #679cff)',
               fontVariationSettings: "'FILL' 1",
             }}
@@ -344,7 +346,7 @@ export function BentoSettingRow({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
-        padding: '16px',
+        padding: 'var(--density-row-pad, 16px)',
         background: 'var(--app-surface-high)',
         border: 'none',
         cursor: 'pointer',
@@ -354,14 +356,14 @@ export function BentoSettingRow({
         animationDelay: `${delay}ms`,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--density-list-item-gap, 16px)', minWidth: 0, flex: 1 }}>
         <span
           className="material-symbols-outlined"
           style={{
-            fontSize: 22,
+            fontSize: 'var(--density-icon-size, 22px)',
             color: iconColor || 'var(--studio-accent-from, #679cff)',
             fontVariationSettings: "'FILL' 1",
-            width: 24,
+            width: 'var(--density-icon-size, 24px)',
             textAlign: 'center',
           }}
         >
@@ -451,7 +453,7 @@ export function SettingSection({
   className?: string;
 }) {
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
+    <div className={`flex flex-col ${className}`} style={{ gap: 'var(--spacing-xs, 4px)' }}>
       <span
         className="px-1 text-[9.5px] font-extrabold uppercase tracking-wider"
         style={{ letterSpacing: '0.06em', color: 'var(--c-text-tertiary, #808080)' }}
@@ -462,7 +464,7 @@ export function SettingSection({
         style={{
           border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
           backgroundColor: 'var(--app-surface-low, rgba(128, 128, 128, 0.08))',
-          borderRadius: 'var(--radius-lg)',
+          borderRadius: 'var(--density-card-radius, var(--radius-lg))',
           overflow: 'hidden',
         }}
       >

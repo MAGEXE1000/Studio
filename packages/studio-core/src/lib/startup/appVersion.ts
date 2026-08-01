@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.37';
-export const NATIVE_VERSION_CODE = 40337;
-export const WEB_VERSION = '4.3.37';
+export const NATIVE_VERSION = '4.3.38';
+export const NATIVE_VERSION_CODE = 40338;
+export const WEB_VERSION = '4.3.38';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '56ac0065';
+export const APP_COMMIT_SHA = '56890262';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 11:44:23 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 12:39:27 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,12 +98,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Overhauled the Settings & Appearance layout with unified Material 3 aesthetics.",
-      "Relocated Language preferences directly within the Appearance settings panel.",
-      "Implemented an animated, rounded Bottom Sheet dialog for immediate language selection.",
-      "Added a non-intrusive reactive Update Available alert card on the settings dashboard.",
-      "Set scroll safety bottom padding across all settings panels to prevent navigation overlays.",
-      "Ensured resilient update sessions that survive backgrounding, rotations, and permission settings.",
+      "Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).",
+      "Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.",
+      "Added role=\"dialog\" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.",
+      "Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline.",
     ],
   },
 ];

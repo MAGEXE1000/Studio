@@ -152,6 +152,28 @@ export function SettingsScaffold({
   children,
   hideBack,
 }: SettingsScaffoldProps) {
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const headerBgRef = React.useRef<HTMLDivElement | null>(null);
+  const titleRef = React.useRef<HTMLSpanElement | null>(null);
+  const largeTitleRef = React.useRef<HTMLHeadingElement | null>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    // Transition range: 0px to 48px
+    const progress = Math.min(1, Math.max(0, scrollTop / 48));
+
+    if (headerBgRef.current) {
+      headerBgRef.current.style.opacity = String(progress);
+    }
+    if (titleRef.current) {
+      titleRef.current.style.opacity = String(progress);
+      titleRef.current.style.transform = `translateY(${Math.max(0, 10 - progress * 10)}px)`;
+    }
+    if (largeTitleRef.current) {
+      largeTitleRef.current.style.opacity = String(Math.max(0, 1 - progress * 1.5));
+    }
+  };
+
   return (
     <div
       style={{
@@ -168,51 +190,131 @@ export function SettingsScaffold({
       }}
       className="studio-settings-scaffold"
     >
+      {/* Sticky Header Bar */}
       <div
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 'calc(env(safe-area-inset-top, 0px) + 56px)',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          padding: '16px 20px',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-          background: 'transparent',
-          flexShrink: 0,
+          padding: '0 20px',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          boxSizing: 'border-box',
+          zIndex: 110,
+          pointerEvents: 'none',
         }}
       >
-        {!hideBack && (
-          <button
-            onClick={onBack}
-            className="premium-back-btn"
-          >
-            <span className="material-symbols-outlined">
-              arrow_back
-            </span>
-          </button>
-        )}
-        <span
+        {/* Background Overlay */}
+        <div
+          ref={headerBgRef}
           style={{
-            fontSize: '22px',
+            position: 'absolute',
+            inset: 0,
+            background: 'var(--app-surface-high, rgba(18, 18, 22, 0.95))',
+            borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            opacity: 0,
+            transition: 'opacity 100ms linear',
+            zIndex: -1,
+          }}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 12 }}>
+          {!hideBack && (
+            <button
+              onClick={onBack}
+              className="premium-back-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: 'var(--app-surface-low, rgba(128, 128, 128, 0.06))',
+                border: '1px solid rgba(128, 128, 128, 0.08)',
+                color: 'var(--c-text-primary)',
+                cursor: 'pointer',
+                transition: 'background-color 200ms',
+                outline: 'none',
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                arrow_back
+              </span>
+            </button>
+          )}
+
+          {/* Small Sticky Title */}
+          <span
+            ref={titleRef}
+            style={{
+              fontSize: '16px',
+              fontWeight: 800,
+              color: 'var(--c-text-primary)',
+              letterSpacing: '-0.02em',
+              fontFamily: 'Manrope',
+              opacity: 0,
+              transform: 'translateY(10px)',
+              transition: 'opacity 150ms ease-out, transform 150ms ease-out',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flex: 1,
+            }}
+          >
+            {title}
+          </span>
+
+          {toolbarActions && (
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {toolbarActions}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Continuous Scrolling View */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          boxSizing: 'border-box',
+          padding: 'var(--density-pad, 16px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
+        }}
+        className="no-scrollbar"
+      >
+        {/* Large scrolling title */}
+        <h2
+          ref={largeTitleRef}
+          style={{
+            fontSize: 'var(--font-hero, 28px)',
             fontWeight: 800,
             color: 'var(--c-text-primary)',
+            margin: '0 0 20px 4px',
             letterSpacing: '-0.03em',
             fontFamily: 'Manrope',
+            transition: 'opacity 100ms linear',
           }}
         >
           {title}
-        </span>
-        {toolbarActions && (
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {toolbarActions}
-          </div>
-        )}
+        </h2>
+
+        {/* Content Canvas */}
+        <div style={{ width: '100%' }}>
+          {children}
+        </div>
       </div>
-      <ScrollScaffold
-        bottomSpacing={false}
-        disableScrollHide={true}
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)' }}
-      >
-        {children}
-      </ScrollScaffold>
     </div>
   );
 }

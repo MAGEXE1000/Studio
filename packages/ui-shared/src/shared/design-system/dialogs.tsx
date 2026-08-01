@@ -144,6 +144,8 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
     <AnimatePresence>
       {open && (
         <div
+          role="dialog"
+          className="studio-modal"
           style={{
             position: 'fixed',
             inset: 0,

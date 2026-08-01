@@ -1,4 +1,5 @@
-Release Date: 2026-07-31
+Release Date: 2026-08-01
 
-### Added
-- Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.
+### Fixed
+- Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.
+- Restored Phase 4 Updater startup recovery check and listener registrations.

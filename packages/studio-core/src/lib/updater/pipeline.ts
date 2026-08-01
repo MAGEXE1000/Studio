@@ -930,6 +930,7 @@ export function checkForUpdate(
   trigger = 'unknown',
   reason = 'unknown'
 ): Promise<CentralizedUpdateState> {
+  console.log(`[UPDATER-TRACE] checkForUpdate() CALLED at ${performance.now().toFixed(0)}ms, isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
   interceptIllegalCall(
     'checkForUpdate',
     `isManual=${isManual}, trigger=${trigger}, reason=${reason}`
@@ -980,6 +981,8 @@ export function checkForUpdate(
   const isBlocked = isUpdateSessionActive() || !allowedStates.includes(current);
 
   if (isBlocked) {
+    const msg = `checkForUpdate() RETURN blocked automatic check: isUpdateSessionActive=${isUpdateSessionActive()}, currentState=${current}`;
+    console.log(`[UPDATER-TRACE] ${msg}`);
     if (!isManual) {
       logTimelineEvent('UpdateCore', 'CHECK_REJECTED_ACTIVE_SESSION', `state: ${current}`);
 
@@ -998,6 +1001,8 @@ export function checkForUpdate(
   }
 
   if (isBusy) {
+    const msg = `checkForUpdate() RETURN blocked busy installer state=${current}`;
+    console.log(`[UPDATER-TRACE] ${msg}`);
     logTimelineEvent('UpdateCore', 'CHECK_REJECTED_BUSY', `state: ${current}`);
 
     UpdaterFlightRecorder.record({
@@ -1022,6 +1027,7 @@ export function checkForUpdate(
     reason: `Starting update check. isManual: ${isManual}, Trigger: ${trigger}, Reason: ${reason}, Screen: ${screen}`,
     stack: stackTrace,
   });
+  console.log(`[UPDATER-TRACE] checkForUpdate() PROCEEDING to dispatch pipeline`);
 
   return UpdatePipelineCoordinator.dispatch(isManual, trigger, reason);
 }

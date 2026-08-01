@@ -92,6 +92,19 @@ export function SharedAppShell({
   const [showHub, setShowHub] = useState(true);
   useEffect(() => {
     BackDispatcher.initialize();
+
+    const unsub = StartupCoordinator.subscribe((phases) => {
+      // Monitor startup progress if needed
+    });
+
+    void StartupCoordinator.run(() => {
+      console.log('[StartupCoordinator] App bootstrap complete via SharedAppShell.');
+    });
+
+    return () => {
+      unsub();
+      StartupCoordinator.cancel('app_unmounted');
+    };
   }, []);
 
   // Bi-directional synchronization between navigation stack and settings

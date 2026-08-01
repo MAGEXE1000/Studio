@@ -1,18 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.34",
-  "versionName": "4.3.34",
-  "versionCode": 40333,
-  "version_code": 40333,
-  "commit": "10a27096",
-  "releasedAt": "7/31/2026, 11:11:14 PM CST",
-  "buildTimestamp": "7/31/2026, 11:11:14 PM CST",
+  "version": "4.3.35",
+  "versionName": "4.3.35",
+  "versionCode": 40334,
+  "version_code": 40334,
+  "commit": "edf65b59",
+  "releasedAt": "8/1/2026, 12:29:54 AM CST",
+  "buildTimestamp": "8/1/2026, 12:29:54 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.",
-  "whatsNew": "• Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.",
+  "changelog": "• Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.\n• Restored Phase 4 Updater startup recovery check and listener registrations.",
+  "whatsNew": "• Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.\n• Restored Phase 4 Updater startup recovery check and listener registrations.",
   "releaseNotes": {
-    "added": [
-      "Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration."
+    "fixed": [
+      "Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.",
+      "Restored Phase 4 Updater startup recovery check and listener registrations."
     ]
   },
   "mandatory": false

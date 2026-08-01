@@ -56,6 +56,12 @@ class StartupCoordinatorClass {
 
   private savedOnHubShow: (() => void) | null = null;
 
+  private logStartup(message: string, details?: string) {
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const time = typeof now === 'number' && typeof (now as any).toFixed === 'function' ? (now as any).toFixed(0) : String(now);
+    console.log(`[STARTUP-TRACE] ${time}ms ${message}` + (details ? ` | ${details}` : ''));
+  }
+
   private isHubMounted = false;
   private hubMountedResolver: (() => void) | null = null;
   private hubMountedPromise: Promise<void> = new Promise<void>((resolve) => {
@@ -64,7 +70,7 @@ class StartupCoordinatorClass {
 
   notifyHubMounted() {
     this.isHubMounted = true;
-    console.log(`[STARTUP-TRACE] notifyHubMounted() CALLED at ${performance.now().toFixed(0)}ms, hasResolver=${!!this.hubMountedResolver}`);
+    this.logStartup('notifyHubMounted() CALLED', `hasResolver=${!!this.hubMountedResolver}`);
     if (this.hubMountedResolver) {
       this.hubMountedResolver();
     }
@@ -111,6 +117,7 @@ class StartupCoordinatorClass {
 
   // Timer helper that registers for cleanup
   private setTimeout(fn: () => void, delay: number): any {
+    this.logStartup('setTimeout() CREATED', `delay=${delay}ms`);
     const timer = setTimeout(fn, delay);
     this.activeTimers.push(timer);
     return timer;
@@ -196,12 +203,12 @@ class StartupCoordinatorClass {
   }
 
   async run(onHubShow: () => void) {
-    console.log(`[STARTUP-TRACE] StartupCoordinator.run() CALLED at ${performance.now().toFixed(0)}ms, isStarted=${this.isStarted}`);
+    this.logStartup('StartupCoordinator.run() CALLED', `isStarted=${this.isStarted}`);
     if (onHubShow) {
       this.savedOnHubShow = onHubShow;
     }
     if (this.isStarted) {
-      console.log(`[STARTUP-TRACE] StartupCoordinator.run() SKIPPED - already started`);
+      this.logStartup('StartupCoordinator.run() SKIPPED', 'already started');
       return;
     }
     this.isStarted = true;
@@ -307,8 +314,17 @@ class StartupCoordinatorClass {
     if (!p5Success || this.currentRunId !== runId) return;
 
     // Phase 4: Updater initialization (Runs after Hub is visible)
-    const p4Success = await this.executePhase('4', 1000, async () => {
-      // Phase 4 updater listeners initialized via global update engine
+    const p4Success = await this.executePhase('4', 10000, async () => {
+      try {
+        const { enforceStartupRecovery, initializeGlobalUpdateListeners } = await import('../updater/pipeline');
+        // 1. Enforce startup recovery (restores installer session state)
+        await enforceStartupRecovery();
+        // 2. Initialize update listener registry
+        initializeGlobalUpdateListeners();
+      } catch (err: any) {
+        console.error('[StartupCoordinator] Phase 4 Updater init failed:', err);
+        throw err;
+      }
     });
     if (!p4Success || this.currentRunId !== runId) return;
 
@@ -552,6 +568,7 @@ class StartupCoordinatorClass {
       import('@capacitor/app')
         .then(({ App }) => {
           App.addListener('appStateChange', (s) => {
+            this.logStartup('AppStateChange EVENT', `isActive=${s.isActive}`);
             if (s.isActive) {
               const settings = useSettingsStore.getState().settings;
               if (settings.highRefreshRate) {
@@ -559,7 +576,7 @@ class StartupCoordinatorClass {
               }
               this.startPeriodicUpdatePolling();
               if (!this.isCompleted && !this.isStarted && this.savedOnHubShow) {
-                console.log('[STARTUP-TRACE] Auto-restarting StartupCoordinator from appStateChange active');
+                this.logStartup('Auto-restarting StartupCoordinator from appStateChange active');
                 void this.run(this.savedOnHubShow);
               }
               this.handleLifecycleEvent(
@@ -598,10 +615,15 @@ class StartupCoordinatorClass {
   }
 
   private startPeriodicUpdatePolling() {
-    if (this.pollingTimer) return;
+    if (this.pollingTimer) {
+      this.logStartup('startPeriodicUpdatePolling() RETURN', 'already running');
+      return;
+    }
 
+    this.logStartup('startPeriodicUpdatePolling() STARTED');
     const POLL_INTERVAL = 15 * 60 * 1000; // 15 minutes
     this.pollingTimer = setInterval(() => {
+      this.logStartup('polling timer FIRING', 'triggerUpdateCheck polling periodic foreground poll');
       const autoCheck = true;
       if (
         autoCheck &&
@@ -614,15 +636,17 @@ class StartupCoordinatorClass {
 
   private stopPeriodicUpdatePolling() {
     if (this.pollingTimer) {
+      this.logStartup('stopPeriodicUpdatePolling() CALLED');
       clearInterval(this.pollingTimer);
       this.pollingTimer = null;
     }
   }
 
   private handleLifecycleEvent(type: string, trigger: string, reason: string, payload?: any) {
+    this.logStartup('handleLifecycleEvent() CALLED', `type=${type}, trigger=${trigger}, reason=${reason}`);
     if (!this.isCompleted) {
       if (!this.isStarted && this.savedOnHubShow) {
-        console.log(`[STARTUP-TRACE] Auto-restarting StartupCoordinator from lifecycle event: ${type}`);
+        this.logStartup('handleLifecycleEvent() auto-restarting StartupCoordinator', `event=${type}`);
         void this.run(this.savedOnHubShow);
       }
       this.queuedEvents.push({ type, trigger, reason, payload });
@@ -631,7 +655,10 @@ class StartupCoordinatorClass {
     }
 
     const autoCheck = true;
-    if (!autoCheck) return;
+    if (!autoCheck) {
+      this.logStartup('handleLifecycleEvent() RETURN', 'autoCheck disabled');
+      return;
+    }
 
     // ==================================================
     // DESIRED ARCHITECTURE: SCHEDULER ISOLATION
@@ -644,6 +671,7 @@ class StartupCoordinatorClass {
       ['UPDATE_AVAILABLE', 'RECOVERY', 'FETCH_APK_INFORMATION'].includes(otaState);
 
     if (isUpdatePendingOrActive) {
+      this.logStartup('handleLifecycleEvent() RETURN', `Blocked lifecycle check: isInstallationLocked=${isInstallationLocked()}, isPostInstallSessionActive=${isPostInstallSessionActive()}, otaState=${otaState}`);
       return;
     }
 
@@ -699,6 +727,7 @@ class StartupCoordinatorClass {
       // Post-install session guard — blocks ALL lifecycle-triggered update checks
       if (isPostInstallSessionActive()) {
         const info = getPostInstallSessionInfo();
+        this.logStartup('triggerUpdateCheck() RETURN', `Blocked because isPostInstallSessionActive() storedVersion=${info.storedVersion}`);
         logInstallLockEvent(
           'STARTUP_BLOCKED',
           `triggerUpdateCheck blocked: post-install session active. storedVersion=${info.storedVersion}`,
@@ -722,6 +751,7 @@ class StartupCoordinatorClass {
       // ─── Race-prevention gate ────────────────────────────────────────────
       const recoveryPromise = getInstallRecoveryPromise();
       if (recoveryPromise) {
+        this.logStartup('triggerUpdateCheck() WAIT', `Awaiting installRecoveryPromise before proceeding`);
         logInstallLockEvent(
           'RACE_BLOCKED',
           `triggerUpdateCheck yielded to installRecoveryPromise: trigger=${trigger}, reason=${reason}`,
@@ -738,11 +768,13 @@ class StartupCoordinatorClass {
         });
 
         await recoveryPromise;
+        this.logStartup('triggerUpdateCheck() RESUMED', 'installRecoveryPromise resolved');
       }
       // ─────────────────────────────────────────────────────────────────────
 
       // Use isInstallationLocked()
       if (isInstallationLocked()) {
+        this.logStartup('triggerUpdateCheck() RETURN', 'Blocked because isInstallationLocked()');
         logInstallLockEvent(
           'STARTUP_BLOCKED',
           `triggerUpdateCheck blocked: trigger=${trigger}, reason=${reason}`,
@@ -769,6 +801,7 @@ class StartupCoordinatorClass {
         'INSTALL_CANCELLED',
       ].includes(otaState);
       if (isUpdating) {
+        this.logStartup('triggerUpdateCheck() RETURN', `Blocked because updater active in state ${otaState}`);
         UpdaterFlightRecorder.record({
           thread: 'js',
           sessionId: null,
@@ -789,7 +822,7 @@ class StartupCoordinatorClass {
         caller: 'StartupCoordinator',
         reason: `Proceeding to checkForUpdate. Trigger: ${trigger}, Reason: ${reason}`,
       });
-
+      this.logStartup('triggerUpdateCheck() PROCEED', `calling checkForUpdate(${trigger})`);
       void checkForUpdate(false, trigger, reason);
     } catch (err) {
       console.error('[StartupCoordinator] Failed to trigger update check:', err);
@@ -807,6 +840,7 @@ class StartupCoordinatorClass {
   }
 
   private flushQueuedEvents() {
+    this.logStartup('flushQueuedEvents() CALLED', `queuedEvents=${this.queuedEvents.length}`);
     const hasTriggerEvent = this.queuedEvents.some(
       (evt) =>
         evt.type === 'visibilitychange' ||
@@ -827,6 +861,7 @@ class StartupCoordinatorClass {
     // which queues events — flushing those queued events must not start a new check
     // that races with the completion callback and shows "Studio is up to date".
     if (isInstallationLocked()) {
+      this.logStartup('flushQueuedEvents() RETURN', 'Blocked because isInstallationLocked()');
       logInstallLockEvent(
         'STARTUP_BLOCKED',
         'flushQueuedEvents: startup update check skipped due to installation lock',
@@ -836,8 +871,10 @@ class StartupCoordinatorClass {
     }
 
     if (hasTriggerEvent) {
+      this.logStartup('flushQueuedEvents() PROCEED', 'triggerUpdateCheck queued_lifecycle');
       void this.triggerUpdateCheck('queued_lifecycle', 'flushed boot events');
     } else {
+      this.logStartup('flushQueuedEvents() PROCEED', 'triggerUpdateCheck startup');
       void this.triggerUpdateCheck('startup', 'app_boot_complete');
     }
   }

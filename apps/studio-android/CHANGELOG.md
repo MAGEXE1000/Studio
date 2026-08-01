@@ -11,6 +11,14 @@ Conventions:
 
 - One H2 heading per version: `## X.Y.Z` (no leading `v`).
 
+## 4.3.35
+
+Release Date: 2026-08-01
+
+### Fixed
+- Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.
+- Restored Phase 4 Updater startup recovery check and listener registrations.
+
 ## 4.3.34
 
 Release Date: 2026-07-31

@@ -159,6 +159,14 @@ verifyAndCleanCaches();
 
 export let activeUpdateSession: ActiveUpdateSession | null = null;
 
+function logStateCheck(message: string) {
+  try {
+    console.log(`[UPDATER-TRACE] ${performance.now().toFixed(0)}ms ${message}`);
+  } catch {
+    console.log(`[UPDATER-TRACE] ${Date.now()}ms ${message}`);
+  }
+}
+
 export function loadPersistedSession(): ActiveUpdateSession | null {
   try {
     if (typeof localStorage !== 'undefined') {
@@ -206,12 +214,14 @@ let installationJustCompletedTimer: ReturnType<typeof setTimeout> | null = null;
  */
 function setInstallationJustCompleted() {
   installationJustCompleted = true;
+  logStateCheck('installationJustCompleted SET true');
   if (installationJustCompletedTimer) {
     clearTimeout(installationJustCompletedTimer);
   }
   installationJustCompletedTimer = setTimeout(() => {
     installationJustCompleted = false;
     installationJustCompletedTimer = null;
+    logStateCheck('installationJustCompleted AUTO-CLEARED after 60000ms');
   }, 60000);
 }
 
@@ -222,6 +232,7 @@ function setInstallationJustCompleted() {
  */
 export function clearInstallationJustCompleted() {
   if (installationJustCompleted) {
+    logStateCheck('clearInstallationJustCompleted() CALLED');
   }
   installationJustCompleted = false;
   if (installationJustCompletedTimer) {
@@ -330,23 +341,33 @@ function activatePostInstallSession() {
  * it uses localStorage for persistence and version matching for detection.
  */
 export function isPostInstallSessionActive(): boolean {
+  const storedVersion = (() => {
+    try {
+      return localStorage.getItem(POST_INSTALL_VERSION_KEY);
+    } catch (_) {
+      return null;
+    }
+  })();
+
   if (!postInstallSessionActive) {
     // Check localStorage as fallback in case the in-memory flag was lost
     // (e.g., module re-evaluation in HMR). This is a safety net.
     try {
-      const storedVersion = localStorage.getItem(POST_INSTALL_VERSION_KEY);
       if (storedVersion && storedVersion === APP_VERSION) {
         const storedTimestamp = parseInt(localStorage.getItem(POST_INSTALL_TIMESTAMP_KEY) || '0', 10);
         const elapsed = Date.now() - storedTimestamp;
         if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
           postInstallSessionActive = true;
           postInstallSessionTimestamp = storedTimestamp;
+          logStateCheck(`isPostInstallSessionActive() RETURN true (restored from localStorage, elapsed=${elapsed}ms)`);
           return true;
         }
       }
     } catch (_) {}
+    logStateCheck(`isPostInstallSessionActive() RETURN false (postInstallSessionActive=false, storedVersion=${storedVersion})`);
     return false;
   }
+  logStateCheck('isPostInstallSessionActive() RETURN true (in-memory active)');
   return true;
 }
 
@@ -408,9 +429,18 @@ export function getPostInstallSessionInfo(): {
  * checks, StartupCoordinator lifecycle triggers, and startup recovery.
  */
 export function isInstallationLocked(): boolean {
-  if (activeUpdateSession !== null) return true;
-  if (installationJustCompleted) return true;
-  if (isPostInstallSessionActive()) return true;
+  if (activeUpdateSession !== null) {
+    logStateCheck('isInstallationLocked() RETURN true (activeUpdateSession !== null)');
+    return true;
+  }
+  if (installationJustCompleted) {
+    logStateCheck('isInstallationLocked() RETURN true (installationJustCompleted=true)');
+    return true;
+  }
+  if (isPostInstallSessionActive()) {
+    logStateCheck('isInstallationLocked() RETURN true (isPostInstallSessionActive=true)');
+    return true;
+  }
   const lockedStates: AppUpdateState[] = [
     'FETCH_APK_INFORMATION',
     'DOWNLOAD_APK',
@@ -625,16 +655,19 @@ function recordRejectedTransition(from: string, attempted: string, reason: strin
 }
 
 export function transitionToState(state: AppUpdateState, reason: string, failureReason?: string) {
+  console.log(`[UPDATER-TRACE] transitionToState() CALLED at ${performance.now().toFixed(0)}ms, state=${state}, reason=${reason}, failureReason=${failureReason || 'none'}`);
   // Never allow transitioning to INSTALL_FAILED from IDLE or INSTALL_SUCCESS
   if (state === 'INSTALL_FAILED') {
     const current = globalUpdateState.updateState;
     if (current === 'IDLE' || current === 'INSTALL_SUCCESS') {
+      console.log(`[UPDATER-TRACE] transitionToState() RETURN blocked invalid INSTALL_FAILED from ${current}`);
       return;
     }
   }
 
   // Prevent recursive transitions
   if (transitionLock) {
+    console.log(`[UPDATER-TRACE] transitionToState() RETURN blocked recursive transition`);
     recordRejectedTransition(globalUpdateState.updateState, state, `RECURSIVE_BLOCKED: ${reason}`);
     return;
   }
@@ -907,6 +940,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         localStorage.removeItem('studio:active_update_session');
       } catch (_) {}
     } else {
+  console.log(`[UPDATER-TRACE] transitionToState() COMMITTED ${current} -> ${state} (reason=${reason})`);
       saveSession();
     }
   }

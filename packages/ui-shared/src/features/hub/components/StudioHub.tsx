@@ -3432,6 +3432,13 @@ function HubUpdaterPage({
           </SettingRow>
         </SettingSection>
       )}
+
+      {/* Premium scrollable release history changelog */}
+      <SettingSection title={lang === 'es' ? 'HISTORIAL DE CAMBIOS' : 'CHANGELOG HISTORY'}>
+        <div style={{ padding: '4px 0 12px 0' }}>
+          <ChangelogView lang={lang} accent={accent} />
+        </div>
+      </SettingSection>
     </div>
   );
 }
@@ -7044,18 +7051,13 @@ User Agent: [Automatically Generated]
         return renderChangelogContent();
       case 'updater':
         return (
-          <SettingsScaffold
-            title={getPageTitle('updater')}
+          <HubUpdaterPage
+            cardStyle={cardStyle}
+            accent={accent}
             onBack={goBack}
-          >
-            <HubUpdaterPage
-              cardStyle={cardStyle}
-              accent={accent}
-              onBack={goBack}
-              hideHeader={true}
-              onNavigate={navigate}
-            />
-          </SettingsScaffold>
+            hideHeader={true}
+            onNavigate={navigate}
+          />
         );
       case 'help-center':
         return renderHelpCenterContent();
@@ -7190,8 +7192,6 @@ User Agent: [Automatically Generated]
                     settings
                   </span>
                 </button>
-              ) : pageId === 'appearance' ? (
-                <PremiumThemeSwitcher />
               ) : undefined;
 
               return (

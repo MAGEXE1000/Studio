@@ -1,3 +1,26 @@
+export const activeOverlaysRegistry = {
+  modals: new Set<string>(),
+  sheets: new Set<string>(),
+  listeners: new Set<() => void>(),
+  
+  register(type: 'modal' | 'sheet', id: string) {
+    if (type === 'modal') this.modals.add(id);
+    else this.sheets.add(id);
+    this.notify();
+  },
+  unregister(type: 'modal' | 'sheet', id: string) {
+    if (type === 'modal') this.modals.delete(id);
+    else this.sheets.delete(id);
+    this.notify();
+  },
+  subscribe(listener: () => void) {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  },
+  notify() {
+    this.listeners.forEach((l) => l());
+  }
+};
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
@@ -11,6 +34,17 @@ export interface DialogProps {
 }
 
 export function Dialog({ open, onClose, title, children, footer }: DialogProps) {
+  useEffect(() => {
+    if (open) {
+      const id = Math.random().toString();
+      activeOverlaysRegistry.register('modal', id);
+      return () => {
+        activeOverlaysRegistry.unregister('modal', id);
+      };
+    }
+    return undefined;
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -140,6 +174,17 @@ export interface SheetProps {
 }
 
 export function Sheet({ open, onClose, title, children }: SheetProps) {
+  useEffect(() => {
+    if (open) {
+      const id = Math.random().toString();
+      activeOverlaysRegistry.register('sheet', id);
+      return () => {
+        activeOverlaysRegistry.unregister('sheet', id);
+      };
+    }
+    return undefined;
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (

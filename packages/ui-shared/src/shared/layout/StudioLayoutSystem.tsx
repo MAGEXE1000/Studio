@@ -1,3 +1,5 @@
+import { activeOverlaysRegistry } from '../design-system/dialogs';
+import { useEffect } from 'react';
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -145,6 +147,119 @@ export interface SettingsScaffoldProps {
   hideBack?: boolean;
 }
 
+export interface SharedFloatingHeaderProps {
+  title: string;
+  onBack?: () => void;
+  hideBack?: boolean;
+  toolbarActions?: React.ReactNode;
+  headerBgRef?: React.RefObject<HTMLDivElement | null>;
+  titleRef?: React.RefObject<HTMLSpanElement | null>;
+}
+
+export function SharedFloatingHeader({
+  title,
+  onBack,
+  hideBack,
+  toolbarActions,
+  headerBgRef,
+  titleRef,
+}: SharedFloatingHeaderProps) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 'env(safe-area-inset-top, 0px)',
+        left: 0,
+        right: 0,
+        height: 56,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 110,
+        pointerEvents: 'none',
+        padding: '0 16px',
+      }}
+    >
+      {/* Floating rounded header card with live theme adaptive blur */}
+      <div
+        ref={headerBgRef}
+        style={{
+          position: 'absolute',
+          top: 6,
+          left: 12,
+          right: 12,
+          bottom: 6,
+          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.65))',
+          borderRadius: '24px',
+          border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
+          backdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
+          WebkitBackdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
+          opacity: 0,
+          transform: 'scale(0.96) translateY(-4px)',
+          transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: -1,
+          pointerEvents: 'auto',
+        }}
+      />
+
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 12, height: '100%' }}>
+        {!hideBack && onBack && (
+          <button
+            onClick={onBack}
+            className="premium-back-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.06))',
+              border: '1px solid rgba(128, 128, 128, 0.08)',
+              color: 'var(--c-text-primary)',
+              cursor: 'pointer',
+              transition: 'background-color 200ms',
+              outline: 'none',
+              flexShrink: 0,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              arrow_back
+            </span>
+          </button>
+        )}
+
+        {/* Small Sticky Title */}
+        <span
+          ref={titleRef}
+          style={{
+            fontSize: '14px',
+            fontWeight: 800,
+            color: 'var(--c-text-primary)',
+            letterSpacing: '-0.02em',
+            fontFamily: 'Manrope',
+            opacity: 0,
+            transform: 'translateY(8px)',
+            transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            flex: 1,
+          }}
+        >
+          {title}
+        </span>
+
+        {toolbarActions && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            {toolbarActions}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function SettingsScaffold({
   title,
   onBack,
@@ -164,10 +279,11 @@ export function SettingsScaffold({
 
     if (headerBgRef.current) {
       headerBgRef.current.style.opacity = String(progress);
+      headerBgRef.current.style.transform = `scale(${0.96 + progress * 0.04}) translateY(${Math.max(0, (1 - progress) * -4)}px)`;
     }
     if (titleRef.current) {
       titleRef.current.style.opacity = String(progress);
-      titleRef.current.style.transform = `translateY(${Math.max(0, 10 - progress * 10)}px)`;
+      titleRef.current.style.transform = `translateY(${Math.max(0, 8 - progress * 8)}px)`;
     }
     if (largeTitleRef.current) {
       largeTitleRef.current.style.opacity = String(Math.max(0, 1 - progress * 1.5));
@@ -190,93 +306,14 @@ export function SettingsScaffold({
       }}
       className="studio-settings-scaffold"
     >
-      {/* Sticky Header Bar */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 'calc(env(safe-area-inset-top, 0px) + 56px)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 20px',
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          boxSizing: 'border-box',
-          zIndex: 110,
-          pointerEvents: 'none',
-        }}
-      >
-        {/* Background Overlay */}
-        <div
-          ref={headerBgRef}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'var(--app-surface-high, rgba(18, 18, 22, 0.95))',
-            borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            opacity: 0,
-            transition: 'opacity 100ms linear',
-            zIndex: -1,
-          }}
-        />
-
-        <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 12 }}>
-          {!hideBack && (
-            <button
-              onClick={onBack}
-              className="premium-back-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 38,
-                height: 38,
-                borderRadius: '50%',
-                background: 'var(--app-surface-low, rgba(128, 128, 128, 0.06))',
-                border: '1px solid rgba(128, 128, 128, 0.08)',
-                color: 'var(--c-text-primary)',
-                cursor: 'pointer',
-                transition: 'background-color 200ms',
-                outline: 'none',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                arrow_back
-              </span>
-            </button>
-          )}
-
-          {/* Small Sticky Title */}
-          <span
-            ref={titleRef}
-            style={{
-              fontSize: '16px',
-              fontWeight: 800,
-              color: 'var(--c-text-primary)',
-              letterSpacing: '-0.02em',
-              fontFamily: 'Manrope',
-              opacity: 0,
-              transform: 'translateY(10px)',
-              transition: 'opacity 150ms ease-out, transform 150ms ease-out',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              flex: 1,
-            }}
-          >
-            {title}
-          </span>
-
-          {toolbarActions && (
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {toolbarActions}
-            </div>
-          )}
-        </div>
-      </div>
+      <SharedFloatingHeader
+        title={title}
+        onBack={onBack}
+        hideBack={hideBack}
+        toolbarActions={toolbarActions}
+        headerBgRef={headerBgRef}
+        titleRef={titleRef}
+      />
 
       {/* Continuous Scrolling View */}
       <div
@@ -319,8 +356,6 @@ export function SettingsScaffold({
   );
 }
 
-// ── 4. DialogScaffold ────────────────────────────────────────────────────────
-// Center-centered modal on tablet, bottom-sheet on phone with max-height guard.
 export interface DialogScaffoldProps {
   open: boolean;
   onClose: () => void;
@@ -331,6 +366,17 @@ export interface DialogScaffoldProps {
 
 export function DialogScaffold({ open, onClose, title, children, footer }: DialogScaffoldProps) {
   const { isLargeScreen } = useLayoutMetrics();
+
+  useEffect(() => {
+    if (open) {
+      const id = Math.random().toString();
+      activeOverlaysRegistry.register('modal', id);
+      return () => {
+        activeOverlaysRegistry.unregister('modal', id);
+      };
+    }
+    return undefined;
+  }, [open]);
 
   return (
     <AnimatePresence>

@@ -100,10 +100,10 @@ export function applyThemeTokens(settings: any) {
   const glassBg = isLightMode
     ? activeVis.amoledMode
       ? 'rgba(255, 255, 255, 0.92)'
-      : 'rgba(255, 255, 255, 0.40)'
+      : 'rgba(255, 255, 255, 0.65)'
     : activeVis.amoledMode
       ? 'rgba(4, 4, 4, 0.88)'
-      : 'rgba(26, 26, 30, 0.72)';
+      : 'rgba(20, 20, 25, 0.65)';
   const glassBlur = 'blur(16px)';
   root.style.setProperty('--c-surface-glass-bg', glassBg);
   root.style.setProperty('--c-surface-glass-blur', glassBlur);
@@ -167,7 +167,7 @@ export function applyThemeTokens(settings: any) {
   const spacingDefs = {
     compact: { xs: '3px', sm: '6px', md: '12px', lg: '18px', xl: '24px' },
     comfortable: { xs: '4px', sm: '8px', md: '16px', lg: '24px', xl: '32px' },
-    spacious: { xs: '6px', sm: '12px', md: '22px', lg: '32px', xl: '44px' },
+    spacious: { xs: '5px', sm: '10px', md: '20px', lg: '28px', xl: '38px' },
   };
   const sp = spacingDefs[settings.displayDensity as keyof typeof spacingDefs] || spacingDefs.comfortable;
   root.style.setProperty('--spacing-xs', sp.xs);
@@ -179,20 +179,20 @@ export function applyThemeTokens(settings: any) {
   // Sync density-aware layout spacing
   const densities = {
     compact: {
-      pad: '10px',
+      pad: '12px',
       rowPad: '10px 16px',
-      gap: '8px',
-      cardGap: '6px',
-      btnPadding: '6px 12px',
-      btnFontSize: '11px',
-      iconSize: '18px',
-      listItemPadding: '8px 12px',
-      listItemGap: '8px',
-      sectionGap: '10px',
-      cardRadius: '8px',
-      sheetPadding: '12px 16px',
-      navItemPadding: '6px',
-      navGap: '8px',
+      gap: '10px',
+      cardGap: '8px',
+      btnPadding: '8px 14px',
+      btnFontSize: '12px',
+      iconSize: '20px',
+      listItemPadding: '10px 14px',
+      listItemGap: '10px',
+      sectionGap: '12px',
+      cardRadius: '10px',
+      sheetPadding: '14px 18px',
+      navItemPadding: '8px',
+      navGap: '10px',
     },
     comfortable: {
       pad: '16px',
@@ -211,20 +211,20 @@ export function applyThemeTokens(settings: any) {
       navGap: '12px',
     },
     spacious: {
-      pad: '22px',
-      rowPad: '20px 24px',
-      gap: '18px',
-      cardGap: '16px',
-      btnPadding: '14px 22px',
-      btnFontSize: '15px',
-      iconSize: '26px',
-      listItemPadding: '18px 24px',
-      listItemGap: '18px',
-      sectionGap: '24px',
-      cardRadius: '18px',
-      sheetPadding: '24px 28px',
-      navItemPadding: '14px',
-      navGap: '18px',
+      pad: '18px',
+      rowPad: '16px 22px',
+      gap: '14px',
+      cardGap: '12px',
+      btnPadding: '12px 18px',
+      btnFontSize: '14px',
+      iconSize: '24px',
+      listItemPadding: '14px 20px',
+      listItemGap: '14px',
+      sectionGap: '20px',
+      cardRadius: '14px',
+      sheetPadding: '18px 22px',
+      navItemPadding: '12px',
+      navGap: '14px',
     },
   };
   const d = (densities as any)[settings.displayDensity] || densities.comfortable;
@@ -281,9 +281,9 @@ export function applyThemeTokens(settings: any) {
   };
   const s = (sizes as any)[settings.fontSize] || sizes.medium;
   const densityFontScale = {
-    compact: 0.92,
+    compact: 0.94,
     comfortable: 1.0,
-    spacious: 1.08,
+    spacious: 1.06,
   };
   const dfs = densityFontScale[settings.displayDensity as keyof typeof densityFontScale] || 1.0;
 

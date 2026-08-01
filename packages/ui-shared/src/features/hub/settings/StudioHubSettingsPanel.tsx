@@ -1,3 +1,4 @@
+import PremiumThemeSwitcher from './PremiumThemeSwitcher';
 import React from 'react';
 import {
   useSettingsStore,
@@ -109,6 +110,13 @@ export default function StudioHubSettingsPanel() {
             boxSizing: 'border-box',
           }}
         >
+          {/* Theme Section */}
+          <SettingSection title="Appearance Theme">
+            <SettingRow label="Theme Mode" desc="Switch between Light, Dark, or AMOLED themes">
+              <PremiumThemeSwitcher />
+            </SettingRow>
+          </SettingSection>
+
           {/* Accent Color Section */}
           <SettingSection title="Accent Color">
             <div className="p-3">

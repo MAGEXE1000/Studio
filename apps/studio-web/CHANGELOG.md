@@ -9,7 +9,65 @@ that bundle.
 
 Conventions:
 
-- One H2 heading per version: `## X.Y.Z` (no leading `v`).
+## 4.3.38
+
+Release Date: 2026-08-01
+
+### Added
+- Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).
+- Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.
+- Added role="dialog" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.
+- Implemented dedicated Settings -> Changelog page with GitHub Release API fetching, offline local fallback, and premium expandable timeline.
+
+## 4.3.37
+
+Release Date: 2026-08-01
+
+### Added
+- Overhauled the Settings & Appearance layout with unified Material 3 aesthetics.
+- Relocated Language preferences directly within the Appearance settings panel.
+- Implemented an animated, rounded Bottom Sheet dialog for immediate language selection.
+- Added a non-intrusive reactive Update Available alert card on the settings dashboard.
+- Set scroll safety bottom padding across all settings panels to prevent navigation overlays.
+- Ensured resilient update sessions that survive backgrounding, rotations, and permission settings.
+
+## 4.3.36
+
+Release Date: 2026-08-01
+
+### Added
+- This is a temporary release created exclusively to validate the Studio updater pipeline.
+- Updater validation build.
+- Release pipeline verification.
+- Version propagation verification.
+- Firebase metadata verification.
+- GitHub Release verification.
+- APK signing verification.
+
+## 4.3.35
+
+Release Date: 2026-08-01
+
+### Fixed
+- Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.
+- Restored Phase 4 Updater startup recovery check and listener registrations.
+
+## 4.3.34
+
+Release Date: 2026-07-31
+
+### Added
+- Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.
+
+## 4.3.33
+
+Release Date: 2026-07-31
+
+### Added
+- Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.
+- Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.
+- Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.
+- Enabled native Android 120 Hz display refresh rate and WebView hardware acceleration configurations.
 
 ## 4.3.32
 

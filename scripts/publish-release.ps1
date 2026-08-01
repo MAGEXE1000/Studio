@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.39"
-$VersionCode = "40339"
-$ReleaseNote = "Overhauled settings navigation structure, restored Updater entries, integrated inline Changelog timeline, implemented developer Inspector Route Tracer overlay, and refined global spacing & density systems."
+$VersionName = "4.3.40"
+$VersionCode = "40340"
+$ReleaseNote = "Normalized preferences routing, simplified updater screen details, moved route tracer behind developer options toggle, portalled language bottom sheets, and restored chord diagram previews in chord listings."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

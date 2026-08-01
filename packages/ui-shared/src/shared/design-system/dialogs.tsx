@@ -22,6 +22,7 @@ export const activeOverlaysRegistry = {
   }
 };
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
 // ── 4. Dialog ──────────────────────────────────────────────────────────────
@@ -34,6 +35,11 @@ export interface DialogProps {
 }
 
 export function Dialog({ open, onClose, title, children, footer }: DialogProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (open) {
       const id = Math.random().toString();
@@ -45,7 +51,9 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
     return undefined;
   }, [open]);
 
-  return (
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <div
@@ -161,7 +169,8 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
@@ -174,6 +183,11 @@ export interface SheetProps {
 }
 
 export function Sheet({ open, onClose, title, children }: SheetProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (open) {
       const id = Math.random().toString();
@@ -185,7 +199,9 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
     return undefined;
   }, [open]);
 
-  return (
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <div
@@ -290,7 +306,8 @@ export function Sheet({ open, onClose, title, children }: SheetProps) {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

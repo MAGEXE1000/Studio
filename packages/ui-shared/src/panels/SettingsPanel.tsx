@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigationStore } from '@workspace/studio-core';
-import ChordexSettingsPanel from '../features/chordex/settings/ChordexSettingsPanel';
+import ChordexPreferencesPanel from '../features/chordex/preferences/ChordexPreferencesPanel';
 import StudioHubSettingsPanel from '../features/hub/settings/StudioHubSettingsPanel';
 
 export default function SettingsPanel() {
@@ -11,5 +11,5 @@ export default function SettingsPanel() {
     return <StudioHubSettingsPanel />;
   }
 
-  return <ChordexSettingsPanel />;
+  return <ChordexPreferencesPanel />;
 }

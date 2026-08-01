@@ -47,6 +47,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
   const setShowBoxModel = useDeveloperInspectorStore((s) => s.setShowBoxModel);
   const setShowParentOutline = useDeveloperInspectorStore((s) => s.setShowParentOutline);
   const setShowChildrenOutline = useDeveloperInspectorStore((s) => s.setShowChildrenOutline);
+  const showRouteTracer = useDeveloperInspectorStore((s) => s.showRouteTracer);
+  const setShowRouteTracer = useDeveloperInspectorStore((s) => s.setShowRouteTracer);
   const resetInspector = useDeveloperInspectorStore((s) => s.resetInspector);
 
   const history = useNavigationStore((s) => s.history);
@@ -610,6 +612,10 @@ export const DeveloperInspectorPanel: React.FC = () => {
               <div style={rowStyle}>
                 <span style={labelStyle}>Show Children Outlines:</span>
                 <Toggle value={showChildrenOutline} onChange={setShowChildrenOutline} size="sm" />
+              </div>
+              <div style={rowStyle}>
+                <span style={labelStyle}>Route Tracer:</span>
+                <Toggle value={showRouteTracer} onChange={setShowRouteTracer} size="sm" />
               </div>
             </div>
 

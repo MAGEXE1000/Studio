@@ -386,25 +386,30 @@ export function LibraryMainView({ state }: { state: any }) {
                 <button
                   key={c.id}
                   onClick={() => handleChordClick(c.id)}
-                  className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex flex-col justify-between h-[110px]"
+                  className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex items-center justify-between h-[110px] w-full"
                 >
-                  <div>
-                    <span
-                      className="font-bold text-[var(--c-text-primary)] text-xs block"
-                      style={{ fontFamily: 'var(--font-headline)' }}
-                    >
-                      {c.name}
-                    </span>
-                    <span
-                      className="text-[10px] text-zinc-500 block mt-1"
-                      style={{ fontFamily: 'var(--font-body)' }}
-                    >
-                      {c.notes.join(' · ')}
+                  <div className="flex flex-col justify-between h-full flex-1 min-w-0 pr-2">
+                    <div>
+                      <span
+                        className="font-bold text-[var(--c-text-primary)] text-xs block truncate"
+                        style={{ fontFamily: 'var(--font-headline)' }}
+                      >
+                        {c.name}
+                      </span>
+                      <span
+                        className="text-[10px] text-zinc-500 block mt-1 truncate"
+                        style={{ fontFamily: 'var(--font-body)' }}
+                      >
+                        {c.notes.join(' · ')}
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 block mt-2">
+                      {c.type}
                     </span>
                   </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600">
-                    {c.type}
-                  </span>
+                  <div className="w-16 h-16 flex-none bg-black/40 rounded-xl p-1.5 overflow-hidden flex items-center justify-center">
+                    <ChordDiagram data={c.guitar} accentFrom={accent.from} />
+                  </div>
                 </button>
               ))}
             </div>
@@ -428,25 +433,30 @@ export function LibraryMainView({ state }: { state: any }) {
               <button
                 key={c.id}
                 onClick={() => handleChordClick(c.id)}
-                className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex flex-col justify-between h-[110px]"
+                className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex items-center justify-between h-[110px] w-full"
               >
-                <div>
-                  <span
-                    className="font-bold text-[var(--c-text-primary)] text-xs block"
-                    style={{ fontFamily: 'var(--font-headline)' }}
-                  >
-                    {c.name}
-                  </span>
-                  <span
-                    className="text-[10px] text-zinc-500 block mt-1"
-                    style={{ fontFamily: 'var(--font-body)' }}
-                  >
-                    {c.notes.join(' · ')}
+                <div className="flex flex-col justify-between h-full flex-1 min-w-0 pr-2">
+                  <div>
+                    <span
+                      className="font-bold text-[var(--c-text-primary)] text-xs block truncate"
+                      style={{ fontFamily: 'var(--font-headline)' }}
+                    >
+                      {c.name}
+                    </span>
+                    <span
+                      className="text-[10px] text-zinc-500 block mt-1 truncate"
+                      style={{ fontFamily: 'var(--font-body)' }}
+                    >
+                      {c.notes.join(' · ')}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 block mt-2">
+                    {c.type}
                   </span>
                 </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600">
-                  {c.type}
-                </span>
+                <div className="w-16 h-16 flex-none bg-black/40 rounded-xl p-1.5 overflow-hidden flex items-center justify-center">
+                  <ChordDiagram data={c.guitar} accentFrom={accent.from} />
+                </div>
               </button>
             ))}
           </div>
@@ -557,20 +567,16 @@ export function LibraryMainView({ state }: { state: any }) {
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {CATEGORIES.map((cat) => {
+                const previewChord = allChords.find((c: any) => c.type === cat.type);
                 return (
                   <div
                     key={cat.type}
                     onClick={() => setActiveType(cat.type)}
-                    className="glass-surface rounded-2xl p-4 h-24 flex flex-col justify-between relative overflow-hidden group border border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors"
+                    className="glass-surface rounded-2xl p-4 h-24 flex items-center justify-between border border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors"
                   >
-                    <div className="absolute -top-1 -right-1 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <span className="material-symbols-outlined text-5xl text-primary transform rotate-12">
-                        {cat.icon || 'star'}
-                      </span>
-                    </div>
-                    <div>
+                    <div className="flex flex-col justify-between h-full flex-1 min-w-0 pr-2">
                       <h3
-                        className="text-sm text-on-surface font-extrabold"
+                        className="text-sm text-on-surface font-extrabold truncate"
                         style={{ fontFamily: 'var(--font-headline)', lineHeight: 1.1 }}
                       >
                         {cat.label}
@@ -582,6 +588,11 @@ export function LibraryMainView({ state }: { state: any }) {
                         {cat.variations}
                       </p>
                     </div>
+                    {previewChord && (
+                      <div className="w-16 h-16 flex-none bg-black/40 rounded-xl p-1.5 overflow-hidden flex items-center justify-center">
+                        <ChordDiagram data={previewChord.guitar} accentFrom={accent.from} />
+                      </div>
+                    )}
                   </div>
                 );
               })}

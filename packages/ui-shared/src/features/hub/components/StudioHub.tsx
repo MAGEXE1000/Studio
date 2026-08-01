@@ -3182,18 +3182,9 @@ function HubUpdaterPage({
   const [autoUpdates, setAutoUpdates] = useState(() => {
     return localStorage.getItem('studio:automatic_updates') !== 'false';
   });
-  const [releaseChannel, setReleaseChannel] = useState<'stable' | 'beta' | 'developer'>(() => {
-    return (localStorage.getItem('studio:release_channel') as 'stable' | 'beta' | 'developer') || 'beta';
-  });
-
   const handleToggleAutoUpdates = (val: boolean) => {
     setAutoUpdates(val);
     localStorage.setItem('studio:automatic_updates', String(val));
-  };
-
-  const handleChangeChannel = (val: 'stable' | 'beta' | 'developer') => {
-    setReleaseChannel(val);
-    localStorage.setItem('studio:release_channel', val);
   };
 
   return (
@@ -3287,24 +3278,6 @@ function HubUpdaterPage({
           />
         </SettingRow>
 
-        {/* Release Channel */}
-        <SettingRow
-          label={lang === 'es' ? 'Canal de lanzamientos' : 'Release Channel'}
-          desc={lang === 'es' ? 'Seleccionar estabilidad de compilaciones' : 'Select stability of system builds'}
-        >
-          <SegmentedControl
-            value={releaseChannel}
-            options={[
-              { value: 'stable', label: lang === 'es' ? 'Estable' : 'Stable' },
-              { value: 'beta', label: 'Beta' },
-              { value: 'developer', label: lang === 'es' ? 'Desarrollo' : 'Dev' },
-            ]}
-            onChange={handleChangeChannel}
-            accentFrom={accent.from}
-            accentTo={accent.to}
-            layoutId="updater-release-channel"
-          />
-        </SettingRow>
 
         {/* Update Diagnostics */}
         <SettingRow
@@ -3433,12 +3406,7 @@ function HubUpdaterPage({
         </SettingSection>
       )}
 
-      {/* Premium scrollable release history changelog */}
-      <SettingSection title={lang === 'es' ? 'HISTORIAL DE CAMBIOS' : 'CHANGELOG HISTORY'}>
-        <div style={{ padding: '4px 0 12px 0' }}>
-          <ChangelogView lang={lang} accent={accent} />
-        </div>
-      </SettingSection>
+
     </div>
   );
 }

@@ -18,7 +18,7 @@ import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
 import InkThemeToggle from '../../../shared/typography/InkThemeToggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 
-export default function ChordexSettingsPanel() {
+export default function ChordexPreferencesPanel() {
   const settings = useSettingsStore((s) => s.settings);
 
   const acc =
@@ -260,7 +260,7 @@ export default function ChordexSettingsPanel() {
                 const tabs: { value: ActivePanel; Icon: React.FC<{ active: boolean }> }[] = [
                   { value: 'songs', Icon: IconSongs },
                   { value: 'library', Icon: IconLibrary },
-                  { value: 'settings', Icon: IconSettings },
+                  { value: 'preferences', Icon: IconSettings },
                 ];
                 return (
                   <div style={{ display: 'flex', gap: '6px' }}>
@@ -607,7 +607,7 @@ export default function ChordexSettingsPanel() {
               const tabs: { value: ActivePanel; Icon: React.FC<{ active: boolean }> }[] = [
                 { value: 'songs', Icon: IconSongs },
                 { value: 'library', Icon: IconLibrary },
-                { value: 'settings', Icon: IconSettings },
+                { value: 'preferences', Icon: IconSettings },
               ];
               return (
                 <div style={{ display: 'flex', gap: '6px' }}>

@@ -137,7 +137,7 @@ export default function App() {
           songs: <SongsPanel />,
           practice: <SaxophonePracticePanel />,
           library: <LibraryPanel />,
-          settings: <SettingsPanel />,
+          preferences: <SettingsPanel />,
         }
       }}
     />

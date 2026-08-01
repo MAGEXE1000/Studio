@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.39';
+export const NATIVE_VERSION = '4.3.40';
 export const NATIVE_VERSION_CODE = 40338;
-export const WEB_VERSION = '4.3.39';
+export const WEB_VERSION = '4.3.40';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'e35d4c33';
+export const APP_COMMIT_SHA = '254c58e3';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 1:37:57 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 3:16:16 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,12 +98,17 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).",
-      "Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.",
-      "Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.",
-      "Nested the Changelog timeline history directly inside the Settings Updater detail pane.",
-      "Built a developer-only Inspector Route Tracer overlay to trace active screens, route paths, overlay state, and active theme variables.",
-      "Injected an Unknown Sources check inside the native updater to automatically direct users to Android settings and resume the installation flow.",
+      "Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.",
+    ],
+  },
+  {
+    heading: "Fixed",
+    items: [
+      "Normalized preferences routing mapping from `/chords/settings/settings` to `/chords/preferences` to eliminate nested duplicate layout regressions.",
+      "Simplified the Updater screen by removing release channel options and embedded changelog timeline to prevent interface duplication.",
+      "Moved the Developer Inspector Route Tracer overlay behind a persisted configuration toggle, disabling it by default.",
+      "Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element to fix scroll-offset positioning displacement bugs.",
+      "Resolved the chord detail black screen navigation bug on both desktop and mobile viewports.",
     ],
   },
 ];

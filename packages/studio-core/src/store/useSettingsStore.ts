@@ -7,7 +7,7 @@ import { settingsRepository } from '../repositories/SettingsRepository';
 import type { Instrument } from '../data/chords';
 
 export type Theme = 'dark' | 'light' | 'system' | 'dynamic';
-export type ActivePanel = 'library' | 'settings' | 'songs';
+export type ActivePanel = 'library' | 'preferences' | 'songs';
 export type AccentColor = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal' | 'custom';
 export type AppKey = 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
 export type AppRoute = NavigationRoute;

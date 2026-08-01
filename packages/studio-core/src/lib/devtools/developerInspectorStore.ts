@@ -72,6 +72,7 @@ export interface InspectorStoreState {
   showBoxModel: boolean;
   showParentOutline: boolean;
   showChildrenOutline: boolean;
+  showRouteTracer: boolean;
   breadcrumbs: BreadcrumbItem[];
 
   // Actions
@@ -91,6 +92,7 @@ export interface InspectorStoreState {
   setShowBoxModel: (show: boolean) => void;
   setShowParentOutline: (show: boolean) => void;
   setShowChildrenOutline: (show: boolean) => void;
+  setShowRouteTracer: (show: boolean) => void;
   resetInspector: () => void;
 }
 
@@ -113,6 +115,7 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
       showBoxModel: true,
       showParentOutline: true,
       showChildrenOutline: true,
+      showRouteTracer: false,
       breadcrumbs: [],
 
       setIsEnabled: (isEnabled) =>
@@ -149,6 +152,7 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
       setShowBoxModel: (showBoxModel) => set({ showBoxModel }),
       setShowParentOutline: (showParentOutline) => set({ showParentOutline }),
       setShowChildrenOutline: (showChildrenOutline) => set({ showChildrenOutline }),
+      setShowRouteTracer: (showRouteTracer) => set({ showRouteTracer }),
 
       resetInspector: () =>
         set({
@@ -162,6 +166,7 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
           activeFilter: 'all',
           gridOverlay: 'none',
           measurePair: [null, null],
+          showRouteTracer: false,
           breadcrumbs: [],
         }),
     }),
@@ -174,6 +179,7 @@ export const useDeveloperInspectorStore = create<InspectorStoreState>()(
         showBoxModel: state.showBoxModel,
         showParentOutline: state.showParentOutline,
         showChildrenOutline: state.showChildrenOutline,
+        showRouteTracer: state.showRouteTracer,
       }),
     }
   )

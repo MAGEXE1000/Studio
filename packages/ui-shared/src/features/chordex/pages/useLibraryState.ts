@@ -28,7 +28,7 @@ export function useLibraryState() {
       : null;
   const activePanel =
     currentRoute.app === 'chords' && currentRoute.page
-      ? (currentRoute.page as ActivePanel)
+      ? (currentRoute.page === 'chord' ? 'library' : (currentRoute.page as ActivePanel))
       : 'library';
       
   const recentChords = useChordStore(useShallow((s) => s.recentChords));

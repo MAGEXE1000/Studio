@@ -93,6 +93,7 @@ export function BottomNavigationController() {
     if (key === 'songs') return t.navigation?.songs || 'Songs';
     if (key === 'library') return t.navigation?.library || 'Library';
     if (key === 'settings') return t.navigation?.settings || 'Preferences';
+    if (key === 'preferences') return t.navigation?.preferences || 'Preferences';
     if (key === 'chords') return t.navigation?.chords || 'Chords';
     if (key === 'drumSongs' || key === 'drumBeats') return t.navigation?.drumBeats || 'Beats';
     if (key === 'drumPatterns') return t.navigation?.drumPatterns || 'Patterns';
@@ -331,7 +332,7 @@ export function BottomNavigationController() {
         ? [
             { id: 'practice', labelKey: 'practice', icon: 'graphic_eq' },
             { id: 'library', labelKey: 'library', icon: 'library' },
-            { id: 'settings', labelKey: 'settings', icon: 'settings' },
+            { id: 'preferences', labelKey: 'preferences', icon: 'settings' },
           ]
         : APP_SECTIONS.chords || [];
 

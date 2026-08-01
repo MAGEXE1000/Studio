@@ -8,7 +8,7 @@ export const APP_SECTIONS: Record<string, AppSection[]> = {
   chords: [
     { id: 'songs', labelKey: 'songs', icon: 'audio-lines' },
     { id: 'library', labelKey: 'library', icon: 'gallery-vertical-end' },
-    { id: 'settings', labelKey: 'settings', icon: 'sliders-horizontal' },
+    { id: 'preferences', labelKey: 'preferences', icon: 'sliders-horizontal' },
   ],
   drums: [
     { id: 'beats', labelKey: 'drumBeats', icon: 'drum' },

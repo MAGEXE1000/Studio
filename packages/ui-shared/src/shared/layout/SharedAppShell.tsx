@@ -33,6 +33,7 @@ import {
   authRepository,
   EasingPresets,
   type AppKey,
+  useDeveloperInspectorStore,
 } from '@workspace/studio-core';
 
 import { StudioHubSkeleton } from '../loading/StudioSkeleton';
@@ -42,7 +43,7 @@ import { SubAppScaffold, ScreenScaffold } from './StudioLayoutSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 import { ApplicationTransitionEngine } from '../../features/hub/animations/ApplicationTransitionEngine';
 
-const ALL_PANELS = ['songs', 'library', 'settings'] as const;
+const ALL_PANELS = ['songs', 'library', 'preferences'] as const;
 
 export interface SharedAppShellProps {
   isAndroid?: boolean;
@@ -64,7 +65,7 @@ export interface SharedAppShellProps {
       songs: React.ReactNode;
       practice: React.ReactNode;
       library: React.ReactNode;
-      settings: React.ReactNode;
+      preferences: React.ReactNode;
     };
   };
 }
@@ -342,11 +343,16 @@ export function SharedAppShell({
 }: SharedAppShellProps) {
   const activePanel = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
+    if (last?.app === 'chords' && last.page === 'chord') {
+      return 'library';
+    }
     return last?.app === 'chords' && last.page ? (last.page as ActivePanel) : 'library';
   });
   const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
   const settings = useSettingsStore((state) => state.settings);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
+  const isInspectorEnabled = useDeveloperInspectorStore((s) => s.isEnabled);
+  const showRouteTracer = useDeveloperInspectorStore((s) => s.showRouteTracer);
   const speedScale = useAnimationSpeed();
   
   const [hubRenderKey, setHubRenderKey] = useState(0);
@@ -597,7 +603,7 @@ export function SharedAppShell({
       </ErrorBoundary>
       {renderLaunchOverlay?.()}
       {renderEmergencyOverlay?.()}
-      <InspectorRouteTracer />
+      {settings.developerMode && isInspectorEnabled && showRouteTracer && <InspectorRouteTracer />}
     </div>
   );
 
@@ -733,7 +739,7 @@ const SubAppWrapper = memo(function SubAppWrapper({
                             {panel === 'songs' && subApps.chords?.songs}
                             {panel === 'practice' && subApps.chords?.practice}
                             {panel === 'library' && subApps.chords?.library}
-                            {panel === 'settings' && subApps.chords?.settings}
+                            {panel === 'preferences' && subApps.chords?.preferences}
                           </>
                         )}
                       </SharedNavigationContainer>

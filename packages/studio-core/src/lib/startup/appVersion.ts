@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.40';
-export const NATIVE_VERSION_CODE = 40338;
-export const WEB_VERSION = '4.3.40';
+export const NATIVE_VERSION = '4.3.41';
+export const NATIVE_VERSION_CODE = 40341;
+export const WEB_VERSION = '4.3.41';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '254c58e3';
+export const APP_COMMIT_SHA = '0edbb43e';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 3:16:16 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 5:06:33 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,17 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.",
-    ],
-  },
-  {
-    heading: "Fixed",
-    items: [
-      "Normalized preferences routing mapping from `/chords/settings/settings` to `/chords/preferences` to eliminate nested duplicate layout regressions.",
-      "Simplified the Updater screen by removing release channel options and embedded changelog timeline to prevent interface duplication.",
-      "Moved the Developer Inspector Route Tracer overlay behind a persisted configuration toggle, disabling it by default.",
-      "Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element to fix scroll-offset positioning displacement bugs.",
-      "Resolved the chord detail black screen navigation bug on both desktop and mobile viewports.",
+      "Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.",
     ],
   },
 ];
@@ -120,6 +110,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.3.40',
+    date: '2026-08-01',
+    highlights: [
+      'Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.',
+      'Normalized preferences routing to /chords/preferences.',
+      'Simplified the Updater screen and moved Developer Inspector Route Tracer behind a persisted toggle.',
+      'Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element.',
+      'Resolved the chord detail black screen navigation bug.',
+    ],
+  },
   {
     version: '4.3.35',
     date: '2026-08-01',

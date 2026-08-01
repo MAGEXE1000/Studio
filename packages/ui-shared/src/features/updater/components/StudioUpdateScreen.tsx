@@ -1,6 +1,7 @@
 import React, { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UpdaterFlightRecorder, DurationPresets, EasingPresets } from '@workspace/studio-core';
+import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -113,14 +114,14 @@ export default memo(function StudioUpdateScreen({
 
   // Map icon names to material symbols according to official HTML spec
   const getSymbolName = () => {
-    if (showSpinner) return 'downloading';
+    if (showSpinner) return 'loader-circle';
     if (iconName === 'cloud_download' || iconName === 'download' || iconName === 'system_update') {
       return 'cloud_download';
     }
-    if (iconName === 'check_circle' || iconName === 'task_alt') return 'check_circle';
+    if (iconName === 'check_circle' || iconName === 'task_alt') return 'check';
     if (iconName === 'error' || iconName === 'warning') return 'warning';
     if (iconName === 'security') return 'security';
-    if (iconName === 'sync') return 'downloading';
+    if (iconName === 'sync') return 'loader-circle';
     return iconName || 'cloud_download';
   };
 
@@ -200,71 +201,60 @@ export default memo(function StudioUpdateScreen({
               transition: 'color 150ms ease',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
-              close
-            </span>
+            <AnimatedIcon name="close" size={22} color="currentColor" />
           </button>
         )}
 
         {/* Icon Circle Header matching HTML spec */}
-        <motion.div
-          layoutId="updater-icon-container"
-          transition={emphasizedTransition}
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            background: isLight ? '#f1f5f9' : '#252626',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div
+        {['idle', 'installed', 'update_success', 'completed', 'installedOrReady'].includes(state) ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '12px 0 6px' }}>
+            <AnimatedIcon name="check" state="success" size={80} color="#22c55e" strokeWidth={3} />
+          </div>
+        ) : (
+          <motion.div
+            layoutId="updater-icon-container"
+            transition={emphasizedTransition}
             style={{
-              position: 'absolute',
-              inset: 0,
-              background: showSpinner ? 'rgba(103, 156, 255, 0.15)' : 'rgba(103, 156, 255, 0.1)',
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: isLight ? '#f1f5f9' : '#252626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden',
             }}
-          />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={showSpinner ? 'spinner' : getSymbolName()}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
-            >
-              {showSpinner ? (
-                <span
-                  className="material-symbols-outlined text-4xl"
-                  style={{
-                    fontSize: 36,
-                    color: '#679cff',
-                    fontVariationSettings: "'wght' 300",
-                    animation: reducedMotion ? 'none' : 'updater-spin-m3 1.2s linear infinite',
-                  }}
-                >
-                  downloading
-                </span>
-              ) : (
-                <span
-                  className="material-symbols-outlined text-4xl"
-                  style={{
-                    fontSize: 36,
-                    color: iconColor ? iconColor : '#679cff',
-                    fontVariationSettings: "'wght' 300",
-                  }}
-                >
-                  {getSymbolName()}
-                </span>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: showSpinner ? 'rgba(103, 156, 255, 0.15)' : 'rgba(103, 156, 255, 0.1)',
+              }}
+            />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={showSpinner ? 'spinner' : getSymbolName()}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
+              >
+                {showSpinner ? (
+                  <AnimatedIcon name="loader-circle" state="loading" size={36} color="#679cff" />
+                ) : (
+                  <AnimatedIcon
+                    name={getSymbolName()}
+                    size={36}
+                    color={iconColor ? iconColor : '#679cff'}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+        )}
 
         {/* Headline & Subtitle matching HTML spec */}
         <motion.div
@@ -346,9 +336,7 @@ export default memo(function StudioUpdateScreen({
               </span>
             </div>
 
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#679cff' }}>
-              arrow_forward
-            </span>
+            <AnimatedIcon name="arrow-right" size={20} color="#679cff" />
 
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}>
               <span

@@ -42,6 +42,7 @@ import {
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import StudioSpinner from '../../../shared/animata/progress/spinner';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import StudioUpdateScreen from './StudioUpdateScreen';
@@ -535,9 +536,7 @@ export default function UpdateIndicator({
             animation: 'web-refresh-bar-enter 400ms cubic-bezier(0.34, 1.12, 0.64, 1) both',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 16, opacity: 0.9 }}>
-            system_update
-          </span>
+          <AnimatedIcon name="system_update" size={16} color="currentColor" />
           <span>
             {updater.remoteVersion
               ? `Studio v${updater.remoteVersion} available`
@@ -585,9 +584,7 @@ export default function UpdateIndicator({
               alignItems: 'center',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              close
-            </span>
+            <AnimatedIcon name="close" size={16} color="currentColor" />
           </button>
         </div>
         <style>{`
@@ -769,9 +766,7 @@ export default function UpdateIndicator({
                   alignItems: 'center',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  close
-                </span>
+                <AnimatedIcon name="close" size={16} color="currentColor" />
               </button>
             </motion.div>
           )}
@@ -1378,6 +1373,7 @@ function UpdateModal({
       title = 'Downloading update';
       description = 'Studio is downloading the latest app package.';
       showButtons = false;
+      showSpinner = true;
       break;
 
     case 'verifying_sha':
@@ -1731,12 +1727,7 @@ function UpdateModal({
                 }}
                 style={primaryButtonStyle}
               >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: 18, marginRight: 6 }}
-                >
-                  play_circle
-                </span>
+                <AnimatedIcon name="play-circle" size={18} color="currentColor" style={{ marginRight: 6 }} />
                 Continue Installation
               </ActionButton>
               <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
@@ -1942,9 +1933,7 @@ function UpdateModal({
               }}
               style={primaryButtonStyle}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>
-                refresh
-              </span>
+              <AnimatedIcon name="refresh" size={18} color="currentColor" style={{ marginRight: 6 }} />
               Retry Installation
             </ActionButton>
 
@@ -2002,9 +1991,7 @@ function UpdateModal({
             }}
             style={primaryButtonStyle}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6 }}>
-              refresh
-            </span>
+            <AnimatedIcon name="refresh" size={18} color="currentColor" style={{ marginRight: 6 }} />
             Retry Update
           </ActionButton>
 
@@ -2168,13 +2155,7 @@ function UpdateModal({
           marginBottom: 10,
         }}
       >
-        {iconName === 'download' ? (
-          <DownloadIcon size={26} color={iconColor} />
-        ) : (
-          <span className="material-symbols-outlined" style={{ fontSize: 28, color: iconColor }}>
-            {iconName}
-          </span>
-        )}
+        <AnimatedIcon name={iconName} size={28} color={iconColor} />
       </div>
     );
   };
@@ -2218,25 +2199,18 @@ function UpdateModal({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 16, color: purpleFrom }}
-            >
-              info
-            </span>
+            <AnimatedIcon name="info" size={16} color={purpleFrom} />
             <span>What's New</span>
           </div>
-          <span
-            className="material-symbols-outlined"
+          <AnimatedIcon
+            name="chevron-down"
+            size={16}
+            color="var(--c-text-secondary)"
             style={{
-              fontSize: 16,
-              color: 'var(--c-text-secondary)',
               transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 200ms ease',
             }}
-          >
-            expand_more
-          </span>
+          />
         </button>
 
         {/* Categories list */}

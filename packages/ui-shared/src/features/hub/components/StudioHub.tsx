@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, RELEASE_HISTORY, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
@@ -3571,8 +3572,8 @@ function HubSettings({
           },
           {
             id: 'about' as const,
-            icon: 'info',
-            label: lang === 'es' ? 'Acerca de Livex' : 'About Livex',
+            icon: 'badge-alert',
+            label: lang === 'es' ? 'Acerca de' : 'About',
           },
           ...(settings.developerMode
             ? [
@@ -7440,12 +7441,11 @@ User Agent: [Automatically Generated]
                               border: '1px solid rgba(255,255,255,0.05)',
                             }}
                           >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                            >
-                              help_center
-                            </span>
+                            <AnimatedIcon
+                              name="circle-help"
+                              size={18}
+                              color="var(--c-text-secondary)"
+                            />
                           </div>
                           <div
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
@@ -7675,12 +7675,11 @@ User Agent: [Automatically Generated]
                               border: '1px solid rgba(255,255,255,0.05)',
                             }}
                           >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                            >
-                              info
-                            </span>
+                            <AnimatedIcon
+                              name="badge-alert"
+                              size={18}
+                              color="var(--c-text-secondary)"
+                            />
                           </div>
                           <div
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
@@ -7693,7 +7692,7 @@ User Agent: [Automatically Generated]
                                 fontFamily: 'Inter',
                               }}
                             >
-                              About Livex
+                              About
                             </span>
                             <span
                               style={{
@@ -7739,12 +7738,11 @@ User Agent: [Automatically Generated]
                                 border: '1px solid rgba(255,255,255,0.05)',
                               }}
                             >
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                              >
-                                code
-                              </span>
+                              <AnimatedIcon
+                                name="terminal"
+                                size={18}
+                                color="var(--c-text-secondary)"
+                              />
                             </div>
                             <div
                               style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
@@ -7969,12 +7967,12 @@ User Agent: [Automatically Generated]
                         fontFamily: 'Manrope, sans-serif',
                       }}
                     >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 16, color: isActive ? accent.from : 'inherit' }}
-                      >
-                        {item.icon}
-                      </span>
+                      <AnimatedIcon
+                        name={item.icon}
+                        size={16}
+                        color={isActive ? accent.from : 'var(--c-text-secondary)'}
+                        state={isActive ? 'active' : 'inactive'}
+                      />
                       <span className="truncate" style={{ flex: 1 }}>{item.label}</span>
                       {item.id === 'updater' && updater.updateAvailable && (
                         <span
@@ -9098,12 +9096,12 @@ User Agent: [Automatically Generated]
                         fontFamily: 'Manrope, sans-serif',
                       }}
                     >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 16, color: isActive ? accent.from : 'inherit' }}
-                      >
-                        {item.icon}
-                      </span>
+                      <AnimatedIcon
+                        name={item.icon}
+                        size={16}
+                        color={isActive ? accent.from : 'var(--c-text-secondary)'}
+                        state={isActive ? 'active' : 'inactive'}
+                      />
                       <span className="truncate">{item.label}</span>
                     </button>
                   );

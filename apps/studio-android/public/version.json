@@ -1,25 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.40",
-  "versionName": "4.3.40",
-  "versionCode": 40340,
-  "version_code": 40340,
-  "commit": "254c58e3",
-  "releasedAt": "8/1/2026, 3:16:16 PM CST",
-  "buildTimestamp": "8/1/2026, 3:16:16 PM CST",
+  "version": "4.3.41",
+  "versionName": "4.3.41",
+  "versionCode": 40341,
+  "version_code": 40341,
+  "commit": "0edbb43e",
+  "releasedAt": "8/1/2026, 5:06:33 PM CST",
+  "buildTimestamp": "8/1/2026, 5:06:33 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.\n• Normalized preferences routing mapping from `/chords/settings/settings` to `/chords/preferences` to eliminate nested duplicate layout regressions.\n• Simplified the Updater screen by removing release channel options and embedded changelog timeline to prevent interface duplication.\n• Moved the Developer Inspector Route Tracer overlay behind a persisted configuration toggle, disabling it by default.\n• Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element to fix scroll-offset positioning displacement bugs.\n• Resolved the chord detail black screen navigation bug on both desktop and mobile viewports.",
-  "whatsNew": "• Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.\n• Normalized preferences routing mapping from `/chords/settings/settings` to `/chords/preferences` to eliminate nested duplicate layout regressions.\n• Simplified the Updater screen by removing release channel options and embedded changelog timeline to prevent interface duplication.\n• Moved the Developer Inspector Route Tracer overlay behind a persisted configuration toggle, disabling it by default.\n• Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element to fix scroll-offset positioning displacement bugs.\n• Resolved the chord detail black screen navigation bug on both desktop and mobile viewports.",
+  "changelog": "• Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.",
+  "whatsNew": "• Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.",
   "releaseNotes": {
     "added": [
-      "Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex."
-    ],
-    "fixed": [
-      "Normalized preferences routing mapping from `/chords/settings/settings` to `/chords/preferences` to eliminate nested duplicate layout regressions.",
-      "Simplified the Updater screen by removing release channel options and embedded changelog timeline to prevent interface duplication.",
-      "Moved the Developer Inspector Route Tracer overlay behind a persisted configuration toggle, disabling it by default.",
-      "Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element to fix scroll-offset positioning displacement bugs.",
-      "Resolved the chord detail black screen navigation bug on both desktop and mobile viewports."
+      "Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system."
     ]
   },
   "mandatory": false

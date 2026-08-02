@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.46';
-export const NATIVE_VERSION_CODE = 40346;
-export const WEB_VERSION = '4.3.46';
+export const NATIVE_VERSION = '4.3.47';
+export const NATIVE_VERSION_CODE = 40347;
+export const WEB_VERSION = '4.3.47';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '800f6b5b';
+export const APP_COMMIT_SHA = '31af4a5e';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/2/2026, 12:05:39 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/2/2026, 12:34:39 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,9 +98,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.",
-      "Implemented deep forensic instrumentation logs throughout the room hosting flow.",
-      "Removed client-side TTL database pruning from the room creation sequence.",
+      "Deployed automated Firestore security rules deployment to the release pipeline.",
+      "Restored missing settings layout, updated Updater section, and language removal features.",
+      "Surfaced raw exception messages and diagnostic stack traces on collaboration connection errors.",
     ],
   },
 ];

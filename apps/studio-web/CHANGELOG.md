@@ -9,6 +9,15 @@ that bundle.
 
 Conventions:
 
+## 4.3.47
+
+Release Date: 2026-08-02
+
+### Added
+- Deployed automated Firestore security rules deployment to the release pipeline.
+- Restored missing settings layout, updated Updater section, and language removal features.
+- Surfaced raw exception messages and diagnostic stack traces on collaboration connection errors.
+
 ## 4.3.46
 
 Release Date: 2026-08-02

@@ -1,20 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.46",
-  "versionName": "4.3.46",
-  "versionCode": 40345,
-  "version_code": 40345,
-  "commit": "800f6b5b",
-  "releasedAt": "8/2/2026, 12:05:39 PM CST",
-  "buildTimestamp": "8/2/2026, 12:05:39 PM CST",
+  "version": "4.3.47",
+  "versionName": "4.3.47",
+  "versionCode": 40346,
+  "version_code": 40346,
+  "commit": "31af4a5e",
+  "releasedAt": "8/2/2026, 12:34:39 PM CST",
+  "buildTimestamp": "8/2/2026, 12:34:39 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.\n• Implemented deep forensic instrumentation logs throughout the room hosting flow.\n• Removed client-side TTL database pruning from the room creation sequence.",
-  "whatsNew": "• Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.\n• Implemented deep forensic instrumentation logs throughout the room hosting flow.\n• Removed client-side TTL database pruning from the room creation sequence.",
+  "changelog": "• Deployed automated Firestore security rules deployment to the release pipeline.\n• Restored missing settings layout, updated Updater section, and language removal features.\n• Surfaced raw exception messages and diagnostic stack traces on collaboration connection errors.",
+  "whatsNew": "• Deployed automated Firestore security rules deployment to the release pipeline.\n• Restored missing settings layout, updated Updater section, and language removal features.\n• Surfaced raw exception messages and diagnostic stack traces on collaboration connection errors.",
   "releaseNotes": {
     "added": [
-      "Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.",
-      "Implemented deep forensic instrumentation logs throughout the room hosting flow.",
-      "Removed client-side TTL database pruning from the room creation sequence."
+      "Deployed automated Firestore security rules deployment to the release pipeline.",
+      "Restored missing settings layout, updated Updater section, and language removal features.",
+      "Surfaced raw exception messages and diagnostic stack traces on collaboration connection errors."
     ]
   },
   "mandatory": false

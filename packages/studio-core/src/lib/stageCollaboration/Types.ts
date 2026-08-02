@@ -25,6 +25,6 @@ export interface StageOperation {
   id: string;
   authorId: string;
   timestamp: number; // Timestamp in milliseconds
-  type: 'create' | 'delete' | 'move' | 'resize' | 'rotate' | 'rename' | 'layer' | 'scene' | 'property';
+  type: 'create' | 'delete' | 'move' | 'resize' | 'rotate' | 'rename' | 'layer' | 'scene' | 'property' | 'reorder' | 'selection';
   payload: any;
 }

@@ -177,6 +177,9 @@ describe('E2E Updater Flow Validation (v4.3.33 to v4.3.34)', () => {
     // 4. Trigger applyUpdate (launches native package installer intent)
     const applyPromise = applyUpdate();
     
+    // Yield to let the async update transition commit
+    await new Promise(resolve => setTimeout(resolve, 10));
+
     // Verify it transitioned state to PACKAGEINSTALLER_VISIBLE
     expect(globalUpdateState.updateState).toBe('PACKAGEINSTALLER_VISIBLE');
 

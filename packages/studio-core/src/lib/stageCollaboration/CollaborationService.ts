@@ -7,6 +7,20 @@ import { deserializeStage } from './StageDeserializer';
 import { CollaboratorRoom, Participant, StageOperation, CollabConnectionState } from './Types';
 import { Unsubscribe } from 'firebase/firestore';
 
+function mapFirestoreError(error: any): Error {
+  const msg = (error?.message || String(error)).toLowerCase();
+  if (msg.includes('offline') || msg.includes('network') || msg.includes('unavailable') || msg.includes('failed to get document')) {
+    return new Error('Connection lost. Please check your internet connection and try again.');
+  }
+  if (msg.includes('permission') || msg.includes('denied')) {
+    return new Error('Access denied. You do not have permission to join this room.');
+  }
+  if (msg.includes('not-found') || msg.includes('invalid') || msg.includes('expired') || msg.includes('not found')) {
+    return new Error('Room does not exist or has expired.');
+  }
+  return new Error('Unable to connect to the collaboration server. Please try again.');
+}
+
 export class CollaborationService {
   private static instance: CollaborationService | null = null;
 
@@ -23,6 +37,7 @@ export class CollaborationService {
   private cachedElements = new Map<string, any>();
   private cachedConnections: any[] = [];
   private cachedSceneIdx: number = 0;
+  private cachedSelectedId: string | null = null;
 
   // Queue and Resolver
   private opQueue = new OperationQueue();
@@ -153,7 +168,7 @@ export class CollaborationService {
       return room;
     } catch (e) {
       this.setConnectionState('disconnected');
-      throw e;
+      throw mapFirestoreError(e);
     }
   }
 
@@ -191,7 +206,7 @@ export class CollaborationService {
       return room;
     } catch (e) {
       this.setConnectionState('disconnected');
-      throw e;
+      throw mapFirestoreError(e);
     }
   }
 
@@ -269,8 +284,26 @@ export class CollaborationService {
       this.diffLocalChanges();
     };
 
+    if (typeof win.undo === 'function' && !win.__undoHijacked) {
+      win.__origUndo = win.undo;
+      win.undo = (...args: any[]) => {
+        win.__origUndo.apply(win, args);
+        this.diffLocalChanges();
+      };
+      win.__undoHijacked = true;
+    }
+
+    if (typeof win.redo === 'function' && !win.__redoHijacked) {
+      win.__origRedo = win.redo;
+      win.redo = (...args: any[]) => {
+        win.__origRedo.apply(win, args);
+        this.diffLocalChanges();
+      };
+      win.__redoHijacked = true;
+    }
+
     win.__pushHistoryHijacked = true;
-    console.log('[CollaborationService] Successfully hijacked iframe history');
+    console.log('[CollaborationService] Successfully hijacked iframe history, undo, and redo');
   }
 
   private unhijackIframeHistory() {
@@ -280,6 +313,16 @@ export class CollaborationService {
       win.pushHistory = this.originalPushHistory;
       delete win.__pushHistoryHijacked;
       console.log('[CollaborationService] Restored iframe history');
+    }
+    if (win.__undoHijacked && win.__origUndo) {
+      win.undo = win.__origUndo;
+      delete win.__undoHijacked;
+      delete win.__origUndo;
+    }
+    if (win.__redoHijacked && win.__origRedo) {
+      win.redo = win.__origRedo;
+      delete win.__redoHijacked;
+      delete win.__origRedo;
     }
     this.originalPushHistory = null;
   }
@@ -304,6 +347,8 @@ export class CollaborationService {
     this.cachedSceneIdx = typeof state.currentSceneIdx === 'number' 
       ? state.currentSceneIdx 
       : 0;
+
+    this.cachedSelectedId = state.selectedId || null;
   }
 
   // ── Local Change Detection & Diffing ───────────────────────────────────────
@@ -347,12 +392,24 @@ export class CollaborationService {
       }
     });
 
-    // 3. Detect Scene swap
+    // 3. Detect layer reorder
+    const currentIds = currentElements.map((el: any) => el.id);
+    const cachedIds = Array.from(this.cachedElements.keys());
+    if (currentIds.length === cachedIds.length && JSON.stringify(currentIds) !== JSON.stringify(cachedIds)) {
+      this.broadcastLocalOperation('reorder', { ids: currentIds });
+    }
+
+    // 4. Detect Selection swap
+    if (state.selectedId !== this.cachedSelectedId) {
+      this.broadcastLocalOperation('selection', { id: state.selectedId || null });
+    }
+
+    // 5. Detect Scene swap
     if (state.currentSceneIdx !== this.cachedSceneIdx) {
       this.broadcastLocalOperation('scene', { currentSceneIdx: state.currentSceneIdx });
     }
 
-    // 4. Update local caches
+    // 6. Update local caches
     this.cacheIframeState();
   }
 
@@ -475,6 +532,28 @@ export class CollaborationService {
           }
         }
         break;
+
+      case 'reorder':
+        if (state.elements && Array.isArray(op.payload.ids)) {
+          const idMap = new Map<string, any>(state.elements.map((el: any) => [el.id, el]));
+          state.elements = op.payload.ids
+            .map((id: string) => idMap.get(id))
+            .filter(Boolean);
+          needsRender = true;
+        }
+        break;
+
+      case 'selection':
+        if (!state.remoteSelections) {
+          state.remoteSelections = {};
+        }
+        if (op.payload.id) {
+          state.remoteSelections[op.authorId] = op.payload.id;
+        } else {
+          delete state.remoteSelections[op.authorId];
+        }
+        needsRender = true;
+        break;
     }
 
     if (needsRender) {
@@ -493,6 +572,10 @@ export class CollaborationService {
   }
 
   // ── Helper functions ──────────────────────────────────────────────────────
+
+  getPendingOperationsCount(): number {
+    return this.opQueue.getPendingCount();
+  }
 
   private getDeviceType(): Participant['device'] {
     if (typeof window !== 'undefined' && (window as any).Capacitor) {

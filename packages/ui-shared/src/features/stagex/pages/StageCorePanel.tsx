@@ -11,6 +11,7 @@ import { SharedNavigationBar } from '../../../features/hub/navigation/SharedNavi
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Dialog } from '../../../shared/design-system/dialogs';
+import { SegmentedOtpInput } from '../components/SegmentedOtpInput';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -579,7 +580,20 @@ export default function StagexPanel() {
   const [collabState, setCollabState] = useState<any>('disconnected');
   const [collabError, setCollabError] = useState<string | null>(null);
   const [collabLoading, setCollabLoading] = useState(false);
+  const [collabCopied, setCollabCopied] = useState(false);
+  const [pendingOpsCount, setPendingOpsCount] = useState(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    if (collabState !== 'connected') {
+      setPendingOpsCount(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setPendingOpsCount(CollaborationService.getInstance().getPendingOperationsCount());
+    }, 500);
+    return () => clearInterval(interval);
+  }, [collabState]);
 
   useEffect(() => {
     const unsubAuth = authRepository.subscribeAuth((u) => {
@@ -3964,351 +3978,271 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             <>
               <div
                 onClick={() => !collabLoading && setCollabModalOpen(false)}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  zIndex: 9998,
-                  background: 'rgba(0,0,0,0.55)',
-                  animation: 'pdfSheetFade 180ms ease-out',
-                }}
+                className="absolute inset-0 bg-black/70 backdrop-blur-md z-[9998] transition-opacity duration-300"
               />
               <div
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 9999,
-                  background: isLight ? '#ffffff' : '#0c0c0d',
-                  border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 16,
-                  padding: '24px',
-                  width: '400px',
-                  boxShadow: isLight ? '0 20px 50px rgba(0,0,0,0.12)' : '0 20px 50px rgba(0,0,0,0.6)',
-                  fontFamily: 'Inter, sans-serif',
-                  color: isLight ? '#000000' : '#ffffff',
-                }}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-full max-w-[480px] bg-[#1f1f1f] rounded-[28px] border border-white/10 shadow-2xl overflow-hidden dialog-entrance flex flex-col text-[#e2e2e2] font-body-md"
               >
-                <div
-                  style={{
-                    fontFamily: 'Manrope, sans-serif',
-                    fontSize: 12,
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.14em',
-                    color: isLight ? '#000000' : '#ffffff',
-                    marginBottom: 18,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <span>StageX Collaboration</span>
-                  <span 
-                    className="material-symbols-outlined" 
-                    style={{ cursor: 'pointer', opacity: 0.6 }}
+                {/* Header */}
+                <div className="p-6 pb-0 flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div>
+                      <h1 className="font-headline-lg text-3xl font-bold tracking-tight text-on-surface">Collaborate</h1>
+                      <p className="font-body-md text-sm text-[#c1c6d7] mt-1">Work together on this stage in real time.</p>
+                    </div>
+                  </div>
+                  <button
                     onClick={() => !collabLoading && setCollabModalOpen(false)}
+                    className="p-2 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center"
                   >
-                    close
-                  </span>
+                    <span className="material-symbols-outlined text-on-surface-variant">close</span>
+                  </button>
                 </div>
 
-                {collabError && (
-                  <div style={{
-                    padding: '10px 12px',
-                    background: 'rgba(239,68,68,0.1)',
-                    border: '1px solid rgba(239,68,68,0.3)',
-                    color: '#ef4444',
-                    borderRadius: 8,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    marginBottom: 16,
-                  }}>
-                    {collabError}
-                  </div>
-                )}
-
-                {!currentUser ? (
-                  <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                    <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 16 }}>
-                      You must be signed in to host or join collaborative sessions.
-                    </p>
-                    <button
-                      onClick={() => {
-                        setCollabModalOpen(false);
-                        window.dispatchEvent(new CustomEvent('studio:open-auth'));
-                      }}
-                      style={{
-                        width: '100%',
-                        height: 40,
-                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                        border: 'none',
-                        borderRadius: 10,
-                        color: 'white',
-                        fontWeight: 850,
-                        fontSize: 12,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Sign In
-                    </button>
-                  </div>
-                ) : collabState === 'connected' && collabRoom ? (
-                  <div>
-                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                      <span style={{ fontSize: 10, fontStyle: 'normal', fontWeight: 800, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                        Active Room Code
-                      </span>
-                      <div style={{
-                        fontSize: 32,
-                        fontWeight: 800,
-                        letterSpacing: '0.15em',
-                        margin: '6px 0 12px 0',
-                        color: accent.from,
-                        fontFamily: 'Courier New, monospace',
-                      }}>
-                        {collabRoom.shortCode}
-                      </div>
-
-                      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(collabRoom.shortCode);
-                            alert('Room code copied to clipboard!');
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-                            border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: 8,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: isLight ? '#000' : '#fff',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>content_copy</span>
-                          Copy Code
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (navigator.share) {
-                              navigator.share({
-                                title: 'StageX Collaborative Session',
-                                text: `Join my StageX collaboration session with room code: ${collabRoom.shortCode}`,
-                                url: window.location.href,
-                              }).catch(() => {});
-                            } else {
-                              alert(`Share Room Code: ${collabRoom.shortCode}`);
-                            }
-                          }}
-                          style={{
-                            padding: '8px 16px',
-                            background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-                            border: isLight ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: 8,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: isLight ? '#000' : '#fff',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>share</span>
-                          Share Code
-                        </button>
-                      </div>
+                <div className="p-6 space-y-6">
+                  {collabError && (
+                    <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/25 text-[#ffb4ab] text-sm flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lg">error</span>
+                      <span className="font-medium">{collabError}</span>
                     </div>
+                  )}
 
-                    <div style={{ marginBottom: 20 }}>
-                      <span style={{ fontSize: 10, fontWeight: 800, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 10 }}>
-                        Participants ({collabParticipants.length})
-                      </span>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 150, overflowY: 'auto' }}>
-                        {collabParticipants.map((p) => (
-                          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: '50%',
-                              background: p.cursorColor,
-                              color: 'white',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: 10,
-                              fontWeight: 800,
-                              textTransform: 'uppercase',
-                            }}>
-                              {p.displayName ? p.displayName.charAt(0) : 'U'}
-                            </div>
-                            <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>
-                              {p.displayName} {p.id === currentUser.uid && '(You)'}
-                            </span>
-                            <span style={{
-                              fontSize: 8,
-                              fontWeight: 800,
-                              background: p.device === 'android' ? 'rgba(16,185,129,0.1)' : 'rgba(59,130,246,0.1)',
-                              color: p.device === 'android' ? '#10b981' : '#3b82f6',
-                              padding: '2px 6px',
-                              borderRadius: 4,
-                              textTransform: 'uppercase',
-                            }}>
-                              {p.device}
-                            </span>
-                            <div style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: '50%',
-                              background: p.online ? '#10b981' : '#ef4444',
-                            }} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={async () => {
-                        setCollabLoading(true);
-                        try {
-                          await CollaborationService.getInstance().leaveRoom();
+                  {!currentUser ? (
+                    <div className="text-center py-6 space-y-4">
+                      <p className="text-sm text-[#c1c6d7]">
+                        You must be signed in to host or join collaborative sessions.
+                      </p>
+                      <button
+                        onClick={() => {
                           setCollabModalOpen(false);
-                        } catch (e: any) {
-                          setCollabError(e.message || String(e));
-                        } finally {
-                          setCollabLoading(false);
-                        }
-                      }}
-                      disabled={collabLoading}
-                      style={{
-                        width: '100%',
-                        height: 40,
-                        background: '#ef4444',
-                        border: 'none',
-                        borderRadius: 10,
-                        color: 'white',
-                        fontWeight: 800,
-                        fontSize: 12,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
-                        cursor: collabLoading ? 'wait' : 'pointer',
-                      }}
-                    >
-                      {collabLoading ? 'Leaving...' : 'Leave Collaboration'}
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <button
-                      onClick={async () => {
-                        setCollabLoading(true);
-                        setCollabError(null);
-                        try {
-                          await CollaborationService.getInstance().createRoom(
-                            currentUser.uid,
-                            { displayName: currentUser.displayName || 'Host', avatar: currentUser.photoURL || '' },
-                            cursorColor
-                          );
-                        } catch (e: any) {
-                          setCollabError(e.message || String(e));
-                        } finally {
-                          setCollabLoading(false);
-                        }
-                      }}
-                      disabled={collabLoading}
-                      style={{
-                        width: '100%',
-                        height: 44,
-                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                        border: 'none',
-                        borderRadius: 10,
-                        color: 'white',
-                        fontWeight: 850,
-                        fontSize: 12,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        cursor: collabLoading ? 'wait' : 'pointer',
-                        marginBottom: 16,
-                        boxShadow: `0 4px 14px ${accent.from}44`,
-                      }}
-                    >
-                      {collabLoading ? 'Starting...' : 'Host Room'}
-                    </button>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0' }}>
-                      <div style={{ flex: 1, height: 1, background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)' }} />
-                      <span style={{ fontSize: 10, fontWeight: 800, opacity: 0.4, textTransform: 'uppercase' }}>or join</span>
-                      <div style={{ flex: 1, height: 1, background: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)' }} />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input
-                        type="text"
-                        placeholder="ENTER ROOM CODE (e.g. H4K8JQ)"
-                        value={shortCodeInput}
-                        onChange={(e) => setShortCodeInput(e.target.value.toUpperCase().trim())}
-                        maxLength={6}
-                        disabled={collabLoading}
-                        style={{
-                          flex: 1,
-                          padding: '10px 12px',
-                          background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                          border: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(255,255,255,0.08)',
-                          borderRadius: 10,
-                          fontSize: 13,
-                          color: isLight ? '#000' : '#fff',
-                          fontFamily: 'Courier New, monospace',
-                          fontWeight: 800,
-                          letterSpacing: '0.08em',
-                          outline: 'none',
+                          window.dispatchEvent(new CustomEvent('studio:open-auth'));
                         }}
-                      />
+                        className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-base h-12 rounded-full flex items-center justify-center font-bold hover:opacity-90 active:scale-95 transition-all"
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                  ) : collabState === 'connected' && collabRoom ? (
+                    /* Connected Room Experience */
+                    <div className="space-y-6">
+                      {/* Invite Code Section */}
+                      <section className="space-y-4">
+                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Your Invite Code</label>
+                        <div className="grid grid-cols-6 gap-3">
+                          {Array.from({ length: 6 }).map((_, idx) => (
+                            <div
+                              key={idx}
+                              className="h-16 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/10 flex items-center justify-center font-code-display text-2xl font-bold text-[#adc6ff] shadow-[0_0_12px_-2px_rgba(173,198,255,0.4)] border-[#adc6ff]"
+                            >
+                              {collabRoom.shortCode[idx] || ''}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(collabRoom.shortCode);
+                              setCollabCopied(true);
+                              setTimeout(() => setCollabCopied(false), 2000);
+                            }}
+                            className="flex-1 bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {collabCopied ? 'check' : 'content_copy'}
+                            </span>
+                            {collabCopied ? 'Copied!' : 'Copy Invite Code'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (navigator.share) {
+                                navigator.share({
+                                  title: 'StageX Collaborative Session',
+                                  text: `Join my StageX collaboration session with room code: ${collabRoom.shortCode}`,
+                                  url: window.location.href,
+                                }).catch(() => {});
+                              } else {
+                                alert(`Room Code: ${collabRoom.shortCode}`);
+                              }
+                            }}
+                            className="px-6 border border-white/15 text-[#e2e2e2] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">share</span>
+                            Share
+                          </button>
+                        </div>
+                      </section>
+
+                      {/* QR Code Section */}
+                      <section className="flex flex-col items-center gap-2 pt-2">
+                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Scan to Join</label>
+                        <div className="p-3 bg-white rounded-2xl border border-white/10 shadow-lg">
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${collabRoom.shortCode}`}
+                            alt="Room QR Code"
+                            className="w-[120px] h-[120px] rounded-lg"
+                          />
+                        </div>
+                      </section>
+
+                      {/* Soft Divider */}
+                      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                      {/* Collaborators Section */}
+                      <section className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse"></div>
+                            <label className="font-label-md text-sm font-semibold text-[#e2e2e2]">
+                              Connected ({collabParticipants.length})
+                            </label>
+                          </div>
+                          {/* Sync Status Badge */}
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/8 text-[11px] font-semibold text-[#c1c6d7]">
+                            <span className={`material-symbols-outlined text-[14px] ${pendingOpsCount > 0 ? 'text-amber-400 animate-spin' : 'text-green-400'}`}>
+                              {pendingOpsCount > 0 ? 'sync' : 'check_circle'}
+                            </span>
+                            {pendingOpsCount > 0 ? `Syncing (${pendingOpsCount})` : 'Synced'}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+                          {collabParticipants.map((p, idx) => (
+                            <div
+                              key={p.id}
+                              className="stagger-avatar flex items-center justify-between p-3 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/8 transition-all hover:border-white/15"
+                              style={{ animationDelay: `${(idx + 1) * 0.1}s` }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="relative">
+                                  {p.avatar ? (
+                                    <img
+                                      src={p.avatar}
+                                      alt={p.displayName}
+                                      className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-sm text-[#adc6ff] ring-2 ring-[#adc6ff]/20 uppercase">
+                                      {p.displayName ? p.displayName[0] : 'U'}
+                                    </div>
+                                  )}
+                                  <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1f1f1f] ${p.online ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`} />
+                                </div>
+                                <div>
+                                  <p className="font-label-lg text-sm font-semibold text-[#e2e2e2]">
+                                    {p.displayName || 'Collaborator'} {p.id === currentUser.uid && <span className="text-[#c1c6d7]/60 font-normal">(You)</span>}
+                                  </p>
+                                  <p className="text-[11px] text-[#c1c6d7]/80 font-medium">
+                                    {p.id === collabRoom.hostId ? 'Owner' : (p.online ? 'Editing' : 'Offline')}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[#c1c6d7]/40 text-lg">signal_cellular_alt</span>
+                                <span className="text-[10px] text-[#c1c6d7]/50 font-medium">Excellent</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+
+                      {/* Action Button */}
                       <button
                         onClick={async () => {
-                          if (shortCodeInput.length !== 6) {
-                            setCollabError('Room code must be exactly 6 characters.');
-                            return;
-                          }
                           setCollabLoading(true);
                           setCollabError(null);
                           try {
-                            await CollaborationService.getInstance().joinRoom(
-                              shortCodeInput,
-                              currentUser.uid,
-                              { displayName: currentUser.displayName || 'Collaborator', avatar: currentUser.photoURL || '' },
-                              cursorColor
-                            );
+                            await CollaborationService.getInstance().leaveRoom();
+                            setCollabModalOpen(false);
                           } catch (e: any) {
                             setCollabError(e.message || String(e));
                           } finally {
                             setCollabLoading(false);
                           }
                         }}
-                        disabled={collabLoading || shortCodeInput.length !== 6}
-                        style={{
-                          padding: '0 20px',
-                          background: shortCodeInput.length === 6 ? `linear-gradient(135deg, ${accent.from}, ${accent.to})` : 'rgba(128,128,128,0.12)',
-                          color: shortCodeInput.length === 6 ? 'white' : 'rgba(128,128,128,0.4)',
-                          border: 'none',
-                          borderRadius: 10,
-                          fontWeight: 850,
-                          fontSize: 11,
-                          textTransform: 'uppercase',
-                          cursor: collabLoading ? 'wait' : (shortCodeInput.length === 6 ? 'pointer' : 'not-allowed'),
-                        }}
+                        disabled={collabLoading}
+                        className="w-full bg-red-500/15 border border-red-500/35 hover:bg-red-500/25 active:scale-95 text-red-400 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center transition-all mt-4"
                       >
-                        Join
+                        {collabLoading ? 'Leaving...' : 'Leave Collaboration'}
                       </button>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    /* Host / Join Screen */
+                    <div className="space-y-6">
+                      {/* Host Section */}
+                      <section className="space-y-4">
+                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Host a Stage</label>
+                        <button
+                          onClick={async () => {
+                            setCollabLoading(true);
+                            setCollabError(null);
+                            try {
+                              await CollaborationService.getInstance().createRoom(
+                                currentUser.uid,
+                                { displayName: currentUser.displayName || 'Host', avatar: currentUser.photoURL || '' },
+                                cursorColor
+                              );
+                            } catch (e: any) {
+                              setCollabError(e.message || String(e));
+                            } finally {
+                              setCollabLoading(false);
+                            }
+                          }}
+                          disabled={collabLoading}
+                          className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-[0_4px_14px_rgba(173,198,255,0.25)]"
+                        >
+                          {collabLoading ? 'Hosting...' : 'Host Room'}
+                        </button>
+                      </section>
+
+                      {/* Soft Divider */}
+                      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                      {/* Join Section */}
+                      <section className="space-y-4">
+                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Join a Stage</label>
+                        <SegmentedOtpInput
+                          value={shortCodeInput}
+                          onChange={(val) => setShortCodeInput(val.toUpperCase())}
+                          disabled={collabLoading}
+                        />
+                        <button
+                          onClick={async () => {
+                            if (shortCodeInput.length !== 6) {
+                              setCollabError('Room code must be exactly 6 characters.');
+                              return;
+                            }
+                            setCollabLoading(true);
+                            setCollabError(null);
+                            try {
+                              await CollaborationService.getInstance().joinRoom(
+                                shortCodeInput,
+                                currentUser.uid,
+                                { displayName: currentUser.displayName || 'Collaborator', avatar: currentUser.photoURL || '' },
+                                cursorColor
+                              );
+                            } catch (e: any) {
+                              setCollabError(e.message || String(e));
+                            } finally {
+                              setCollabLoading(false);
+                            }
+                          }}
+                          disabled={collabLoading || shortCodeInput.length !== 6}
+                          className={`w-full font-label-lg text-sm font-bold h-12 rounded-full transition-all mt-2 flex items-center justify-center ${shortCodeInput.length === 6 ? 'bg-[#4b8eff] text-white hover:opacity-90 active:scale-95 shadow-[0_4px_14px_rgba(75,142,255,0.25)]' : 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed'}`}
+                        >
+                          {collabLoading ? 'Joining...' : 'Join Stage'}
+                        </button>
+                      </section>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <footer className="p-6 pt-0">
+                  <p className="text-[11px] text-center text-[#c1c6d7]/60 font-medium">
+                    Only invited collaborators can edit this stage.
+                  </p>
+                </footer>
               </div>
             </>
           )}

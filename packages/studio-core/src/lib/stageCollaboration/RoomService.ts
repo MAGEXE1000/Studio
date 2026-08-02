@@ -30,25 +30,47 @@ export class RoomService {
   }
 
   static async createRoom(hostId: string): Promise<CollaboratorRoom> {
+    console.log('[RoomService] createRoom START for hostId:', hostId);
     const db = this.getDb();
+    console.log('[RoomService] getDb() success');
     const roomId = doc(collection(db, 'rooms')).id;
+    console.log('[RoomService] Generated new roomId:', roomId);
     
     let shortCode = '';
     let isUnique = false;
     let attempts = 0;
     while (!isUnique && attempts < 10) {
       shortCode = generateShortCode();
+      console.log(`[RoomService] Attempt ${attempts + 1}: Generated shortCode candidate: ${shortCode}`);
       const codeRef = doc(db, 'roomCodes', shortCode);
-      const codeSnap = await getDoc(codeRef);
-      if (!codeSnap.exists()) {
-        isUnique = true;
+      console.log(`[RoomService] Checking shortCode codeRef: roomCodes/${shortCode}`);
+      try {
+        const codeSnap = await getDoc(codeRef);
+        console.log(`[RoomService] getDoc for shortCode snap exists: ${codeSnap.exists()}`);
+        if (!codeSnap.exists()) {
+          isUnique = true;
+        }
+      } catch (err: any) {
+        console.error(`[RoomService] Error checking shortCode uniqueness on attempt ${attempts + 1}:`, err);
+        console.error('[RoomService] Raw error details:', {
+          name: err?.name,
+          code: err?.code,
+          message: err?.message,
+          stack: err?.stack,
+        });
+        throw err;
       }
       attempts++;
     }
-    if (!shortCode) throw new Error('Failed to generate a unique room code');
+    if (!shortCode || !isUnique) {
+      console.error('[RoomService] Failed to generate a unique room code after 10 attempts');
+      throw new Error('Failed to generate a unique room code');
+    }
 
     const now = Date.now();
+    console.log('[RoomService] Serializing current stage state...');
     const currentStage = serializeStage(hostId);
+    console.log('[RoomService] Stage serialized successfully');
 
     const room: CollaboratorRoom = {
       roomId,
@@ -61,26 +83,74 @@ export class RoomService {
       snapshot: currentStage,
     };
 
-    await setDoc(doc(db, 'roomCodes', shortCode), { roomId, createdAt: now });
-    await setDoc(doc(db, 'rooms', roomId), room);
+    try {
+      console.log(`[RoomService] Writing roomCodes document: roomCodes/${shortCode}`);
+      await setDoc(doc(db, 'roomCodes', shortCode), { roomId, createdAt: now });
+      console.log('[RoomService] Wrote roomCodes document successfully');
 
+      console.log(`[RoomService] Writing rooms document: rooms/${roomId}`);
+      await setDoc(doc(db, 'rooms', roomId), room);
+      console.log('[RoomService] Wrote rooms document successfully');
+    } catch (err: any) {
+      console.error('[RoomService] Error writing room/roomCode documents:', err);
+      console.error('[RoomService] Raw error details:', {
+        name: err?.name,
+        code: err?.code,
+        message: err?.message,
+        stack: err?.stack,
+      });
+      throw err;
+    }
+
+    console.log('[RoomService] createRoom SUCCESS, room:', room);
     return room;
   }
 
   static async getRoomIdFromCode(shortCode: string): Promise<string | null> {
+    const cleanCode = shortCode.toUpperCase().trim();
+    console.log('[RoomService] getRoomIdFromCode START for code:', cleanCode);
     const db = this.getDb();
-    const codeRef = doc(db, 'roomCodes', shortCode.toUpperCase().trim());
-    const codeSnap = await getDoc(codeRef);
-    if (!codeSnap.exists()) return null;
-    return codeSnap.data().roomId || null;
+    const codeRef = doc(db, 'roomCodes', cleanCode);
+    try {
+      const codeSnap = await getDoc(codeRef);
+      console.log(`[RoomService] getRoomIdFromCode codeRef exists: ${codeSnap.exists()}`);
+      if (!codeSnap.exists()) return null;
+      const roomId = codeSnap.data().roomId || null;
+      console.log('[RoomService] getRoomIdFromCode resolved roomId:', roomId);
+      return roomId;
+    } catch (err: any) {
+      console.error('[RoomService] getRoomIdFromCode error:', err);
+      console.error('[RoomService] Raw error details:', {
+        name: err?.name,
+        code: err?.code,
+        message: err?.message,
+        stack: err?.stack,
+      });
+      throw err;
+    }
   }
 
   static async getRoom(roomId: string): Promise<CollaboratorRoom | null> {
+    console.log('[RoomService] getRoom START for roomId:', roomId);
     const db = this.getDb();
     const roomRef = doc(db, 'rooms', roomId);
-    const roomSnap = await getDoc(roomRef);
-    if (!roomSnap.exists()) return null;
-    return roomSnap.data() as CollaboratorRoom;
+    try {
+      const roomSnap = await getDoc(roomRef);
+      console.log(`[RoomService] getRoom snap exists: ${roomSnap.exists()}`);
+      if (!roomSnap.exists()) return null;
+      const room = roomSnap.data() as CollaboratorRoom;
+      console.log('[RoomService] getRoom success');
+      return room;
+    } catch (err: any) {
+      console.error('[RoomService] getRoom error:', err);
+      console.error('[RoomService] Raw error details:', {
+        name: err?.name,
+        code: err?.code,
+        message: err?.message,
+        stack: err?.stack,
+      });
+      throw err;
+    }
   }
 
   static async updateRoomHeartbeat(roomId: string) {

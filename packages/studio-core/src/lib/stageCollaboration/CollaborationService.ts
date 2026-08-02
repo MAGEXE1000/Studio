@@ -146,27 +146,38 @@ export class CollaborationService {
     userData: { displayName: string; avatar: string },
     cursorColor: string
   ): Promise<CollaboratorRoom> {
+    console.log('[CollaborationService] createRoom START for userId:', userId, 'userData:', userData);
     this.setConnectionState('connecting');
     this.currentUserId = userId;
     this.currentUserData = userData;
 
     try {
-      // Run pruning of old rooms prior to creating a new one
-      await RoomService.runTTLPruning();
-      
+      console.log('[CollaborationService] Creating room via RoomService...');
       const room = await RoomService.createRoom(userId);
+      console.log('[CollaborationService] Room created successfully. roomId:', room.roomId, 'code:', room.shortCode);
       this.setRoom(room);
       this.setConnectionState('connected');
 
-      // Update local user's initial presence
+      console.log('[CollaborationService] Updating presence for host...');
       await PresenceService.updatePresence(room.roomId, userId ? { id: userId, ...userData } : { id: 'host', ...userData }, this.getDeviceType(), cursorColor, true);
+      console.log('[CollaborationService] Presence updated successfully.');
 
-      // Listen to room sub-collections
+      console.log('[CollaborationService] Setting up realtime subscriptions...');
       this.setupSubscriptions(room.roomId);
+      console.log('[CollaborationService] Realtime subscriptions active.');
       this.startHeartbeat(room.roomId, cursorColor);
+      console.log('[CollaborationService] Heartbeat started.');
 
+      console.log('[CollaborationService] createRoom COMPLETE. Success!');
       return room;
-    } catch (e) {
+    } catch (e: any) {
+      console.error('[CollaborationService] createRoom failed with raw error:', e);
+      console.error('[CollaborationService] Raw error details:', {
+        name: e?.name,
+        code: e?.code,
+        message: e?.message,
+        stack: e?.stack,
+      });
       this.setConnectionState('disconnected');
       throw mapFirestoreError(e);
     }
@@ -178,33 +189,51 @@ export class CollaborationService {
     userData: { displayName: string; avatar: string },
     cursorColor: string
   ): Promise<CollaboratorRoom> {
+    console.log('[CollaborationService] joinRoom START with code:', shortCode, 'userId:', userId);
     this.setConnectionState('connecting');
     this.currentUserId = userId;
     this.currentUserData = userData;
 
     try {
+      console.log(`[CollaborationService] Looking up roomId from code: ${shortCode}`);
       const roomId = await RoomService.getRoomIdFromCode(shortCode.toUpperCase().trim());
+      console.log(`[CollaborationService] getRoomIdFromCode resolved to: ${roomId}`);
       if (!roomId) throw new Error('Invalid or expired room code');
 
+      console.log(`[CollaborationService] Fetching room details for roomId: ${roomId}`);
       const room = await RoomService.getRoom(roomId);
       if (!room) throw new Error('Room details not found');
 
       // Restore stage snapshot from room host
       if (room.snapshot) {
+        console.log('[CollaborationService] Restoring stage snapshot from host room...');
         deserializeStage(room.snapshot, this.iframe, userId);
+        console.log('[CollaborationService] Stage snapshot restored successfully.');
       }
 
       this.setRoom(room);
       this.setConnectionState('connected');
 
-      // Update local presence
+      console.log('[CollaborationService] Updating presence for joint user...');
       await PresenceService.updatePresence(roomId, { id: userId, ...userData }, this.getDeviceType(), cursorColor, true);
+      console.log('[CollaborationService] Presence updated successfully.');
 
+      console.log('[CollaborationService] Setting up realtime subscriptions...');
       this.setupSubscriptions(roomId);
+      console.log('[CollaborationService] Realtime subscriptions active.');
       this.startHeartbeat(roomId, cursorColor);
+      console.log('[CollaborationService] Heartbeat started.');
 
+      console.log('[CollaborationService] joinRoom COMPLETE. Success!');
       return room;
-    } catch (e) {
+    } catch (e: any) {
+      console.error('[CollaborationService] joinRoom failed with raw error:', e);
+      console.error('[CollaborationService] Raw error details:', {
+        name: e?.name,
+        code: e?.code,
+        message: e?.message,
+        stack: e?.stack,
+      });
       this.setConnectionState('disconnected');
       throw mapFirestoreError(e);
     }

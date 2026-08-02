@@ -1,21 +1,23 @@
 {
   "platform": "android",
-  "version": "4.3.44",
-  "versionName": "4.3.44",
+  "version": "4.3.45",
+  "versionName": "4.3.45",
   "versionCode": 40344,
   "version_code": 40344,
-  "commit": "aa0d766f",
-  "releasedAt": "8/2/2026, 10:50:35 AM CST",
-  "buildTimestamp": "8/2/2026, 10:50:35 AM CST",
+  "commit": "612fc44e",
+  "releasedAt": "8/2/2026, 11:51:15 AM CST",
+  "buildTimestamp": "8/2/2026, 11:51:15 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented production-quality real-time collaboration system for StageX utilizing Firestore.\n• Added live presence tracking and participant cursor color indicators.\n• Created operation-based synchronization engine with conflict resolution and offline queuing.\n• Added a Collaborate button and dialog popup in both mobile and desktop views.",
-  "whatsNew": "• Implemented production-quality real-time collaboration system for StageX utilizing Firestore.\n• Added live presence tracking and participant cursor color indicators.\n• Created operation-based synchronization engine with conflict resolution and offline queuing.\n• Added a Collaborate button and dialog popup in both mobile and desktop views.",
+  "changelog": "• Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.\n• Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.\n• Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.\n• Integrated collaborative Undo and Redo synchronization.\n• Resolved Firestore connection restrictions by deploying updated security rules for rooms.\n• Added client-side Firestore SDK error mapping for friendly user connection notifications.",
+  "whatsNew": "• Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.\n• Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.\n• Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.\n• Integrated collaborative Undo and Redo synchronization.\n• Resolved Firestore connection restrictions by deploying updated security rules for rooms.\n• Added client-side Firestore SDK error mapping for friendly user connection notifications.",
   "releaseNotes": {
     "added": [
-      "Implemented production-quality real-time collaboration system for StageX utilizing Firestore.",
-      "Added live presence tracking and participant cursor color indicators.",
-      "Created operation-based synchronization engine with conflict resolution and offline queuing.",
-      "Added a Collaborate button and dialog popup in both mobile and desktop views."
+      "Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.",
+      "Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.",
+      "Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.",
+      "Integrated collaborative Undo and Redo synchronization.",
+      "Resolved Firestore connection restrictions by deploying updated security rules for rooms.",
+      "Added client-side Firestore SDK error mapping for friendly user connection notifications."
     ]
   },
   "mandatory": false

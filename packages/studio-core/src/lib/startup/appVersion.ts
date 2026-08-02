@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.44';
-export const NATIVE_VERSION_CODE = 40344;
-export const WEB_VERSION = '4.3.44';
+export const NATIVE_VERSION = '4.3.45';
+export const NATIVE_VERSION_CODE = 40345;
+export const WEB_VERSION = '4.3.45';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'aa0d766f';
+export const APP_COMMIT_SHA = '612fc44e';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/2/2026, 10:50:35 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/2/2026, 11:51:15 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented production-quality real-time collaboration system for StageX utilizing Firestore.",
-      "Added live presence tracking and participant cursor color indicators.",
-      "Created operation-based synchronization engine with conflict resolution and offline queuing.",
-      "Added a Collaborate button and dialog popup in both mobile and desktop views.",
+      "Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.",
+      "Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.",
+      "Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.",
+      "Integrated collaborative Undo and Redo synchronization.",
+      "Resolved Firestore connection restrictions by deploying updated security rules for rooms.",
+      "Added client-side Firestore SDK error mapping for friendly user connection notifications.",
     ],
   },
 ];

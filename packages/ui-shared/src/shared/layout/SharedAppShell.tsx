@@ -42,6 +42,8 @@ import { AppEntryTransition, useAnimationSpeed } from '../../features/hub/animat
 import { SubAppScaffold, ScreenScaffold } from './StudioLayoutSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 import { ApplicationTransitionEngine } from '../../features/hub/animations/ApplicationTransitionEngine';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 const ALL_PANELS = ['songs', 'library', 'preferences'] as const;
 
@@ -373,6 +375,29 @@ export function SharedAppShell({
       StartupCoordinator.cancel('app_unmounted');
     };
   }, []);
+
+  // Global Orientation Policy: Lock non-stage views to Portrait mode
+  useEffect(() => {
+    const enforcePortrait = async () => {
+      try {
+        if (routeApp !== 'stage') {
+          if (Capacitor.isNativePlatform()) {
+            await ScreenOrientation.lock({ orientation: 'portrait' });
+          } else if (
+            typeof window !== 'undefined' &&
+            window.screen &&
+            window.screen.orientation &&
+            (window.screen.orientation as any).lock
+          ) {
+            await (window.screen.orientation as any).lock('portrait');
+          }
+        }
+      } catch (e) {
+        // Ignore orientation lock errors
+      }
+    };
+    enforcePortrait();
+  }, [routeApp]);
 
   // Bi-directional synchronization between navigation stack and settings
   const lastSyncedRouteAppRef = useRef<string | null>(null);

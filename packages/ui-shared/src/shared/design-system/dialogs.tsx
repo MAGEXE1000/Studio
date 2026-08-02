@@ -57,6 +57,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
     <AnimatePresence>
       {open && (
         <div
+          role="dialog"
           style={{
             position: 'fixed',
             inset: 0,

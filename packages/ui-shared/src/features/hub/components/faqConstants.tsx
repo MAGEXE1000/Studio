@@ -821,7 +821,7 @@ export function HelpAccordion({
             </a>
             <a
               className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-secondary-container text-on-secondary-container hover:brightness-110 transition-all font-medium"
-              href="mailto:support@chordex.app"
+              href="mailto:stagecore.contact@gmail.com"
             >
               <span className="material-symbols-outlined text-[20px]">mail</span>
               Contact Support

@@ -1,18 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.42",
-  "versionName": "4.3.42",
-  "versionCode": 40342,
-  "version_code": 40342,
-  "commit": "e67800df",
-  "releasedAt": "8/1/2026, 5:28:28 PM CST",
-  "buildTimestamp": "8/1/2026, 5:28:28 PM CST",
+  "version": "4.3.43",
+  "versionName": "4.3.43",
+  "versionCode": 40343,
+  "version_code": 40343,
+  "commit": "013d9811",
+  "releasedAt": "8/1/2026, 6:32:09 PM CST",
+  "buildTimestamp": "8/1/2026, 6:32:09 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.",
-  "whatsNew": "• Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.",
+  "changelog": "• Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.\n• Refined global collapsing headers top style spacing globally to match Material 3 specifications.\n• Removed settings navigation gear icon in the upper-right corner of the Profile tab view.",
+  "whatsNew": "• Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.\n• Refined global collapsing headers top style spacing globally to match Material 3 specifications.\n• Removed settings navigation gear icon in the upper-right corner of the Profile tab view.",
   "releaseNotes": {
     "added": [
-      "Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system."
+      "Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.",
+      "Refined global collapsing headers top style spacing globally to match Material 3 specifications.",
+      "Removed settings navigation gear icon in the upper-right corner of the Profile tab view."
     ]
   },
   "mandatory": false

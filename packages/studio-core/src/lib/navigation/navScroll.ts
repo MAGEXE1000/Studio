@@ -143,6 +143,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
           const y = el.scrollTop;
           const maxScroll = el.scrollHeight - el.clientHeight;
 
+          if (maxScroll <= 2) return;
           if (y < 0 || y > maxScroll) return;
 
           if (y < 30) {
@@ -264,6 +265,54 @@ if (typeof window !== 'undefined') {
       resetNav();
     });
 
+    // Scrollable parent check utility to prevent bottom nav contraction on static pages
+    const findScrollableParent = (target: EventTarget | null, dy: number): boolean => {
+      if (!target || typeof window === 'undefined') return false;
+      let el: HTMLElement | null = target as HTMLElement;
+      while (el && el !== document.body && el !== document.documentElement) {
+        if (el.nodeType !== 1) {
+          el = el.parentElement;
+          continue;
+        }
+        try {
+          const style = window.getComputedStyle(el);
+          const overflowY = style.overflowY || style.overflow || '';
+          const isScrollableStyle = overflowY === 'auto' || overflowY === 'scroll';
+          
+          if (isScrollableStyle) {
+            const scrollableDist = el.scrollHeight - el.clientHeight;
+            if (scrollableDist > 2) {
+              if (dy > 0 && el.scrollTop < scrollableDist - 1) {
+                return true;
+              }
+              if (dy < 0 && el.scrollTop > 1) {
+                return true;
+              }
+            }
+          }
+        } catch {
+          // Safety guard
+        }
+        el = el.parentElement;
+      }
+      
+      try {
+        const winScrollableDist = document.documentElement.scrollHeight - window.innerHeight;
+        if (winScrollableDist > 2) {
+          const winScrollTop = window.scrollY || document.documentElement.scrollTop;
+          if (dy > 0 && winScrollTop < winScrollableDist - 1) {
+            return true;
+          }
+          if (dy < 0 && winScrollTop > 1) {
+            return true;
+          }
+        }
+      } catch {
+        // Safety guard
+      }
+      return false;
+    };
+
     // Window-level body scroll & touch capturing listener for universal app scrolling
     let lastWindowY = window.scrollY;
     let lastTouchY = 0;
@@ -285,6 +334,13 @@ if (typeof window !== 'undefined') {
         const y = e.touches[0].clientY;
         const dy = lastTouchY - y; // positive when scrolling down
         if (Math.abs(dy) < 4) return;
+
+        // Skip bottom nav scaling/offsetting if there is no scrollable parent in touch path
+        if (!findScrollableParent(e.target, dy)) {
+          lastTouchY = y;
+          return;
+        }
+
         lastTouchY = y;
         const deltaRatio = dy / 80;
         setNavScrollOffset(_scrollOffset + deltaRatio);
@@ -296,6 +352,9 @@ if (typeof window !== 'undefined') {
       'scroll',
       () => {
         const y = window.scrollY || document.documentElement.scrollTop;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (maxScroll <= 2) return;
+
         if (y < 30) {
           setNavScrollOffset(0);
           lastWindowY = y;

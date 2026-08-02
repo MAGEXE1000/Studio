@@ -2333,17 +2333,7 @@ function UpdateModal({
   const rawProgress = typeof updater.progress === 'number' ? updater.progress : 0;
   const downloadPct = Math.min(100, Math.max(0, Math.round(rawProgress * 100)));
 
-  const progressComponent = showProgress ? (
-    <div className="w-full my-2">
-      <CossProgress
-        value={downloadPct}
-        label="Downloading update"
-        showPercentage={true}
-        accentFrom={accentFrom || 'var(--c-accent-from, #679cff)'}
-        accentTo={accentTo || 'var(--c-accent-to, #007aff)'}
-      />
-    </div>
-  ) : undefined;
+  const progressComponent = undefined;
 
   return (
     <StudioUpdateScreen

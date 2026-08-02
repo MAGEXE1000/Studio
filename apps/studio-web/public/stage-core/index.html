@@ -473,7 +473,7 @@
 ══════════════════════════════════════════ */
       #sc-vtools {
         position: absolute;
-        left: 8px;
+        left: calc(max(24px, env(safe-area-inset-left) + 8px));
         top: 50%;
         transform: translateY(-50%);
         z-index: 100;

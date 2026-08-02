@@ -530,6 +530,10 @@ console.log('Step 1/15: Build Frontend ... [DONE]');
 console.log('Step 2/15: Sync Capacitor...');
 run('npx', ['cap', 'sync', 'android']);
 
+// Step 2.5: Verify assets freshness & integrity
+console.log('Step 2.5/15: Verify assets freshness & integrity...');
+run('node', ['../../scripts/verify-android-assets-freshness.mjs']);
+
 // Step 3: Build signed Android release APK
 console.log('Step 3/15: Build signed Android release APK...');
 

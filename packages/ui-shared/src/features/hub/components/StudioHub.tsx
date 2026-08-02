@@ -7130,38 +7130,7 @@ User Agent: [Automatically Generated]
             }
 
             if (standardScrollPages.includes(pageId as SettingsPageId)) {
-              const toolbarActions = pageId === 'profile' ? (
-                <button
-                  type="button"
-                  onClick={() => NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' })}
-                  style={{
-                    background: 'rgba(128, 128, 128, 0.10)',
-                    border: 'none',
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--c-text-primary)',
-                    cursor: 'pointer',
-                    transition: 'transform 130ms cubic-bezier(0.34, 1.15, 0.64, 1)',
-                  }}
-                  onPointerDown={(e) => {
-                    e.currentTarget.style.transform = 'scale(0.91)';
-                  }}
-                  onPointerUp={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                  onPointerLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                    settings
-                  </span>
-                </button>
-              ) : undefined;
+              const toolbarActions = undefined;
 
               return (
                 <SettingsScaffold

@@ -430,7 +430,7 @@ export default memo(function StudioUpdateScreen({
                     top: 0,
                     bottom: 0,
                     width: '45%',
-                    background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
+                    background: `linear-gradient(135deg, var(--accent-from, ${accentFrom || '#679cff'}) 0%, var(--accent-to, ${accentTo || '#007aff'}) 100%)`,
                     borderRadius: 2,
                     animation: reducedMotion
                       ? 'none'

@@ -168,7 +168,7 @@ export function SharedFloatingHeader({
     <div
       style={{
         position: 'absolute',
-        top: 'env(safe-area-inset-top, 0px)',
+        top: 'calc(max(0px, env(safe-area-inset-top, 0px) - 8px))',
         left: 0,
         right: 0,
         height: 56,
@@ -326,7 +326,7 @@ export function SettingsScaffold({
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
           padding: 'var(--density-pad, 16px)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)',
+          paddingTop: 'calc(max(0px, env(safe-area-inset-top, 0px) - 8px) + 64px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
         className="no-scrollbar"
@@ -382,6 +382,7 @@ export function DialogScaffold({ open, onClose, title, children, footer }: Dialo
     <AnimatePresence>
       {open && (
         <div
+          role="dialog"
           style={{
             position: 'fixed',
             inset: 0,

@@ -10,6 +10,7 @@ import { SharedNavigationContainer } from '../../../navigation/SharedNavigationC
 import { SharedNavigationBar } from '../../../features/hub/navigation/SharedNavigationBar';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Dialog } from '../../../shared/design-system/dialogs';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -520,6 +521,28 @@ export default function StagexPanel() {
     ready: false,
   });
   const [fabOpen, setFabOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    isDestructive: boolean;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    isDestructive: false,
+  });
+
+  const handleConfirmOk = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage({ type: 'stage-core:confirm-response', ok: true }, '*');
+    setConfirmConfig((prev) => ({ ...prev, open: false }));
+  }, []);
+
+  const handleConfirmCancel = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage({ type: 'stage-core:confirm-response', ok: false }, '*');
+    setConfirmConfig((prev) => ({ ...prev, open: false }));
+  }, []);
+
   const [hasOpenOverlay, setHasOpenOverlay] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [layoutsOpen, setLayoutsOpen] = useState(false);
@@ -1493,6 +1516,15 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       }
 
       if (e.data?.type === 'sc-dial-state') setFabOpen(!!e.data.open);
+      if (e.data?.type === 'stage-core:confirm') {
+        setConfirmConfig({
+          open: true,
+          title: e.data.title || 'Confirm',
+          message: e.data.message || '',
+          isDestructive: !!e.data.isDestructive,
+        });
+        return;
+      }
       if (e.data?.type === 'sc-scroll-dir') setNavCollapsed(!!e.data.down);
       if (e.data?.type === 'sc-prop-state')
         setPropPanelOpen(e.data.state === 'open' || e.data.state === 'peek');
@@ -3489,13 +3521,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
                   display: 'flex',
-                  opacity: liveMode ? 0 : isLandscapeEditor && propPanelOpen ? 0 : 1,
-                  pointerEvents: liveMode
+                  opacity: liveMode || fabOpen ? 0 : isLandscapeEditor && propPanelOpen ? 0 : 1,
+                  pointerEvents: liveMode || fabOpen
                     ? ('none' as const)
                     : isLandscapeEditor && propPanelOpen
                       ? ('none' as const)
                       : ('auto' as const),
-                  visibility: liveMode
+                  visibility: liveMode || fabOpen
                     ? ('hidden' as const)
                     : isLandscapeEditor && propPanelOpen
                       ? ('hidden' as const)
@@ -3796,6 +3828,51 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           `}</style>
             </>
           )}
+      <Dialog
+        open={confirmConfig.open}
+        onClose={handleConfirmCancel}
+        title={confirmConfig.title}
+        footer={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleConfirmCancel}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                background: 'var(--c-surface-high)',
+                border: '1px solid var(--c-border)',
+                color: 'var(--c-text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'Manrope',
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmOk}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                background: confirmConfig.isDestructive ? '#ff4b4b' : 'var(--accent-from)',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer',
+                fontFamily: 'Manrope',
+                fontWeight: 600,
+                fontSize: 13,
+              }}
+            >
+              Confirm
+            </button>
+          </div>
+        }
+      >
+        <p style={{ margin: 0, fontSize: 14, fontFamily: 'Manrope', color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
+          {confirmConfig.message}
+        </p>
+      </Dialog>
         </div>
       </div>
     </div>

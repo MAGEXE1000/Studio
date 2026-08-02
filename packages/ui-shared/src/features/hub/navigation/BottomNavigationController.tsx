@@ -19,6 +19,7 @@ import {
 import { SharedNavigationBar } from './SharedNavigationBar';
 import { IconSongs, IconLibrary, IconSettings } from '../icons/NavIcons';
 import { motion, AnimatePresence } from 'motion/react';
+import { activeOverlaysRegistry } from '../../../shared/design-system/dialogs';
 
 if (typeof window !== 'undefined') {
   (window as any).__navMetrics = (window as any).__navMetrics || {
@@ -249,14 +250,22 @@ export function BottomNavigationController() {
     if (typeof document === 'undefined') return;
     const checkDOM = () => {
       const isFullscreen = !!document.fullscreenElement;
+      const isLandscape = typeof window !== 'undefined' && window.innerWidth > window.innerHeight;
+      const activeHistory = useNavigationStore.getState().history;
+      const freshCurrentApp = activeHistory[activeHistory.length - 1]?.app ?? 'hub';
+      const isStage = freshCurrentApp === 'stage';
+
       const isModalOpen =
+        activeOverlaysRegistry.modals.size > 0 ||
+        activeOverlaysRegistry.sheets.size > 0 ||
         document.querySelector('.modal-backdrop') !== null ||
         document.querySelector('.studio-modal') !== null ||
-        document.querySelector('[role="dialog"]') !== null;
+        document.querySelector('[role="dialog"]') !== null ||
+        document.querySelector('.studio-dialog-scaffold-root') !== null;
       const hasHideClass =
         document.querySelector('.hide-bottom-nav') !== null ||
         document.querySelector('.hide-global-nav') !== null;
-      setHasDOMHiddenIndicator(isFullscreen || isModalOpen || hasHideClass);
+      setHasDOMHiddenIndicator(isFullscreen || isModalOpen || hasHideClass || (isStage && isLandscape));
     };
 
     checkDOM();
@@ -273,11 +282,16 @@ export function BottomNavigationController() {
       attributeFilter: ['class', 'role'],
     });
 
+    const unsubRegistry = activeOverlaysRegistry.subscribe(() => {
+      checkDOM();
+    });
+
     document.addEventListener('fullscreenchange', checkDOM);
     window.addEventListener('resize', checkDOM, { passive: true });
 
     return () => {
       observer.disconnect();
+      unsubRegistry();
       document.removeEventListener('fullscreenchange', checkDOM);
       window.removeEventListener('resize', checkDOM);
     };

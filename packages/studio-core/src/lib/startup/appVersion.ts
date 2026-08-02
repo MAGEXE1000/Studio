@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.42';
-export const NATIVE_VERSION_CODE = 40342;
-export const WEB_VERSION = '4.3.42';
+export const NATIVE_VERSION = '4.3.43';
+export const NATIVE_VERSION_CODE = 40343;
+export const WEB_VERSION = '4.3.43';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'e67800df';
+export const APP_COMMIT_SHA = '013d9811';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/1/2026, 5:28:28 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/1/2026, 6:32:09 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,7 +98,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.",
+      "Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.",
+      "Refined global collapsing headers top style spacing globally to match Material 3 specifications.",
+      "Removed settings navigation gear icon in the upper-right corner of the Profile tab view.",
     ],
   },
 ];

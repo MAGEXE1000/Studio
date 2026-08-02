@@ -75,9 +75,6 @@ export interface SharedAppShellProps {
 
 /* ── INSPECTOR ROUTE TRACER DEBUG TOOL ────────────────────────────────── */
 function InspectorRouteTracer() {
-  const isDev = typeof process !== 'undefined' ? process.env.NODE_ENV !== 'production' : true;
-  if (!isDev) return null;
-
   const history = useNavigationStore((s) => s.history);
   const settings = useSettingsStore((state) => state.settings);
   const isSwitcherOpen = useBottomNavigationStore((s) => s.isSwitcherOpen);
@@ -94,6 +91,9 @@ function InspectorRouteTracer() {
       setActiveSheetsCount(activeOverlaysRegistry.sheets.size);
     });
   }, []);
+
+  const isDev = typeof process !== 'undefined' ? process.env.NODE_ENV !== 'production' : true;
+  if (!isDev) return null;
 
   const currentRoute = history[history.length - 1] || { app: 'hub' };
 

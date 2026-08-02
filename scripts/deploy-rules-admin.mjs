@@ -28,6 +28,7 @@ try {
 }
 
 console.log('[rules-deployer] Initializing firebase-admin for project:', serviceAccount.project_id);
+console.log('[rules-deployer] Service Account Email:', serviceAccount.client_email);
 const app = appModule.initializeApp({
   credential: appModule.cert(serviceAccount)
 });

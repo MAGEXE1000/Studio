@@ -1,23 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.45",
-  "versionName": "4.3.45",
-  "versionCode": 40344,
-  "version_code": 40344,
-  "commit": "612fc44e",
-  "releasedAt": "8/2/2026, 11:51:15 AM CST",
-  "buildTimestamp": "8/2/2026, 11:51:15 AM CST",
+  "version": "4.3.46",
+  "versionName": "4.3.46",
+  "versionCode": 40345,
+  "version_code": 40345,
+  "commit": "800f6b5b",
+  "releasedAt": "8/2/2026, 12:05:39 PM CST",
+  "buildTimestamp": "8/2/2026, 12:05:39 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.\n• Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.\n• Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.\n• Integrated collaborative Undo and Redo synchronization.\n• Resolved Firestore connection restrictions by deploying updated security rules for rooms.\n• Added client-side Firestore SDK error mapping for friendly user connection notifications.",
-  "whatsNew": "• Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.\n• Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.\n• Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.\n• Integrated collaborative Undo and Redo synchronization.\n• Resolved Firestore connection restrictions by deploying updated security rules for rooms.\n• Added client-side Firestore SDK error mapping for friendly user connection notifications.",
+  "changelog": "• Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.\n• Implemented deep forensic instrumentation logs throughout the room hosting flow.\n• Removed client-side TTL database pruning from the room creation sequence.",
+  "whatsNew": "• Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.\n• Implemented deep forensic instrumentation logs throughout the room hosting flow.\n• Removed client-side TTL database pruning from the room creation sequence.",
   "releaseNotes": {
     "added": [
-      "Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.",
-      "Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.",
-      "Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.",
-      "Integrated collaborative Undo and Redo synchronization.",
-      "Resolved Firestore connection restrictions by deploying updated security rules for rooms.",
-      "Added client-side Firestore SDK error mapping for friendly user connection notifications."
+      "Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.",
+      "Implemented deep forensic instrumentation logs throughout the room hosting flow.",
+      "Removed client-side TTL database pruning from the room creation sequence."
     ]
   },
   "mandatory": false

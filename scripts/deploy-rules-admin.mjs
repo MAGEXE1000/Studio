@@ -11,7 +11,7 @@ try {
 }
 
 const adminModule = await import('firebase-admin');
-const admin = adminModule.default;
+const admin = adminModule.default || adminModule;
 
 const saJson = process.env.FIREBASE_SERVICE_ACCOUNT;
 if (!saJson) {

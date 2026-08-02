@@ -1,20 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.50",
-  "versionName": "4.3.50",
-  "versionCode": 40349,
-  "version_code": 40349,
-  "commit": "8ed92fbb",
-  "releasedAt": "8/2/2026, 1:07:50 PM CST",
-  "buildTimestamp": "8/2/2026, 1:07:50 PM CST",
+  "version": "4.3.51",
+  "versionName": "4.3.51",
+  "versionCode": 40350,
+  "version_code": 40350,
+  "commit": "ea4cd184",
+  "releasedAt": "8/2/2026, 1:18:31 PM CST",
+  "buildTimestamp": "8/2/2026, 1:18:31 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).\n• Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.\n• Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline.",
-  "whatsNew": "• Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).\n• Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.\n• Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline.",
+  "changelog": "• Refactored dynamic imports in deploy-rules-admin to handle both default and module namespace exports.",
+  "whatsNew": "• Refactored dynamic imports in deploy-rules-admin to handle both default and module namespace exports.",
   "releaseNotes": {
     "added": [
-      "Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).",
-      "Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.",
-      "Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline."
+      "Refactored dynamic imports in deploy-rules-admin to handle both default and module namespace exports."
     ]
   },
   "mandatory": false

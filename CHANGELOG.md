@@ -9,6 +9,13 @@ that bundle.
 
 Conventions:
 
+## 4.3.51
+
+Release Date: 2026-08-02
+
+### Added
+- Refactored dynamic imports in deploy-rules-admin to handle both default and module namespace exports.
+
 ## 4.3.50
 
 Release Date: 2026-08-02

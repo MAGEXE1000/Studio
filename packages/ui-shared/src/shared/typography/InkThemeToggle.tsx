@@ -49,7 +49,7 @@ export default function InkThemeToggle({
 
     if (typeof (window as any).__triggerThemeTransition === 'function') {
       (window as any).__triggerThemeTransition(nextThemeStr, nextAmoled, startX, startY, () => {
-        settingsController.cycleNextTheme();
+        (settingsController as any).cycleNextTheme();
         isTransitioningRef.current = false;
       });
     } else {
@@ -59,7 +59,7 @@ export default function InkThemeToggle({
         startX,
         startY,
         updateFn: () => {
-          settingsController.cycleNextTheme();
+          (settingsController as any).cycleNextTheme();
           isTransitioningRef.current = false;
         },
       });

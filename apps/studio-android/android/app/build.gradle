@@ -8,8 +8,8 @@ android {
         applicationId "com.chordex.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40343
-        versionName "4.3.43"
+        versionCode 40344
+        versionName "4.3.44"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -69,11 +69,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
-    }
-    sourceSets {
-        main {
-            assets.exclude('public/**')
-        }
     }
 }
 
@@ -179,79 +174,3 @@ tasks.whenTaskAdded { task ->
         }
     }
 }
-
-abstract class BuildWebAssetsTask extends DefaultTask {
-    @InputFiles
-    abstract ConfigurableFileCollection getSourceFiles()
-
-    @OutputDirectory
-    abstract DirectoryProperty getOutputDir()
-
-    @Inject
-    abstract ExecOperations getExecOperations()
-
-    @TaskAction
-    void run() {
-        execOperations.exec {
-            workingDir project.file("../..")
-            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-                commandLine 'cmd', '/c', 'pnpm build'
-            } else {
-                commandLine 'pnpm', 'build'
-            }
-        }
-    }
-}
-
-abstract class CapacitorSyncTask extends DefaultTask {
-    @InputDirectory
-    abstract DirectoryProperty getWebBuildDir()
-
-    @OutputDirectory
-    abstract DirectoryProperty getOutputDir()
-
-    @Inject
-    abstract ExecOperations getExecOperations()
-
-    @TaskAction
-    void run() {
-        execOperations.exec {
-            workingDir project.file("../..")
-            if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-                commandLine 'cmd', '/c', 'pnpm android:sync'
-            } else {
-                commandLine 'pnpm', 'android:sync'
-            }
-        }
-
-        project.copy {
-            from "src/main/assets/public"
-            into outputDir
-        }
-    }
-}
-
-androidComponents {
-    onVariants(selector().all(), { variant ->
-        def buildWebTask = tasks.register("buildWebAssets${variant.name.capitalize()}", BuildWebAssetsTask) {
-            sourceFiles.from(
-                fileTree(dir: "../../src"),
-                fileTree(dir: "../../public"),
-                fileTree(dir: "../../../../packages/studio-core/src"),
-                fileTree(dir: "../../../../packages/ui-shared/src"),
-                file("../../package.json"),
-                file("../../vite.config.ts")
-            )
-            outputDir.set(layout.projectDirectory.dir("../../dist/android-web"))
-        }
-
-        def capSyncTask = tasks.register("capacitorSync${variant.name.capitalize()}", CapacitorSyncTask) {
-            webBuildDir.set(buildWebTask.flatMap { it.outputDir })
-            outputDir.set(layout.buildDirectory.dir("intermediates/capacitor-assets/${variant.name}"))
-        }
-
-        variant.sources.assets.addGeneratedSourceDirectory(capSyncTask, { it.outputDir })
-    })
-}
-
-

@@ -1,6 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
-import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, RELEASE_HISTORY, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
+import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
   getUpdateHistory,
   StartupCoordinator,
@@ -37,7 +36,6 @@ import {
   COLOR_OPTIONS,
   BentoSettingCard,
   BentoSettingRow,
-  SettingSection,
 } from '../../../shared/typography/SettingControls';
 import ApplyToSheet from '../../chordex/components/ApplyToSheet';
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
@@ -58,7 +56,6 @@ import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
 import { useNavigationCoordinator, PageTransition } from '../animations/AppAnimationSystem';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import StudioHubSettingsPanel from '../settings/StudioHubSettingsPanel';
-import PremiumThemeSwitcher from '../settings/PremiumThemeSwitcher';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 const GOOEY_SPRING = { type: 'spring', stiffness: 550, damping: 33, mass: 0.45 } as const;
@@ -572,7 +569,6 @@ function useStartupComplete() {
 
 export default function StudioHub() {
   const settings = useSettingsStore((state) => state.settings);
-  const updater = useAppUpdate();
   const currentApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   const startupComplete = useStartupComplete();
@@ -813,7 +809,7 @@ export default function StudioHub() {
       case 'updater':
         setTab('settings');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'updater' });
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'notifications' });
         }, 150);
         break;
       case 'settings':
@@ -2718,8 +2714,7 @@ type SettingsPageId =
   | 'security-login'
   | 'subscription'
   | 'devices-sessions'
-  | 'privacy-data'
-  | 'changelog';
+  | 'privacy-data';
 
 function formatHour(h: number): string {
   if (h === 0) return '12 am';
@@ -3133,32 +3128,6 @@ function GlobalHint() {
   );
 }
 
-function getUpdaterStatusText(updater: any, lang: string) {
-  if (updater.loading) {
-    if (['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL'].includes(updater.updateState)) {
-      return lang === 'es' ? 'Descargando…' : 'Downloading...';
-    }
-    if (updater.updateState === 'INSTALLING') {
-      return lang === 'es' ? 'Instalando…' : 'Installing...';
-    }
-    return lang === 'es' ? 'Buscando actualizaciones…' : 'Checking for updates...';
-  }
-  
-  if (updater.updateState === 'WAITING_USER_CONFIRMATION' || updater.updateState === 'PACKAGEINSTALLER_VISIBLE') {
-    return lang === 'es' ? 'Listo para instalar' : 'Ready to install';
-  }
-  
-  if (['INSTALL_FAILED', 'RECOVERY'].includes(updater.updateState)) {
-    return lang === 'es' ? 'Error al instalar' : 'Failed';
-  }
-  
-  if (updater.updateAvailable) {
-    return lang === 'es' ? 'Actualización disponible' : 'Update available';
-  }
-  
-  return lang === 'es' ? 'Estás al día' : 'Up to date';
-}
-
 function HubUpdaterPage({
   className,
   style,
@@ -3166,248 +3135,673 @@ function HubUpdaterPage({
   accent,
   onBack,
   hideHeader,
-  onNavigate,
 }: {
   className?: string;
-  style?: React.CSSProperties;
+  style: React.CSSProperties;
   cardStyle: React.CSSProperties;
   accent: { from: string; to: string; mid: string };
   onBack: () => void;
   hideHeader?: boolean;
-  onNavigate: (pageId: SettingsPageId) => void;
 }) {
   const updater = useAppUpdate();
+  const isWebDesktop = useIsWebDesktop();
   const settings = useSettingsStore((state) => state.settings);
   const lang = settings.language ?? 'en';
+  const changelogSections = getChangelogSections(lang);
+  const [changelogExpanded, setChangelogExpanded] = useState(false);
+  const isChangelogTooLong =
+    changelogSections.length > 2 || changelogSections.some((s) => s.items.length > 3);
 
-  const [autoUpdates, setAutoUpdates] = useState(() => {
-    return localStorage.getItem('studio:automatic_updates') !== 'false';
-  });
-  const handleToggleAutoUpdates = (val: boolean) => {
-    setAutoUpdates(val);
-    localStorage.setItem('studio:automatic_updates', String(val));
+  const L =
+    lang === 'es'
+      ? {
+          title: 'Actualizaciones',
+          latestRelease: 'Última versión',
+          currentVersion: 'Versión actual',
+          checking: 'Buscando actualizaciones…',
+          upToDate: 'Estás al día',
+          upToDateDesc: 'Estás usando la versión más reciente de Studio.',
+          updateAvailable: 'Actualización disponible',
+          updateAvailableDesc: 'Una nueva versión de Studio está lista.',
+          updateNow: 'Actualizar ahora',
+          checkForUpdates: 'Buscar actualizaciones',
+          whatsNew: 'Novedades en esta versión',
+          showFullChangelog: 'Ver registro de cambios completo',
+          hideChangelog: 'Ocultar registro de cambios',
+          reinstallRequired: 'Requiere reinstalación',
+          reinstallDesc:
+            'Esta versión requiere reinstalar Studio debido a un cambio de certificado de firma.',
+        }
+      : {
+          title: 'Updates',
+          latestRelease: 'Latest Release',
+          currentVersion: 'Current version',
+          checking: 'Checking for updates…',
+          upToDate: "You're up to date",
+          upToDateDesc: "You're running the latest version of Studio.",
+          updateAvailable: 'Update available',
+          updateAvailableDesc: 'A new version of Studio is ready to install.',
+          updateNow: 'Update Now',
+          checkForUpdates: 'Check for Updates',
+          whatsNew: "What's new in this version",
+          showFullChangelog: 'Show full changelog',
+          hideChangelog: 'Hide changelog',
+          reinstallRequired: 'Reinstall required',
+          reinstallDesc:
+            'This version requires reinstalling Studio due to a signing certificate change.',
+        };
+
+  const isChecking = updater.loading;
+  const hasUpdate = updater.updateAvailable;
+  const isReinstall = Capacitor.isNativePlatform() && updater.reinstallRequired;
+
+  const statusConfig = isChecking
+    ? { color: accent.from, label: L.checking, icon: 'refresh' as const, pulse: true }
+    : hasUpdate
+      ? isReinstall
+        ? { color: '#f87171', label: L.reinstallRequired, icon: 'warning' as const, pulse: false }
+        : {
+            color: '#f59e0b',
+            label: L.updateAvailable,
+            icon: 'system_update' as const,
+            pulse: false,
+          }
+      : { color: '#4ade80', label: L.upToDate, icon: 'check_circle' as const, pulse: false };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString(lang === 'es' ? 'es-MX' : 'en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
   };
 
-  return (
-    <div className={className} style={{ ...style, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <SettingSection title={lang === 'es' ? 'SISTEMA DE ACTUALIZACIONES' : 'UPDATE SYSTEM'}>
-        {/* Current Version */}
-        <SettingRow
-          label={lang === 'es' ? 'Versión actual' : 'Current Version'}
-          desc={`${APP_VERSION_TAG} ${APP_VERSION} (Build ${APP_VERSION_DATE})`}
-        >
-          <span style={{ fontSize: 12, color: 'var(--c-text-secondary)', fontWeight: 600 }}>
-            {lang === 'es' ? 'Instalado' : 'Installed'}
-          </span>
-        </SettingRow>
+  const getCategoryStyle = (heading: string) => {
+    const key = heading.toLowerCase();
+    const colors = {
+      added: { bg: 'rgba(74, 222, 128, 0.12)', text: '#4ade80' },
+      improved: { bg: `color-mix(in srgb, ${accent.from} 12%, transparent)`, text: accent.from },
+      fixed: { bg: 'rgba(251, 191, 36, 0.12)', text: '#fbbf24' },
+      changed: { bg: 'rgba(147, 130, 220, 0.12)', text: '#9382dc' },
+    };
+    return colors[key] || { bg: 'rgba(128,128,128,0.1)', text: 'var(--c-text-secondary)' };
+  };
 
-        {/* Check for Updates */}
-        <SettingRow
-          label={lang === 'es' ? 'Buscar actualizaciones' : 'Check for Updates'}
-          desc={getUpdaterStatusText(updater, lang)}
-        >
-          {updater.loading ? (
+  const showRecoveryStatus = Capacitor.isNativePlatform();
+  const recoveryStatusText = updater.recoveryMode
+    ? lang === 'es'
+      ? 'Recuperación Activa (Fallos consecutivos: ' + updater.consecutiveFailures + ')'
+      : 'Recovery Mode Active (Consecutive failures: ' + updater.consecutiveFailures + ')'
+    : lang === 'es'
+      ? 'Estable (Normal)'
+      : 'Stable (Normal)';
+
+  return (
+    <div className={className} style={style}>
+      <style>
+        {HUB_SETTINGS_CSS}
+        {`
+        @keyframes updater-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes updater-check-spin {
+          to { transform: rotate(360deg); }
+        }
+        .updater-hero-card {
+          position: relative;
+          border-radius: 20px;
+          overflow: hidden;
+          margin: 0 0 16px;
+        }
+        .updater-hero-bg {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg,
+            color-mix(in srgb, ${accent.from} 15%, transparent),
+            color-mix(in srgb, ${accent.to} 8%, transparent)
+          );
+          pointer-events: none;
+        }
+        .updater-hero-inner {
+          position: relative;
+          padding: 22px 20px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .updater-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 10px;
+          border-radius: 20px;
+          font-family: Manrope, sans-serif;
+          font-weight: 700;
+          font-size: 11px;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          width: fit-content;
+        }
+        .updater-version-headline {
+          font-family: Manrope, sans-serif;
+          font-weight: 800;
+          font-size: 32px;
+          letter-spacing: -0.035em;
+          line-height: 1.1;
+          color: var(--c-text-primary);
+          margin: 0;
+        }
+        .updater-status-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          background: rgba(128,128,128,0.06);
+          border: 1px solid rgba(128,128,128,0.08);
+        }
+        .updater-status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+        .updater-cta-btn {
+          width: 100%;
+          padding: 14px 20px;
+          border-radius: 14px;
+          border: none;
+          font-family: Manrope, sans-serif;
+          font-weight: 800;
+          font-size: 14px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justifyContent: center;
+          gap: 8px;
+          transition: transform 120ms ease, box-shadow 200ms ease;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .updater-cta-btn:active {
+          transform: scale(0.97);
+        }
+        .updater-changelog-section {
+          padding: 14px 18px;
+          border-bottom: 1px solid rgba(128,128,128,0.06);
+        }
+        .updater-changelog-section:last-child {
+          border-bottom: none;
+        }
+        .updater-changelog-heading {
+          display: inline-flex;
+          align-items: center;
+          padding: 3px 9px;
+          border-radius: 6px;
+          font-family: Manrope, sans-serif;
+          font-weight: 700;
+          font-size: 11.5px;
+          letter-spacing: 0.02em;
+          margin-bottom: 10px;
+        }
+        .updater-changelog-item {
+          display: flex;
+          gap: 10px;
+          padding: 4px 0;
+          font-family: Inter, sans-serif;
+          font-size: var(--font-sm, 13px);
+          line-height: 1.5;
+          color: var(--c-text-secondary);
+        }
+        .updater-changelog-bullet {
+          flex-shrink: 0;
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          margin-top: 7px;
+        }
+      `}
+      </style>
+      {!isWebDesktop && !hideHeader && <SettingsSubHeader title={L.title} onBack={onBack} />}
+
+      {/* ── 2. CURRENT INSTALLED VERSION & CHECKER ── */}
+      <div
+        className="updater-hero-card spring-in"
+        style={{ ...cardStyle, margin: 0, marginBottom: 16 }}
+      >
+        <div className="updater-hero-bg" />
+        <div className="updater-hero-inner">
+          {/* Badge */}
+          <div
+            className="updater-badge"
+            style={{
+              background: hasUpdate
+                ? isReinstall
+                  ? 'rgba(248,113,113,0.12)'
+                  : `color-mix(in srgb, ${accent.from} 14%, transparent)`
+                : 'rgba(74,222,128,0.12)',
+              color: hasUpdate ? (isReinstall ? '#f87171' : accent.from) : '#4ade80',
+            }}
+          >
             <span
               className="material-symbols-outlined"
               style={{
-                fontSize: 18,
-                color: accent.from,
-                animation: 'updater-check-spin 1s linear infinite',
-                display: 'inline-block',
+                fontSize: 13,
+                fontVariationSettings: "'FILL' 1",
               }}
             >
-              refresh
+              {statusConfig.icon}
             </span>
-          ) : updater.updateAvailable ? (
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
-              className="btn-smooth animate-click"
+            {hasUpdate ? L.latestRelease : L.upToDate}
+          </div>
+
+          {/* Version Headline */}
+          <h1 className="updater-version-headline">
+            {hasUpdate ? (
+              <>v{updater.remoteVersion}</>
+            ) : (
+              <>
+                v{APP_VERSION}
+                <span className="updater-version-tag">{APP_VERSION_TAG}</span>
+              </>
+            )}
+          </h1>
+
+          {/* Status Row */}
+          <div className="updater-status-row">
+            {isChecking ? (
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 16,
+                  color: accent.from,
+                  animation: 'updater-check-spin 1s linear infinite',
+                  flexShrink: 0,
+                }}
+              >
+                refresh
+              </span>
+            ) : (
+              <div
+                className="updater-status-dot"
+                style={{
+                  background: statusConfig.color,
+                  boxShadow: `0 0 8px ${statusConfig.color}66`,
+                  animation: statusConfig.pulse
+                    ? 'updater-pulse 1.5s ease-in-out infinite'
+                    : 'none',
+                }}
+              />
+            )}
+            <span
               style={{
-                padding: '6px 14px',
-                borderRadius: 10,
-                background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                color: 'white',
-                border: 'none',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: `0 4px 10px color-mix(in srgb, ${accent.to} 20%, transparent)`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
+                fontFamily: 'Manrope, sans-serif',
+                fontWeight: 600,
+                fontSize: 'var(--font-sm, 13px)',
+                color: 'var(--c-text-primary)',
+                flex: 1,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
-                  ? 'install_mobile'
-                  : 'download'}
+              {statusConfig.label}
+            </span>
+            {!hasUpdate && !isChecking && (
+              <span
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11.5,
+                  color: 'var(--c-text-tertiary)',
+                }}
+              >
+                {formatDate(APP_VERSION_DATE)}
               </span>
-              {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
-                ? (lang === 'es' ? 'Instalar' : 'Install Update')
-                : (lang === 'es' ? 'Continuar' : 'Continue Update')}
-            </button>
+            )}
+          </div>
+
+          {/* Reinstall Warning */}
+          {hasUpdate && isReinstall && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 10,
+                padding: '12px 14px',
+                borderRadius: 12,
+                background: 'rgba(248,113,113,0.08)',
+                border: '1px solid rgba(248,113,113,0.15)',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 16,
+                  color: '#f87171',
+                  flexShrink: 0,
+                  marginTop: 1,
+                  fontVariationSettings: "'FILL' 1",
+                }}
+              >
+                warning
+              </span>
+              <div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontFamily: 'Manrope',
+                    fontWeight: 700,
+                    fontSize: 12.5,
+                    color: '#f87171',
+                  }}
+                >
+                  {L.reinstallRequired}
+                </p>
+                <p
+                  style={{
+                    margin: '4px 0 0',
+                    fontFamily: 'Inter',
+                    fontSize: 11.5,
+                    color: 'var(--c-text-secondary)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {L.reinstallDesc}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* CTA Button */}
+          {hasUpdate ? (
+            Capacitor.isNativePlatform() ? (
+              <button
+                className="updater-cta-btn"
+                onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
+                style={{
+                  background: isReinstall
+                    ? 'linear-gradient(135deg, #f87171, #ef4444)'
+                    : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  color: '#fff',
+                  boxShadow: isReinstall
+                    ? '0 4px 20px rgba(248,113,113,0.3)'
+                    : `0 4px 20px color-mix(in srgb, ${accent.to} 30%, transparent)`,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
+                >
+                  {isReinstall ? 'download' : 'system_update'}
+                </span>
+                {L.updateNow}
+              </button>
+            ) : (
+              <button
+                className="updater-cta-btn"
+                onClick={() => window.location.reload()}
+                style={{
+                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  color: '#fff',
+                  boxShadow: `0 4px 20px color-mix(in srgb, ${accent.to} 30%, transparent)`,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
+                >
+                  refresh
+                </span>
+                {lang === 'es' ? 'Recargar Studio' : 'Refresh Studio'}
+              </button>
+            )
           ) : (
             <button
+              className="updater-cta-btn"
               onClick={async () => {
                 await updater.checkNow();
               }}
-              className="btn-smooth animate-click"
+              disabled={isChecking}
               style={{
-                padding: '6px 14px',
-                borderRadius: 10,
-                background: 'rgba(255,255,255,0.06)',
-                color: 'var(--c-text-primary)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
+                background: 'rgba(128,128,128,0.08)',
+                color: isChecking ? 'var(--c-text-tertiary)' : 'var(--c-text-primary)',
+                border: '1px solid rgba(128,128,128,0.12)',
+                cursor: isChecking ? 'default' : 'pointer',
               }}
             >
-              {lang === 'es' ? 'Buscar' : 'Check Now'}
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 18,
+                  animation: isChecking ? 'updater-check-spin 1s linear infinite' : 'none',
+                }}
+              >
+                refresh
+              </span>
+              {L.checkForUpdates}
             </button>
           )}
-        </SettingRow>
 
-        {/* Automatic Updates */}
-        <SettingRow
-          label={lang === 'es' ? 'Actualizaciones automáticas' : 'Automatic Updates'}
-          desc={lang === 'es' ? 'Buscar y descargar compilaciones en segundo plano' : 'Check and download builds in the background'}
-        >
-          <Toggle
-            checked={autoUpdates}
-            onChange={handleToggleAutoUpdates}
-          />
-        </SettingRow>
-
-
-        {/* Update Diagnostics */}
-        <SettingRow
-          label={lang === 'es' ? 'Diagnósticos de actualización' : 'Update Diagnostics'}
-          desc={lang === 'es' ? 'Copiar informes de depuración y estado del actualizador' : 'Copy debug reports and check recovery logs'}
-        >
-          <button
-            onClick={async () => {
-              try {
-                const report = await updater.getDiagnosticsReport();
-                await navigator.clipboard.writeText(report);
-                if (typeof (window as any).showDevToast === 'function') {
-                  (window as any).showDevToast(lang === 'es' ? 'Copiado al portapapeles' : 'Copied report to clipboard');
-                } else {
-                  alert(lang === 'es' ? 'Copiado al portapapeles' : 'Diagnostics report copied to clipboard!');
-                }
-              } catch (e) {
-                alert(e instanceof Error ? e.message : String(e));
-              }
-            }}
-            className="btn-smooth animate-click"
-            style={{
-              padding: '6px 14px',
-              borderRadius: 10,
-              background: 'rgba(255,255,255,0.06)',
-              color: 'var(--c-text-primary)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-              content_copy
-            </span>
-            {lang === 'es' ? 'Copiar' : 'Copy'}
-          </button>
-        </SettingRow>
-
-        {/* Changelog */}
-        <SettingRow
-          label={lang === 'es' ? 'Historial de cambios' : 'Changelog'}
-          desc={lang === 'es' ? 'Ver notas de lanzamiento completas' : 'View full chronological release notes'}
-        >
-          <button
-            onClick={() => onNavigate('changelog')}
-            className="btn-smooth animate-click"
-            style={{
-              padding: '6px 14px',
-              borderRadius: 10,
-              background: 'rgba(255,255,255,0.06)',
-              color: 'var(--c-text-primary)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              fontSize: 11,
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-              history
-            </span>
-            {lang === 'es' ? 'Ver' : 'View'}
-          </button>
-        </SettingRow>
-      </SettingSection>
-
-      {/* About this Update */}
-      {updater.updateAvailable && updater.changelog && (
-        <SettingSection title={lang === 'es' ? 'ACERCA DE ESTA ACTUALIZACIÓN' : 'ABOUT THIS UPDATE'}>
-          <div style={{ padding: '14px 20px', color: 'var(--c-text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
-            <p style={{ margin: '0 0 10px 0', fontWeight: 700, color: 'var(--c-text-primary)' }}>
-              {lang === 'es' ? 'Novedades en v' : "What's new in v"}{updater.remoteVersion}:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {updater.changelog.split('\n').map((line, idx) => {
-                const cleanLine = line.replace(/^[•\s*-]+/g, '').trim();
-                if (!cleanLine) return null;
-                return (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                    <span style={{ color: accent.from, marginTop: 1 }}>•</span>
-                    <span>{cleanLine}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </SettingSection>
-      )}
-
-      {/* Recovery official releases link */}
-      {Capacitor.isNativePlatform() && (
-        <SettingSection title={lang === 'es' ? 'RECUPERACIÓN' : 'RECOVERY'}>
-          <SettingRow
-            label={lang === 'es' ? 'Descargas oficiales' : 'Official Downloads'}
-            desc={lang === 'es' ? 'Descargar compilaciones firmadas desde GitHub' : 'Download signed production builds from GitHub'}
-          >
-            <button
-              onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
-              className="btn-smooth animate-click"
+          {/* ── 3. COLLAPSIBLE CHANGELOG ── */}
+          {changelogSections.length > 0 && (
+            <div
               style={{
-                padding: '6px 14px',
-                borderRadius: 10,
-                background: 'rgba(255,255,255,0.06)',
-                color: 'var(--c-text-primary)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
+                borderTop: '1px solid rgba(128, 128, 128, 0.12)',
+                paddingTop: 16,
+                marginTop: 4,
                 display: 'flex',
-                alignItems: 'center',
-                gap: 4,
+                flexDirection: 'column',
+                gap: 12,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                download
-              </span>
-              GitHub
-            </button>
-          </SettingRow>
-        </SettingSection>
-      )}
+              <p
+                style={{
+                  fontFamily: 'Manrope, sans-serif',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  color: 'var(--c-text-secondary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  margin: 0,
+                }}
+              >
+                {L.whatsNew}
+              </p>
 
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: 12,
+                  background: 'rgba(128, 128, 128, 0.04)',
+                  border: '1px solid rgba(128, 128, 128, 0.06)',
+                  overflow: 'hidden',
+                }}
+              >
+                {(isChangelogTooLong && !changelogExpanded
+                  ? changelogSections.slice(0, 2)
+                  : changelogSections
+                ).map((section, si) => (
+                  <div
+                    key={si}
+                    className="updater-changelog-section"
+                    style={{
+                      padding: '12px 14px',
+                      borderBottom:
+                        si ===
+                        (isChangelogTooLong && !changelogExpanded
+                          ? Math.min(2, changelogSections.length)
+                          : changelogSections.length) -
+                          1
+                          ? 'none'
+                          : '1px solid rgba(128,128,128,0.06)',
+                    }}
+                  >
+                    <div
+                      className="updater-changelog-heading"
+                      style={{
+                        background: getCategoryStyle(section.heading).bg,
+                        color: getCategoryStyle(section.heading).text,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {section.heading}
+                    </div>
+                    {(isChangelogTooLong && !changelogExpanded
+                      ? section.items.slice(0, 3)
+                      : section.items
+                    ).map((item, ii) => {
+                      const cleanedItem = item.replace(/^[-*•]\s*/, '').trim();
+                      return (
+                        <div key={ii} className="updater-changelog-item" style={{ padding: '4px 0', display: 'flex', alignItems: 'flex-start', gap: 6, lineHeight: '1.6' }}>
+                          <div
+                            className="updater-changelog-bullet"
+                            style={{
+                              background: getCategoryStyle(section.heading).text,
+                              opacity: 0.6,
+                              marginTop: 6,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span>{cleanedItem}</span>
+                        </div>
+                      );
+                    })}
+                    {isChangelogTooLong && !changelogExpanded && section.items.length > 3 && (
+                      <div
+                        style={{
+                          paddingLeft: 15,
+                          paddingTop: 2,
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          color: 'var(--c-text-tertiary)',
+                        }}
+                      >
+                        +{section.items.length - 3} more
+                      </div>
+                    )}
+                  </div>
+                ))}
 
+                {isChangelogTooLong && (
+                  <button
+                    type="button"
+                    onClick={() => setChangelogExpanded(!changelogExpanded)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      width: '100%',
+                      padding: '10px 14px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: accent.from,
+                      fontFamily: 'Manrope',
+                      fontWeight: 700,
+                      fontSize: 'var(--font-sm, 12px)',
+                      cursor: 'pointer',
+                      borderTop: '1px solid rgba(128,128,128,0.06)',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      {changelogExpanded ? 'expand_less' : 'expand_more'}
+                    </span>
+                    {changelogExpanded ? L.hideChangelog : L.showFullChangelog}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── 1. OFFICIAL RELEASE DOWNLOADS (Recovery Section) ── */}
+      <div
+        className="spring-in"
+        style={{
+          ...cardStyle,
+          margin: 0,
+          marginBottom: 16,
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 24, color: accent.from }}>
+            download
+          </span>
+          <strong style={{ fontFamily: 'Manrope', fontSize: 16 }}>
+            {lang === 'es' ? 'Descargas Oficiales' : 'Official Release Downloads'}
+          </strong>
+        </div>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
+          {lang === 'es'
+            ? 'Studio publica cada versión oficial firmada directamente en GitHub. Puede descargar la última compilación si la actualización automática del sistema falla.'
+            : 'Studio publishes every official production release on GitHub. You can safely download and install the latest signed release directly from the repository if the automatic updater fails.'}
+        </p>
+
+        {showRecoveryStatus && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(128,128,128,0.04)',
+              padding: '10px 14px',
+              borderRadius: '12px',
+              border: '1px solid rgba(128,128,128,0.06)',
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-tertiary)' }}>
+              {lang === 'es' ? 'Estado de Recuperación' : 'Recovery Status'}
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: updater.recoveryMode ? '#ef4444' : '#22c55e',
+                background: updater.recoveryMode ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
+                padding: '2px 8px',
+                borderRadius: '6px',
+              }}
+            >
+              {recoveryStatusText}
+            </span>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
+          className="btn-smooth animate-click"
+          style={{
+            height: 42,
+            borderRadius: 12,
+            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+            border: 'none',
+            color: 'white',
+            fontFamily: 'Manrope',
+            fontWeight: 800,
+            fontSize: 13,
+            cursor: 'pointer',
+            boxShadow: `0 4px 14px color-mix(in srgb, ${accent.to} 25%, transparent)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+        >
+          <svg viewBox="0 0 24 24" width={18} height={18} fill="white" style={{ flexShrink: 0 }}>
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+          </svg>
+          {lang === 'es' ? 'Descargar de GitHub' : 'Download from GitHub'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -3436,7 +3830,6 @@ function HubSettings({
   renderDevToast?: () => React.ReactNode;
 }) {
   const settings = useSettingsStore((state) => state.settings);
-  const updater = useAppUpdate();
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const updatePerApp = useSettingsStore((state) => state.updatePerApp);
   const historyLength = useNavigationStore((s) => s.history.length);
@@ -3566,14 +3959,17 @@ function HubSettings({
           t.hub.studioSettings.applicationLabel || (lang === 'es' ? 'Aplicación' : 'Application'),
         items: [
           {
-            id: 'updater' as const,
-            icon: 'system_update',
-            label: lang === 'es' ? 'Actualizador' : 'Updater',
+            id: 'release-notes' as const,
+            icon: 'article',
+            label:
+              t.hub.studioSettings.releaseTitle ||
+              (lang === 'es' ? 'Notas de Lanzamiento' : 'Release Notes'),
           },
           {
             id: 'about' as const,
-            icon: 'badge-alert',
-            label: lang === 'es' ? 'Acerca de' : 'About',
+            icon: 'info',
+            label:
+              t.settings.sections.about || (lang === 'es' ? 'Acerca de Studio' : 'About & Version'),
           },
           ...(settings.developerMode
             ? [
@@ -3593,7 +3989,6 @@ function HubSettings({
   }, [t, settings.developerMode, lang, tab]);
 
   const getPageTitle = (id: SettingsPageId | 'profile') => {
-    if (id === 'changelog') return lang === 'es' ? 'Historial de Cambios' : 'Changelog';
     if (id === 'updater') return lang === 'es' ? 'Actualizador' : 'Updater';
     if (id === 'help-center') return t.hub.studioSettings.helpTitle || 'Help Center';
     if (id === 'faq') return (t.hub as any).studioSettings?.helpTitle || 'FAQ & Support';
@@ -4244,10 +4639,6 @@ function HubSettings({
         </div>
       </div>
     );
-  }
-
-  function renderChangelogContent() {
-    return <ChangelogView lang={lang} accent={accent} />;
   }
 
   function renderDownloadAppsContent() {
@@ -4977,6 +5368,436 @@ User Agent: [Automatically Generated]
     );
   }
 
+  function renderAppearanceContent() {
+    const isLight =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          width: '100%',
+          paddingBottom: 24,
+          animation: 'hub-row-fade 320ms ease both',
+        }}
+      >
+        <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Manrope', margin: '8px 0 0' }}>
+          Theme Mode
+        </h2>
+
+        {/* 2x2 Grid of Theme Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[
+            {
+              id: 'system',
+              name: 'System',
+              label: 'Auto',
+              bg: 'rgba(128, 128, 128, 0.08)',
+              isAmoled: false,
+            },
+            {
+              id: 'light',
+              name: 'Light',
+              label: 'Editorial',
+              bg: '#f5f5f5',
+              isAmoled: false,
+              textColor: '#000000',
+            },
+            {
+              id: 'dark',
+              name: 'Dark',
+              label: 'Tonal',
+              bg: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+              isAmoled: false,
+            },
+            {
+              id: 'amoled',
+              name: 'AMOLED',
+              label: 'Pure',
+              bg: '#000000',
+              isAmoled: true,
+              border: '1px solid rgba(255,255,255,0.08)',
+            },
+          ].map((tOpt) => {
+            let isThemeActive = false;
+            if (tOpt.id === 'system') {
+              isThemeActive = settings.theme === 'system';
+            } else if (tOpt.id === 'light') {
+              isThemeActive = settings.theme === 'light';
+            } else if (tOpt.id === 'dark') {
+              isThemeActive = settings.theme === 'dark' && !settings.amoledMode;
+            } else if (tOpt.id === 'amoled') {
+              isThemeActive = settings.theme === 'dark' && settings.amoledMode;
+            }
+
+            return (
+              <motion.button
+                key={tOpt.id}
+                whileTap={{ scale: 0.98 }}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = rect.left + rect.width / 2;
+                  const y = rect.top + rect.height / 2;
+
+                  const targetTheme =
+                    tOpt.id === 'system' ? 'system' : tOpt.id === 'light' ? 'light' : 'dark';
+                  const targetAmoled = tOpt.id === 'amoled';
+
+                  const currentTheme = settings.theme ?? 'dark';
+                  const nextIsLight =
+                    tOpt.id === 'light' ||
+                    (tOpt.id === 'system' &&
+                      typeof window !== 'undefined' &&
+                      window.matchMedia('(prefers-color-scheme: light)').matches);
+                  const currentIsLight =
+                    currentTheme === 'light' ||
+                    (currentTheme === 'system' &&
+                      typeof window !== 'undefined' &&
+                      window.matchMedia('(prefers-color-scheme: light)').matches);
+
+                  if (!isThemeActive) {
+                    if (typeof (window as any).__triggerThemeTransition === 'function') {
+                      (window as any).__triggerThemeTransition(
+                        nextIsLight ? 'light' : 'dark',
+                        targetAmoled,
+                        x,
+                        y,
+                        () => {
+                          if (tOpt.id === 'system')
+                            requestChange({ theme: 'system', amoledMode: false });
+                          else if (tOpt.id === 'light')
+                            requestChange({ theme: 'light', amoledMode: false });
+                          else if (tOpt.id === 'dark')
+                            requestChange({ theme: 'dark', amoledMode: false });
+                          else if (tOpt.id === 'amoled')
+                            requestChange({ theme: 'dark', amoledMode: true });
+                        }
+                      );
+                    } else {
+                      if (tOpt.id === 'system')
+                        requestChange({ theme: 'system', amoledMode: false });
+                      else if (tOpt.id === 'light')
+                        requestChange({ theme: 'light', amoledMode: false });
+                      else if (tOpt.id === 'dark')
+                        requestChange({ theme: 'dark', amoledMode: false });
+                      else if (tOpt.id === 'amoled')
+                        requestChange({ theme: 'dark', amoledMode: true });
+                    }
+                  } else {
+                    if (tOpt.id === 'system') requestChange({ theme: 'system', amoledMode: false });
+                    else if (tOpt.id === 'light')
+                      requestChange({ theme: 'light', amoledMode: false });
+                    else if (tOpt.id === 'dark')
+                      requestChange({ theme: 'dark', amoledMode: false });
+                    else if (tOpt.id === 'amoled')
+                      requestChange({ theme: 'dark', amoledMode: true });
+                  }
+                }}
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 12,
+                  borderRadius: 14,
+                  background: tOpt.bg,
+                  border: `1.5px solid ${isThemeActive ? accent.from : 'transparent'}`,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  boxShadow: isThemeActive ? `0 0 12px ${accent.from}15` : 'none',
+                  transition: 'border-color 200ms, box-shadow 200ms',
+                }}
+              >
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 8,
+                    background:
+                      tOpt.id === 'system'
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 50%)'
+                        : tOpt.id === 'light'
+                          ? '#ffffff'
+                          : tOpt.id === 'dark'
+                            ? 'rgba(255,255,255,0.05)'
+                            : '#000000',
+                    border: tOpt.border || 'none',
+                    flexShrink: 0,
+                  }}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: tOpt.textColor || 'var(--c-text-primary)',
+                      margin: 0,
+                      fontFamily: 'Inter',
+                    }}
+                  >
+                    {tOpt.name}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 9,
+                      textTransform: 'uppercase',
+                      color: tOpt.textColor ? 'rgba(0,0,0,0.5)' : 'var(--c-text-secondary)',
+                      margin: '2px 0 0',
+                      fontFamily: 'Manrope',
+                      opacity: 0.8,
+                    }}
+                  >
+                    {tOpt.label}
+                  </p>
+                </div>
+                {isThemeActive && (
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: 16,
+                      color: accent.from,
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      fontVariationSettings: "'FILL' 1",
+                    }}
+                  >
+                    check_circle
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Accent Color Section */}
+        <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: 'Manrope', margin: '8px 0 0' }}>
+          Accent Color
+        </h2>
+        <div
+          style={{
+            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
+            padding: 20,
+            borderRadius: 16,
+            border: '1px solid rgba(128,128,128,0.06)',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+              gap: 14,
+              marginBottom: 20,
+            }}
+          >
+            {[
+              { id: 'blue', hex: '#007AFF' },
+              { id: 'purple', hex: '#A855F7' },
+              { id: 'green', hex: '#22C55E' },
+              { id: 'orange', hex: '#F97316' },
+              { id: 'pink', hex: '#EC4899' },
+              { id: 'teal', hex: '#14B8A6' },
+              { id: 'yellow', hex: '#EAB308' },
+              { id: 'red', hex: '#EF4444' },
+            ].map((cOpt) => {
+              const isColorActive = hubVis.accentColor === cOpt.id;
+              return (
+                <button
+                  key={cOpt.id}
+                  onClick={() => requestChange({ accentColor: cOpt.id as any })}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: cOpt.hex,
+                    border: isColorActive ? '3.5px solid #fff' : 'none',
+                    boxShadow: isColorActive ? `0 0 10px ${cOpt.hex}` : 'none',
+                    margin: '0 auto',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    transition: 'transform 150ms ease',
+                  }}
+                  className="active:scale-90"
+                />
+              );
+            })}
+          </div>
+
+          {/* Custom Accent Hue Slider */}
+          {(() => {
+            const isCustom = hubVis.accentColor === 'custom';
+            const hue = settings.customAccentHue ?? 220;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: 'var(--c-text-primary)',
+                        margin: 0,
+                      }}
+                    >
+                      Custom Color
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 9,
+                        color: 'var(--c-text-secondary)',
+                        textTransform: 'uppercase',
+                        margin: '2px 0 0',
+                      }}
+                    >
+                      Custom Spectrum
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      background: 'var(--app-surface-low, rgba(0,0,0,0.2))',
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      border: '1px solid rgba(128,128,128,0.1)',
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: accent.from, fontFamily: 'monospace' }}>
+                      #007AFF
+                    </span>
+                  </div>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={359}
+                  value={hue}
+                  onChange={(e) => {
+                    requestChange({ accentColor: 'custom' });
+                    settingsController.updateSettings({ customAccentHue: Number(e.target.value) });
+                  }}
+                  style={{
+                    width: '100%',
+                    height: 8,
+                    borderRadius: 9999,
+                    outline: 'none',
+                    background:
+                      'linear-gradient(to right, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000)',
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                  }}
+                />
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Visual Comfort Controls */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+          {/* Display Density */}
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Manrope', marginBottom: 8 }}>
+              Display Density
+            </h2>
+            <div
+              style={{
+                display: 'flex',
+                gap: 1,
+                background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
+                padding: 3,
+                borderRadius: 12,
+                border: '1px solid rgba(128,128,128,0.06)',
+              }}
+            >
+              {[
+                { id: 'compact', label: 'Compact' },
+                { id: 'comfortable', label: 'Normal' },
+                { id: 'spacious', label: 'Airy' },
+              ].map((opt) => {
+                const isActive = settings.displayDensity === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() =>
+                      settingsController.updateSettings({ displayDensity: opt.id as any })
+                    }
+                    style={{
+                      flex: 1,
+                      padding: '10px 4px',
+                      borderRadius: 10,
+                      background: isActive
+                        ? 'var(--app-surface-high, rgba(128,128,128,0.08))'
+                        : 'transparent',
+                      border: 'none',
+                      color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Text Scale */}
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, fontFamily: 'Manrope', marginBottom: 8 }}>
+              Text Scale
+            </h2>
+            <div
+              style={{
+                display: 'flex',
+                gap: 1,
+                background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
+                padding: 3,
+                borderRadius: 12,
+                border: '1px solid rgba(128,128,128,0.06)',
+              }}
+            >
+              {[
+                { id: 'small', label: 'S' },
+                { id: 'medium', label: 'M' },
+                { id: 'large', label: 'L' },
+              ].map((opt) => {
+                const isActive = settings.fontSize === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => settingsController.updateSettings({ fontSize: opt.id as any })}
+                    style={{
+                      flex: 1,
+                      padding: '10px 4px',
+                      borderRadius: 10,
+                      background: isActive
+                        ? 'var(--app-surface-high, rgba(128,128,128,0.08))'
+                        : 'transparent',
+                      border: 'none',
+                      color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   function renderLanguageContent() {
     const LANG_OPTIONS: { code: string; flag: string; native: string; label: string }[] = [
@@ -6972,7 +7793,6 @@ User Agent: [Automatically Generated]
       case 'general':
         return renderGeneralContent();
       case 'appearance':
-        console.log('[APPEARANCE-RUNTIME-PROOF] StudioHub renderActivePageContent rendering StudioHubSettingsPanel for page: appearance');
         return <StudioHubSettingsPanel />;
       case 'language':
         return renderLanguageContent();
@@ -7016,18 +7836,6 @@ User Agent: [Automatically Generated]
         return renderProfile();
       case 'release-notes':
         return renderReleaseNotesContent();
-      case 'changelog':
-        return renderChangelogContent();
-      case 'updater':
-        return (
-          <HubUpdaterPage
-            cardStyle={cardStyle}
-            accent={accent}
-            onBack={goBack}
-            hideHeader={true}
-            onNavigate={navigate}
-          />
-        );
       case 'help-center':
         return renderHelpCenterContent();
       case 'faq':
@@ -7048,7 +7856,6 @@ User Agent: [Automatically Generated]
     const standardScrollPages: SettingsPageId[] = [
       'general',
       'updater',
-      'changelog',
       'appearance',
       'language',
       'privacy',
@@ -7076,7 +7883,6 @@ User Agent: [Automatically Generated]
             'main',
             'general',
             'updater',
-            'changelog',
             'appearance',
             'language',
             'privacy',
@@ -7130,7 +7936,38 @@ User Agent: [Automatically Generated]
             }
 
             if (standardScrollPages.includes(pageId as SettingsPageId)) {
-              const toolbarActions = undefined;
+              const toolbarActions = pageId === 'profile' ? (
+                <button
+                  type="button"
+                  onClick={() => NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'main' })}
+                  style={{
+                    background: 'rgba(128, 128, 128, 0.10)',
+                    border: 'none',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-primary)',
+                    cursor: 'pointer',
+                    transition: 'transform 130ms cubic-bezier(0.34, 1.15, 0.64, 1)',
+                  }}
+                  onPointerDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.91)';
+                  }}
+                  onPointerUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onPointerLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                    settings
+                  </span>
+                </button>
+              ) : undefined;
 
               return (
                 <SettingsScaffold
@@ -7160,7 +7997,7 @@ User Agent: [Automatically Generated]
                       overflowY: 'auto',
                       overflowX: 'hidden',
                       padding: '0 20px',
-                      paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
+                      paddingBottom: 'calc(var(--content-bottom-pad) + 52px)',
                       WebkitOverflowScrolling: 'touch',
                     }}
                     className="no-scrollbar"
@@ -7191,77 +8028,6 @@ User Agent: [Automatically Generated]
                         Livex System
                       </p>
                     </div>
-
-                    {/* Minimal Update Card */}
-                    {updater.updateAvailable && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        style={{
-                          background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}10)`,
-                          border: `1px solid ${accent.from}30`,
-                          borderRadius: 16,
-                          padding: 16,
-                          marginBottom: 20,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 12,
-                          boxShadow: `0 4px 20px ${accent.from}08`,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 24 }}>
-                            system_update
-                          </span>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
-                              Update available
-                            </p>
-                            <p style={{ margin: 0, fontSize: 12, color: 'var(--c-text-secondary)', opacity: 0.8, fontFamily: 'Inter' }}>
-                              Version {updater.remoteVersion}
-                            </p>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <motion.button
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => navigate('updater')}
-                            style={{
-                              flex: 1,
-                              padding: '10px 16px',
-                              borderRadius: 12,
-                              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                              color: '#ffffff',
-                              border: 'none',
-                              fontSize: 13,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              boxShadow: `0 4px 12px ${accent.from}30`,
-                            }}
-                          >
-                            Update
-                          </motion.button>
-                          <motion.button
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              updater.dismissUpdate();
-                            }}
-                            style={{
-                              padding: '10px 16px',
-                              borderRadius: 12,
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                              color: 'var(--c-text-secondary)',
-                              fontSize: 13,
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Dismiss
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    )}
 
                     {/* Preferences Group */}
                     <div style={{ marginBottom: 24 }}>
@@ -7354,6 +8120,68 @@ User Agent: [Automatically Generated]
                           </span>
                         </motion.div>
 
+                        <motion.div
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate('language')}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 14,
+                            padding: 12,
+                            borderRadius: 10,
+                            cursor: 'pointer',
+                          }}
+                          className="hover:bg-white/5 transition-colors"
+                        >
+                          <div
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'rgba(255,255,255,0.03)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                            }}
+                          >
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                            >
+                              translate
+                            </span>
+                          </div>
+                          <div
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: 'var(--c-text-primary)',
+                                fontFamily: 'Inter',
+                              }}
+                            >
+                              Language
+                            </span>
+                            <span
+                              style={{
+                                fontSize: 11,
+                                color: 'var(--c-text-secondary)',
+                                opacity: 0.7,
+                              }}
+                            >
+                              {lang.toUpperCase()}
+                            </span>
+                          </div>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
+                          >
+                            chevron_right
+                          </span>
+                        </motion.div>
                       </div>
                     </div>
 
@@ -7410,11 +8238,12 @@ User Agent: [Automatically Generated]
                               border: '1px solid rgba(255,255,255,0.05)',
                             }}
                           >
-                            <AnimatedIcon
-                              name="circle-help"
-                              size={18}
-                              color="var(--c-text-secondary)"
-                            />
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                            >
+                              help_center
+                            </span>
                           </div>
                           <div
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
@@ -7544,7 +8373,7 @@ User Agent: [Automatically Generated]
 
                         <motion.div
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('updater')}
+                          onClick={() => navigate('about')}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -7571,84 +8400,8 @@ User Agent: [Automatically Generated]
                               className="material-symbols-outlined"
                               style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
                             >
-                              system_update
+                              info
                             </span>
-                          </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
-                              }}
-                            >
-                              {lang === 'es' ? 'Actualizador' : 'Updater'}
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 11,
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                              }}
-                            >
-                              {getUpdaterStatusText(updater, lang)}
-                              {updater.updateAvailable && (
-                                <span
-                                  style={{
-                                    width: 6,
-                                    height: 6,
-                                    borderRadius: '50%',
-                                    background: '#ef4444',
-                                    display: 'inline-block',
-                                  }}
-                                />
-                              )}
-                            </span>
-                          </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
-                        </motion.div>
-
-                        <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('about')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
-                          }}
-                          className="hover:bg-white/5 transition-colors"
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <AnimatedIcon
-                              name="badge-alert"
-                              size={18}
-                              color="var(--c-text-secondary)"
-                            />
                           </div>
                           <div
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
@@ -7670,7 +8423,7 @@ User Agent: [Automatically Generated]
                                 opacity: 0.7,
                               }}
                             >
-                              Version {APP_VERSION}
+                              Beta program info & legal
                             </span>
                           </div>
                           <span
@@ -7707,11 +8460,12 @@ User Agent: [Automatically Generated]
                                 border: '1px solid rgba(255,255,255,0.05)',
                               }}
                             >
-                              <AnimatedIcon
-                                name="terminal"
-                                size={18}
-                                color="var(--c-text-secondary)"
-                              />
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                              >
+                                code
+                              </span>
                             </div>
                             <div
                               style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
@@ -7936,24 +8690,13 @@ User Agent: [Automatically Generated]
                         fontFamily: 'Manrope, sans-serif',
                       }}
                     >
-                      <AnimatedIcon
-                        name={item.icon}
-                        size={16}
-                        color={isActive ? accent.from : 'var(--c-text-secondary)'}
-                        state={isActive ? 'active' : 'inactive'}
-                      />
-                      <span className="truncate" style={{ flex: 1 }}>{item.label}</span>
-                      {item.id === 'updater' && updater.updateAvailable && (
-                        <span
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: '50%',
-                            background: '#ef4444',
-                            marginRight: 4,
-                          }}
-                        />
-                      )}
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 16, color: isActive ? accent.from : 'inherit' }}
+                      >
+                        {item.icon}
+                      </span>
+                      <span className="truncate">{item.label}</span>
                     </button>
                   );
                 })}
@@ -9065,12 +9808,12 @@ User Agent: [Automatically Generated]
                         fontFamily: 'Manrope, sans-serif',
                       }}
                     >
-                      <AnimatedIcon
-                        name={item.icon}
-                        size={16}
-                        color={isActive ? accent.from : 'var(--c-text-secondary)'}
-                        state={isActive ? 'active' : 'inactive'}
-                      />
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 16, color: isActive ? accent.from : 'inherit' }}
+                      >
+                        {item.icon}
+                      </span>
                       <span className="truncate">{item.label}</span>
                     </button>
                   );
@@ -9202,411 +9945,4 @@ function formatTimestamp(timestamp: number): string {
   const days = Math.floor(diff / 86400000);
   if (days === 1) return 'Yesterday';
   return `${days}d ago`;
-}
-
-function parseMarkdownToSections(body: string | null | undefined) {
-  if (!body) return [];
-  const lines = body.split('\n');
-  const sections: { heading: string; items: string[] }[] = [];
-  let currentSec: { heading: string; items: string[] } | null = null;
-  let defaultItems: string[] = [];
-
-  for (let line of lines) {
-    line = line.trim();
-    if (!line) continue;
-
-    if (line.startsWith('#')) {
-      const headingText = line.replace(/^#+\s*/, '').trim();
-      let friendlyHeading = headingText;
-      const lower = headingText.toLowerCase();
-      if (lower.includes('added') || lower.includes('feature')) {
-        friendlyHeading = 'New Features';
-      } else if (lower.includes('improve') || lower.includes('polish')) {
-        friendlyHeading = 'Improvements';
-      } else if (lower.includes('fix') || lower.includes('bug')) {
-        friendlyHeading = 'Bug Fixes';
-      } else if (lower.includes('perf') || lower.includes('speed') || lower.includes('optimis')) {
-        friendlyHeading = 'Performance';
-      } else if (lower.includes('ui') || lower.includes('ux') || lower.includes('appear') || lower.includes('style')) {
-        friendlyHeading = 'UI / UX';
-      } else if (lower.includes('break') || lower.includes('chang')) {
-        friendlyHeading = 'Breaking Changes';
-      }
-
-      if (currentSec && currentSec.items.length > 0) {
-        sections.push(currentSec);
-      }
-      currentSec = { heading: friendlyHeading, items: [] };
-    } else if (line.startsWith('-') || line.startsWith('*') || line.startsWith('•')) {
-      const cleanLine = line.replace(/^[-*•]\s*/, '').trim();
-      if (cleanLine) {
-        if (currentSec) {
-          currentSec.items.push(cleanLine);
-        } else {
-          defaultItems.push(cleanLine);
-        }
-      }
-    }
-  }
-
-  if (currentSec && currentSec.items.length > 0) {
-    sections.push(currentSec);
-  }
-
-  if (defaultItems.length > 0) {
-    sections.unshift({ heading: 'General Updates', items: defaultItems });
-  }
-
-  return sections;
-}
-
-interface ParsedRelease {
-  version: string;
-  date: string;
-  isLatest: boolean;
-  isCurrent: boolean;
-  sections: { heading: string; items: string[] }[];
-}
-
-function ChangelogView({ lang, accent }: { lang: string; accent: { from: string; to: string } }) {
-  const [releases, setReleases] = useState<ParsedRelease[]>([]);
-  const [expandedVersions, setExpandedVersions] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadChangelog() {
-      try {
-        const cached = localStorage.getItem('studio:changelog_cache');
-        const cachedTime = localStorage.getItem('studio:changelog_cache_time');
-        if (cached && cachedTime) {
-          const age = Date.now() - parseInt(cachedTime, 10);
-          if (age < 1000 * 60 * 60) {
-            const parsed = JSON.parse(cached);
-            if (active && parsed && parsed.length > 0) {
-              setReleases(parsed);
-              setLoading(false);
-              if (parsed[0]) {
-                setExpandedVersions({ [parsed[0].version]: true });
-              }
-              return;
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to load cached changelog', e);
-      }
-
-      try {
-        const res = await fetch('https://api.github.com/repos/MAGEXE1000/Studio/releases');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        
-        if (Array.isArray(data) && data.length > 0) {
-          const parsedList: ParsedRelease[] = data.map((rel: any, idx: number) => {
-            const vRaw = rel.tag_name ? rel.tag_name.replace(/^v/, '') : '0.0.0';
-            const dateStr = rel.published_at 
-              ? new Date(rel.published_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
-                  year: 'numeric', month: 'long', day: 'numeric'
-                })
-              : 'N/A';
-            const sections = parseMarkdownToSections(rel.body);
-
-            return {
-              version: vRaw,
-              date: dateStr,
-              isLatest: idx === 0,
-              isCurrent: vRaw === APP_VERSION,
-              sections
-            };
-          });
-
-          if (active) {
-            setReleases(parsedList);
-            setLoading(false);
-            if (parsedList[0]) {
-              setExpandedVersions({ [parsedList[0].version]: true });
-            }
-          }
-
-          try {
-            localStorage.setItem('studio:changelog_cache', JSON.stringify(parsedList));
-            localStorage.setItem('studio:changelog_cache_time', String(Date.now()));
-          } catch (e) {}
-          return;
-        }
-      } catch (err) {
-        console.warn('Failed to fetch from GitHub, using fallback', err);
-      }
-
-      if (active) {
-        const defaultSections = getChangelogSections(lang) || [];
-        const fallbackList: ParsedRelease[] = [
-          {
-            version: APP_VERSION,
-            date: lang === 'es' ? '1 de agosto de 2026' : 'August 1, 2026',
-            isLatest: true,
-            isCurrent: true,
-            sections: defaultSections.map(s => ({
-              heading: s.heading === 'Added' ? 'New Features' : s.heading,
-              items: s.items
-            }))
-          },
-          ...RELEASE_HISTORY.map(item => {
-            const dateObj = new Date(item.date);
-            const dateStr = isNaN(dateObj.getTime())
-              ? item.date
-              : dateObj.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
-                  year: 'numeric', month: 'long', day: 'numeric'
-                });
-
-            return {
-              version: item.version,
-              date: dateStr,
-              isLatest: false,
-              isCurrent: item.version === APP_VERSION,
-              sections: [{ heading: 'General Updates', items: item.highlights }]
-            };
-          })
-        ];
-
-        setReleases(fallbackList);
-        setLoading(false);
-        if (fallbackList[0]) {
-          setExpandedVersions({ [fallbackList[0].version]: true });
-        }
-      }
-    }
-
-    loadChangelog();
-    return () => {
-      active = false;
-    };
-  }, [lang]);
-
-  const toggleExpand = (version: string) => {
-    setExpandedVersions(prev => ({
-      ...prev,
-      [version]: !prev[version]
-    }));
-  };
-
-  const getCategoryStyles = (heading: string) => {
-    const lower = heading.toLowerCase();
-    if (lower.includes('feature') || lower.includes('added')) {
-      return { bg: 'rgba(52, 211, 153, 0.12)', fg: '#10b981' };
-    }
-    if (lower.includes('improve') || lower.includes('polish')) {
-      return { bg: 'rgba(168, 85, 247, 0.12)', fg: '#a855f7' };
-    }
-    if (lower.includes('fix') || lower.includes('bug')) {
-      return { bg: 'rgba(239, 68, 68, 0.12)', fg: '#ef4444' };
-    }
-    if (lower.includes('perf') || lower.includes('speed')) {
-      return { bg: 'rgba(45, 212, 191, 0.12)', fg: '#0d9488' };
-    }
-    if (lower.includes('ui') || lower.includes('ux') || lower.includes('appear')) {
-      return { bg: 'rgba(244, 114, 182, 0.12)', fg: '#db2777' };
-    }
-    if (lower.includes('break') || lower.includes('chang')) {
-      return { bg: 'rgba(245, 158, 11, 0.12)', fg: '#d97706' };
-    }
-    return { bg: 'var(--app-surface-low, rgba(128,128,128,0.08))', fg: 'var(--c-text-secondary)' };
-  };
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', gap: 12 }}>
-        <div style={{ width: 32, height: 32, border: `3px solid rgba(128,128,128,0.1)`, borderTopColor: accent.from, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
-          {lang === 'es' ? 'Cargando historial de cambios...' : 'Loading changelog history...'}
-        </span>
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: 16 }}>
-      <div
-        style={{
-          position: 'absolute',
-          left: 4,
-          top: 8,
-          bottom: 24,
-          width: 2,
-          background: 'rgba(128, 128, 128, 0.08)',
-          borderRadius: 1,
-        }}
-      />
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--density-section-gap, 16px)' }}>
-        {releases.map((rel) => {
-          const isExpanded = !!expandedVersions[rel.version];
-          return (
-            <div key={rel.version} style={{ position: 'relative' }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  left: -16,
-                  top: 22,
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: rel.isCurrent ? `linear-gradient(135deg, ${accent.from}, ${accent.to})` : 'var(--app-surface-highest)',
-                  border: rel.isCurrent ? 'none' : '2px solid rgba(128, 128, 128, 0.3)',
-                  boxShadow: rel.isCurrent ? `0 0 8px ${accent.from}40` : 'none',
-                  zIndex: 5,
-                }}
-              />
-
-              <div
-                onClick={() => toggleExpand(rel.version)}
-                className="btn-smooth"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '100%',
-                  padding: 'var(--density-row-pad, 16px)',
-                  background: isExpanded ? 'var(--app-surface-high, rgba(128, 128, 128, 0.08))' : 'var(--app-surface-low, rgba(128, 128, 128, 0.04))',
-                  borderRadius: 'var(--density-card-radius, var(--radius-lg))',
-                  border: isExpanded ? '1px solid rgba(128, 128, 128, 0.12)' : '1px solid rgba(128, 128, 128, 0.06)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  boxSizing: 'border-box',
-                  transition: 'background-color 200ms, border-color 200ms',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.02em' }}>
-                      v{rel.version}
-                    </span>
-                    {rel.isCurrent && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          fontFamily: 'Manrope',
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: `linear-gradient(135deg, ${accent.from}1a, ${accent.to}1a)`,
-                          color: accent.from,
-                          border: `1px solid ${accent.from}33`,
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {lang === 'es' ? 'Instalado' : 'Installed'}
-                      </span>
-                    )}
-                    {rel.isLatest && !rel.isCurrent && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          fontFamily: 'Manrope',
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: 'rgba(52, 211, 153, 0.12)',
-                          color: '#10b981',
-                          border: '1px solid rgba(52, 211, 153, 0.2)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {lang === 'es' ? 'Más Reciente' : 'Latest'}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8 }}>
-                      {rel.date}
-                    </span>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: 18,
-                        color: 'var(--c-text-secondary)',
-                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 200ms ease',
-                        opacity: 0.6
-                      }}
-                    >
-                      expand_more
-                    </span>
-                  </div>
-                </div>
-
-                <AnimatePresence initial={false}>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                      animate={{ height: 'auto', opacity: 1, marginTop: 14 }}
-                      exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
-                      style={{ overflow: 'hidden' }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {rel.sections.length === 0 ? (
-                        <div style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontStyle: 'italic', paddingLeft: 4 }}>
-                          {lang === 'es' ? 'No hay detalles de cambios disponibles.' : 'No detailed changes available.'}
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                          {rel.sections.map((sec, sIdx) => {
-                            const cStyle = getCategoryStyles(sec.heading);
-                            return (
-                              <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                <div style={{ display: 'flex' }}>
-                                  <span
-                                    style={{
-                                      fontSize: 9,
-                                      fontWeight: 800,
-                                      fontFamily: 'Manrope',
-                                      padding: '2px 8px',
-                                      borderRadius: 999,
-                                      background: cStyle.bg,
-                                      color: cStyle.fg,
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.04em',
-                                    }}
-                                  >
-                                    {sec.heading}
-                                  </span>
-                                </div>
-                                <ul style={{ margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                  {sec.items.map((item, iIdx) => (
-                                    <li
-                                      key={iIdx}
-                                      style={{
-                                        fontSize: 12.5,
-                                        color: 'var(--c-text-secondary)',
-                                        fontFamily: 'Inter',
-                                        lineHeight: 1.4,
-                                      }}
-                                    >
-                                      {item}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }

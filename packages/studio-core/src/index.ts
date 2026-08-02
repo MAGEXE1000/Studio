@@ -106,3 +106,6 @@ export * from './repositories/GroovexStemRepository';
 export * from './repositories/AuthRepository';
 export * from './repositories/UserRepository';
 
+// Collaboration Services
+export * from './lib/stageCollaboration/Types';
+export * from './lib/stageCollaboration/CollaborationService';

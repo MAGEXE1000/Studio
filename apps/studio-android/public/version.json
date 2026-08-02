@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.43",
-  "versionName": "4.3.43",
-  "versionCode": 40343,
-  "version_code": 40343,
-  "commit": "013d9811",
-  "releasedAt": "8/1/2026, 6:32:09 PM CST",
-  "buildTimestamp": "8/1/2026, 6:32:09 PM CST",
+  "version": "4.3.44",
+  "versionName": "4.3.44",
+  "versionCode": 40344,
+  "version_code": 40344,
+  "commit": "e320d588",
+  "releasedAt": "8/2/2026, 10:45:03 AM CST",
+  "buildTimestamp": "8/2/2026, 10:45:03 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.\n• Refined global collapsing headers top style spacing globally to match Material 3 specifications.\n• Removed settings navigation gear icon in the upper-right corner of the Profile tab view.",
-  "whatsNew": "• Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.\n• Refined global collapsing headers top style spacing globally to match Material 3 specifications.\n• Removed settings navigation gear icon in the upper-right corner of the Profile tab view.",
+  "changelog": "• Implemented production-quality real-time collaboration system for StageX utilizing Firestore.\n• Added live presence tracking and participant cursor color indicators.\n• Created operation-based synchronization engine with conflict resolution and offline queuing.\n• Added a Collaborate button and dialog popup in both mobile and desktop views.",
+  "whatsNew": "• Implemented production-quality real-time collaboration system for StageX utilizing Firestore.\n• Added live presence tracking and participant cursor color indicators.\n• Created operation-based synchronization engine with conflict resolution and offline queuing.\n• Added a Collaborate button and dialog popup in both mobile and desktop views.",
   "releaseNotes": {
     "added": [
-      "Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.",
-      "Refined global collapsing headers top style spacing globally to match Material 3 specifications.",
-      "Removed settings navigation gear icon in the upper-right corner of the Profile tab view."
+      "Implemented production-quality real-time collaboration system for StageX utilizing Firestore.",
+      "Added live presence tracking and participant cursor color indicators.",
+      "Created operation-based synchronization engine with conflict resolution and offline queuing.",
+      "Added a Collaborate button and dialog popup in both mobile and desktop views."
     ]
   },
   "mandatory": false

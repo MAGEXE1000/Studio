@@ -1,18 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.49",
-  "versionName": "4.3.49",
-  "versionCode": 40348,
-  "version_code": 40348,
-  "commit": "10526667",
-  "releasedAt": "8/2/2026, 12:56:52 PM CST",
-  "buildTimestamp": "8/2/2026, 12:56:52 PM CST",
+  "version": "4.3.50",
+  "versionName": "4.3.50",
+  "versionCode": 40349,
+  "version_code": 40349,
+  "commit": "8ed92fbb",
+  "releasedAt": "8/2/2026, 1:07:50 PM CST",
+  "buildTimestamp": "8/2/2026, 1:07:50 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Updated Firestore security rules deployer to support pnpm workspace constraints.",
-  "whatsNew": "• Updated Firestore security rules deployer to support pnpm workspace constraints.",
+  "changelog": "• Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).\n• Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.\n• Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline.",
+  "whatsNew": "• Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).\n• Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.\n• Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline.",
   "releaseNotes": {
     "added": [
-      "Updated Firestore security rules deployer to support pnpm workspace constraints."
+      "Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).",
+      "Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.",
+      "Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline."
     ]
   },
   "mandatory": false

@@ -260,6 +260,15 @@ jobs:
           fetch-depth: 1
           filter: blob:none
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.26.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
       - name: Download Firebase Hosting Metadata Artifact
         uses: actions/download-artifact@v4
         with:

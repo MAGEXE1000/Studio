@@ -8,17 +8,21 @@ import { CollaboratorRoom, Participant, StageOperation, CollabConnectionState } 
 import { Unsubscribe } from 'firebase/firestore';
 
 function mapFirestoreError(error: any): Error {
-  const msg = (error?.message || String(error)).toLowerCase();
+  const rawMsg = error?.message || String(error);
+  const code = error?.code || 'unknown';
+  const name = error?.name || 'Error';
+  const msg = rawMsg.toLowerCase();
+  
+  let friendly = 'Unable to connect to the collaboration server. Please try again.';
   if (msg.includes('offline') || msg.includes('network') || msg.includes('unavailable') || msg.includes('failed to get document')) {
-    return new Error('Connection lost. Please check your internet connection and try again.');
+    friendly = 'Connection lost. Please check your internet connection and try again.';
+  } else if (msg.includes('permission') || msg.includes('denied')) {
+    friendly = 'Access denied. You do not have permission to join this room.';
+  } else if (msg.includes('not-found') || msg.includes('invalid') || msg.includes('expired') || msg.includes('not found')) {
+    friendly = 'Room does not exist or has expired.';
   }
-  if (msg.includes('permission') || msg.includes('denied')) {
-    return new Error('Access denied. You do not have permission to join this room.');
-  }
-  if (msg.includes('not-found') || msg.includes('invalid') || msg.includes('expired') || msg.includes('not found')) {
-    return new Error('Room does not exist or has expired.');
-  }
-  return new Error('Unable to connect to the collaboration server. Please try again.');
+  
+  return new Error(`${friendly} (Raw: ${name}[${code}]: ${rawMsg})`);
 }
 
 export class CollaborationService {

@@ -279,6 +279,13 @@ jobs:
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
           channelId: live
 
+      - name: Deploy Firestore Security Rules
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
+          npx firebase-tools deploy --only firestore:rules --project '${{ secrets.FIREBASE_PROJECT_ID }}'
+          rm service-account.json
+
       - name: Verify Deployed Android Metadata
         run: |
           NATIVE_VER=$(node -e "const fs = require('fs'); const src = fs.readFileSync('packages/studio-core/src/lib/startup/appVersion.ts', 'utf8'); const m = src.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['\"]([^'\"]+)['\"]/); console.log(m ? m[1] : 'unknown');")

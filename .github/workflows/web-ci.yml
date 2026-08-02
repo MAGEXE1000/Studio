@@ -65,7 +65,7 @@ jobs:
         run: pnpm lint
 
       - name: Build Packages
-        run: pnpm build:packages
+        run: pnpm typecheck:libs
 
       - name: Typecheck Web
         run: pnpm typecheck:web

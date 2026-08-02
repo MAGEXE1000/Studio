@@ -4,14 +4,14 @@ import path from 'path';
 
 // Dyn-install firebase-admin if not present
 try {
-  await import('firebase-admin');
+  await import('firebase-admin/app');
 } catch (e) {
   console.log('[rules-deployer] Installing firebase-admin using pnpm...');
   execSync('pnpm add -w firebase-admin', { stdio: 'inherit' });
 }
 
-const adminModule = await import('firebase-admin');
-const admin = adminModule.default || adminModule;
+const appModule = await import('firebase-admin/app');
+const rulesModule = await import('firebase-admin/security-rules');
 
 const saJson = process.env.FIREBASE_SERVICE_ACCOUNT;
 if (!saJson) {
@@ -28,8 +28,8 @@ try {
 }
 
 console.log('[rules-deployer] Initializing firebase-admin for project:', serviceAccount.project_id);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+const app = appModule.initializeApp({
+  credential: appModule.cert(serviceAccount)
 });
 
 const rulesPath = path.resolve('firestore.rules');
@@ -41,7 +41,7 @@ if (!fs.existsSync(rulesPath)) {
 const rulesContent = fs.readFileSync(rulesPath, 'utf8');
 try {
   console.log('[rules-deployer] Creating new Firestore ruleset...');
-  const rules = admin.securityRules();
+  const rules = rulesModule.getSecurityRules(app);
   const ruleset = await rules.createRuleset({
     source: [{ name: 'firestore.rules', content: rulesContent }]
   });

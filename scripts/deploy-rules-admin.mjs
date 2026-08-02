@@ -6,8 +6,8 @@ import path from 'path';
 try {
   await import('firebase-admin');
 } catch (e) {
-  console.log('[rules-deployer] Installing firebase-admin...');
-  execSync('npm install firebase-admin', { stdio: 'inherit' });
+  console.log('[rules-deployer] Installing firebase-admin using pnpm...');
+  execSync('pnpm add -w firebase-admin', { stdio: 'inherit' });
 }
 
 const adminModule = await import('firebase-admin');

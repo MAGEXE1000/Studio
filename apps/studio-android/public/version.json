@@ -1,19 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.48",
-  "versionName": "4.3.48",
+  "version": "4.3.49",
+  "versionName": "4.3.49",
   "versionCode": 40348,
   "version_code": 40348,
-  "commit": "8124e697",
-  "releasedAt": "8/2/2026, 12:46:30 PM CST",
-  "buildTimestamp": "8/2/2026, 12:46:30 PM CST",
+  "commit": "10526667",
+  "releasedAt": "8/2/2026, 12:56:52 PM CST",
+  "buildTimestamp": "8/2/2026, 12:56:52 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Configured automated Firestore rules deployment using the Firebase Admin SDK.\n• Restored Settings and Updater layout configurations to match v4.3.43.",
-  "whatsNew": "• Configured automated Firestore rules deployment using the Firebase Admin SDK.\n• Restored Settings and Updater layout configurations to match v4.3.43.",
+  "changelog": "• Updated Firestore security rules deployer to support pnpm workspace constraints.",
+  "whatsNew": "• Updated Firestore security rules deployer to support pnpm workspace constraints.",
   "releaseNotes": {
     "added": [
-      "Configured automated Firestore rules deployment using the Firebase Admin SDK.",
-      "Restored Settings and Updater layout configurations to match v4.3.43."
+      "Updated Firestore security rules deployer to support pnpm workspace constraints."
     ]
   },
   "mandatory": false

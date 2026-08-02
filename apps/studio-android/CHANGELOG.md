@@ -9,6 +9,13 @@ that bundle.
 
 Conventions:
 
+## 4.3.49
+
+Release Date: 2026-08-02
+
+### Added
+- Updated Firestore security rules deployer to support pnpm workspace constraints.
+
 ## 4.3.48
 
 Release Date: 2026-08-02

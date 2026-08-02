@@ -1,4 +1,4 @@
 Release Date: 2026-08-02
 
 ### Added
-- Refactored rules deployer script using modern v14 modular app and security-rules APIs.
+- Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.

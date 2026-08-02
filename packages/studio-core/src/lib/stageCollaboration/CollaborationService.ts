@@ -320,7 +320,7 @@ export class CollaborationService {
     if (typeof win.undo === 'function' && !win.__undoHijacked) {
       win.__origUndo = win.undo;
       win.undo = (...args: any[]) => {
-        win.__origUndo.apply(win, args);
+        win.__origUndo(...args);
         this.diffLocalChanges();
       };
       win.__undoHijacked = true;
@@ -329,7 +329,7 @@ export class CollaborationService {
     if (typeof win.redo === 'function' && !win.__redoHijacked) {
       win.__origRedo = win.redo;
       win.redo = (...args: any[]) => {
-        win.__origRedo.apply(win, args);
+        win.__origRedo(...args);
         this.diffLocalChanges();
       };
       win.__redoHijacked = true;

@@ -1,18 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.52",
-  "versionName": "4.3.52",
-  "versionCode": 40351,
-  "version_code": 40351,
-  "commit": "49737bc5",
-  "releasedAt": "8/2/2026, 1:30:45 PM CST",
-  "buildTimestamp": "8/2/2026, 1:30:45 PM CST",
+  "version": "4.3.53",
+  "versionName": "4.3.53",
+  "versionCode": 40353,
+  "version_code": 40353,
+  "commit": "0156df20",
+  "releasedAt": "8/2/2026, 1:58:05 PM CST",
+  "buildTimestamp": "8/2/2026, 1:58:05 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored rules deployer script using modern v14 modular app and security-rules APIs.",
-  "whatsNew": "• Refactored rules deployer script using modern v14 modular app and security-rules APIs.",
+  "changelog": "• Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.",
+  "whatsNew": "• Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.",
   "releaseNotes": {
     "added": [
-      "Refactored rules deployer script using modern v14 modular app and security-rules APIs."
+      "Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource."
     ]
   },
   "mandatory": false

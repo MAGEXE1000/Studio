@@ -27,8 +27,7 @@ permissions:
   contents: write
   actions: read
 
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+
 
 jobs:
   # =========================================================================
@@ -38,7 +37,7 @@ jobs:
     name: 1. Preflight & Fail-Fast Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -74,7 +73,7 @@ jobs:
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -129,7 +128,7 @@ jobs:
       EXPECTED_SIGNATURE_SHA256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -139,18 +138,18 @@ jobs:
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
       - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -194,14 +193,14 @@ jobs:
           }
 
       - name: Upload Firebase Hosting Metadata Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: firebase-public-metadata
           path: firebase-public/
           retention-days: 1
 
       - name: Upload Release Verification Report Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-verification-report
           path: |
@@ -217,18 +216,18 @@ jobs:
     needs: build_and_package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
           filter: blob:none
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
 
       - name: Download Release Verification Report Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: release-verification-report
 
@@ -254,7 +253,7 @@ jobs:
     needs: [build_and_package, signing_verification]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -264,13 +263,13 @@ jobs:
         with:
           version: 10.26.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
 
       - name: Download Firebase Hosting Metadata Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: firebase-public-metadata
           path: firebase-public-metadata-temp

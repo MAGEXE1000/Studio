@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.52';
-export const NATIVE_VERSION_CODE = 40352;
-export const WEB_VERSION = '4.3.52';
+export const NATIVE_VERSION = '4.3.53';
+export const NATIVE_VERSION_CODE = 40353;
+export const WEB_VERSION = '4.3.53';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '49737bc5';
+export const APP_COMMIT_SHA = '0156df20';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/2/2026, 1:30:45 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/2/2026, 1:58:05 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,7 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Refactored rules deployer script using modern v14 modular app and security-rules APIs.",
+      "Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.",
     ],
   },
 ];

@@ -40,15 +40,9 @@ if (!fs.existsSync(rulesPath)) {
 
 const rulesContent = fs.readFileSync(rulesPath, 'utf8');
 try {
-  console.log('[rules-deployer] Creating new Firestore ruleset...');
+  console.log('[rules-deployer] Creating and releasing Firestore ruleset from source...');
   const rules = rulesModule.getSecurityRules(app);
-  const ruleset = await rules.createRuleset({
-    source: [{ name: 'firestore.rules', content: rulesContent }]
-  });
-  console.log(`[rules-deployer] Ruleset created successfully: ${ruleset.name}`);
-
-  console.log('[rules-deployer] Releasing ruleset for Cloud Firestore...');
-  await rules.releaseFirestoreRuleset(ruleset);
+  await rules.releaseFirestoreRulesetFromSource(rulesContent);
   console.log('✓ Firestore security rules deployed successfully!');
 } catch (err) {
   console.error('[rules-deployer] ✗ Failed to deploy rules:', err);

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { evaluatePreviousReleaseState } from '../validate-app-installer.mjs';
+import { evaluatePreviousReleaseState } from '../release/index.mjs';
 
 console.log('=== RUNNING PREVIOUS APK VALIDATION CLASSIFIER TEST SUITE ===');
 
@@ -56,7 +56,7 @@ async function testCaseB_MissingApkAsset() {
         json: async () => ({ version: '4.3.50', versionCode: 40350 }),
       };
     }
-    if (url.includes('studio-4.3.50.apk')) {
+    if (url.includes('.apk')) {
       return { status: 404, ok: false };
     }
     return { status: 200, ok: true };

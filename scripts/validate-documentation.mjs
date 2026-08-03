@@ -23,7 +23,7 @@ function getMdFilesRecursive(dir) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
     if (stat && stat.isDirectory()) {
-      if (file !== 'node_modules' && file !== '.git') {
+      if (file !== 'node_modules' && file !== '.git' && file !== 'archive') {
         results = results.concat(getMdFilesRecursive(filePath));
       }
     } else if (file.endsWith('.md')) {
@@ -53,8 +53,15 @@ function verifyPathExists(filePath, docFile, lineNum) {
   // Strip anchor references (e.g. #L10-L20)
   const cleanUrl = normalizedPath.split('#')[0];
 
-  // Resolve to absolute path on disk (relative to workspace root)
-  const absolutePath = path.isAbsolute(cleanUrl) ? cleanUrl : path.resolve(workspaceRoot, cleanUrl);
+  // Resolve to absolute path on disk
+  let absolutePath;
+  if (path.isAbsolute(cleanUrl)) {
+    absolutePath = cleanUrl;
+  } else if (cleanUrl.startsWith('/')) {
+    absolutePath = path.resolve(workspaceRoot, cleanUrl.substring(1));
+  } else {
+    absolutePath = path.resolve(workspaceRoot, path.dirname(docFile), cleanUrl);
+  }
 
   if (!fs.existsSync(absolutePath)) {
     logIssue(

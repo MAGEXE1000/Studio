@@ -33,7 +33,9 @@
     "release:doctor": "node apps/studio-android/scripts/releaseDoctor/index.mjs",
     "test:doctor": "node apps/studio-android/scripts/__tests__/release-doctor.test.mjs",
     "release:dry-run": "node apps/studio-android/scripts/releaseDryRun/index.mjs",
-    "release:timeline": "node apps/studio-android/scripts/releaseTimeline/index.mjs"
+    "release:timeline": "node apps/studio-android/scripts/releaseTimeline/index.mjs",
+    "release:lint": "node apps/studio-android/scripts/releaseLint/index.mjs",
+    "test:architecture": "node apps/studio-android/scripts/__tests__/release-architecture.test.mjs"
   },
   "private": true,
   "devDependencies": {

@@ -1,6 +1,40 @@
 # Studio Engineering Release Guide
 
-This document is the authoritative guide to the Studio Release Infrastructure, diagnostic tooling, and release workflows.
+This document is the authoritative guide to the Studio Release Infrastructure, diagnostic tooling, architecture rules, and release workflows.
+
+---
+
+## Architecture & System Topology
+
+The release subsystem is designed with strict single-responsibility modularity:
+
+```
+                  ┌─────────────────────────────────────┐
+                  │    GitHub Release (Source of Truth) │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │          Release Assets             │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │    APK Integrity & Signatures       │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │   Firebase Metadata Cross-Check     │
+                  └─────────────────────────────────────┘
+```
+
+### Subsystem Directory Structure
+- `apps/studio-android/scripts/release/`: Canonical release utilities (GitHub API, Firebase fetcher, asset discovery, diagnostics, manifest, failure reporter).
+- `apps/studio-android/scripts/releaseDoctor/`: Pre-flight release ecosystem health checker (`pnpm release:doctor`).
+- `apps/studio-android/scripts/releaseDryRun/`: Pre-publication dry run engine (`pnpm release:dry-run`).
+- `apps/studio-android/scripts/releaseTimeline/`: Historical release alignment viewer (`pnpm release:timeline`).
+- `apps/studio-android/scripts/releaseLint/`: Release architecture linter (`pnpm release:lint`).
 
 ---
 
@@ -29,11 +63,10 @@ Every task MUST be classified before execution according to `RELEASE_POLICY.md`:
 
 ---
 
-## Release Tooling & Diagnostics
+## Release Tooling & Commands
 
-### 1. Release Manifest (`release-manifest.json`)
-The single source of truth manifest generated dynamically by release tooling containing:
-- `version`, `versionCode`, `githubTag`, `githubReleaseTitle`, `apkFilename`, `apkSha256`, `buildTimestamp`, `commit`, `firebaseVersion`, `otaVersion`.
+### 1. Architecture Linter (`pnpm release:lint`)
+Audits repository structure to ensure single version definition (`NATIVE_VERSION`), single release manifest (`release-manifest.json`), and absence of duplicated release publication logic.
 
 ### 2. Release Doctor (`pnpm release:doctor`)
 Validates complete release ecosystem health across 6 core checks:
@@ -56,12 +89,12 @@ Executes pre-publication dry run validations WITHOUT publishing anything:
 ### 4. Release Timeline (`pnpm release:timeline`)
 Outputs historical release timeline showing versions, publication dates, target commits, Firebase alignment, and OTA status.
 
-### 5. Failure Reports (`release_failure_report.md`)
-Automatically written whenever validation or dry-run fails, providing Root Cause, Evidence, Suggested Fix, Next Command, Priority, and Expected Resolution.
+### 5. Single Release Entry Point (`release-firebase.mjs`)
+`apps/studio-android/scripts/release-firebase.mjs` is the single official orchestration entry point for application publication. No script or workflow step may publish GitHub Releases or Firebase Hosting metadata outside this orchestrator.
 
 ---
 
-## Release Invariants & Rules
+## Invariants & Enforcement Rules
 
 1. **Title Naming Policy**: GitHub Release titles MUST contain ONLY the version number (e.g. `4.3.60`). Titles MUST NEVER include brand names like `Studio` or `Livex`.
 2. **Release Immutability Policy**: Published releases are permanent and immutable. Old releases, tags, or binaries must NEVER be edited or overwritten.

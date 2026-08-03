@@ -1,5 +1,5 @@
 export function buildDiagnosticReport(caseType, details = {}) {
-  const { firebaseVersion, githubTag, apkUrl, httpStatus, rootCause, steps } = details;
+  const { firebaseVersion, githubTag, apkUrl, httpStatus, rootCause, steps, provider } = details;
 
   const header = `====================================================================`;
   let title = '';
@@ -24,6 +24,7 @@ export function buildDiagnosticReport(caseType, details = {}) {
     header,
     title,
     header,
+    `Provider:                  ${provider || 'N/A'}`,
     `Firebase Deployed Version: ${firebaseVersion || '(none)'}`,
     `GitHub Release Tag:        ${githubTag || '(none)'}`,
     `Target Previous APK URL:   ${apkUrl || '(none)'}`,

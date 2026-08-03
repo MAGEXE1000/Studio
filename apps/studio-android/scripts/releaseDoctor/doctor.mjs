@@ -30,12 +30,8 @@ export async function runReleaseDoctor(options = {}) {
   // Generate release-manifest.json
   await generateReleaseManifest({ fetchFn });
 
-  // Resolve deployed release version for remote checks
-  let targetReleaseVersion = currentVersion;
-  const fbMeta = await fetchFirebaseReleaseMetadata({ fetchFn });
-  if (fbMeta.ok && fbMeta.version) {
-    targetReleaseVersion = fbMeta.version;
-  }
+  // Target current codebase version (NATIVE_VERSION) for health checks
+  const targetReleaseVersion = currentVersion;
 
   const results = [];
   results.push(await checkGitHubRelease(targetReleaseVersion, options));

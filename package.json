@@ -38,7 +38,9 @@
     "test:architecture": "node apps/studio-android/scripts/__tests__/release-architecture.test.mjs",
     "release:audit": "node apps/studio-android/scripts/releaseAudit/index.mjs",
     "release:e2e": "node apps/studio-android/scripts/releaseE2E/index.mjs",
-    "test:release-e2e": "node apps/studio-android/scripts/__tests__/release-e2e.test.mjs"
+    "test:release-e2e": "node apps/studio-android/scripts/__tests__/release-e2e.test.mjs",
+    "release:parity": "node apps/studio-android/scripts/releaseParity/index.mjs",
+    "test:release-parity": "node apps/studio-android/scripts/__tests__/release-parity.test.mjs"
   },
   "private": true,
   "devDependencies": {

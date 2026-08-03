@@ -37,7 +37,7 @@ jobs:
     name: 1. Preflight & Fail-Fast Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -69,7 +69,7 @@ jobs:
           fi
           echo "✓ Tag uniqueness preflight complete."
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.26.1
 
@@ -128,13 +128,13 @@ jobs:
       EXPECTED_SIGNATURE_SHA256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
           filter: blob:none
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.26.1
 
@@ -149,7 +149,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -193,14 +193,14 @@ jobs:
           }
 
       - name: Upload Firebase Hosting Metadata Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: firebase-public-metadata
           path: firebase-public/
           retention-days: 1
 
       - name: Upload Release Verification Report Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: release-verification-report
           path: |
@@ -216,7 +216,7 @@ jobs:
     needs: build_and_package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
@@ -227,7 +227,7 @@ jobs:
           node-version: 24
 
       - name: Download Release Verification Report Artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v4
         with:
           name: release-verification-report
 
@@ -253,13 +253,13 @@ jobs:
     needs: [build_and_package, signing_verification]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
           filter: blob:none
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.26.1
 
@@ -269,7 +269,7 @@ jobs:
           cache: pnpm
 
       - name: Download Firebase Hosting Metadata Artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v4
         with:
           name: firebase-public-metadata
           path: firebase-public-metadata-temp

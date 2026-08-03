@@ -49,7 +49,7 @@ import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
 export const NATIVE_VERSION = '4.3.55';
-export const NATIVE_VERSION_CODE = 40355;
+export const NATIVE_VERSION_CODE = 40356;
 export const WEB_VERSION = '4.3.55';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '838810c3';
+export const APP_COMMIT_SHA = 'ee207583';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/2/2026, 7:16:25 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/2/2026, 9:39:31 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first

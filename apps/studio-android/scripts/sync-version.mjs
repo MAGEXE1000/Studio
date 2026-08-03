@@ -370,14 +370,12 @@ const gradlePath = path.join(root, 'android/app/build.gradle');
 if (fs.existsSync(gradlePath)) {
   try {
     let gradleSrc = fs.readFileSync(gradlePath, 'utf8');
-    const vParts = version.split('.').map(Number);
-    const expectedCode = vParts[0] * 10000 + vParts[1] * 100 + vParts[2];
+    const existingCodeMatch = gradleSrc.match(/versionCode\s+(\d+)/);
+    const codeToUse = existingCodeMatch ? parseInt(existingCodeMatch[1], 10) : (vParts[0] * 10000 + vParts[1] * 100 + vParts[2]);
 
-    gradleSrc = gradleSrc.replace(/versionCode\s+\d+/, `versionCode ${expectedCode}`);
     gradleSrc = gradleSrc.replace(/versionName\s+["']([^"']+)["']/, `versionName "${version}"`);
-
     fs.writeFileSync(gradlePath, gradleSrc, 'utf8');
-    console.log(`sync-version: ✓ updated android/app/build.gradle (versionName: ${version}, versionCode: ${expectedCode})`);
+    console.log(`sync-version: ✓ updated android/app/build.gradle (versionName: ${version}, versionCode: ${codeToUse})`);
   } catch (err) {
     console.error('sync-version: ✗ failed to sync android/app/build.gradle:', err);
   }

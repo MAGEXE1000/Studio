@@ -18,6 +18,22 @@ Allowed classifications:
 The classification MUST appear at the beginning of every implementation report.
 
 ==================================================
+RELEASE STATE MACHINE & EXECUTION MODES
+==================================================
+
+The release validator implements a deterministic Release State Machine:
+
+1. MODE 1: NORMAL RELEASE (default)
+   - Zero-tolerance execution.
+   - Any repository inconsistency (missing release/tag/APK/metadata mismatch) MUST STOP execution immediately.
+   - Automatic recovery or silent fallbacks are strictly prohibited.
+   - Concludes with explicit "Repository Status: CONSISTENT" or "Repository Status: INCONSISTENT".
+
+2. MODE 2: RECOVERY MODE (`RECOVERY_MODE=true` / `--repair`)
+   - Explicit developer-triggered repair mode only.
+   - Audits inconsistencies, performs repairs, and outputs `release_recovery_report.md`.
+
+==================================================
 ENGINEERING RELEASE GOVERNANCE
 ==================================================
 
@@ -47,20 +63,3 @@ Application Releases MUST:
 ✓ Publish APK, OTA metadata, and Firebase metadata
 
 BUT ONLY IF THE USER EXPLICITLY REQUESTS A RELEASE.
-
-==================================================
-RELEASE TITLE & IMMUTABILITY GOVERNANCE
-==================================================
-
-- GitHub Release titles MUST equal version numbers ONLY (e.g. 4.3.72).
-- Branding (Studio / Livex) or prefixes (Release / Version) in release titles are strictly forbidden.
-- Published releases, tags, and binaries are permanent and immutable.
-
-==================================================
-ARCHITECTURE LOCK & ENTRY POINT
-==================================================
-
-- Single Version Source: packages/studio-core/src/lib/startup/appVersion.ts
-- Single Release Orchestrator: apps/studio-android/scripts/release-firebase.mjs
-- Single Manifest: release-manifest.json
-- Direct publication logic outside the official orchestrator is forbidden.

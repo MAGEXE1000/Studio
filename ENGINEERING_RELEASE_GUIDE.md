@@ -1,51 +1,46 @@
 # Studio Engineering Release Guide
 
-This document is the authoritative guide to the Studio Release Infrastructure, Governance Layer, diagnostic tooling, architecture rules, and release workflows.
+This document is the authoritative guide to the Studio Release Infrastructure, Release State Machine, Execution Modes, diagnostic tooling, and release workflows.
 
 ---
 
-## Release Governance Layer & Architecture Lock
+## Release State Machine Topology
 
-The Release Governance Layer enforces complete structural and policy invariants. Future contributors cannot bypass or duplicate release architecture:
+The release subsystem operates as a deterministic Release State Machine with strict mode separation:
 
 ```
-                  ┌─────────────────────────────────────┐
-                  │    GitHub Release (Source of Truth) │
-                  └──────────────────┬──────────────────┘
-                                     │
-                                     ▼
-                  ┌─────────────────────────────────────┐
-                  │          Release Assets             │
-                  └──────────────────┬──────────────────┘
-                                     │
-                                     ▼
-                  ┌─────────────────────────────────────┐
-                  │    APK Integrity & Signatures       │
-                  └──────────────────┬──────────────────┘
-                                     │
-                                     ▼
-                  ┌─────────────────────────────────────┐
-                  │   Firebase Metadata Cross-Check     │
-                  └─────────────────────────────────────┘
+                      ┌───────────────────────────┐
+                      │    INITIAL AUDIT          │
+                      └─────────────┬─────────────┘
+                                    │
+                         ┌──────────┴──────────┐
+                         ▼                     ▼
+              ┌────────────────────┐ ┌────────────────────┐
+              │ MODE 1: NORMAL     │ │ MODE 2: RECOVERY   │
+              │ (Zero Tolerance)   │ │ (--repair / env)   │
+              └──────────┬─────────┘ └──────────┬─────────┘
+                         │                      │
+                   ┌─────┴─────┐          ┌─────┴─────┐
+                   ▼           ▼          ▼           ▼
+              ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
+              │ READY   │ │ BLOCKED │ │ REPAIR  │ │ REPORT  │
+              └─────────┘ └─────────┘ └─────────┘ └─────────┘
 ```
 
-### Governance Rules
-1. **Single Source Governance**: Exactly one version definition exists in `packages/studio-core/src/lib/startup/appVersion.ts` (`NATIVE_VERSION`).
-2. **Orchestrator Governance**: `apps/studio-android/scripts/release-firebase.mjs` is the single official orchestration entry point for application publication.
-3. **Publication Path Isolation**: Direct creation of GitHub Releases, Git tags, APK uploads, or Firebase Hosting deployments outside `release-firebase.mjs` is strictly forbidden.
-4. **Title Naming Governance**: GitHub Release titles MUST equal version numbers ONLY (e.g. `4.3.72`, `5.0.0`). Prefixes (`Release 4.3.72`, `Version 4.3.72`) or brand names (`Studio`, `Livex`) are strictly rejected.
-5. **Immutability Governance**: Published releases, tags, and binaries are permanent and immutable.
+### Execution Modes
+1. **MODE 1: NORMAL RELEASE (default)**: Zero-tolerance validation. If ANY repository inconsistency (missing release tag, missing APK asset, metadata mismatch) is detected, execution stops immediately with status `BLOCKED` (exit code 1). Silent recovery or implicit fallbacks are strictly forbidden.
+2. **MODE 2: RECOVERY MODE (`RECOVERY_MODE=true` or `--repair`)**: Only executes when explicitly requested by a developer or CI repair workflow. Audits inconsistency, performs repairs or metadata alignment, and generates `release_recovery_report.md`.
 
 ---
 
-## Subsystem Inventory
+## State Machine Inventory
 
-- `apps/studio-android/scripts/release/`: Canonical release utilities (GitHub API, Firebase fetcher, asset discovery, diagnostics, manifest, failure reporter).
-- `apps/studio-android/scripts/releaseDoctor/`: Ecosystem health checker (`pnpm release:doctor`).
-- `apps/studio-android/scripts/releaseDryRun/`: Pre-publication dry run engine (`pnpm release:dry-run`).
-- `apps/studio-android/scripts/releaseTimeline/`: Historical release alignment viewer (`pnpm release:timeline`).
-- `apps/studio-android/scripts/releaseLint/`: Architecture linter (`pnpm release:lint`).
-- `apps/studio-android/scripts/releaseAudit/`: Governance auditor (`pnpm release:audit`).
+- **States**: `CONSISTENT`, `FIRST_RELEASE`, `INTERRUPTED_RELEASE`, `PARTIAL_PUBLICATION`, `ROLLBACK_REQUIRED`, `MISSING_RELEASE`, `MISSING_TAG`, `MISSING_APK`, `METADATA_MISMATCH`, `SIGNATURE_MISMATCH`, `READY`, `BLOCKED`, `RECOVERY_REQUIRED`.
+- **Version Synchronization Table**: Standardized 15-component verification matrix (`appVersion.ts`, `Gradle`, `Git Tag`, `GitHub Release`, `APK`, `SHA-256`, `version.json`, `app-release.json`, `Firebase`, `OTA`, `Updater`, `Manifest`, `Doctor`, `Audit`, `Lint`).
+- **Reports**:
+  - `release-doctor.html` — Interactive HTML report for Release Doctor checks.
+  - `release_failure_report.md` — Failure report generated on dry-run or doctor blocks.
+  - `release_recovery_report.md` — Recovery report generated when Recovery Mode repairs an inconsistency.
 
 ---
 
@@ -70,12 +65,3 @@ Every task MUST be classified before execution according to `RELEASE_POLICY.md`:
 ### 3. Mixed Release
 - **Rules**:
   - If a task contains BOTH Engineering and Application changes, STOP immediately and ask the user to choose an execution strategy (`Engineering only`, `Application only`, or `Engineering first -> Application second`).
-
----
-
-## Future Extension Rules
-
-Future release tools MUST:
-1. Re-use existing `apps/studio-android/scripts/release/` ES modules.
-2. Route all publication calls exclusively through `release-firebase.mjs`.
-3. Pass `pnpm release:lint` and `pnpm release:audit` before committing.

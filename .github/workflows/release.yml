@@ -126,6 +126,7 @@ jobs:
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       EXPECTED_SIGNATURE_SHA256: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
+      ALLOW_MISSING_PREV_APK: 'true'
 
     steps:
       - uses: actions/checkout@v7

@@ -9,10 +9,12 @@ import { checkFirebaseMetadata } from './checks/firebaseCheck.mjs';
 import { checkOtaAndUpdater } from './checks/otaCheck.mjs';
 import { checkSignature } from './checks/signatureCheck.mjs';
 import { buildDoctorReport } from './report.mjs';
+import { generateHtmlDoctorReport } from './htmlReporter.mjs';
 import { fetchFirebaseReleaseMetadata } from '../release/firebase.mjs';
+import { generateReleaseManifest } from '../release/manifest.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '../../../../..');
+const repoRoot = path.resolve(__dirname, '../../../..');
 
 export async function runReleaseDoctor(options = {}) {
   const fetchFn = options.fetchFn || globalThis.fetch;
@@ -25,7 +27,10 @@ export async function runReleaseDoctor(options = {}) {
     if (match) currentVersion = match[1];
   }
 
-  // Resolve deployed release version (e.g., 4.3.53) for GitHub and Tag checks
+  // Generate release-manifest.json
+  await generateReleaseManifest({ fetchFn });
+
+  // Resolve deployed release version for remote checks
   let targetReleaseVersion = currentVersion;
   const fbMeta = await fetchFirebaseReleaseMetadata({ fetchFn });
   if (fbMeta.ok && fbMeta.version) {
@@ -41,5 +46,9 @@ export async function runReleaseDoctor(options = {}) {
   results.push(await checkSignature(options));
 
   const report = buildDoctorReport(results);
+
+  // Generate release-doctor.html
+  generateHtmlDoctorReport(results, report);
+
   return report;
 }

@@ -31,7 +31,9 @@
     "docs:validate": "node scripts/validate-documentation.mjs",
     "test:installer-validator": "node apps/studio-android/scripts/__tests__/validate-app-installer.test.mjs",
     "release:doctor": "node apps/studio-android/scripts/releaseDoctor/index.mjs",
-    "test:doctor": "node apps/studio-android/scripts/__tests__/release-doctor.test.mjs"
+    "test:doctor": "node apps/studio-android/scripts/__tests__/release-doctor.test.mjs",
+    "release:dry-run": "node apps/studio-android/scripts/releaseDryRun/index.mjs",
+    "release:timeline": "node apps/studio-android/scripts/releaseTimeline/index.mjs"
   },
   "private": true,
   "devDependencies": {

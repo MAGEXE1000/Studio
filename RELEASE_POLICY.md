@@ -11,7 +11,6 @@ STEP 0 — CLASSIFY THE REQUEST
 Every task MUST be classified BEFORE doing any work.
 
 Allowed classifications:
-
 1. ENGINEERING RELEASE
 2. APPLICATION RELEASE
 3. MIXED REQUEST
@@ -19,81 +18,49 @@ Allowed classifications:
 The classification MUST appear at the beginning of every implementation report.
 
 ==================================================
-ENGINEERING RELEASE
+ENGINEERING RELEASE GOVERNANCE
 ==================================================
 
 Engineering Releases are repository maintenance only.
 
-Examples:
-- update dependencies
-- update Node versions
-- update GitHub Actions
-- update Gradle
-- update pnpm
-- update scripts
-- refactor tooling
-- documentation
-- CI improvements
-- lint improvements
-- test improvements
-- build improvements
-- repository cleanup
-
-Engineering Releases NEVER modify the shipped application.
-
 Engineering Releases MUST NEVER:
-❌ bump versionName
-❌ bump versionCode
-❌ modify version.json
-❌ modify app-release.json
-❌ modify release metadata
-❌ generate release-notes
-❌ create Git tags
-❌ create temporary tags
-❌ delete tags
-❌ recreate tags
-❌ publish GitHub Releases
-❌ execute Release Pipeline
-❌ upload APKs
-❌ publish OTA metadata
-❌ deploy Firebase release metadata
+❌ bump versionName or versionCode
+❌ modify version.json, app-release.json, or OTA metadata
+❌ create Git tags, temporary tags, or delete tags
+❌ publish GitHub Releases or upload APKs
+❌ execute Release Pipeline or Firebase deployment
 
 Engineering Releases finish after:
 Commit -> Push to main -> Final engineering report.
 Release Pipeline is FORBIDDEN.
 
 ==================================================
-APPLICATION RELEASE
+APPLICATION RELEASE GOVERNANCE
 ==================================================
 
 Application Releases modify the shipped application.
 
-Application Releases may:
-✓ bump version
-✓ update changelog
-✓ create GitHub Release
-✓ create Git tag
-✓ execute Release Pipeline
-✓ publish APK
-✓ publish OTA metadata
-✓ update version.json
-✓ update app-release.json
+Application Releases MUST:
+✓ Require Release Pipeline execution
+✓ Require version and versionCode bump
+✓ Require Release Doctor and Dry Run PASS
+✓ Publish APK, OTA metadata, and Firebase metadata
 
 BUT ONLY IF THE USER EXPLICITLY REQUESTS A RELEASE.
 
 ==================================================
-TAG POLICY & RELEASE TITLE POLICY
+RELEASE TITLE & IMMUTABILITY GOVERNANCE
 ==================================================
 
-Git tags represent public application releases.
-Engineering commits MUST NEVER generate tags.
-GitHub Release titles must contain ONLY the version number (e.g., 4.3.60).
-Branding (Studio / Livex) in release titles is strictly forbidden.
+- GitHub Release titles MUST equal version numbers ONLY (e.g. 4.3.72).
+- Branding (Studio / Livex) or prefixes (Release / Version) in release titles are strictly forbidden.
+- Published releases, tags, and binaries are permanent and immutable.
 
 ==================================================
-RELEASE IMMUTABILITY POLICY
+ARCHITECTURE LOCK & ENTRY POINT
 ==================================================
 
-Published releases are immutable.
-Never edit old releases, replace published APKs, overwrite release assets, or move release tags.
-If a published release is incorrect, create a NEW application release with the next version.
+- Single Version Source: packages/studio-core/src/lib/startup/appVersion.ts
+- Single Release Orchestrator: apps/studio-android/scripts/release-firebase.mjs
+- Single Manifest: release-manifest.json
+- Direct publication logic outside the official orchestrator is forbidden.

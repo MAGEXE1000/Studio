@@ -40,8 +40,21 @@ export async function evaluatePreviousReleaseState(options = {}) {
   }
 
   // 2. Query GitHub as Source of Truth
-  const ghRelease = await fetchGitHubReleaseInfo(prevVersion, { fetchFn, execFn });
-  const prevTag = ghRelease.tag;
+  let ghRelease = await fetchGitHubReleaseInfo(prevVersion, { fetchFn, execFn });
+  let prevTag = ghRelease.tag;
+
+  // If Firebase metadata version tag is missing on GitHub, query latest published release as Source of Truth fallback
+  if (!ghRelease.exists) {
+    try {
+      const latestRelease = await fetchGitHubReleaseInfo('latest', { fetchFn, execFn });
+      if (latestRelease.exists && latestRelease.data?.tagName) {
+        console.warn(`⚠ Firebase version v${prevVersion} not published on GitHub. Falling back to latest published release ${latestRelease.data.tagName}.`);
+        ghRelease = latestRelease;
+        prevVersion = latestRelease.data.tagName.replace(/^v/, '');
+        prevTag = latestRelease.tag;
+      }
+    } catch (_) {}
+  }
 
   // 3. Discover APK asset dynamically
   const apkDiscovery = await discoverApkAsset(ghRelease, prevVersion, { fetchFn });

@@ -36,7 +36,9 @@
     "release:timeline": "node apps/studio-android/scripts/releaseTimeline/index.mjs",
     "release:lint": "node apps/studio-android/scripts/releaseLint/index.mjs",
     "test:architecture": "node apps/studio-android/scripts/__tests__/release-architecture.test.mjs",
-    "release:audit": "node apps/studio-android/scripts/releaseAudit/index.mjs"
+    "release:audit": "node apps/studio-android/scripts/releaseAudit/index.mjs",
+    "release:e2e": "node apps/studio-android/scripts/releaseE2E/index.mjs",
+    "test:release-e2e": "node apps/studio-android/scripts/__tests__/release-e2e.test.mjs"
   },
   "private": true,
   "devDependencies": {

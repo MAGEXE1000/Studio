@@ -1,67 +1,63 @@
 # Studio Engineering Release Guide
 
-This document is the authoritative guide to the Studio Release Infrastructure, Release State Machine, Execution Modes, diagnostic tooling, and release workflows.
+This document is the authoritative guide to the Studio Release Infrastructure, Release State Machine, Execution Modes, E2E Release Pipeline Simulator, diagnostic tooling, and release workflows.
 
 ---
 
-## Release State Machine Topology
+## E2E Release Pipeline Simulator (`pnpm release:e2e`)
 
-The release subsystem operates as a deterministic Release State Machine with strict mode separation:
+The E2E Release Pipeline Simulator validates the complete 10-step release lifecycle inside an isolated sandbox (`.temp/release-e2e/`) without modifying any production resources:
 
 ```
-                      ┌───────────────────────────┐
-                      │    INITIAL AUDIT          │
-                      └─────────────┬─────────────┘
-                                    │
-                         ┌──────────┴──────────┐
-                         ▼                     ▼
-              ┌────────────────────┐ ┌────────────────────┐
-              │ MODE 1: NORMAL     │ │ MODE 2: RECOVERY   │
-              │ (Zero Tolerance)   │ │ (--repair / env)   │
-              └──────────┬─────────┘ └──────────┬─────────┘
-                         │                      │
-                   ┌─────┴─────┐          ┌─────┴─────┐
-                   ▼           ▼          ▼           ▼
-              ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-              │ READY   │ │ BLOCKED │ │ REPAIR  │ │ REPORT  │
-              └─────────┘ └─────────┘ └─────────┘ └─────────┘
+                  ┌─────────────────────────────────────┐
+                  │ 1. Preflight Repository Audit       │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ 2. Temporary Manifest Generation    │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ 3. In-Memory GitHub Release         │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ 4. Sandbox Firebase & OTA Simulation│
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ 5. Rollback & Interrupted Recovery  │
+                  └──────────────────┬──────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │ 6. Contract Verification & Reports  │
+                  └─────────────────────────────────────┘
 ```
 
-### Execution Modes
-1. **MODE 1: NORMAL RELEASE (default)**: Zero-tolerance validation. If ANY repository inconsistency (missing release tag, missing APK asset, metadata mismatch) is detected, execution stops immediately with status `BLOCKED` (exit code 1). Silent recovery or implicit fallbacks are strictly forbidden.
+### Subsystem Commands
+- `pnpm release:e2e` — Runs complete 10-step simulated release pipeline inside `.temp/release-e2e/`. Outputs `release-e2e-report.md`, `release-e2e-report.html`, `release-e2e-summary.json`, and `release-e2e-manifest.json`.
+- `pnpm test:release-e2e` — Automated test suite for release E2E simulation scenarios.
+
+---
+
+## Governance & Execution Modes
+
+1. **MODE 1: NORMAL RELEASE (default)**: Zero-tolerance validation. If ANY repository inconsistency (missing tag, missing APK asset, metadata mismatch) is detected, execution stops immediately with status `BLOCKED` (exit code 1). Automatic fallbacks or silent recoveries are strictly forbidden.
 2. **MODE 2: RECOVERY MODE (`RECOVERY_MODE=true` or `--repair`)**: Only executes when explicitly requested by a developer or CI repair workflow. Audits inconsistency, performs repairs or metadata alignment, and generates `release_recovery_report.md`.
 
 ---
 
-## State Machine Inventory
+## Subsystem Inventory
 
-- **States**: `CONSISTENT`, `FIRST_RELEASE`, `INTERRUPTED_RELEASE`, `PARTIAL_PUBLICATION`, `ROLLBACK_REQUIRED`, `MISSING_RELEASE`, `MISSING_TAG`, `MISSING_APK`, `METADATA_MISMATCH`, `SIGNATURE_MISMATCH`, `READY`, `BLOCKED`, `RECOVERY_REQUIRED`.
-- **Version Synchronization Table**: Standardized 15-component verification matrix (`appVersion.ts`, `Gradle`, `Git Tag`, `GitHub Release`, `APK`, `SHA-256`, `version.json`, `app-release.json`, `Firebase`, `OTA`, `Updater`, `Manifest`, `Doctor`, `Audit`, `Lint`).
-- **Reports**:
-  - `release-doctor.html` — Interactive HTML report for Release Doctor checks.
-  - `release_failure_report.md` — Failure report generated on dry-run or doctor blocks.
-  - `release_recovery_report.md` — Recovery report generated when Recovery Mode repairs an inconsistency.
-
----
-
-## Task Classification Workflows
-
-Every task MUST be classified before execution according to `RELEASE_POLICY.md`:
-
-### 1. Engineering Release
-- **Purpose**: Internal repository maintenance (dependencies, Node.js, scripts, CI/CD, documentation, tooling, refactoring, lint, typecheck).
-- **Forbidden Operations**:
-  - NEVER bump `versionName` or `versionCode`.
-  - NEVER modify `version.json`, `app-release.json`, or OTA metadata.
-  - NEVER create Git tags or GitHub Releases.
-  - NEVER execute the Release Pipeline.
-- **Workflow**: `Commit` -> `Push to main` -> `Final Engineering Report`.
-
-### 2. Application Release
-- **Purpose**: Shipped application updates (features, bug fixes, UI, native Android code).
-- **Required Operations**:
-  - Requires version bump, versionCode bump, Release Pipeline execution, APK publication, OTA/Firebase validation, Release Doctor, and Dry Run **ONLY IF EXPLICITLY REQUESTED BY USER**.
-
-### 3. Mixed Release
-- **Rules**:
-  - If a task contains BOTH Engineering and Application changes, STOP immediately and ask the user to choose an execution strategy (`Engineering only`, `Application only`, or `Engineering first -> Application second`).
+- `apps/studio-android/scripts/release/`: Canonical release utilities (GitHub API, Firebase fetcher, asset discovery, diagnostics, manifest, failure reporter).
+- `apps/studio-android/scripts/releaseDoctor/`: Ecosystem health checker (`pnpm release:doctor`).
+- `apps/studio-android/scripts/releaseDryRun/`: Pre-publication dry run engine (`pnpm release:dry-run`).
+- `apps/studio-android/scripts/releaseTimeline/`: Historical release alignment viewer (`pnpm release:timeline`).
+- `apps/studio-android/scripts/releaseLint/`: Architecture linter (`pnpm release:lint`).
+- `apps/studio-android/scripts/releaseAudit/`: Governance auditor (`pnpm release:audit`).
+- `apps/studio-android/scripts/releaseE2E/`: E2E Release Pipeline Simulator (`pnpm release:e2e`).

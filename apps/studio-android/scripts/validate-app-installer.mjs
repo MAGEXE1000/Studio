@@ -248,6 +248,23 @@ export async function evaluatePreviousReleaseState(options = {}) {
   };
 }
 
+function getChangedFilesSafely() {
+  const commands = [
+    'git diff --name-only HEAD^ HEAD',
+    'git diff --name-only HEAD~1 HEAD',
+    'git show --name-only --format="" HEAD',
+    'git diff --name-only origin/main...HEAD',
+  ];
+  for (const cmd of commands) {
+    try {
+      const output = execSync(cmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+      const files = output.split('\n').map((f) => f.trim()).filter(Boolean);
+      if (files.length > 0) return files;
+    } catch (_) {}
+  }
+  return [];
+}
+
 export async function runValidation() {
   console.log('=== RUNNING APPINSTALLER CONTRACT VALIDATION ===');
 
@@ -259,10 +276,7 @@ export async function runValidation() {
   if (!isDevPreview) {
     try {
       console.log(`Checking for native or update-system changes (releaseType: ${releaseType})...`);
-      const changedFiles = execSync('git diff --name-only HEAD^ HEAD', { encoding: 'utf8' })
-        .split('\n')
-        .map((f) => f.trim())
-        .filter(Boolean);
+      const changedFiles = getChangedFilesSafely();
 
       const nativeFiles = changedFiles.filter(
         (f) =>

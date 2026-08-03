@@ -42,7 +42,7 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
             }))
           : [],
       };
-      releaseExists = true;
+      releaseExists = !releaseData.isDraft;
       provider = 'REST API';
       return { exists: releaseExists, tag: targetTag, data: releaseData, provider };
     }
@@ -103,7 +103,7 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
               contentType: a.contentType,
             })) || [],
           };
-          releaseExists = true;
+          releaseExists = !releaseData.isDraft;
           provider = 'GraphQL';
           return { exists: releaseExists, tag: targetTag, data: releaseData, provider };
         }
@@ -137,7 +137,7 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
               }))
             : [],
         };
-        releaseExists = true;
+        releaseExists = !releaseData.isDraft;
         provider = 'GitHub CLI Fallback';
         return { exists: releaseExists, tag: targetTag, data: releaseData, provider };
       }

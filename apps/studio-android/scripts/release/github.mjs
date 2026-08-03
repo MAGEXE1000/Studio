@@ -7,7 +7,8 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
   const fetchFn = options.fetchFn || globalThis.fetch;
   const execFn = options.execFn || execSync;
   const token = options.token || process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-  const targetTag = tag.startsWith('v') ? tag : `v${tag}`;
+  const isLatestQuery = tag === 'latest' || tag === 'latest-release';
+  const targetTag = isLatestQuery ? 'latest' : (tag.startsWith('v') ? tag : `v${tag}`);
 
   let releaseData = null;
   let releaseExists = false;
@@ -21,9 +22,11 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
     };
     if (token) headers.Authorization = `token ${token}`;
 
-    const apiRes = await fetchFn(`https://api.github.com/repos/${REPO_SLUG}/releases/tags/${targetTag}`, {
-      headers,
-    });
+    const endpoint = isLatestQuery
+      ? `https://api.github.com/repos/${REPO_SLUG}/releases/latest`
+      : `https://api.github.com/repos/${REPO_SLUG}/releases/tags/${targetTag}`;
+
+    const apiRes = await fetchFn(endpoint, { headers });
 
     if (apiRes.ok) {
       const json = await apiRes.json();
@@ -44,7 +47,7 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
       };
       releaseExists = !releaseData.isDraft;
       provider = 'REST API';
-      return { exists: releaseExists, tag: targetTag, data: releaseData, provider };
+      return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
     }
   } catch (_) {}
 
@@ -53,27 +56,29 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
     try {
       const graphqlQuery = {
         query: `
-          query ($owner: String!, $repo: String!, $tag: String!) {
+          query ($owner: String!, $repo: String!) {
             repository(owner: $owner, name: $repo) {
-              release(tagName: $tag) {
-                tagName
-                name
-                isDraft
-                isPrerelease
-                publishedAt
-                releaseAssets(first: 20) {
-                  nodes {
-                    name
-                    downloadUrl
-                    size
-                    contentType
+              releases(first: 10, orderBy: {field: CREATED_AT, direction: DESC}) {
+                nodes {
+                  tagName
+                  name
+                  isDraft
+                  isPrerelease
+                  publishedAt
+                  releaseAssets(first: 20) {
+                    nodes {
+                      name
+                      downloadUrl
+                      size
+                      contentType
+                    }
                   }
                 }
               }
             }
           }
         `,
-        variables: { owner: OWNER, repo: REPO, tag: targetTag },
+        variables: { owner: OWNER, repo: REPO },
       };
 
       const gqlRes = await fetchFn('https://api.github.com/graphql', {
@@ -88,7 +93,12 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
 
       if (gqlRes.ok) {
         const gqlJson = await gqlRes.json();
-        const release = gqlJson.data?.repository?.release;
+        const repoData = gqlJson.data?.repository;
+        const nodes = repoData?.releases?.nodes || (repoData?.release ? [repoData.release] : []);
+        const release = isLatestQuery
+          ? nodes.find((n) => !n.isDraft)
+          : nodes.find((n) => n.tagName === targetTag || (!targetTag.startsWith('v') && n.tagName === `v${targetTag}`));
+
         if (release) {
           releaseData = {
             tagName: release.tagName,
@@ -105,7 +115,7 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
           };
           releaseExists = !releaseData.isDraft;
           provider = 'GraphQL';
-          return { exists: releaseExists, tag: targetTag, data: releaseData, provider };
+          return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
         }
       }
     } catch (_) {}
@@ -114,13 +124,14 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
   // 3. Fallback: GitHub CLI (Last Resort Only)
   if (!releaseExists) {
     try {
-      const rawJson = execFn(
-        `gh release view ${targetTag} --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`,
-        {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'ignore'],
-        }
-      );
+      const cmd = isLatestQuery
+        ? `gh release view --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`
+        : `gh release view ${targetTag} --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`;
+
+      const rawJson = execFn(cmd, {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+      });
       if (rawJson) {
         const parsed = JSON.parse(rawJson);
         releaseData = {
@@ -139,13 +150,13 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
         };
         releaseExists = !releaseData.isDraft;
         provider = 'GitHub CLI Fallback';
-        return { exists: releaseExists, tag: targetTag, data: releaseData, provider };
+        return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
       }
     } catch (_) {}
   }
 
   // 4. HTTP HEAD tag page fallback check
-  if (!releaseExists) {
+  if (!releaseExists && !isLatestQuery) {
     try {
       const tagHead = await fetchFn(`https://github.com/${REPO_SLUG}/releases/tag/${targetTag}`, {
         method: 'HEAD',

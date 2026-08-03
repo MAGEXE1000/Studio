@@ -1,5 +1,18 @@
 export function buildDiagnosticReport(caseType, details = {}) {
-  const { firebaseVersion, githubTag, apkUrl, httpStatus, rootCause, steps, provider } = details;
+  const {
+    firebaseVersion,
+    latestGithubRelease,
+    lastKnownGoodRelease,
+    brokenRelease,
+    githubTag,
+    apkUrl,
+    httpStatus,
+    rootCause,
+    steps,
+    provider,
+    optionA,
+    optionB,
+  } = details;
 
   const header = `====================================================================`;
   let title = '';
@@ -22,16 +35,23 @@ export function buildDiagnosticReport(caseType, details = {}) {
 
   const lines = [
     header,
-    title,
+    '                     RELEASE HEALTH REPORT                          ',
     header,
+    `Latest GitHub Release:     ${latestGithubRelease || '(none)'}`,
+    `Latest Firebase Version:   ${firebaseVersion || '(none)'}`,
+    `Status:                    ${title}`,
     `Provider:                  ${provider || 'N/A'}`,
-    `Firebase Deployed Version: ${firebaseVersion || '(none)'}`,
     `GitHub Release Tag:        ${githubTag || '(none)'}`,
     `Target Previous APK URL:   ${apkUrl || '(none)'}`,
     `Asset HTTP Status:         ${httpStatus || 'N/A'}`,
     '',
-    'ROOT CAUSE:',
-    rootCause || 'Unknown inconsistency.',
+    `Root Cause:                ${rootCause || 'Unknown inconsistency.'}`,
+    `Last Known Good Release:   ${lastKnownGoodRelease || '(none)'}`,
+    `Broken Release:            ${brokenRelease || firebaseVersion || '(none)'}`,
+    '',
+    'Suggested Recovery:',
+    `Option A: ${optionA || `Republish GitHub Release ${brokenRelease || firebaseVersion}.`}`,
+    `Option B: ${optionB || `Rollback Firebase metadata to ${lastKnownGoodRelease || 'previous version'}.`}`,
   ];
 
   if (Array.isArray(steps) && steps.length > 0) {

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.54';
-export const NATIVE_VERSION_CODE = 40354;
-export const WEB_VERSION = '4.3.54';
+export const NATIVE_VERSION = '4.3.55';
+export const NATIVE_VERSION_CODE = 40355;
+export const WEB_VERSION = '4.3.55';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'cacd5840';
+export const APP_COMMIT_SHA = '838810c3';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/2/2026, 5:59:29 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/2/2026, 7:16:25 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,7 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.",
+      "End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.",
     ],
   },
 ];

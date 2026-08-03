@@ -1,18 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.54",
-  "versionName": "4.3.54",
-  "versionCode": 40354,
-  "version_code": 40354,
-  "commit": "cacd5840",
-  "releasedAt": "8/2/2026, 5:59:29 PM CST",
-  "buildTimestamp": "8/2/2026, 5:59:29 PM CST",
+  "version": "4.3.55",
+  "versionName": "4.3.55",
+  "versionCode": 40355,
+  "version_code": 40355,
+  "commit": "838810c3",
+  "releasedAt": "8/2/2026, 7:16:25 PM CST",
+  "buildTimestamp": "8/2/2026, 7:16:25 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.",
-  "whatsNew": "• Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.",
+  "changelog": "• End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.",
+  "whatsNew": "• End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.",
   "releaseNotes": {
     "added": [
-      "Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource."
+      "End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts."
     ]
   },
   "mandatory": false

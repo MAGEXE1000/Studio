@@ -1,4 +1,4 @@
 Release Date: 2026-08-02
 
 ### Added
-- Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.
+- End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.

@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.56",
-  "versionName": "4.3.56",
-  "versionCode": 40357,
-  "version_code": 40357,
-  "commit": "667800fe",
-  "releasedAt": "8/4/2026, 5:10:28 PM CST",
-  "buildTimestamp": "8/4/2026, 5:10:28 PM CST",
+  "version": "4.3.57",
+  "versionName": "4.3.57",
+  "versionCode": 40358,
+  "version_code": 40358,
+  "commit": "40fcfdf2",
+  "releasedAt": "8/4/2026, 5:14:55 PM CST",
+  "buildTimestamp": "8/4/2026, 5:14:55 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.",
-  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.",
+  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.",
+  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.",
   "releaseNotes": {
     "added": [
       "Refactored release infrastructure to use parse-version single source of truth.",
       "Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.",
-      "Replaced version-locked verifier scripts with a single parameterized post-release checker."
+      "Replaced version-locked verifier scripts with a single parameterized post-release checker.",
+      "Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check."
     ]
   },
   "mandatory": false

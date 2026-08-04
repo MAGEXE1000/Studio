@@ -506,65 +506,76 @@ console.log('Step 1/15: Build Frontend ... [DONE]');
 
 // Step 2: Sync Capacitor
 console.log('Step 2/15: Sync Capacitor...');
-run('npx', ['cap', 'sync', 'android']);
+if (!skipBuild) {
+  run('npx', ['cap', 'sync', 'android']);
+} else {
+  console.log('  Skip sync: --skip-build flag is active.');
+}
 
 // Step 2.5: Verify assets freshness & integrity
 console.log('Step 2.5/15: Verify assets freshness & integrity...');
-run('node', ['../../scripts/verify-android-assets-freshness.mjs']);
+if (!skipBuild) {
+  run('node', ['../../scripts/verify-android-assets-freshness.mjs']);
+} else {
+  console.log('  Skip verify: --skip-build flag is active.');
+}
 
 // Step 3: Build signed Android release APK
 console.log('Step 3/15: Build signed Android release APK...');
-
-const gradleCmd = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
-const gradleArgs = ['assembleRelease', '-x', 'lint', '-x', 'lintVitalRelease', '--parallel', '--build-cache', '--max-workers=4', '--stacktrace'];
-const gradleEnv = { ...process.env };
-if (process.platform === 'win32') {
-  const jdk21Path = 'C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot';
-  if (existsSync(jdk21Path)) {
-    gradleEnv.JAVA_HOME = jdk21Path;
-  }
-}
-if (gradleEnv.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {
-  delete gradleEnv.GITHUB_TOKEN;
-}
-
-console.log(`release-firebase: Gradle command: ${gradleCmd} ${gradleArgs.join(' ')}`);
-console.log(`release-firebase: Gradle cwd: ${gradleCwd}`);
-console.log(`release-firebase: ANDROID_HOME: ${gradleEnv.ANDROID_HOME || '(not set)'}`);
-console.log(`release-firebase: JAVA_HOME: ${gradleEnv.JAVA_HOME || '(not set)'}`);
-console.log(
-  `release-firebase: ANDROID_KEYSTORE_PASSWORD present: ${gradleEnv.ANDROID_KEYSTORE_PASSWORD ? 'Yes' : 'No'}`
-);
-console.log(
-  `release-firebase: ANDROID_KEY_ALIAS present: ${gradleEnv.ANDROID_KEY_ALIAS ? 'Yes' : 'No'}`
-);
-console.log(
-  `release-firebase: ANDROID_KEY_PASSWORD present: ${gradleEnv.ANDROID_KEY_PASSWORD ? 'Yes' : 'No'}`
-);
-
-const gradleResult = spawnSync(gradleCmd, gradleArgs, {
-  cwd: gradleCwd,
-  stdio: 'inherit',
-  shell: process.platform === 'win32',
-  env: gradleEnv,
-});
-if (gradleResult.status !== 0) {
-  console.error(`release-firebase: âœ— Gradle build failed with exit code ${gradleResult.status}`);
-  if (gradleResult.error) {
-    console.error(`release-firebase: Gradle spawn error: ${gradleResult.error.message}`);
-    if (gradleResult.error.code === 'EACCES') {
-      console.error('release-firebase: âœ— Gradle wrapper is not executable.');
-      console.error('  Fix: git update-index --chmod=+x apps/studio-android/android/gradlew');
-      console.error('  And ensure CI runs: chmod +x ./gradlew before Gradle.');
+if (!skipBuild) {
+  const gradleCmd = process.platform === 'win32' ? '.\\gradlew.bat' : './gradlew';
+  const gradleArgs = ['assembleRelease', '-x', 'lint', '-x', 'lintVitalRelease', '--parallel', '--build-cache', '--max-workers=4', '--stacktrace'];
+  const gradleEnv = { ...process.env };
+  if (process.platform === 'win32') {
+    const jdk21Path = 'C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot';
+    if (existsSync(jdk21Path)) {
+      gradleEnv.JAVA_HOME = jdk21Path;
     }
   }
-  if (gradleResult.signal) {
-    console.error(`release-firebase: Gradle killed by signal: ${gradleResult.signal}`);
+  if (gradleEnv.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {
+    delete gradleEnv.GITHUB_TOKEN;
   }
-  console.error(
-    `release-firebase: Hint â€” check Gradle logs at: ${path.join(gradleCwd, 'app', 'build', 'reports')}`
+
+  console.log(`release-firebase: Gradle command: ${gradleCmd} ${gradleArgs.join(' ')}`);
+  console.log(`release-firebase: Gradle cwd: ${gradleCwd}`);
+  console.log(`release-firebase: ANDROID_HOME: ${gradleEnv.ANDROID_HOME || '(not set)'}`);
+  console.log(`release-firebase: JAVA_HOME: ${gradleEnv.JAVA_HOME || '(not set)'}`);
+  console.log(
+    `release-firebase: ANDROID_KEYSTORE_PASSWORD present: ${gradleEnv.ANDROID_KEYSTORE_PASSWORD ? 'Yes' : 'No'}`
   );
-  process.exit(gradleResult.status ?? 1);
+  console.log(
+    `release-firebase: ANDROID_KEY_ALIAS present: ${gradleEnv.ANDROID_KEY_ALIAS ? 'Yes' : 'No'}`
+  );
+  console.log(
+    `release-firebase: ANDROID_KEY_PASSWORD present: ${gradleEnv.ANDROID_KEY_PASSWORD ? 'Yes' : 'No'}`
+  );
+
+  const gradleResult = spawnSync(gradleCmd, gradleArgs, {
+    cwd: gradleCwd,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+    env: gradleEnv,
+  });
+  if (gradleResult.status !== 0) {
+    console.error(`release-firebase: âœ— Gradle build failed with exit code ${gradleResult.status}`);
+    if (gradleResult.error) {
+      console.error(`release-firebase: Gradle spawn error: ${gradleResult.error.message}`);
+      if (gradleResult.error.code === 'EACCES') {
+        console.error('release-firebase: âœ— Gradle wrapper is not executable.');
+        console.error('  Fix: git update-index --chmod=+x apps/studio-android/android/gradlew');
+        console.error('  And ensure CI runs: chmod +x ./gradlew before Gradle.');
+      }
+    }
+    if (gradleResult.signal) {
+      console.error(`release-firebase: Gradle killed by signal: ${gradleResult.signal}`);
+    }
+    console.error(
+      `release-firebase: Hint â€” check Gradle logs at: ${path.join(gradleCwd, 'app', 'build', 'reports')}`
+    );
+    process.exit(gradleResult.status ?? 1);
+  }
+} else {
+  console.log('  Skip build: --skip-build flag is active.');
 }
 
 // Step 4: Validate AppInstaller native plugin

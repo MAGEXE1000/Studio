@@ -9,7 +9,7 @@ that bundle.
 
 Conventions:
 
-## 4.3.61
+## 4.3.62
 
 Release Date: 2026-08-04
 
@@ -21,6 +21,7 @@ Release Date: 2026-08-04
 - Fixed GHA checkout latency by removing blobless clone filters.
 - Fixed missing Supabase environment variables in Job 3 Publish step.
 - Fixed signing preflight conditional check during --skip-build execution.
+- Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.
 
 ## 4.3.55
 

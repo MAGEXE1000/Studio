@@ -1,18 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.55",
-  "versionName": "4.3.55",
-  "versionCode": 40355,
-  "version_code": 40355,
-  "commit": "ee207583",
-  "releasedAt": "8/2/2026, 9:39:31 PM CST",
-  "buildTimestamp": "8/2/2026, 9:39:31 PM CST",
+  "version": "4.3.56",
+  "versionName": "4.3.56",
+  "versionCode": 40357,
+  "version_code": 40357,
+  "commit": "667800fe",
+  "releasedAt": "8/4/2026, 5:10:28 PM CST",
+  "buildTimestamp": "8/4/2026, 5:10:28 PM CST",
   "updateMode": "refresh",
-  "changelog": "• End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.",
-  "whatsNew": "• End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.",
+  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.",
+  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.",
   "releaseNotes": {
     "added": [
-      "End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts."
+      "Refactored release infrastructure to use parse-version single source of truth.",
+      "Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.",
+      "Replaced version-locked verifier scripts with a single parameterized post-release checker."
     ]
   },
   "mandatory": false

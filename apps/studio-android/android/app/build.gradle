@@ -8,8 +8,8 @@ android {
         applicationId "com.chordex.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40355
-        versionName "4.3.55"
+        versionCode 40357
+        versionName "4.3.56"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

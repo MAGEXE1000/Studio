@@ -9,6 +9,15 @@ that bundle.
 
 Conventions:
 
+## 4.3.56
+
+Release Date: 2026-08-04
+
+### Added
+- Refactored release infrastructure to use parse-version single source of truth.
+- Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.
+- Replaced version-locked verifier scripts with a single parameterized post-release checker.
+
 ## 4.3.55
 
 Release Date: 2026-08-02

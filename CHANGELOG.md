@@ -9,7 +9,7 @@ that bundle.
 
 Conventions:
 
-## 4.3.58
+## 4.3.59
 
 Release Date: 2026-08-04
 

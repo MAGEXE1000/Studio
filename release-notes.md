@@ -6,3 +6,4 @@ Release Date: 2026-08-04
 - Replaced version-locked verifier scripts with a single parameterized post-release checker.
 - Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.
 - Fixed GHA checkout latency by removing blobless clone filters.
+- Fixed missing Supabase environment variables in Job 3 Publish step.

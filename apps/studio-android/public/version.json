@@ -1,22 +1,23 @@
 {
   "platform": "android",
-  "version": "4.3.59",
-  "versionName": "4.3.59",
-  "versionCode": 40360,
-  "version_code": 40360,
-  "commit": "2849b1de",
-  "releasedAt": "8/4/2026, 5:33:06 PM CST",
-  "buildTimestamp": "8/4/2026, 5:33:06 PM CST",
+  "version": "4.3.60",
+  "versionName": "4.3.60",
+  "versionCode": 40361,
+  "version_code": 40361,
+  "commit": "08dd61e2",
+  "releasedAt": "8/4/2026, 5:39:56 PM CST",
+  "buildTimestamp": "8/4/2026, 5:39:56 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.",
-  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.",
+  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.",
+  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.",
   "releaseNotes": {
     "added": [
       "Refactored release infrastructure to use parse-version single source of truth.",
       "Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.",
       "Replaced version-locked verifier scripts with a single parameterized post-release checker.",
       "Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.",
-      "Fixed GHA checkout latency by removing blobless clone filters."
+      "Fixed GHA checkout latency by removing blobless clone filters.",
+      "Fixed missing Supabase environment variables in Job 3 Publish step."
     ]
   },
   "mandatory": false

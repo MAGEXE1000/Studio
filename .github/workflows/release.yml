@@ -234,6 +234,10 @@ jobs:
     needs: build_and_package
     runs-on: ubuntu-latest
     env:
+      STUDIO_PRODUCTION_RELEASE: 'true'
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
       ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v7

@@ -360,12 +360,7 @@ if (!isDevPreview) {
   const ksAlias = (process.env.ANDROID_KEY_ALIAS || '').trim();
   const ksPwd = (process.env.ANDROID_KEYSTORE_PASSWORD || '').trim();
 
-  const expectedSigMatch = readFileSync(appVersionPath, 'utf8').match(
-    /export\s+const\s+PRODUCTION_SIGNING_SHA256\s*=\s*['"]([^'"]+)['"]/
-  );
-  const expectedSig = expectedSigMatch
-    ? expectedSigMatch[1].toLowerCase().replace(/:/g, '').trim()
-    : '';
+  const expectedSig = getAppVersionInfo().productionSigningSha256;
 
   console.log(`release-firebase: ANDROID_KEYSTORE_PASSWORD present: ${ksPwd ? 'Yes' : 'No'}`);
   console.log(`release-firebase: ANDROID_KEY_ALIAS present: ${ksAlias ? 'Yes' : 'No'}`);

@@ -33,6 +33,7 @@ const pkgRoot = path.resolve(__dirname, '..');
 const repoRoot = path.resolve(pkgRoot, '../..');
 
 const isDevPreview = process.argv.includes('--development-preview');
+const skipBuild = process.argv.includes('--skip-build');
 
 // Load .env file if it exists in pkgRoot
 const envPath = path.join(pkgRoot, '.env');

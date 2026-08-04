@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
+import { getAppVersionInfo } from './parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -10,7 +11,7 @@ const repoRoot = path.resolve(__dirname, '..');
 export function generateSlsaProvenance(options = {}) {
   const version = options.version || '4.2.7';
   const commitSha = options.commitSha || 'unknown';
-  const apkSha256 = options.apkSha256 || '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+  const apkSha256 = options.apkSha256 || getAppVersionInfo().productionSigningSha256;
 
   const provenance = {
     _type: 'https://in-toto.io/Statement/v0.1',

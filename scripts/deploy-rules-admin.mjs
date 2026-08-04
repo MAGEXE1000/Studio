@@ -1,17 +1,7 @@
-import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-
-// Dyn-install firebase-admin if not present
-try {
-  await import('firebase-admin/app');
-} catch (e) {
-  console.log('[rules-deployer] Installing firebase-admin using pnpm...');
-  execSync('pnpm add -w firebase-admin', { stdio: 'inherit' });
-}
-
-const appModule = await import('firebase-admin/app');
-const rulesModule = await import('firebase-admin/security-rules');
+import * as appModule from 'firebase-admin/app';
+import * as rulesModule from 'firebase-admin/security-rules';
 
 const saJson = process.env.FIREBASE_SERVICE_ACCOUNT;
 if (!saJson) {

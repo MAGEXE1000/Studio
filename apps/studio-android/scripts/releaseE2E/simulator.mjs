@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { getAppVersionInfo } from '../../../../scripts/parse-version.mjs';
 
 export function simulateGitHubRelease(version = '4.3.55') {
   return {
@@ -42,7 +43,7 @@ export function simulateFirebaseMetadata(version = '4.3.55', sandbox) {
     apkUrl: `https://github.com/MAGEXE1000/Studio/releases/download/v${version}/studio-${version}.apk`,
     sha256: '032bc2a0132388558d9bbe8956ed4047e5e1dfb5d528222989d6b5cd927d1f7f',
     apkSha256: '032bc2a0132388558d9bbe8956ed4047e5e1dfb5d528222989d6b5cd927d1f7f',
-    signatures: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+    signatures: getAppVersionInfo().productionSigningSha256,
   };
 
   const jsonPath = sandbox.resolvePath('app-release.json');
@@ -67,7 +68,7 @@ export function simulateSimulatedManifest(version = '4.3.55', sandbox) {
       filename: `studio-${version}.apk`,
       sizeBytes: 52607278,
       sha256: '032bc2a0132388558d9bbe8956ed4047e5e1dfb5d528222989d6b5cd927d1f7f',
-      signingCertFingerprint: '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+      signingCertFingerprint: getAppVersionInfo().productionSigningSha256,
     },
   };
 

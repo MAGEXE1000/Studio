@@ -4,11 +4,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
+import { getAppVersionInfo } from './parse-version.mjs';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
 // 1. Authoritative Expected Production Certificate
-const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+const HARDCODED_PROD_FINGERPRINT = getAppVersionInfo().productionSigningSha256;
 const EXPECTED_FINGERPRINT = (
   process.env.EXPECTED_SIGNATURE_SHA256 || HARDCODED_PROD_FINGERPRINT
 ).toLowerCase().replace(/:/g, '').trim();

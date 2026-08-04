@@ -26,6 +26,7 @@ import { verifyDependencyLocks } from '../../../scripts/verify-dependency-locks.
 import { manageArtifactRetention } from '../../../scripts/manage-artifact-retention.mjs';
 import { generateReleaseHealth } from '../../../scripts/generate-release-health.mjs';
 import { generateDependencyReport } from '../../../scripts/generate-dependency-report.mjs';
+import { getAppVersionInfo } from '../../../scripts/parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(__dirname, '..');
@@ -53,43 +54,18 @@ const otaBase = 'https://studio-30f44.web.app';
 const firebasePublicDir = path.join(repoRoot, 'firebase-public');
 const firebaseOtaDir = path.join(firebasePublicDir, 'ota');
 
-// â”€â”€ Parse NATIVE_VERSION in packages/studio-core/src/lib/startup/appVersion.ts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const appVersionPath = path.join(
-  repoRoot,
-  'packages',
-  'studio-core',
-  'src',
-  'lib',
-  'startup',
-  'appVersion.ts'
-);
+// —— Parse NATIVE_VERSION in packages/studio-core/src/lib/startup/appVersion.ts ————————
 let version = '0.0.0';
-if (existsSync(appVersionPath)) {
-  const versionSrc = readFileSync(appVersionPath, 'utf8');
-  const nativeVersionMatches = [
-    ...versionSrc.matchAll(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/g),
-  ];
-  if (nativeVersionMatches.length !== 1) {
-    console.error('release-firebase: âœ— Unable to resolve NATIVE_VERSION from appVersion.ts');
-    process.exit(1);
-  }
-  const currentVersion = nativeVersionMatches[0][1];
-  const semverRegex =
-    /^\d+\.\d+\.\d+(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
-  if (!semverRegex.test(currentVersion)) {
-    console.error(
-      `release-firebase: âœ— Invalid semantic version format for NATIVE_VERSION: ${currentVersion}`
-    );
-    process.exit(1);
-  }
-  version = currentVersion;
+try {
+  const versionInfo = getAppVersionInfo();
+  version = versionInfo.nativeVersion;
   const versionArgIndex = process.argv.indexOf('--version');
   if (versionArgIndex !== -1 && process.argv[versionArgIndex + 1]) {
     version = process.argv[versionArgIndex + 1];
   }
   console.log(`release-firebase: → Single source of truth version: ${version}`);
-} else {
-  console.error(`release-firebase: ✗ appVersion.ts does not exist at ${appVersionPath}`);
+} catch (err) {
+  console.error(`release-firebase: ✗ Failed to get native version: ${err.message}`);
   process.exit(1);
 }
 
@@ -348,19 +324,21 @@ if (syncResult.status !== 0) {
   process.exit(syncResult.status ?? 1);
 }
 
-console.log('release-firebase: â†’ Running AppInstaller contract validation...');
-const validateArgs = ['scripts/validate-app-installer.mjs', '--allow-missing-apk'];
-if (isDevPreview) {
-  validateArgs.push('--development-preview');
-}
-const validateResult = spawnSync('node', validateArgs, {
-  cwd: pkgRoot,
-  stdio: 'inherit',
-  shell: process.platform === 'win32',
-});
-if (validateResult.status !== 0) {
-  console.error('release-firebase: âœ— AppInstaller contract validation failed!');
-  process.exit(validateResult.status ?? 1);
+if (validateOnly) {
+  console.log('release-firebase: → Running AppInstaller contract validation...');
+  const validateArgs = ['scripts/validate-app-installer.mjs', '--allow-missing-apk'];
+  if (isDevPreview) {
+    validateArgs.push('--development-preview');
+  }
+  const validateResult = spawnSync('node', validateArgs, {
+    cwd: pkgRoot,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+  });
+  if (validateResult.status !== 0) {
+    console.error('release-firebase: ✗ AppInstaller contract validation failed!');
+    process.exit(validateResult.status ?? 1);
+  }
 }
 
 function run(cmd, args, extraEnv = {}) {
@@ -444,7 +422,7 @@ if (!isDevPreview) {
       process.env.EXPECTED_SIGNATURE_SHA256
         ? process.env.EXPECTED_SIGNATURE_SHA256.replace(/:/g, '').toLowerCase()
         : (process.env.REINSTALL_REQUIRED === 'true'
-          ? '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206'
+          ? getAppVersionInfo().productionSigningSha256
           : expectedSig);
 
     console.log(`release-firebase: Expected production SHA-256:                     ${targetSig}`);
@@ -607,15 +585,6 @@ if (appInstallerValidateResult.status !== 0) {
 
 // Step 5: Validate APK metadata
 console.log('Step 5/15: Validate APK metadata...');
-gradleVersionName = '';
-gradleVersionCode = 0;
-if (existsSync(gradlePath)) {
-  const gradleSrc = readFileSync(gradlePath, 'utf8');
-  const nameMatch = gradleSrc.match(/versionName\s+['"]([^'"]+)['"]/);
-  const codeMatch = gradleSrc.match(/versionCode\s+(\d+)/);
-  if (nameMatch) gradleVersionName = nameMatch[1];
-  if (codeMatch) gradleVersionCode = parseInt(codeMatch[1], 10);
-}
 console.log(
   `release-firebase: build.gradle versionName = ${gradleVersionName}, versionCode = ${gradleVersionCode}`
 );
@@ -696,10 +665,10 @@ if (androidHome && existsSync(path.join(androidHome, 'build-tools'))) {
         process.exit(1);
       }
       const fingerprint = sha256Match[1].toLowerCase();
-      const HARDCODED_PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
-      if (fingerprint !== HARDCODED_PROD_FINGERPRINT) {
+      const expectedFingerprint = getAppVersionInfo().productionSigningSha256;
+      if (fingerprint !== expectedFingerprint) {
         console.error(
-          `release-firebase: ✗ CRITICAL SECURITY FAILURE: APK signature fingerprint mismatch! Expected official production signature ${HARDCODED_PROD_FINGERPRINT}, got ${fingerprint}`
+          `release-firebase: ✗ CRITICAL SECURITY FAILURE: APK signature fingerprint mismatch! Expected official production signature ${expectedFingerprint}, got ${fingerprint}`
         );
         process.exit(1);
       }

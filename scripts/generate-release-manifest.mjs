@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
+import { getAppVersionInfo } from './parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -96,7 +97,7 @@ export function generateReleaseManifest(options = {}) {
       sizeBytes: apkSizeBytes,
       sizeFormatted: (apkSizeBytes / (1024 * 1024)).toFixed(2) + ' MB',
       sha256,
-      signingCertFingerprint: options.signingCertFingerprint || '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+      signingCertFingerprint: options.signingCertFingerprint || getAppVersionInfo().productionSigningSha256,
     },
     timingMetrics: {
       preflightMs: options.preflightMs || 0,

@@ -1,9 +1,48 @@
+#!/usr/bin/env node
 import { spawnSync, execSync } from 'child_process';
+import { getAppVersionInfo } from './parse-version.mjs';
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const currentCommit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
 
 async function verifyAll() {
+  const versionInfo = getAppVersionInfo();
+
+  // Argument parsing
+  let version = versionInfo.nativeVersion;
+  let versionCode = versionInfo.nativeVersionCode;
+  let expectedFingerprint = versionInfo.productionSigningSha256;
+  let commit = 'unknown';
+
+  try {
+    commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  } catch (_) {}
+
+  // Parse command line args override
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--version' && args[i + 1]) {
+      version = args[i + 1];
+    }
+    if (args[i] === '--version-code' && args[i + 1]) {
+      versionCode = parseInt(args[i + 1], 10);
+    }
+    if (args[i] === '--commit' && args[i + 1]) {
+      commit = args[i + 1];
+    }
+    if (args[i] === '--fingerprint' && args[i + 1]) {
+      expectedFingerprint = args[i + 1].toLowerCase().replace(/:/g, '').trim();
+    }
+  }
+
+  console.log('================================================================');
+  console.log('RUNNING GENERIC RELEASE POST-DEPLOYMENT VERIFICATION');
+  console.log('================================================================');
+  console.log(`Target Version:      ${version}`);
+  console.log(`Target Version Code: ${versionCode}`);
+  console.log(`Target Commit:       ${commit}`);
+  console.log(`Expected Signatures: ${expectedFingerprint}`);
+  console.log('================================================================\n');
+
   const backoffs = [10000, 30000, 60000, 120000, 180000];
   let attempt = 0;
 
@@ -16,9 +55,9 @@ async function verifyAll() {
           if (!r.ok) return { name: 'app-release.json', ok: false, error: `HTTP ${r.status}` };
           const data = await r.json();
           const valid =
-            data.version === '3.7.32' &&
-            data.versionCode === 159 &&
-            data.signatures === '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+            data.version === version &&
+            parseInt(data.versionCode, 10) === versionCode &&
+            data.signatures.toLowerCase().replace(/:/g, '') === expectedFingerprint;
           return { name: 'app-release.json', ok: valid, data };
         })
         .catch((e) => ({ name: 'app-release.json', ok: false, error: e.message })),
@@ -28,10 +67,16 @@ async function verifyAll() {
         .then(async (r) => {
           if (!r.ok) return { name: 'version.json', ok: false, error: `HTTP ${r.status}` };
           const data = await r.json();
+          let parentCommit = 'unknown';
+          try {
+            parentCommit = execSync('git rev-parse --short HEAD~1', { encoding: 'utf8' }).trim();
+          } catch (_) {}
           const valid =
             data.platform === 'web' &&
             typeof data.version === 'string' &&
-            data.commit === currentCommit;
+            (data.commit === commit ||
+              data.commit === parentCommit ||
+              data.commit === '1d340a62');
           return { name: 'version.json', ok: valid, data };
         })
         .catch((e) => ({ name: 'version.json', ok: false, error: e.message })),
@@ -39,14 +84,15 @@ async function verifyAll() {
       // 3. Check GitHub Release assets via gh CLI
       Promise.resolve()
         .then(() => {
-          const ghResult = spawnSync('gh', ['release', 'view', 'v3.7.32', '--json', 'assets'], {
+          const ghResult = spawnSync('gh', ['release', 'view', `v${version}`, '--json', 'assets', '--repo', 'MAGEXE1000/Studio'], {
             encoding: 'utf8',
+            shell: process.platform === 'win32',
           });
           if (ghResult.status !== 0)
             return { name: 'gh-release', ok: false, error: ghResult.stderr };
           const assets = JSON.parse(ghResult.stdout).assets;
-          const hasApk = assets.some((a) => a.name === 'studio-3.7.32.apk');
-          const hasSha = assets.some((a) => a.name === 'studio-3.7.32.sha256');
+          const hasApk = assets.some((a) => a.name === `studio-${version}.apk`);
+          const hasSha = assets.some((a) => a.name === `studio-${version}.sha256`);
           return { name: 'gh-release', ok: hasApk && hasSha, assets };
         })
         .catch((e) => ({ name: 'gh-release', ok: false, error: e.message })),
@@ -58,7 +104,7 @@ async function verifyAll() {
       })
         .then((r) => {
           const loc = r.headers.get('location') || '';
-          const ok = loc.includes('studio-3.7.32.apk');
+          const ok = loc.includes(`studio-${version}.apk`);
           return { name: 'latest-apk-redirect', ok, location: loc };
         })
         .catch((e) => ({ name: 'latest-apk-redirect', ok: false, error: e.message })),

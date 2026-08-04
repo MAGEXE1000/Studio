@@ -3,11 +3,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { getAndroidTool } from '../../validate-app-installer.mjs';
+import { getAppVersionInfo } from '../../../../../scripts/parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, '../../..');
 const apkPath = path.join(appRoot, 'android/app/build/outputs/apk/release/app-release.apk');
-const PROD_FINGERPRINT = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+const PROD_FINGERPRINT = getAppVersionInfo().productionSigningSha256;
 
 export async function checkSignature(options = {}) {
   const execFn = options.execFn || execSync;

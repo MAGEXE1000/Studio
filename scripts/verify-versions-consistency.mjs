@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { getAppVersionInfo } from './parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -27,21 +28,9 @@ const paths = {
 console.log('=== RUNNING MULTI-MANIFEST VERSION CONSISTENCY CHECK ===');
 
 // 1. Single Source of Truth: appVersion.ts
-if (!fs.existsSync(paths.appVersionTs)) {
-  console.error(`::error::VERSION CONSISTENCY FAILURE: appVersion.ts not found at ${paths.appVersionTs}`);
-  process.exit(1);
-}
-const appVersionSrc = fs.readFileSync(paths.appVersionTs, 'utf8');
-const webVersionMatch = appVersionSrc.match(/export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/);
-const nativeVersionMatch = appVersionSrc.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/);
-
-if (!webVersionMatch || !nativeVersionMatch) {
-  console.error('::error::VERSION CONSISTENCY FAILURE: Could not parse WEB_VERSION or NATIVE_VERSION from appVersion.ts');
-  process.exit(1);
-}
-
-const EXPECTED_VERSION = nativeVersionMatch[1];
-const EXPECTED_WEB_VERSION = webVersionMatch[1];
+const versionInfo = getAppVersionInfo();
+const EXPECTED_VERSION = versionInfo.nativeVersion;
+const EXPECTED_WEB_VERSION = versionInfo.webVersion;
 
 if (EXPECTED_VERSION !== EXPECTED_WEB_VERSION) {
   console.error(`::error::VERSION CONSISTENCY FAILURE: NATIVE_VERSION (${EXPECTED_VERSION}) and WEB_VERSION (${EXPECTED_WEB_VERSION}) in appVersion.ts disagree!`);
@@ -50,9 +39,8 @@ if (EXPECTED_VERSION !== EXPECTED_WEB_VERSION) {
 
 console.log(`Single Source of Truth Version: ${EXPECTED_VERSION}`);
 
-// Calculate expected versionCode
-const vParts = EXPECTED_VERSION.split('.').map(Number);
-const EXPECTED_VERSION_CODE = vParts[0] * 10000 + vParts[1] * 100 + vParts[2];
+// Expected versionCode
+const EXPECTED_VERSION_CODE = versionInfo.nativeVersionCode;
 
 function assertVersion(filePath, detectedVersion, label) {
   if (detectedVersion !== EXPECTED_VERSION) {

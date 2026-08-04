@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { getAppVersionInfo } from '../../../scripts/parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, '..');
@@ -46,43 +47,13 @@ if (validateResult.status !== 0) {
   process.exit(status ?? 1);
 }
 
-const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
 const versionJsonPath = path.join(repoRoot, 'firebase-public/version.json');
 const appReleaseJsonPath = path.join(repoRoot, 'firebase-public/app-release.json');
 
-// Get version from appVersion.ts
-const src = fs.readFileSync(appVersionPath, 'utf8');
-const nativeVersionMatches = [
-  ...src.matchAll(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/g),
-];
-if (nativeVersionMatches.length !== 1) {
-  console.error(
-    'generate-release-metadata: âœ— Unable to resolve NATIVE_VERSION from appVersion.ts'
-  );
-  process.exit(1);
-}
-const version = nativeVersionMatches[0][1];
-const semverRegex =
-  /^\d+\.\d+\.\d+(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
-if (!semverRegex.test(version)) {
-  console.error(
-    `generate-release-metadata: âœ— Invalid semantic version format for NATIVE_VERSION: ${version}`
-  );
-  process.exit(1);
-}
-
-const webVersionMatches = [...src.matchAll(/export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/g)];
-if (webVersionMatches.length !== 1) {
-  console.error('generate-release-metadata: âœ— Unable to resolve WEB_VERSION from appVersion.ts');
-  process.exit(1);
-}
-const webVersion = webVersionMatches[0][1];
-if (!semverRegex.test(webVersion)) {
-  console.error(
-    `generate-release-metadata: âœ— Invalid semantic version format for WEB_VERSION: ${webVersion}`
-  );
-  process.exit(1);
-}
+// Get version from appVersion.ts using parse-version utility
+const versionInfo = getAppVersionInfo();
+const version = versionInfo.nativeVersion;
+const webVersion = versionInfo.webVersion;
 
 // Read changelog description and releaseNotes from temp notes JSON if it exists, otherwise from version.json
 let description = `Release v${version}`;
@@ -292,12 +263,12 @@ try {
 // Get signature
 const expectedSignature =
   process.env.EXPECTED_SIGNATURE_SHA256 ||
-  '90:0C:F2:59:18:5C:81:10:0C:DA:8B:B0:85:71:FA:23:55:2E:97:89:13:1C:F0:7A:8F:40:56:E4:D4:12:92:06';
+  getAppVersionInfo().productionSigningSha256;
 let signatures = expectedSignature.replace(/:/g, '').toLowerCase();
 const reinstallRequired = process.env.REINSTALL_REQUIRED === 'true';
 
 if (reinstallRequired) {
-  signatures = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+  signatures = getAppVersionInfo().productionSigningSha256;
 }
 
 // Get previous required version code and version name to carry forward if releaseType is 'ota'
@@ -364,7 +335,7 @@ if (reinstallRequired) {
   androidMetadata.previousSignatureSha256 =
     '58b9bf2de5064c62ac3ca181b5608fe135c6894a8359ff6588e19218cd384764';
   androidMetadata.newSignatureSha256 =
-    '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+    getAppVersionInfo().productionSigningSha256;
 }
 
 // Get commit SHA and build timestamp dynamically from Git if possible

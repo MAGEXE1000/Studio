@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getAppVersionInfo } from './parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -28,7 +29,7 @@ export function appendReleaseHistory(releaseRecord) {
     tag: releaseRecord.tag || `v${releaseRecord.version || '4.2.7'}`,
     apkFilename: releaseRecord.apkFilename || `studio-${releaseRecord.version || '4.2.7'}.apk`,
     apkSizeBytes: releaseRecord.apkSizeBytes || 15687420,
-    sha256: releaseRecord.sha256 || '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206',
+    sha256: releaseRecord.sha256 || getAppVersionInfo().productionSigningSha256,
     buildDurationMs: releaseRecord.buildDurationMs || 0,
     pipelineDurationMs: releaseRecord.pipelineDurationMs || 0,
     status: releaseRecord.status || 'SUCCESSFUL',

@@ -34,7 +34,7 @@ jobs:
   # JOB 1: PREFLIGHT & FAIL-FAST VALIDATION (~10 seconds)
   # =========================================================================
   preflight:
-    name: 1. Preflight & Fail-Fast Validation
+    name: 1. Preflight
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -184,7 +184,7 @@ jobs:
           if [ "$RELEASE_TYPE" = "prerelease" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
-          node scripts/release-firebase.mjs $PRERELEASE_FLAG > build.log 2>&1 || {
+          node scripts/release-firebase.mjs --dry-run $PRERELEASE_FLAG > build.log 2>&1 || {
             status=$?
             echo "::error::Android release script failed with status $status"
             cat build.log
@@ -221,13 +221,22 @@ jobs:
             release-verification-report.md
           retention-days: 1
 
+      - name: Upload Release APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: apps/studio-android/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 1
+
   # =========================================================================
-  # JOB 4: PUBLISH, DEPLOY & REPORT (~20 seconds)
+  # JOB 3: PUBLISH (~20 seconds)
   # =========================================================================
-  publish_and_deploy:
-    name: 4. Publish, Deploy & Report
+  publish:
+    name: 3. Publish
     needs: build_and_package
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v7
         with:
@@ -244,6 +253,9 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Download Firebase Hosting Metadata Artifact
         uses: actions/download-artifact@v4
         with:
@@ -254,6 +266,29 @@ jobs:
         run: |
           rm -rf firebase-public
           mv firebase-public-metadata-temp firebase-public
+
+      - name: Download Release APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk
+          path: release-apk-temp
+
+      - name: Position APK for Release
+        run: |
+          mkdir -p apps/studio-android/android/app/build/outputs/apk/release
+          mv release-apk-temp/app-release.apk apps/studio-android/android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Run Release Publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          cd apps/studio-android
+          PRERELEASE_FLAG=""
+          if [ "$RELEASE_TYPE" = "prerelease" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          node scripts/release-firebase.mjs --skip-build $PRERELEASE_FLAG
 
       - name: Deploy Update Metadata to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

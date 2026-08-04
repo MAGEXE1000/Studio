@@ -448,36 +448,40 @@ if (!isDevPreview) {
 }
 
 // â”€â”€ Build PWA for Firebase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-console.log(`release-firebase: â†’ Building Vite application for Firebase Hosting...`);
-run('pnpm', ['build'], {
-  VITE_OTA_BASE_URL: otaBase,
-  BASE_PATH: '/',
-});
+if (!skipBuild) {
+  console.log(`release-firebase: â†’ Building Vite application for Firebase Hosting...`);
+  run('pnpm', ['build'], {
+    VITE_OTA_BASE_URL: otaBase,
+    BASE_PATH: '/',
+  });
 
-const distDir = path.resolve(repoRoot, 'dist', 'android-web');
-if (!existsSync(distDir)) {
-  console.error(`release-firebase: âœ— Build output ${distDir} does not exist.`);
-  process.exit(1);
-}
+  const distDir = path.resolve(repoRoot, 'dist', 'android-web');
+  if (!existsSync(distDir)) {
+    console.error(`release-firebase: âœ— Build output ${distDir} does not exist.`);
+    process.exit(1);
+  }
 
-// Zipping OTA bundle is disabled. All updates are delivered as complete signed APKs.
+  // Zipping OTA bundle is disabled. All updates are delivered as complete signed APKs.
 
-// â”€â”€ Copy all web assets into the Firebase public directory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-console.log(`release-firebase: â†’ Copying assets from dist/android-web to firebase-public`);
-function copyTree(srcRoot, dstRoot, skip = new Set()) {
-  for (const entry of readdirSync(srcRoot, { withFileTypes: true })) {
-    if (skip.has(entry.name)) continue;
-    const s = path.join(srcRoot, entry.name);
-    const d = path.join(dstRoot, entry.name);
-    if (entry.isDirectory()) {
-      mkdirSync(d, { recursive: true });
-      copyTree(s, d, skip);
-    } else if (entry.isFile()) {
-      copyFileSync(s, d);
+  // â”€â”€ Copy all web assets into the Firebase public directory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  console.log(`release-firebase: â†’ Copying assets from dist/android-web to firebase-public`);
+  function copyTree(srcRoot, dstRoot, skip = new Set()) {
+    for (const entry of readdirSync(srcRoot, { withFileTypes: true })) {
+      if (skip.has(entry.name)) continue;
+      const s = path.join(srcRoot, entry.name);
+      const d = path.join(dstRoot, entry.name);
+      if (entry.isDirectory()) {
+        mkdirSync(d, { recursive: true });
+        copyTree(s, d, skip);
+      } else if (entry.isFile()) {
+        copyFileSync(s, d);
+      }
     }
   }
+  copyTree(distDir, firebasePublicDir, new Set(['bundles', 'version.json', 'app-release.json']));
+} else {
+  console.log('release-firebase: â†’ Skip PWA build & copy: --skip-build flag is active.');
 }
-copyTree(distDir, firebasePublicDir, new Set(['bundles', 'version.json', 'app-release.json']));
 
 // (Changelog has been validated and parsed early)
 

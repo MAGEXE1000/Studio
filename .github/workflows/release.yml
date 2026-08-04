@@ -41,7 +41,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
-          filter: blob:none
 
       - name: Assert Required Environment Secrets
         run: |
@@ -131,7 +130,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
-          filter: blob:none
 
       - uses: pnpm/action-setup@v6
         with:
@@ -242,7 +240,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
-          filter: blob:none
 
       - uses: pnpm/action-setup@v6
         with:

@@ -355,7 +355,7 @@ function run(cmd, args, extraEnv = {}) {
 }
 
 // â”€â”€ Signing preflight â€” fail fast before expensive builds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-if (!isDevPreview) {
+if (!isDevPreview && !skipBuild) {
   console.log('release-firebase: â†’ Running signing preflight...');
   const ksPath = path.join(pkgRoot, 'android', 'app', 'release.keystore');
   const ksAlias = (process.env.ANDROID_KEY_ALIAS || '').trim();

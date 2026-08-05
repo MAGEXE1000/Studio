@@ -1,6 +1,6 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth, setPersistence, browserLocalPersistence, GoogleAuthProvider } from 'firebase/auth';
-import { initializeFirestore, type Firestore } from 'firebase/firestore';
+import { initializeFirestore, enableMultiTabIndexedDbPersistence, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import bundledConfig from '../../../firebase.config.json';
 
@@ -58,6 +58,11 @@ function init() {
     _auth = getAuth(_app);
     _db = initializeFirestore(_app, {
       experimentalForceLongPolling: true,
+    });
+    // Enable offline persistence so reads don't fail with 'unavailable' during
+    // momentary network interruptions (especially on Android/Capacitor).
+    enableMultiTabIndexedDbPersistence(_db).catch((err) => {
+      console.warn('[firebase] offline persistence not enabled:', err.code || err.message);
     });
     _storage = getStorage(_app);
     setPersistence(_auth, browserLocalPersistence).catch(console.warn);

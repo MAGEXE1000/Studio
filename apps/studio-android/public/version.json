@@ -1,29 +1,24 @@
 {
   "platform": "android",
-  "version": "4.3.69",
-  "versionName": "4.3.69",
-  "versionCode": 40390,
-  "version_code": 40390,
-  "commit": "42c13ef4",
-  "releasedAt": "8/4/2026, 7:07:09 PM CST",
-  "buildTimestamp": "8/4/2026, 7:07:09 PM CST",
+  "version": "4.3.70",
+  "versionName": "4.3.70",
+  "versionCode": 40391,
+  "version_code": 40391,
+  "commit": "f191b963",
+  "releasedAt": "8/4/2026, 7:40:47 PM CST",
+  "buildTimestamp": "8/4/2026, 7:40:47 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed git tag fallback in releaseState.mjs for baseline resolution.\n• Fixed prevVersion self-referencing check in releaseState.mjs.\n• Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
-  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed git tag fallback in releaseState.mjs for baseline resolution.\n• Fixed prevVersion self-referencing check in releaseState.mjs.\n• Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
+  "changelog": "• Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.\n• Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.\n• Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.\n• Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.\n• Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.\n• Enforced presence user ownership in Firestore security rules.\n• Added auto-leave handler on auth state sign-out in CollaborationService.",
+  "whatsNew": "• Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.\n• Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.\n• Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.\n• Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.\n• Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.\n• Enforced presence user ownership in Firestore security rules.\n• Added auto-leave handler on auth state sign-out in CollaborationService.",
   "releaseNotes": {
-    "added": [
-      "Refactored release infrastructure to use parse-version single source of truth.",
-      "Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.",
-      "Replaced version-locked verifier scripts with a single parameterized post-release checker.",
-      "Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.",
-      "Fixed GHA checkout latency by removing blobless clone filters.",
-      "Fixed missing Supabase environment variables in Job 3 Publish step.",
-      "Fixed signing preflight conditional check during --skip-build execution.",
-      "Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.",
-      "Fixed release baseline resolution to exclude current release tag during contract validation.",
-      "Fixed git tag fallback in releaseState.mjs for baseline resolution.",
-      "Fixed prevVersion self-referencing check in releaseState.mjs.",
-      "Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs."
+    "fixed": [
+      "Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.",
+      "Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.",
+      "Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.",
+      "Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.",
+      "Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.",
+      "Enforced presence user ownership in Firestore security rules.",
+      "Added auto-leave handler on auth state sign-out in CollaborationService."
     ]
   },
   "mandatory": false

@@ -10,13 +10,7 @@ export function deserializeStage(
   for (const key of STAGEX_KEYS) {
     try {
       const val = snapshot[key];
-      if (val == null) {
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(key);
-        }
-      } else {
-        secureWriteLocal(key, val, userUid);
-      }
+      secureWriteLocal(key, val, userUid);
     } catch (e) {
       console.warn(`[StageDeserializer] Failed to write key ${key}:`, e);
     }

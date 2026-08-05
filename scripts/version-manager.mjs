@@ -66,8 +66,12 @@ function updateAndroid(versionName, versionCode) {
       /export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/,
       `export const NATIVE_VERSION = '${versionName}'`
     );
+    content = content.replace(
+      /export\s+const\s+NATIVE_VERSION_CODE\s*=\s*\d+/,
+      `export const NATIVE_VERSION_CODE = ${code}`
+    );
     fs.writeFileSync(appVersionPath, content, 'utf8');
-    console.log(`✓ Updated NATIVE_VERSION in appVersion.ts to: ${versionName}`);
+    console.log(`✓ Updated NATIVE_VERSION and NATIVE_VERSION_CODE in appVersion.ts to: ${versionName} (${code})`);
   } else {
     console.error(`Error: appVersion.ts not found at ${appVersionPath}`);
     process.exit(1);

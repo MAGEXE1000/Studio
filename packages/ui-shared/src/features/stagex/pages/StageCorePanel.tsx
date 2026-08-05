@@ -610,11 +610,20 @@ export default function StagexPanel() {
     const unsubRoom = service.subscribeRoom(setCollabRoom);
     const unsubPresence = service.subscribePresence(setCollabParticipants);
 
+    // Clean up collaboration session when the browser/tab is closed
+    const handleBeforeUnload = () => {
+      service.leaveRoom();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     return () => {
       unsubAuth();
       unsubState();
       unsubRoom();
       unsubPresence();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Leave the room on unmount to stop Firestore listeners and heartbeat
+      service.leaveRoom();
     };
   }, []);
 

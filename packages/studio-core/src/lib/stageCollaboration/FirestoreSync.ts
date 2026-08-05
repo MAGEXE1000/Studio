@@ -3,6 +3,7 @@ import {
   onSnapshot, 
   query, 
   orderBy,
+  where,
   type Unsubscribe 
 } from 'firebase/firestore';
 import { getFirebaseDb } from '../firebase';
@@ -15,14 +16,23 @@ export class FirestoreSync {
     return db;
   }
 
+  /**
+   * Subscribe to operations in a room.
+   * @param sinceTimestamp Only receive operations with timestamp > this value.
+   *   Pass 0 (default) to receive all future operations. Pass Date.now() when
+   *   joining an existing room to avoid replaying the entire operation history.
+   */
   static subscribeOperations(
     roomId: string, 
     onOpAdded: (op: StageOperation) => void,
-    onError?: (err: Error) => void
+    onError?: (err: Error) => void,
+    sinceTimestamp: number = 0
   ): Unsubscribe {
     const db = this.getDb();
     const opsCol = collection(db, 'rooms', roomId, 'operations');
-    const opsQuery = query(opsCol, orderBy('timestamp', 'asc'));
+    const opsQuery = sinceTimestamp > 0
+      ? query(opsCol, where('timestamp', '>', sinceTimestamp), orderBy('timestamp', 'asc'))
+      : query(opsCol, orderBy('timestamp', 'asc'));
 
     return onSnapshot(opsQuery, (snap) => {
       snap.docChanges().forEach((change) => {

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.69';
-export const NATIVE_VERSION_CODE = 40390;
-export const WEB_VERSION = '4.3.69';
+export const NATIVE_VERSION = '4.3.70';
+export const NATIVE_VERSION_CODE = 40391;
+export const WEB_VERSION = '4.3.70';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '42c13ef4';
+export const APP_COMMIT_SHA = 'f191b963';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/4/2026, 7:07:09 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/4/2026, 7:40:47 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,20 +96,15 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Refactored release infrastructure to use parse-version single source of truth.",
-      "Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.",
-      "Replaced version-locked verifier scripts with a single parameterized post-release checker.",
-      "Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.",
-      "Fixed GHA checkout latency by removing blobless clone filters.",
-      "Fixed missing Supabase environment variables in Job 3 Publish step.",
-      "Fixed signing preflight conditional check during --skip-build execution.",
-      "Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.",
-      "Fixed release baseline resolution to exclude current release tag during contract validation.",
-      "Fixed git tag fallback in releaseState.mjs for baseline resolution.",
-      "Fixed prevVersion self-referencing check in releaseState.mjs.",
-      "Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
+      "Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.",
+      "Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.",
+      "Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.",
+      "Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.",
+      "Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.",
+      "Enforced presence user ownership in Firestore security rules.",
+      "Added auto-leave handler on auth state sign-out in CollaborationService.",
     ],
   },
 ];

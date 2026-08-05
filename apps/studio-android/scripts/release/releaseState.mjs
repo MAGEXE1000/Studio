@@ -56,8 +56,10 @@ export async function evaluatePreviousReleaseState(options = {}) {
   }
 
   // 2. Query GitHub Source of Truth for exact Firebase version
+  const currentVersion = options.currentVersion || options.excludeTag;
+  const excludeTag = currentVersion ? (currentVersion.startsWith('v') ? currentVersion : `v${currentVersion}`) : null;
   const ghRelease = await fetchGitHubReleaseInfo(prevVersion, { fetchFn, execFn });
-  const latestRelease = await fetchGitHubReleaseInfo('latest', { fetchFn, execFn });
+  const latestRelease = await fetchGitHubReleaseInfo('latest', { fetchFn, execFn, excludeTag });
   const latestGithubVer = latestRelease.exists ? latestRelease.data?.tagName?.replace(/^v/, '') : null;
 
   // 3. CASE C: Incomplete Deployment (Firebase points to version X, but GitHub Release tag is missing)

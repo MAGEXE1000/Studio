@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import AdmZip from 'adm-zip';
 import { evaluatePreviousReleaseState } from './release/index.mjs';
+import { getAppVersionInfo } from './sync-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(__dirname, '..');
@@ -251,7 +252,7 @@ export async function runValidation() {
   let prevPackageName = '';
   let prevSignature = '';
   if (fs.existsSync(paths.apkPath)) {
-    const evalResult = await evaluatePreviousReleaseState();
+    const evalResult = await evaluatePreviousReleaseState({ currentVersion: getAppVersionInfo().version });
     if (!evalResult.pass) {
       assert(
         false,

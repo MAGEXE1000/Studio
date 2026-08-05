@@ -10,6 +10,8 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
   const isLatestQuery = tag === 'latest' || tag === 'latest-release';
   const targetTag = isLatestQuery ? 'latest' : (tag.startsWith('v') ? tag : `v${tag}`);
 
+  const excludeTag = options.excludeTag ? (options.excludeTag.startsWith('v') ? options.excludeTag : `v${options.excludeTag}`) : null;
+
   let releaseData = null;
   let releaseExists = false;
   let provider = 'None';
@@ -22,32 +24,63 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
     };
     if (token) headers.Authorization = `token ${token}`;
 
-    const endpoint = isLatestQuery
-      ? `https://api.github.com/repos/${REPO_SLUG}/releases/latest`
-      : `https://api.github.com/repos/${REPO_SLUG}/releases/tags/${targetTag}`;
+    if (isLatestQuery && excludeTag) {
+      const endpoint = `https://api.github.com/repos/${REPO_SLUG}/releases?per_page=10`;
+      const apiRes = await fetchFn(endpoint, { headers });
+      if (apiRes.ok) {
+        const releasesList = await apiRes.json();
+        const validRel = Array.isArray(releasesList) ? releasesList.find((r) => !r.draft && r.tag_name !== excludeTag) : null;
+        if (validRel) {
+          releaseData = {
+            tagName: validRel.tag_name,
+            name: validRel.name,
+            isDraft: validRel.draft || false,
+            isPrerelease: validRel.prerelease || false,
+            publishedAt: validRel.published_at,
+            assets: Array.isArray(validRel.assets)
+              ? validRel.assets.map((a) => ({
+                  name: a.name,
+                  url: a.browser_download_url,
+                  size: a.size,
+                  contentType: a.content_type,
+                }))
+              : [],
+          };
+          releaseExists = !releaseData.isDraft;
+          provider = 'REST API (List)';
+          return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
+        }
+      }
+    } else {
+      const endpoint = isLatestQuery
+        ? `https://api.github.com/repos/${REPO_SLUG}/releases/latest`
+        : `https://api.github.com/repos/${REPO_SLUG}/releases/tags/${targetTag}`;
 
-    const apiRes = await fetchFn(endpoint, { headers });
+      const apiRes = await fetchFn(endpoint, { headers });
 
-    if (apiRes.ok) {
-      const json = await apiRes.json();
-      releaseData = {
-        tagName: json.tag_name,
-        name: json.name,
-        isDraft: json.draft || false,
-        isPrerelease: json.prerelease || false,
-        publishedAt: json.published_at,
-        assets: Array.isArray(json.assets)
-          ? json.assets.map((a) => ({
-              name: a.name,
-              url: a.browser_download_url,
-              size: a.size,
-              contentType: a.content_type,
-            }))
-          : [],
-      };
-      releaseExists = !releaseData.isDraft;
-      provider = 'REST API';
-      return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
+      if (apiRes.ok) {
+        const json = await apiRes.json();
+        if (!excludeTag || json.tag_name !== excludeTag) {
+          releaseData = {
+            tagName: json.tag_name,
+            name: json.name,
+            isDraft: json.draft || false,
+            isPrerelease: json.prerelease || false,
+            publishedAt: json.published_at,
+            assets: Array.isArray(json.assets)
+              ? json.assets.map((a) => ({
+                  name: a.name,
+                  url: a.browser_download_url,
+                  size: a.size,
+                  contentType: a.content_type,
+                }))
+              : [],
+          };
+          releaseExists = !releaseData.isDraft;
+          provider = 'REST API';
+          return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
+        }
+      }
     }
   } catch (_) {}
 
@@ -96,8 +129,8 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
         const repoData = gqlJson.data?.repository;
         const nodes = repoData?.releases?.nodes || (repoData?.release ? [repoData.release] : []);
         const release = isLatestQuery
-          ? nodes.find((n) => !n.isDraft)
-          : nodes.find((n) => n.tagName === targetTag || (!targetTag.startsWith('v') && n.tagName === `v${targetTag}`));
+          ? nodes.find((n) => !n.isDraft && (!excludeTag || n.tagName !== excludeTag))
+          : nodes.find((n) => (n.tagName === targetTag || (!targetTag.startsWith('v') && n.tagName === `v${targetTag}`)) && (!excludeTag || n.tagName !== excludeTag));
 
         if (release) {
           releaseData = {
@@ -124,9 +157,24 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
   // 3. Fallback: GitHub CLI (Last Resort Only)
   if (!releaseExists) {
     try {
-      const cmd = isLatestQuery
+      let targetCliTag = targetTag;
+      if (isLatestQuery && excludeTag) {
+        const listRaw = execFn(`gh release list --repo ${REPO_SLUG} --limit 10 --json tagName,isDraft`, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore'],
+        });
+        if (listRaw) {
+          const listParsed = JSON.parse(listRaw);
+          const validCliRel = Array.isArray(listParsed) ? listParsed.find((r) => !r.isDraft && r.tagName !== excludeTag) : null;
+          if (validCliRel) {
+            targetCliTag = validCliRel.tagName;
+          }
+        }
+      }
+
+      const cmd = (isLatestQuery && !excludeTag)
         ? `gh release view --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`
-        : `gh release view ${targetTag} --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`;
+        : `gh release view ${targetCliTag} --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`;
 
       const rawJson = execFn(cmd, {
         encoding: 'utf8',
@@ -134,23 +182,25 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
       });
       if (rawJson) {
         const parsed = JSON.parse(rawJson);
-        releaseData = {
-          tagName: parsed.tagName,
-          name: parsed.name,
-          isDraft: parsed.isDraft || false,
-          isPrerelease: parsed.isPrerelease || false,
-          assets: Array.isArray(parsed.assets)
-            ? parsed.assets.map((a) => ({
-                name: a.name,
-                url: a.url,
-                size: a.size || 0,
-                contentType: a.contentType || '',
-              }))
-            : [],
-        };
-        releaseExists = !releaseData.isDraft;
-        provider = 'GitHub CLI Fallback';
-        return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
+        if (!excludeTag || parsed.tagName !== excludeTag) {
+          releaseData = {
+            tagName: parsed.tagName,
+            name: parsed.name,
+            isDraft: parsed.isDraft || false,
+            isPrerelease: parsed.isPrerelease || false,
+            assets: Array.isArray(parsed.assets)
+              ? parsed.assets.map((a) => ({
+                  name: a.name,
+                  url: a.url,
+                  size: a.size || 0,
+                  contentType: a.contentType || '',
+                }))
+              : [],
+          };
+          releaseExists = !releaseData.isDraft;
+          provider = 'GitHub CLI Fallback';
+          return { exists: releaseExists, tag: releaseData.tagName, data: releaseData, provider };
+        }
       }
     } catch (_) {}
   }

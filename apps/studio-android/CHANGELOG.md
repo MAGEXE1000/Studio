@@ -9,7 +9,7 @@ that bundle.
 
 Conventions:
 
-## 4.3.67
+## 4.3.68
 
 Release Date: 2026-08-04
 
@@ -23,6 +23,7 @@ Release Date: 2026-08-04
 - Fixed signing preflight conditional check during --skip-build execution.
 - Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.
 - Fixed release baseline resolution to exclude current release tag during contract validation.
+- Fixed prevVersion self-referencing check in releaseState.mjs.
 - Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.
 
 ## 4.3.55

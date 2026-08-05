@@ -58,7 +58,11 @@ export async function evaluatePreviousReleaseState(options = {}) {
   // 2. Query GitHub Source of Truth for exact Firebase version
   const currentVersion = options.currentVersion || options.excludeTag;
   const excludeTag = currentVersion ? (currentVersion.startsWith('v') ? currentVersion : `v${currentVersion}`) : null;
-  const ghRelease = await fetchGitHubReleaseInfo(prevVersion, { fetchFn, execFn });
+  const cleanCurrentVer = currentVersion ? currentVersion.replace(/^v/, '') : null;
+  const isPrevSameAsCurrent = cleanCurrentVer && prevVersion === cleanCurrentVer;
+  const ghRelease = isPrevSameAsCurrent
+    ? { exists: false, tag: prevVersion, data: null, provider: 'Excluded (Current Release)' }
+    : await fetchGitHubReleaseInfo(prevVersion, { fetchFn, execFn });
   const latestRelease = await fetchGitHubReleaseInfo('latest', { fetchFn, execFn, excludeTag });
   const latestGithubVer = latestRelease.exists ? latestRelease.data?.tagName?.replace(/^v/, '') : null;
 

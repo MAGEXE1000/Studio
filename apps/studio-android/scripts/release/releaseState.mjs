@@ -37,17 +37,21 @@ export async function evaluatePreviousReleaseState(options = {}) {
     return { case: 'CASE_D', pass: true, diagnostic, state: stateMachine.currentState };
   }
 
-  const prevVersion = fbResult.version;
-  if (!prevVersion) {
-    stateMachine.transition(RELEASE_STATES.FIRST_RELEASE, 'No version defined');
-    return { case: 'CASE_D', pass: true, description: 'No previous version defined in Firebase metadata.', state: stateMachine.currentState };
+  const currentVersion = options.currentVersion || options.excludeTag;
+  const cleanCurrentVer = currentVersion ? currentVersion.replace(/^v/, '') : null;
+  const excludeTag = cleanCurrentVer ? `v${cleanCurrentVer}` : null;
+
+  let prevVersion = fbResult.version;
+  // If Firebase metadata version matches the current building version, ignore it for previous baseline resolution
+  if (prevVersion && cleanCurrentVer && prevVersion.replace(/^v/, '') === cleanCurrentVer) {
+    console.log(`releaseState: Firebase metadata version (${prevVersion}) matches building version (${cleanCurrentVer}). Resolving prior release baseline from GitHub...`);
+    prevVersion = null;
   }
 
-  // CASE E: Intentional Version/History Reset
   if (resetConfirmed) {
     stateMachine.transition(RELEASE_STATES.FIRST_RELEASE, 'Explicit RESET_RELEASE_HISTORY');
     const diagnostic = buildDiagnosticReport('CASE_E', {
-      firebaseVersion: prevVersion,
+      firebaseVersion: prevVersion || '(reset)',
       rootCause: 'Explicit confirmation provided (RESET_RELEASE_HISTORY=true). Bypassing previous release comparison by developer directive.',
       isConsistent: true,
     });
@@ -55,10 +59,35 @@ export async function evaluatePreviousReleaseState(options = {}) {
     return { case: 'CASE_E', pass: true, diagnostic, state: stateMachine.currentState };
   }
 
-  // 2. Query GitHub Source of Truth for exact Firebase version
-  const currentVersion = options.currentVersion || options.excludeTag;
-  const excludeTag = currentVersion ? (currentVersion.startsWith('v') ? currentVersion : `v${currentVersion}`) : null;
-  const cleanCurrentVer = currentVersion ? currentVersion.replace(/^v/, '') : null;
+  // 2. Query GitHub Source of Truth for previous release if Firebase didn't yield a distinct prior version
+  if (!prevVersion) {
+    const latestRelease = await fetchGitHubReleaseInfo('latest', { fetchFn, execFn, excludeTag });
+    if (latestRelease.exists && latestRelease.data && latestRelease.data.tagName) {
+      const tagVer = latestRelease.data.tagName.replace(/^v/, '');
+      if (!cleanCurrentVer || tagVer !== cleanCurrentVer) {
+        prevVersion = tagVer;
+      }
+    }
+
+    if (!prevVersion) {
+      try {
+        const rawTags = execFn('git tag --list "v*" --sort=-v:refname', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+        if (rawTags) {
+          const gitTags = rawTags.split('\n').map((t) => t.trim()).filter(Boolean);
+          const validGitTag = gitTags.find((t) => t !== excludeTag && (!cleanCurrentVer || t !== `v${cleanCurrentVer}`));
+          if (validGitTag) {
+            prevVersion = validGitTag.replace(/^v/, '');
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  if (!prevVersion) {
+    stateMachine.transition(RELEASE_STATES.FIRST_RELEASE, 'No prior version found');
+    return { case: 'CASE_D', pass: true, description: 'No previous version found prior to current version.', state: stateMachine.currentState };
+  }
+
   const isPrevSameAsCurrent = cleanCurrentVer && prevVersion === cleanCurrentVer;
   const ghRelease = isPrevSameAsCurrent
     ? { exists: false, tag: prevVersion, data: null, provider: 'Excluded (Current Release)' }
@@ -104,8 +133,11 @@ export async function evaluatePreviousReleaseState(options = {}) {
     // MODE 2 / CI Release Pipeline Recovery:
     const isCiPipeline = process.env.GITHUB_ACTIONS === 'true' || process.env.CI === 'true';
     if (isRecoveryMode || isCiPipeline) {
-      if (latestRelease.exists) {
-        const latestApk = await discoverApkAsset(latestRelease, latestGithubVer, { fetchFn });
+      if (latestGithubVer) {
+        const targetReleaseObj = (latestRelease.data && (latestRelease.data.tagName === `v${latestGithubVer}` || latestRelease.data.tagName === latestGithubVer))
+          ? latestRelease
+          : await fetchGitHubReleaseInfo(latestGithubVer, { fetchFn, execFn });
+        const latestApk = await discoverApkAsset(targetReleaseObj, latestGithubVer, { fetchFn });
         if (latestApk.found) {
           console.log(`\x1b[32m✓ AUTOMATIC RECOVERY ACTIVE: Using last known good published release v${latestGithubVer} for APK baseline comparison.\x1b[0m`);
           return {

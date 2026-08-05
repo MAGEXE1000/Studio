@@ -4,25 +4,30 @@ export async function discoverApkAsset(githubRelease, version, options = {}) {
   const fetchFn = options.fetchFn || globalThis.fetch;
   const targetTag = version.startsWith('v') ? version : `v${version}`;
 
-  // 1. If release assets list is present in githubRelease data, find any asset ending in .apk
+  // 1. If release assets list is present in githubRelease data and matches target tag/version, find any asset ending in .apk
   if (githubRelease && githubRelease.data && Array.isArray(githubRelease.data.assets)) {
-    const apkAsset = githubRelease.data.assets.find((a) =>
-      a.name.toLowerCase().endsWith('.apk') || a.contentType === 'application/vnd.android.package-archive'
-    );
-    if (apkAsset) {
-      const url = apkAsset.url || apkAsset.browser_download_url;
-      let status = 200;
-      try {
-        const head = await fetchFn(url, { method: 'HEAD' });
-        status = head.status;
-      } catch (_) {}
-      return {
-        found: status === 200,
-        name: apkAsset.name,
-        url,
-        status,
-        size: apkAsset.size || 0,
-      };
+    const relTag = githubRelease.data.tagName || githubRelease.tag;
+    const cleanRelTag = relTag ? relTag.replace(/^v/, '') : null;
+    const cleanVersion = version ? version.replace(/^v/, '') : null;
+    if (!cleanRelTag || cleanRelTag === cleanVersion || relTag === targetTag) {
+      const apkAsset = githubRelease.data.assets.find((a) =>
+        a.name.toLowerCase().endsWith('.apk') || a.contentType === 'application/vnd.android.package-archive'
+      );
+      if (apkAsset) {
+        const url = apkAsset.url || apkAsset.browser_download_url;
+        let status = 200;
+        try {
+          const head = await fetchFn(url, { method: 'HEAD' });
+          status = head.status;
+        } catch (_) {}
+        return {
+          found: status === 200,
+          name: apkAsset.name,
+          url,
+          status,
+          size: apkAsset.size || 0,
+        };
+      }
     }
   }
 

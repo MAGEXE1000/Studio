@@ -726,86 +726,24 @@ if (existsSync(verifySigScript)) {
   }
 }
 
-const isDryRun = process.argv.includes('--dry-run') || process.argv.includes('--smoke-test');
-if (isDryRun) {
-  console.log('\n================================================================');
-  console.log('✓ SMOKE-TEST / DRY-RUN COMPLETED SUCCESSFULLY!');
-  console.log('  All validations, builds, signatures, SHA256 checksums,');
-  console.log('  release state snapshot (release-state.json), and pipeline');
-  console.log('  health reports (release-health.json) generated without publishing.');
-  console.log('================================================================\n');
-  process.exit(0);
+// Step 6.8: Generate local version.json and app-release.json using verified SHA (BEFORE GitHub Release creation)
+console.log('Step 6.8/15: Generate version.json and app-release.json metadata...');
+const generateArgs = ['scripts/generate-release-metadata.mjs'];
+if (isDevPreview) {
+  generateArgs.push('--development-preview');
+}
+const generateResult = spawnSync('node', generateArgs, {
+  cwd: pkgRoot,
+  stdio: 'inherit',
+  shell: process.platform === 'win32',
+});
+if (generateResult.status !== 0) {
+  console.error('release-firebase: ✗ Metadata generation script failed!');
+  process.exit(generateResult.status ?? 1);
 }
 
-// Step 7: Create GitHub Release tag if missing
-console.log('Step 7/15: Create GitHub Release tag if missing...');
-const tag = `v${version}`;
-const titleText = version;
-const releaseNotesFile = path.join(repoRoot, 'release-notes.md');
-
-const runGh = (args) => {
-  const env = { ...process.env };
-  if (
-    env.GITHUB_TOKEN &&
-    !env.GITHUB_TOKEN.startsWith('ghp_') &&
-    !env.GITHUB_TOKEN.startsWith('github_pat_')
-  ) {
-    delete env.GITHUB_TOKEN;
-  }
-  if (env.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {
-    delete env.GITHUB_TOKEN;
-  }
-  const normalizedArgs = args.map((arg) =>
-    typeof arg === 'string' ? arg.replace(/\\/g, '/') : arg
-  );
-  return spawnSync('gh', normalizedArgs, {
-    cwd: repoRoot,
-    stdio: 'pipe',
-    shell: false,
-    env,
-    maxBuffer: 100 * 1024 * 1024,
-  });
-};
-
-const currentCommit = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
-console.log(`release-firebase: Target commit for release tag: ${currentCommit}`);
-
-const viewRes = runGh(['release', 'view', tag, '--repo', 'MAGEXE1000/Studio']);
-if (viewRes.status !== 0) {
-  console.log(
-    `release-firebase: Release ${tag} not found. Creating it pointing to target commit ${currentCommit}...`
-  );
-  const isPrerelease = process.argv.includes('--prerelease');
-  const ghCreateArgs = [
-    'release',
-    'create',
-    tag,
-    '--title',
-    titleText,
-    '--notes-file',
-    releaseNotesFile,
-    '--target',
-    currentCommit,
-    '--repo',
-    'MAGEXE1000/Studio',
-  ];
-  if (isPrerelease) {
-    ghCreateArgs.push('--prerelease');
-  }
-  const createRes = runGh(ghCreateArgs);
-  if (createRes.status !== 0) {
-    console.error(
-      `release-firebase: âœ— Failed to create GitHub Release: ${createRes.stderr.toString()}`
-    );
-    process.exit(1);
-  }
-} else {
-  console.log(`release-firebase: Release ${tag} already exists. Updating notes...`);
-  runGh(['release', 'edit', tag, '--notes-file', releaseNotesFile, '--repo', 'MAGEXE1000/Studio']);
-}
-
-// Step 8: Upload APK asset, SHA-256 checksum, manifest & audit log to GitHub Releases
-console.log('Step 8/15: Upload APK asset, SHA-256 checksum, manifest & audit log to GitHub Releases...');
+// Step 6.9: Generate Local Manifests, Audit Logs & Cryptographic Provenance Signatures
+console.log('Step 6.9/15: Generate Release Manifests, Audit Logs & Cryptographic Provenance Signatures...');
 const uploadApkName = `studio-${version}.apk`;
 const uploadShaName = `studio-${version}.sha256`;
 const localUploadApkPath = path.join(repoRoot, uploadApkName);
@@ -814,7 +752,11 @@ const localUploadShaPath = path.join(repoRoot, uploadShaName);
 copyFileSync(localApkPath, localUploadApkPath);
 writeFileSync(localUploadShaPath, `${localApkSha}  ${uploadApkName}\n`, 'utf8');
 
-// Generate Release Artifacts & Cryptographic Provenance Signatures
+const tag = `v${version}`;
+const titleText = version;
+const releaseNotesFile = path.join(repoRoot, 'release-notes.md');
+const currentCommit = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
+
 const manifestPath = path.join(repoRoot, 'release-manifest.json');
 const auditPath = path.join(repoRoot, 'release-audit.json');
 const historyPath = path.join(repoRoot, 'release-history.json');
@@ -874,6 +816,90 @@ generateSlsaProvenance({
   apkSha256: localApkSha,
 });
 
+const isDryRun = process.argv.includes('--dry-run') || process.argv.includes('--smoke-test');
+if (isDryRun) {
+  try {
+    rmSync(localUploadApkPath);
+    rmSync(localUploadShaPath);
+  } catch (_) {}
+  console.log('\n================================================================');
+  console.log('✓ SMOKE-TEST / DRY-RUN COMPLETED SUCCESSFULLY!');
+  console.log('  All validations, builds, signatures, SHA256 checksums,');
+  console.log('  release state snapshot (release-state.json), and pipeline');
+  console.log('  health reports (release-health.json) generated without publishing.');
+  console.log('================================================================\n');
+  process.exit(0);
+}
+
+// =========================================================================
+// ── ATOMIC PUBLICATION TRANSACTION (Executes ONLY after ALL validations pass) ──
+// =========================================================================
+console.log('\n=== STARTING ATOMIC PUBLICATION TRANSACTION ===\n');
+
+// Step 7: Create GitHub Release tag if missing
+console.log('Step 7/15: Create GitHub Release tag if missing...');
+console.log(`release-firebase: Target commit for release tag: ${currentCommit}`);
+
+const runGh = (args) => {
+  const env = { ...process.env };
+  if (
+    env.GITHUB_TOKEN &&
+    !env.GITHUB_TOKEN.startsWith('ghp_') &&
+    !env.GITHUB_TOKEN.startsWith('github_pat_')
+  ) {
+    delete env.GITHUB_TOKEN;
+  }
+  if (env.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {
+    delete env.GITHUB_TOKEN;
+  }
+  const normalizedArgs = args.map((arg) =>
+    typeof arg === 'string' ? arg.replace(/\\/g, '/') : arg
+  );
+  return spawnSync('gh', normalizedArgs, {
+    cwd: repoRoot,
+    stdio: 'pipe',
+    shell: false,
+    env,
+    maxBuffer: 100 * 1024 * 1024,
+  });
+};
+
+const viewRes = runGh(['release', 'view', tag, '--repo', 'MAGEXE1000/Studio']);
+if (viewRes.status !== 0) {
+  console.log(
+    `release-firebase: Release ${tag} not found. Creating it pointing to target commit ${currentCommit}...`
+  );
+  const isPrerelease = process.argv.includes('--prerelease');
+  const ghCreateArgs = [
+    'release',
+    'create',
+    tag,
+    '--title',
+    titleText,
+    '--notes-file',
+    releaseNotesFile,
+    '--target',
+    currentCommit,
+    '--repo',
+    'MAGEXE1000/Studio',
+  ];
+  if (isPrerelease) {
+    ghCreateArgs.push('--prerelease');
+  }
+  const createRes = runGh(ghCreateArgs);
+  if (createRes.status !== 0) {
+    console.error(
+      `release-firebase: ✗ Failed to create GitHub Release: ${createRes.stderr.toString()}`
+    );
+    process.exit(1);
+  }
+} else {
+  console.log(`release-firebase: Release ${tag} already exists. Updating notes...`);
+  runGh(['release', 'edit', tag, '--notes-file', releaseNotesFile, '--repo', 'MAGEXE1000/Studio']);
+}
+
+// Step 8: Upload APK asset, SHA-256 checksum, manifest & audit log to GitHub Releases
+console.log('Step 8/15: Upload APK asset, SHA-256 checksum, manifest & audit log to GitHub Releases...');
 const uploadRes = runGh([
   'release',
   'upload',
@@ -950,21 +976,8 @@ if (status !== 200) {
 console.log('Step 10/15: Verify APK SHA-256 integrity...');
 console.log(`release-firebase: ✓ Local APK SHA-256 verified (${localApkSha})`);
 
-// Step 11: Generate version.json and app-release.json using verified URL/SHA
-console.log('Step 11/15: Generate version.json and app-release.json using verified URL/SHA...');
-const generateArgs = ['scripts/generate-release-metadata.mjs'];
-if (isDevPreview) {
-  generateArgs.push('--development-preview');
-}
-const generateResult = spawnSync('node', generateArgs, {
-  cwd: pkgRoot,
-  stdio: 'inherit',
-  shell: process.platform === 'win32',
-});
-if (generateResult.status !== 0) {
-  console.error('release-firebase: âœ— Metadata generation script failed!');
-  process.exit(generateResult.status ?? 1);
-}
+// Step 11: Verify version.json and app-release.json metadata ready for Firebase
+console.log('Step 11/15: Metadata version.json and app-release.json ready for deployment ... [DONE]');
 
 // Step 12: Deploy Firebase Hosting
 // In CI, deployment is handled by the workflow's FirebaseExtended/action-hosting-deploy

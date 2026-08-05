@@ -1,18 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.71",
-  "versionName": "4.3.71",
-  "versionCode": 40392,
-  "version_code": 40392,
-  "commit": "b142f156",
-  "releasedAt": "8/4/2026, 7:50:22 PM CST",
-  "buildTimestamp": "8/4/2026, 7:50:22 PM CST",
+  "version": "4.3.72",
+  "versionName": "4.3.72",
+  "versionCode": 40393,
+  "version_code": 40393,
+  "commit": "2e79942d",
+  "releasedAt": "8/4/2026, 8:05:01 PM CST",
+  "buildTimestamp": "8/4/2026, 8:05:01 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.",
-  "whatsNew": "• Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.",
+  "changelog": "• Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.\n• Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.\n• Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.",
+  "whatsNew": "• Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.\n• Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.\n• Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.",
   "releaseNotes": {
-    "added": [
-      "Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution."
+    "fixed": [
+      "Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.",
+      "Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.",
+      "Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment."
     ]
   },
   "mandatory": false

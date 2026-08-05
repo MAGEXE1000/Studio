@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.42"
-$VersionCode = "40342"
-$ReleaseNote = "Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system."
+$VersionName = "4.3.75"
+$VersionCode = "40396"
+$ReleaseNote = "Complete production-quality pass for Studio on Android: resolves light mode visual consistency across Chordex, Vocalex, Drumex, and Hub; fixes update pipeline sequencing and version comparison checks; improves bottom navbar spring animations; eliminates switcher toggle overlay/collision on mobile; and resolves theme transition paint bottlenecks."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

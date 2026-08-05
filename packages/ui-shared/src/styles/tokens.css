@@ -436,13 +436,9 @@ html[data-perf-mode='on'] *::after {
 html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt]),
 html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::before,
 html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::after {
-  transition:
-    background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    fill 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    stroke 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: none !important;
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
 }
 
 /* ===== Global Base ===== */

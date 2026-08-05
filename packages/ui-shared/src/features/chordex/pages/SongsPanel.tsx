@@ -1965,7 +1965,7 @@ function ExportModal({
         position: 'fixed',
         inset: 0,
         zIndex: 200,
-        background: '#000000',
+        background: 'var(--c-background)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -1974,9 +1974,9 @@ function ExportModal({
       <div
         style={{
           paddingTop: 'env(safe-area-inset-top)',
-          background: '#191a1a',
+          background: 'var(--c-surface-mid)',
           flexShrink: 0,
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          borderBottom: '1px solid var(--c-border)',
         }}
       >
         <div
@@ -2004,7 +2004,7 @@ function ExportModal({
                 fontSize: '14px',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
-                color: '#e7e5e4',
+                color: 'var(--c-text-primary)',
                 lineHeight: 1,
               }}
             >
@@ -2016,7 +2016,7 @@ function ExportModal({
               fontFamily: 'var(--font-body)',
               fontSize: '10px',
               fontWeight: 700,
-              color: '#484848',
+              color: 'var(--c-text-muted)',
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
               padding: '3px 8px',
@@ -2112,7 +2112,7 @@ function ExportModal({
               fontWeight: 700,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: '#484848',
+              color: 'var(--c-text-muted)',
               marginBottom: '10px',
             }}
           >
@@ -2128,9 +2128,9 @@ function ExportModal({
               width: '100%',
               padding: '13px 16px',
               borderRadius: '12px',
-              background: '#191a1a',
-              border: '1px solid rgba(72,72,72,0.25)',
-              color: '#e7e5e4',
+              background: 'var(--c-surface-low)',
+              border: '1px solid var(--c-border)',
+              color: 'var(--c-text-primary)',
               fontFamily: 'var(--font-headline)',
               fontWeight: 600,
               fontSize: '15px',

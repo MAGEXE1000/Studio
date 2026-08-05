@@ -137,7 +137,7 @@ export default memo(function StudioUpdateScreen({
         zIndex: 99999,
         overflow: 'hidden',
         overscrollBehavior: 'none',
-        background: 'rgba(0, 0, 0, 0.65)',
+        background: isLight ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.65)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         display: 'flex',
@@ -419,7 +419,7 @@ export default memo(function StudioUpdateScreen({
                   width: '100%',
                   height: 4,
                   borderRadius: 2,
-                  background: '#252626',
+                  background: isLight ? 'rgba(0, 0, 0, 0.06)' : '#252626',
                   overflow: 'hidden',
                   position: 'relative',
                 }}

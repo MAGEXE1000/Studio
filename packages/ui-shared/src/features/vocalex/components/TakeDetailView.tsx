@@ -384,7 +384,7 @@ export default function TakeDetailView({
           onClick={seekTo}
           style={{
             height: 72,
-            background: '#000',
+            background: 'var(--c-surface-lowest)',
             borderRadius: 10,
             display: 'flex',
             alignItems: 'center',

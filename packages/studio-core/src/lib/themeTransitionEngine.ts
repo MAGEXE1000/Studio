@@ -16,7 +16,40 @@ class ThemeTransitionEngineImpl {
     }
 
     this.isTransitioning = true;
-    const { nextTheme, startX, startY, updateFn } = options;
+    const { nextTheme, amoled, startX, startY, updateFn } = options;
+
+    // Manually and instantly apply visual theme classes and background CSS variable to document.documentElement
+    // so that the background and main colors switch immediately without waiting for the full React render cycle.
+    const root = document.documentElement;
+    if (nextTheme === 'light') {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    } else {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    }
+
+    if (amoled) {
+      root.classList.add('amoled');
+    } else {
+      root.classList.remove('amoled');
+    }
+
+    // Instantly set critical background and surface variables to prevent any flash/lag
+    const isLightMode = nextTheme === 'light';
+    const bg = isLightMode ? '#f4f4f5' : amoled ? '#000000' : '#09090b';
+    const lowest = isLightMode ? '#e4e4e7' : amoled ? '#000000' : '#0e0e11';
+    const low = isLightMode ? '#ececed' : amoled ? '#030303' : '#131316';
+    const mid = isLightMode ? '#f4f4f5' : amoled ? '#080808' : '#191a1e';
+    const high = isLightMode ? '#fafafa' : amoled ? '#0d0d0d' : '#1f2025';
+    const highest = isLightMode ? '#ffffff' : amoled ? '#121212' : '#25262c';
+
+    root.style.setProperty('--c-background', bg);
+    root.style.setProperty('--c-surface-lowest', lowest);
+    root.style.setProperty('--c-surface-low', low);
+    root.style.setProperty('--c-surface-mid', mid);
+    root.style.setProperty('--c-surface-high', high);
+    root.style.setProperty('--c-surface-highest', highest);
 
     const doc = document as any;
     if (doc.startViewTransition) {

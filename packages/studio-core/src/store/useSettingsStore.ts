@@ -298,11 +298,9 @@ if (typeof window !== 'undefined') {
 export const settingsController = {
   updateSettings: (patch: Partial<AppSettings>) => {
     useSettingsStore.getState().updateSettings(patch);
-    applyThemeTokens(useSettingsStore.getState().settings);
   },
   updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => {
     useSettingsStore.getState().updatePerApp(apps, patch);
-    applyThemeTokens(useSettingsStore.getState().settings);
   },
   cycleNextTheme: () => {
     const current = useSettingsStore.getState().settings;
@@ -330,7 +328,6 @@ export const settingsController = {
       theme: nextTheme,
       amoledMode: nextAmoled,
     });
-    applyThemeTokens(useSettingsStore.getState().settings);
     return { theme: nextTheme, amoledMode: nextAmoled };
   },
 };

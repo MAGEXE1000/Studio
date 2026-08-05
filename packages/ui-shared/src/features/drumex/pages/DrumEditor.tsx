@@ -2071,7 +2071,7 @@ function DrumExportModal({
         position: 'fixed',
         inset: 0,
         zIndex: 300,
-        background: '#000000',
+        background: 'var(--c-background)',
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -2084,10 +2084,10 @@ function DrumExportModal({
                 width: '560px',
                 maxWidth: '90vw',
                 maxHeight: '85vh',
-                background: '#0a0a0c',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--c-surface-mid)',
+                border: '1px solid var(--c-border)',
                 borderRadius: '1.25rem',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.55)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
@@ -2100,9 +2100,9 @@ function DrumExportModal({
         <div
           style={{
             paddingTop: isWebDesktop ? '0' : 'env(safe-area-inset-top)',
-            background: isWebDesktop ? 'transparent' : '#191a1a',
+            background: isWebDesktop ? 'transparent' : 'var(--c-surface-mid)',
             flexShrink: 0,
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            borderBottom: '1px solid var(--c-border)',
           }}
         >
           <div
@@ -2255,9 +2255,9 @@ function DrumExportModal({
                 width: '100%',
                 padding: '13px 16px',
                 borderRadius: 12,
-                background: '#191a1a',
-                border: '1px solid rgba(72,72,72,0.25)',
-                color: '#e7e5e4',
+                background: 'var(--c-surface-low)',
+                border: '1px solid var(--c-border)',
+                color: 'var(--c-text-primary)',
                 fontFamily: 'var(--font-headline)',
                 fontWeight: 600,
                 fontSize: 15,

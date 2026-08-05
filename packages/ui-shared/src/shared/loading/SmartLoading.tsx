@@ -57,8 +57,8 @@ export function AppLoadingScreen({ app }: { app: AppKey }) {
         justifyContent: 'center',
         width: '100%',
         height: '100%',
-        background: '#09090b', // Sleek AMOLED dark background
-        color: '#ffffff',
+        background: 'var(--c-background)', // Responsive background token
+        color: 'var(--c-text-primary)', // Responsive text token
         fontFamily: 'Inter, sans-serif',
         animation: 'fade-in 200ms ease-out forwards',
       }}
@@ -93,7 +93,7 @@ export function AppLoadingScreen({ app }: { app: AppKey }) {
           fontWeight: 800,
           letterSpacing: '-0.02em',
           marginBottom: '8px',
-          background: `linear-gradient(135deg, #ffffff 0%, ${config.color} 100%)`,
+          background: `linear-gradient(135deg, var(--c-text-primary) 0%, ${config.color} 100%)`,
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}
@@ -103,7 +103,7 @@ export function AppLoadingScreen({ app }: { app: AppKey }) {
       <p
         style={{
           fontSize: '13px',
-          color: '#a1a1aa',
+          color: 'var(--c-text-secondary)',
           fontWeight: 500,
           margin: 0,
         }}

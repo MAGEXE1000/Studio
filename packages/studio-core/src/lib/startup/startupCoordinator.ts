@@ -272,7 +272,24 @@ class StartupCoordinatorClass {
     console.log(`[STARTUP-TRACE] waitForIntroDone COMPLETED at ${performance.now().toFixed(0)}ms`);
     if (this.currentRunId !== runId) return;
 
-    // Phase 5: Hub initialization (Run first to show Hub immediately)
+    // Phase 4: Updater initialization (Runs before Hub is visible)
+    const p4Success = await this.executePhase('4', 10000, async () => {
+      try {
+        const { enforceStartupRecovery, initializeGlobalUpdateListeners, runStartupInstallRecovery } = await import('../updater/pipeline');
+        // 1. Enforce startup recovery (restores installer session state)
+        await enforceStartupRecovery();
+        // 2. Initialize update listener registry
+        initializeGlobalUpdateListeners();
+        // 3. Trigger initial install state recovery check and await its resolution
+        await runStartupInstallRecovery();
+      } catch (err: any) {
+        console.error('[StartupCoordinator] Phase 4 Updater init failed:', err);
+        throw err;
+      }
+    });
+    if (!p4Success || this.currentRunId !== runId) return;
+
+    // Phase 5: Hub initialization (Runs after Updater is ready, showing Hub)
     const p5Success = await this.executePhase('5', 5000, async () => {
       // Dispatch UI mounting events (sets startupComplete = true in App.tsx)
       console.log(`[STARTUP-TRACE] Phase 5: calling onHubShow() at ${performance.now().toFixed(0)}ms`);
@@ -312,23 +329,6 @@ class StartupCoordinatorClass {
       this.flushQueuedEvents();
     });
     if (!p5Success || this.currentRunId !== runId) return;
-
-    // Phase 4: Updater initialization (Runs after Hub is visible)
-    const p4Success = await this.executePhase('4', 10000, async () => {
-      try {
-        const { enforceStartupRecovery, initializeGlobalUpdateListeners, checkAndRecoverInstallState } = await import('../updater/pipeline');
-        // 1. Enforce startup recovery (restores installer session state)
-        await enforceStartupRecovery();
-        // 2. Initialize update listener registry
-        initializeGlobalUpdateListeners();
-        // 3. Trigger initial install state recovery check
-        void checkAndRecoverInstallState();
-      } catch (err: any) {
-        console.error('[StartupCoordinator] Phase 4 Updater init failed:', err);
-        throw err;
-      }
-    });
-    if (!p4Success || this.currentRunId !== runId) return;
 
     // Run Phases 6 & 7 asynchronously after the Hub is visible and interactive
     void this.runPhase6(runId);

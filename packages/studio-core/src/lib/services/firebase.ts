@@ -35,12 +35,22 @@ let _db: Firestore | null = null;
 let _storage: FirebaseStorage | null = null;
 let _initError: string | null = null;
 
+let _firestoreReadyResolver: () => void;
+let _firestoreReadyPromise: Promise<void> | null = null;
+
 function init() {
   if (_app || _initError) return;
   if (!isFirebaseConfigured) {
     _initError = `Missing config fields`;
     return;
   }
+  
+  if (!_firestoreReadyPromise) {
+    _firestoreReadyPromise = new Promise<void>((resolve) => {
+      _firestoreReadyResolver = resolve;
+    });
+  }
+
   try {
     const apps = getApps();
     if (apps.length > 0) {
@@ -61,15 +71,24 @@ function init() {
     });
     // Enable offline persistence so reads don't fail with 'unavailable' during
     // momentary network interruptions (especially on Android/Capacitor).
-    enableMultiTabIndexedDbPersistence(_db).catch((err) => {
+    enableMultiTabIndexedDbPersistence(_db).then(() => {
+      _firestoreReadyResolver();
+    }).catch((err) => {
       console.warn('[firebase] offline persistence not enabled:', err.code || err.message);
+      _firestoreReadyResolver();
     });
     _storage = getStorage(_app);
     setPersistence(_auth, browserLocalPersistence).catch(console.warn);
   } catch (err: any) {
     _initError = err.message || String(err);
     console.error('[firebase] initialization failed:', err);
+    if (_firestoreReadyResolver) _firestoreReadyResolver();
   }
+}
+
+export function waitForFirestoreReady(): Promise<void> {
+  init();
+  return _firestoreReadyPromise || Promise.resolve();
 }
 
 export function getFirebaseApp(): FirebaseApp | null {

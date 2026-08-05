@@ -18,7 +18,7 @@ export default function LiveMode({ preset, onClose, transposeOffset = 0 }: LiveM
         style={{
           position: 'fixed',
           inset: 0,
-          background: '#000',
+          background: 'var(--c-background)',
           zIndex: 200,
           display: 'flex',
           flexDirection: 'column',
@@ -46,7 +46,7 @@ export default function LiveMode({ preset, onClose, transposeOffset = 0 }: LiveM
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#000',
+        background: 'var(--c-background)',
         zIndex: 200,
         display: 'flex',
         flexDirection: 'column',

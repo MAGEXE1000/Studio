@@ -9,7 +9,7 @@ import {
   getDocs,
   updateDoc
 } from 'firebase/firestore';
-import { getFirebaseDb } from '../firebase';
+import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { CollaboratorRoom } from './Types';
 import { serializeStage } from './StageSerializer';
 
@@ -23,7 +23,8 @@ function generateShortCode(): string {
 }
 
 export class RoomService {
-  private static getDb() {
+  private static async getDb() {
+    await waitForFirestoreReady();
     const db = getFirebaseDb();
     if (!db) throw new Error('Firestore is not configured');
     return db;
@@ -31,7 +32,7 @@ export class RoomService {
 
   static async createRoom(hostId: string): Promise<CollaboratorRoom> {
     console.log('[RoomService] createRoom START for hostId:', hostId);
-    const db = this.getDb();
+    const db = await this.getDb();
     console.log('[RoomService] getDb() success');
     const roomId = doc(collection(db, 'rooms')).id;
     console.log('[RoomService] Generated new roomId:', roomId);
@@ -108,8 +109,8 @@ export class RoomService {
 
   static async getRoomIdFromCode(shortCode: string): Promise<string | null> {
     const cleanCode = shortCode.toUpperCase().trim();
-    console.log('[RoomService] getRoomIdFromCode START for code:', cleanCode);
-    const db = this.getDb();
+    console.log(`[DIAG-ROOM] getRoomIdFromCode START for code: ${cleanCode}. navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'unknown'}`);
+    const db = await this.getDb();
     const codeRef = doc(db, 'roomCodes', cleanCode);
     try {
       const codeSnap = await getDoc(codeRef);
@@ -132,7 +133,7 @@ export class RoomService {
 
   static async getRoom(roomId: string): Promise<CollaboratorRoom | null> {
     console.log('[RoomService] getRoom START for roomId:', roomId);
-    const db = this.getDb();
+    const db = await this.getDb();
     const roomRef = doc(db, 'rooms', roomId);
     try {
       const roomSnap = await getDoc(roomRef);
@@ -154,7 +155,7 @@ export class RoomService {
   }
 
   static async updateRoomHeartbeat(roomId: string) {
-    const db = this.getDb();
+    const db = await this.getDb();
     const roomRef = doc(db, 'rooms', roomId);
     await updateDoc(roomRef, {
       lastHeartbeat: Date.now(),
@@ -163,13 +164,13 @@ export class RoomService {
   }
 
   static async deleteRoom(roomId: string, shortCode: string) {
-    const db = this.getDb();
+    const db = await this.getDb();
     await deleteDoc(doc(db, 'rooms', roomId));
     await deleteDoc(doc(db, 'roomCodes', shortCode.toUpperCase().trim()));
   }
 
   static async runTTLPruning() {
-    const db = this.getDb();
+    const db = await this.getDb();
     const now = Date.now();
     const twentyFourHoursAgo = now - 24 * 60 * 60 * 1000;
     

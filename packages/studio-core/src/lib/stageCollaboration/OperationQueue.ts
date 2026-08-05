@@ -1,5 +1,5 @@
 import { doc, setDoc } from 'firebase/firestore';
-import { getFirebaseDb } from '../firebase';
+import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { StageOperation } from './Types';
 
 /** Max number of consecutive flush failures before an operation is dropped. */
@@ -44,6 +44,7 @@ export class OperationQueue {
     this.processing = true;
 
     try {
+      await waitForFirestoreReady();
       const db = getFirebaseDb();
       if (!db) throw new Error('Firestore is not configured');
 

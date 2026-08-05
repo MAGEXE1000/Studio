@@ -109,10 +109,6 @@ export function compareVersions(
       isUpgrade = true;
     } else if (remote.versionCode < localVersionCode) {
       isDowngrade = true;
-    } else if (nameComparison > 0) {
-      isUpgrade = true;
-    } else if (nameComparison < 0) {
-      isDowngrade = true;
     } else {
       isUpToDate = true;
     }

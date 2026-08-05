@@ -7,11 +7,12 @@ import {
   query, 
   where
 } from 'firebase/firestore';
-import { getFirebaseDb } from '../firebase';
+import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { Participant } from './Types';
 
 export class PresenceService {
-  private static getDb() {
+  private static async getDb() {
+    await waitForFirestoreReady();
     const db = getFirebaseDb();
     if (!db) throw new Error('Firestore is not configured');
     return db;
@@ -24,7 +25,7 @@ export class PresenceService {
     cursorColor: string,
     online = true
   ) {
-    const db = this.getDb();
+    const db = await this.getDb();
     const presenceRef = doc(db, 'rooms', roomId, 'presence', user.id);
     
     const participant: Participant = {
@@ -41,13 +42,13 @@ export class PresenceService {
   }
 
   static async removePresence(roomId: string, userId: string) {
-    const db = this.getDb();
+    const db = await this.getDb();
     const presenceRef = doc(db, 'rooms', roomId, 'presence', userId);
     await deleteDoc(presenceRef);
   }
 
   static async pruneDeadParticipants(roomId: string) {
-    const db = this.getDb();
+    const db = await this.getDb();
     const now = Date.now();
     const timeoutThreshold = now - 30 * 1000; // 30 seconds of inactivity = dead
 

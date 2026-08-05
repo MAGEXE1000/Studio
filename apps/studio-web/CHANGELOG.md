@@ -9,6 +9,76 @@ that bundle.
 
 Conventions:
 
+## 4.3.74
+
+Release Date: 2026-08-04
+
+### Fixed
+- Fixed ReferenceError for \`vParts\` in \`sync-version.mjs\` during versionCode generation.
+- Fixed scoping issue for \`expectedVersionName\` in \`validate-app-installer.mjs\` causing ReferenceErrors during validation.
+
+## 4.3.73
+
+Release Date: 2026-08-04
+
+### Fixed
+- Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.
+- Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.
+
+## 4.3.72
+
+Release Date: 2026-08-04
+
+### Fixed
+- Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.
+- Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.
+- Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.
+
+## 4.3.71
+
+Release Date: 2026-08-04
+
+### Added
+- Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.
+
+## 4.3.70
+
+Release Date: 2026-08-04
+
+### Fixed
+- Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.
+- Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.
+- Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.
+- Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.
+- Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.
+- Enforced presence user ownership in Firestore security rules.
+- Added auto-leave handler on auth state sign-out in CollaborationService.
+
+## 4.3.69
+
+Release Date: 2026-08-04
+
+### Added
+- Refactored release infrastructure to use parse-version single source of truth.
+- Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.
+- Replaced version-locked verifier scripts with a single parameterized post-release checker.
+- Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.
+- Fixed GHA checkout latency by removing blobless clone filters.
+- Fixed missing Supabase environment variables in Job 3 Publish step.
+- Fixed signing preflight conditional check during --skip-build execution.
+- Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.
+- Fixed release baseline resolution to exclude current release tag during contract validation.
+- Fixed git tag fallback in releaseState.mjs for baseline resolution.
+- Fixed prevVersion self-referencing check in releaseState.mjs.
+- Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.
+
+## 4.3.55
+
+Release Date: 2026-08-02
+
+### Added
+- End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.
+
 ## 4.3.54
 
 Release Date: 2026-08-02

@@ -2128,3 +2128,12 @@ export function initializeGlobalUpdateListeners() {
     });
   }
 }
+
+export async function runStartupInstallRecovery(): Promise<void> {
+  installRecoveryPromise = checkAndRecoverInstallState();
+  try {
+    await installRecoveryPromise;
+  } finally {
+    installRecoveryPromise = null;
+  }
+}

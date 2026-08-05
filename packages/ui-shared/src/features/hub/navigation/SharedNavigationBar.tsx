@@ -136,11 +136,12 @@ const NavigationItem = React.memo(
         : 'rgba(255, 255, 255, 0.45)';
 
     return (
-      <button
+      <motion.button
         onClick={onClick}
         aria-label={item.label}
         title={item.label}
         data-nav-item-index={index}
+        whileTap="pressed"
         style={{
           flex: 1,
           height: '100%',
@@ -244,7 +245,7 @@ const NavigationItem = React.memo(
             </motion.span>
           )}
         </motion.div>
-      </button>
+      </motion.button>
     );
   }
 );
@@ -778,7 +779,8 @@ export function SharedNavigationBar({
 
   const hasRightBubble = showSwitcherButton || (isHub && !searchOpen);
   const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 80 : 0);
-  const barWidth = Math.max(280, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
+  const minBarW = windowWidth < 480 ? 200 : 280;
+  const barWidth = Math.max(minBarW, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
@@ -1460,7 +1462,7 @@ export function SharedNavigationBar({
         </motion.div>
 
         {/* Bottom Navigation Dock Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: windowWidth < 480 && hasRightBubble ? '0px auto 1fr' : '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
           <div style={{ pointerEvents: 'none' }} />
 
           <motion.div

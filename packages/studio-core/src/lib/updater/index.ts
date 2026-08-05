@@ -163,6 +163,7 @@ export {
   applyUpdate,
   initializeGlobalUpdateListeners,
   getInstallRecoveryPromise,
+  runStartupInstallRecovery,
 } from './pipeline';
 
 // React hooks

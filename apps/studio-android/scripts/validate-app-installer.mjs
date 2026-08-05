@@ -277,6 +277,7 @@ export async function runValidation() {
 
       console.log(`Ensuring temp directory exists: ${tempDir}`);
       try {
+        cleanupTemp();
         fs.mkdirSync(tempDir, { recursive: true });
       } catch (err) {
         console.error(
@@ -290,7 +291,7 @@ export async function runValidation() {
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
-        const downloadRes = await fetch(prevApkUrl, { signal: controller.signal });
+        const downloadRes = await fetch(prevApkUrl, { redirect: 'follow', signal: controller.signal });
         clearTimeout(timeoutId);
 
         if (!downloadRes.ok) {
@@ -300,24 +301,8 @@ export async function runValidation() {
           process.exit(EXIT_CODES.PREV_APK_DOWNLOAD);
         }
 
-        const reader = downloadRes.body.getReader();
-        const fileStream = fs.createWriteStream(tempApkPath);
-        fileStream.on('error', (err) => {
-          console.error(`\x1b[31mWriteStream error on ${tempApkPath}: ${err.message}\x1b[0m`);
-          cleanupTemp();
-          process.exit(EXIT_CODES.PATH_TEMP_FILE);
-        });
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          fileStream.write(Buffer.from(value));
-        }
-        fileStream.end();
-        await new Promise((resolve, reject) => {
-          fileStream.on('finish', resolve);
-          fileStream.on('error', reject);
-        });
+        const arrayBuf = await downloadRes.arrayBuffer();
+        fs.writeFileSync(tempApkPath, Buffer.from(arrayBuf));
         console.log(`✓ Previous APK downloaded to ${tempApkPath}`);
 
         const aapt2 = getAndroidTool('aapt2');

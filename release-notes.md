@@ -1,5 +1,5 @@
 Release Date: 2026-08-04
 
 ### Fixed
-- Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.
-- Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.
+- Fixed ReferenceError for \`vParts\` in \`sync-version.mjs\` during versionCode generation.
+- Fixed scoping issue for \`expectedVersionName\` in \`validate-app-installer.mjs\` causing ReferenceErrors during validation.

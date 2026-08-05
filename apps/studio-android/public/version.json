@@ -1,19 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.73",
-  "versionName": "4.3.73",
+  "version": "4.3.74",
+  "versionName": "4.3.74",
   "versionCode": 40394,
   "version_code": 40394,
-  "commit": "cb578450",
-  "releasedAt": "8/4/2026, 8:11:47 PM CST",
-  "buildTimestamp": "8/4/2026, 8:11:47 PM CST",
+  "commit": "3dd2ccd3",
+  "releasedAt": "8/4/2026, 8:22:00 PM CST",
+  "buildTimestamp": "8/4/2026, 8:22:00 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.\n• Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.",
-  "whatsNew": "• Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.\n• Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.",
+  "changelog": "• Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.\n• Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation.",
+  "whatsNew": "• Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.\n• Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation.",
   "releaseNotes": {
     "fixed": [
-      "Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.",
-      "Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation."
+      "Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.",
+      "Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation."
     ]
   },
   "mandatory": false

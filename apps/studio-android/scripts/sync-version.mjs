@@ -371,6 +371,7 @@ if (fs.existsSync(gradlePath)) {
   try {
     let gradleSrc = fs.readFileSync(gradlePath, 'utf8');
     const existingCodeMatch = gradleSrc.match(/versionCode\s+(\d+)/);
+    const vParts = parseSemver(version);
     const codeToUse = existingCodeMatch ? parseInt(existingCodeMatch[1], 10) : (vParts[0] * 10000 + vParts[1] * 100 + vParts[2]);
 
     gradleSrc = gradleSrc.replace(/versionName\s+["']([^"']+)["']/, `versionName "${version}"`);

@@ -106,6 +106,7 @@ export async function runValidation() {
   console.log('=== RUNNING APPINSTALLER CONTRACT VALIDATION ===');
 
   const releaseType = process.env.RELEASE_TYPE || 'both';
+  const expectedVersionName = getAppVersionInfo().nativeVersion;
   const isDevPreview =
     process.argv.includes('--development-preview') &&
     process.env.STUDIO_PRODUCTION_RELEASE !== 'true';
@@ -444,18 +445,6 @@ export async function runValidation() {
         EXIT_CODES.RELEASE_VALIDATION
       );
       const versionNameVal = nameMatch[1];
-
-      const nativeVersionMatches = [
-        ...appVersionSrc.matchAll(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/g),
-      ];
-      if (nativeVersionMatches.length !== 1) {
-        assert(
-          false,
-          'Unable to resolve NATIVE_VERSION from appVersion.ts',
-          EXIT_CODES.RELEASE_VALIDATION
-        );
-      }
-      const expectedVersionName = nativeVersionMatches[0][1];
 
       if (versionNameVal !== expectedVersionName) {
         if (isDevPreview) {

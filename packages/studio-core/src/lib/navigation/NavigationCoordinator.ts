@@ -28,7 +28,8 @@ export class NavigationCoordinator {
       nextRoute.page =
         vTab === 'practice' || vTab === 'vocalLab' || vTab === 'pitch' ? 'coach' : vTab || 'coach';
     } else if (nextRoute.app === 'drumex' && !nextRoute.page) {
-      nextRoute.page = settings.defaultDrumTab || 'songs';
+      const dTab = settings.defaultDrumTab;
+      nextRoute.page = (dTab === 'songs' ? 'beats' : dTab) || 'beats';
     } else if (nextRoute.app === 'stagex' && !nextRoute.page) {
       nextRoute.page = settings.defaultStageView || 'Editor';
     }

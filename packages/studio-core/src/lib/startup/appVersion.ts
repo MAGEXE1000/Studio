@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.76';
-export const NATIVE_VERSION_CODE = 40397;
-export const WEB_VERSION = '4.3.76';
+export const NATIVE_VERSION = '4.3.77';
+export const NATIVE_VERSION_CODE = 40398;
+export const WEB_VERSION = '4.3.77';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -58,10 +58,10 @@ const cap =
 export const APP_VERSION = cap.isNativePlatform() ? NATIVE_VERSION : WEB_VERSION;
 
 /** Optional pre-release tag rendered in the UI (e.g. "Beta", "RC"). */
-export const APP_VERSION_TAG = 'Beta';
+export const APP_VERSION_TAG = '';
 
 /** Human-readable label rendered in Settings → About. */
-export const APP_VERSION_LABEL = `${APP_VERSION_TAG} ${APP_VERSION}`;
+export const APP_VERSION_LABEL = APP_VERSION;
 
 /**
  * Local date this build was stamped (e.g. "July 24, 2026").

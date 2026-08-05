@@ -49,7 +49,7 @@ export interface AppSettings {
   language: Language;
   preferFlats: boolean;
   defaultTab: ActivePanel;
-  defaultDrumTab: 'songs' | 'patterns' | 'prefs';
+  defaultDrumTab: 'songs' | 'beats' | 'patterns' | 'prefs';
   defaultStageView: 'Editor' | 'Setup' | 'Preferences';
   defaultVocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
   defaultGroovexView?: 'library' | 'preferences';

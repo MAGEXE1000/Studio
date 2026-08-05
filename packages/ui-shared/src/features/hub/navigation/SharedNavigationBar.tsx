@@ -1469,7 +1469,7 @@ export function SharedNavigationBar({
         </motion.div>
 
         {/* Bottom Navigation Dock Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: windowWidth < 480 && hasRightBubble ? '0fr auto 1fr' : '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none', gap: '8px' }}>
           <div style={{ pointerEvents: 'none' }} />
 
           <motion.div

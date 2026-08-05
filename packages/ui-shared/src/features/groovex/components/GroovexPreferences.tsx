@@ -190,63 +190,6 @@ export default function GroovexPreferences() {
             />
           </PrefCard>
 
-          <PrefCard title={t.settings.rows.defaultTab} icon="dashboard" isWebDesktop={isWebDesktop}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                padding: isWebDesktop ? '12px 16px' : '4px 0',
-              }}
-            >
-              <p style={{ fontSize: 13, color: 'var(--c-text-secondary)', margin: 0 }}>
-                {t.settings.rows.defaultTabDesc}
-              </p>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                {(['library', 'preferences'] as const).map((value) => {
-                  const active = (settings.defaultGroovexView || 'library') === value;
-                  const acc =
-                    ACCENT_COLORS[
-                      settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS
-                    ] ?? ACCENT_COLORS.blue;
-                  const icons: Record<string, string> = {
-                    library: 'library_music',
-                    preferences: 'tune',
-                  };
-                  return (
-                    <button
-                      key={value}
-                      onClick={() =>
-                        useSettingsStore.getState().updateSettings({ defaultGroovexView: value })
-                      }
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '10px',
-                        border: active ? `2px solid ${acc.from}` : '2px solid transparent',
-                        background: active
-                          ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
-                          : 'var(--app-surface-low)',
-                        color: active ? acc.from : 'var(--c-text-secondary)',
-                        cursor: 'pointer',
-                        transition: 'all 150ms ease',
-                        flexShrink: 0,
-                      }}
-                      title={value}
-                    >
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                        {icons[value]}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </PrefCard>
-
           <PrefCard title={t.groovex.downloadedSongs} icon="cloud_done" isWebDesktop={isWebDesktop}>
             <div style={{ padding: isWebDesktop ? '12px 16px' : '4px 0' }}>
               <div

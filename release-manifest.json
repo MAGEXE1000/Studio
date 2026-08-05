@@ -1,0 +1,44 @@
+{
+  "$schema": "https://livex.app/schemas/release-manifest.v1.json",
+  "manifestVersion": "1.0.0",
+  "version": "4.3.77",
+  "versionCode": 40398,
+  "releaseTag": "v4.3.77",
+  "buildTimestampUtc": "2026-08-05T00:10:00.000Z",
+  "git": {
+    "commitSha": "cd21b2750b5b6a7a85cb75098b8ff9a843649693",
+    "shortSha": "cd21b27",
+    "branch": "main",
+    "previousTag": "v4.3.52"
+  },
+  "artifact": {
+    "filename": "studio-4.3.55.apk",
+    "sizeBytes": 52607278,
+    "sizeFormatted": "50.17 MB",
+    "sha256": "032bc2a0132388558d9bbe8956ed4047e5e1dfb5d528222989d6b5cd927d1f7f",
+    "signingCertFingerprint": "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
+  },
+  "timingMetrics": {
+    "preflightMs": 55000,
+    "buildFrontendMs": 25000,
+    "gradleBuildMs": 125000,
+    "signingVerificationMs": 5000,
+    "uploadMs": 15000,
+    "totalPipelineMs": 225000
+  },
+  "toolchain": {
+    "node": "v24.18.0",
+    "pnpm": "10.26.1",
+    "java": "OpenJDK 21",
+    "capacitor": "@capacitor/cli 6.2.0",
+    "vite": "8.1.4",
+    "androidSdk": "/usr/local/lib/android/sdk"
+  },
+  "metadataVersions": {
+    "appReleaseSchema": "1.0.0",
+    "otaMetadataVersion": "4.0.0",
+    "firebaseHostingChannel": "live"
+  },
+  "releaseVersion": "4.3.77",
+  "versionName": "4.3.77"
+}

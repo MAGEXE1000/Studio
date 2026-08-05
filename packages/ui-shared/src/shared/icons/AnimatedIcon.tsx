@@ -165,13 +165,22 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
     }));
 
     useEffect(() => {
+      let rafId: number | null = null;
       if (!isSpinning) {
         if (animationEpoch !== undefined && state === 'active') {
-          // Force replay: snap to inactive then animate to active
           controls.set('inactive');
+          rafId = requestAnimationFrame(() => {
+            controls.start(state);
+          });
+        } else {
+          controls.start(state);
         }
-        controls.start(state);
       }
+      return () => {
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+        }
+      };
     }, [state, controls, isSpinning, animationEpoch]);
 
     // Hover configuration based on icon type

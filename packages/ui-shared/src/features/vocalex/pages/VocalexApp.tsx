@@ -34,6 +34,7 @@ import {
 } from '../../hub/navigation/navStyles';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
+import { AnimatedNavigationIcon } from '../../hub/navigation/AnimatedNavigationIcon';
 
 import { IconSettings } from '../../hub/icons/NavIcons';
 
@@ -468,10 +469,10 @@ function VocalexPreferences() {
 
   const cur = settings.defaultVocalexTab ?? 'coach';
   const tabs = [
-    { value: 'coach' as const, label: 'Coach', Icon: IconCoach },
-    { value: 'recorder' as const, label: 'Recorder', Icon: IconMic },
-    { value: 'takes' as const, label: 'Takes', Icon: IconTakes },
-    { value: 'preferences' as const, label: 'Preferences', Icon: IconSettings },
+    { value: 'coach' as const, label: 'Coach', iconName: 'graduation-cap' },
+    { value: 'recorder' as const, label: 'Recorder', iconName: 'mic' },
+    { value: 'takes' as const, label: 'Takes', iconName: 'clap' },
+    { value: 'preferences' as const, label: 'Preferences', iconName: 'sliders-horizontal' },
   ];
 
   return (
@@ -537,7 +538,7 @@ function VocalexPreferences() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
-            {tabs.map(({ value, label, Icon }) => {
+            {tabs.map(({ value, label, iconName }) => {
               const active = cur === value;
               return (
                 <button
@@ -555,16 +556,20 @@ function VocalexPreferences() {
                     border: active ? `2px solid ${acc.from}` : '2px solid transparent',
                     background: active
                       ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
-                      : isLight
-                        ? 'rgba(0,0,0,0.05)'
-                        : 'rgba(255,255,255,0.06)',
+                      : 'var(--app-surface-low)',
                     color: active ? acc.from : 'var(--c-text-secondary)',
                     cursor: 'pointer',
                     transition: 'all 150ms ease',
                     flexShrink: 0,
                   }}
                 >
-                  <Icon active={active} />
+                  <AnimatedNavigationIcon
+                    itemKey={value}
+                    iconName={iconName}
+                    size={20}
+                    isActive={active}
+                    color={active ? acc.from : 'var(--c-text-secondary)'}
+                  />
                 </button>
               );
             })}

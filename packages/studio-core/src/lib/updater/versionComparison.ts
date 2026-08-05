@@ -111,7 +111,13 @@ export function compareVersions(
     } else if (remote.versionCode < localVersionCode) {
       isDowngrade = true;
     } else {
-      isUpToDate = true;
+      if (nameComparison > 0) {
+        isUpgrade = true;
+      } else if (nameComparison < 0) {
+        isDowngrade = true;
+      } else {
+        isUpToDate = true;
+      }
     }
   } else if (Capacitor.isNativePlatform() && (localVersionCode === undefined || localVersionCode === null)) {
     // On native, a missing local versionCode means the Capacitor bridge hasn't responded yet.

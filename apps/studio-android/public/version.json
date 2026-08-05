@@ -1,14 +1,14 @@
 {
   "platform": "android",
-  "version": "4.3.76",
-  "versionName": "4.3.76",
-  "versionCode": 40397,
-  "version_code": 40397,
-  "commit": "2704c07e",
-  "releasedAt": "8/4/2026, 11:46:22 PM CST",
-  "buildTimestamp": "8/4/2026, 11:46:22 PM CST",
+  "version": "4.3.77",
+  "versionName": "4.3.77",
+  "versionCode": 40398,
+  "version_code": 40398,
+  "commit": "HEAD",
+  "releasedAt": "8/5/2026, 12:10:00 AM CST",
+  "buildTimestamp": "8/5/2026, 12:10:00 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).\n• Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.\n• Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.",
+  "changelog": "• Fixed empty icons in Chordex bottom navigation bar.\n• Normalized Start On preferences across Drumex, StageX, Vocalex, and removed Start On setting from Groovex.\n• Redesigned bottom navigation bar icon animations with zero cooldown.\n• Centered Groovex bottom navigation bar symmetrically on all mobile screen sizes.\n• Fixed updater version comparison logic to prevent offering currently installed versions.\n• Removed Beta tag from application version labels.",
   "whatsNew": "• Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).\n• Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.\n• Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.",
   "releaseNotes": {
     "fixed": [

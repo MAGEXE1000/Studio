@@ -144,8 +144,8 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
     btnWrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
 
     const views: { value: string; icon: string }[] = [
-      { value: 'Editor', icon: 'grid_view' },
-      { value: 'Setup', icon: 'folder_open' },
+      { value: 'Editor', icon: 'dashboard' },
+      { value: 'Setup', icon: 'layers' },
       { value: 'Preferences', icon: 'tune' },
     ];
 

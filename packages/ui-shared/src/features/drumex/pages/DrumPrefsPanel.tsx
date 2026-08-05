@@ -12,6 +12,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useRef, useState, useEffect } from 'react';
 import { Toggle, SectionHeader, SettingRow } from '../../../shared/typography/SettingControls';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
+import { AnimatedNavigationIcon } from '../../hub/navigation/AnimatedNavigationIcon';
 
 function IconDrumSongs({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.6;
@@ -366,18 +367,19 @@ export default function DrumPrefsPanel() {
                   <PrefsSection title={dp.startOn}>
                     <PrefsRow label={dp.startOn} desc={dp.startOnDesc}>
                       {(() => {
-                        const cur = settings.defaultDrumTab ?? 'songs';
+                        const raw = settings.defaultDrumTab;
+                        const cur = (raw === 'songs' ? 'beats' : raw) ?? 'beats';
                         const tabs: {
-                          value: 'songs' | 'patterns' | 'prefs';
-                          Icon: React.FC<{ active: boolean }>;
+                          value: 'beats' | 'patterns' | 'prefs';
+                          iconName: string;
                         }[] = [
-                          { value: 'songs', Icon: IconDrumSongs },
-                          { value: 'patterns', Icon: IconPatterns },
-                          { value: 'prefs', Icon: IconPrefs },
+                          { value: 'beats', iconName: 'drum' },
+                          { value: 'patterns', iconName: 'blocks' },
+                          { value: 'prefs', iconName: 'sliders-horizontal' },
                         ];
                         return (
                           <div style={{ display: 'flex', gap: '6px' }}>
-                            {tabs.map(({ value, Icon }) => {
+                            {tabs.map(({ value, iconName }) => {
                               const active = cur === value;
                               return (
                                 <button
@@ -395,7 +397,13 @@ export default function DrumPrefsPanel() {
                                         : 'bg-transparent text-zinc-500 border-zinc-900 hover:text-zinc-350 hover:border-zinc-800'
                                   }`}
                                 >
-                                  <Icon active={active} />
+                                  <AnimatedNavigationIcon
+                                    itemKey={value}
+                                    iconName={iconName}
+                                    size={18}
+                                    isActive={active}
+                                    color="currentColor"
+                                  />
                                 </button>
                               );
                             })}
@@ -483,18 +491,19 @@ export default function DrumPrefsPanel() {
         <Card style={{ padding: 0, overflow: 'hidden' }}>
           <SettingRow label={dp.startOn} desc={dp.startOnDesc}>
             {(() => {
-              const cur = settings.defaultDrumTab ?? 'songs';
+              const raw = settings.defaultDrumTab;
+              const cur = (raw === 'songs' ? 'beats' : raw) ?? 'beats';
               const tabs: {
-                value: 'songs' | 'patterns' | 'prefs';
-                Icon: React.FC<{ active: boolean }>;
+                value: 'beats' | 'patterns' | 'prefs';
+                iconName: string;
               }[] = [
-                { value: 'songs', Icon: IconDrumSongs },
-                { value: 'patterns', Icon: IconPatterns },
-                { value: 'prefs', Icon: IconPrefs },
+                { value: 'beats', iconName: 'drum' },
+                { value: 'patterns', iconName: 'blocks' },
+                { value: 'prefs', iconName: 'sliders-horizontal' },
               ];
               return (
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  {tabs.map(({ value, Icon }) => {
+                  {tabs.map(({ value, iconName }) => {
                     const active = cur === value;
                     return (
                       <button
@@ -517,7 +526,13 @@ export default function DrumPrefsPanel() {
                           flexShrink: 0,
                         }}
                       >
-                        <Icon active={active} />
+                        <AnimatedNavigationIcon
+                          itemKey={value}
+                          iconName={iconName}
+                          size={20}
+                          isActive={active}
+                          color={active ? acc.from : 'var(--c-text-secondary)'}
+                        />
                       </button>
                     );
                   })}

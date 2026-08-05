@@ -348,7 +348,7 @@ export function BottomNavigationController() {
             { id: 'library', labelKey: 'library', icon: 'library' },
             { id: 'preferences', labelKey: 'preferences', icon: 'settings' },
           ]
-        : APP_SECTIONS.chords || [];
+        : APP_SECTIONS.chordex || [];
 
       return sections.map((sec) => {
         const isActive = activeTab === sec.id || activePage === sec.id;

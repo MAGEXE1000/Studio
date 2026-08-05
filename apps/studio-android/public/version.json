@@ -1,24 +1,18 @@
 {
   "platform": "android",
-  "version": "4.3.70",
-  "versionName": "4.3.70",
-  "versionCode": 40391,
-  "version_code": 40391,
-  "commit": "f191b963",
-  "releasedAt": "8/4/2026, 7:40:47 PM CST",
-  "buildTimestamp": "8/4/2026, 7:40:47 PM CST",
+  "version": "4.3.71",
+  "versionName": "4.3.71",
+  "versionCode": 40392,
+  "version_code": 40392,
+  "commit": "b142f156",
+  "releasedAt": "8/4/2026, 7:50:22 PM CST",
+  "buildTimestamp": "8/4/2026, 7:50:22 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.\n• Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.\n• Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.\n• Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.\n• Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.\n• Enforced presence user ownership in Firestore security rules.\n• Added auto-leave handler on auth state sign-out in CollaborationService.",
-  "whatsNew": "• Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.\n• Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.\n• Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.\n• Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.\n• Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.\n• Enforced presence user ownership in Firestore security rules.\n• Added auto-leave handler on auth state sign-out in CollaborationService.",
+  "changelog": "• Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.",
+  "whatsNew": "• Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.",
-      "Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.",
-      "Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.",
-      "Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.",
-      "Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.",
-      "Enforced presence user ownership in Firestore security rules.",
-      "Added auto-leave handler on auth state sign-out in CollaborationService."
+    "added": [
+      "Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution."
     ]
   },
   "mandatory": false

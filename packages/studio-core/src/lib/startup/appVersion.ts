@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.70';
-export const NATIVE_VERSION_CODE = 40391;
-export const WEB_VERSION = '4.3.70';
+export const NATIVE_VERSION = '4.3.71';
+export const NATIVE_VERSION_CODE = 40392;
+export const WEB_VERSION = '4.3.71';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'f191b963';
+export const APP_COMMIT_SHA = 'b142f156';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/4/2026, 7:40:47 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/4/2026, 7:50:22 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,15 +96,9 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Added",
     items: [
-      "Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.",
-      "Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.",
-      "Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.",
-      "Added timestamp filtering to operations subscription to prevent replaying historical operations on room join.",
-      "Debounced local state diffing in CollaborationService to optimize Firestore write performance during continuous edits.",
-      "Enforced presence user ownership in Firestore security rules.",
-      "Added auto-leave handler on auth state sign-out in CollaborationService.",
+      "Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.",
     ],
   },
 ];

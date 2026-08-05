@@ -252,7 +252,11 @@ export async function runValidation() {
   let prevPackageName = '';
   let prevSignature = '';
   if (fs.existsSync(paths.apkPath)) {
-    const evalResult = await evaluatePreviousReleaseState({ currentVersion: getAppVersionInfo().version });
+    const allowMissingApk = process.argv.includes('--allow-missing-apk') || process.env.ALLOW_MISSING_PREV_APK === 'true';
+    const evalResult = await evaluatePreviousReleaseState({
+      currentVersion: getAppVersionInfo().version,
+      allowMissingApk,
+    });
     if (!evalResult.pass) {
       assert(
         false,

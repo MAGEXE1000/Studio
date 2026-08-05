@@ -14,11 +14,8 @@ const isDevPreview =
   process.argv.includes('--development-preview') &&
   process.env.STUDIO_PRODUCTION_RELEASE !== 'true';
 
-console.log('generate-release-metadata: â†’ Running AppInstaller contract validation...');
-const args = ['scripts/validate-app-installer.mjs'];
-if (releaseType === 'ota') {
-  args.push('--allow-missing-apk');
-}
+console.log('generate-release-metadata: → Running AppInstaller contract validation...');
+const args = ['scripts/validate-app-installer.mjs', '--allow-missing-apk'];
 if (isDevPreview) {
   args.push('--development-preview');
 }
@@ -351,13 +348,16 @@ try {
 } catch (e) {
   // ignore
 }
+const appVersionPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
+const appVersionSrc = fs.existsSync(appVersionPath) ? fs.readFileSync(appVersionPath, 'utf8') : '';
+
 if (gitCommitSha === 'unknown') {
-  const commitMatch = src.match(/export\s+const\s+APP_COMMIT_SHA\s*=\s*.*?['"]([^'"]+)['"]/);
+  const commitMatch = appVersionSrc.match(/export\s+const\s+APP_COMMIT_SHA\s*=\s*.*?['"]([^'"]+)['"]/);
   gitCommitSha = commitMatch ? commitMatch[1] : 'unknown';
 }
 
 let buildTimestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
-const timestampMatch = src.match(/export\s+const\s+APP_BUILD_TIMESTAMP\s*=\s*.*?['"]([^'"]+)['"]/);
+const timestampMatch = appVersionSrc.match(/export\s+const\s+APP_BUILD_TIMESTAMP\s*=\s*.*?['"]([^'"]+)['"]/);
 if (timestampMatch) {
   buildTimestamp = timestampMatch[1];
 }

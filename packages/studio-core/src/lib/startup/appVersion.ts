@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.72';
-export const NATIVE_VERSION_CODE = 40393;
-export const WEB_VERSION = '4.3.72';
+export const NATIVE_VERSION = '4.3.73';
+export const NATIVE_VERSION_CODE = 40394;
+export const WEB_VERSION = '4.3.73';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '2e79942d';
+export const APP_COMMIT_SHA = 'cb578450';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/4/2026, 8:05:01 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/4/2026, 8:11:47 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,9 +98,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.",
-      "Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.",
-      "Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.",
+      "Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.",
+      "Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.",
     ],
   },
 ];

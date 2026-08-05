@@ -1,20 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.72",
-  "versionName": "4.3.72",
-  "versionCode": 40393,
-  "version_code": 40393,
-  "commit": "2e79942d",
-  "releasedAt": "8/4/2026, 8:05:01 PM CST",
-  "buildTimestamp": "8/4/2026, 8:05:01 PM CST",
+  "version": "4.3.73",
+  "versionName": "4.3.73",
+  "versionCode": 40394,
+  "version_code": 40394,
+  "commit": "cb578450",
+  "releasedAt": "8/4/2026, 8:11:47 PM CST",
+  "buildTimestamp": "8/4/2026, 8:11:47 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.\n• Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.\n• Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.",
-  "whatsNew": "• Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.\n• Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.\n• Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.",
+  "changelog": "• Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.\n• Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.",
+  "whatsNew": "• Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.\n• Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.",
   "releaseNotes": {
     "fixed": [
-      "Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.",
-      "Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.",
-      "Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment."
+      "Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.",
+      "Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation."
     ]
   },
   "mandatory": false

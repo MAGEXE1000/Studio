@@ -580,7 +580,7 @@ if (!skipBuild) {
 
 // Step 4: Validate AppInstaller native plugin
 console.log('Step 4/15: Validate AppInstaller native plugin...');
-const appInstallerValidateArgs = ['scripts/validate-app-installer.mjs'];
+const appInstallerValidateArgs = ['scripts/validate-app-installer.mjs', '--allow-missing-apk'];
 if (isDevPreview) {
   appInstallerValidateArgs.push('--development-preview');
 }

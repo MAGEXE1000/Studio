@@ -10,3 +10,4 @@ Release Date: 2026-08-04
 - Fixed signing preflight conditional check during --skip-build execution.
 - Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.
 - Fixed release baseline resolution to exclude current release tag during contract validation.
+- Fixed getAppVersionInfo import path in validate-app-installer.mjs.

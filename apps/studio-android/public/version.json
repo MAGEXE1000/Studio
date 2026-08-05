@@ -1,15 +1,15 @@
 {
   "platform": "android",
-  "version": "4.3.64",
-  "versionName": "4.3.64",
-  "versionCode": 40366,
-  "version_code": 40366,
-  "commit": "7033d1b2",
-  "releasedAt": "8/4/2026, 6:33:33 PM CST",
-  "buildTimestamp": "8/4/2026, 6:33:33 PM CST",
+  "version": "4.3.65",
+  "versionName": "4.3.65",
+  "versionCode": 40367,
+  "version_code": 40367,
+  "commit": "79804da9",
+  "releasedAt": "8/4/2026, 6:38:45 PM CST",
+  "buildTimestamp": "8/4/2026, 6:38:45 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.",
-  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.",
+  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed getAppVersionInfo import path in validate-app-installer.mjs.",
+  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed getAppVersionInfo import path in validate-app-installer.mjs.",
   "releaseNotes": {
     "added": [
       "Refactored release infrastructure to use parse-version single source of truth.",
@@ -20,7 +20,8 @@
       "Fixed missing Supabase environment variables in Job 3 Publish step.",
       "Fixed signing preflight conditional check during --skip-build execution.",
       "Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.",
-      "Fixed release baseline resolution to exclude current release tag during contract validation."
+      "Fixed release baseline resolution to exclude current release tag during contract validation.",
+      "Fixed getAppVersionInfo import path in validate-app-installer.mjs."
     ]
   },
   "mandatory": false

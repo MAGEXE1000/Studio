@@ -1,5 +1,8 @@
-Release Date: 2026-08-04
+Release Date: 2026-08-05
 
 ### Fixed
-- Fixed ReferenceError for \`vParts\` in \`sync-version.mjs\` during versionCode generation.
-- Fixed scoping issue for \`expectedVersionName\` in \`validate-app-installer.mjs\` causing ReferenceErrors during validation.
+- Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.
+- Fixed update pipeline startup race condition and version comparison checks.
+- Improved bottom navbar spring tap/press animations.
+- Eliminated switcher toggle layout overlap and collision on mobile screens.
+- Resolved theme transition paint bottlenecks and layout thrashing.

@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'a3acf71a';
+export const APP_COMMIT_SHA = 'd2bf1144';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/4/2026, 9:22:47 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/4/2026, 9:28:06 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,8 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.",
-      "Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation.",
+      "Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.",
+      "Fixed update pipeline startup race condition and version comparison checks.",
+      "Improved bottom navbar spring tap/press animations.",
+      "Eliminated switcher toggle layout overlap and collision on mobile screens.",
+      "Resolved theme transition paint bottlenecks and layout thrashing.",
     ],
   },
 ];

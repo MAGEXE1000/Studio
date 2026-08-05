@@ -1,19 +1,22 @@
 {
   "platform": "android",
-  "version": "4.3.74",
-  "versionName": "4.3.74",
-  "versionCode": 40395,
-  "version_code": 40395,
-  "commit": "a3acf71a",
-  "releasedAt": "8/4/2026, 9:22:47 PM CST",
-  "buildTimestamp": "8/4/2026, 9:22:47 PM CST",
+  "version": "4.3.75",
+  "versionName": "4.3.75",
+  "versionCode": 40396,
+  "version_code": 40396,
+  "commit": "d2bf1144",
+  "releasedAt": "8/4/2026, 9:28:06 PM CST",
+  "buildTimestamp": "8/4/2026, 9:28:06 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.\n• Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation.",
-  "whatsNew": "• Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.\n• Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation.",
+  "changelog": "• Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.\n• Fixed update pipeline startup race condition and version comparison checks.\n• Improved bottom navbar spring tap/press animations.\n• Eliminated switcher toggle layout overlap and collision on mobile screens.\n• Resolved theme transition paint bottlenecks and layout thrashing.",
+  "whatsNew": "• Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.\n• Fixed update pipeline startup race condition and version comparison checks.\n• Improved bottom navbar spring tap/press animations.\n• Eliminated switcher toggle layout overlap and collision on mobile screens.\n• Resolved theme transition paint bottlenecks and layout thrashing.",
   "releaseNotes": {
     "fixed": [
-      "Fixed ReferenceError for \\`vParts\\` in \\`sync-version.mjs\\` during versionCode generation.",
-      "Fixed scoping issue for \\`expectedVersionName\\` in \\`validate-app-installer.mjs\\` causing ReferenceErrors during validation."
+      "Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.",
+      "Fixed update pipeline startup race condition and version comparison checks.",
+      "Improved bottom navbar spring tap/press animations.",
+      "Eliminated switcher toggle layout overlap and collision on mobile screens.",
+      "Resolved theme transition paint bottlenecks and layout thrashing."
     ]
   },
   "mandatory": false

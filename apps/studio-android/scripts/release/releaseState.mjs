@@ -64,7 +64,22 @@ export async function evaluatePreviousReleaseState(options = {}) {
     ? { exists: false, tag: prevVersion, data: null, provider: 'Excluded (Current Release)' }
     : await fetchGitHubReleaseInfo(prevVersion, { fetchFn, execFn });
   const latestRelease = await fetchGitHubReleaseInfo('latest', { fetchFn, execFn, excludeTag });
-  const latestGithubVer = latestRelease.exists ? latestRelease.data?.tagName?.replace(/^v/, '') : null;
+  let latestGithubVer = (latestRelease.exists && (!excludeTag || latestRelease.data?.tagName !== excludeTag))
+    ? latestRelease.data?.tagName?.replace(/^v/, '')
+    : null;
+
+  if (!latestGithubVer || (cleanCurrentVer && latestGithubVer === cleanCurrentVer)) {
+    try {
+      const rawTags = execFn('git tag --list "v*" --sort=-v:refname', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+      if (rawTags) {
+        const gitTags = rawTags.split('\n').map((t) => t.trim()).filter(Boolean);
+        const validGitTag = gitTags.find((t) => t !== excludeTag && (!cleanCurrentVer || t !== `v${cleanCurrentVer}`));
+        if (validGitTag) {
+          latestGithubVer = validGitTag.replace(/^v/, '');
+        }
+      }
+    } catch (_) {}
+  }
 
   // 3. CASE C: Incomplete Deployment (Firebase points to version X, but GitHub Release tag is missing)
   if (!ghRelease.exists) {

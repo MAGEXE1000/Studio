@@ -1,15 +1,15 @@
 {
   "platform": "android",
-  "version": "4.3.68",
-  "versionName": "4.3.68",
-  "versionCode": 40385,
-  "version_code": 40385,
-  "commit": "7f461cc4",
-  "releasedAt": "8/4/2026, 6:58:25 PM CST",
-  "buildTimestamp": "8/4/2026, 6:58:25 PM CST",
+  "version": "4.3.69",
+  "versionName": "4.3.69",
+  "versionCode": 40390,
+  "version_code": 40390,
+  "commit": "42c13ef4",
+  "releasedAt": "8/4/2026, 7:07:09 PM CST",
+  "buildTimestamp": "8/4/2026, 7:07:09 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed prevVersion self-referencing check in releaseState.mjs.\n• Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
-  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed prevVersion self-referencing check in releaseState.mjs.\n• Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
+  "changelog": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed git tag fallback in releaseState.mjs for baseline resolution.\n• Fixed prevVersion self-referencing check in releaseState.mjs.\n• Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
+  "whatsNew": "• Refactored release infrastructure to use parse-version single source of truth.\n• Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.\n• Replaced version-locked verifier scripts with a single parameterized post-release checker.\n• Fixed undefined appVersionPath ReferenceError in release orchestration signing preflight check.\n• Fixed GHA checkout latency by removing blobless clone filters.\n• Fixed missing Supabase environment variables in Job 3 Publish step.\n• Fixed signing preflight conditional check during --skip-build execution.\n• Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.\n• Fixed release baseline resolution to exclude current release tag during contract validation.\n• Fixed git tag fallback in releaseState.mjs for baseline resolution.\n• Fixed prevVersion self-referencing check in releaseState.mjs.\n• Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs.",
   "releaseNotes": {
     "added": [
       "Refactored release infrastructure to use parse-version single source of truth.",
@@ -21,6 +21,7 @@
       "Fixed signing preflight conditional check during --skip-build execution.",
       "Fixed Capacitor sync and Gradle compile conditionals during --skip-build execution.",
       "Fixed release baseline resolution to exclude current release tag during contract validation.",
+      "Fixed git tag fallback in releaseState.mjs for baseline resolution.",
       "Fixed prevVersion self-referencing check in releaseState.mjs.",
       "Fixed getAppVersionInfo import path and temp file cleanup in validate-app-installer.mjs."
     ]

@@ -83,6 +83,7 @@ const NavigationItem = React.memo(
     activeIdxSpring,
     onMeasureGeometry,
     innerWrapperRef,
+    animationEpoch,
   }: {
     item: any;
     index: number;
@@ -93,6 +94,7 @@ const NavigationItem = React.memo(
     activeIdxSpring: any;
     onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
     innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
+    animationEpoch?: number;
   }) => {
     const isIconString = typeof item.icon === 'string';
     const contentRef = useRef<HTMLDivElement | null>(null);
@@ -213,6 +215,7 @@ const NavigationItem = React.memo(
               size={20}
               color={iconColor}
               isActive={isActive}
+              animationEpoch={animationEpoch}
             />
           ) : (
             <AnimatedNavigationIcon
@@ -221,6 +224,7 @@ const NavigationItem = React.memo(
               size={20}
               color={iconColor}
               isActive={isActive}
+              animationEpoch={animationEpoch}
             />
           )}
 
@@ -317,9 +321,9 @@ export function SharedNavigationBar({
               keywordsEn: ['chord', 'preset', 'chordex', 'progression'],
               keywordsEs: ['acorde', 'preajuste', 'chordex', 'progresión'],
               target: {
-                app: 'chords',
+                app: 'chordex',
                 action: () => {
-                  NavigationDispatcher.push({ app: 'chords', page: 'library' as any });
+                  NavigationDispatcher.push({ app: 'chordex', page: 'library' as any });
                 },
               },
             });
@@ -335,9 +339,9 @@ export function SharedNavigationBar({
               keywordsEn: ['progression', 'chords', 'chordex'],
               keywordsEs: ['progresión', 'acordes', 'chordex'],
               target: {
-                app: 'chords',
+                app: 'chordex',
                 action: () => {
-                  NavigationDispatcher.push({ app: 'chords', page: 'songs' as any });
+                  NavigationDispatcher.push({ app: 'chordex', page: 'songs' as any });
                 },
               },
             });
@@ -361,9 +365,9 @@ export function SharedNavigationBar({
               keywordsEn: ['drum', 'song', 'pattern', 'drumex'],
               keywordsEs: ['batería', 'canción', 'patrón', 'drumex'],
               target: {
-                app: 'drums',
+                app: 'drumex',
                 action: () => {
-                  NavigationDispatcher.push({ app: 'drums', page: 'songs' as any });
+                  NavigationDispatcher.push({ app: 'drumex', page: 'songs' as any });
                 },
               },
             });
@@ -664,22 +668,22 @@ export function SharedNavigationBar({
         onClick: () => handleAppSwitch('hub'),
       },
       {
-        key: 'chords',
+        key: 'chordex',
         label: 'Chordex',
         icon: <ChordexLogo size={18} />,
-        onClick: () => handleAppSwitch('chords'),
+        onClick: () => handleAppSwitch('chordex'),
       },
       {
-        key: 'drums',
+        key: 'drumex',
         label: 'Drumex',
         icon: <DrumexLogo size={18} />,
-        onClick: () => handleAppSwitch('drums'),
+        onClick: () => handleAppSwitch('drumex'),
       },
       {
-        key: 'stage',
+        key: 'stagex',
         label: 'Stagex',
         icon: <StagexLogoIcon size={18} />,
-        onClick: () => handleAppSwitch('stage'),
+        onClick: () => handleAppSwitch('stagex'),
       },
       {
         key: 'groovex',
@@ -873,7 +877,7 @@ export function SharedNavigationBar({
 
   const targetSwitcherShift = useMemo(() => {
     if (!hasRightBubble) return 0;
-    return -12;
+    return -6;
   }, [hasRightBubble]);
 
   // Subtle inward horizontal translation towards screen center composition on scroll down
@@ -1117,6 +1121,9 @@ export function SharedNavigationBar({
     }
   }, [isProfileMenuOpen]);
 
+  const navigationEpochRef = useRef(0);
+  const [navigationEpoch, setNavigationEpoch] = useState(0);
+
   const activeTabKey = useMemo(() => {
     const currentItems = isSwitcherOpen ? switcherApps : items;
     const activeItem = currentItems.find((item: any) =>
@@ -1205,7 +1212,7 @@ export function SharedNavigationBar({
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <button
             onClick={() => {
-              NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+              NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
               setProfileMenuOpen(false);
             }}
             style={{
@@ -1231,7 +1238,7 @@ export function SharedNavigationBar({
 
           <button
             onClick={() => {
-              NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' });
+              NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
               setProfileMenuOpen(false);
             }}
             style={{
@@ -1462,7 +1469,7 @@ export function SharedNavigationBar({
         </motion.div>
 
         {/* Bottom Navigation Dock Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: windowWidth < 480 && hasRightBubble ? '0px auto 1fr' : '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: windowWidth < 480 && hasRightBubble ? '0fr auto 1fr' : '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none', gap: '8px' }}>
           <div style={{ pointerEvents: 'none' }} />
 
           <motion.div
@@ -1529,13 +1536,18 @@ export function SharedNavigationBar({
                         key={item.key}
                         item={item}
                         index={index}
-                        onClick={item.onClick}
+                        onClick={() => {
+                          navigationEpochRef.current += 1;
+                          setNavigationEpoch(navigationEpochRef.current);
+                          item.onClick();
+                        }}
                         isActive={isActive}
                         isLight={isLight}
                         isSwitcherOpen={isSwitcherOpen}
                         activeIdxSpring={activeIdxSpring}
                         onMeasureGeometry={handleMeasureGeometry}
                         innerWrapperRef={innerWrapperRef}
+                        animationEpoch={navigationEpoch}
                       />
                     );
                   })}

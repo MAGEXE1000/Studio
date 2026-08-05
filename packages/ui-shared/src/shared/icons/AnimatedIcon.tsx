@@ -23,6 +23,8 @@ export interface AnimatedIconProps {
   style?: React.CSSProperties;
   strokeWidth?: number;
   onClick?: (e: React.MouseEvent) => void;
+  /** Incrementing counter to force animation replay even when state is unchanged (e.g. re-tapping active tab) */
+  animationEpoch?: number;
 }
 
 export interface AnimatedIconHandle {
@@ -145,6 +147,7 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       style,
       strokeWidth = 2,
       onClick,
+      animationEpoch,
     },
     ref
   ) => {
@@ -163,9 +166,13 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
 
     useEffect(() => {
       if (!isSpinning) {
+        if (animationEpoch !== undefined && state === 'active') {
+          // Force replay: snap to inactive then animate to active
+          controls.set('inactive');
+        }
         controls.start(state);
       }
-    }, [state, controls, isSpinning]);
+    }, [state, controls, isSpinning, animationEpoch]);
 
     // Hover configuration based on icon type
     const getIconSpecificHover = () => {

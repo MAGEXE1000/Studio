@@ -57,9 +57,9 @@ export function ApplicationTransitionEngine({
   // App Specific Colors
   const appColors: Record<AppKey, string> = {
     hub: '#3b82f6',
-    chords: '#a855f7',
-    drums: '#ec4899',
-    stage: '#3b82f6',
+    chordex: '#a855f7',
+    drumex: '#ec4899',
+    stagex: '#3b82f6',
     groovex: '#10b981',
     vocalex: '#f59e0b',
   };
@@ -81,7 +81,7 @@ export function ApplicationTransitionEngine({
     const svgStyle = { width: '80px', height: '80px', display: 'block' };
 
     switch (appKey) {
-      case 'chords':
+      case 'chordex':
         return (
           <svg viewBox="0 0 13 17" fill="none" style={svgStyle}>
             {/* Fretboard Nut */}
@@ -149,7 +149,7 @@ export function ApplicationTransitionEngine({
           </svg>
         );
 
-      case 'drums':
+      case 'drumex':
         return (
           <svg viewBox="0 0 16 16" fill="none" style={svgStyle}>
             {/* Concentric Rhythmic Pulses (Ripples) */}
@@ -232,7 +232,7 @@ export function ApplicationTransitionEngine({
           </svg>
         );
 
-      case 'stage':
+      case 'stagex':
         return (
           <svg viewBox="0 0 16 16" fill="none" style={svgStyle}>
             {/* Floating Lighting Bars in background */}

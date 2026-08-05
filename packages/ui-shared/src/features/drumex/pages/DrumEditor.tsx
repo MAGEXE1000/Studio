@@ -3087,7 +3087,7 @@ export default function DrumEditor() {
   );
   const accent =
     ACCENT_COLORS[
-      (settings.perApp?.drums?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
+      (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
     ] ?? ACCENT_COLORS.blue;
   const spm = stepsPerMeasure(pattern);
   const stepsPerBeat = pattern.subdivision / pattern.timeSignature[1];
@@ -3095,7 +3095,7 @@ export default function DrumEditor() {
   const ALL_INSTS = KIT_INSTRUMENTS[kit] ?? KIT_INSTRUMENTS.house;
 
   // â”€â”€ Theme â€” use per-app drums theme, fall back to global â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const drumsVis = settings.perApp?.drums ?? {
+  const drumsVis = settings.perApp?.drumex ?? {
     theme: settings.theme ?? 'dark',
     amoledMode: settings.amoledMode ?? false,
   };
@@ -3154,7 +3154,7 @@ export default function DrumEditor() {
   // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const activeTab = useNavigationStore((s) => {
     const lastRoute = s.history[s.history.length - 1];
-    if (lastRoute?.app === 'drums' && lastRoute.page) {
+    if (lastRoute?.app === 'drumex' && lastRoute.page) {
       const page = lastRoute.page;
       if (page === 'songs' || page === 'patterns' || page === 'prefs') return page as DrumTab;
     }
@@ -3169,7 +3169,7 @@ export default function DrumEditor() {
 
   const inEditor = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    return last?.app === 'drums' && last.subView === 'editor';
+    return last?.app === 'drumex' && last.subView === 'editor';
   });
 
   // Persist the active Drumex tab on every change.
@@ -3385,7 +3385,7 @@ export default function DrumEditor() {
   const [editingArtist, setEditingArtist] = useState('');
   const activeDrumSongId = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    return last?.app === 'drums' && last.subView === 'editor' ? last.id || null : null;
+    return last?.app === 'drumex' && last.subView === 'editor' ? last.id || null : null;
   });
 
   const currentView: DrumView =
@@ -3443,7 +3443,7 @@ export default function DrumEditor() {
     'humanize-groove-feel': true,
   });
   const handleSetTab = (newTab: DrumTab) => {
-    NavigationDispatcher.push({ app: 'drums', page: newTab });
+    NavigationDispatcher.push({ app: 'drumex', page: newTab });
     setNavCollapsed(false);
     drumNavLastY.current = 0;
   };
@@ -4147,7 +4147,7 @@ export default function DrumEditor() {
         measures: [...pattern.measures, ...newMeasures],
       });
       NavigationDispatcher.replace({
-        app: 'drums',
+        app: 'drumex',
         page: 'songs',
         subView: 'editor',
         id: activeDrumSongId || undefined,
@@ -4170,7 +4170,7 @@ export default function DrumEditor() {
         subdivision: lp.subdivision,
       });
       NavigationDispatcher.replace({
-        app: 'drums',
+        app: 'drumex',
         page: 'songs',
         subView: 'editor',
         id: activeDrumSongId || undefined,
@@ -4432,7 +4432,7 @@ export default function DrumEditor() {
   useBackHandler(
     'nested',
     () => {
-      if (NavigationDispatcher.currentApp() !== 'drums') return false;
+      if (NavigationDispatcher.currentApp() !== 'drumex') return false;
 
       // 1. Confirmations and Modals
       if (showClearConfirm) {
@@ -4530,7 +4530,7 @@ export default function DrumEditor() {
     setKitType(createVariant, KIT_DEFAULTS[createVariant].soundMap);
     if (createVariant === 'house') loadHouseKit(houseKitMic);
     else loadDrumSamples(createVariant);
-    NavigationDispatcher.push({ app: 'drums', page: 'songs', subView: 'editor', id: id });
+    NavigationDispatcher.push({ app: 'drumex', page: 'songs', subView: 'editor', id: id });
     setShowCreateForm(false);
     setCreateName('');
     setCreateArtist('');
@@ -4574,7 +4574,7 @@ export default function DrumEditor() {
     setSaveArtist('');
     setSaveNotes('');
     setShowSaveForm(false);
-    NavigationDispatcher.replace({ app: 'drums', page: 'songs', subView: 'editor', id: newId });
+    NavigationDispatcher.replace({ app: 'drumex', page: 'songs', subView: 'editor', id: newId });
   }, [saveName, saveArtist, saveNotes, saveDrumSong]);
 
   const handleUpdateSong = useCallback(() => {
@@ -4611,7 +4611,7 @@ export default function DrumEditor() {
         if (song.kitType === 'house') loadHouseKit(houseKitMic);
         else loadDrumSamples(song.kitType);
       }
-      NavigationDispatcher.push({ app: 'drums', page: 'songs', subView: 'editor', id: song.id });
+      NavigationDispatcher.push({ app: 'drumex', page: 'songs', subView: 'editor', id: song.id });
     },
     [loadDrumSong, setKitType, houseKitMic]
   );
@@ -6572,7 +6572,7 @@ export default function DrumEditor() {
         }}
       >
         {isWebDesktop && (
-          <WebAppSectionDock app="drums" activeSection={activeTab} onChangeSection={handleSetTab} />
+          <WebAppSectionDock app="drumex" activeSection={activeTab} onChangeSection={handleSetTab} />
         )}
         <div
           style={{
@@ -10481,7 +10481,7 @@ export default function DrumEditor() {
                                                       loadGrooveReplace(g.id);
                                                       setGrooveMenuId(null);
                                                       NavigationDispatcher.push({
-                                                        app: 'drums',
+                                                        app: 'drumex',
                                                         page: 'songs',
                                                       });
                                                     },
@@ -10493,7 +10493,7 @@ export default function DrumEditor() {
                                                       loadGrooveAppend(g.id);
                                                       setGrooveMenuId(null);
                                                       NavigationDispatcher.push({
-                                                        app: 'drums',
+                                                        app: 'drumex',
                                                         page: 'songs',
                                                       });
                                                     },

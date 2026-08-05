@@ -111,7 +111,7 @@ const ALL_SHORTCUT_OPTIONS = [
     descEs: 'Practica acordes y progresiones',
   },
   {
-    id: 'drums',
+    id: 'drumex',
     icon: 'grid_on',
     titleEn: 'Drum Sequencer',
     titleEs: 'Secuenciador de Batería',
@@ -119,7 +119,7 @@ const ALL_SHORTCUT_OPTIONS = [
     descEs: 'Crea bucles de batería',
   },
   {
-    id: 'stage',
+    id: 'stagex',
     icon: 'speaker',
     titleEn: 'Stagex Console',
     titleEs: 'Consola Stagex',
@@ -291,8 +291,8 @@ const ALL_SHORTCUT_OPTIONS = [
 const SHORTCUT_LABEL_MAP: Record<string, { en: string; es: string }> = {
   'chords-songs': { en: 'Songs', es: 'Canciones' },
   'chords-practice': { en: 'Practice', es: 'Práctica' },
-  'drums': { en: 'Drums', es: 'Batería' },
-  'stage': { en: 'Console', es: 'Consola' },
+  'drumex': { en: 'Drums', es: 'Batería' },
+  'stagex': { en: 'Console', es: 'Consola' },
   'groovex': { en: 'Groovex', es: 'Groovex' },
   'vocalex-coach': { en: 'Coach', es: 'Entrenador' },
   'vocalex-pitch': { en: 'Pitch', es: 'Tono' },
@@ -619,7 +619,7 @@ export default function StudioHub() {
       useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1]
         ?.tab ?? 'home';
     const nextTab = typeof action === 'function' ? action(currentTab as HubTab) : action;
-    NavigationDispatcher.push({ app: 'hub', tab: nextTab, page: 'main' });
+    NavigationDispatcher.push({ app: 'hub', tab: nextTab });
   }, []) as React.Dispatch<React.SetStateAction<HubTab>>;
 
   useEffect(() => {
@@ -708,8 +708,8 @@ export default function StudioHub() {
     const candidates = [
       { id: 'chords-songs', score: 0 },
       { id: 'chords-practice', score: 0 },
-      { id: 'drums', score: 0 },
-      { id: 'stage', score: 0 },
+      { id: 'drumex', score: 0 },
+      { id: 'stagex', score: 0 },
       { id: 'groovex', score: 0 },
       { id: 'vocalex-coach', score: 0 },
       { id: 'vocalex-pitch', score: 0 },
@@ -727,8 +727,8 @@ export default function StudioHub() {
       let matchedId = '';
       if (event.type === 'app_launch') {
         if (event.subtitle?.includes('Chordex')) matchedId = 'chords-songs';
-        else if (event.subtitle?.includes('Drumex')) matchedId = 'drums';
-        else if (event.subtitle?.includes('Stagex')) matchedId = 'stage';
+        else if (event.subtitle?.includes('Drumex')) matchedId = 'drumex';
+        else if (event.subtitle?.includes('Stagex')) matchedId = 'stagex';
         else if (event.subtitle?.includes('Groovex')) matchedId = 'groovex';
         else if (event.subtitle?.includes('Vocalex')) matchedId = 'vocalex-coach';
       } else if (event.type === 'cloud_sync') {
@@ -778,22 +778,22 @@ export default function StudioHub() {
   const handleShortcutClick = (id: string) => {
     switch (id) {
       case 'chords-songs':
-        launchApp('chords');
+        launchApp('chordex');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+          NavigationDispatcher.push({ app: 'chordex', page: 'songs' });
         }, 150);
         break;
       case 'chords-practice':
-        launchApp('chords');
+        launchApp('chordex');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+          NavigationDispatcher.push({ app: 'chordex', page: 'songs' });
         }, 150);
         break;
-      case 'drums':
-        launchApp('drums');
+      case 'drumex':
+        launchApp('drumex');
         break;
-      case 'stage':
-        launchApp('stage');
+      case 'stagex':
+        launchApp('stagex');
         break;
       case 'groovex':
         launchApp('groovex');
@@ -863,21 +863,21 @@ export default function StudioHub() {
         }, 150);
         break;
       case 'stage-setlist':
-        launchApp('stage');
+        launchApp('stagex');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'stage', page: 'Setlist' as any, tab: 'Setup' as any });
+          NavigationDispatcher.push({ app: 'stagex', page: 'Setlist' as any, tab: 'Setup' as any });
         }, 150);
         break;
       case 'stage-gear':
-        launchApp('stage');
+        launchApp('stagex');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'stage', page: 'Gear' as any, tab: 'Setup' as any });
+          NavigationDispatcher.push({ app: 'stagex', page: 'Gear' as any, tab: 'Setup' as any });
         }, 150);
         break;
       case 'stage-members':
-        launchApp('stage');
+        launchApp('stagex');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'stage', page: 'Members' as any, tab: 'Setup' as any });
+          NavigationDispatcher.push({ app: 'stagex', page: 'Members' as any, tab: 'Setup' as any });
         }, 150);
         break;
       case 'diagnostics':
@@ -1101,7 +1101,7 @@ export default function StudioHub() {
     };
   }, [setTab]);
 
-  const launchApp = useCallback((appMode: 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex') => {
+  const launchApp = useCallback((appMode: AppKey) => {
     if ((window as any).studioTransitionActive) {
       console.warn('[Navigation] App switch request ignored: transition in progress.');
       return;
@@ -1241,7 +1241,7 @@ export default function StudioHub() {
 
   const loadRecentSessions = useCallback(() => {
     const list: {
-      app: 'chords' | 'drums' | 'groovex';
+      app: 'chordex' | 'drumex' | 'groovex';
       title: string;
       appName: string;
       timestamp: string;
@@ -1254,28 +1254,28 @@ export default function StudioHub() {
         const state = parsed.state || {};
         (state.presets || []).forEach((p: any) => {
           list.push({
-            app: 'chords',
+            app: 'chordex',
             title: p.name || p.title || 'Untitled Chordex Preset',
             appName: 'Chordex',
             timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
             action: () => {
-              launchApp('chords');
+              launchApp('chordex');
               setTimeout(() => {
-                NavigationDispatcher.push({ app: 'chords', page: 'library' });
+                NavigationDispatcher.push({ app: 'chordex', page: 'library' });
               }, 150);
             },
           });
         });
         (state.progressions || []).forEach((p: any) => {
           list.push({
-            app: 'chords',
+            app: 'chordex',
             title: p.name || p.title || 'Untitled Progression',
             appName: 'Chordex',
             timestamp: p.updatedAt ? formatTimeAgo(p.updatedAt) : 'Recent',
             action: () => {
-              launchApp('chords');
+              launchApp('chordex');
               setTimeout(() => {
-                NavigationDispatcher.push({ app: 'chords', page: 'songs' });
+                NavigationDispatcher.push({ app: 'chordex', page: 'songs' });
               }, 150);
             },
           });
@@ -1290,14 +1290,14 @@ export default function StudioHub() {
         const state = parsed.state || {};
         (state.drumSongs || []).forEach((s: any) => {
           list.push({
-            app: 'drums',
+            app: 'drumex',
             title: s.name || s.title || 'Untitled Drum Song',
             appName: 'Drumex',
             timestamp: s.updatedAt ? formatTimeAgo(s.updatedAt) : 'Recent',
             action: () => {
-              launchApp('drums');
+              launchApp('drumex');
               setTimeout(() => {
-                NavigationDispatcher.push({ app: 'drums', page: 'songs' });
+                NavigationDispatcher.push({ app: 'drumex', page: 'songs' });
               }, 150);
             },
           });
@@ -1698,28 +1698,28 @@ export default function StudioHub() {
                           {(
                             [
                               {
-                                app: 'chords' as TargetApp,
+                                app: 'chordex' as TargetApp,
                                 Logo: ChordexLogo,
                                 name: 'Chordex',
                                 desc: t.hub.chordexDesc,
                                 color: '#a855f7',
-                                active: activeRouteApp === 'chords',
+                                active: activeRouteApp === 'chordex',
                               },
                               {
-                                app: 'drums' as TargetApp,
+                                app: 'drumex' as TargetApp,
                                 Logo: DrumexLogo,
                                 name: 'Drumex',
                                 desc: t.hub.drumexDesc,
                                 color: '#ec4899',
-                                active: activeRouteApp === 'drums',
+                                active: activeRouteApp === 'drumex',
                               },
                               {
-                                app: 'stage' as TargetApp,
+                                app: 'stagex' as TargetApp,
                                 Logo: StagexLogoIcon,
                                 name: 'Stagex',
                                 desc: t.hub.stagexDesc,
                                 color: '#3b82f6',
-                                active: activeRouteApp === 'stage',
+                                active: activeRouteApp === 'stagex',
                               },
                               {
                                 app: 'groovex' as TargetApp,
@@ -1861,7 +1861,7 @@ export default function StudioHub() {
                       scrollRef={profileScrollRef}
                       authUser={authUser}
                       onProfile={() => {
-                        NavigationDispatcher.push({ app: 'hub', tab: 'profile', page: 'profile' });
+                        NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
                       }}
                       tab={tab}
                       setTab={setTab}
@@ -3697,7 +3697,7 @@ function HubSettings({
   const [changelogOpen, setChangelogOpen] = useState(false);
 
   function requestChange(patch: Partial<PerAppVisuals>) {
-    const ALL_APPS: AppKey[] = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
+    const ALL_APPS: AppKey[] = ['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'];
     updatePerApp(ALL_APPS, patch);
     if (patch.theme) settingsController.updateSettings({ theme: patch.theme });
     if (patch.accentColor) settingsController.updateSettings({ accentColor: patch.accentColor });

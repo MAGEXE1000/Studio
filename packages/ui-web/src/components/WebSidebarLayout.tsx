@@ -171,12 +171,12 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     window.dispatchEvent(new CustomEvent('studio:update-settings-page', { detail: page }));
   };
 
-  const handleLaunchApp = (app: 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex') => {
+  const handleLaunchApp = (app: 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex') => {
     NavigationDispatcher.openApp(app);
   };
 
   const handleSetChordexPanel = (panel: 'songs' | 'library' | 'chord') => {
-    NavigationDispatcher.push({ app: 'chords', page: panel });
+    NavigationDispatcher.push({ app: 'chordex', page: panel });
   };
 
   // User details
@@ -252,11 +252,11 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                   <div className="flex-shrink-0">
                     {(() => {
                       switch (app.id) {
-                        case 'chords':
+                        case 'chordex':
                           return <ChordexLogo size={20} />;
-                        case 'drums':
+                        case 'drumex':
                           return <DrumexLogo size={20} />;
-                        case 'stage':
+                        case 'stagex':
                           return <StagexLogoIcon size={20} />;
                         case 'groovex':
                           return <GroovexLogo size={20} />;

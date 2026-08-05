@@ -23,11 +23,11 @@ export function useLibraryState() {
     app: 'hub',
   };
   const selectedChordId =
-    currentRoute.app === 'chords' && ['chord', 'library'].includes(currentRoute.page || '')
+    currentRoute.app === 'chordex' && ['chord', 'library'].includes(currentRoute.page || '')
       ? currentRoute.id || null
       : null;
   const activePanel =
-    currentRoute.app === 'chords' && currentRoute.page
+    currentRoute.app === 'chordex' && currentRoute.page
       ? (currentRoute.page === 'chord' ? 'library' : (currentRoute.page as ActivePanel))
       : 'library';
       
@@ -49,7 +49,7 @@ export function useLibraryState() {
 
   const allChords = useMemo(() => getAllChords(), []);
   const accent =
-    ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ??
+    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
     ACCENT_COLORS.blue;
     
   const isLight =
@@ -77,15 +77,15 @@ export function useLibraryState() {
     (chordId: string | null) => {
       if (chordId === null) {
         if (isWebDesktop) {
-          NavigationDispatcher.replace({ app: 'chords', page: 'library' });
+          NavigationDispatcher.replace({ app: 'chordex', page: 'library' });
         } else {
           NavigationDispatcher.pop();
         }
       } else {
         if (isWebDesktop) {
-          NavigationDispatcher.replace({ app: 'chords', page: 'chord', id: chordId });
+          NavigationDispatcher.replace({ app: 'chordex', page: 'chord', id: chordId });
         } else {
-          NavigationDispatcher.push({ app: 'chords', page: 'chord', id: chordId });
+          NavigationDispatcher.push({ app: 'chordex', page: 'chord', id: chordId });
         }
       }
     },
@@ -104,7 +104,7 @@ export function useLibraryState() {
   );
   
   const activePracticeSong = useMemo(() => {
-    if (currentRoute.app === 'chords' && currentRoute.subView === 'practice' && currentRoute.id) {
+    if (currentRoute.app === 'chordex' && currentRoute.subView === 'practice' && currentRoute.id) {
       return SONGS.find((s) => s.id === currentRoute.id) || null;
     }
     return null;
@@ -115,7 +115,7 @@ export function useLibraryState() {
       NavigationDispatcher.pop();
     } else {
       NavigationDispatcher.push({
-        app: 'chords',
+        app: 'chordex',
         page: 'library',
         subView: 'practice',
         id: song.id,

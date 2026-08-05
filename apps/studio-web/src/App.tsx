@@ -43,8 +43,23 @@ function SidebarHoverSync({ hoverShowSidebar }: { hoverShowSidebar: boolean }) {
 export default function App() {
   const [route, setRoute] = useState(() => {
     if (typeof window === 'undefined') return '/';
-    const path = window.location.pathname;
-    if (path === '/app' || path.startsWith('/app/')) return '/app';
+    let path = window.location.pathname;
+    
+    if (path.startsWith('/drums/songs')) {
+      path = path.replace('/drums/songs', '/drumex/beats');
+      window.history.replaceState({}, '', path);
+    } else if (path.startsWith('/chords')) {
+      path = path.replace(/^\/chords/, '/chordex');
+      window.history.replaceState({}, '', path);
+    } else if (path.startsWith('/drums')) {
+      path = path.replace(/^\/drums/, '/drumex');
+      window.history.replaceState({}, '', path);
+    } else if (path.startsWith('/stage')) {
+      path = path.replace(/^\/stage/, '/stagex');
+      window.history.replaceState({}, '', path);
+    }
+
+    if (path === '/app' || path.startsWith('/app/') || path.startsWith('/chordex') || path.startsWith('/drumex') || path.startsWith('/stagex')) return '/app';
     return '/';
   });
 
@@ -56,7 +71,7 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
-      if (path === '/app' || path.startsWith('/app/')) {
+      if (path === '/app' || path.startsWith('/app/') || path.startsWith('/chordex') || path.startsWith('/drumex') || path.startsWith('/stagex')) {
         setRoute('/app');
       } else {
         setRoute('/');
@@ -87,14 +102,14 @@ export default function App() {
   
   const activePanel = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    return last?.app === 'chords' && last.page ? (last.page as ActivePanel) : 'library';
+    return last?.app === 'chordex' && last.page ? (last.page as ActivePanel) : 'library';
   });
 
   const handleSetActivePanel = useCallback((panel: ActivePanel) => {
     const history = useNavigationStore.getState().history;
     const current = history[history.length - 1];
-    if (current?.app === 'chords' && current.page !== panel) {
-      NavigationDispatcher.push({ app: 'chords', page: panel });
+    if (current?.app === 'chordex' && current.page !== panel) {
+      NavigationDispatcher.push({ app: 'chordex', page: panel });
     }
   }, []);
 
@@ -124,12 +139,12 @@ export default function App() {
       subApps={{
         groovex: <GroovexApp />,
         vocalex: <VocalexApp />,
-        stage: <StageCorePanel />,
-        drums: <DrumEditor />,
-        chords: {
+        stagex: <StageCorePanel />,
+        drumex: <DrumEditor />,
+        chordex: {
           sidebar: isWebDesktop && isLargeDesktop ? (
             <WebAppSectionDock
-              app="chords"
+              app="chordex"
               activeSection={activePanel}
               onChangeSection={handleSetActivePanel as any}
             />

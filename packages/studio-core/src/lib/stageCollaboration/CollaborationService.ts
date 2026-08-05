@@ -25,6 +25,16 @@ function mapFirestoreError(error: any): Error {
   return new Error(`${friendly} (Raw: ${name}[${code}]: ${rawMsg})`);
 }
 
+function handleCollabError(context: string, err: any) {
+  const code = err?.code || 'unknown';
+  const msg = err?.message || String(err);
+  if (code === 'unavailable' || code === 'not-found' || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('database') || msg.toLowerCase().includes('not found')) {
+    console.warn(`[CollaborationService] ${context} - Firestore is offline or database is not provisioned (Code: ${code}).`);
+  } else {
+    console.error(`[CollaborationService] ${context} - Unexpected error:`, err);
+  }
+}
+
 export class CollaborationService {
   private static instance: CollaborationService | null = null;
 
@@ -192,13 +202,7 @@ export class CollaborationService {
       console.log('[CollaborationService] createRoom COMPLETE. Success!');
       return room;
     } catch (e: any) {
-      console.error('[CollaborationService] createRoom failed with raw error:', e);
-      console.error('[CollaborationService] Raw error details:', {
-        name: e?.name,
-        code: e?.code,
-        message: e?.message,
-        stack: e?.stack,
-      });
+      handleCollabError('createRoom', e);
       this.setConnectionState('disconnected');
       throw mapFirestoreError(e);
     }
@@ -249,13 +253,7 @@ export class CollaborationService {
       console.log('[CollaborationService] joinRoom COMPLETE. Success!');
       return room;
     } catch (e: any) {
-      console.error('[CollaborationService] joinRoom failed with raw error:', e);
-      console.error('[CollaborationService] Raw error details:', {
-        name: e?.name,
-        code: e?.code,
-        message: e?.message,
-        stack: e?.stack,
-      });
+      handleCollabError('joinRoom', e);
       this.setConnectionState('disconnected');
       throw mapFirestoreError(e);
     }

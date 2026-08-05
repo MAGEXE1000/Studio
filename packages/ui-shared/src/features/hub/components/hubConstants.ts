@@ -10,7 +10,7 @@ export type HelpPageId =
   | 'terms'
   | 'privacy-policy'
   | 'bug-report';
-export type TargetApp = 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+export type TargetApp = 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex';
 
 export const THEME_OPTIONS: { value: Theme; label: string }[] = [
   { value: 'dark', label: 'Oscuro' },

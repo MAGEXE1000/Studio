@@ -87,7 +87,7 @@ export function normalizeAndValidateRoute(route: Partial<NavigationRoute>): Navi
       throw new Error('[Navigation Validation] Route missing required "app" property.');
     }
 
-    const validApps = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
+    const validApps = ['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'];
     if (!validApps.includes(route.app)) {
       throw new Error(`[Navigation Validation] Invalid "app" value: "${route.app}".`);
     }
@@ -117,6 +117,18 @@ export function normalizeAndValidateRoute(route: Partial<NavigationRoute>): Navi
       const validTypes = ['screen', 'modal', 'sheet', 'overlay'];
       if (validTypes.includes(route.type)) {
         normalized.type = route.type;
+      }
+    }
+
+    // Normalize Hub routes to prevent duplicate/unnecessary segments
+    if (normalized.app === 'hub') {
+      if (!normalized.tab && normalized.page && ['home', 'settings', 'profile', 'help'].includes(normalized.page)) {
+        normalized.tab = normalized.page as any;
+      }
+      if (normalized.page === 'main') {
+        delete normalized.page;
+      } else if (normalized.page === normalized.tab) {
+        delete normalized.page;
       }
     }
 

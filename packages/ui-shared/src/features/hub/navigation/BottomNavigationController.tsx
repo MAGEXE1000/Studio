@@ -253,7 +253,7 @@ export function BottomNavigationController() {
       const isLandscape = typeof window !== 'undefined' && window.innerWidth > window.innerHeight;
       const activeHistory = useNavigationStore.getState().history;
       const freshCurrentApp = activeHistory[activeHistory.length - 1]?.app ?? 'hub';
-      const isStage = freshCurrentApp === 'stage';
+      const isStage = freshCurrentApp === 'stagex';
 
       const isModalOpen =
         activeOverlaysRegistry.modals.size > 0 ||
@@ -316,7 +316,7 @@ export function BottomNavigationController() {
           label: 'Profile',
           isActive: activeTab === 'profile' || activePage === 'profile',
           onClick: () => {
-            NavigationDispatcher.push({ app: 'hub', page: 'profile' as any, tab: 'profile' as any });
+            NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
           },
         },
         {
@@ -325,7 +325,7 @@ export function BottomNavigationController() {
           label: 'Home',
           isActive: activeTab === 'home' && activePage !== 'profile',
           onClick: () => {
-            NavigationDispatcher.push({ app: 'hub', tab: 'home', page: 'main' });
+            NavigationDispatcher.push({ app: 'hub', tab: 'home' });
           },
         },
         {
@@ -334,13 +334,13 @@ export function BottomNavigationController() {
           label: 'Settings',
           isActive: activeTab === 'settings' && activePage !== 'profile',
           onClick: () => {
-            NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'main' });
+            NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
           },
         },
       ];
     }
 
-    if (currentApp === 'chords') {
+    if (currentApp === 'chordex') {
       const isSax = instrument === 'saxophone';
       const sections = isSax
         ? [
@@ -360,7 +360,7 @@ export function BottomNavigationController() {
           label: sec.id === 'practice' ? 'Practice' : getTranslation(sec.labelKey),
           isActive,
           onClick: () => {
-            NavigationDispatcher.push({ app: 'chords', page: sec.id as any, tab: sec.id as any });
+            NavigationDispatcher.push({ app: 'chordex', page: sec.id as any, tab: sec.id as any });
             setProfileMenuOpen(false);
           },
         };
@@ -370,7 +370,7 @@ export function BottomNavigationController() {
     const sections = APP_SECTIONS[currentApp] || [];
     return sections.map((sec) => {
       let isActive = activeTab === sec.id || activePage === sec.id;
-      if (currentApp === 'stage') {
+      if (currentApp === 'stagex') {
         if (sec.id === 'Editor') {
           isActive = ['Editor', 'Export'].includes(activeTab) || ['Editor', 'Export'].includes(activePage);
         } else if (sec.id === 'Setup') {

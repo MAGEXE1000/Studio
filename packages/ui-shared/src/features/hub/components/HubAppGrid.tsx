@@ -10,9 +10,9 @@ interface AppCardItem {
 }
 
 const APP_CARDS: AppCardItem[] = [
-  { key: 'chords', title: 'Chordex', subtitle: 'Chord Voicings & Progressions', color: '#a855f7', icon: 'music_note' },
-  { key: 'drums', title: 'Drumex', subtitle: 'Pattern Sequencer & Drum Kits', color: '#ec4899', icon: 'drum' },
-  { key: 'stage', title: 'Stagex', subtitle: 'Stage Canvas & Live Rig', color: '#3b82f6', icon: 'equalizer' },
+  { key: 'chordex', title: 'Chordex', subtitle: 'Chord Voicings & Progressions', color: '#a855f7', icon: 'music_note' },
+  { key: 'drumex', title: 'Drumex', subtitle: 'Pattern Sequencer & Drum Kits', color: '#ec4899', icon: 'drum' },
+  { key: 'stagex', title: 'Stagex', subtitle: 'Stage Canvas & Live Rig', color: '#3b82f6', icon: 'equalizer' },
   { key: 'groovex', title: 'Groovex', subtitle: 'Multi-Track Stem Player', color: '#10b981', icon: 'graphic_eq' },
   { key: 'vocalex', title: 'Vocalex', subtitle: 'Vocal Pitch & Lab Session', color: '#f59e0b', icon: 'mic' },
 ];

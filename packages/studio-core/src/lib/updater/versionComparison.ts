@@ -1,5 +1,6 @@
 import { APP_VERSION, compareSemver, parseSemver } from '../appVersion';
 import { RemoteVersionInfo } from './releaseMetadata';
+import { Capacitor } from '@capacitor/core';
 
 export interface VersionComparisonResult {
   updateAvailable: boolean;
@@ -112,8 +113,19 @@ export function compareVersions(
     } else {
       isUpToDate = true;
     }
+  } else if (Capacitor.isNativePlatform() && (localVersionCode === undefined || localVersionCode === null)) {
+    // On native, a missing local versionCode means the Capacitor bridge hasn't responded yet.
+    // Defer the check rather than falling through to semver which could give false results.
+    return {
+      updateAvailable: false,
+      isDowngrade: false,
+      isUpgrade: false,
+      isUpToDate: false,
+      explanation: 'Native versionCode not yet available from Capacitor bridge. Deferring update check.',
+      details,
+    };
   } else {
-    // Fallback: no versionCode available, use semver comparison
+    // Fallback (web only): no versionCode available, use semver comparison
     isDowngrade = nameComparison < 0;
     isUpgrade = nameComparison > 0;
     isUpToDate = nameComparison === 0;

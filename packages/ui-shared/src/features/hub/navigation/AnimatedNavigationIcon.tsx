@@ -9,6 +9,7 @@ export interface AnimatedNavigationIconProps {
   color?: string;
   strokeWidth?: number;
   isActive: boolean;
+  animationEpoch?: number;
 }
 
 function getNormalizedIconName(key: string): string {
@@ -54,6 +55,7 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
   color = 'currentColor',
   strokeWidth = 2,
   isActive,
+  animationEpoch,
 }) => {
   if (iconNode) {
     return <div style={{ width: size, height: size, color }}>{iconNode}</div>;
@@ -68,6 +70,7 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
       color={color}
       strokeWidth={strokeWidth}
       state={isActive ? 'active' : 'inactive'}
+      animationEpoch={animationEpoch}
     />
   );
 };

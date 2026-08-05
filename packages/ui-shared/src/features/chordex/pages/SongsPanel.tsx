@@ -4250,7 +4250,7 @@ export default function SongsPanel() {
   const currentRoute = useNavigationStore(useShallow((s) => s.history[s.history.length - 1])) || {
     app: 'hub',
   };
-  const activePanel = currentRoute.app === 'chords' ? currentRoute.page || 'library' : 'library';
+  const activePanel = currentRoute.app === 'chordex' ? currentRoute.page || 'library' : 'library';
   const settings = useSettingsStore(useShallow((s) => s.settings));
   const transpositions = useChordStore(useShallow((s) => s.transpositions));
   const customChords = useChordStore(useShallow((s) => s.customChords));
@@ -4279,7 +4279,7 @@ export default function SongsPanel() {
   const convertToSections = useChordStore(useShallow((s) => s.convertToSections));
   const deduplicateAllPresets = useChordStore(useShallow((s) => s.deduplicateAllPresets));
   const accent =
-    ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ??
+    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
     ACCENT_COLORS.blue;
   const preferFlats = settings.preferFlats ?? false;
   const isNative =

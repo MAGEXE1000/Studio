@@ -159,7 +159,7 @@ export const runInteractionTest = async (
 
       // 12. Reopen Stagex
       setTestStep('Reopening Stagex...');
-      NavigationDispatcher.openApp('stage');
+      NavigationDispatcher.openApp('stagex');
       await delay(1000);
     }
 

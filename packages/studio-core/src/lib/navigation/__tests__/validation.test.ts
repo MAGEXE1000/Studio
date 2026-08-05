@@ -125,6 +125,24 @@ describe('normalizeAndValidateRoute', () => {
     expect((result as any).foo).toBeUndefined();
     expect((result as any).nested).toBeUndefined();
   });
+
+  it('normalizes hub routes by removing main and duplicate page segments', () => {
+    // case 1: page: 'main' is removed
+    expect(normalizeAndValidateRoute({ app: 'hub', tab: 'home', page: 'main' }))
+      .toEqual({ app: 'hub', tab: 'home' });
+
+    // case 2: page duplicate of tab is removed
+    expect(normalizeAndValidateRoute({ app: 'hub', tab: 'profile', page: 'profile' }))
+      .toEqual({ app: 'hub', tab: 'profile' });
+
+    // case 3: page is one of valid tabs and tab is missing -> sets tab, removes page
+    expect(normalizeAndValidateRoute({ app: 'hub', page: 'profile' }))
+      .toEqual({ app: 'hub', tab: 'profile' });
+
+    // case 4: settings sub-page (non-main, non-duplicate) is kept
+    expect(normalizeAndValidateRoute({ app: 'hub', tab: 'settings', page: 'developer' }))
+      .toEqual({ app: 'hub', tab: 'settings', page: 'developer' });
+  });
 });
 
 // ─── isRouteEqual ────────────────────────────────────────────────────────────

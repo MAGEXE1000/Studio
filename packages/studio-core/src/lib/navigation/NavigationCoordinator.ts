@@ -19,7 +19,7 @@ export class NavigationCoordinator {
 
     const settings = useSettingsStore.getState().settings;
 
-    if (nextRoute.app === 'chords' && !nextRoute.page) {
+    if (nextRoute.app === 'chordex' && !nextRoute.page) {
       nextRoute.page = settings.defaultTab || 'library';
     } else if (nextRoute.app === 'groovex' && !nextRoute.page) {
       nextRoute.page = settings.defaultGroovexView || 'library';
@@ -27,9 +27,9 @@ export class NavigationCoordinator {
       const vTab = settings.defaultVocalexTab as any;
       nextRoute.page =
         vTab === 'practice' || vTab === 'vocalLab' || vTab === 'pitch' ? 'coach' : vTab || 'coach';
-    } else if (nextRoute.app === 'drums' && !nextRoute.page) {
+    } else if (nextRoute.app === 'drumex' && !nextRoute.page) {
       nextRoute.page = settings.defaultDrumTab || 'songs';
-    } else if (nextRoute.app === 'stage' && !nextRoute.page) {
+    } else if (nextRoute.app === 'stagex' && !nextRoute.page) {
       nextRoute.page = settings.defaultStageView || 'Editor';
     }
     return nextRoute;

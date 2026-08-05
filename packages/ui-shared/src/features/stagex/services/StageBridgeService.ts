@@ -85,7 +85,7 @@ export function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
     const cur = store.settings.defaultStageView ?? 'Editor';
-    const accentKey = (store.settings.perApp?.stage?.accentColor ??
+    const accentKey = (store.settings.perApp?.stagex?.accentColor ??
       store.settings.accentColor ??
       'blue') as keyof typeof ACCENT_COLORS;
     const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
@@ -146,7 +146,7 @@ export function injectStartOnPicker(iframe: HTMLIFrameElement) {
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
         const a2 =
           ACCENT_COLORS[
-            (useSettingsStore.getState().settings.perApp?.stage?.accentColor ??
+            (useSettingsStore.getState().settings.perApp?.stagex?.accentColor ??
               useSettingsStore.getState().settings.accentColor ??
               'blue') as keyof typeof ACCENT_COLORS
           ] ?? ACCENT_COLORS.blue;

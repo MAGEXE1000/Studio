@@ -1,5 +1,5 @@
 export interface NavigationRoute {
-  app: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+  app: 'hub' | 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex';
   tab?: 'home' | 'settings' | 'profile' | 'help';
   page?: string; // Settings pages, help pages, sub-app panels (e.g. 'library', 'songs')
   subView?: string; // Nested views (e.g. 'dashboard', 'logs', 'practice')

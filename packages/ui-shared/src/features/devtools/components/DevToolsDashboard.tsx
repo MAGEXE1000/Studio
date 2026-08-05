@@ -195,9 +195,9 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
       const mod = l.module.toLowerCase();
 
       if (appKey) {
-        if (appKey === 'chords') return mod === 'chordex';
-        if (appKey === 'drums') return mod === 'drumex' || mod === 'drums';
-        if (appKey === 'stage') return mod === 'stagex' || mod === 'stage';
+        if (appKey === 'chordex') return mod === 'chordex';
+        if (appKey === 'drumex') return mod === 'drumex' || mod === 'drums';
+        if (appKey === 'stagex') return mod === 'stagex' || mod === 'stage';
         if (appKey === 'groovex') return mod === 'groovex';
         if (appKey === 'vocalex') return mod === 'vocalex';
         if (appKey === 'hub') {
@@ -484,7 +484,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   useScrollHide(mainScrollRef);
-  const chordsRoute = useNavigationStore((s) => s.history.find((r) => r.app === 'chords'));
+  const chordsRoute = useNavigationStore((s) => s.history.find((r) => r.app === 'chordex'));
   const activePanel = chordsRoute?.page || 'library';
   const isWebDesktop = useIsWebDesktop();
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || { app: 'hub' };
@@ -1520,13 +1520,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             ).length,
           },
           chordex: {
-            status: currentApp === 'chords' ? 'Active' : 'Suspended',
+            status: currentApp === 'chordex' ? 'Active' : 'Suspended',
             activeView: activePanel,
             warnings: logs.filter((l) => l.level === 'warn' && l.module.toLowerCase() === 'chordex')
               .length,
           },
           drumex: {
-            status: currentApp === 'drums' ? 'Active' : 'Suspended',
+            status: currentApp === 'drumex' ? 'Active' : 'Suspended',
             activeView: settings.defaultDrumTab,
             warnings: logs.filter(
               (l) =>
@@ -1535,7 +1535,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             ).length,
           },
           stagex: {
-            status: currentApp === 'stage' ? 'Active' : 'Suspended',
+            status: currentApp === 'stagex' ? 'Active' : 'Suspended',
             activeView: settings.defaultStageView,
             warnings: logs.filter(
               (l) =>
@@ -4529,9 +4529,9 @@ const renderSubViewHeader = (title: string) => {
       return logs.filter((l) => {
         if (l.level !== 'warn') return false;
         const mod = l.module.toLowerCase();
-        if (appKey === 'chords') return mod === 'chordex';
-        if (appKey === 'drums') return mod === 'drumex' || mod === 'drums';
-        if (appKey === 'stage') return mod === 'stagex' || mod === 'stage';
+        if (appKey === 'chordex') return mod === 'chordex';
+        if (appKey === 'drumex') return mod === 'drumex' || mod === 'drums';
+        if (appKey === 'stagex') return mod === 'stagex' || mod === 'stage';
         if (appKey === 'groovex') return mod === 'groovex';
         if (appKey === 'vocalex') return mod === 'vocalex';
         if (appKey === 'hub') {
@@ -4554,30 +4554,30 @@ const renderSubViewHeader = (title: string) => {
         pid: '8842',
       },
       {
-        key: 'chords',
+        key: 'chordex',
         name: 'Chordex',
-        status: currentApp === 'chords' ? 'Active' : 'Suspended',
+        status: currentApp === 'chordex' ? 'Active' : 'Suspended',
         view: activePanel,
         memory: '32.1 MB',
-        warnings: getAppWarningsCount('chords'),
+        warnings: getAppWarningsCount('chordex'),
         pid: '9102',
       },
       {
-        key: 'drums',
+        key: 'drumex',
         name: 'Drumex',
-        status: currentApp === 'drums' ? 'Active' : 'Suspended',
+        status: currentApp === 'drumex' ? 'Active' : 'Suspended',
         view: settings.defaultDrumTab || 'songs',
         memory: '45.8 MB',
-        warnings: getAppWarningsCount('drums'),
+        warnings: getAppWarningsCount('drumex'),
         pid: '9421',
       },
       {
-        key: 'stage',
+        key: 'stagex',
         name: 'Stagex',
-        status: currentApp === 'stage' ? 'Active' : 'Suspended',
+        status: currentApp === 'stagex' ? 'Active' : 'Suspended',
         view: settings.defaultStageView || 'Editor',
         memory: '58.2 MB',
-        warnings: getAppWarningsCount('stage'),
+        warnings: getAppWarningsCount('stagex'),
         pid: '9885',
         hasTelemetry: true,
       },

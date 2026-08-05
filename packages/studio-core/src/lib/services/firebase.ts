@@ -1,10 +1,10 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth, setPersistence, browserLocalPersistence, GoogleAuthProvider } from 'firebase/auth';
-import { initializeFirestore, enableMultiTabIndexedDbPersistence, type Firestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, enableMultiTabIndexedDbPersistence, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import bundledConfig from '../../../firebase.config.json';
 
-const env = import.meta.env;
+const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : (typeof process !== 'undefined' ? process.env : {});
 function pick(envValue: string | undefined, fallback: string | undefined): string | undefined {
   const v = (envValue ?? '').trim();
   return v ? v : fallback;
@@ -23,6 +23,7 @@ const config = {
     bundledConfig.messagingSenderId,
   ),
   appId: pick(env.VITE_FIREBASE_APP_ID as string | undefined, bundledConfig.appId),
+  databaseId: pick(env.VITE_FIREBASE_DATABASE_ID as string | undefined, (bundledConfig as any).databaseId),
 };
 
 export const isFirebaseConfigured = Boolean(
@@ -66,17 +67,19 @@ function init() {
       });
     }
     _auth = getAuth(_app);
-    _db = initializeFirestore(_app, {
-      experimentalForceLongPolling: true,
-    });
+    _db = config.databaseId
+      ? initializeFirestore(_app, { experimentalForceLongPolling: true }, config.databaseId)
+      : getFirestore(_app);
     // Enable offline persistence so reads don't fail with 'unavailable' during
     // momentary network interruptions (especially on Android/Capacitor).
-    enableMultiTabIndexedDbPersistence(_db).then(() => {
-      _firestoreReadyResolver();
-    }).catch((err) => {
-      console.warn('[firebase] offline persistence not enabled:', err.code || err.message);
-      _firestoreReadyResolver();
-    });
+    if (_db) {
+      enableMultiTabIndexedDbPersistence(_db).then(() => {
+        _firestoreReadyResolver();
+      }).catch((err) => {
+        console.warn('[firebase] offline persistence not enabled:', err.code || err.message);
+        _firestoreReadyResolver();
+      });
+    }
     _storage = getStorage(_app);
     setPersistence(_auth, browserLocalPersistence).catch(console.warn);
   } catch (err: any) {
@@ -137,18 +140,40 @@ export function getFirebaseConfigDetails() {
 
 export const googleProvider = new GoogleAuthProvider();
 
-export function incrementFirestoreListeners() {}
-export function decrementFirestoreListeners() {}
-export function incrementFirestoreWrites() {}
-export function decrementFirestoreWrites() {}
-export function setFirestoreLastError(error: string) {}
+let _activeListeners = 0;
+let _activeWrites = 0;
+let _lastError = 'none';
+
+export function incrementFirestoreListeners() {
+  _activeListeners++;
+}
+export function decrementFirestoreListeners() {
+  _activeListeners = Math.max(0, _activeListeners - 1);
+}
+export function incrementFirestoreWrites() {
+  _activeWrites++;
+}
+export function decrementFirestoreWrites() {
+  _activeWrites = Math.max(0, _activeWrites - 1);
+}
+export function setFirestoreLastError(error: string) {
+  _lastError = error;
+}
+
 export function getFirestoreDiagnostics() {
+  init();
+  const app = _app;
   return {
     syncProvider: 'supabase-realtime',
-    firestoreRuntimeActive: false,
-    firestoreListenChannels: 0,
-    firestoreWriteChannels: 0,
-    firestoreLastError: 'none',
-    firestoreInitStack: 'none',
+    firestoreRuntimeActive: Boolean(_db),
+    firestoreListenChannels: _activeListeners,
+    firestoreWriteChannels: _activeWrites,
+    firestoreLastError: _lastError,
+    firestoreInitStack: _initError || 'none',
+    projectId: app?.options.projectId || 'Not Configured',
+    databaseId: config.databaseId || '(default)',
+    appId: app?.options.appId || 'Not Configured',
+    authDomain: app?.options.authDomain || 'Not Configured',
+    storageBucket: app?.options.storageBucket || 'Not Configured',
   };
 }

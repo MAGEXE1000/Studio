@@ -22,7 +22,7 @@ export default function ChordexPreferencesPanel() {
   const settings = useSettingsStore((s) => s.settings);
 
   const acc =
-    ACCENT_COLORS[settings.perApp?.chords?.accentColor ?? settings.accentColor] ??
+    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
     ACCENT_COLORS.blue;
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -92,9 +92,9 @@ export default function ChordexPreferencesPanel() {
                       if (!isSoon) {
                         useSettingsStore.getState().updateSettings({ instrument: inst.id as Instrument });
                         if (inst.id === 'saxophone') {
-                          NavigationDispatcher.replace({ app: 'chords', page: 'practice' as any, tab: 'practice' as any });
+                          NavigationDispatcher.replace({ app: 'chordex', page: 'practice' as any, tab: 'practice' as any });
                         } else {
-                          NavigationDispatcher.replace({ app: 'chords', page: 'songs' as any, tab: 'songs' as any });
+                          NavigationDispatcher.replace({ app: 'chordex', page: 'songs' as any, tab: 'songs' as any });
                         }
                       }
                     }}
@@ -411,9 +411,9 @@ export default function ChordexPreferencesPanel() {
                   if (!isSoon) {
                     useSettingsStore.getState().updateSettings({ instrument: inst.id as Instrument });
                     if (inst.id === 'saxophone') {
-                      NavigationDispatcher.replace({ app: 'chords', page: 'practice' as any, tab: 'practice' as any });
+                      NavigationDispatcher.replace({ app: 'chordex', page: 'practice' as any, tab: 'practice' as any });
                     } else {
-                      NavigationDispatcher.replace({ app: 'chords', page: 'songs' as any, tab: 'songs' as any });
+                      NavigationDispatcher.replace({ app: 'chordex', page: 'songs' as any, tab: 'songs' as any });
                     }
                   }
                 }}

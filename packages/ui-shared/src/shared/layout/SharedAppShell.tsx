@@ -60,9 +60,9 @@ export interface SharedAppShellProps {
   subApps: {
     groovex: React.ReactNode;
     vocalex: React.ReactNode;
-    stage: React.ReactNode;
-    drums: React.ReactNode;
-    chords: {
+    stagex: React.ReactNode;
+    drumex: React.ReactNode;
+    chordex: {
       sidebar?: React.ReactNode;
       songs: React.ReactNode;
       practice: React.ReactNode;
@@ -99,9 +99,9 @@ function InspectorRouteTracer() {
 
   const appMap: Record<string, string> = {
     hub: 'Hub',
-    chords: 'Chordex',
-    drums: 'Drumex',
-    stage: 'Stagex',
+    chordex: 'Chordex',
+    drumex: 'Drumex',
+    stagex: 'Stagex',
     groovex: 'Groovex',
     vocalex: 'Vocalex',
   };
@@ -126,7 +126,9 @@ function InspectorRouteTracer() {
 
   let currentPath = `/${currentRoute.app}`;
   if (currentRoute.tab) currentPath += `/${currentRoute.tab}`;
-  if (currentRoute.page) currentPath += `/${currentRoute.page}`;
+  if (currentRoute.page && currentRoute.page !== 'main' && currentRoute.page !== currentRoute.tab) {
+    currentPath += `/${currentRoute.page}`;
+  }
 
   let currentNested = '';
   if (currentRoute.subView) currentNested += `/${currentRoute.subView}`;
@@ -345,10 +347,10 @@ export function SharedAppShell({
 }: SharedAppShellProps) {
   const activePanel = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
-    if (last?.app === 'chords' && last.page === 'chord') {
+    if (last?.app === 'chordex' && last.page === 'chord') {
       return 'library';
     }
-    return last?.app === 'chords' && last.page ? (last.page as ActivePanel) : 'library';
+    return last?.app === 'chordex' && last.page ? (last.page as ActivePanel) : 'library';
   });
   const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
   const settings = useSettingsStore((state) => state.settings);
@@ -380,7 +382,7 @@ export function SharedAppShell({
   useEffect(() => {
     const enforcePortrait = async () => {
       try {
-        if (routeApp !== 'stage') {
+        if (routeApp !== 'stagex') {
           if (Capacitor.isNativePlatform()) {
             await ScreenOrientation.lock({ orientation: 'portrait' });
           } else if (
@@ -722,49 +724,49 @@ const SubAppWrapper = memo(function SubAppWrapper({
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'stage' && subApps.stage && (
-        <SubAppScaffold appKey="stage">
+      {cachedApp === 'stagex' && subApps.stagex && (
+        <SubAppScaffold appKey="stagex">
           <ErrorBoundary moduleName="Stagex">
-            <Suspense fallback={<FallbackTracker app="stage"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="stage" onReady={onReady} />
+            <Suspense fallback={<FallbackTracker app="stagex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+              <AppReadyNotifier app="stagex" onReady={onReady} />
               <AppEntryTransition>
-                {subApps.stage}
+                {subApps.stagex}
               </AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'drums' && subApps.drums && (
-        <SubAppScaffold appKey="drums">
+      {cachedApp === 'drumex' && subApps.drumex && (
+        <SubAppScaffold appKey="drumex">
           <ErrorBoundary moduleName="Drumex">
-            <Suspense fallback={<FallbackTracker app="drums"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="drums" onReady={onReady} />
+            <Suspense fallback={<FallbackTracker app="drumex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+              <AppReadyNotifier app="drumex" onReady={onReady} />
               <AppEntryTransition>
-                {subApps.drums}
+                {subApps.drumex}
               </AppEntryTransition>
             </Suspense>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'chords' && subApps.chords && (
-        <SubAppScaffold appKey="chords">
+      {cachedApp === 'chordex' && subApps.chordex && (
+        <SubAppScaffold appKey="chordex">
           <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
             <AppEntryTransition className="flex flex-col w-full overflow-hidden select-none" style={{ position: 'relative', height: '100%' } as any}>
-              <div style={{ display: 'flex', flexDirection: subApps.chords.sidebar ? 'row' : 'column', flex: 1, width: '100%', height: '100%', overflow: 'hidden' }}>
-                {subApps.chords.sidebar}
+              <div style={{ display: 'flex', flexDirection: subApps.chordex.sidebar ? 'row' : 'column', flex: 1, width: '100%', height: '100%', overflow: 'hidden' }}>
+                {subApps.chordex.sidebar}
                 <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                   <ErrorBoundary moduleName="Chordex">
-                    <Suspense fallback={<FallbackTracker app="chords"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-                      <AppReadyNotifier app="chords" onReady={onReady} />
+                    <Suspense fallback={<FallbackTracker app="chordex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+                      <AppReadyNotifier app="chordex" onReady={onReady} />
                       <SharedNavigationContainer activeView={cachedPanel} viewOrder={ALL_PANELS}>
                         {(panel) => (
                           <>
-                            {panel === 'songs' && subApps.chords?.songs}
-                            {panel === 'practice' && subApps.chords?.practice}
-                            {panel === 'library' && subApps.chords?.library}
-                            {panel === 'preferences' && subApps.chords?.preferences}
+                            {panel === 'songs' && subApps.chordex?.songs}
+                            {panel === 'practice' && subApps.chordex?.practice}
+                            {panel === 'library' && subApps.chordex?.library}
+                            {panel === 'preferences' && subApps.chordex?.preferences}
                           </>
                         )}
                       </SharedNavigationContainer>

@@ -877,9 +877,9 @@ export default function App() {
       subApps={{
         groovex: <GroovexApp />,
         vocalex: <VocalexApp />,
-        stage: <StageCorePanel />,
-        drums: <DrumEditor />,
-        chords: {
+        stagex: <StageCorePanel />,
+        drumex: <DrumEditor />,
+        chordex: {
           sidebar: null,
           songs: <SongsPanel />,
           practice: <SaxophonePracticePanel />,

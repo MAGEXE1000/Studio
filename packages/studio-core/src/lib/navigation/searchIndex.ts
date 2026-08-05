@@ -11,7 +11,7 @@ export interface SearchableItem {
   keywordsEn?: string[];
   keywordsEs?: string[];
   target: {
-    app?: 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+    app?: 'hub' | 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex';
     tab?: 'home' | 'settings' | 'profile' | 'help';
     page?: string;
     action?: () => void;
@@ -49,7 +49,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Construye progresiones de acordes y estudia armonía',
       keywordsEn: ['chords', 'progressions', 'guitar', 'piano', 'scales'],
       keywordsEs: ['acordes', 'progresiones', 'guitarra', 'piano', 'escalas'],
-      target: { app: 'chords' },
+      target: { app: 'chordex' },
     });
     this.register({
       id: 'app-drums',
@@ -60,7 +60,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Programa secuencias de batería y cuadrículas de ritmo',
       keywordsEn: ['drums', 'beats', 'sequencer', 'patterns'],
       keywordsEs: ['batería', 'ritmos', 'secuenciador', 'patrones'],
-      target: { app: 'drums' },
+      target: { app: 'drumex' },
     });
     this.register({
       id: 'app-stage',
@@ -71,7 +71,7 @@ class CentralizedSearchIndex {
       subtitleEs: 'Consola de actuación en vivo y enrutamiento midi',
       keywordsEn: ['stage', 'performance', 'midi', 'routing'],
       keywordsEs: ['escenario', 'actuación', 'midi', 'enrutamiento'],
-      target: { app: 'stage' },
+      target: { app: 'stagex' },
     });
     this.register({
       id: 'app-groovex',
@@ -285,11 +285,11 @@ class CentralizedSearchIndex {
         keywordsEn: [song.artist, song.genre, 'song', 'catalog', 'chords', 'chart'],
         keywordsEs: [song.artist, song.genre, 'canción', 'catálogo', 'acordes'],
         target: {
-          app: 'chords',
+          app: 'chordex',
           action: () => {
             // Launch Chords app and direct to practice view
             NavigationDispatcher.push({
-              app: 'chords',
+              app: 'chordex',
               tab: 'songs',
               page: 'practice',
               params: { songId: song.id }

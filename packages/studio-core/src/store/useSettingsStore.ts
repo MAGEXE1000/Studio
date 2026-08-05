@@ -9,7 +9,7 @@ import type { Instrument } from '../data/chords';
 export type Theme = 'dark' | 'light' | 'system' | 'dynamic';
 export type ActivePanel = 'library' | 'preferences' | 'songs';
 export type AccentColor = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal' | 'custom';
-export type AppKey = 'hub' | 'chords' | 'drums' | 'stage' | 'groovex' | 'vocalex';
+export type AppKey = 'hub' | 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex';
 export type AppRoute = NavigationRoute;
 
 export interface PerAppVisuals {
@@ -53,7 +53,7 @@ export interface AppSettings {
   defaultStageView: 'Editor' | 'Setup' | 'Preferences';
   defaultVocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
   defaultGroovexView?: 'library' | 'preferences';
-  startupApp: 'chords' | 'drums' | 'hub' | 'stage' | 'groovex' | 'vocalex';
+  startupApp: AppKey;
   hubUserName: string;
   highRefreshRate: boolean;
   highContrast?: boolean;
@@ -184,9 +184,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   launchAnimationPreset: 'fluid_surface',
   perApp: {
     hub: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    chords: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    drums: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    stage: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    chordex: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    drumex: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    stagex: { theme: 'light', accentColor: 'blue', amoledMode: false },
     vocalex: { theme: 'light', accentColor: 'blue', amoledMode: false },
     groovex: { theme: 'light', accentColor: 'blue', amoledMode: false },
   },

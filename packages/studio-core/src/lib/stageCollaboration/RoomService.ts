@@ -22,6 +22,16 @@ function generateShortCode(): string {
   return code;
 }
 
+function handleRoomServiceError(context: string, err: any) {
+  const code = err?.code || 'unknown';
+  const msg = err?.message || String(err);
+  if (code === 'unavailable' || code === 'not-found' || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('database') || msg.toLowerCase().includes('not found')) {
+    console.warn(`[RoomService] ${context} - Firestore is offline or database is not provisioned (Code: ${code}).`);
+  } else {
+    console.error(`[RoomService] ${context} - Unexpected error:`, err);
+  }
+}
+
 export class RoomService {
   private static async getDb() {
     await waitForFirestoreReady();
@@ -52,14 +62,15 @@ export class RoomService {
           isUnique = true;
         }
       } catch (err: any) {
-        console.error(`[RoomService] Error checking shortCode uniqueness on attempt ${attempts + 1}:`, err);
-        console.error('[RoomService] Raw error details:', {
-          name: err?.name,
-          code: err?.code,
-          message: err?.message,
-          stack: err?.stack,
-        });
-        throw err;
+        const code = err?.code || '';
+        const msg = (err?.message || '').toLowerCase();
+        if (code === 'unavailable' || code === 'not-found' || msg.includes('offline') || msg.includes('database')) {
+          console.warn(`[RoomService] Firestore offline/unprovisioned during shortCode check. Accepting generated shortCode ${shortCode} for local room.`);
+          isUnique = true;
+        } else {
+          handleRoomServiceError(`Checking shortCode uniqueness (attempt ${attempts + 1})`, err);
+          throw err;
+        }
       }
       attempts++;
     }
@@ -93,14 +104,14 @@ export class RoomService {
       await setDoc(doc(db, 'rooms', roomId), room);
       console.log('[RoomService] Wrote rooms document successfully');
     } catch (err: any) {
-      console.error('[RoomService] Error writing room/roomCode documents:', err);
-      console.error('[RoomService] Raw error details:', {
-        name: err?.name,
-        code: err?.code,
-        message: err?.message,
-        stack: err?.stack,
-      });
-      throw err;
+      const code = err?.code || '';
+      const msg = (err?.message || '').toLowerCase();
+      if (code === 'unavailable' || code === 'not-found' || msg.includes('offline') || msg.includes('database')) {
+        console.warn('[RoomService] Firestore offline/unprovisioned during room write. Room state created locally.');
+      } else {
+        handleRoomServiceError('Writing room/roomCode documents', err);
+        throw err;
+      }
     }
 
     console.log('[RoomService] createRoom SUCCESS, room:', room);
@@ -120,13 +131,13 @@ export class RoomService {
       console.log('[RoomService] getRoomIdFromCode resolved roomId:', roomId);
       return roomId;
     } catch (err: any) {
-      console.error('[RoomService] getRoomIdFromCode error:', err);
-      console.error('[RoomService] Raw error details:', {
-        name: err?.name,
-        code: err?.code,
-        message: err?.message,
-        stack: err?.stack,
-      });
+      const code = err?.code || '';
+      const msg = (err?.message || '').toLowerCase();
+      if (code === 'unavailable' || code === 'not-found' || msg.includes('offline') || msg.includes('database')) {
+        console.warn('[RoomService] Firestore offline/unprovisioned during getRoomIdFromCode.');
+        return null;
+      }
+      handleRoomServiceError('getRoomIdFromCode', err);
       throw err;
     }
   }
@@ -143,13 +154,13 @@ export class RoomService {
       console.log('[RoomService] getRoom success');
       return room;
     } catch (err: any) {
-      console.error('[RoomService] getRoom error:', err);
-      console.error('[RoomService] Raw error details:', {
-        name: err?.name,
-        code: err?.code,
-        message: err?.message,
-        stack: err?.stack,
-      });
+      const code = err?.code || '';
+      const msg = (err?.message || '').toLowerCase();
+      if (code === 'unavailable' || code === 'not-found' || msg.includes('offline') || msg.includes('database')) {
+        console.warn('[RoomService] Firestore offline/unprovisioned during getRoom.');
+        return null;
+      }
+      handleRoomServiceError('getRoom', err);
       throw err;
     }
   }

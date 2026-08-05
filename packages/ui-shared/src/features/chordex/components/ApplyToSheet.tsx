@@ -20,9 +20,9 @@ interface AppCard {
 
 const APP_CARDS: AppCard[] = [
   { key: 'hub', label: 'Studio', Logo: StudioLogo },
-  { key: 'chords', label: 'Chordex', Logo: ChordexLogo },
-  { key: 'drums', label: 'Drumex', Logo: DrumexLogo },
-  { key: 'stage', label: 'Stagex', Logo: StagexLogoIcon },
+  { key: 'chordex', label: 'Chordex', Logo: ChordexLogo },
+  { key: 'drumex', label: 'Drumex', Logo: DrumexLogo },
+  { key: 'stagex', label: 'Stagex', Logo: StagexLogoIcon },
   { key: 'groovex', label: 'Groovex', Logo: GroovexLogo },
   { key: 'vocalex', label: 'Vocalex', Logo: VocalexLogo },
 ];
@@ -42,12 +42,12 @@ export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetPro
   const accent = ACCENT_COLORS[vis.accentColor as keyof typeof ACCENT_COLORS];
 
   const [selected, setSelected] = useState<Set<AppKey>>(
-    new Set(['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'])
+    new Set(['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'])
   );
 
   useEffect(() => {
     if (show) {
-      setSelected(new Set(['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex']));
+      setSelected(new Set(['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex']));
     }
   }, [show]);
 

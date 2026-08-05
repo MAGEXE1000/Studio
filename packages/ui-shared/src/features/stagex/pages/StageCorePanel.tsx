@@ -1,5 +1,5 @@
 import { Button, Toolbar } from '../../../shared/design-system/StudioDesignSystem';
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets, CollaborationService, authRepository } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets, CollaborationService, authRepository, APP_VERSION, getFirebaseConfigDetails, getFirestoreDiagnostics } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
@@ -109,7 +109,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
     const cur = store.settings.defaultStageView ?? 'Editor';
-    const accentKey = (store.settings.perApp?.stage?.accentColor ??
+    const accentKey = (store.settings.perApp?.stagex?.accentColor ??
       store.settings.accentColor ??
       'blue') as keyof typeof ACCENT_COLORS;
     const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
@@ -172,7 +172,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
         const a2 =
           ACCENT_COLORS[
-            (useSettingsStore.getState().settings.perApp?.stage?.accentColor ??
+            (useSettingsStore.getState().settings.perApp?.stagex?.accentColor ??
               useSettingsStore.getState().settings.accentColor ??
               'blue') as keyof typeof ACCENT_COLORS
           ] ?? ACCENT_COLORS.blue;
@@ -402,7 +402,7 @@ export default function StagexPanel() {
   const iframeReady = useRef(false);
   const settings = useSettingsStore((state) => state.settings);
   const currentRouteNav = useNavigationStore((s) => s.history[s.history.length - 1]);
-  const isActiveApp = !currentRouteNav || currentRouteNav.app === 'stage';
+  const isActiveApp = !currentRouteNav || currentRouteNav.app === 'stagex';
   const tr = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [customElements, setCustomElements] = useState<any[]>([]);
@@ -478,7 +478,7 @@ export default function StagexPanel() {
 
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || { app: 'hub' };
   const curView = useMemo(() => {
-    if (currentRoute.app === 'stage' && currentRoute.page && currentRoute.page !== 'main' && currentRoute.page !== 'stage') {
+    if (currentRoute.app === 'stagex' && currentRoute.page && currentRoute.page !== 'main' && currentRoute.page !== 'stage') {
       return currentRoute.page;
     }
     const s = useSettingsStore.getState();
@@ -489,13 +489,13 @@ export default function StagexPanel() {
   const setCurView = useCallback((newView: string) => {
     const current =
       useNavigationStore.getState().history[useNavigationStore.getState().history.length - 1];
-    if (!current || current.app !== 'stage') {
+    if (!current || current.app !== 'stagex') {
       return;
     }
     if (current.page === newView) {
       return;
     }
-    NavigationDispatcher.push({ app: 'stage', page: newView });
+    NavigationDispatcher.push({ app: 'stagex', page: newView });
   }, []);
 
   const curViewRef = useRef(curView);
@@ -580,9 +580,89 @@ export default function StagexPanel() {
   const [collabState, setCollabState] = useState<any>('disconnected');
   const [collabError, setCollabError] = useState<string | null>(null);
   const [collabLoading, setCollabLoading] = useState(false);
+  const [collabDiagExpanded, setCollabDiagExpanded] = useState(false);
+  const [collabErrorTimestamp, setCollabErrorTimestamp] = useState<string | null>(null);
   const [collabCopied, setCollabCopied] = useState(false);
   const [pendingOpsCount, setPendingOpsCount] = useState(0);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  const getFirestoreErrorInfo = (errorStr: string | null) => {
+    if (!errorStr) {
+      return {
+        code: 'none',
+        message: 'none',
+        stack: 'none'
+      };
+    }
+    let code = 'unknown';
+    const codeMatch = errorStr.match(/\[([^\]]+)\]/);
+    if (codeMatch) {
+      code = codeMatch[1];
+    } else {
+      const codeMatch2 = errorStr.match(/code:\s*(\w+)/);
+      if (codeMatch2) code = codeMatch2[1];
+    }
+
+    let message = errorStr;
+    if (errorStr.includes('(Raw:')) {
+      message = errorStr.split('(Raw:')[0].trim();
+    }
+
+    let stack = 'none';
+    if (errorStr.includes('stack:')) {
+      stack = errorStr.split('stack:')[1].trim();
+    }
+    return { code, message, stack };
+  };
+
+  const generateDiagnosticsReport = useCallback(() => {
+    const fbConfig = getFirebaseConfigDetails();
+    const fsDiag = getFirestoreDiagnostics();
+    const errInfo = getFirestoreErrorInfo(collabError);
+    
+    return [
+      `=== STAGEX ENGINEERING DIAGNOSTICS REPORT ===`,
+      `Generated: ${new Date().toISOString()}`,
+      ``,
+      `=== ROUTE & APPLICATION ===`,
+      `Current Route: ${window.location.pathname} (app: ${currentRoute.app || 'N/A'}, page: ${currentRoute.page || 'N/A'})`,
+      `Current Application: ${currentRoute.app || 'N/A'}`,
+      ``,
+      `=== PLATFORM & ENVIRONMENT ===`,
+      `Platform: ${Capacitor.isNativePlatform() ? 'Android/iOS (Capacitor)' : 'Web'}`,
+      `App Version: ${APP_VERSION}`,
+      `Commit SHA: ${import.meta.env.VITE_COMMIT_REF || 'unknown'}`,
+      `navigator.onLine: ${navigator.onLine ? 'true' : 'false'}`,
+      ``,
+      `=== FIREBASE & FIRESTORE DATABASE ===`,
+      `Firebase Project: ${fbConfig.projectId}`,
+      `Database ID: ${(fbConfig as any).databaseId || '(default)'}`,
+      `Firestore Connection State: ${collabState || 'disconnected'}`,
+      ``,
+      `=== AUTHENTICATION ===`,
+      `Auth State: ${currentUser ? 'Authenticated' : 'Unauthenticated'}`,
+      `Current User UID: ${currentUser?.uid || 'N/A'}`,
+      ``,
+      `=== COLLABORATION ROOM ===`,
+      `Room ID: ${collabRoom?.roomId || 'N/A'}`,
+      `Short Code: ${collabRoom?.shortCode || 'N/A'}`,
+      `Presence Status: ${collabParticipants.length} active participants`,
+      ``,
+      `=== SNAPSHOT & METADATA ===`,
+      `Snapshot Metadata: fromCache=${fsDiag.firestoreRuntimeActive ? 'false' : 'true'}`,
+      `Pending Writes: ${pendingOpsCount > 0 ? 'true' : 'false'} (${pendingOpsCount} pending)`,
+      `fromCache: ${fsDiag.firestoreRuntimeActive ? 'false' : 'true'}`,
+      ``,
+      `=== OPERATION QUEUE ===`,
+      `Operation Queue Status: ${pendingOpsCount} pending operations`,
+      ``,
+      `=== FIRESTORE ERRORS ===`,
+      `Firestore Error Code: ${errInfo.code}`,
+      `Firestore Message: ${errInfo.message}`,
+      `Firestore Stack: ${errInfo.stack}`,
+      `============================================`
+    ].join('\n');
+  }, [currentRoute, collabError, collabState, currentUser, collabRoom, collabParticipants, pendingOpsCount]);
 
   useEffect(() => {
     if (collabState !== 'connected') {
@@ -1011,7 +1091,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         // 12. Reopen Stagex
         setTestStep('Reopening Stagex...');
         const store = useChordStore.getState();
-        NavigationDispatcher.openApp('stage');
+        NavigationDispatcher.openApp('stagex');
         await delay(1000);
       }
 
@@ -1147,7 +1227,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     return () => clearTimeout(timer);
   }, [isLandscape]);
 
-  const stageVis = settings.perApp?.stage ?? {
+  const stageVis = settings.perApp?.stagex ?? {
     theme: 'dark' as const,
     accentColor: 'blue' as const,
     amoledMode: false,
@@ -2231,7 +2311,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               />
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
-                  <SmartLoading app="stage" />
+                  <SmartLoading app="stagex" />
                 </div>
               )}
             </div>
@@ -3321,7 +3401,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               />
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
-                  <SmartLoading app="stage" />
+                  <SmartLoading app="stagex" />
                 </div>
               )}
               {hideBottomNav && <div className="hide-bottom-nav" style={{ display: 'none' }} />}
@@ -3361,6 +3441,24 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 >
                   <span style={{ fontWeight: 800, color: '#fff' }}>STAGEX DIAGNOSTICS</span>
                   <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => {
+                        const report = generateDiagnosticsReport();
+                        navigator.clipboard.writeText(report).catch(() => {});
+                        logDiagnostic(`[Diagnostics] Engineering report copied to clipboard.`);
+                      }}
+                      style={{
+                        padding: '3px 6px',
+                        background: '#0ca678',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 4,
+                        fontSize: 8,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Copy Diagnostics
+                    </button>
                     <button
                       onClick={() => {
                         const next = !safeMode;
@@ -3440,6 +3538,44 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   <div>Recv: {diagTaps.recvMsgs}</div>
                   <div style={{ color: safeMode ? '#ff6b6b' : '#a0a0a5' }}>
                     Safe: {safeMode ? 'ON' : 'OFF'}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '4px 8px',
+                    background: 'rgba(0,0,0,0.4)',
+                    padding: 8,
+                    borderRadius: 8,
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <div style={{ gridColumn: 'span 2', fontWeight: 'bold', color: '#ffb703', borderBottom: '1px dashed rgba(255,255,255,0.1)', paddingBottom: 2 }}>
+                    Runtime Variables
+                  </div>
+                  <div><strong>Route:</strong> {window.location.pathname}</div>
+                  <div><strong>App:</strong> {currentRoute.app || 'N/A'}</div>
+                  <div><strong>Firebase Project:</strong> {getFirebaseConfigDetails().projectId}</div>
+                  <div><strong>Database ID:</strong> {(getFirebaseConfigDetails() as any).databaseId || '(default)'}</div>
+                  <div><strong>Connection State:</strong> {collabState}</div>
+                  <div><strong>Auth State:</strong> {currentUser ? 'Authenticated' : 'Unauthenticated'}</div>
+                  <div><strong>Room ID:</strong> {collabRoom?.roomId || 'N/A'}</div>
+                  <div><strong>Short Code:</strong> {collabRoom?.shortCode || 'N/A'}</div>
+                  <div><strong>Snapshot Metadata:</strong> fromCache={getFirestoreDiagnostics().firestoreRuntimeActive ? 'false' : 'true'}</div>
+                  <div><strong>Pending Writes:</strong> {pendingOpsCount > 0 ? 'true' : 'false'} ({pendingOpsCount})</div>
+                  <div><strong>fromCache:</strong> {getFirestoreDiagnostics().firestoreRuntimeActive ? 'false' : 'true'}</div>
+                  <div><strong>navigator.onLine:</strong> {navigator.onLine ? 'true' : 'false'}</div>
+                  <div><strong>App Version:</strong> {APP_VERSION}</div>
+                  <div><strong>Commit SHA:</strong> {import.meta.env.VITE_COMMIT_REF || 'unknown'}</div>
+                  <div><strong>Platform:</strong> {Capacitor.isNativePlatform() ? 'Native' : 'Web'}</div>
+                  <div><strong>Presence Status:</strong> {collabParticipants.length} active</div>
+                  <div><strong>Op Queue Status:</strong> {pendingOpsCount} pending</div>
+                  <div style={{ gridColumn: 'span 2', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 4 }}>
+                    <strong>Firestore Error:</strong> Code: {getFirestoreErrorInfo(collabError).code} | Msg: {getFirestoreErrorInfo(collabError).message}
+                  </div>
+                  <div style={{ gridColumn: 'span 2', maxHeight: 40, overflowY: 'auto', fontSize: 8, color: '#ff8787', fontFamily: 'monospace' }}>
+                    <strong>Stack:</strong> {getFirestoreErrorInfo(collabError).stack}
                   </div>
                 </div>
                 <pre
@@ -4010,9 +4146,52 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
                 <div className="p-6 space-y-6">
                   {collabError && (
-                    <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/25 text-[#ffb4ab] text-sm flex items-center gap-2">
-                      <span className="material-symbols-outlined text-lg">error</span>
-                      <span className="font-medium">{collabError}</span>
+                    <div className="rounded-2xl bg-red-500/10 border border-red-500/25 text-[#ffb4ab] text-sm overflow-hidden">
+                      {/* Collapsed: friendly error message */}
+                      <div className="p-3 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-lg flex-shrink-0">error</span>
+                        <span className="font-medium flex-1">
+                          {collabError.includes('(Raw:') ? collabError.split('(Raw:')[0].trim() : collabError}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCollabDiagExpanded(!collabDiagExpanded)}
+                          className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#ffb4ab]/70 hover:text-[#ffb4ab] transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
+                        >
+                          {collabDiagExpanded ? 'Hide' : 'Details'}
+                        </button>
+                      </div>
+                      {/* Expanded: full diagnostics */}
+                      {collabDiagExpanded && (
+                        <div className="px-3 pb-3 pt-0 border-t border-red-500/15 space-y-2">
+                          <div className="mt-2 text-[11px] font-mono text-[#ffb4ab]/60 leading-relaxed space-y-1">
+                            {collabError.includes('(Raw:') && (
+                              <div><span className="text-[#ffb4ab]/40">Raw: </span>{collabError.match(/\(Raw:\s*(.+)\)$/)?.[1] || 'N/A'}</div>
+                            )}
+                            {collabErrorTimestamp && (
+                              <div><span className="text-[#ffb4ab]/40">Time: </span>{collabErrorTimestamp}</div>
+                            )}
+                            <div><span className="text-[#ffb4ab]/40">State: </span>{collabState || 'disconnected'}</div>
+                            {collabRoom?.shortCode && (
+                              <div><span className="text-[#ffb4ab]/40">Room: </span>{collabRoom.shortCode}</div>
+                            )}
+                            {currentUser?.uid && (
+                              <div><span className="text-[#ffb4ab]/40">User: </span>{currentUser.uid.slice(0, 8)}…</div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const diagText = generateDiagnosticsReport();
+                              navigator.clipboard.writeText(diagText).catch(() => {});
+                            }}
+                            className="w-full text-[11px] font-semibold text-[#ffb4ab]/50 hover:text-[#ffb4ab]/80 border border-red-500/15 hover:border-red-500/30 rounded-lg py-1.5 flex items-center justify-center gap-1.5 transition-all hover:bg-white/5"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                            Copy Diagnostics
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -4165,6 +4344,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                             setCollabModalOpen(false);
                           } catch (e: any) {
                             setCollabError(e.message || String(e));
+                            setCollabErrorTimestamp(new Date().toISOString());
                           } finally {
                             setCollabLoading(false);
                           }
@@ -4193,6 +4373,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                               );
                             } catch (e: any) {
                               setCollabError(e.message || String(e));
+                              setCollabErrorTimestamp(new Date().toISOString());
                             } finally {
                               setCollabLoading(false);
                             }
@@ -4232,6 +4413,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                               );
                             } catch (e: any) {
                               setCollabError(e.message || String(e));
+                              setCollabErrorTimestamp(new Date().toISOString());
                             } finally {
                               setCollabLoading(false);
                             }

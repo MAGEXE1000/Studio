@@ -2161,6 +2161,10 @@ function UpdateModal({
   };
 
   const renderChangelog = () => {
+    // Only show inline changelog when update is available or reinstall warning.
+    // After installation, release notes appear only in the ChangelogSheet bottom sheet.
+    if (state !== 'available' && state !== 'reinstall_warning') return null;
+
     const releaseNotes = updater.releaseNotes;
     const sections = parseChangelogToSections(releaseNotes, updater.changelog);
 

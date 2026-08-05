@@ -201,15 +201,7 @@
     --c-text-muted 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Disable transitions during theme reveal to ensure instant capture by View Transition engine */
-.theme-transitioning,
-.theme-transitioning *,
-.theme-transitioning ::before,
-.theme-transitioning ::after {
-  transition: none !important;
-  transition-duration: 0s !important;
-  animation-duration: 0s !important;
-}
+
 
 :root.amoled {
   --app-bg: #000000;
@@ -386,59 +378,14 @@ html[data-perf-mode='on'] *::after {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ===== View Transition (theme crossfade) ===== */
-::view-transition-old(root) {
-  animation: vt-fade-out 250ms cubic-bezier(0.4, 0, 0.2, 1) both;
-  z-index: 2;
-}
-::view-transition-new(root) {
-  animation: none;
-  opacity: 1;
-  z-index: 1;
-}
-@keyframes vt-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* ===== Circular Reveal Transition ===== */
-[data-studio-theme-vt='active'] ::view-transition-group(root) {
-  animation: none;
-}
-[data-studio-theme-vt='active'] ::view-transition-old(root) {
-  animation: none;
-  opacity: 1;
-  z-index: 1;
-}
-[data-studio-theme-vt='active'] ::view-transition-new(root) {
-  clip-path: circle(0px at var(--x, 50%) var(--y, 50%));
-  animation: reveal var(--studio-theme-vt-duration, 500ms) cubic-bezier(0.22, 1, 0.36, 1) both;
-  opacity: 1;
-  z-index: 2;
-  will-change: clip-path;
-}
-
-@keyframes reveal {
-  from {
-    clip-path: circle(0px at var(--x, 50%) var(--y, 50%));
-  }
-  to {
-    clip-path: circle(var(--r, 120vmax) at var(--x, 50%) var(--y, 50%));
-  }
-}
-
-/* When theme is transitioning, add color transitions to all elements
-   Exempt: elements inside [data-theme-exempt] keep their own transitions */
-html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt]),
-html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::before,
-html.theme-transitioning *:not([data-theme-exempt] *):not([data-theme-exempt])::after {
-  transition: none !important;
-  transition-duration: 0s !important;
-  animation-duration: 0s !important;
+/* ===== New Premium Native Theme Transition ===== */
+html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt]),
+html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt])::before,
+html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt])::after {
+  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 /* ===== Global Base ===== */

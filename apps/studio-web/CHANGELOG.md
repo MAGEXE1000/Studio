@@ -9,6 +9,18 @@ that bundle.
 
 Conventions:
 
+## 4.3.77
+
+Release Date: 2026-08-05
+
+### Fixed
+- Fixed empty icons in Chordex bottom navigation bar.
+- Normalized Start On preferences across Drumex, StageX, Vocalex, and removed Start On setting from Groovex.
+- Redesigned bottom navigation bar icon animations with zero cooldown and full tab button hit target.
+- Centered Groovex bottom navigation bar symmetrically on all mobile screen sizes.
+- Fixed updater version comparison logic to prevent offering currently installed versions.
+- Removed Beta tag from application version labels.
+
 ## 4.3.76
 
 Release Date: 2026-08-05

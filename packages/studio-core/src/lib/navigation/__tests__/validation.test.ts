@@ -33,13 +33,13 @@ describe('normalizeAndValidateRoute', () => {
   });
 
   it('preserves valid tab values', () => {
-    const result = normalizeAndValidateRoute({ app: 'chords', tab: 'settings' });
-    expect(result).toEqual({ app: 'chords', tab: 'settings' });
+    const result = normalizeAndValidateRoute({ app: 'chordex', tab: 'settings' });
+    expect(result).toEqual({ app: 'chordex', tab: 'settings' });
   });
 
   it('strips invalid tab values silently', () => {
-    const result = normalizeAndValidateRoute({ app: 'chords', tab: 'invalid' as any });
-    expect(result).toEqual({ app: 'chords' });
+    const result = normalizeAndValidateRoute({ app: 'chordex', tab: 'invalid' as any });
+    expect(result).toEqual({ app: 'chordex' });
     expect(result.tab).toBeUndefined();
   });
 
@@ -56,13 +56,13 @@ describe('normalizeAndValidateRoute', () => {
 
   it('preserves page, subView, and id string fields', () => {
     const result = normalizeAndValidateRoute({
-      app: 'drums',
+      app: 'drumex',
       page: 'library',
       subView: 'patterns',
       id: 'preset-42',
     });
     expect(result).toEqual({
-      app: 'drums',
+      app: 'drumex',
       page: 'library',
       subView: 'patterns',
       id: 'preset-42',
@@ -92,7 +92,7 @@ describe('normalizeAndValidateRoute', () => {
   });
 
   it('accepts all valid app values', () => {
-    const validApps: NavigationRoute['app'][] = ['hub', 'chords', 'drums', 'stage', 'groovex', 'vocalex'];
+    const validApps: NavigationRoute['app'][] = ['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'];
     for (const app of validApps) {
       const result = normalizeAndValidateRoute({ app });
       expect(result.app).toBe(app);
@@ -156,7 +156,7 @@ describe('isRouteEqual', () => {
 
   it('returns false when app differs', () => {
     const a: NavigationRoute = { app: 'hub' };
-    const b: NavigationRoute = { app: 'drums' };
+    const b: NavigationRoute = { app: 'drumex' };
     expect(isRouteEqual(a, b)).toBe(false);
   });
 
@@ -186,7 +186,7 @@ describe('isRouteEqual', () => {
 
   it('checks all 6 fields for equality', () => {
     const full: NavigationRoute = {
-      app: 'chords',
+      app: 'chordex',
       tab: 'home',
       page: 'library',
       subView: 'grid',
@@ -204,7 +204,7 @@ describe('isRouteEqual', () => {
 describe('detectRecursion', () => {
   it('returns false for history with fewer than 2 entries', () => {
     expect(detectRecursion([], { app: 'hub' })).toBe(false);
-    expect(detectRecursion([{ app: 'hub' }], { app: 'chords' })).toBe(false);
+    expect(detectRecursion([{ app: 'hub' }], { app: 'chordex' })).toBe(false);
   });
 
   it('detects A -> A -> A pattern (same route repeated)', () => {
@@ -218,19 +218,19 @@ describe('detectRecursion', () => {
   it('does not flag A -> B -> C as recursion', () => {
     const history: NavigationHistory = [
       { app: 'hub' },
-      { app: 'chords' },
+      { app: 'chordex' },
     ];
-    expect(detectRecursion(history, { app: 'drums' })).toBe(false);
+    expect(detectRecursion(history, { app: 'drumex' })).toBe(false);
   });
 
   it('does not flag A -> B -> A when last two are not equal', () => {
     const history: NavigationHistory = [
       { app: 'hub' },
-      { app: 'chords' },
+      { app: 'chordex' },
     ];
     // This is A -> B, next is A. secondLast=A, last=B, next=A.
     // detectRecursion checks isRouteEqual(secondLast, next) && isRouteEqual(last, secondLast)
-    // That's isRouteEqual(hub, hub) && isRouteEqual(chords, hub) = true && false = false
+    // That's isRouteEqual(hub, hub) && isRouteEqual(chordex, hub) = true && false = false
     expect(detectRecursion(history, { app: 'hub' })).toBe(false);
   });
 });
@@ -257,7 +257,7 @@ describe('isRootRouteOnly', () => {
   it('returns true when the current app has exactly 1 entry (preceded by a different app)', () => {
     const history: NavigationHistory = [
       { app: 'hub' },
-      { app: 'chords' },
+      { app: 'chordex' },
     ];
     expect(isRootRouteOnly(history)).toBe(true);
   });
@@ -265,21 +265,21 @@ describe('isRootRouteOnly', () => {
   it('handles longer stacks correctly', () => {
     const history: NavigationHistory = [
       { app: 'hub' },
-      { app: 'chords' },
-      { app: 'chords', tab: 'settings' },
-      { app: 'chords', page: 'library' },
+      { app: 'chordex' },
+      { app: 'chordex', tab: 'settings' },
+      { app: 'chordex', page: 'library' },
     ];
-    // The current app is 'chords' with 3 consecutive entries from the tail
+    // The current app is 'chordex' with 3 consecutive entries from the tail
     expect(isRootRouteOnly(history)).toBe(false);
   });
 
   it('counts only the contiguous tail segment for the current app', () => {
     const history: NavigationHistory = [
-      { app: 'chords' },          // not counted — interrupted by hub
+      { app: 'chordex' },          // not counted — interrupted by hub
       { app: 'hub' },
-      { app: 'drums' },
+      { app: 'drumex' },
     ];
-    // Current app is 'drums', only 1 contiguous entry
+    // Current app is 'drumex', only 1 contiguous entry
     expect(isRootRouteOnly(history)).toBe(true);
   });
 });

@@ -1,20 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.77",
-  "versionName": "4.3.77",
-  "versionCode": 40398,
-  "version_code": 40398,
-  "commit": "HEAD",
-  "releasedAt": "8/5/2026, 12:10:00 AM CST",
-  "buildTimestamp": "8/5/2026, 12:10:00 AM CST",
+  "version": "4.3.78",
+  "versionName": "4.3.78",
+  "versionCode": 40399,
+  "version_code": 40399,
+  "commit": "616098bc",
+  "releasedAt": "8/5/2026, 7:53:28 AM CST",
+  "buildTimestamp": "8/5/2026, 7:53:28 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed empty icons in Chordex bottom navigation bar.\n• Normalized Start On preferences across Drumex, StageX, Vocalex, and removed Start On setting from Groovex.\n• Redesigned bottom navigation bar icon animations with zero cooldown.\n• Centered Groovex bottom navigation bar symmetrically on all mobile screen sizes.\n• Fixed updater version comparison logic to prevent offering currently installed versions.\n• Removed Beta tag from application version labels.",
-  "whatsNew": "• Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).\n• Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.\n• Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.",
+  "changelog": "• Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.\n• Implemented state-backed navigation collapse inside StageX and Drumex.\n• Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.\n• Fixed StageX collaboration hosting to handle offline timeouts and non-blocking presence updates.",
+  "whatsNew": "• Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.\n• Implemented state-backed navigation collapse inside StageX and Drumex.\n• Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.\n• Fixed StageX collaboration hosting to handle offline timeouts and non-blocking presence updates.",
   "releaseNotes": {
     "fixed": [
-      "Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).",
-      "Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.",
-      "Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer."
+      "Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.",
+      "Implemented state-backed navigation collapse inside StageX and Drumex.",
+      "Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.",
+      "Fixed StageX collaboration hosting to handle offline timeouts and non-blocking presence updates."
     ]
   },
   "mandatory": false

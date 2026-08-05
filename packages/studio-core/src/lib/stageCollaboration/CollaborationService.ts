@@ -35,6 +35,17 @@ function handleCollabError(context: string, err: any) {
   }
 }
 
+const COLLAB_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, context: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${context} timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 export class CollaborationService {
   private static instance: CollaborationService | null = null;
 
@@ -184,14 +195,20 @@ export class CollaborationService {
 
     try {
       console.log('[CollaborationService] Creating room via RoomService...');
-      const room = await RoomService.createRoom(userId);
+      const room = await withTimeout(
+        RoomService.createRoom(userId),
+        COLLAB_TIMEOUT_MS,
+        'RoomService.createRoom'
+      );
       console.log('[CollaborationService] Room created successfully. roomId:', room.roomId, 'code:', room.shortCode);
       this.setRoom(room);
       this.setConnectionState('connected');
 
-      console.log('[CollaborationService] Updating presence for host...');
-      await PresenceService.updatePresence(room.roomId, userId ? { id: userId, ...userData } : { id: 'host', ...userData }, this.getDeviceType(), cursorColor, true);
-      console.log('[CollaborationService] Presence updated successfully.');
+      console.log('[CollaborationService] Updating presence for host (non-blocking)...');
+      // Non-blocking: presence failure should not prevent hosting
+      PresenceService.updatePresence(room.roomId, userId ? { id: userId, ...userData } : { id: 'host', ...userData }, this.getDeviceType(), cursorColor, true).catch(e => {
+        console.warn('[CollaborationService] Initial presence update failed (non-fatal):', e);
+      });
 
       console.log('[CollaborationService] Setting up realtime subscriptions...');
       this.setupSubscriptions(room.roomId);
@@ -221,12 +238,20 @@ export class CollaborationService {
 
     try {
       console.log(`[CollaborationService] Looking up roomId from code: ${shortCode}`);
-      const roomId = await RoomService.getRoomIdFromCode(shortCode.toUpperCase().trim());
+      const roomId = await withTimeout(
+        RoomService.getRoomIdFromCode(shortCode.toUpperCase().trim()),
+        COLLAB_TIMEOUT_MS,
+        'RoomService.getRoomIdFromCode'
+      );
       console.log(`[CollaborationService] getRoomIdFromCode resolved to: ${roomId}`);
       if (!roomId) throw new Error('Invalid or expired room code');
 
       console.log(`[CollaborationService] Fetching room details for roomId: ${roomId}`);
-      const room = await RoomService.getRoom(roomId);
+      const room = await withTimeout(
+        RoomService.getRoom(roomId),
+        COLLAB_TIMEOUT_MS,
+        'RoomService.getRoom'
+      );
       if (!room) throw new Error('Room details not found');
 
       // Restore stage snapshot from room host
@@ -239,9 +264,11 @@ export class CollaborationService {
       this.setRoom(room);
       this.setConnectionState('connected');
 
-      console.log('[CollaborationService] Updating presence for joint user...');
-      await PresenceService.updatePresence(roomId, { id: userId, ...userData }, this.getDeviceType(), cursorColor, true);
-      console.log('[CollaborationService] Presence updated successfully.');
+      console.log('[CollaborationService] Updating presence for joint user (non-blocking)...');
+      // Non-blocking: presence failure should not prevent joining
+      PresenceService.updatePresence(roomId, { id: userId, ...userData }, this.getDeviceType(), cursorColor, true).catch(e => {
+        console.warn('[CollaborationService] Initial presence update failed (non-fatal):', e);
+      });
 
       console.log('[CollaborationService] Setting up realtime subscriptions...');
       // Joiners already have the snapshot — only listen for NEW operations
@@ -291,10 +318,15 @@ export class CollaborationService {
 
     this.unsubOps = FirestoreSync.subscribeOperations(roomId, (op) => {
       this.applyRemoteOperation(op);
-    }, undefined, sinceTimestamp);
+    }, (err) => {
+      console.error('[CollaborationService] Operations subscription error:', err);
+      this.setConnectionState('offline');
+    }, sinceTimestamp);
 
     this.unsubPresence = FirestoreSync.subscribePresence(roomId, (participants) => {
       this.setParticipants(participants);
+    }, (err) => {
+      console.error('[CollaborationService] Presence subscription error:', err);
     });
   }
 

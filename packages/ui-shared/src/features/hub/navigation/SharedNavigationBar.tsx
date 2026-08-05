@@ -1084,6 +1084,8 @@ export function SharedNavigationBar({
       const targetItem = currentItems[finalIndex];
 
       if (targetItem && finalIndex !== activeIndex) {
+        navigationEpochRef.current += 1;
+        setNavigationEpoch(navigationEpochRef.current);
         targetItem.onClick();
       }
     } else {
@@ -1094,6 +1096,8 @@ export function SharedNavigationBar({
       const clickedItem = currentItems[clickIndex];
 
       if (clickedItem) {
+        navigationEpochRef.current += 1;
+        setNavigationEpoch(navigationEpochRef.current);
         clickedItem.onClick();
       }
     }

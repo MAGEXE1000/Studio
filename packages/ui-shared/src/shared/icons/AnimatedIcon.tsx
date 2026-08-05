@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
 import { motion, useAnimation } from 'motion/react';
 import * as LucideAnimated from 'lucide-animated';
 import * as LucideReact from 'lucide-react';
@@ -164,15 +164,25 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       },
     }));
 
+    const prevEpochRef = useRef(animationEpoch);
+    const prevStateRef = useRef(state);
+
     useEffect(() => {
       let rafId: number | null = null;
       if (!isSpinning) {
-        if (animationEpoch !== undefined && state === 'active') {
+        const epochChanged = animationEpoch !== prevEpochRef.current;
+        const wasAlreadyActive = prevStateRef.current === 'active' || prevStateRef.current === 'selected';
+        prevEpochRef.current = animationEpoch;
+        prevStateRef.current = state;
+
+        if (epochChanged && wasAlreadyActive && (state === 'active' || state === 'selected')) {
+          // Re-tapping an already active/selected tab: force replay bounce
           controls.set('inactive');
           rafId = requestAnimationFrame(() => {
             controls.start(state);
           });
         } else {
+          // Normal state transition (e.g. inactive -> active): smooth spring animation
           controls.start(state);
         }
       }
@@ -181,9 +191,7 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
           cancelAnimationFrame(rafId);
         }
       };
-    }, [state, controls, isSpinning, animationEpoch]);
-
-    // Hover configuration based on icon type
+    }, [state, controls, isSpinning, animationEpoch]);    // Hover configuration based on icon type
     const getIconSpecificHover = () => {
       const lower = name.toLowerCase();
       if (lower.includes('setting') || lower.includes('gear')) {
@@ -286,19 +294,22 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       };
     };
 
-    const getStateVariants = () => {
+    const getActiveStateVariants = () => {
       const iconHover = getIconSpecificHover();
+      const iconRotate = typeof iconHover.rotate === 'number' ? iconHover.rotate * 0.5 : undefined;
+      return {
+        scale: [0.92, 1.16, 1.08],
+        rotate: iconRotate !== undefined ? [0, iconRotate, 0] : [0, -4, 0],
+        y: typeof iconHover.y === 'number' ? iconHover.y : -1.5,
+        opacity: 1,
+      };
+    };
+
+    const getStateVariants = () => {
       switch (state) {
         case 'active':
-        case 'selected': {
-          const iconRotate = typeof iconHover.rotate === 'number' ? iconHover.rotate * 0.5 : undefined;
-          return {
-            scale: [0.92, 1.16, 1.08],
-            rotate: iconRotate !== undefined ? [0, iconRotate, 0] : [0, -4, 0],
-            y: typeof iconHover.y === 'number' ? iconHover.y : -1.5,
-            opacity: 1,
-          };
-        }
+        case 'selected':
+          return getActiveStateVariants();
         case 'pressed':
           return { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 };
         case 'loading':
@@ -331,11 +342,11 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
           ...style,
         }}
         animate={isSpinning ? { rotate: [0, 360] } : controls}
-        initial={getStateVariants()}
+        initial="inactive"
         whileHover={isSpinning ? undefined : getIconSpecificHover()}
         whileTap={isSpinning ? undefined : getIconSpecificTap()}
         variants={{
-          active: getStateVariants(),
+          active: getActiveStateVariants(),
           inactive: { scale: 1, rotate: 0, y: 0, opacity: 0.85 },
           loading: { scale: 1, rotate: 360, opacity: 0.85 },
           success: { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 },
@@ -343,7 +354,7 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
           error: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
           disabled: { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 },
           pressed: { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 },
-          selected: getStateVariants(),
+          selected: getActiveStateVariants(),
         }}
         transition={
           isSpinning

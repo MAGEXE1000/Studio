@@ -105,10 +105,27 @@ export function useNavScrollOffset(): number {
   return offset;
 }
 
-export function setNavCollapsed(_collapsed: boolean) {}
+let _collapsed = false;
+const _collapsedListeners = new Set<(c: boolean) => void>();
+
+export function setNavCollapsed(collapsed: boolean) {
+  if (_locked) return;
+  if (_collapsed === collapsed) return;
+  _collapsed = collapsed;
+  _collapsedListeners.forEach((fn) => fn(collapsed));
+  setNavScrollOffset(collapsed ? 1 : 0);
+  onStateChanged();
+}
 
 export function useNavCollapsed(): boolean {
-  return false;
+  const [collapsed, setCollapsed] = useState(_collapsed);
+  useEffect(() => {
+    _collapsedListeners.add(setCollapsed);
+    return () => {
+      _collapsedListeners.delete(setCollapsed);
+    };
+  }, []);
+  return collapsed;
 }
 
 const _registeredScrollElements = new Set<HTMLElement>();

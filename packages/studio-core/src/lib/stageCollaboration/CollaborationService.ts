@@ -9,7 +9,7 @@ import { Unsubscribe } from 'firebase/firestore';
 
 function mapFirestoreError(error: any): Error {
   const rawMsg = error?.message || String(error);
-  const code = error?.code || 'unknown';
+  const code = error?.code || error?.name || 'unknown';
   const name = error?.name || 'Error';
   const msg = rawMsg.toLowerCase();
   
@@ -22,26 +22,37 @@ function mapFirestoreError(error: any): Error {
     friendly = 'Room does not exist or has expired.';
   }
   
+  console.error(`[CollaborationService] [FIRESTORE_EXCEPTION] Name=${name}, Code=${code}, Message=${rawMsg}`);
+  if (error?.stack) {
+    console.error(`[CollaborationService] [FIRESTORE_EXCEPTION] Stack trace:`, error.stack);
+  }
+  
   return new Error(`${friendly} (Raw: ${name}[${code}]: ${rawMsg})`);
 }
 
 function handleCollabError(context: string, err: any) {
   const code = err?.code || 'unknown';
   const msg = err?.message || String(err);
-  if (code === 'unavailable' || code === 'not-found' || msg.toLowerCase().includes('offline') || msg.toLowerCase().includes('database') || msg.toLowerCase().includes('not found')) {
-    console.warn(`[CollaborationService] ${context} - Firestore is offline or database is not provisioned (Code: ${code}).`);
-  } else {
-    console.error(`[CollaborationService] ${context} - Unexpected error:`, err);
+  console.error(`[CollaborationService] [FIRESTORE_ERROR_LOG] Context: ${context}, Code: ${code}, Message: ${msg}`);
+  if (err?.stack) {
+    console.error(`[CollaborationService] [FIRESTORE_ERROR_LOG] Stack trace:`, err.stack);
   }
 }
 
 const COLLAB_TIMEOUT_MS = 15_000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, context: string): Promise<T> {
+  console.log(`[CollaborationService] [TIMEOUT_UTIL] Starting wrap for '${context}' with limit ${ms}ms`);
   return Promise.race([
-    promise,
+    promise.then(val => {
+      console.log(`[CollaborationService] [TIMEOUT_UTIL] Promise resolved for '${context}' before timeout`);
+      return val;
+    }),
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`${context} timed out after ${ms}ms`)), ms)
+      setTimeout(() => {
+        console.error(`[CollaborationService] [TIMEOUT_UTIL] [TIMEOUT_TRIGGERED] '${context}' exceeded ${ms}ms limit.`);
+        reject(new Error(`${context} timed out after ${ms}ms`));
+      }, ms)
     ),
   ]);
 }
@@ -89,6 +100,7 @@ export class CollaborationService {
     // Automatically leave room if the user signs out or changes accounts
     import('../../repositories/AuthRepository').then(({ authRepository }) => {
       this.unsubAuth = authRepository.subscribeAuth((user) => {
+        console.log('[CollaborationService] [AUTH_DIAGNOSTIC] Auth state transition:', user ? `SignedIn(uid=${user.uid}, email=${user.email})` : 'SignedOut');
         if (this.connectionState !== 'disconnected' && this.currentUserId) {
           if (!user || user.uid !== this.currentUserId) {
             console.warn('[CollaborationService] Auth state changed or user signed out; leaving active room.');
@@ -138,6 +150,7 @@ export class CollaborationService {
   }
 
   private setConnectionState(state: CollabConnectionState) {
+    console.log(`[CollaborationService] [STATE_DIAGNOSTIC] Connection status changed: ${this.connectionState} -> ${state}`);
     this.connectionState = state;
     this.connectionListeners.forEach(l => l(state));
   }
@@ -188,37 +201,41 @@ export class CollaborationService {
     userData: { displayName: string; avatar: string },
     cursorColor: string
   ): Promise<CollaboratorRoom> {
-    console.log('[CollaborationService] createRoom START for userId:', userId, 'userData:', userData);
+    console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 1/5: START createRoom for userId:', userId, 'userData:', userData);
     this.setConnectionState('connecting');
     this.currentUserId = userId;
     this.currentUserData = userData;
 
     try {
-      console.log('[CollaborationService] Creating room via RoomService...');
+      console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 2/5: Creating room via RoomService...');
       const room = await withTimeout(
         RoomService.createRoom(userId),
         COLLAB_TIMEOUT_MS,
         'RoomService.createRoom'
       );
-      console.log('[CollaborationService] Room created successfully. roomId:', room.roomId, 'code:', room.shortCode);
+      console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 3/5: Room created successfully. roomId:', room.roomId, 'code:', room.shortCode);
       this.setRoom(room);
       this.setConnectionState('connected');
 
-      console.log('[CollaborationService] Updating presence for host (non-blocking)...');
+      console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 4/5: Dispatching non-blocking host presence update...');
       // Non-blocking: presence failure should not prevent hosting
-      PresenceService.updatePresence(room.roomId, userId ? { id: userId, ...userData } : { id: 'host', ...userData }, this.getDeviceType(), cursorColor, true).catch(e => {
-        console.warn('[CollaborationService] Initial presence update failed (non-fatal):', e);
+      PresenceService.updatePresence(room.roomId, userId ? { id: userId, ...userData } : { id: 'host', ...userData }, this.getDeviceType(), cursorColor, true).then(() => {
+        console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Host presence update completed successfully.');
+      }).catch(e => {
+        console.warn('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] [WARN] Host presence update failed (non-fatal):', e);
       });
 
-      console.log('[CollaborationService] Setting up realtime subscriptions...');
+      console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 5/5: Setting up realtime subscriptions...');
       this.setupSubscriptions(room.roomId);
-      console.log('[CollaborationService] Realtime subscriptions active.');
       this.startHeartbeat(room.roomId, cursorColor);
-      console.log('[CollaborationService] Heartbeat started.');
 
-      console.log('[CollaborationService] createRoom COMPLETE. Success!');
+      console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] COMPLETE. Success!');
       return room;
     } catch (e: any) {
+      console.error('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] [ERROR] createRoom failed at stage:', e);
+      if (e.stack) {
+        console.error('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] [ERROR] Stack trace:', e.stack);
+      }
       handleCollabError('createRoom', e);
       this.setConnectionState('disconnected');
       throw mapFirestoreError(e);
@@ -231,22 +248,22 @@ export class CollaborationService {
     userData: { displayName: string; avatar: string },
     cursorColor: string
   ): Promise<CollaboratorRoom> {
-    console.log('[CollaborationService] joinRoom START with code:', shortCode, 'userId:', userId);
+    console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 1/6: START joinRoom with code:', shortCode, 'userId:', userId);
     this.setConnectionState('connecting');
     this.currentUserId = userId;
     this.currentUserData = userData;
 
     try {
-      console.log(`[CollaborationService] Looking up roomId from code: ${shortCode}`);
+      console.log(`[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 2/6: Resolving roomId from code: ${shortCode}...`);
       const roomId = await withTimeout(
         RoomService.getRoomIdFromCode(shortCode.toUpperCase().trim()),
         COLLAB_TIMEOUT_MS,
         'RoomService.getRoomIdFromCode'
       );
-      console.log(`[CollaborationService] getRoomIdFromCode resolved to: ${roomId}`);
+      console.log(`[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 3/6: Resolved code to roomId: ${roomId}`);
       if (!roomId) throw new Error('Invalid or expired room code');
 
-      console.log(`[CollaborationService] Fetching room details for roomId: ${roomId}`);
+      console.log(`[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 4/6: Fetching room details for roomId: ${roomId}...`);
       const room = await withTimeout(
         RoomService.getRoom(roomId),
         COLLAB_TIMEOUT_MS,
@@ -256,30 +273,34 @@ export class CollaborationService {
 
       // Restore stage snapshot from room host
       if (room.snapshot) {
-        console.log('[CollaborationService] Restoring stage snapshot from host room...');
+        console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Restoring stage snapshot from host room...');
         deserializeStage(room.snapshot, this.iframe, userId);
-        console.log('[CollaborationService] Stage snapshot restored successfully.');
+        console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage snapshot restored successfully.');
       }
 
       this.setRoom(room);
       this.setConnectionState('connected');
 
-      console.log('[CollaborationService] Updating presence for joint user (non-blocking)...');
+      console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 5/6: Dispatching non-blocking joiner presence update...');
       // Non-blocking: presence failure should not prevent joining
-      PresenceService.updatePresence(roomId, { id: userId, ...userData }, this.getDeviceType(), cursorColor, true).catch(e => {
-        console.warn('[CollaborationService] Initial presence update failed (non-fatal):', e);
+      PresenceService.updatePresence(roomId, { id: userId, ...userData }, this.getDeviceType(), cursorColor, true).then(() => {
+        console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Joiner presence update completed successfully.');
+      }).catch(e => {
+        console.warn('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] [WARN] Joiner presence update failed (non-fatal):', e);
       });
 
-      console.log('[CollaborationService] Setting up realtime subscriptions...');
+      console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 6/6: Setting up realtime subscriptions...');
       // Joiners already have the snapshot — only listen for NEW operations
       this.setupSubscriptions(roomId, Date.now());
-      console.log('[CollaborationService] Realtime subscriptions active.');
       this.startHeartbeat(roomId, cursorColor);
-      console.log('[CollaborationService] Heartbeat started.');
 
-      console.log('[CollaborationService] joinRoom COMPLETE. Success!');
+      console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] COMPLETE. Success!');
       return room;
     } catch (e: any) {
+      console.error('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] [ERROR] joinRoom failed at stage:', e);
+      if (e.stack) {
+        console.error('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] [ERROR] Stack trace:', e.stack);
+      }
       handleCollabError('joinRoom', e);
       this.setConnectionState('disconnected');
       throw mapFirestoreError(e);
@@ -314,20 +335,31 @@ export class CollaborationService {
   // ── Firestore Listeners ───────────────────────────────────────────────────
 
   private setupSubscriptions(roomId: string, sinceTimestamp: number = 0) {
+    console.log(`[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] Registering listeners for roomId: ${roomId}, sinceTimestamp: ${sinceTimestamp}`);
     this.clearSubscriptions();
 
+    console.log('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] Registering operations listener...');
     this.unsubOps = FirestoreSync.subscribeOperations(roomId, (op) => {
       this.applyRemoteOperation(op);
-    }, (err) => {
-      console.error('[CollaborationService] Operations subscription error:', err);
+    }, (err: any) => {
+      console.error('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] [ERROR] Operations subscription error:', err);
+      if (err?.stack) {
+        console.error('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] [ERROR] Stack trace:', err.stack);
+      }
       this.setConnectionState('offline');
     }, sinceTimestamp);
+    console.log('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] Operations listener registered.');
 
+    console.log('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] Registering presence listener...');
     this.unsubPresence = FirestoreSync.subscribePresence(roomId, (participants) => {
       this.setParticipants(participants);
-    }, (err) => {
-      console.error('[CollaborationService] Presence subscription error:', err);
+    }, (err: any) => {
+      console.error('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] [ERROR] Presence subscription error:', err);
+      if (err?.stack) {
+        console.error('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] [ERROR] Stack trace:', err.stack);
+      }
     });
+    console.log('[CollaborationService] [SUBSCRIPTION_DIAGNOSTIC] Presence listener registered.');
   }
 
   private clearSubscriptions() {

@@ -1,21 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.78",
-  "versionName": "4.3.78",
-  "versionCode": 40399,
-  "version_code": 40399,
-  "commit": "616098bc",
-  "releasedAt": "8/5/2026, 7:53:28 AM CST",
-  "buildTimestamp": "8/5/2026, 7:53:28 AM CST",
+  "version": "4.3.79",
+  "versionName": "4.3.79",
+  "versionCode": 40400,
+  "version_code": 40400,
+  "commit": "ed9925dd",
+  "releasedAt": "8/5/2026, 8:09:44 AM CST",
+  "buildTimestamp": "8/5/2026, 8:09:44 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.\n• Implemented state-backed navigation collapse inside StageX and Drumex.\n• Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.\n• Fixed StageX collaboration hosting to handle offline timeouts and non-blocking presence updates.",
-  "whatsNew": "• Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.\n• Implemented state-backed navigation collapse inside StageX and Drumex.\n• Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.\n• Fixed StageX collaboration hosting to handle offline timeouts and non-blocking presence updates.",
+  "changelog": "• Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.\n• Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging.",
+  "whatsNew": "• Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.\n• Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging.",
   "releaseNotes": {
     "fixed": [
-      "Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.",
-      "Implemented state-backed navigation collapse inside StageX and Drumex.",
-      "Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.",
-      "Fixed StageX collaboration hosting to handle offline timeouts and non-blocking presence updates."
+      "Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.",
+      "Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging."
     ]
   },
   "mandatory": false

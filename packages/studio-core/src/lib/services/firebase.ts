@@ -66,25 +66,45 @@ function init() {
         appId: config.appId!,
       });
     }
+    console.log('[FirebaseInit] Getting Auth instance...');
     _auth = getAuth(_app);
+    console.log('[FirebaseInit] Auth instance acquired.');
+
+    console.log('[FirebaseInit] Initializing Firestore instance...');
+    // CRITICAL: On Android/Capacitor (WebView), standard WebChannel streams often get blocked
+    // or fail to connect (hanging permanently in 'disconnected' state).
+    // Forcing experimentalForceLongPolling: true resolves this network transport limitation completely.
     _db = config.databaseId
       ? initializeFirestore(_app, { experimentalForceLongPolling: true }, config.databaseId)
-      : getFirestore(_app);
+      : initializeFirestore(_app, { experimentalForceLongPolling: true });
+    console.log('[FirebaseInit] Firestore instance initialized (forced long polling enabled).');
+
     // Enable offline persistence so reads don't fail with 'unavailable' during
     // momentary network interruptions (especially on Android/Capacitor).
     if (_db) {
+      console.log('[FirebaseInit] Enabling Firestore offline persistence...');
       enableMultiTabIndexedDbPersistence(_db).then(() => {
+        console.log('[FirebaseInit] Firestore multi-tab IndexedDB persistence enabled successfully.');
         _firestoreReadyResolver();
       }).catch((err) => {
-        console.warn('[firebase] offline persistence not enabled:', err.code || err.message);
+        console.warn('[FirebaseInit] Firestore offline persistence could not be enabled:', err.code || err.message, err);
         _firestoreReadyResolver();
       });
     }
+    console.log('[FirebaseInit] Getting Storage instance...');
     _storage = getStorage(_app);
-    setPersistence(_auth, browserLocalPersistence).catch(console.warn);
+    console.log('[FirebaseInit] Storage instance acquired.');
+
+    console.log('[FirebaseInit] Setting Auth persistence...');
+    setPersistence(_auth, browserLocalPersistence)
+      .then(() => console.log('[FirebaseInit] Auth browserLocalPersistence set successfully.'))
+      .catch((err) => console.warn('[FirebaseInit] Failed to set Auth persistence:', err));
   } catch (err: any) {
     _initError = err.message || String(err);
-    console.error('[firebase] initialization failed:', err);
+    console.error('[FirebaseInit] [ERROR] Firebase initialization failed with exception:', err);
+    if (err.stack) {
+      console.error('[FirebaseInit] [ERROR] Stack trace:', err.stack);
+    }
     if (_firestoreReadyResolver) _firestoreReadyResolver();
   }
 }

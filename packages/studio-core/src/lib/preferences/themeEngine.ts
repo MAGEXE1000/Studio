@@ -1,4 +1,4 @@
-import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
+import { useNavigationStore } from '../navigation/useNavigationStore';
 import { Capacitor } from '@capacitor/core';
 import { syncStatusBar } from '../platform/useStatusBar';
 export const rawAccentColors = {
@@ -24,13 +24,14 @@ export interface ThemeConfig {
 }
 
 export function applyThemeTokens(settings: any) {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined' || !document.documentElement) return;
 
   const globalTheme = settings?.theme ?? 'light';
   const globalAccent = settings?.accentColor ?? 'blue';
   const globalAmoled = settings?.amoledMode ?? false;
 
-  const appMode = NavigationDispatcher.currentApp();
+  const history = useNavigationStore.getState().history;
+  const appMode = history[history.length - 1]?.app ?? 'hub';
   const perAppVis = settings?.perApp?.[appMode];
 
   const activeVis = {
@@ -43,7 +44,9 @@ export function applyThemeTokens(settings: any) {
 
   // 1. Resolve Light/Dark Mode
   const systemIsLight =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches;
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-color-scheme: light)').matches;
   let isLightMode = false;
   const theme = activeVis.theme;
   if (theme === 'light') {

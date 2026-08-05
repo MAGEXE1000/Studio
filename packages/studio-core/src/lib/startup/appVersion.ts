@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '5e73ea9d';
+export const APP_COMMIT_SHA = '2704c07e';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/4/2026, 10:10:20 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/4/2026, 11:46:22 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,11 +98,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.",
-      "Fixed update pipeline startup race condition and version comparison checks.",
-      "Improved bottom navbar spring tap/press animations.",
-      "Eliminated switcher toggle layout overlap and collision on mobile screens.",
-      "Resolved theme transition paint bottlenecks and layout thrashing.",
+      "Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).",
+      "Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.",
+      "Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.",
     ],
   },
 ];

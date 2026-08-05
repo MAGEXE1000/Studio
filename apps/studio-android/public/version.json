@@ -1,22 +1,20 @@
 {
   "platform": "android",
-  "version": "4.3.75",
-  "versionName": "4.3.75",
-  "versionCode": 40396,
-  "version_code": 40396,
-  "commit": "5e73ea9d",
-  "releasedAt": "8/4/2026, 10:10:20 PM CST",
-  "buildTimestamp": "8/4/2026, 10:10:20 PM CST",
+  "version": "4.3.76",
+  "versionName": "4.3.76",
+  "versionCode": 40397,
+  "version_code": 40397,
+  "commit": "2704c07e",
+  "releasedAt": "8/4/2026, 11:46:22 PM CST",
+  "buildTimestamp": "8/4/2026, 11:46:22 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.\n• Fixed update pipeline startup race condition and version comparison checks.\n• Improved bottom navbar spring tap/press animations.\n• Eliminated switcher toggle layout overlap and collision on mobile screens.\n• Resolved theme transition paint bottlenecks and layout thrashing.",
-  "whatsNew": "• Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.\n• Fixed update pipeline startup race condition and version comparison checks.\n• Improved bottom navbar spring tap/press animations.\n• Eliminated switcher toggle layout overlap and collision on mobile screens.\n• Resolved theme transition paint bottlenecks and layout thrashing.",
+  "changelog": "• Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).\n• Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.\n• Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.",
+  "whatsNew": "• Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).\n• Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.\n• Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.",
   "releaseNotes": {
     "fixed": [
-      "Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.",
-      "Fixed update pipeline startup race condition and version comparison checks.",
-      "Improved bottom navbar spring tap/press animations.",
-      "Eliminated switcher toggle layout overlap and collision on mobile screens.",
-      "Resolved theme transition paint bottlenecks and layout thrashing."
+      "Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).",
+      "Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.",
+      "Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer."
     ]
   },
   "mandatory": false

@@ -1,4 +1,5 @@
 name: Documentation CI
+run-name: Docs CI - ${{ github.ref_name }}
 
 concurrency:
   group: ci-docs-${{ github.ref }}
@@ -11,12 +12,24 @@ on:
       - 'docs/**'
       - 'scripts/validate-documentation.mjs'
       - '.github/workflows/docs-ci.yml'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'release-notes.md'
+      - 'release-manifest.json'
+      - 'public/version.json'
+      - '.github/workflows/release.yml'
   pull_request:
     branches: [main]
     paths:
       - 'docs/**'
       - 'scripts/validate-documentation.mjs'
       - '.github/workflows/docs-ci.yml'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'release-notes.md'
+      - 'release-manifest.json'
+      - 'public/version.json'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: read

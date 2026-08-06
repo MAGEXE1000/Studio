@@ -1,4 +1,5 @@
 name: Web CI
+run-name: Web CI - ${{ github.ref_name }}
 
 concurrency:
   group: ci-web-${{ github.ref }}
@@ -23,6 +24,7 @@ on:
       - 'release-notes.md'
       - 'release-manifest.json'
       - 'public/version.json'
+      - '.github/workflows/release.yml'
   pull_request:
     branches: [main]
     paths:
@@ -41,6 +43,7 @@ on:
       - 'release-notes.md'
       - 'release-manifest.json'
       - 'public/version.json'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: read

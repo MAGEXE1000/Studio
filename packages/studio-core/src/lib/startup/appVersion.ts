@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'be8ff4e8';
+export const APP_COMMIT_SHA = 'e30198d0';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/5/2026, 11:52:39 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/5/2026, 11:59:53 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first

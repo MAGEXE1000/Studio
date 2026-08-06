@@ -15,9 +15,9 @@ const paths = {
     appRoot,
     'android/app/src/main/java/com/chordex/app/AppInstallerPlugin.java'
   ),
-  mainActivityJava: path.join(
+  mainActivityPath: path.join(
     appRoot,
-    'android/app/src/main/java/com/chordex/app/MainActivity.java'
+    'android/app/src/main/java/com/chordex/app/MainActivity.kt'
   ),
   apkDownloaderTs: path.join(
     appRoot,
@@ -174,16 +174,25 @@ export async function runValidation() {
   }
   console.log('✓ AppInstallerPlugin.java structure and methods are correct.');
 
-  // 2. Verify MainActivity.java manual registration
-  console.log(`Checking ${path.relative(appRoot, paths.mainActivityJava)}...`);
-  assert(fs.existsSync(paths.mainActivityJava), 'MainActivity.java does not exist!');
+  // 2. Verify MainActivity manual registration
+  const mainActivityPath = paths.mainActivityPath;
+  const isKotlin = mainActivityPath.endsWith('.kt');
+  console.log(`Checking ${path.relative(appRoot, mainActivityPath)}...`);
+  assert(fs.existsSync(mainActivityPath), `${path.basename(mainActivityPath)} does not exist!`);
 
-  const mainActivityContent = fs.readFileSync(paths.mainActivityJava, 'utf8');
-  assert(
-    /registerPlugin\s*\(\s*AppInstallerPlugin\.class\s*\)/.test(mainActivityContent),
-    'MainActivity.java is missing registerPlugin(AppInstallerPlugin.class) call!'
-  );
-  console.log('✓ MainActivity.java manual plugin registration is correct.');
+  const mainActivityContent = fs.readFileSync(mainActivityPath, 'utf8');
+  if (isKotlin) {
+    assert(
+      /registerPlugin\s*\(\s*AppInstallerPlugin::class\.java\s*\)/.test(mainActivityContent),
+      'MainActivity.kt is missing registerPlugin(AppInstallerPlugin::class.java) call!'
+    );
+  } else {
+    assert(
+      /registerPlugin\s*\(\s*AppInstallerPlugin\.class\s*\)/.test(mainActivityContent),
+      'MainActivity.java is missing registerPlugin(AppInstallerPlugin.class) call!'
+    );
+  }
+  console.log(`✓ ${path.basename(mainActivityPath)} manual plugin registration is correct.`);
 
   // 3. Verify apkDownloader.ts registration
   console.log(`Checking ${path.relative(appRoot, paths.apkDownloaderTs)}...`);

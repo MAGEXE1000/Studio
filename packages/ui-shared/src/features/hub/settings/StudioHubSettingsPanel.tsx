@@ -124,6 +124,59 @@ export default function StudioHubSettingsPanel() {
             </SettingRow>
           </SettingSection>
 
+          {/* Language Section */}
+          <SettingSection title="Language">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 8,
+              padding: '12px',
+            }}>
+              {([
+                { code: 'en', label: 'English' },
+                { code: 'es', label: 'Español' },
+                { code: 'de', label: 'Deutsch' },
+                { code: 'fr', label: 'Français' },
+                { code: 'zh', label: '中文' },
+                { code: 'pt', label: 'Português' },
+                { code: 'it', label: 'Italiano' },
+                { code: 'ja', label: '日本語' },
+                { code: 'ko', label: '한국어' },
+              ] as const).map(({ code, label }) => {
+                const isSelected = (settings.language ?? 'en') === code;
+                return (
+                  <motion.button
+                    key={code}
+                    type="button"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => settingsController.updateSettings({ language: code as any })}
+                    style={{
+                      padding: '10px 6px',
+                      borderRadius: 12,
+                      border: isSelected
+                        ? `1.5px solid ${acc.from}`
+                        : '1.5px solid var(--c-outline-variant, rgba(128,128,128,0.18))',
+                      background: isSelected
+                        ? `linear-gradient(135deg, ${acc.from}18, ${acc.to}10)`
+                        : 'var(--c-surface-container, rgba(255,255,255,0.04))',
+                      color: isSelected
+                        ? acc.from
+                        : 'var(--c-text-primary)',
+                      fontFamily: 'Inter, system-ui, sans-serif',
+                      fontSize: 13,
+                      fontWeight: isSelected ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'border-color 200ms ease, background 200ms ease, color 200ms ease',
+                      textAlign: 'center',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {label}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </SettingSection>
 
           {/* Accessibility Section */}
           <SettingSection title="Accessibility">

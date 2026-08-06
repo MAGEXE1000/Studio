@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.80';
-export const NATIVE_VERSION_CODE = 40410;
-export const WEB_VERSION = '4.3.80';
+export const NATIVE_VERSION = '4.3.81';
+export const NATIVE_VERSION_CODE = 40411;
+export const WEB_VERSION = '4.3.81';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'ff6badd0';
+export const APP_COMMIT_SHA = '027109ee';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/5/2026, 8:35:52 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/5/2026, 9:52:37 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,12 +96,28 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
+    heading: "Added",
+    items: [
+      "Installed fluidfunctionalism Color Picker component with HEX, RGB, HSL, OKLCH format support, eyedropper, and preset swatches.",
+      "Installed fluidfunctionalism Switch component with spring physics and draggable interaction.",
+      "Built Updater Engineering Diagnostics page with comprehensive system state inspection.",
+      "Added Copy Diagnostics button for the Updater module with full engineering report generation.",
+    ],
+  },
+  {
     heading: "Improved",
     items: [
-      "Implemented production-quality collaboration engineering diagnostics system to expose raw Firebase exception details.",
-      "Added comprehensive connection, authentication, network, and IndexedDB persistence state tracking.",
-      "Captured automated operation queue retry metrics including backoff delays and drop reasons.",
-      "Integrated friendly error fallback messages in the StageX collaboration UI.",
+      "Refactored navigation icon animations to be purely state-driven, decoupled from pointer events.",
+      "Integrated the Color Picker globally into the accent color selector with alpha controls removed.",
+      "Migrated all Toggle/Switch components across Hub, Chordex, and Drumex to the new Switch.",
+      "Restored Language selector in Appearance settings.",
+    ],
+  },
+  {
+    heading: "Fixed",
+    items: [
+      "Fixed updater version comparison logic to only offer strictly newer versions as updates.",
+      "Removed the changelog/What's New section from the updater dialog.",
     ],
   },
 ];

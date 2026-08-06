@@ -1287,15 +1287,6 @@ function UpdateModal({
     }
   }
 
-  // Collapsible changelog section state
-  const [changelogExpanded, setChangelogExpanded] = useState(
-    state === 'available' || state === 'reinstall_warning'
-  );
-
-  useEffect(() => {
-    setChangelogExpanded(state === 'available' || state === 'reinstall_warning');
-  }, [state]);
-
   switch (state) {
     case 'reinstall_warning':
       iconName = 'warning';
@@ -2160,177 +2151,7 @@ function UpdateModal({
     );
   };
 
-  const renderChangelog = () => {
-    // Only show inline changelog when update is available or reinstall warning.
-    // After installation, release notes appear only in the ChangelogSheet bottom sheet.
-    if (state !== 'available' && state !== 'reinstall_warning') return null;
 
-    const releaseNotes = updater.releaseNotes;
-    const sections = parseChangelogToSections(releaseNotes, updater.changelog);
-
-    if (sections.length === 0) return null;
-
-    return (
-      <div
-        style={{
-          width: '100%',
-          margin: '12px 0 4px',
-          borderRadius: 14,
-          background: 'rgba(12, 12, 14, 0.45)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          overflow: 'hidden',
-          transition: 'all 200ms ease',
-        }}
-      >
-        {/* Toggle Header */}
-        <button
-          type="button"
-          onClick={() => setChangelogExpanded(!changelogExpanded)}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 14px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--c-text-primary)',
-            fontFamily: 'Manrope',
-            fontWeight: 700,
-            fontSize: 12.5,
-            cursor: 'pointer',
-            textAlign: 'left',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <AnimatedIcon name="info" size={16} color={purpleFrom} />
-            <span>What's New</span>
-          </div>
-          <AnimatedIcon
-            name="chevron-down"
-            size={16}
-            color="var(--c-text-secondary)"
-            style={{
-              transform: changelogExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 200ms ease',
-            }}
-          />
-        </button>
-
-        {/* Categories list */}
-        <AnimatePresence initial={false}>
-          {changelogExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: DurationPresets.normal, ease: EasingPresets.standard }}
-              style={{
-                maxHeight: 240,
-                overflowY: 'auto',
-                padding: '0 14px 12px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-              }}
-            >
-              {sections.map((sec, idx) => (
-                <div key={idx} style={{ marginTop: idx === 0 ? 8 : 12 }}>
-                  {sec.heading && (
-                    <div
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        color: 'var(--c-text-primary)',
-                        fontFamily: 'Manrope',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 6,
-                      }}
-                    >
-                      {sec.heading}
-                    </div>
-                  )}
-                  <ul
-                    style={{
-                      margin: 0,
-                      paddingLeft: 16,
-                      fontSize: 12,
-                      color: 'var(--c-text-secondary)',
-                      fontFamily: 'Inter',
-                      lineHeight: '1.6',
-                    }}
-                  >
-                    {sec.items.map((item: string, itemIdx: number) => (
-                      <li key={itemIdx} style={{ padding: '4px 0', marginBottom: 2 }}>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
-  const parseChangelogToSections = (releaseNotes: any, changelog: string | null) => {
-    if (
-      releaseNotes &&
-      typeof releaseNotes === 'object' &&
-      !Array.isArray(releaseNotes)
-    ) {
-      const rn = releaseNotes as StructuredReleaseNotes;
-      return [
-        { heading: 'Added', items: rn.added || [] },
-        { heading: 'Improved', items: rn.improved || [] },
-        { heading: 'Fixed', items: rn.fixed || [] },
-        { heading: 'Changed', items: rn.changed || [] },
-      ].filter((cat) => cat.items && cat.items.length > 0);
-    }
-
-    const lines = Array.isArray(releaseNotes)
-      ? (releaseNotes as string[])
-      : changelog
-        ? changelog.split('\n')
-        : [];
-
-    const sections: { heading: string; items: string[] }[] = [];
-    let currentSection: { heading: string; items: string[] } = { heading: '', items: [] };
-
-    for (let line of lines) {
-      line = line.trim();
-      if (!line) continue;
-
-      if (line.startsWith('#')) {
-        if (currentSection.items.length > 0) {
-          sections.push(currentSection);
-        }
-        const heading = line.replace(/^#+\s*/, '').trim();
-        currentSection = { heading, items: [] };
-      } else if (line.startsWith('-') || line.startsWith('*') || line.startsWith('•')) {
-        const item = line.replace(/^[-*•]\s*/, '').trim();
-        if (item) {
-          currentSection.items.push(item);
-        }
-      } else {
-        const cleaned = line.replace(/^[-*•]\s*/, '').trim();
-        if (cleaned) {
-          currentSection.items.push(cleaned);
-        }
-      }
-    }
-
-    if (currentSection.items.length > 0) {
-      sections.push(currentSection);
-    }
-
-    if (sections.length === 0 && currentSection.items.length > 0) {
-      sections.push({ heading: "What's New", items: currentSection.items });
-    }
-
-    return sections;
-  };
   // Render buttons
   const actionButtons = renderButtons();
 
@@ -2350,7 +2171,7 @@ function UpdateModal({
       iconColor={iconColor}
       showSpinner={showSpinner}
       actionButtons={actionButtons}
-      changelog={renderChangelog()}
+      changelog={null}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
       progressComponent={progressComponent}

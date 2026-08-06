@@ -143,7 +143,6 @@ const NavigationItem = React.memo(
         aria-label={item.label}
         title={item.label}
         data-nav-item-index={index}
-        whileTap="pressed"
         style={{
           flex: 1,
           height: '100%',

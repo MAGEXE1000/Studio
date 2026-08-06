@@ -191,7 +191,9 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
           cancelAnimationFrame(rafId);
         }
       };
-    }, [state, controls, isSpinning, animationEpoch]);    // Hover configuration based on icon type
+    }, [state, controls, isSpinning, animationEpoch]);
+
+    // Hover configuration based on icon type
     const getIconSpecificHover = () => {
       const lower = name.toLowerCase();
       if (lower.includes('setting') || lower.includes('gear')) {
@@ -344,7 +346,6 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
         animate={isSpinning ? { rotate: [0, 360] } : controls}
         initial="inactive"
         whileHover={isSpinning ? undefined : getIconSpecificHover()}
-        whileTap={isSpinning ? undefined : getIconSpecificTap()}
         variants={{
           active: getActiveStateVariants(),
           inactive: { scale: 1, rotate: 0, y: 0, opacity: 0.85 },

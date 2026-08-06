@@ -771,7 +771,7 @@ async function executeCheckForUpdateInternal(
       },
       comp
     );
-    const updateAvailable = comp.updateAvailable || (isManual && comp.isDowngrade);
+    const updateAvailable = comp.updateAvailable;
     logTimelineEvent(
       'UpdateCore',
       'VERSION_COMPARISON_COMPLETED',

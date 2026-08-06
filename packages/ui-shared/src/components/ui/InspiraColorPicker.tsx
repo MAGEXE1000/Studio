@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { ACCENT_COLORS, useSettingsStore, settingsController } from '@workspace/studio-core';
+import { ColorPicker } from './color-picker';
 
 export interface InspiraColorPickerProps {
   value?: string;
@@ -7,312 +8,75 @@ export interface InspiraColorPickerProps {
   className?: string;
 }
 
-// ── Color Conversion Helpers ──────────────────────────────────────────────────
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  let clean = hex.replace('#', '');
-  if (clean.length === 3) {
-    clean = clean.split('').map((c) => c + c).join('');
-  }
-  const num = parseInt(clean.slice(0, 6), 16) || 0;
-  return {
-    r: (num >> 16) & 255,
-    g: (num >> 8) & 255,
-    b: num & 255,
-  };
-}
-
-function hslToHex(h: number, s: number, l: number): string {
-  s /= 100;
-  l /= 100;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color)
-      .toString(16)
-      .padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
-}
-
-function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
-        break;
-      case g:
-        h = (b - r) / d + 2;
-        break;
-      case b:
-        h = (r - g) / d + 4;
-        break;
-    }
-    h /= 6;
-  }
-  return {
-    h: Math.round(h * 360),
-    s: Math.round(s * 100),
-    l: Math.round(l * 100),
-  };
-}
-
 /**
  * Livex HTML Specification Color Picker Implementation
- * 2D Saturation/Lightness Canvas + Hue Slider + Opacity Slider + HEX/RGB Badges + Presets
+ * Integrates the fluidfunctionalism ColorPicker with the Studio accent color system.
+ * Supports HEX, RGB, HSL, OKLCH formats, eyedropper, and preset swatches.
+ * Alpha/opacity is disabled as it is not used anywhere in Studio.
  */
 export default function InspiraColorPicker({ className = '' }: InspiraColorPickerProps) {
   const settings = useSettingsStore((s) => s.settings);
   const currentAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'purple';
   const activeColorObj = ACCENT_COLORS[currentAccentKey] ?? ACCENT_COLORS.purple;
 
-  const initialHex = activeColorObj.from;
-  const initialRgb = hexToRgb(initialHex);
-  const initialHsl = rgbToHsl(initialRgb.r, initialRgb.g, initialRgb.b);
+  const currentHex = activeColorObj.from;
 
-  const [hue, setHue] = useState<number>(settings.customAccentHue ?? initialHsl.h);
-  const [saturation, setSaturation] = useState<number>(initialHsl.s || 80);
-  const [lightness, setLightness] = useState<number>(initialHsl.l || 70);
-  const [showCanvas, setShowCanvas] = useState(false);
+  // Build swatches from the accent palette + user presets
+  const swatches = useMemo(() => {
+    const paletteColors = Object.values(ACCENT_COLORS).map((c) => c.from);
+    // Deduplicate while preserving order
+    return [...new Set(paletteColors)];
+  }, []);
 
-  const [presets, setPresets] = useState<string[]>([
-    '#ADC6FF',
-    '#FFB595',
-    '#E91E63',
-    '#9C27B0',
-    '#4CAF50',
-    '#FF9800',
-  ]);
+  const handleValueChange = useCallback(
+    (hex: string) => {
+      // Strip alpha if present (e.g. #RRGGBBAA → #RRGGBB)
+      const cleanHex = hex.length > 7 ? hex.slice(0, 7) : hex;
 
-  const currentColorHex = useMemo(
-    () => hslToHex(hue, saturation, lightness),
-    [hue, saturation, lightness]
-  );
-  const currentRgb = useMemo(() => hexToRgb(currentColorHex), [currentColorHex]);
+      // Check if the selected color matches a named accent
+      const matchKey = Object.keys(ACCENT_COLORS).find(
+        (k) => ACCENT_COLORS[k].from.toLowerCase() === cleanHex.toLowerCase()
+      );
 
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
+      if (matchKey) {
+        settingsController.updateSettings({ accentColor: matchKey as any });
+      } else {
+        // Custom color — extract hue for the custom accent system
+        const r = parseInt(cleanHex.slice(1, 3), 16) || 0;
+        const g = parseInt(cleanHex.slice(3, 5), 16) || 0;
+        const b = parseInt(cleanHex.slice(5, 7), 16) || 0;
 
-  const updateColorFromCanvas = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!canvasRef.current) return;
-      const rect = canvasRef.current.getBoundingClientRect();
-      let x = clientX - rect.left;
-      let y = clientY - rect.top;
-      x = Math.max(0, Math.min(x, rect.width));
-      y = Math.max(0, Math.min(y, rect.height));
+        const max = Math.max(r, g, b) / 255;
+        const min = Math.min(r, g, b) / 255;
+        let h = 0;
+        if (max !== min) {
+          const d = max - min;
+          const rn = r / 255, gn = g / 255, bn = b / 255;
+          switch (max) {
+            case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60; break;
+            case gn: h = ((bn - rn) / d + 2) * 60; break;
+            case bn: h = ((rn - gn) / d + 4) * 60; break;
+          }
+        }
 
-      const s = Math.round((x / rect.width) * 100);
-      const l = Math.round((1 - y / rect.height) * 100);
-
-      setSaturation(s);
-      setLightness(l);
-
-      settingsController.updateSettings({
-        accentColor: 'custom',
-        customAccentHue: hue,
-      });
+        settingsController.updateSettings({
+          accentColor: 'custom',
+          customAccentHue: Math.round(h),
+        });
+      }
     },
-    [hue]
+    []
   );
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isDraggingRef.current = true;
-    updateColorFromCanvas(e.clientX, e.clientY);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    isDraggingRef.current = true;
-    if (e.touches[0]) {
-      updateColorFromCanvas(e.touches[0].clientX, e.touches[0].clientY);
-    }
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingRef.current) {
-        updateColorFromCanvas(e.clientX, e.clientY);
-      }
-    };
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isDraggingRef.current && e.touches[0]) {
-        updateColorFromCanvas(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    };
-    const handleEnd = () => {
-      isDraggingRef.current = false;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleTouchMove);
-    window.addEventListener('touchend', handleEnd);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleEnd);
-    };
-  }, [updateColorFromCanvas]);
-
-  const handleHueChange = (newHue: number) => {
-    setHue(newHue);
-    settingsController.updateSettings({
-      accentColor: 'custom',
-      customAccentHue: newHue,
-    });
-  };
-
-  const handlePresetSelect = (hex: string) => {
-    const rgbVal = hexToRgb(hex);
-    const hslVal = rgbToHsl(rgbVal.r, rgbVal.g, rgbVal.b);
-    setHue(hslVal.h);
-    setSaturation(hslVal.s);
-    setLightness(hslVal.l);
-
-    const matchKey = Object.keys(ACCENT_COLORS).find(
-      (k) => ACCENT_COLORS[k].from.toLowerCase() === hex.toLowerCase()
-    );
-    if (matchKey) {
-      settingsController.updateSettings({ accentColor: matchKey as any });
-    } else {
-      settingsController.updateSettings({ accentColor: 'custom', customAccentHue: hslVal.h });
-    }
-  };
-
-  const handleAddPreset = () => {
-    const upperHex = currentColorHex.toUpperCase();
-    if (!presets.includes(upperHex)) {
-      setPresets((prev) => [...prev, upperHex]);
-    }
-  };
 
   return (
-    <div className={`flex flex-col gap-3 w-full ${className}`}>
-      <div className="flex items-center gap-4">
-        {/* Active color box toggling canvas */}
-        <button
-          type="button"
-          onClick={() => setShowCanvas(!showCanvas)}
-          className="w-11 h-11 rounded-lg cursor-pointer flex-shrink-0 border border-outline-variant/30 shadow-md relative overflow-hidden transition-transform duration-200 active:scale-95 group focus:outline-none"
-          style={{ backgroundColor: currentColorHex }}
-          title={showCanvas ? "Hide color canvas" : "Show color canvas"}
-        >
-          <div className="absolute inset-0 bg-black/15 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="material-symbols-outlined text-[16px] text-white">
-              {showCanvas ? "expand_less" : "expand_more"}
-            </span>
-          </div>
-        </button>
-
-        {/* Sliders & Badges */}
-        <div className="flex-1 min-w-0 flex items-center gap-4">
-          {/* Sliders stacked */}
-          <div className="flex-1 flex flex-col justify-center py-1">
-            {/* Hue Slider */}
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-extrabold text-on-surface-variant w-8 tracking-wider">HUE</span>
-              <div
-                className="h-3 flex-1 rounded-full relative cursor-pointer"
-                style={{
-                  background:
-                    'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)',
-                }}
-              >
-                <input
-                  type="range"
-                  min={0}
-                  max={360}
-                  value={hue}
-                  onChange={(e) => handleHueChange(Number(e.target.value))}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                />
-                <div
-                  className="h-[18px] w-[18px] bg-white rounded-full border-2 border-surface-container shadow-sm absolute top-1/2 -mt-[9px] pointer-events-none transform -translate-x-1/2"
-                  style={{ left: `${(hue / 360) * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* HEX / RGB Badges */}
-          <div className="flex flex-col gap-1 items-end justify-center min-w-[75px] pr-1">
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] font-bold text-on-surface-variant/60 font-mono">HEX</span>
-              <span className="font-mono font-bold text-on-surface text-[11px] uppercase">
-                {currentColorHex.toUpperCase()}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-[9px] font-bold text-on-surface-variant/60 font-mono">RGB</span>
-              <span className="font-mono text-on-surface-variant text-[10px]">
-                {currentRgb.r},{currentRgb.g},{currentRgb.b}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Color Picker Visual Canvas (Expandable) */}
-      {showCanvas && (
-        <div className="flex justify-center border-t border-surface-variant/10 pt-3 mt-1 spring-in">
-          <div
-            ref={canvasRef}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            className="relative w-full aspect-[2.5/1] rounded-lg overflow-hidden color-canvas cursor-crosshair select-none"
-            style={{ backgroundColor: `hsl(${hue}, 100%, 50%)` }}
-          >
-            <div
-              className="w-4 h-4 border-2 border-white rounded-full shadow-lg absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2"
-              style={{
-                top: `${Math.max(3, Math.min(97, 100 - lightness))}%`,
-                left: `${Math.max(3, Math.min(97, saturation))}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Presets */}
-      <div className="flex flex-wrap gap-2 pt-2 border-t border-surface-variant/10">
-        {presets.map((hex, idx) => {
-          const isSelected = currentColorHex.toLowerCase() === hex.toLowerCase();
-          return (
-            <button
-              key={`${hex}-${idx}`}
-              type="button"
-              onClick={() => handlePresetSelect(hex)}
-              style={{ backgroundColor: hex }}
-              className={`w-7 h-7 rounded-full transition-transform hover:scale-105 cursor-pointer ${
-                isSelected
-                  ? 'ring-2 ring-primary/60 ring-offset-2 ring-offset-surface-container-lowest scale-105'
-                  : ''
-              }`}
-            />
-          );
-        })}
-        <button
-          type="button"
-          onClick={handleAddPreset}
-          className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant active:scale-95 cursor-pointer"
-          title="Add current color to presets"
-        >
-          <span className="material-symbols-outlined text-[16px]">add</span>
-        </button>
-      </div>
+    <div className={`w-full ${className}`}>
+      <ColorPicker
+        value={currentHex}
+        onValueChange={handleValueChange}
+        defaultFormat="hex"
+        swatches={swatches}
+        hideAlpha
+      />
     </div>
   );
 }

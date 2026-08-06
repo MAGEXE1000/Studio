@@ -183,30 +183,6 @@ export default function DrumPrefsPanel() {
         return h >= lightStart && h < lightEnd;
       })());
 
-  function CleanToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-    return (
-      <button
-        role="switch"
-        aria-checked={value}
-        onClick={() => onChange(!value)}
-        className={`w-9 h-5 rounded-full relative transition-colors duration-200 cursor-pointer flex-shrink-0 ${
-          value
-            ? isLight
-              ? 'bg-blue-600'
-              : 'bg-blue-500'
-            : isLight
-              ? 'bg-zinc-200'
-              : 'bg-zinc-800'
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 w-4 h-4 rounded-full transition-all duration-200 bg-white shadow-sm ${
-            value ? 'left-[18px]' : 'left-0.5'
-          }`}
-        />
-      </button>
-    );
-  }
 
   function PrefsSection({ title, children }: { title: string; children: React.ReactNode }) {
     return (
@@ -256,7 +232,7 @@ export default function DrumPrefsPanel() {
     if (isWebDesktop) {
       return (
         <PrefsRow label={label} desc={desc}>
-          <CleanToggle
+          <Toggle
             value={drumPrefs[key] as boolean}
             onChange={(v) => updateDrumPrefs({ [key]: v })}
           />

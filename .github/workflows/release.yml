@@ -2,7 +2,7 @@ name: Release Pipeline
 run-name: Studio Release - ${{ github.ref_name }}
 
 concurrency:
-  group: release-${{ github.sha }}
+  group: release-${{ github.ref_name }}-${{ github.event_name }}
   cancel-in-progress: true
 
 on:
@@ -31,10 +31,10 @@ permissions:
 
 jobs:
   # =========================================================================
-  # JOB 1: BUILD, PACKAGE & SIGN (Consolidated Preflight + Build)
+  # SINGLE UNIFIED JOB: BUILD, PACKAGE, SIGN & DEPLOY (1 Runner Allocation)
   # =========================================================================
-  build_and_package:
-    name: 1. Build, Package & Sign
+  build_package_publish:
+    name: 1. Build, Package, Sign & Deploy
     runs-on: ubuntu-latest
     env:
       STUDIO_PRODUCTION_RELEASE: 'true'
@@ -168,124 +168,7 @@ jobs:
           if [ "$RELEASE_TYPE" = "prerelease" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
-          node scripts/release-firebase.mjs --dry-run $PRERELEASE_FLAG > build.log 2>&1 || {
-            status=$?
-            echo "::error::Android release script failed with status $status"
-            cat build.log
-            exit $status
-          }
-
-      - name: Upload Firebase Hosting Metadata Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: firebase-public-metadata
-          path: firebase-public/
-          retention-days: 1
-
-      - name: Verify Release Verification Artifacts
-        run: |
-          if [ ! -f release-verification-report.json ]; then
-            echo "::error::release-verification-report.json was not generated during build!"
-            exit 1
-          fi
-          cat release-verification-report.md >> $GITHUB_STEP_SUMMARY
-          STATUS=$(node -p "JSON.parse(require('fs').readFileSync('release-verification-report.json', 'utf8')).status")
-          if [ "$STATUS" != "VERIFIED_PRODUCTION" ]; then
-            echo "::error::CRITICAL SECURITY FAILURE: Release verification status is $STATUS"
-            exit 1
-          fi
-          echo "✓ Signing Verification Stage Passed: Status is VERIFIED_PRODUCTION"
-
-      - name: Upload Release Verification Report Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-verification-report
-          path: |
-            release-verification-report.json
-            release-verification-report.md
-          retention-days: 1
-
-      - name: Upload Release APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: apps/studio-android/android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 1
-
-  # =========================================================================
-  # JOB 2: PUBLISH & DEPLOY (~20 seconds)
-  # =========================================================================
-  publish:
-    name: 2. Publish & Deploy
-    needs: build_and_package
-    runs-on: ubuntu-latest
-    env:
-      STUDIO_PRODUCTION_RELEASE: 'true'
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
-      ANDROID_HOME: /usr/local/lib/android/sdk
-    steps:
-      - name: 🔍 Pipeline Queue & Diagnostic Inspection
-        run: |
-          echo "=== RELEASE PIPELINE QUEUE DIAGNOSTICS ==="
-          echo "Selected Concurrency Group: release-${{ github.ref_name }}-${{ github.event_name }}"
-          echo "Runner Requested: ubuntu-latest"
-          echo "Workflow Event: ${{ github.event_name }}"
-          echo "Target Ref: ${{ github.ref }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Allocation Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          echo "=========================================="
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10.26.1
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Download Firebase Hosting Metadata Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: firebase-public-metadata
-          path: firebase-public-metadata-temp
-
-      - name: Prepare Firebase Public Directory
-        run: |
-          rm -rf firebase-public
-          mv firebase-public-metadata-temp firebase-public
-
-      - name: Download Release APK Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: release-apk
-          path: release-apk-temp
-
-      - name: Position APK for Release
-        run: |
-          mkdir -p apps/studio-android/android/app/build/outputs/apk/release
-          mv release-apk-temp/app-release.apk apps/studio-android/android/app/build/outputs/apk/release/app-release.apk
-
-      - name: Run Release Publishing
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TYPE: ${{ inputs.release_type }}
-        run: |
-          cd apps/studio-android
-          PRERELEASE_FLAG=""
-          if [ "$RELEASE_TYPE" = "prerelease" ]; then
-            PRERELEASE_FLAG="--prerelease"
-          fi
-          node scripts/release-firebase.mjs --skip-build $PRERELEASE_FLAG
+          node scripts/release-firebase.mjs $PRERELEASE_FLAG
 
       - name: Deploy Update Metadata to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0

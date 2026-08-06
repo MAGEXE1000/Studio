@@ -71,18 +71,18 @@ async function runNavigationTests() {
 
     // Push chords app mode
     unlock();
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
     assert.strictEqual(state.history[1].page, 'library');
 
     // Push specific chords panel
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord' });
     state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 3);
-    assert.strictEqual(state.history[2].app, 'chords');
+    assert.strictEqual(state.history[2].app, 'chordex');
     assert.strictEqual(state.history[2].page, 'chord');
   });
 
@@ -91,9 +91,9 @@ async function runNavigationTests() {
     resetStore();
 
     unlock();
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord' });
 
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 3);
@@ -102,7 +102,7 @@ async function runNavigationTests() {
     NavigationDispatcher.pop();
     state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
     assert.strictEqual(state.history[1].page, 'library');
 
     unlock();
@@ -110,7 +110,7 @@ async function runNavigationTests() {
     state = useNavigationStore.getState();
     // Due to per-app isolated back stacks, pop() cannot navigate past the root of the current app.
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
   });
 
   // Test 4: pushNav deduplication prevents double pushes
@@ -118,9 +118,9 @@ async function runNavigationTests() {
     resetStore();
 
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord' });
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'chord' }); // identical
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord' }); // identical
 
     const state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2); // should be 2, not 3
@@ -131,7 +131,7 @@ async function runNavigationTests() {
     resetStore();
 
     unlock();
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     unlock();
     NavigationDispatcher.replace({ app: 'vocalex' });
 
@@ -146,27 +146,27 @@ async function runNavigationTests() {
     resetStore();
 
     unlock();
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     unlock();
     NavigationDispatcher.push({
-      app: 'chords',
+      app: 'chordex',
       page: 'library',
       subView: 'practice',
       id: 'song-1',
     });
     unlock();
     NavigationDispatcher.push({
-      app: 'chords',
+      app: 'chordex',
       page: 'library',
       subView: 'practice',
       id: 'song-1',
     }); // duplicate
     unlock();
-    NavigationDispatcher.push({ app: 'chords', page: 'chord', id: 'chord-1' });
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord', id: 'chord-1' });
 
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 4);
-    assert.strictEqual(state.history[3].app, 'chords');
+    assert.strictEqual(state.history[3].app, 'chordex');
     assert.strictEqual(state.history[3].page, 'chord');
     assert.strictEqual(state.history[3].id, 'chord-1');
 
@@ -174,7 +174,7 @@ async function runNavigationTests() {
     NavigationDispatcher.pop();
     state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 3);
-    assert.strictEqual(state.history[2].app, 'chords');
+    assert.strictEqual(state.history[2].app, 'chordex');
     assert.strictEqual(state.history[2].page, 'library');
     assert.strictEqual(state.history[2].subView, 'practice');
     assert.strictEqual(state.history[2].id, 'song-1');
@@ -183,7 +183,7 @@ async function runNavigationTests() {
     NavigationDispatcher.pop();
     state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
     assert.strictEqual(state.history[1].page, 'library');
 
     unlock();
@@ -191,7 +191,7 @@ async function runNavigationTests() {
     state = useNavigationStore.getState();
     // Again, pop() cannot navigate past the root of the current app.
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
   });
 
   console.log('\n=== REGRESSION TEST RESULTS ===');

@@ -93,11 +93,11 @@ async function runNavigationCoreTests() {
   // Test 2: push method sets app defaults and does not block transitions
   assertTest('push adds route, applies defaults and does not block transitions', () => {
     resetStore();
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
 
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
     assert.strictEqual(state.history[1].page, 'library'); // default chords sub-page
     assert.strictEqual(state.isTransitioning, true);
     assert.strictEqual(state.transitionType, 'forward');
@@ -115,7 +115,7 @@ async function runNavigationCoreTests() {
     // Simulate lock release
     useNavigationStore.getState().setTransition(null, false);
 
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     useNavigationStore.getState().setTransition(null, false);
 
     NavigationDispatcher.replace({ app: 'groovex' });
@@ -131,10 +131,10 @@ async function runNavigationCoreTests() {
     resetStore();
     useNavigationStore.getState().setTransition(null, false);
 
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     useNavigationStore.getState().setTransition(null, false);
 
-    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord' });
     useNavigationStore.getState().setTransition(null, false);
 
     assert.strictEqual(NavigationDispatcher.canGoBack(), true);
@@ -142,7 +142,7 @@ async function runNavigationCoreTests() {
 
     let state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
     assert.strictEqual(state.history[1].page, 'library');
 
     // Block popping past app root
@@ -158,7 +158,7 @@ async function runNavigationCoreTests() {
     resetStore();
     useNavigationStore.getState().setTransition(null, false);
 
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     useNavigationStore.getState().setTransition(null, false);
 
     NavigationDispatcher.push({ app: 'vocalex' });
@@ -166,10 +166,10 @@ async function runNavigationCoreTests() {
 
     assert.strictEqual(useNavigationStore.getState().history.length, 3);
 
-    NavigationDispatcher.popTo((route) => route.app === 'chords');
+    NavigationDispatcher.popTo((route) => route.app === 'chordex');
     const state = useNavigationStore.getState();
     assert.strictEqual(state.history.length, 2);
-    assert.strictEqual(state.history[1].app, 'chords');
+    assert.strictEqual(state.history[1].app, 'chordex');
   });
 
   // Test 6: reset stack
@@ -240,10 +240,10 @@ async function runNavigationCoreTests() {
     resetStore();
     useNavigationStore.getState().setTransition(null, false);
 
-    NavigationDispatcher.push({ app: 'chords' });
+    NavigationDispatcher.push({ app: 'chordex' });
     useNavigationStore.getState().setTransition(null, false);
 
-    NavigationDispatcher.push({ app: 'chords', page: 'chord' });
+    NavigationDispatcher.push({ app: 'chordex', page: 'chord' });
     useNavigationStore.getState().setTransition(null, false);
 
     GestureDispatcher.onGestureStart();

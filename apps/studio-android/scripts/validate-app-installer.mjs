@@ -42,6 +42,196 @@ export function assert(condition, message, exitCode = EXIT_CODES.APP_INSTALLER_V
   }
 }
 
+// Certificate metadata parsing function supporting multiple strategies for keytool and apksigner
+export function parseCertificateMetadata(keytoolOut, signInfoVerbose) {
+  // 1. Owner (Subject) parsing strategies
+  const ownerStrategies = [
+    {
+      name: 'Keytool Subject Field Match',
+      run: (kOut, sOut) => {
+        const m = kOut.match(/Subject:\s*(.*)/i);
+        return m ? m[1].trim() : null;
+      }
+    },
+    {
+      name: 'Keytool Owner Field Match',
+      run: (kOut, sOut) => {
+        const m = kOut.match(/Owner:\s*(.*)/i);
+        return m ? m[1].trim() : null;
+      }
+    },
+    {
+      name: 'Keytool Certificate Owner Match',
+      run: (kOut, sOut) => {
+        const m = kOut.match(/Certificate\s+Owner:\s*(.*)/i);
+        return m ? m[1].trim() : null;
+      }
+    },
+    {
+      name: 'Apksigner DN Match',
+      run: (kOut, sOut) => {
+        const m = sOut.match(/Signer\s*#\d+\s*certificate\s*DN:\s*(.*)/i);
+        return m ? m[1].trim() : null;
+      }
+    },
+    {
+      name: 'RFC2253 Line Scan Match',
+      run: (kOut, sOut) => {
+        const combined = kOut + '\n' + sOut;
+        const lines = combined.split(/\r?\n/);
+        for (const line of lines) {
+          if (line.includes('CN=') && (line.includes('O=') || line.includes('C='))) {
+            if (!line.toLowerCase().includes('issuer:') && !line.toLowerCase().includes('digest:')) {
+              const clean = line.replace(/^(?:Owner|Subject|Certificate\s+Owner|Signer\s*#\d+\s*certificate\s*DN):\s*/i, '').trim();
+              if (clean.length > 0) return clean;
+            }
+          }
+        }
+        return null;
+      }
+    }
+  ];
+
+  let parsedOwner = null;
+  const ownerStrategyLog = [];
+  for (const strategy of ownerStrategies) {
+    try {
+      const res = strategy.run(keytoolOut, signInfoVerbose);
+      if (res) {
+        parsedOwner = res;
+        ownerStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });
+        break;
+      } else {
+        ownerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: 'Pattern did not match output text' });
+      }
+    } catch (e) {
+      ownerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: e.message });
+    }
+  }
+
+  // 2. Issuer parsing strategies
+  const issuerStrategies = [
+    {
+      name: 'Keytool Issuer Field Match',
+      run: (kOut, sOut) => {
+        const m = kOut.match(/Issuer:\s*(.*)/i);
+        return m ? m[1].trim() : null;
+      }
+    },
+    {
+      name: 'Apksigner Issuer Fallback (Owner DN)',
+      run: (kOut, sOut) => {
+        const m = sOut.match(/Signer\s*#\d+\s*certificate\s*DN:\s*(.*)/i);
+        return m ? m[1].trim() : null;
+      }
+    },
+    {
+      name: 'RFC2253 Issuer Line Scan',
+      run: (kOut, sOut) => {
+        const combined = kOut + '\n' + sOut;
+        const lines = combined.split(/\r?\n/);
+        for (const line of lines) {
+          if (line.toLowerCase().includes('issuer:') && line.includes('CN=')) {
+            const clean = line.replace(/^.*?issuer:\s*/i, '').trim();
+            if (clean.length > 0) return clean;
+          }
+        }
+        return null;
+      }
+    }
+  ];
+
+  let parsedIssuer = null;
+  const issuerStrategyLog = [];
+  for (const strategy of issuerStrategies) {
+    try {
+      const res = strategy.run(keytoolOut, signInfoVerbose);
+      if (res) {
+        parsedIssuer = res;
+        issuerStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });
+        break;
+      } else {
+        issuerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: 'Pattern did not match output text' });
+      }
+    } catch (e) {
+      issuerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: e.message });
+    }
+  }
+
+  // 3. Validity parsing strategies
+  const validityStrategies = [
+    {
+      name: 'Keytool Valid From/Until Labels Match',
+      run: (kOut, sOut) => {
+        const m = kOut.match(/Valid from:\s*(.*?)\s+until:\s*(.*)/i);
+        return m ? { from: m[1].trim(), until: m[2].trim() } : null;
+      }
+    },
+    {
+      name: 'Keytool From/To Brackets Match',
+      run: (kOut, sOut) => {
+        const m = kOut.match(/From:\s*(.*?),\s*To:\s*([^\]\r\n]*)/i);
+        return m ? { from: m[1].trim(), until: m[2].trim() } : null;
+      }
+    },
+    {
+      name: 'Keytool Validity Block Match',
+      run: (kOut, sOut) => {
+        const lines = kOut.split(/\r?\n/);
+        for (const line of lines) {
+          if (line.toLowerCase().includes('validity') || line.toLowerCase().includes('valid from')) {
+            const m = line.match(/(?:\d{4}|\d{2}:\d{2})/);
+            if (m) {
+              const parts = line.split(/(?:until|to|until:|,)/i);
+              if (parts.length >= 2) {
+                const from = parts[0].replace(/^.*?valid(?:ity|from)?:\s*/i, '').trim();
+                const until = parts[1].replace(/\]/g, '').trim();
+                return { from, until };
+              }
+            }
+          }
+        }
+        return null;
+      }
+    },
+    {
+      name: 'Apksigner Implicit Validity Match',
+      run: (kOut, sOut) => {
+        if (sOut.includes('SHA-256 digest')) {
+          return { from: 'N/A (Verified by apksigner)', until: 'N/A (Verified by apksigner)' };
+        }
+        return null;
+      }
+    }
+  ];
+
+  let parsedValidity = null;
+  const validityStrategyLog = [];
+  for (const strategy of validityStrategies) {
+    try {
+      const res = strategy.run(keytoolOut, signInfoVerbose);
+      if (res) {
+        parsedValidity = res;
+        validityStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });
+        break;
+      } else {
+        validityStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: 'Pattern did not match output text' });
+      }
+    } catch (e) {
+      validityStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: e.message });
+    }
+  }
+
+  return {
+    parsedOwner,
+    ownerStrategyLog,
+    parsedIssuer,
+    issuerStrategyLog,
+    parsedValidity,
+    validityStrategyLog,
+  };
+}
+
 // Android Tools signature & debuggable validation helper
 export function getAndroidTool(toolName) {
   try {

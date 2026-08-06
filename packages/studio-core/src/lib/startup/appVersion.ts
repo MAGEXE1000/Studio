@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.82';
-export const NATIVE_VERSION_CODE = 40412;
-export const WEB_VERSION = '4.3.82';
+export const NATIVE_VERSION = '4.3.83';
+export const NATIVE_VERSION_CODE = 40413;
+export const WEB_VERSION = '4.3.83';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '0a224256';
+export const APP_COMMIT_SHA = 'be8ff4e8';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/5/2026, 10:53:25 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/5/2026, 11:52:39 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,12 +98,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.",
-      "Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.",
-      "Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.",
-      "Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.",
-      "Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.",
-      "Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).",
+      "Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.",
+      "Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.",
+      "Resolved isUpdateDismissed timeout evaluation bug returning true by default.",
+      "Prevented Color Picker saturation thumb boundary overflow and fixed HSL 360-degree hue reset.",
+      "Normalized HSL proxy color values to HEX to resolve the frame-skipping drag rendering loop.",
+      "Decoupled bottom navigation item button handlers from pointer event overrides, driving animations purely by navigation active state transitions.",
     ],
   },
 ];

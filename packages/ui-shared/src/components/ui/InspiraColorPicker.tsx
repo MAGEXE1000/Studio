@@ -14,12 +14,30 @@ export interface InspiraColorPickerProps {
  * Supports HEX, RGB, HSL, OKLCH formats, eyedropper, and preset swatches.
  * Alpha/opacity is disabled as it is not used anywhere in Studio.
  */
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 export default function InspiraColorPicker({ className = '' }: InspiraColorPickerProps) {
   const settings = useSettingsStore((s) => s.settings);
   const currentAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'purple';
   const activeColorObj = ACCENT_COLORS[currentAccentKey] ?? ACCENT_COLORS.purple;
 
-  const currentHex = activeColorObj.from;
+  let currentHex = activeColorObj.from;
+  if (currentHex.startsWith('hsl')) {
+    const m = currentHex.match(/\d+/g);
+    if (m && m.length >= 3) {
+      currentHex = hslToHex(parseInt(m[0], 10), parseInt(m[1], 10), parseInt(m[2], 10));
+    }
+  }
 
   // Build swatches from the accent palette + user presets
   const swatches = useMemo(() => {

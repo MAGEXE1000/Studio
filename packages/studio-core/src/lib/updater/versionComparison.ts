@@ -96,28 +96,47 @@ export function compareVersions(
   let isUpgrade = false;
   let isUpToDate = false;
 
-  // versionCode is the primary determinant of update availability.
-  // versionName (semver) is used only as a fallback when versionCode
-  // is not available on both sides, and as a display hint.
+  // Verify consistency between version code and version name
+  let hasInconsistency = false;
   if (
     localVersionCode !== undefined &&
     localVersionCode !== null &&
     remote.versionCode !== undefined &&
     remote.versionCode !== null
   ) {
-    // Both versionCodes available: use versionCode as primary, fall back to semver if codes match
+    if (remote.versionCode > localVersionCode && nameComparison < 0) {
+      hasInconsistency = true;
+    } else if (remote.versionCode < localVersionCode && nameComparison > 0) {
+      hasInconsistency = true;
+    } else if (remote.versionCode === localVersionCode && nameComparison !== 0) {
+      hasInconsistency = true;
+    }
+  }
+
+  if (hasInconsistency) {
+    details.metadataIntegrity = false;
+    return {
+      updateAvailable: false,
+      isDowngrade: false,
+      isUpgrade: false,
+      isUpToDate: false,
+      explanation: `Inconsistent remote metadata: Remote version is "${remote.version}" (code ${remote.versionCode}) but local version is "${localVersionName}" (code ${localVersionCode}). This represents an inconsistent release configuration.`,
+      details,
+    };
+  }
+
+  if (
+    localVersionCode !== undefined &&
+    localVersionCode !== null &&
+    remote.versionCode !== undefined &&
+    remote.versionCode !== null
+  ) {
     if (remote.versionCode > localVersionCode) {
       isUpgrade = true;
     } else if (remote.versionCode < localVersionCode) {
       isDowngrade = true;
     } else {
-      if (nameComparison > 0) {
-        isUpgrade = true;
-      } else if (nameComparison < 0) {
-        isDowngrade = true;
-      } else {
-        isUpToDate = true;
-      }
+      isUpToDate = true;
     }
   } else if (Capacitor.isNativePlatform() && (localVersionCode === undefined || localVersionCode === null)) {
     // On native, a missing local versionCode means the Capacitor bridge hasn't responded yet.

@@ -1,9 +1,9 @@
 Release Date: 2026-08-06
 
 ### Improved
-- Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.
-- Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.
-- Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.
-- Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.
-- Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.
-- Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).
+- Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.
+- Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.
+- Resolved isUpdateDismissed timeout evaluation bug returning true by default.
+- Prevented Color Picker saturation thumb boundary overflow and fixed HSL 360-degree hue reset.
+- Normalized HSL proxy color values to HEX to resolve the frame-skipping drag rendering loop.
+- Decoupled bottom navigation item button handlers from pointer event overrides, driving animations purely by navigation active state transitions.

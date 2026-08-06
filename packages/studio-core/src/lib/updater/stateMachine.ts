@@ -1090,6 +1090,8 @@ export function isUpdateDismissed(version: string, isManual = false): boolean {
       
       return elapsed < interval;
     }
-  } catch (_) {}
-  return true;
+    return false;
+  } catch (_) {
+    return false;
+  }
 }

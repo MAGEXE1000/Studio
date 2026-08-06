@@ -543,8 +543,8 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
       <div
         className="absolute pointer-events-none rounded-full"
         style={{
-          left: `${s * 100}%`,
-          top: `${(1 - v) * 100}%`,
+          left: `calc(9px + ${s} * (100% - 18px))`,
+          top: `calc(9px + ${1 - v} * (100% - 18px))`,
           width: 18,
           height: 18,
           transform: "translate(-50%, -50%)",
@@ -557,8 +557,8 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
         <div
           className="absolute pointer-events-none rounded-full"
           style={{
-            left: `${cursorPos.x}%`,
-            top: `${cursorPos.y}%`,
+            left: `calc(9px + ${cursorPos.x / 100} * (100% - 18px))`,
+            top: `calc(9px + ${cursorPos.y / 100} * (100% - 18px))`,
             width: 18,
             height: 18,
             transform: "translate(-50%, -50%)",
@@ -1610,12 +1610,18 @@ const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
       if (!p) return;
       oklchHueRef.current = null;
       const newHsv = rgbToHsv(p.r, p.g, p.b);
-      setHsv((prev) => ({
-        h: newHsv.s === 0 ? prev.h : newHsv.h,
-        s: newHsv.s,
-        v: newHsv.v,
-        a: p.a,
-      }));
+      setHsv((prev) => {
+        let h = newHsv.s === 0 ? prev.h : newHsv.h;
+        if (h === 0 && prev.h === 360) {
+          h = 360;
+        }
+        return {
+          h,
+          s: newHsv.s,
+          v: newHsv.v,
+          a: p.a,
+        };
+      });
     }, [value, isControlled]);
 
     const parsed = useMemo(

@@ -1,23 +1,23 @@
 {
   "platform": "android",
-  "version": "4.3.82",
-  "versionName": "4.3.82",
-  "versionCode": 40412,
-  "version_code": 40412,
-  "commit": "0a224256",
-  "releasedAt": "8/5/2026, 10:53:25 PM CST",
-  "buildTimestamp": "8/5/2026, 10:53:25 PM CST",
+  "version": "4.3.83",
+  "versionName": "4.3.83",
+  "versionCode": 40413,
+  "version_code": 40413,
+  "commit": "be8ff4e8",
+  "releasedAt": "8/5/2026, 11:52:39 PM CST",
+  "buildTimestamp": "8/5/2026, 11:52:39 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.\n• Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.\n• Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.\n• Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.\n• Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.\n• Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).",
-  "whatsNew": "• Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.\n• Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.\n• Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.\n• Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.\n• Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.\n• Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).",
+  "changelog": "• Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.\n• Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.\n• Resolved isUpdateDismissed timeout evaluation bug returning true by default.\n• Prevented Color Picker saturation thumb boundary overflow and fixed HSL 360-degree hue reset.\n• Normalized HSL proxy color values to HEX to resolve the frame-skipping drag rendering loop.\n• Decoupled bottom navigation item button handlers from pointer event overrides, driving animations purely by navigation active state transitions.",
+  "whatsNew": "• Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.\n• Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.\n• Resolved isUpdateDismissed timeout evaluation bug returning true by default.\n• Prevented Color Picker saturation thumb boundary overflow and fixed HSL 360-degree hue reset.\n• Normalized HSL proxy color values to HEX to resolve the frame-skipping drag rendering loop.\n• Decoupled bottom navigation item button handlers from pointer event overrides, driving animations purely by navigation active state transitions.",
   "releaseNotes": {
     "improved": [
-      "Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.",
-      "Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.",
-      "Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.",
-      "Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.",
-      "Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.",
-      "Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation)."
+      "Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.",
+      "Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.",
+      "Resolved isUpdateDismissed timeout evaluation bug returning true by default.",
+      "Prevented Color Picker saturation thumb boundary overflow and fixed HSL 360-degree hue reset.",
+      "Normalized HSL proxy color values to HEX to resolve the frame-skipping drag rendering loop.",
+      "Decoupled bottom navigation item button handlers from pointer event overrides, driving animations purely by navigation active state transitions."
     ]
   },
   "mandatory": false

@@ -2,7 +2,7 @@ name: Release Pipeline
 run-name: Studio Release - ${{ github.ref_name }}
 
 concurrency:
-  group: release-pipeline
+  group: release-${{ github.sha }}
   cancel-in-progress: true
 
 on:

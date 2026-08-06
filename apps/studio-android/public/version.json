@@ -1,19 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.79",
-  "versionName": "4.3.79",
-  "versionCode": 40400,
-  "version_code": 40400,
-  "commit": "26a269ad",
-  "releasedAt": "8/5/2026, 8:58:18 AM CST",
-  "buildTimestamp": "8/5/2026, 8:58:18 AM CST",
+  "version": "4.3.80",
+  "versionName": "4.3.80",
+  "versionCode": 40410,
+  "version_code": 40410,
+  "commit": "d0d8f7a0",
+  "releasedAt": "8/5/2026, 8:34:39 PM CST",
+  "buildTimestamp": "8/5/2026, 8:34:39 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.\n• Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging.",
-  "whatsNew": "• Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.\n• Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging.",
+  "changelog": "• Implemented production-quality collaboration engineering diagnostics system to expose raw Firebase exception details.\n• Added comprehensive connection, authentication, network, and IndexedDB persistence state tracking.\n• Captured automated operation queue retry metrics including backoff delays and drop reasons.\n• Integrated friendly error fallback messages in the StageX collaboration UI.",
+  "whatsNew": "• Implemented production-quality collaboration engineering diagnostics system to expose raw Firebase exception details.\n• Added comprehensive connection, authentication, network, and IndexedDB persistence state tracking.\n• Captured automated operation queue retry metrics including backoff delays and drop reasons.\n• Integrated friendly error fallback messages in the StageX collaboration UI.",
   "releaseNotes": {
-    "fixed": [
-      "Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.",
-      "Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging."
+    "improved": [
+      "Implemented production-quality collaboration engineering diagnostics system to expose raw Firebase exception details.",
+      "Added comprehensive connection, authentication, network, and IndexedDB persistence state tracking.",
+      "Captured automated operation queue retry metrics including backoff delays and drop reasons.",
+      "Integrated friendly error fallback messages in the StageX collaboration UI."
     ]
   },
   "mandatory": false

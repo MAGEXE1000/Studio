@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.79';
-export const NATIVE_VERSION_CODE = 40400;
-export const WEB_VERSION = '4.3.79';
+export const NATIVE_VERSION = '4.3.80';
+export const NATIVE_VERSION_CODE = 40410;
+export const WEB_VERSION = '4.3.80';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '26a269ad';
+export const APP_COMMIT_SHA = 'd0d8f7a0';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/5/2026, 8:58:18 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/5/2026, 8:34:39 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,10 +96,12 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Improved",
     items: [
-      "Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.",
-      "Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging.",
+      "Implemented production-quality collaboration engineering diagnostics system to expose raw Firebase exception details.",
+      "Added comprehensive connection, authentication, network, and IndexedDB persistence state tracking.",
+      "Captured automated operation queue retry metrics including backoff delays and drop reasons.",
+      "Integrated friendly error fallback messages in the StageX collaboration UI.",
     ],
   },
 ];

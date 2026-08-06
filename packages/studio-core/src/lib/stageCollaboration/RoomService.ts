@@ -12,6 +12,7 @@ import {
 import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { CollaboratorRoom } from './Types';
 import { serializeStage } from './StageSerializer';
+import { enrichAndLogError, CollabDiagnosticsRegistry } from './CollabDiagnostics';
 
 function generateShortCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing chars like I, O, 0, 1
@@ -68,6 +69,7 @@ export class RoomService {
           console.warn(`[RoomService] Firestore offline/unprovisioned during shortCode check. Accepting generated shortCode ${shortCode} for local room.`);
           isUnique = true;
         } else {
+          enrichAndLogError('getDoc:roomCodes', err, { shortCode });
           handleRoomServiceError(`Checking shortCode uniqueness (attempt ${attempts + 1})`, err);
           throw err;
         }
@@ -97,12 +99,23 @@ export class RoomService {
 
     try {
       console.log(`[RoomService] Writing roomCodes document: roomCodes/${shortCode}`);
-      await setDoc(doc(db, 'roomCodes', shortCode), { roomId, createdAt: now });
+      try {
+        await setDoc(doc(db, 'roomCodes', shortCode), { roomId, createdAt: now });
+      } catch (err: any) {
+        enrichAndLogError('setDoc:roomCodes', err, { roomId, shortCode });
+        throw err;
+      }
       console.log('[RoomService] Wrote roomCodes document successfully');
 
       console.log(`[RoomService] Writing rooms document: rooms/${roomId}`);
-      await setDoc(doc(db, 'rooms', roomId), room);
+      try {
+        await setDoc(doc(db, 'rooms', roomId), room);
+      } catch (err: any) {
+        enrichAndLogError('setDoc:rooms', err, { roomId, shortCode });
+        throw err;
+      }
       console.log('[RoomService] Wrote rooms document successfully');
+      CollabDiagnosticsRegistry.firstWriteCompleted = true;
     } catch (err: any) {
       const code = err?.code || '';
       const msg = (err?.message || '').toLowerCase();
@@ -137,6 +150,7 @@ export class RoomService {
         console.warn('[RoomService] Firestore offline/unprovisioned during getRoomIdFromCode.');
         return null;
       }
+      enrichAndLogError('getDoc:roomCodes', err, { shortCode: cleanCode });
       handleRoomServiceError('getRoomIdFromCode', err);
       throw err;
     }
@@ -160,6 +174,7 @@ export class RoomService {
         console.warn('[RoomService] Firestore offline/unprovisioned during getRoom.');
         return null;
       }
+      enrichAndLogError('getDoc:rooms', err, { roomId });
       handleRoomServiceError('getRoom', err);
       throw err;
     }
@@ -168,16 +183,24 @@ export class RoomService {
   static async updateRoomHeartbeat(roomId: string) {
     const db = await this.getDb();
     const roomRef = doc(db, 'rooms', roomId);
-    await updateDoc(roomRef, {
-      lastHeartbeat: Date.now(),
-      updatedAt: Date.now(),
-    });
+    try {
+      await updateDoc(roomRef, {
+        lastHeartbeat: Date.now(),
+        updatedAt: Date.now(),
+      });
+    } catch (err: any) {
+      throw enrichAndLogError('updateDoc:rooms:heartbeat', err, { roomId });
+    }
   }
 
   static async deleteRoom(roomId: string, shortCode: string) {
     const db = await this.getDb();
-    await deleteDoc(doc(db, 'rooms', roomId));
-    await deleteDoc(doc(db, 'roomCodes', shortCode.toUpperCase().trim()));
+    try {
+      await deleteDoc(doc(db, 'rooms', roomId));
+      await deleteDoc(doc(db, 'roomCodes', shortCode.toUpperCase().trim()));
+    } catch (err: any) {
+      throw enrichAndLogError('deleteDoc:room', err, { roomId, shortCode });
+    }
   }
 
   static async runTTLPruning() {
@@ -194,10 +217,15 @@ export class RoomService {
       const snaps = await getDocs(roomsQuery);
       for (const d of snaps.docs) {
         const room = d.data() as CollaboratorRoom;
-        await this.deleteRoom(room.roomId, room.shortCode);
-        console.log(`[RoomService] Pruned inactive room ${room.roomId} (${room.shortCode})`);
+        try {
+          await this.deleteRoom(room.roomId, room.shortCode);
+          console.log(`[RoomService] Pruned inactive room ${room.roomId} (${room.shortCode})`);
+        } catch (delErr: any) {
+          enrichAndLogError('deleteRoom:pruning', delErr, { roomId: room.roomId, shortCode: room.shortCode });
+        }
       }
-    } catch (e) {
+    } catch (e: any) {
+      enrichAndLogError('getDocs:rooms:pruning', e);
       console.warn('[RoomService] Error pruning old rooms:', e);
     }
   }

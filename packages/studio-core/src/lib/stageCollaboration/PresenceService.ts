@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { Participant } from './Types';
+import { enrichAndLogError, CollabDiagnosticsRegistry } from './CollabDiagnostics';
 
 export class PresenceService {
   private static async getDb() {
@@ -38,13 +39,22 @@ export class PresenceService {
       lastSeen: Date.now(),
     };
 
-    await setDoc(presenceRef, participant, { merge: true });
+    try {
+      await setDoc(presenceRef, participant, { merge: true });
+      CollabDiagnosticsRegistry.firstWriteCompleted = true;
+    } catch (err: any) {
+      throw enrichAndLogError('setDoc:presence', err, { roomId });
+    }
   }
 
   static async removePresence(roomId: string, userId: string) {
     const db = await this.getDb();
     const presenceRef = doc(db, 'rooms', roomId, 'presence', userId);
-    await deleteDoc(presenceRef);
+    try {
+      await deleteDoc(presenceRef);
+    } catch (err: any) {
+      throw enrichAndLogError('deleteDoc:presence', err, { roomId });
+    }
   }
 
   static async pruneDeadParticipants(roomId: string) {
@@ -58,10 +68,15 @@ export class PresenceService {
     try {
       const snap = await getDocs(queryDead);
       for (const d of snap.docs) {
-        await deleteDoc(doc(db, 'rooms', roomId, 'presence', d.id));
-        console.log(`[PresenceService] Pruned inactive participant ${d.id}`);
+        try {
+          await deleteDoc(doc(db, 'rooms', roomId, 'presence', d.id));
+          console.log(`[PresenceService] Pruned inactive participant ${d.id}`);
+        } catch (delErr: any) {
+          enrichAndLogError('deleteDoc:presence:pruning', delErr, { roomId });
+        }
       }
-    } catch (e) {
+    } catch (e: any) {
+      enrichAndLogError('getDocs:presence:pruning', e, { roomId });
       console.warn('[PresenceService] Error pruning dead presence:', e);
     }
   }

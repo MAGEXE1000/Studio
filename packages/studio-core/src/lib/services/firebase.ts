@@ -1,8 +1,44 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth, setPersistence, browserLocalPersistence, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore, initializeFirestore, enableMultiTabIndexedDbPersistence, type Firestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, enableMultiTabIndexedDbPersistence, type Firestore, enableNetwork as fsEnableNetwork, disableNetwork as fsDisableNetwork } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import bundledConfig from '../../../firebase.config.json';
+
+let _persistenceEnabled = false;
+let _networkEnabled = true;
+let _lastEnableNetworkSuccess = true;
+
+export async function enableFirestoreNetwork(): Promise<void> {
+  const db = getFirebaseDb();
+  if (!db) throw new Error('Firestore not initialized');
+  try {
+    await fsEnableNetwork(db);
+    _networkEnabled = true;
+    _lastEnableNetworkSuccess = true;
+  } catch (e) {
+    _lastEnableNetworkSuccess = false;
+    throw e;
+  }
+}
+
+export async function disableFirestoreNetwork(): Promise<void> {
+  const db = getFirebaseDb();
+  if (!db) throw new Error('Firestore not initialized');
+  await fsDisableNetwork(db);
+  _networkEnabled = false;
+}
+
+export function isPersistenceEnabled(): boolean {
+  return _persistenceEnabled;
+}
+
+export function isFirestoreNetworkEnabled(): boolean {
+  return _networkEnabled;
+}
+
+export function hasEnableNetworkSucceeded(): boolean {
+  return _lastEnableNetworkSuccess;
+}
 
 const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : (typeof process !== 'undefined' ? process.env : {});
 function pick(envValue: string | undefined, fallback: string | undefined): string | undefined {
@@ -35,6 +71,7 @@ let _auth: Auth | null = null;
 let _db: Firestore | null = null;
 let _storage: FirebaseStorage | null = null;
 let _initError: string | null = null;
+export const firebaseInitErrors: any[] = [];
 
 let _firestoreReadyResolver: () => void;
 let _firestoreReadyPromise: Promise<void> | null = null;
@@ -85,9 +122,11 @@ function init() {
       console.log('[FirebaseInit] Enabling Firestore offline persistence...');
       enableMultiTabIndexedDbPersistence(_db).then(() => {
         console.log('[FirebaseInit] Firestore multi-tab IndexedDB persistence enabled successfully.');
+        _persistenceEnabled = true;
         _firestoreReadyResolver();
       }).catch((err) => {
         console.warn('[FirebaseInit] Firestore offline persistence could not be enabled:', err.code || err.message, err);
+        _persistenceEnabled = false;
         _firestoreReadyResolver();
       });
     }
@@ -101,6 +140,7 @@ function init() {
       .catch((err) => console.warn('[FirebaseInit] Failed to set Auth persistence:', err));
   } catch (err: any) {
     _initError = err.message || String(err);
+    firebaseInitErrors.push(err);
     console.error('[FirebaseInit] [ERROR] Firebase initialization failed with exception:', err);
     if (err.stack) {
       console.error('[FirebaseInit] [ERROR] Stack trace:', err.stack);

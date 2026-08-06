@@ -109,3 +109,4 @@ export * from './repositories/UserRepository';
 // Collaboration Services
 export * from './lib/stageCollaboration/Types';
 export * from './lib/stageCollaboration/CollaborationService';
+export * from './lib/stageCollaboration/CollabDiagnostics';

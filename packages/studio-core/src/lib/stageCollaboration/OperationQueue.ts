@@ -1,6 +1,7 @@
 import { doc, setDoc } from 'firebase/firestore';
 import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { StageOperation } from './Types';
+import { enrichAndLogError, CollabDiagnosticsRegistry } from './CollabDiagnostics';
 
 /** Max number of consecutive flush failures before an operation is dropped. */
 const MAX_RETRIES = 5;
@@ -63,18 +64,26 @@ export class OperationQueue {
           });
           // Success — remove from queue
           this.queue.shift();
+          CollabDiagnosticsRegistry.firstWriteCompleted = true;
         } catch (writeErr: any) {
           const code = writeErr?.code || '';
           // Permanent errors: don't retry, drop the operation
           if (code === 'permission-denied' || code === 'not-found' || code === 'invalid-argument' || code === 'unauthenticated') {
             console.error(`[OperationQueue] Permanent error writing op ${item.op.id}, dropping:`, writeErr);
+            CollabDiagnosticsRegistry.finalFailureReason = `Permanent error: ${code}`;
+            enrichAndLogError('setDoc:operationQueue:drop', writeErr, { roomId: item.roomId });
             this.queue.shift();
             continue;
           }
           // Transient error: increment retry counter
           item.retries++;
+          CollabDiagnosticsRegistry.retryCount = item.retries;
+          CollabDiagnosticsRegistry.retryReason = writeErr.message || String(writeErr);
+          
           if (item.retries >= MAX_RETRIES) {
             console.error(`[OperationQueue] Op ${item.op.id} failed after ${MAX_RETRIES} retries, dropping:`, writeErr);
+            CollabDiagnosticsRegistry.finalFailureReason = `Max retries reached (${MAX_RETRIES})`;
+            enrichAndLogError('setDoc:operationQueue:max_retries', writeErr, { roomId: item.roomId });
             this.queue.shift();
             continue;
           }
@@ -82,11 +91,13 @@ export class OperationQueue {
           throw writeErr;
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       // Determine backoff delay from the head-of-queue retry count
       const retryCount = this.queue.length > 0 ? this.queue[0].retries : 1;
       const delay = Math.min(BASE_RETRY_MS * Math.pow(2, retryCount - 1), 30000);
+      CollabDiagnosticsRegistry.backoffDelay = delay;
       console.warn(`[OperationQueue] Flush failed (retry ${retryCount}/${MAX_RETRIES}), next attempt in ${delay}ms:`, e);
+      enrichAndLogError('setDoc:operationQueue:retry_backoff', e, { roomId: this.queue[0]?.roomId });
       this.processing = false;
       if (this.queue.length > 0 && !this.isOffline) {
         setTimeout(() => this.flush(), delay);

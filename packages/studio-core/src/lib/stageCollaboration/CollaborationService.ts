@@ -6,6 +6,7 @@ import { OperationQueue } from './OperationQueue';
 import { deserializeStage } from './StageDeserializer';
 import { CollaboratorRoom, Participant, StageOperation, CollabConnectionState } from './Types';
 import { Unsubscribe } from 'firebase/firestore';
+import { enrichAndLogError, CollabDiagnosticsRegistry } from './CollabDiagnostics';
 
 function mapFirestoreError(error: any): Error {
   const rawMsg = error?.message || String(error);
@@ -97,6 +98,7 @@ export class CollaborationService {
   private unsubAuth: (() => void) | null = null;
 
   private constructor() {
+    CollabDiagnosticsRegistry.connectionStateGetter = () => this.getConnectionState();
     // Automatically leave room if the user signs out or changes accounts
     import('../../repositories/AuthRepository').then(({ authRepository }) => {
       this.unsubAuth = authRepository.subscribeAuth((user) => {
@@ -206,8 +208,10 @@ export class CollaborationService {
     this.currentUserId = userId;
     this.currentUserData = userData;
 
+    let currentOp = 'createRoom';
     try {
       console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 2/5: Creating room via RoomService...');
+      currentOp = 'RoomService.createRoom';
       const room = await withTimeout(
         RoomService.createRoom(userId),
         COLLAB_TIMEOUT_MS,
@@ -223,9 +227,11 @@ export class CollaborationService {
         console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Host presence update completed successfully.');
       }).catch(e => {
         console.warn('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] [WARN] Host presence update failed (non-fatal):', e);
+        enrichAndLogError('registerPresence', e, { roomId: room.roomId, shortCode: room.shortCode });
       });
 
       console.log('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] Stage 5/5: Setting up realtime subscriptions...');
+      currentOp = 'listenToRoom';
       this.setupSubscriptions(room.roomId);
       this.startHeartbeat(room.roomId, cursorColor);
 
@@ -233,12 +239,8 @@ export class CollaborationService {
       return room;
     } catch (e: any) {
       console.error('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] [ERROR] createRoom failed at stage:', e);
-      if (e.stack) {
-        console.error('[CollaborationService] [CREATE_ROOM_DIAGNOSTIC] [ERROR] Stack trace:', e.stack);
-      }
-      handleCollabError('createRoom', e);
       this.setConnectionState('disconnected');
-      throw mapFirestoreError(e);
+      throw enrichAndLogError(currentOp, e);
     }
   }
 
@@ -253,8 +255,10 @@ export class CollaborationService {
     this.currentUserId = userId;
     this.currentUserData = userData;
 
+    let currentOp = 'joinRoom';
     try {
       console.log(`[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 2/6: Resolving roomId from code: ${shortCode}...`);
+      currentOp = 'RoomService.getRoomIdFromCode';
       const roomId = await withTimeout(
         RoomService.getRoomIdFromCode(shortCode.toUpperCase().trim()),
         COLLAB_TIMEOUT_MS,
@@ -264,6 +268,7 @@ export class CollaborationService {
       if (!roomId) throw new Error('Invalid or expired room code');
 
       console.log(`[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 4/6: Fetching room details for roomId: ${roomId}...`);
+      currentOp = 'RoomService.getRoom';
       const room = await withTimeout(
         RoomService.getRoom(roomId),
         COLLAB_TIMEOUT_MS,
@@ -272,6 +277,7 @@ export class CollaborationService {
       if (!room) throw new Error('Room details not found');
 
       // Restore stage snapshot from room host
+      currentOp = 'writeSnapshot';
       if (room.snapshot) {
         console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Restoring stage snapshot from host room...');
         deserializeStage(room.snapshot, this.iframe, userId);
@@ -287,10 +293,12 @@ export class CollaborationService {
         console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Joiner presence update completed successfully.');
       }).catch(e => {
         console.warn('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] [WARN] Joiner presence update failed (non-fatal):', e);
+        enrichAndLogError('registerPresence', e, { roomId, shortCode });
       });
 
       console.log('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] Stage 6/6: Setting up realtime subscriptions...');
       // Joiners already have the snapshot — only listen for NEW operations
+      currentOp = 'listenToRoom';
       this.setupSubscriptions(roomId, Date.now());
       this.startHeartbeat(roomId, cursorColor);
 
@@ -298,12 +306,8 @@ export class CollaborationService {
       return room;
     } catch (e: any) {
       console.error('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] [ERROR] joinRoom failed at stage:', e);
-      if (e.stack) {
-        console.error('[CollaborationService] [JOIN_ROOM_DIAGNOSTIC] [ERROR] Stack trace:', e.stack);
-      }
-      handleCollabError('joinRoom', e);
       this.setConnectionState('disconnected');
-      throw mapFirestoreError(e);
+      throw enrichAndLogError(currentOp, e, { shortCode });
     }
   }
 

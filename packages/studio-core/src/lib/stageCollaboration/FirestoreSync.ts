@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseDb, waitForFirestoreReady } from '../firebase';
 import { StageOperation, Participant } from './Types';
+import { enrichAndLogError, CollabDiagnosticsRegistry } from './CollabDiagnostics';
 
 export class FirestoreSync {
   private static async getDb() {
@@ -40,6 +41,7 @@ export class FirestoreSync {
         : query(opsCol, orderBy('timestamp', 'asc'));
 
       unsub = onSnapshot(opsQuery, (snap) => {
+        CollabDiagnosticsRegistry.firstSnapshotReceived = true;
         snap.docChanges().forEach((change) => {
           if (change.type === 'added') {
             const op = change.doc.data() as StageOperation;
@@ -47,10 +49,12 @@ export class FirestoreSync {
           }
         });
       }, (err) => {
+        enrichAndLogError('onSnapshot:operations', err, { roomId });
         console.warn(`[FirestoreSync] Operations subscription error:`, err);
         onError?.(err);
       });
     }).catch(err => {
+      enrichAndLogError('getDb:operations', err, { roomId });
       console.warn(`[FirestoreSync] Failed to init db for operations:`, err);
       onError?.(err);
     });
@@ -74,16 +78,19 @@ export class FirestoreSync {
       const presenceCol = collection(db, 'rooms', roomId, 'presence');
 
       unsub = onSnapshot(presenceCol, (snap) => {
+        CollabDiagnosticsRegistry.firstSnapshotReceived = true;
         const participants: Participant[] = [];
         snap.forEach((doc) => {
           participants.push(doc.data() as Participant);
         });
         onPresenceChange(participants);
       }, (err) => {
+        enrichAndLogError('onSnapshot:presence', err, { roomId });
         console.warn(`[FirestoreSync] Presence subscription error:`, err);
         onError?.(err);
       });
     }).catch(err => {
+      enrichAndLogError('getDb:presence', err, { roomId });
       console.warn(`[FirestoreSync] Failed to init db for presence:`, err);
       onError?.(err);
     });

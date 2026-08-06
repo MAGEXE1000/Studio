@@ -4343,7 +4343,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                             await CollaborationService.getInstance().leaveRoom();
                             setCollabModalOpen(false);
                           } catch (e: any) {
-                            setCollabError(e.message || String(e));
+                            setCollabError(e.friendlyMessage || e.message || String(e));
                             setCollabErrorTimestamp(new Date().toISOString());
                           } finally {
                             setCollabLoading(false);
@@ -4372,7 +4372,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                                 cursorColor
                               );
                             } catch (e: any) {
-                              setCollabError(e.message || String(e));
+                              setCollabError(e.friendlyMessage || e.message || String(e));
                               setCollabErrorTimestamp(new Date().toISOString());
                             } finally {
                               setCollabLoading(false);
@@ -4412,7 +4412,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                                 cursorColor
                               );
                             } catch (e: any) {
-                              setCollabError(e.message || String(e));
+                              setCollabError(e.friendlyMessage || e.message || String(e));
                               setCollabErrorTimestamp(new Date().toISOString());
                             } finally {
                               setCollabLoading(false);

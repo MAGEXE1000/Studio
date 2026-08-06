@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.84';
-export const NATIVE_VERSION_CODE = 40414;
-export const WEB_VERSION = '4.3.84';
+export const NATIVE_VERSION = '4.3.85';
+export const NATIVE_VERSION_CODE = 40415;
+export const WEB_VERSION = '4.3.85';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '0bbf60f7';
+export const APP_COMMIT_SHA = 'e39b06c7';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 10:04:22 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 10:04:54 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,8 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Modernized keytool printcert metadata parser to be version-independent and added verbose diagnostics logging.",
-      "Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, and decoupled bottom navigation icons from pointer action overrides.",
+      "Optimized Color Picker performance to 60 FPS continuous dragging by decoupling Zustand store commits from pointermove events and applying instant CSS variables.",
+      "Clamped Color Picker saturation selector thumb strictly within container boundaries and fixed hue 360-degree reset jump.",
+      "Polished Light theme transition and synchronized application-wide repaints in a single atomic pass.",
+      "Added automatic update check during application startup initialization after Phase 5 completes.",
+      "Ensured bottom navigation icon entrance animations play consistently whenever entering tabs across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex.",
     ],
   },
 ];

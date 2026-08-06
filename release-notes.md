@@ -1,5 +1,8 @@
 Release Date: 2026-08-06
 
 ### Improved
-- Modernized keytool printcert metadata parser to be version-independent and added verbose diagnostics logging.
-- Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, and decoupled bottom navigation icons from pointer action overrides.
+- Optimized Color Picker performance to 60 FPS continuous dragging by decoupling Zustand store commits from pointermove events and applying instant CSS variables.
+- Clamped Color Picker saturation selector thumb strictly within container boundaries and fixed hue 360-degree reset jump.
+- Polished Light theme transition and synchronized application-wide repaints in a single atomic pass.
+- Added automatic update check during application startup initialization after Phase 5 completes.
+- Ensured bottom navigation icon entrance animations play consistently whenever entering tabs across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex.

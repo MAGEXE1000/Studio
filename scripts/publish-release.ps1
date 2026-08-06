@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.84"
-$VersionCode = "40414"
-$ReleaseNote = "Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, decoupled bottom navigation icons from pointer action overrides, and modernized keytool printcert metadata parser to be version-independent with detailed diagnostics."
+$VersionName = "4.3.85"
+$VersionCode = "40415"
+$ReleaseNote = "Optimized Color Picker performance to 60 FPS continuous dragging with zero input lag, clamped saturation selector thumb strictly within container boundaries, fixed hue 360-degree reset jump, polished Light theme transition performance and synchronized application-wide repaints, added automatic updater check on application startup initialization, and ensured bottom navigation icon entrance animations play consistently whenever entering tabs across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

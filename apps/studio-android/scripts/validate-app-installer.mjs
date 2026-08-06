@@ -70,20 +70,22 @@ export function parseCertificateMetadata(keytoolOut, signInfoVerbose) {
     {
       name: 'Apksigner DN Match',
       run: (kOut, sOut) => {
-        const m = sOut.match(/Signer\s*#\d+\s*certificate\s*DN:\s*(.*)/i);
+        const m = sOut.match(/DN:\s*(CN=.*)/i);
         return m ? m[1].trim() : null;
       }
     },
     {
-      name: 'RFC2253 Line Scan Match',
+      name: 'General DN Scan',
       run: (kOut, sOut) => {
         const combined = kOut + '\n' + sOut;
         const lines = combined.split(/\r?\n/);
         for (const line of lines) {
           if (line.includes('CN=') && (line.includes('O=') || line.includes('C='))) {
             if (!line.toLowerCase().includes('issuer:') && !line.toLowerCase().includes('digest:')) {
-              const clean = line.replace(/^(?:Owner|Subject|Certificate\s+Owner|Signer\s*#\d+\s*certificate\s*DN):\s*/i, '').trim();
-              if (clean.length > 0) return clean;
+              const idx = line.indexOf('CN=');
+              if (idx !== -1) {
+                return line.substring(idx).trim();
+              }
             }
           }
         }
@@ -121,7 +123,7 @@ export function parseCertificateMetadata(keytoolOut, signInfoVerbose) {
     {
       name: 'Apksigner Issuer Fallback (Owner DN)',
       run: (kOut, sOut) => {
-        const m = sOut.match(/Signer\s*#\d+\s*certificate\s*DN:\s*(.*)/i);
+        const m = sOut.match(/DN:\s*(CN=.*)/i);
         return m ? m[1].trim() : null;
       }
     },
@@ -132,11 +134,19 @@ export function parseCertificateMetadata(keytoolOut, signInfoVerbose) {
         const lines = combined.split(/\r?\n/);
         for (const line of lines) {
           if (line.toLowerCase().includes('issuer:') && line.includes('CN=')) {
-            const clean = line.replace(/^.*?issuer:\s*/i, '').trim();
-            if (clean.length > 0) return clean;
+            const idx = line.indexOf('CN=');
+            if (idx !== -1) {
+              return line.substring(idx).trim();
+            }
           }
         }
         return null;
+      }
+    },
+    {
+      name: 'Self-Signed Fallback (Owner DN)',
+      run: (kOut, sOut, owner) => {
+        return owner || null;
       }
     }
   ];
@@ -145,7 +155,7 @@ export function parseCertificateMetadata(keytoolOut, signInfoVerbose) {
   const issuerStrategyLog = [];
   for (const strategy of issuerStrategies) {
     try {
-      const res = strategy.run(keytoolOut, signInfoVerbose);
+      const res = strategy.run(keytoolOut, signInfoVerbose, parsedOwner);
       if (res) {
         parsedIssuer = res;
         issuerStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });

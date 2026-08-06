@@ -17,17 +17,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Popover } from "@base-ui/react/popover";
 import { Menu } from "@base-ui/react/menu";
 import { NumberField } from "@base-ui/react/number-field";
-import { cn } from "@/lib/utils";
-import { spring } from "@/lib/springs";
-import { fontWeights } from "@/lib/font-weight";
-import { useShape, shapeMap } from "@/lib/shape-context";
-import { useSurface, SurfaceProvider } from "@/lib/surface-context";
-import { surfaceClasses } from "@/lib/surface-classes";
-import { useIcon } from "@/lib/icon-context";
-import { useProximityHover } from "@/hooks/use-proximity-hover";
-import { Elevated } from "@/lib/elevated";
-import { Slider } from "@/components/ui/slider";
-import { Tooltip } from "@/components/ui/tooltip";
+import { cn } from "../../lib/utils";
+import { spring } from "../../lib/springs";
+import { fontWeights } from "../../lib/font-weight";
+import { useShape, shapeMap } from "../../lib/shape-context";
+import { useSurface, SurfaceProvider } from "../../lib/surface-context";
+import { surfaceClasses } from "../../lib/surface-classes";
+import { useIcon } from "../../lib/icon-context";
+import { useProximityHover } from "../../hooks/use-proximity-hover";
+import { Elevated } from "../../lib/elevated";
+import { Slider } from "./slider";
+import { Tooltip } from "./tooltip";
 
 // ---------------------------------------------------------------------------
 // Types

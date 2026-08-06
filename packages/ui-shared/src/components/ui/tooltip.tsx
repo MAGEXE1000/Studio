@@ -8,10 +8,10 @@ import {
 } from "react";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { spring } from "@/lib/springs";
-import { fontWeights } from "@/lib/font-weight";
-import { useShape } from "@/lib/shape-context";
+import { cn } from "../../lib/utils";
+import { spring } from "../../lib/springs";
+import { fontWeights } from "../../lib/font-weight";
+import { useShape } from "../../lib/shape-context";
 
 // ---------------------------------------------------------------------------
 // Portal container context

@@ -19,12 +19,6 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
-    paths-ignore:
-      - 'CHANGELOG.md'
-      - 'release-notes.md'
-      - 'release-manifest.json'
-      - 'public/version.json'
-      - '.github/workflows/release.yml'
   pull_request:
     branches: [main]
     paths:
@@ -38,12 +32,6 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
-    paths-ignore:
-      - 'CHANGELOG.md'
-      - 'release-notes.md'
-      - 'release-manifest.json'
-      - 'public/version.json'
-      - '.github/workflows/release.yml'
 
 permissions:
   contents: read

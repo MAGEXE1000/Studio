@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.83"
-$VersionCode = "40413"
-$ReleaseNote = "Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, and decoupled bottom navigation icons from pointer action overrides."
+$VersionName = "4.3.84"
+$VersionCode = "40414"
+$ReleaseNote = "Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, decoupled bottom navigation icons from pointer action overrides, and modernized keytool printcert metadata parser to be version-independent with detailed diagnostics."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.83';
-export const NATIVE_VERSION_CODE = 40413;
-export const WEB_VERSION = '4.3.83';
+export const NATIVE_VERSION = '4.3.84';
+export const NATIVE_VERSION_CODE = 40414;
+export const WEB_VERSION = '4.3.84';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'f9393048';
+export const APP_COMMIT_SHA = 'a1553309';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 12:04:28 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 12:12:22 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,12 +98,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Improved",
     items: [
-      "Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.",
-      "Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.",
-      "Resolved isUpdateDismissed timeout evaluation bug returning true by default.",
-      "Prevented Color Picker saturation thumb boundary overflow and fixed HSL 360-degree hue reset.",
-      "Normalized HSL proxy color values to HEX to resolve the frame-skipping drag rendering loop.",
-      "Decoupled bottom navigation item button handlers from pointer event overrides, driving animations purely by navigation active state transitions.",
+      "Modernized keytool printcert metadata parser to be version-independent and added verbose diagnostics logging.",
+      "Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, and decoupled bottom navigation icons from pointer action overrides.",
     ],
   },
 ];

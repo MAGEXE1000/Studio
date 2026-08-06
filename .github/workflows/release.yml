@@ -3,7 +3,7 @@ run-name: Studio Release - ${{ github.ref_name }}
 
 concurrency:
   group: 'production-release'
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 on:
   push:

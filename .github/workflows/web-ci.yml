@@ -1,5 +1,9 @@
 name: Web CI
 
+concurrency:
+  group: ci-web-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
@@ -14,6 +18,11 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'release-notes.md'
+      - 'release-manifest.json'
+      - 'public/version.json'
   pull_request:
     branches: [main]
     paths:
@@ -27,6 +36,11 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.base.json'
       - '.github/workflows/web-ci.yml'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'release-notes.md'
+      - 'release-manifest.json'
+      - 'public/version.json'
 
 permissions:
   contents: read
@@ -41,6 +55,16 @@ jobs:
       VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
 
     steps:
+      - name: 🔍 Pipeline Queue & Diagnostic Inspection
+        run: |
+          echo "=== WEB CI QUEUE DIAGNOSTICS ==="
+          echo "Selected Concurrency Group: ci-web-${{ github.ref }}"
+          echo "Runner Requested: ubuntu-latest"
+          echo "Workflow Event: ${{ github.event_name }}"
+          echo "Target Ref: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Allocation Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "================================"
       - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v6

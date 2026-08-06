@@ -1,5 +1,9 @@
 name: Documentation CI
 
+concurrency:
+  group: ci-docs-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
@@ -23,6 +27,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 🔍 Pipeline Queue & Diagnostic Inspection
+        run: |
+          echo "=== DOCS CI QUEUE DIAGNOSTICS ==="
+          echo "Selected Concurrency Group: ci-docs-${{ github.ref }}"
+          echo "Runner Requested: ubuntu-latest"
+          echo "Workflow Event: ${{ github.event_name }}"
+          echo "Target Ref: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Allocation Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "================================="
       - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v6

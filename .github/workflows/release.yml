@@ -2,7 +2,7 @@ name: Release Pipeline
 run-name: Studio Release - ${{ github.ref_name }}
 
 concurrency:
-  group: 'production-release'
+  group: release-${{ github.ref_name }}-${{ github.event_name }}
   cancel-in-progress: true
 
 on:
@@ -26,17 +26,38 @@ on:
 permissions:
   contents: write
   actions: read
-
-
+  id-token: write
+  deployments: write
 
 jobs:
   # =========================================================================
-  # JOB 1: PREFLIGHT & FAIL-FAST VALIDATION (~10 seconds)
+  # JOB 1: BUILD, PACKAGE & SIGN (Consolidated Preflight + Build)
   # =========================================================================
-  preflight:
-    name: 1. Preflight
+  build_and_package:
+    name: 1. Build, Package & Sign
     runs-on: ubuntu-latest
+    env:
+      STUDIO_PRODUCTION_RELEASE: 'true'
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
     steps:
+      - name: 🔍 Pipeline Queue & Diagnostic Inspection
+        run: |
+          echo "=== RELEASE PIPELINE QUEUE DIAGNOSTICS ==="
+          echo "Selected Concurrency Group: release-${{ github.ref_name }}-${{ github.event_name }}"
+          echo "Runner Requested: ubuntu-latest"
+          echo "Workflow Event: ${{ github.event_name }}"
+          echo "Target Ref: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Allocation Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "=========================================="
+
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
@@ -77,6 +98,14 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v6
+
       - name: Install Node Dependencies (Cached)
         run: pnpm install --frozen-lockfile
 
@@ -107,49 +136,6 @@ jobs:
         run: |
           cd apps/studio-android
           node scripts/release-firebase.mjs --validate-only
-
-  # =========================================================================
-  # JOB 2: BUILD, PACKAGE & SIGN (~70 seconds)
-  # =========================================================================
-  build_and_package:
-    name: 2. Build, Package & Sign
-    needs: preflight
-    runs-on: ubuntu-latest
-    env:
-      STUDIO_PRODUCTION_RELEASE: 'true'
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
-      ANDROID_HOME: /usr/local/lib/android/sdk
-      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 10.26.1
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Decode Android Keystore
         run: |
@@ -227,10 +213,10 @@ jobs:
           retention-days: 1
 
   # =========================================================================
-  # JOB 3: PUBLISH (~20 seconds)
+  # JOB 2: PUBLISH & DEPLOY (~20 seconds)
   # =========================================================================
   publish:
-    name: 3. Publish
+    name: 2. Publish & Deploy
     needs: build_and_package
     runs-on: ubuntu-latest
     env:
@@ -240,6 +226,16 @@ jobs:
       VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
       ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
+      - name: 🔍 Pipeline Queue & Diagnostic Inspection
+        run: |
+          echo "=== RELEASE PIPELINE QUEUE DIAGNOSTICS ==="
+          echo "Selected Concurrency Group: release-${{ github.ref_name }}-${{ github.event_name }}"
+          echo "Runner Requested: ubuntu-latest"
+          echo "Workflow Event: ${{ github.event_name }}"
+          echo "Target Ref: ${{ github.ref }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Allocation Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "=========================================="
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}

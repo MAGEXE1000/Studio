@@ -25,7 +25,6 @@ export interface AnimatedIconProps {
   onClick?: (e: React.MouseEvent) => void;
   /** Incrementing counter to force animation replay even when state is unchanged (e.g. re-tapping active tab) */
   animationEpoch?: number;
-  isPressed?: boolean;
 }
 
 export interface AnimatedIconHandle {
@@ -149,7 +148,6 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       strokeWidth = 2,
       onClick,
       animationEpoch,
-      isPressed,
     },
     ref
   ) => {
@@ -172,19 +170,28 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
     useEffect(() => {
       let rafId: number | null = null;
       if (!isSpinning) {
+        const justBecameActive =
+          (state === 'active' || state === 'selected') &&
+          prevStateRef.current !== 'active' &&
+          prevStateRef.current !== 'selected';
         const epochChanged = animationEpoch !== prevEpochRef.current;
-        const wasAlreadyActive = prevStateRef.current === 'active' || prevStateRef.current === 'selected';
+        const wasAlreadyActive =
+          prevStateRef.current === 'active' || prevStateRef.current === 'selected';
+
         prevEpochRef.current = animationEpoch;
         prevStateRef.current = state;
 
-        if (epochChanged && wasAlreadyActive && (state === 'active' || state === 'selected')) {
-          // Re-tapping an already active/selected tab: force replay bounce
+        if (
+          justBecameActive ||
+          (epochChanged && wasAlreadyActive && (state === 'active' || state === 'selected'))
+        ) {
+          // Re-entering active state or re-tapping active tab: force replay bounce animation
           controls.set('inactive');
           rafId = requestAnimationFrame(() => {
             controls.start(state);
           });
         } else {
-          // Normal state transition (e.g. inactive -> active): smooth spring animation
+          // Normal state transition (e.g. active -> inactive)
           controls.start(state);
         }
       }
@@ -195,16 +202,6 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       };
     }, [state, controls, isSpinning, animationEpoch]);
 
-    // Pressed state driven by parent container (e.g., navigation button)
-    useEffect(() => {
-      if (isPressed === undefined || isSpinning) return;
-      if (isPressed) {
-        controls.start('pressed');
-      } else {
-        // Restore current state when released
-        controls.start(state);
-      }
-    }, [isPressed, controls, state, isSpinning]);
 
     // Hover configuration based on icon type
     const getIconSpecificHover = () => {

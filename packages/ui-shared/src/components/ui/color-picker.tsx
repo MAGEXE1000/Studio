@@ -543,8 +543,8 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
       <div
         className="absolute pointer-events-none rounded-full"
         style={{
-          left: `calc(9px + ${s} * (100% - 18px))`,
-          top: `calc(9px + ${1 - v} * (100% - 18px))`,
+          left: `calc(9px + ${clamp01(s)} * (100% - 18px))`,
+          top: `calc(9px + ${clamp01(1 - v)} * (100% - 18px))`,
           width: 18,
           height: 18,
           transform: "translate(-50%, -50%)",
@@ -557,8 +557,8 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
         <div
           className="absolute pointer-events-none rounded-full"
           style={{
-            left: `calc(9px + ${cursorPos.x / 100} * (100% - 18px))`,
-            top: `calc(9px + ${cursorPos.y / 100} * (100% - 18px))`,
+            left: `calc(9px + ${clamp01(cursorPos.x / 100)} * (100% - 18px))`,
+            top: `calc(9px + ${clamp01(cursorPos.y / 100)} * (100% - 18px))`,
             width: 18,
             height: 18,
             transform: "translate(-50%, -50%)",
@@ -1612,8 +1612,8 @@ const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
       const newHsv = rgbToHsv(p.r, p.g, p.b);
       setHsv((prev) => {
         let h = newHsv.s === 0 ? prev.h : newHsv.h;
-        if (h === 0 && prev.h === 360) {
-          h = 360;
+        if ((prev.h === 360 || prev.h === 0) && newHsv.h === 0 && (p.r === 255 && p.g === 0 && p.b === 0)) {
+          h = prev.h;
         }
         return {
           h,
@@ -1631,15 +1631,20 @@ const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
 
     const updateHsv = useCallback(
       (next: { h?: number; s?: number; v?: number; a?: number }) => {
-        const merged = { ...hsv, ...next };
-        setHsv(merged);
-        const p = buildParsed(merged.h, merged.s, merged.v, merged.a);
-        const formatted = formatValueByFormat(p, currentFormat);
-        lastEmittedRef.current = formatted;
-        if (!isControlled) setInternalValue(formatted);
-        onValueChange?.(formatted, p);
+        setHsv((prev) => {
+          const merged = { ...prev, ...next };
+          if (next.h !== undefined) {
+            merged.h = next.h;
+          }
+          const p = buildParsed(merged.h, merged.s, merged.v, merged.a);
+          const formatted = formatValueByFormat(p, currentFormat);
+          lastEmittedRef.current = formatted;
+          if (!isControlled) setInternalValue(formatted);
+          onValueChange?.(formatted, p);
+          return merged;
+        });
       },
-      [hsv, currentFormat, isControlled, onValueChange]
+      [currentFormat, isControlled, onValueChange]
     );
 
     const handleFormatChange = useCallback(

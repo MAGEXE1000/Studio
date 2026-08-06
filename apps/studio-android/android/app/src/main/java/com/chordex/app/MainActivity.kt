@@ -200,11 +200,15 @@ class MainActivity : BridgeActivity() {
                 // Execute the JS theme change callback to update the WebView in the background
                 webView.evaluateJavascript("if (typeof window.__themeTransitionCallback === 'function') { window.__themeTransitionCallback(); }", null)
 
+                // Allow 40ms (approx 2 frames) for the WebView to finish background style recalculation & paint
+                // under the static screenshot overlay before running the reveal animation.
+                kotlinx.coroutines.delay(40)
+
                 // Run progress animation
                 animate(
                     initialValue = 0f,
                     targetValue = 1f,
-                    animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing)
                 ) { value, _ ->
                     progress = value
                 }

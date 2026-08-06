@@ -42,49 +42,82 @@ export default function InspiraColorPicker({ className = '' }: InspiraColorPicke
   // Build swatches from the accent palette + user presets
   const swatches = useMemo(() => {
     const paletteColors = Object.values(ACCENT_COLORS).map((c) => c.from);
-    // Deduplicate while preserving order
     return [...new Set(paletteColors)];
+  }, []);
+
+  const pendingCommitRef = React.useRef<any>(null);
+  const rafIdRef = React.useRef<number | null>(null);
+
+  const applyInstantCssVars = useCallback((cleanHex: string) => {
+    const root = document.documentElement;
+    if (!root) return;
+    root.style.setProperty('--c-accent-from', cleanHex);
+    root.style.setProperty('--c-accent-to', cleanHex);
+    root.style.setProperty('--c-accent-mid', cleanHex);
+    root.style.setProperty('--c-brand', cleanHex);
+  }, []);
+
+  const commitSettingUpdate = useCallback((cleanHex: string) => {
+    const matchKey = Object.keys(ACCENT_COLORS).find(
+      (k) => ACCENT_COLORS[k].from.toLowerCase() === cleanHex.toLowerCase()
+    );
+
+    if (matchKey) {
+      settingsController.updateSettings({ accentColor: matchKey as any });
+    } else {
+      const r = parseInt(cleanHex.slice(1, 3), 16) || 0;
+      const g = parseInt(cleanHex.slice(3, 5), 16) || 0;
+      const b = parseInt(cleanHex.slice(5, 7), 16) || 0;
+
+      const max = Math.max(r, g, b) / 255;
+      const min = Math.min(r, g, b) / 255;
+      let h = 0;
+      if (max !== min) {
+        const d = max - min;
+        const rn = r / 255, gn = g / 255, bn = b / 255;
+        switch (max) {
+          case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60; break;
+          case gn: h = ((bn - rn) / d + 2) * 60; break;
+          case bn: h = ((rn - gn) / d + 4) * 60; break;
+        }
+      }
+
+      settingsController.updateSettings({
+        accentColor: 'custom',
+        customAccentHue: Math.round(h),
+      });
+    }
   }, []);
 
   const handleValueChange = useCallback(
     (hex: string) => {
-      // Strip alpha if present (e.g. #RRGGBBAA → #RRGGBB)
       const cleanHex = hex.length > 7 ? hex.slice(0, 7) : hex;
 
-      // Check if the selected color matches a named accent
-      const matchKey = Object.keys(ACCENT_COLORS).find(
-        (k) => ACCENT_COLORS[k].from.toLowerCase() === cleanHex.toLowerCase()
-      );
+      // 1. Instant 60 FPS CSS variable update (no React re-renders)
+      applyInstantCssVars(cleanHex);
 
-      if (matchKey) {
-        settingsController.updateSettings({ accentColor: matchKey as any });
-      } else {
-        // Custom color — extract hue for the custom accent system
-        const r = parseInt(cleanHex.slice(1, 3), 16) || 0;
-        const g = parseInt(cleanHex.slice(3, 5), 16) || 0;
-        const b = parseInt(cleanHex.slice(5, 7), 16) || 0;
-
-        const max = Math.max(r, g, b) / 255;
-        const min = Math.min(r, g, b) / 255;
-        let h = 0;
-        if (max !== min) {
-          const d = max - min;
-          const rn = r / 255, gn = g / 255, bn = b / 255;
-          switch (max) {
-            case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60; break;
-            case gn: h = ((bn - rn) / d + 2) * 60; break;
-            case bn: h = ((rn - gn) / d + 4) * 60; break;
+      // 2. Throttle Zustand store commit to RAF
+      pendingCommitRef.current = cleanHex;
+      if (rafIdRef.current === null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          rafIdRef.current = null;
+          if (pendingCommitRef.current) {
+            commitSettingUpdate(pendingCommitRef.current);
+            pendingCommitRef.current = null;
           }
-        }
-
-        settingsController.updateSettings({
-          accentColor: 'custom',
-          customAccentHue: Math.round(h),
         });
       }
     },
-    []
+    [applyInstantCssVars, commitSettingUpdate]
   );
+
+  React.useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={`w-full ${className}`}>

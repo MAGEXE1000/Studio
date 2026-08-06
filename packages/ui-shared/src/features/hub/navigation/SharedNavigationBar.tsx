@@ -160,39 +160,6 @@ const NavigationItem = React.memo(
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {/* Morphing & 100% Centered Shared Active Pill Background */}
-        {isActive && (
-          <motion.div
-            layoutId={isSwitcherOpen ? 'sharedActiveSwitcherPill' : 'sharedActiveNavPill'}
-            style={{
-              position: 'absolute',
-              top: 4,
-              bottom: 4,
-              left: 4,
-              right: 4,
-              borderRadius: '9999px',
-              background: isLight
-                ? 'linear-gradient(135deg, rgba(0, 0, 0, 0.07) 0%, rgba(0, 0, 0, 0.03) 100%)'
-                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%)',
-              border: isLight
-                ? '1.2px solid rgba(0, 0, 0, 0.10)'
-                : '1.2px solid rgba(255, 255, 255, 0.32)',
-              boxShadow: isLight
-                ? 'inset 0 1px 1.5px rgba(255, 255, 255, 0.9), 0 4px 14px rgba(0, 0, 0, 0.05)'
-                : 'inset 0 1px 1.5px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              pointerEvents: 'none',
-              zIndex: 0,
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 420,
-              damping: 30,
-              mass: 0.8,
-            }}
-          />
-        )}
 
         <motion.div
           ref={contentRef}
@@ -936,6 +903,8 @@ export function SharedNavigationBar({
     }
   );
 
+  const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
+
   // Derived continuous search overlay transformations
   const searchResultsHeight = useTransform(searchOpenSpring, [0, 1], ['0vh', '42vh']);
   const searchResultsOpacity = useTransform(searchOpenSpring, [0, 0.2, 1], [0, 0.4, 1]);
@@ -1083,6 +1052,7 @@ export function SharedNavigationBar({
       const targetItem = currentItems[finalIndex];
 
       if (targetItem && finalIndex !== activeIndex) {
+        pointerUpHandledAtRef.current = performance.now();
         navigationEpochRef.current += 1;
         setNavigationEpoch(navigationEpochRef.current);
         targetItem.onClick();
@@ -1095,6 +1065,7 @@ export function SharedNavigationBar({
       const clickedItem = currentItems[clickIndex];
 
       if (clickedItem) {
+        pointerUpHandledAtRef.current = performance.now();
         navigationEpochRef.current += 1;
         setNavigationEpoch(navigationEpochRef.current);
         clickedItem.onClick();
@@ -1126,6 +1097,7 @@ export function SharedNavigationBar({
 
   const navigationEpochRef = useRef(0);
   const [navigationEpoch, setNavigationEpoch] = useState(0);
+  const pointerUpHandledAtRef = useRef(0);
 
   const activeTabKey = useMemo(() => {
     const currentItems = isSwitcherOpen ? switcherApps : items;
@@ -1520,6 +1492,35 @@ export function SharedNavigationBar({
               }}
             >
               {/* Standard Navigation Items */}
+              {!searchOpen && (
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    top: 4,
+                    bottom: 4,
+                    left: 0,
+                    x: pillX,
+                    width: pillWidthVal,
+                    borderRadius: '9999px',
+                    background: isLight
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(245, 248, 255, 0.55) 50%, rgba(255, 255, 255, 0.45) 100%)'
+                      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 220, 255, 0.10) 50%, rgba(255, 255, 255, 0.05) 100%)',
+                    border: isLight
+                      ? '1px solid rgba(255, 255, 255, 0.9)'
+                      : '1.2px solid rgba(255, 255, 255, 0.28)',
+                    boxShadow: isLight
+                      ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03), 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
+                      : 'inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -0.5px 1px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.08)',
+                    backdropFilter: 'blur(16px) saturate(1.8)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(1.8)',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    skewX: dragSkewRaw,
+                    scale: pillPressScale,
+                    willChange: 'transform, width',
+                  }}
+                />
+              )}
               {!searchOpen ? (
                 <div
                   style={{
@@ -1540,6 +1541,7 @@ export function SharedNavigationBar({
                         item={item}
                         index={index}
                         onClick={() => {
+                          if (performance.now() - pointerUpHandledAtRef.current < 100) return;
                           navigationEpochRef.current += 1;
                           setNavigationEpoch(navigationEpochRef.current);
                           item.onClick();

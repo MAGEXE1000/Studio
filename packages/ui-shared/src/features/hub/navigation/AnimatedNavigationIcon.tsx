@@ -10,6 +10,7 @@ export interface AnimatedNavigationIconProps {
   strokeWidth?: number;
   isActive: boolean;
   animationEpoch?: number;
+  isPressed?: boolean;
 }
 
 function getNormalizedIconName(key: string): string {
@@ -56,6 +57,7 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
   strokeWidth = 2,
   isActive,
   animationEpoch,
+  isPressed,
 }) => {
   if (iconNode) {
     return <div style={{ width: size, height: size, color }}>{iconNode}</div>;
@@ -71,6 +73,7 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
       strokeWidth={strokeWidth}
       state={isActive ? 'active' : 'inactive'}
       animationEpoch={animationEpoch}
+      isPressed={isPressed}
     />
   );
 };

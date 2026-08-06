@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   useAppUpdate,
   updateDebugLogs,
@@ -7,12 +7,29 @@ import {
   globalUpdateState,
   APP_VERSION,
   NATIVE_VERSION,
-  NATIVE_VERSION_CODE
+  NATIVE_VERSION_CODE,
+  updaterSimulation,
+  jsLogs,
+  nativeLogs,
+  getTransitionHistory,
+  getRejectedTransitions,
 } from '@workspace/studio-core';
 import { copyToClipboard } from './centralizedClipboard';
+import { CopyIcon } from '../../../components/ui/copy';
+
+// Simple reactive state hook to poll mutable arrays/objects
+function useForceUpdate() {
+  const [, setTick] = useState(0);
+  const update = () => setTick(t => t + 1);
+  return update;
+}
 
 export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
-  const [toast, setToast] = useState(false);
+  const forceUpdate = useForceUpdate();
+  const [toast, setToast] = useState<string | null>(null);
+  const [logSearch, setLogSearch] = useState('');
+  const [logFilter, setLogFilter] = useState<'ALL' | 'INFO' | 'DEBUG' | 'ERROR'>('ALL');
+  
   const {
     updateState,
     loading,
@@ -29,440 +46,1208 @@ export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void }> = ({ onBa
     consecutiveFailures,
     recoveryMode,
     updateType,
-    sessionId
+    sessionId,
+    checkNow,
+    downloadUpdate,
+    applyUpdate,
   } = useAppUpdate();
 
+  // Poll for logs and state updates every 1.5s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      forceUpdate();
+    }, 1500);
+    return () => clearInterval(timer);
+  }, [forceUpdate]);
+
   const handleCopy = () => {
-    const report = `=== UPDATER ENGINEERING DIAGNOSTICS REPORT ===
+    const report = generateReport();
+    copyToClipboard(report, 'Updater Diagnostics')
+      .then(msg => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2500);
+      })
+      .catch(() => {
+        setToast('Copy failed');
+        setTimeout(() => setToast(null), 2500);
+      });
+  };
+
+  const generateReport = () => {
+    return `=== UPDATER ENGINEERING DIAGNOSTICS REPORT ===
 Generated: ${new Date().toISOString()}
 
 --- VERSION INFORMATION ---
 Installed Version: ${APP_VERSION}
 Installed VersionCode: ${NATIVE_VERSION_CODE}
 Native Version: ${NATIVE_VERSION}
-Remote Version: ${remoteVersion}
-Remote VersionCode: ${updateDebugLogs.remoteVersionCode}
-Version Comparison Result: ${updateDebugLogs.versionComparisonResult}
+Remote Version: ${remoteVersion || 'Unknown'}
+Remote VersionCode: ${updateDebugLogs.remoteVersionCode || 'None'}
+Version Comparison Result: ${updateDebugLogs.versionComparisonResult || 'None'}
 
 --- UPDATE STATE ---
 Update State: ${updateState}
 Update Available: ${updateAvailable}
 Mandatory: ${mandatory}
-Update Type: ${updateType}
-Final Decision: ${updateDebugLogs.finalDecision}
-Update Decision Reason: ${updateDebugLogs.updateDecisionReason}
-Eligibility Reason: ${updateDebugLogs.eligibilityReason}
-Final Path Executed: ${updateDebugLogs.finalPathExecuted}
+Update Type: ${updateType || 'None'}
+Final Decision: ${updateDebugLogs.finalDecision || 'None'}
+Update Decision Reason: ${updateDebugLogs.updateDecisionReason || 'None'}
+Eligibility Reason: ${updateDebugLogs.eligibilityReason || 'None'}
+Final Path Executed: ${updateDebugLogs.finalPathExecuted || 'None'}
 
 --- PIPELINE ---
-Pipeline ID: ${updateDiagnostics.pipelineId}
-Trigger Source: ${updateDiagnostics.triggerSource}
-Pipeline Owner: ${updateDiagnostics.pipelineOwner}
-Active Async Stage: ${updateDiagnostics.activeAsyncStage}
-Queue Depth: ${updateDiagnostics.queueDepth}
-Pipeline Duration: ${updateDiagnostics.pipelineDuration}
+Pipeline ID: ${updateDiagnostics.pipelineId || 'None'}
+Trigger Source: ${updateDiagnostics.triggerSource || 'None'}
+Pipeline Owner: ${updateDiagnostics.pipelineOwner || 'None'}
+Active Async Stage: ${updateDiagnostics.activeAsyncStage || 'None'}
+Queue Depth: ${updateDiagnostics.queueDepth || 0}
+Pipeline Duration: ${updateDiagnostics.pipelineDuration || 0} ms
 
 --- DOWNLOAD & VERIFICATION ---
-APK URL: ${apkUrl}
-APK SHA256: ${apkSha256}
-Download Status: ${updateDebugLogs.downloadStatus}
-SHA Verification: ${updateDebugLogs.shaVerification}
-File Details: ${updateDebugLogs.fileDetails}
-Download URL: ${updateDiagnostics.downloadUrl}
-File Size: ${updateDiagnostics.fileSize}
+APK URL: ${apkUrl || 'None'}
+APK SHA256: ${apkSha256 || 'None'}
+Download Status: ${updateDebugLogs.downloadStatus || 'None'}
+SHA Verification: ${updateDebugLogs.shaVerification || 'None'}
+File Details: ${updateDebugLogs.fileDetails || 'None'}
+Download URL: ${updateDiagnostics.downloadUrl || 'None'}
+File Size: ${updateDiagnostics.fileSize || 0} bytes
 
 --- PACKAGE VALIDATION ---
-Downloaded Package Name: ${updateDebugLogs.downloadedPackageName}
-Downloaded Version Name: ${updateDebugLogs.downloadedVersionName}
-Downloaded Version Code: ${updateDebugLogs.downloadedVersionCode}
-Downloaded Signing SHA256: ${updateDebugLogs.downloadedSigningSha256}
-Downloaded Is Valid APK: ${updateDebugLogs.downloadedIsValidApk}
-Eligibility Package Name Match: ${updateDebugLogs.eligibilityPackageNameMatch}
-Eligibility Signing Match: ${updateDebugLogs.eligibilitySigningMatch}
-Eligibility Version Code Higher: ${updateDebugLogs.eligibilityVersionCodeHigher}
+Downloaded Package Name: ${updateDebugLogs.downloadedPackageName || 'None'}
+Downloaded Version Name: ${updateDebugLogs.downloadedVersionName || 'None'}
+Downloaded Version Code: ${updateDebugLogs.downloadedVersionCode || 'None'}
+Downloaded Signing SHA256: ${updateDebugLogs.downloadedSigningSha256 || 'None'}
+Downloaded Is Valid APK: ${updateDebugLogs.downloadedIsValidApk || false}
+Eligibility Package Name Match: ${updateDebugLogs.eligibilityPackageNameMatch || false}
+Eligibility Signing Match: ${updateDebugLogs.eligibilitySigningMatch || false}
+Eligibility Version Code Higher: ${updateDebugLogs.eligibilityVersionCodeHigher || false}
 
 --- METADATA SOURCES ---
-Source Used: ${releaseMetadataInspector.sourceUsed}
-Cache Source: ${releaseMetadataInspector.cacheSource}
-Raw Version JSON: ${String(releaseMetadataInspector.rawVersionJson).substring(0, 120)}
-Timestamp: ${releaseMetadataInspector.timestamp}
+Source Used: ${releaseMetadataInspector.sourceUsed || 'None'}
+Cache Source: ${releaseMetadataInspector.cacheSource || 'None'}
+Raw Version JSON: ${String(releaseMetadataInspector.rawVersionJson || '')}
+Timestamp: ${releaseMetadataInspector.timestamp || 'None'}
 
 --- ERRORS & RECOVERY ---
-Error: ${error}
-Exception Message: ${updateDiagnostics.exceptionMessage}
-Failure Reason: ${updateDiagnostics.failureReason}
-Install Error: ${updateDebugLogs.installError}
-Last Exception Stack Trace: ${updateDebugLogs.lastExceptionStackTrace}
+Error: ${error || 'None'}
+Exception Message: ${updateDiagnostics.exceptionMessage || 'None'}
+Failure Reason: ${updateDiagnostics.failureReason || 'None'}
+Install Error: ${updateDebugLogs.installError || 'None'}
+Last Exception Stack Trace: ${updateDebugLogs.lastExceptionStackTrace || 'None'}
 Consecutive Failures: ${consecutiveFailures}
 Recovery Mode: ${recoveryMode}
-Root Cause: ${updateDebugLogs.rootCause}
-Suggested Fix: ${updateDebugLogs.suggestedFix}
+Root Cause: ${updateDebugLogs.rootCause || 'None'}
+Suggested Fix: ${updateDebugLogs.suggestedFix || 'None'}
 
 --- ENVIRONMENT ---
-Android Version: ${updateDiagnostics.androidVersion}
-Device Model: ${updateDiagnostics.deviceModel}
-Architecture: ${updateDiagnostics.architecture}
-Network State: ${updateDiagnostics.networkState}
-Permission State: ${updateDiagnostics.permissionState}
-Platform Detected: ${updateDebugLogs.platformDetected}
+Android Version: ${updateDiagnostics.androidVersion || 'None'}
+Device Model: ${updateDiagnostics.deviceModel || 'None'}
+Architecture: ${updateDiagnostics.architecture || 'None'}
+Network State: ${updateDiagnostics.networkState || 'None'}
+Permission State: ${updateDiagnostics.permissionState || 'None'}
+Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
 `;
-    copyToClipboard(report, 'Updater Diagnostics');
-    setToast(true);
-    setTimeout(() => setToast(false), 2000);
   };
 
-  const MetricItem = ({ label, value, valueColor }: { label: string, value: any, valueColor?: string }) => (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '13px',
-        borderTop: '1px solid rgba(128,128,128,0.05)',
-        paddingTop: '8px',
-        paddingBottom: '4px'
-      }}
-    >
-      <span style={{ color: 'rgba(255,255,255,0.5)' }}>{label}</span>
-      <span style={{ fontWeight: 600, color: valueColor || 'rgba(255,255,255,0.7)', textAlign: 'right', wordBreak: 'break-all', paddingLeft: '12px' }}>
-        {String(value ?? '')}
-      </span>
-    </div>
-  );
+  const handleCopySection = (title: string, text: string) => {
+    copyToClipboard(text, title)
+      .then(msg => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2500);
+      })
+      .catch(() => {
+        setToast('Copy failed');
+        setTimeout(() => setToast(null), 2500);
+      });
+  };
 
-  const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px',
-        background: 'rgba(0,0,0,0.15)',
-        padding: '14px',
-        borderRadius: '12px',
-      }}
-    >
-      <div
-        style={{
-          fontSize: '11px',
-          color: 'rgba(255,255,255,0.4)',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          marginBottom: '8px',
-        }}
-      >
-        {title}
-      </div>
-      {children}
-    </div>
-  );
+  const handleResetSimulation = () => {
+    updaterSimulation.forceUpdateAvailable = false;
+    updaterSimulation.forceNoUpdate = false;
+    updaterSimulation.forceDowngrade = false;
+    updaterSimulation.forceMandatoryUpdate = false;
+    updaterSimulation.forceOptionalUpdate = false;
+    updaterSimulation.forceSignatureMismatch = false;
+    updaterSimulation.forceShaFailure = false;
+    updaterSimulation.forceMetadataFailure = false;
+    updaterSimulation.forceInvalidApk = false;
+    updaterSimulation.forceDownloadFailure = false;
+    updaterSimulation.forceDownloadTimeout = false;
+    updaterSimulation.forceRecoveryMode = false;
+    updaterSimulation.forceResumeDownload = false;
+    updaterSimulation.forceCachedApk = false;
+    updaterSimulation.forceInstallSuccess = false;
+    updaterSimulation.forceInstallFailure = false;
+    updaterSimulation.forceUserCancel = false;
+    updaterSimulation.forcePendingUserAction = false;
+    updaterSimulation.simulateDownload = false;
+    updaterSimulation.injectDownloadFailure = false;
+    updaterSimulation.injectChecksumFailure = false;
+    updaterSimulation.injectNetworkTimeout = false;
+    updaterSimulation.simulateDownloadThrottling = false;
+    updaterSimulation.runWorkflowActive = false;
 
-  const versionData = useMemo(() => ({
-    appVersion: APP_VERSION,
-    nativeVersion: NATIVE_VERSION,
-    nativeVersionCode: NATIVE_VERSION_CODE,
-    remoteVersion,
-    remoteVersionCode: updateDebugLogs.remoteVersionCode,
-    versionComparisonResult: updateDebugLogs.versionComparisonResult
-  }), [remoteVersion]);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('studio:is_simulation_active');
+      } catch (_) {}
+    }
+    
+    // Append simulated reset log
+    jsLogs.push({ timestamp: Date.now(), message: '[SIMULATOR] All simulation parameters cleared and reset.' });
+    forceUpdate();
+  };
 
-  const updateStateData = useMemo(() => ({
-    updateState,
-    updateAvailable,
-    mandatory,
-    updateType,
-    finalDecision: updateDebugLogs.finalDecision,
-    updateDecisionReason: updateDebugLogs.updateDecisionReason,
-    eligibilityReason: updateDebugLogs.eligibilityReason,
-    finalPathExecuted: updateDebugLogs.finalPathExecuted
-  }), [updateState, updateAvailable, mandatory, updateType]);
+  // Compile active logs from memory
+  const filteredLogs = useMemo(() => {
+    const combined = [
+      ...jsLogs.map(l => ({ ...l, tag: '[JS]', color: '#679cff', level: l.message.toLowerCase().includes('error') ? 'ERROR' : l.message.toLowerCase().includes('debug') ? 'DEBUG' : 'INFO' })),
+      ...nativeLogs.map(l => ({ ...l, tag: '[Native]', color: '#34d399', level: l.message.toLowerCase().includes('error') ? 'ERROR' : l.message.toLowerCase().includes('debug') ? 'DEBUG' : 'INFO' }))
+    ].sort((a, b) => a.timestamp - b.timestamp);
 
-  const pipelineData = useMemo(() => ({
-    pipelineId: updateDiagnostics.pipelineId,
-    triggerSource: updateDiagnostics.triggerSource,
-    pipelineOwner: updateDiagnostics.pipelineOwner,
-    activeAsyncStage: updateDiagnostics.activeAsyncStage,
-    queueDepth: updateDiagnostics.queueDepth,
-    pipelineDuration: updateDiagnostics.pipelineDuration
-  }), []);
+    return combined.filter(log => {
+      const matchesSearch = log.message.toLowerCase().includes(logSearch.toLowerCase()) || log.tag.toLowerCase().includes(logSearch.toLowerCase());
+      const matchesFilter = logFilter === 'ALL' || log.level === logFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [jsLogs.length, nativeLogs.length, logSearch, logFilter]);
 
-  const downloadData = useMemo(() => ({
-    apkUrl,
-    apkSha256,
-    downloadStatus: updateDebugLogs.downloadStatus,
-    shaVerification: updateDebugLogs.shaVerification,
-    fileDetails: updateDebugLogs.fileDetails,
-    downloadUrl: updateDiagnostics.downloadUrl,
-    fileSize: updateDiagnostics.fileSize
-  }), [apkUrl, apkSha256]);
+  const rejectedHist = useMemo(() => getRejectedTransitions(), [globalUpdateState]);
 
-  const validationData = useMemo(() => ({
-    downloadedPackageName: updateDebugLogs.downloadedPackageName,
-    downloadedVersionName: updateDebugLogs.downloadedVersionName,
-    downloadedVersionCode: updateDebugLogs.downloadedVersionCode,
-    downloadedSigningSha256: updateDebugLogs.downloadedSigningSha256,
-    downloadedIsValidApk: updateDebugLogs.downloadedIsValidApk,
-    eligibilityPackageNameMatch: updateDebugLogs.eligibilityPackageNameMatch,
-    eligibilitySigningMatch: updateDebugLogs.eligibilitySigningMatch,
-    eligibilityVersionCodeHigher: updateDebugLogs.eligibilityVersionCodeHigher
-  }), []);
+  const isCheckedCompleted = updateState !== 'IDLE' && updateState !== 'INITIALIZING';
+  const isAvailableCompleted = !!updateAvailable;
+  const isDownloadingActive = updateState === 'DOWNLOAD_APK';
+  const isDownloadingCompleted = isDownloadingActive || [
+    'VERIFY_SHA256',
+    'PREPARING_INSTALL',
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING',
+    'INSTALL_SUCCESS',
+  ].includes(updateState);
+  const isReadyCompleted = [
+    'WAITING_USER_CONFIRMATION',
+    'PACKAGEINSTALLER_VISIBLE',
+    'INSTALLING',
+    'INSTALL_SUCCESS',
+  ].includes(updateState);
 
-  const metadataData = useMemo(() => ({
-    sourceUsed: releaseMetadataInspector.sourceUsed,
-    cacheSource: releaseMetadataInspector.cacheSource,
-    rawVersionJson: String(releaseMetadataInspector.rawVersionJson || '').substring(0, 120),
-    timestamp: releaseMetadataInspector.timestamp
-  }), []);
-
-  const errorData = useMemo(() => ({
-    error,
-    exceptionMessage: updateDiagnostics.exceptionMessage,
-    failureReason: updateDiagnostics.failureReason,
-    installError: updateDebugLogs.installError,
-    lastExceptionStackTrace: updateDebugLogs.lastExceptionStackTrace,
-    consecutiveFailures,
-    recoveryMode,
-    rootCause: updateDebugLogs.rootCause,
-    suggestedFix: updateDebugLogs.suggestedFix
-  }), [error, consecutiveFailures, recoveryMode]);
-
-  const envData = useMemo(() => ({
-    androidVersion: updateDiagnostics.androidVersion,
-    deviceModel: updateDiagnostics.deviceModel,
-    architecture: updateDiagnostics.architecture,
-    networkState: updateDiagnostics.networkState,
-    permissionState: updateDiagnostics.permissionState,
-    platformDetected: updateDebugLogs.platformDetected
-  }), []);
+  // Format time helper
+  const formatTime = (ts: number) => {
+    const d = new Date(ts);
+    return d.toTimeString().split(' ')[0];
+  };
 
   return (
     <div
       style={{
-        background: 'var(--app-surface-low, #1e1e1e)',
-        border: '1px solid rgba(128,128,128,0.15)',
-        borderRadius: '16px',
-        padding: '20px',
+        background: 'var(--app-surface-low, #0e0e0e)',
         fontFamily: 'Manrope, sans-serif',
-        color: '#fff',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-        backdropFilter: 'blur(10px)',
-        overflowY: 'auto',
-        maxHeight: '100%',
+        color: '#e7e5e4',
+        minHeight: '100%',
+        paddingBottom: '32px',
+        boxSizing: 'border-box',
       }}
     >
-      {/* Title */}
-      <div
+      {/* Top App Bar */}
+      <header
         style={{
+          width: '100%',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          backgroundColor: '#0e0e0e',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          padding: '16px 24px',
+          boxSizing: 'border-box',
           borderBottom: '1px solid rgba(128,128,128,0.1)',
-          paddingBottom: '10px',
         }}
       >
-        <h3
-          style={{
-            margin: 0,
-            fontSize: '18px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {onBack && (
-            <span
-              className="material-symbols-outlined"
-              style={{ cursor: 'pointer', fontSize: '20px' }}
-              onClick={onBack}
-            >
-              arrow_back
-            </span>
-          )}
-          <span
-            className="material-symbols-outlined"
-            style={{ color: 'var(--c-accent, #4f46e5)', fontSize: '22px' }}
-          >
-            build_circle
-          </span>
-          Updater Engineering Diagnostics
-        </h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ position: 'relative' }}>
             <button
-              onClick={handleCopy}
+              onClick={onBack}
               style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer',
-                borderRadius: '8px',
-                padding: '6px',
+                width: '44px',
+                height: '44px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.03)',
+                border: 'none',
+                color: '#e7e5e4',
+                cursor: 'pointer',
               }}
-              title="Copy Diagnostics"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                content_copy
-              </span>
+              <span className="material-symbols-outlined">arrow_back</span>
             </button>
-            {toast && (
-              <span style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', fontSize: '11px', background: '#34d399', color: '#000', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
-                Copied!
-              </span>
-            )}
+          )}
+          <div>
+            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+              Updater Diagnostics
+            </h1>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0', fontWeight: 500 }}>
+              OTA Diagnostics & Debug Tools
+            </p>
           </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Copy Report Button */}
+          <button
+            onClick={handleCopy}
+            style={{
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '10px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(128,128,128,0.15)',
+              color: '#e7e5e4',
+              cursor: 'pointer',
+              transition: 'background-color 200ms ease',
+            }}
+            title="Copy Full Report"
+          >
+            <CopyIcon size={18} />
+          </button>
           <span
             style={{
-              fontSize: '11px',
-              fontWeight: 700,
+              fontSize: '10px',
+              fontWeight: 800,
               background: 'rgba(79, 70, 229, 0.15)',
               color: '#818cf8',
-              padding: '2px 8px',
+              padding: '4px 10px',
               borderRadius: '9999px',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
           >
-            Developer Mode Only
+            Dev Mode
           </span>
         </div>
-      </div>
+      </header>
 
-      {/* Grid of key metrics */}
-      <div
+      {/* Main Grid View */}
+      <main
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: '12px',
+          padding: '24px',
+          maxWidth: '850px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          boxSizing: 'border-box',
         }}
       >
-        <div
+        {/* Status Toast Notification */}
+        {toast && (
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              zIndex: 99999,
+              background: '#10b981',
+              color: '#000',
+              fontWeight: 700,
+              fontSize: '13px',
+              padding: '10px 16px',
+              borderRadius: '10px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+            }}
+          >
+            {toast}
+          </div>
+        )}
+
+        {/* Current Status Grid */}
+        <section
           style={{
-            background: 'rgba(255,255,255,0.02)',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(128,128,128,0.05)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '12px',
           }}
         >
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 600 }}>State</div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-accent, #4f46e5)', marginTop: '4px' }}>{updateState}</div>
-        </div>
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.02)',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(128,128,128,0.05)',
-          }}
-        >
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 600 }}>Version</div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#34d399', marginTop: '4px' }}>{APP_VERSION}</div>
-        </div>
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.02)',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(128,128,128,0.05)',
-          }}
-        >
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 600 }}>Remote Version</div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#60a5fa', marginTop: '4px' }}>{remoteVersion || 'Unknown'}</div>
-        </div>
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.02)',
-            padding: '12px',
-            borderRadius: '12px',
-            border: '1px solid rgba(128,128,128,0.05)',
-          }}
-        >
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 600 }}>Pipeline Stage</div>
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#fbbf24', marginTop: '4px' }}>{updateDiagnostics.activeAsyncStage || 'idle'}</div>
-        </div>
-      </div>
+          <div
+            style={{
+              background: 'rgba(25, 26, 26, 0.6)',
+              backdropFilter: 'blur(10px)',
+              padding: '16px',
+              borderRadius: '14px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
+          >
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+              VERSION
+            </span>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: '#679cff' }}>{APP_VERSION}</span>
+          </div>
 
-      <Section title="Version Information">
-        <MetricItem label="APP_VERSION" value={versionData.appVersion} valueColor="#34d399" />
-        <MetricItem label="NATIVE_VERSION" value={versionData.nativeVersion} />
-        <MetricItem label="NATIVE_VERSION_CODE" value={versionData.nativeVersionCode} />
-        <MetricItem label="Remote Version" value={versionData.remoteVersion} valueColor="#60a5fa" />
-        <MetricItem label="Remote Version Code" value={versionData.remoteVersionCode} />
-        <MetricItem label="Version Comparison Result" value={versionData.versionComparisonResult} />
-      </Section>
+          <div
+            style={{
+              background: 'rgba(25, 26, 26, 0.6)',
+              backdropFilter: 'blur(10px)',
+              padding: '16px',
+              borderRadius: '14px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
+          >
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+              CODE
+            </span>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: '#e7e5e4' }}>{NATIVE_VERSION_CODE}</span>
+          </div>
 
-      <Section title="Update State">
-        <MetricItem label="Update State" value={updateStateData.updateState} valueColor="var(--c-accent, #4f46e5)" />
-        <MetricItem label="Update Available" value={updateStateData.updateAvailable} valueColor={updateStateData.updateAvailable ? '#34d399' : undefined} />
-        <MetricItem label="Mandatory" value={updateStateData.mandatory} />
-        <MetricItem label="Update Type" value={updateStateData.updateType} />
-        <MetricItem label="Final Decision" value={updateStateData.finalDecision} />
-        <MetricItem label="Update Decision Reason" value={updateStateData.updateDecisionReason} />
-        <MetricItem label="Eligibility Reason" value={updateStateData.eligibilityReason} />
-        <MetricItem label="Final Path Executed" value={updateStateData.finalPathExecuted} />
-      </Section>
+          <div
+            style={{
+              background: 'rgba(25, 26, 26, 0.6)',
+              backdropFilter: 'blur(10px)',
+              padding: '16px',
+              borderRadius: '14px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
+          >
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+              UPDATE STATUS
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: updateAvailable ? '#fbbf24' : '#10b981',
+                }}
+              />
+              <span style={{ fontSize: '18px', fontWeight: 800, color: '#e7e5e4' }}>
+                {updateAvailable ? 'Update Avail' : 'Up to date'}
+              </span>
+            </div>
+          </div>
 
-      <Section title="Pipeline">
-        <MetricItem label="Pipeline ID" value={pipelineData.pipelineId} />
-        <MetricItem label="Trigger Source" value={pipelineData.triggerSource} />
-        <MetricItem label="Pipeline Owner" value={pipelineData.pipelineOwner} />
-        <MetricItem label="Active Async Stage" value={pipelineData.activeAsyncStage} valueColor="#fbbf24" />
-        <MetricItem label="Queue Depth" value={pipelineData.queueDepth} />
-        <MetricItem label="Pipeline Duration" value={pipelineData.pipelineDuration} />
-      </Section>
+          <div
+            style={{
+              background: 'rgba(25, 26, 26, 0.6)',
+              backdropFilter: 'blur(10px)',
+              padding: '16px',
+              borderRadius: '14px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
+          >
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+              STATE
+            </span>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: '#fbbf24' }}>{updateState}</span>
+          </div>
 
-      <Section title="Download & Verification">
-        <MetricItem label="APK URL" value={downloadData.apkUrl} />
-        <MetricItem label="APK SHA256" value={downloadData.apkSha256} />
-        <MetricItem label="Download Status" value={downloadData.downloadStatus} />
-        <MetricItem label="SHA Verification" value={downloadData.shaVerification} />
-        <MetricItem label="File Details" value={downloadData.fileDetails} />
-        <MetricItem label="Download URL" value={downloadData.downloadUrl} />
-        <MetricItem label="File Size" value={downloadData.fileSize} />
-      </Section>
+          {/* System Health Status Block */}
+          <div
+            style={{
+              gridColumn: '1 / -1',
+              background: 'rgba(25, 26, 26, 0.6)',
+              backdropFilter: 'blur(10px)',
+              padding: '20px',
+              borderRadius: '14px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#e7e5e4', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                System Health
+              </span>
+              <span
+                style={{
+                  fontSize: '10px',
+                  color: error ? '#ef4444' : '#10b981',
+                  fontWeight: 700,
+                  padding: '3px 8px',
+                  background: error ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                  borderRadius: '12px',
+                }}
+              >
+                {error ? 'Failures Detected' : 'All Systems Nominal'}
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
+                  Registry Connection
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                  {releaseMetadataInspector.sourceUsed ? 'Connected' : 'Offline'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
+                  Storage Availability
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 600 }}>Optimal</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <Section title="Package Validation">
-        <MetricItem label="Downloaded Package Name" value={validationData.downloadedPackageName} />
-        <MetricItem label="Downloaded Version Name" value={validationData.downloadedVersionName} />
-        <MetricItem label="Downloaded Version Code" value={validationData.downloadedVersionCode} />
-        <MetricItem label="Downloaded Signing SHA256" value={validationData.downloadedSigningSha256} />
-        <MetricItem label="Downloaded Is Valid APK" value={validationData.downloadedIsValidApk} />
-        <MetricItem label="Eligibility Package Name Match" value={validationData.eligibilityPackageNameMatch} />
-        <MetricItem label="Eligibility Signing Match" value={validationData.eligibilitySigningMatch} />
-        <MetricItem label="Eligibility Version Code Higher" value={validationData.eligibilityVersionCodeHigher} />
-      </Section>
+        {/* Collapsible details list */}
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          
+          {/* Section 1: Production Actions */}
+          <details
+            style={{
+              background: 'rgba(25, 26, 26, 0.3)',
+              borderRadius: '16px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <summary
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                listStyle: 'none',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>settings_suggest</span>
+                <span>Production Actions</span>
+              </div>
+              <span className="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div style={{ padding: '16px', paddingTop: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                <button
+                  onClick={() => checkNow()}
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(128,128,128,0.1)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>refresh</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Check for Updates</span>
+                    <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Poll remote registry</span>
+                  </div>
+                </button>
 
-      <Section title="Metadata Sources">
-        <MetricItem label="Source Used" value={metadataData.sourceUsed} />
-        <MetricItem label="Cache Source" value={metadataData.cacheSource} />
-        <MetricItem label="Raw Version JSON" value={metadataData.rawVersionJson} />
-        <MetricItem label="Timestamp" value={metadataData.timestamp} />
-      </Section>
+                <button
+                  onClick={() => downloadUpdate('diagnostics_manual')}
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(128,128,128,0.1)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>download</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Download APK</span>
+                    <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Fetch latest binary</span>
+                  </div>
+                </button>
 
-      <Section title="Errors & Recovery">
-        <MetricItem label="Error" value={errorData.error} valueColor={errorData.error ? '#f43f5e' : undefined} />
-        <MetricItem label="Exception Message" value={errorData.exceptionMessage} valueColor={errorData.exceptionMessage ? '#f43f5e' : undefined} />
-        <MetricItem label="Failure Reason" value={errorData.failureReason} />
-        <MetricItem label="Install Error" value={errorData.installError} />
-        <MetricItem label="Last Exception Stack Trace" value={errorData.lastExceptionStackTrace} />
-        <MetricItem label="Consecutive Failures" value={errorData.consecutiveFailures} />
-        <MetricItem label="Recovery Mode" value={errorData.recoveryMode} />
-        <MetricItem label="Root Cause" value={errorData.rootCause} />
-        <MetricItem label="Suggested Fix" value={errorData.suggestedFix} />
-      </Section>
+                <button
+                  onClick={() => applyUpdate('diagnostics_manual')}
+                  style={{
+                    background: 'rgba(103, 156, 255, 0.15)',
+                    border: '1px solid rgba(103, 156, 255, 0.3)',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    color: '#679cff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>play_arrow</span>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', color: '#fff' }}>Apply Update</span>
+                    <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>Complete flow cycle</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </details>
 
-      <Section title="Environment">
-        <MetricItem label="Android Version" value={envData.androidVersion} />
-        <MetricItem label="Device Model" value={envData.deviceModel} />
-        <MetricItem label="Architecture" value={envData.architecture} />
-        <MetricItem label="Network State" value={envData.networkState} />
-        <MetricItem label="Permission State" value={envData.permissionState} />
-        <MetricItem label="Platform Detected" value={envData.platformDetected} />
-      </Section>
+          {/* Section 2: Live Logs (Open by default) */}
+          <details
+            open
+            style={{
+              background: 'rgba(25, 26, 26, 0.3)',
+              borderRadius: '16px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <summary
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                listStyle: 'none',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>terminal</span>
+                <span>Live Logs</span>
+              </div>
+              <span className="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div style={{ padding: '16px', paddingTop: 0 }}>
+              <div
+                style={{
+                  background: '#050505',
+                  border: '1px solid rgba(128,128,128,0.1)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '320px',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Logs toolbar */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px 14px',
+                    background: 'rgba(25,26,26,0.5)',
+                    borderBottom: '1px solid rgba(128,128,128,0.08)',
+                  }}
+                >
+                  <div
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: 'rgba(0,0,0,0.3)',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(128,128,128,0.15)',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)' }}>
+                      search
+                    </span>
+                    <input
+                      value={logSearch}
+                      onChange={e => setLogSearch(e.target.value)}
+                      placeholder="Search logs..."
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        color: '#fff',
+                        fontSize: '11px',
+                        width: '100%',
+                        fontFamily: 'monospace',
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {(['ALL', 'INFO', 'DEBUG', 'ERROR'] as const).map(lvl => (
+                      <span
+                        key={lvl}
+                        onClick={() => setLogFilter(lvl)}
+                        style={{
+                          fontSize: '9px',
+                          fontWeight: 700,
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          background: logFilter === lvl ? '#679cff' : 'rgba(255,255,255,0.04)',
+                          color: logFilter === lvl ? '#000' : 'rgba(255,255,255,0.5)',
+                          transition: 'all 200ms ease',
+                        }}
+                      >
+                        {lvl}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Logs Terminal Area */}
+                <div
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    overflowY: 'auto',
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    lineHeight: '1.6',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}
+                >
+                  {filteredLogs.length === 0 ? (
+                    <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: '100px' }}>
+                      No logs record matches filters
+                    </div>
+                  ) : (
+                    filteredLogs.map((log, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '8px' }}>
+                        <span style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
+                          {formatTime(log.timestamp)}
+                        </span>
+                        <span style={{ color: log.color, flexShrink: 0, fontWeight: 700 }}>
+                          {log.tag}
+                        </span>
+                        <span
+                          style={{
+                            color: log.level === 'ERROR' ? '#f43f5e' : log.level === 'DEBUG' ? '#a78bfa' : '#e7e5e4',
+                          }}
+                        >
+                          {log.message}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </details>
+
+          {/* Section 3: Diagnostics Subsystems */}
+          <details
+            style={{
+              background: 'rgba(25, 26, 26, 0.3)',
+              borderRadius: '16px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <summary
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                listStyle: 'none',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
+                <span>Diagnostics Traces</span>
+              </div>
+              <span className="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div style={{ padding: '16px', paddingTop: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div
+                  onClick={() => handleCopySection('Native Logs Trace', nativeLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
+                  style={{
+                    background: 'rgba(25, 26, 26, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'background-color 200ms ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>history</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500 }}>Native Logs Trace</span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                    content_copy
+                  </span>
+                </div>
+
+                <div
+                  onClick={() => handleCopySection('JS Execution Context', jsLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
+                  style={{
+                    background: 'rgba(25, 26, 26, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'background-color 200ms ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>javascript</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500 }}>JS Execution Context</span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                    content_copy
+                  </span>
+                </div>
+
+                <div
+                  onClick={() => handleCopySection('Rejected Transitions', rejectedHist.map(h => `[${formatTime(h.timestamp)}] Attempted transition from ${h.from} to ${h.attempted}: ${h.reason}`).join('\n'))}
+                  style={{
+                    background: 'rgba(25, 26, 26, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'background-color 200ms ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>box</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500 }}>Transition Rejection History</span>
+                  </div>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                    content_copy
+                  </span>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          {/* Section 4: Simulation Lab */}
+          <details
+            style={{
+              background: 'rgba(25, 26, 26, 0.3)',
+              borderRadius: '16px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <summary
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                listStyle: 'none',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>science</span>
+                <span>Simulation Lab</span>
+              </div>
+              <span className="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div style={{ padding: '16px', paddingTop: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                
+                {/* Simulation button 1 */}
+                <button
+                  onClick={() => {
+                    updaterSimulation.forceUpdateAvailable = !updaterSimulation.forceUpdateAvailable;
+                    updaterSimulation.forceNoUpdate = false;
+                    jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceUpdateAvailable toggled to ${updaterSimulation.forceUpdateAvailable}` });
+                    forceUpdate();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    background: 'rgba(25,26,26,0.5)',
+                    border: '1px solid rgba(128,128,128,0.08)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Update Available</span>
+                  <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceUpdateAvailable ? '#10b981' : 'rgba(255,255,255,0.2)' }}>
+                    {updaterSimulation.forceUpdateAvailable ? 'check_circle' : 'chevron_right'}
+                  </span>
+                </button>
+
+                {/* Simulation button 2 */}
+                <button
+                  onClick={() => {
+                    updaterSimulation.forceDownloadFailure = !updaterSimulation.forceDownloadFailure;
+                    jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceDownloadFailure toggled to ${updaterSimulation.forceDownloadFailure}` });
+                    forceUpdate();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    background: 'rgba(25,26,26,0.5)',
+                    border: '1px solid rgba(128,128,128,0.08)',
+                    color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Failure</span>
+                  <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : 'rgba(255,255,255,0.2)' }}>
+                    {updaterSimulation.forceDownloadFailure ? 'warning' : 'chevron_right'}
+                  </span>
+                </button>
+
+                {/* Simulation button 3 */}
+                <button
+                  onClick={() => {
+                    updaterSimulation.simulateDownloadThrottling = !updaterSimulation.simulateDownloadThrottling;
+                    jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] simulateDownloadThrottling toggled to ${updaterSimulation.simulateDownloadThrottling}` });
+                    forceUpdate();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    background: 'rgba(25,26,26,0.5)',
+                    border: '1px solid rgba(128,128,128,0.08)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Toggle Network Throttling</span>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '16px',
+                      background: updaterSimulation.simulateDownloadThrottling ? '#679cff' : 'rgba(255,255,255,0.08)',
+                      borderRadius: '9999px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '2px',
+                      justifyContent: updaterSimulation.simulateDownloadThrottling ? 'flex-end' : 'flex-start',
+                      transition: 'all 200ms ease',
+                    }}
+                  >
+                    <div style={{ width: '12px', height: '12px', background: '#000', borderRadius: '50%' }} />
+                  </div>
+                </button>
+
+                {/* Simulation button 4 */}
+                <button
+                  onClick={handleResetSimulation}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    background: 'rgba(25,26,26,0.5)',
+                    border: '1px solid rgba(128,128,128,0.08)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Reset Simulator Settings</span>
+                  <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    restart_alt
+                  </span>
+                </button>
+              </div>
+            </div>
+          </details>
+
+          {/* Section 5: State Machine Timeline (Open by default) */}
+          <details
+            open
+            style={{
+              background: 'rgba(25, 26, 26, 0.3)',
+              borderRadius: '16px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <summary
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                listStyle: 'none',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>account_tree</span>
+                <span>Update State Machine</span>
+              </div>
+              <span className="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div style={{ padding: '16px', paddingTop: 0 }}>
+              <div
+                style={{
+                  background: 'rgba(0,0,0,0.15)',
+                  padding: '24px',
+                  borderRadius: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '24px',
+                  position: 'relative',
+                }}
+              >
+                {/* Connector vertical line */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '35px',
+                    top: '32px',
+                    bottom: '32px',
+                    width: '2px',
+                    background: 'rgba(255,255,255,0.05)',
+                  }}
+                />
+
+                {/* State Node 1: Check */}
+                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                  <div
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isCheckedCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                      color: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isCheckedCompleted ? '#10b981' : '#e7e5e4' }}>
+                      Update Checked
+                    </h4>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                      Registry connection checks finalized
+                    </p>
+                  </div>
+                </div>
+
+                {/* State Node 2: Available */}
+                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                  <div
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isAvailableCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                      color: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isAvailableCompleted ? '#10b981' : '#e7e5e4' }}>
+                      Update Available
+                    </h4>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                      Found version: {remoteVersion || 'None'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* State Node 3: Downloading */}
+                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                  <div
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isDownloadingActive ? 'rgba(103,156,255,0.15)' : isDownloadingCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : '#e7e5e4' }}>
+                      Downloading
+                    </h4>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                      Progress: {progress}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* State Node 4: Ready */}
+                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                  <div
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isReadyCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isReadyCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isReadyCompleted ? '#10b981' : '#e7e5e4' }}>
+                      Ready for Install
+                    </h4>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                      Package downloaded and verified successfully
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </details>
+
+          {/* Section 6: Engineering Report Preview */}
+          <details
+            style={{
+              background: 'rgba(25, 26, 26, 0.3)',
+              borderRadius: '16px',
+              border: '1px solid rgba(128,128,128,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <summary
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                cursor: 'pointer',
+                listStyle: 'none',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.7)',
+                fontSize: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>description</span>
+                <span>Engineering Report Preview</span>
+              </div>
+              <span className="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div style={{ padding: '16px', paddingTop: 0 }}>
+              <div
+                style={{
+                  background: 'rgba(25, 26, 26, 0.6)',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(128,128,128,0.08)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    color: 'rgba(255,255,255,0.5)',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap',
+                    maxHeight: '220px',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <p style={{ color: '#679cff', margin: '0 0 8px 0' }}># UPDATER_DIAGNOSTICS_REPORT_V1</p>
+                  <p style={{ margin: '0 0 4px 0' }}>VERSION: <span style={{ color: '#fff' }}>{APP_VERSION}</span></p>
+                  <p style={{ margin: '0 0 4px 0' }}>CODE: <span style={{ color: '#fff' }}>{NATIVE_VERSION_CODE}</span></p>
+                  <p style={{ margin: '0 0 4px 0' }}>UPDATE_STATE: <span style={{ color: '#fff' }}>{updateState}</span></p>
+                  <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
+                  <p style={{ color: '#679cff', margin: '0 0 8px 0' }}>## STATE_SNAPSHOT</p>
+                  <p style={{ margin: '0 0 4px 0 16px' }}>• current_state: <span style={{ color: '#679cff' }}>{updateState}</span></p>
+                  <p style={{ margin: '0 0 4px 0 16px' }}>• update_available: <span style={{ color: '#fff' }}>{String(updateAvailable)}</span></p>
+                  <p style={{ margin: '0 0 4px 0 16px' }}>• consecutive_failures: <span style={{ color: '#fff' }}>{consecutiveFailures}</span></p>
+                  <p style={{ margin: '0 0 4px 0 16px' }}>• cache_source: <span style={{ color: '#fff' }}>{releaseMetadataInspector.cacheSource || 'None'}</span></p>
+                  <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
+                  <p style={{ fontStyle: 'italic', fontSize: '10px', margin: 0 }}>
+                    Report automatically generated. Confidential technical data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+        </section>
+      </main>
     </div>
   );
 };

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.81';
-export const NATIVE_VERSION_CODE = 40411;
-export const WEB_VERSION = '4.3.81';
+export const NATIVE_VERSION = '4.3.82';
+export const NATIVE_VERSION_CODE = 40412;
+export const WEB_VERSION = '4.3.82';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '027109ee';
+export const APP_COMMIT_SHA = '0a224256';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/5/2026, 9:52:37 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/5/2026, 10:53:25 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,28 +96,14 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
-    items: [
-      "Installed fluidfunctionalism Color Picker component with HEX, RGB, HSL, OKLCH format support, eyedropper, and preset swatches.",
-      "Installed fluidfunctionalism Switch component with spring physics and draggable interaction.",
-      "Built Updater Engineering Diagnostics page with comprehensive system state inspection.",
-      "Added Copy Diagnostics button for the Updater module with full engineering report generation.",
-    ],
-  },
-  {
     heading: "Improved",
     items: [
-      "Refactored navigation icon animations to be purely state-driven, decoupled from pointer events.",
-      "Integrated the Color Picker globally into the accent color selector with alpha controls removed.",
-      "Migrated all Toggle/Switch components across Hub, Chordex, and Drumex to the new Switch.",
-      "Restored Language selector in Appearance settings.",
-    ],
-  },
-  {
-    heading: "Fixed",
-    items: [
-      "Fixed updater version comparison logic to only offer strictly newer versions as updates.",
-      "Removed the changelog/What's New section from the updater dialog.",
+      "Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.",
+      "Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.",
+      "Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.",
+      "Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.",
+      "Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.",
+      "Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).",
     ],
   },
 ];

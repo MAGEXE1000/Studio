@@ -22,14 +22,14 @@ interface SwitchProps extends HTMLAttributes<HTMLDivElement> {
   thumbTransition?: Transition;
 }
 
-const TRACK_WIDTH = 34;
-const TRACK_HEIGHT = 20;
-const THUMB_SIZE = 16;
-const THUMB_OFFSET = 2;
+const TRACK_WIDTH = 48;
+const TRACK_HEIGHT = 28;
+const THUMB_SIZE = 22;
+const THUMB_OFFSET = 3;
 const THUMB_TRAVEL = TRACK_WIDTH - THUMB_SIZE - THUMB_OFFSET * 2;
-const PILL_EXTEND = 2;
-const PRESS_EXTEND = 4;
-const PRESS_SHRINK = 4;
+const PILL_EXTEND = 3;
+const PRESS_EXTEND = 5;
+const PRESS_SHRINK = 5;
 const DRAG_DEAD_ZONE = 2;
 
 const Switch = forwardRef<HTMLDivElement, SwitchProps>(
@@ -168,7 +168,7 @@ const Switch = forwardRef<HTMLDivElement, SwitchProps>(
       <div
         ref={ref}
         className={cn(
-          "relative z-10 flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none touch-none",
+          "relative z-10 flex items-center gap-3.5 px-3 py-2.5 cursor-pointer select-none touch-none",
           disabled && "opacity-50 pointer-events-none",
           className
         )}

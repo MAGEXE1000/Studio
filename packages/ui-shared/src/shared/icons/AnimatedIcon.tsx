@@ -25,6 +25,7 @@ export interface AnimatedIconProps {
   onClick?: (e: React.MouseEvent) => void;
   /** Incrementing counter to force animation replay even when state is unchanged (e.g. re-tapping active tab) */
   animationEpoch?: number;
+  isPressed?: boolean;
 }
 
 export interface AnimatedIconHandle {
@@ -148,6 +149,7 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       strokeWidth = 2,
       onClick,
       animationEpoch,
+      isPressed,
     },
     ref
   ) => {
@@ -192,6 +194,17 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
         }
       };
     }, [state, controls, isSpinning, animationEpoch]);
+
+    // Pressed state driven by parent container (e.g., navigation button)
+    useEffect(() => {
+      if (isPressed === undefined || isSpinning) return;
+      if (isPressed) {
+        controls.start('pressed');
+      } else {
+        // Restore current state when released
+        controls.start(state);
+      }
+    }, [isPressed, controls, state, isSpinning]);
 
     // Hover configuration based on icon type
     const getIconSpecificHover = () => {

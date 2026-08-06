@@ -1,31 +1,23 @@
 {
   "platform": "android",
-  "version": "4.3.81",
-  "versionName": "4.3.81",
-  "versionCode": 40411,
-  "version_code": 40411,
-  "commit": "027109ee",
-  "releasedAt": "8/5/2026, 9:52:37 PM CST",
-  "buildTimestamp": "8/5/2026, 9:52:37 PM CST",
+  "version": "4.3.82",
+  "versionName": "4.3.82",
+  "versionCode": 40412,
+  "version_code": 40412,
+  "commit": "0a224256",
+  "releasedAt": "8/5/2026, 10:53:25 PM CST",
+  "buildTimestamp": "8/5/2026, 10:53:25 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Installed fluidfunctionalism Color Picker component with HEX, RGB, HSL, OKLCH format support, eyedropper, and preset swatches.\n• Installed fluidfunctionalism Switch component with spring physics and draggable interaction.\n• Built Updater Engineering Diagnostics page with comprehensive system state inspection.\n• Added Copy Diagnostics button for the Updater module with full engineering report generation.\n• Refactored navigation icon animations to be purely state-driven, decoupled from pointer events.\n• Integrated the Color Picker globally into the accent color selector with alpha controls removed.\n• Migrated all Toggle/Switch components across Hub, Chordex, and Drumex to the new Switch.\n• Restored Language selector in Appearance settings.\n• Fixed updater version comparison logic to only offer strictly newer versions as updates.\n• Removed the changelog/What's New section from the updater dialog.",
-  "whatsNew": "• Installed fluidfunctionalism Color Picker component with HEX, RGB, HSL, OKLCH format support, eyedropper, and preset swatches.\n• Installed fluidfunctionalism Switch component with spring physics and draggable interaction.\n• Built Updater Engineering Diagnostics page with comprehensive system state inspection.\n• Added Copy Diagnostics button for the Updater module with full engineering report generation.\n• Refactored navigation icon animations to be purely state-driven, decoupled from pointer events.\n• Integrated the Color Picker globally into the accent color selector with alpha controls removed.\n• Migrated all Toggle/Switch components across Hub, Chordex, and Drumex to the new Switch.\n• Restored Language selector in Appearance settings.\n• Fixed updater version comparison logic to only offer strictly newer versions as updates.\n• Removed the changelog/What's New section from the updater dialog.",
+  "changelog": "• Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.\n• Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.\n• Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.\n• Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.\n• Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.\n• Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).",
+  "whatsNew": "• Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.\n• Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.\n• Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.\n• Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.\n• Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.\n• Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation).",
   "releaseNotes": {
-    "added": [
-      "Installed fluidfunctionalism Color Picker component with HEX, RGB, HSL, OKLCH format support, eyedropper, and preset swatches.",
-      "Installed fluidfunctionalism Switch component with spring physics and draggable interaction.",
-      "Built Updater Engineering Diagnostics page with comprehensive system state inspection.",
-      "Added Copy Diagnostics button for the Updater module with full engineering report generation."
-    ],
     "improved": [
-      "Refactored navigation icon animations to be purely state-driven, decoupled from pointer events.",
-      "Integrated the Color Picker globally into the accent color selector with alpha controls removed.",
-      "Migrated all Toggle/Switch components across Hub, Chordex, and Drumex to the new Switch.",
-      "Restored Language selector in Appearance settings."
-    ],
-    "fixed": [
-      "Fixed updater version comparison logic to only offer strictly newer versions as updates.",
-      "Removed the changelog/What's New section from the updater dialog."
+      "Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.",
+      "Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.",
+      "Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.",
+      "Redesigned the Language selector settings interface as a row opening a premium spring-animated Dialog modal.",
+      "Re-implemented the Updater Diagnostics screen to use collapsible native details cards, a live logs panel with level/search filtering, and a state machine vertical timeline.",
+      "Fixed bottom navigation animations to trigger on all tab transition paths (labels, padding, and programmatic navigation)."
     ]
   },
   "mandatory": false

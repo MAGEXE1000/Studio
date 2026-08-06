@@ -15,7 +15,7 @@ import {
   Toggle,
 } from '../../../shared/typography/SettingControls';
 import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
-import { Sheet } from '../../../shared/design-system/dialogs';
+import { Dialog, Sheet } from '../../../shared/design-system/dialogs';
 
 /**
  * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
@@ -28,6 +28,7 @@ import { Sheet } from '../../../shared/design-system/dialogs';
 export default function StudioHubSettingsPanel() {
   const settings = useSettingsStore((s) => s.settings);
   const t = useT();
+  const [isLanguageOpen, setIsLanguageOpen] = React.useState(false);
 
   React.useEffect(() => {
     console.log('[APPEARANCE-RUNTIME-PROOF]', {
@@ -126,56 +127,43 @@ export default function StudioHubSettingsPanel() {
 
           {/* Language Section */}
           <SettingSection title="Language">
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 8,
-              padding: '12px',
-            }}>
-              {([
-                { code: 'en', label: 'English' },
-                { code: 'es', label: 'Español' },
-                { code: 'de', label: 'Deutsch' },
-                { code: 'fr', label: 'Français' },
-                { code: 'zh', label: '中文' },
-                { code: 'pt', label: 'Português' },
-                { code: 'it', label: 'Italiano' },
-                { code: 'ja', label: '日本語' },
-                { code: 'ko', label: '한국어' },
-              ] as const).map(({ code, label }) => {
-                const isSelected = (settings.language ?? 'en') === code;
-                return (
-                  <motion.button
-                    key={code}
-                    type="button"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => settingsController.updateSettings({ language: code as any })}
-                    style={{
-                      padding: '10px 6px',
-                      borderRadius: 12,
-                      border: isSelected
-                        ? `1.5px solid ${acc.from}`
-                        : '1.5px solid var(--c-outline-variant, rgba(128,128,128,0.18))',
-                      background: isSelected
-                        ? `linear-gradient(135deg, ${acc.from}18, ${acc.to}10)`
-                        : 'var(--c-surface-container, rgba(255,255,255,0.04))',
-                      color: isSelected
-                        ? acc.from
-                        : 'var(--c-text-primary)',
-                      fontFamily: 'Inter, system-ui, sans-serif',
-                      fontSize: 13,
-                      fontWeight: isSelected ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'border-color 200ms ease, background 200ms ease, color 200ms ease',
-                      textAlign: 'center',
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {label}
-                  </motion.button>
-                );
-              })}
-            </div>
+            <SettingRow label="App Language" desc="Change the display language for Studio">
+              <button
+                type="button"
+                onClick={() => setIsLanguageOpen(true)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 10,
+                  border: '1.5px solid var(--c-outline-variant, rgba(128,128,128,0.18))',
+                  background: 'var(--c-surface-container, rgba(255,255,255,0.04))',
+                  color: 'var(--c-text-primary, #ffffff)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  transition: 'border-color 200ms ease, background 200ms ease',
+                }}
+              >
+                <span>
+                  {(([
+                    { code: 'en', label: 'English' },
+                    { code: 'es', label: 'Español' },
+                    { code: 'de', label: 'Deutsch' },
+                    { code: 'fr', label: 'Français' },
+                    { code: 'zh', label: '中文' },
+                    { code: 'pt', label: 'Português' },
+                    { code: 'it', label: 'Italiano' },
+                    { code: 'ja', label: '日本語' },
+                    { code: 'ko', label: '한국어' },
+                  ] as const).find((l) => l.code === (settings.language ?? 'en'))?.label || 'English')}
+                </span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>
+                  expand_more
+                </span>
+              </button>
+            </SettingRow>
           </SettingSection>
 
           {/* Accessibility Section */}
@@ -212,6 +200,57 @@ export default function StudioHubSettingsPanel() {
         </div>
       </div>
 
+      <Dialog open={isLanguageOpen} onClose={() => setIsLanguageOpen(false)} title="Select Language">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {([
+            { code: 'en', label: 'English' },
+            { code: 'es', label: 'Español' },
+            { code: 'de', label: 'Deutsch' },
+            { code: 'fr', label: 'Français' },
+            { code: 'zh', label: '中文' },
+            { code: 'pt', label: 'Português' },
+            { code: 'it', label: 'Italiano' },
+            { code: 'ja', label: '日本語' },
+            { code: 'ko', label: '한국어' },
+          ] as const).map(({ code, label }) => {
+            const isSelected = (settings.language ?? 'en') === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                onClick={() => {
+                  settingsController.updateSettings({ language: code as any });
+                  setIsLanguageOpen(false);
+                }}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: isSelected
+                    ? `linear-gradient(135deg, ${acc.from}18, ${acc.to}10)`
+                    : 'transparent',
+                  color: isSelected ? acc.from : 'var(--c-text-primary)',
+                  fontSize: 14,
+                  fontWeight: isSelected ? 700 : 500,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'background 200ms ease, color 200ms ease',
+                }}
+              >
+                <span>{label}</span>
+                {isSelected && (
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: acc.from }}>
+                    check
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </Dialog>
     </StudioPageTransition>
   );
 }

@@ -96,6 +96,7 @@ const NavigationItem = React.memo(
     innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
     animationEpoch?: number;
   }) => {
+    const [isPressed, setIsPressed] = React.useState(false);
     const isIconString = typeof item.icon === 'string';
     const contentRef = useRef<HTMLDivElement | null>(null);
 
@@ -140,6 +141,9 @@ const NavigationItem = React.memo(
     return (
       <motion.button
         onClick={onClick}
+        onPointerDown={() => setIsPressed(true)}
+        onPointerUp={() => setIsPressed(false)}
+        onPointerLeave={() => setIsPressed(false)}
         aria-label={item.label}
         title={item.label}
         data-nav-item-index={index}
@@ -215,6 +219,7 @@ const NavigationItem = React.memo(
               color={iconColor}
               isActive={isActive}
               animationEpoch={animationEpoch}
+              isPressed={isPressed}
             />
           ) : (
             <AnimatedNavigationIcon
@@ -224,6 +229,7 @@ const NavigationItem = React.memo(
               color={iconColor}
               isActive={isActive}
               animationEpoch={animationEpoch}
+              isPressed={isPressed}
             />
           )}
 

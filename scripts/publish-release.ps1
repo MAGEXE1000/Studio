@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.75"
-$VersionCode = "40396"
-$ReleaseNote = "Complete production-quality pass for Studio on Android: resolves light mode visual consistency across Chordex, Vocalex, Drumex, and Hub; fixes update pipeline sequencing and version comparison checks; improves bottom navbar spring animations; eliminates switcher toggle overlay/collision on mobile; and resolves theme transition paint bottlenecks."
+$VersionName = "4.3.82"
+$VersionCode = "40412"
+$ReleaseNote = "Accent color picker polish, global switch track and touch target enlargement, modal language settings selector, vertical timeline updater diagnostics, and bottom navigation animations trigger fixes."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

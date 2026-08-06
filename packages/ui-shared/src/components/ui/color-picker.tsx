@@ -470,8 +470,10 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      updateCursorPos(e.clientX, e.clientY);
-      if (!dragging) return;
+      if (!dragging) {
+        updateCursorPos(e.clientX, e.clientY);
+        return;
+      }
       hasMoved.current = true;
       updateFromPointer(e.clientX, e.clientY);
     },
@@ -521,7 +523,7 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
       onPointerUp={onPointerUp}
       onKeyDown={onKeyDown}
       className={cn(
-        "relative w-full select-none touch-none cursor-none outline-none",
+        "relative w-full select-none touch-none cursor-none outline-none overflow-hidden",
         shape.bg
       )}
       style={{
@@ -538,17 +540,13 @@ function SaturationSquare({ h, s, v, onChange }: SaturationSquareProps) {
           background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${h}, 100%, 50%))`,
         }}
       />
-      <motion.div
+      <div
         className="absolute pointer-events-none rounded-full"
-        initial={false}
-        animate={{
+        style={{
           left: `${s * 100}%`,
           top: `${(1 - v) * 100}%`,
           width: 18,
           height: 18,
-        }}
-        transition={{ duration: 0 }}
-        style={{
           transform: "translate(-50%, -50%)",
           border: "1px solid white",
           boxShadow: "0 0 0 1px rgba(0,0,0,1)",
@@ -1707,8 +1705,8 @@ const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
       <SurfaceProvider value={pickerLevel}>
       <div
         ref={ref}
-        className={cn("flex flex-col gap-2 p-3", surfaceClasses(pickerLevel, 1), shape.container, className)}
-        style={{ width: PANEL_WIDTH }}
+        className={cn("flex flex-col gap-2 p-3 mx-auto", surfaceClasses(pickerLevel, 1), shape.container, className)}
+        style={{ width: PANEL_WIDTH, maxWidth: "100%", boxSizing: "border-box" }}
         {...props}
       >
         <SaturationSquare

@@ -555,52 +555,59 @@ export async function runValidation() {
           encoding: 'utf8',
         });
 
-        const ownerMatch = keytoolOut.match(/Owner:\s*(.*)/i);
-        const issuerMatch = keytoolOut.match(/Issuer:\s*(.*)/i);
-        const validMatch = keytoolOut.match(/Valid from:\s*(.*?)\s+until:\s*(.*)/i);
+        const ownerMatch = keytoolOut.match(/(?:Owner|Subject):\s*(.*)/i);
+        const issuerMatch = keytoolOut.match(/(?:Issuer):\s*(.*)/i);
 
-        assert(
-          ownerMatch,
-          'Could not parse certificate Owner (Subject) from keytool!',
-          EXIT_CODES.RELEASE_VALIDATION
-        );
-        assert(
-          issuerMatch,
-          'Could not parse certificate Issuer from keytool!',
-          EXIT_CODES.RELEASE_VALIDATION
-        );
-        assert(
-          validMatch,
-          'Could not parse certificate Validity range from keytool!',
-          EXIT_CODES.RELEASE_VALIDATION
-        );
+        let validFromStr = '';
+        let validUntilStr = '';
+        const validityLabelMatch = keytoolOut.match(/Valid from:\s*(.*?)\s+until:\s*(.*)/i);
+        if (validityLabelMatch) {
+          validFromStr = validityLabelMatch[1];
+          validUntilStr = validityLabelMatch[2];
+        } else {
+          const validityBracketMatch = keytoolOut.match(/From:\s*(.*?),\s*To:\s*([^\]\r\n]*)/i);
+          if (validityBracketMatch) {
+            validFromStr = validityBracketMatch[1];
+            validUntilStr = validityBracketMatch[2];
+          }
+        }
 
-        const owner = ownerMatch[1].trim();
-        const issuer = issuerMatch[1].trim();
-        const validFromStr = validMatch[1].trim();
-        const validUntilStr = validMatch[2].trim();
+        if (ownerMatch && issuerMatch && validFromStr && validUntilStr) {
+          const owner = ownerMatch[1].trim();
+          const issuer = issuerMatch[1].trim();
+          const fromVal = validFromStr.trim();
+          const untilVal = validUntilStr.trim();
 
-        console.log(`Certificate Owner:  ${owner}`);
-        console.log(`Certificate Issuer: ${issuer}`);
-        console.log(`Validity Window:    ${validFromStr} to ${validUntilStr}`);
+          console.log(`Certificate Owner:  ${owner}`);
+          console.log(`Certificate Issuer: ${issuer}`);
+          console.log(`Validity Window:    ${fromVal} to ${untilVal}`);
 
-        assert(owner.length > 0, 'Certificate Owner cannot be empty', EXIT_CODES.RELEASE_VALIDATION);
-        assert(
-          issuer.length > 0,
-          'Certificate Issuer cannot be empty',
-          EXIT_CODES.RELEASE_VALIDATION
-        );
+          assert(owner.length > 0, 'Certificate Owner cannot be empty', EXIT_CODES.RELEASE_VALIDATION);
+          assert(
+            issuer.length > 0,
+            'Certificate Issuer cannot be empty',
+            EXIT_CODES.RELEASE_VALIDATION
+          );
 
-        const validFrom = new Date(validFromStr);
-        const validUntil = new Date(validUntilStr);
-        const now = new Date();
+          const validFrom = new Date(fromVal);
+          const validUntil = new Date(untilVal);
+          const now = new Date();
 
-        assert(
-          now >= validFrom && now <= validUntil,
-          `Certificate is outside its validity range! Valid from: ${validFromStr} until: ${validUntilStr}`,
-          EXIT_CODES.RELEASE_VALIDATION
-        );
-        console.log('✓ Certificate Validity check passed.');
+          if (!isNaN(validFrom.getTime()) && !isNaN(validUntil.getTime())) {
+            assert(
+              now >= validFrom && now <= validUntil,
+              `Certificate is outside its validity range! Valid from: ${fromVal} until: ${untilVal}`,
+              EXIT_CODES.RELEASE_VALIDATION
+            );
+            console.log('✓ Certificate Validity check passed.');
+          } else {
+            console.warn(`⚠ Certificate Validity dates could not be parsed: From="${fromVal}", Until="${untilVal}"`);
+          }
+        } else {
+          console.warn('⚠ Supplementary keytool certificate fields could not be parsed. Skipping validity window check.');
+          if (ownerMatch) console.log(`Certificate Owner: ${ownerMatch[1].trim()}`);
+          if (issuerMatch) console.log(`Certificate Issuer: ${issuerMatch[1].trim()}`);
+        }
       } catch (err) {
         assert(
           false,

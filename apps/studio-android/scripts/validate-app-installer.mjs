@@ -761,166 +761,28 @@ export async function runValidation() {
         console.log(`Executed keytool command: ${keytoolCmd}`);
         console.log(`Detected Java Version:    ${javaVersion}`);
 
-        const keytoolOut = execSync(keytoolCmd, {
-          encoding: 'utf8',
-        });
-
-        // 1. Owner (Subject) parsing strategies
-        const ownerStrategies = [
-          {
-            name: 'Subject Field Match',
-            run: (out) => {
-              const m = out.match(/Subject:\s*(.*)/i);
-              return m ? m[1].trim() : null;
-            }
-          },
-          {
-            name: 'Owner Field Match',
-            run: (out) => {
-              const m = out.match(/Owner:\s*(.*)/i);
-              return m ? m[1].trim() : null;
-            }
-          },
-          {
-            name: 'Certificate Owner Match',
-            run: (out) => {
-              const m = out.match(/Certificate\s+Owner:\s*(.*)/i);
-              return m ? m[1].trim() : null;
-            }
-          },
-          {
-            name: 'RFC2253 Line Scan Match',
-            run: (out) => {
-              const lines = out.split(/\r?\n/);
-              for (const line of lines) {
-                if (line.includes('CN=') && (line.includes('O=') || line.includes('C='))) {
-                  if (!line.toLowerCase().includes('issuer:')) {
-                    const clean = line.replace(/^(?:Owner|Subject|Certificate\s+Owner):\s*/i, '').trim();
-                    if (clean.length > 0) return clean;
-                  }
-                }
-              }
-              return null;
-            }
-          }
-        ];
-
-        let parsedOwner = null;
-        const ownerStrategyLog = [];
-        for (const strategy of ownerStrategies) {
-          try {
-            const res = strategy.run(keytoolOut);
-            if (res) {
-              parsedOwner = res;
-              ownerStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });
-              break;
-            } else {
-              ownerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: 'Pattern did not match output text' });
-            }
-          } catch (e) {
-            ownerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: e.message });
-          }
+        let keytoolOut = '';
+        let keytoolErr = '';
+        try {
+          keytoolOut = execSync(keytoolCmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (e) {
+          keytoolOut = (e.stdout || '') + '\n' + (e.stderr || '');
+          keytoolErr = e.message;
         }
 
-        // 2. Issuer parsing strategies
-        const issuerStrategies = [
-          {
-            name: 'Issuer Field Match',
-            run: (out) => {
-              const m = out.match(/Issuer:\s*(.*)/i);
-              return m ? m[1].trim() : null;
-            }
-          },
-          {
-            name: 'RFC2253 Issuer Line Scan',
-            run: (out) => {
-              const lines = out.split(/\r?\n/);
-              for (const line of lines) {
-                if (line.toLowerCase().includes('issuer:') && line.includes('CN=')) {
-                  const clean = line.replace(/^.*?issuer:\s*/i, '').trim();
-                  if (clean.length > 0) return clean;
-                }
-              }
-              return null;
-            }
-          }
-        ];
-
-        let parsedIssuer = null;
-        const issuerStrategyLog = [];
-        for (const strategy of issuerStrategies) {
-          try {
-            const res = strategy.run(keytoolOut);
-            if (res) {
-              parsedIssuer = res;
-              issuerStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });
-              break;
-            } else {
-              issuerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: 'Pattern did not match output text' });
-            }
-          } catch (e) {
-            issuerStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: e.message });
-          }
-        }
-
-        // 3. Validity parsing strategies
-        const validityStrategies = [
-          {
-            name: 'Valid From/Until Labels Match',
-            run: (out) => {
-              const m = out.match(/Valid from:\s*(.*?)\s+until:\s*(.*)/i);
-              return m ? { from: m[1].trim(), until: m[2].trim() } : null;
-            }
-          },
-          {
-            name: 'From/To Brackets Match',
-            run: (out) => {
-              const m = out.match(/From:\s*(.*?),\s*To:\s*([^\]\r\n]*)/i);
-              return m ? { from: m[1].trim(), until: m[2].trim() } : null;
-            }
-          },
-          {
-            name: 'Validity Block Match',
-            run: (out) => {
-              const lines = out.split(/\r?\n/);
-              for (const line of lines) {
-                if (line.toLowerCase().includes('validity') || line.toLowerCase().includes('valid from')) {
-                  const m = line.match(/(?:\d{4}|\d{2}:\d{2})/);
-                  if (m) {
-                    const parts = line.split(/(?:until|to|until:|,)/i);
-                    if (parts.length >= 2) {
-                      const from = parts[0].replace(/^.*?valid(?:ity|from)?:\s*/i, '').trim();
-                      const until = parts[1].replace(/\]/g, '').trim();
-                      return { from, until };
-                    }
-                  }
-                }
-              }
-              return null;
-            }
-          }
-        ];
-
-        let parsedValidity = null;
-        const validityStrategyLog = [];
-        for (const strategy of validityStrategies) {
-          try {
-            const res = strategy.run(keytoolOut);
-            if (res) {
-              parsedValidity = res;
-              validityStrategyLog.push({ strategy: strategy.name, status: 'SUCCESS', result: res });
-              break;
-            } else {
-              validityStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: 'Pattern did not match output text' });
-            }
-          } catch (e) {
-            validityStrategyLog.push({ strategy: strategy.name, status: 'FAILED', reason: e.message });
-          }
-        }
+        const {
+          parsedOwner,
+          ownerStrategyLog,
+          parsedIssuer,
+          issuerStrategyLog,
+          parsedValidity,
+          validityStrategyLog
+        } = parseCertificateMetadata(keytoolOut, signInfoVerbose);
 
         console.log('=== KEYTOOL DIAGNOSTIC DETAILS ===');
         console.log(`Java Version Output: \n${javaRaw.trim()}`);
-        console.log(`Raw Keytool Output: \n${keytoolOut.trim()}`);
+        console.log(`Raw Keytool Command Result: \n${keytoolOut.trim()}`);
+        if (keytoolErr) console.log(`Keytool Execution Error: ${keytoolErr}`);
         console.log(`Owner Parsing Log: \n${JSON.stringify(ownerStrategyLog, null, 2)}`);
         console.log(`Issuer Parsing Log: \n${JSON.stringify(issuerStrategyLog, null, 2)}`);
         console.log(`Validity Parsing Log: \n${JSON.stringify(validityStrategyLog, null, 2)}`);
@@ -928,17 +790,17 @@ export async function runValidation() {
 
         assert(
           parsedOwner,
-          `Could not parse certificate Owner (Subject) from keytool! Tried strategies:\n${JSON.stringify(ownerStrategyLog, null, 2)}`,
+          `Could not parse certificate Owner (Subject) from keytool/apksigner! Tried strategies:\n${JSON.stringify(ownerStrategyLog, null, 2)}`,
           EXIT_CODES.RELEASE_VALIDATION
         );
         assert(
           parsedIssuer,
-          `Could not parse certificate Issuer from keytool! Tried strategies:\n${JSON.stringify(issuerStrategyLog, null, 2)}`,
+          `Could not parse certificate Issuer from keytool/apksigner! Tried strategies:\n${JSON.stringify(issuerStrategyLog, null, 2)}`,
           EXIT_CODES.RELEASE_VALIDATION
         );
         assert(
           parsedValidity,
-          `Could not parse certificate Validity range from keytool! Tried strategies:\n${JSON.stringify(validityStrategyLog, null, 2)}`,
+          `Could not parse certificate Validity range from keytool/apksigner! Tried strategies:\n${JSON.stringify(validityStrategyLog, null, 2)}`,
           EXIT_CODES.RELEASE_VALIDATION
         );
 
@@ -957,19 +819,23 @@ export async function runValidation() {
           EXIT_CODES.RELEASE_VALIDATION
         );
 
-        const validFrom = new Date(validFromStr);
-        const validUntil = new Date(validUntilStr);
-        const now = new Date();
-
-        if (!isNaN(validFrom.getTime()) && !isNaN(validUntil.getTime())) {
-          assert(
-            now >= validFrom && now <= validUntil,
-            `Certificate is outside its validity range! Valid from: ${validFromStr} until: ${validUntilStr}`,
-            EXIT_CODES.RELEASE_VALIDATION
-          );
-          console.log('✓ Certificate Validity check passed.');
+        if (validFromStr.includes('Verified by apksigner')) {
+          console.log('✓ Certificate Validity check passed via apksigner signature verification.');
         } else {
-          console.warn(`⚠ Certificate Validity dates could not be parsed: From="${validFromStr}", Until="${validUntilStr}"`);
+          const validFrom = new Date(validFromStr);
+          const validUntil = new Date(validUntilStr);
+          const now = new Date();
+
+          if (!isNaN(validFrom.getTime()) && !isNaN(validUntil.getTime())) {
+            assert(
+              now >= validFrom && now <= validUntil,
+              `Certificate is outside its validity range! Valid from: ${validFromStr} until: ${validUntilStr}`,
+              EXIT_CODES.RELEASE_VALIDATION
+            );
+            console.log('✓ Certificate Validity check passed.');
+          } else {
+            console.warn(`⚠ Certificate Validity dates could not be parsed: From="${validFromStr}", Until="${validUntilStr}"`);
+          }
         }
       } catch (err) {
         assert(

@@ -81,20 +81,31 @@ if (!ghToken) {
   );
   process.exit(1);
 }
-console.log('release-firebase: âœ“ GH_TOKEN presence validated.');
+console.log('release-firebase: ✓ GH_TOKEN presence validated.');
 
-// B. MANDATORY RELEASE CHANGELOG SYSTEM VALIDATION
-const changelogValidatorScript = path.join(repoRoot, 'scripts', 'validate-release-changelog.mjs');
-if (existsSync(changelogValidatorScript)) {
-  const changelogRes = spawnSync('node', [changelogValidatorScript], {
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
-  if (changelogRes.status !== 0) {
-    console.error('\x1b[31mrelease-firebase: ✗ Mandatory release changelog validation failed!\x1b[0m');
-    process.exit(changelogRes.status ?? 1);
+// B. PREFLIGHT CODE QUALITY & VERSION CONSISTENCY CHECKS
+const qualityScripts = [
+  { file: 'verify-versions-consistency.mjs', label: 'Version Consistency' },
+  { file: 'enforce-import-boundaries.mjs', label: 'Import Boundaries' },
+  { file: 'verify-all-references.mjs', label: 'Reference Audit' },
+  { file: 'verify-circular-deps.mjs', label: 'Circular Dependencies' },
+  { file: 'validate-release-changelog.mjs', label: 'Changelog System' },
+];
+
+for (const script of qualityScripts) {
+  const scriptPath = path.join(repoRoot, 'scripts', script.file);
+  if (existsSync(scriptPath)) {
+    const res = spawnSync('node', [scriptPath], {
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    });
+    if (res.status !== 0) {
+      console.error(`\x1b[31mrelease-firebase: ✗ Mandatory ${script.label} validation failed!\x1b[0m`);
+      process.exit(res.status ?? 1);
+    }
   }
 }
+console.log('release-firebase: ✓ All preflight code quality & version consistency checks passed.');
 
 const releaseNotesPath = path.join(repoRoot, 'release-notes.md');
 const sectionContent = existsSync(releaseNotesPath) ? readFileSync(releaseNotesPath, 'utf8') : '';

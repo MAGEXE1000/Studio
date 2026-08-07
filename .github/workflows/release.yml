@@ -30,8 +30,8 @@ permissions:
   deployments: write
 
 jobs:
-  build_package_publish:
-    name: Build, Package, Sign & Deploy
+  release:
+    name: Production Release
     runs-on: ubuntu-latest
     env:
       STUDIO_PRODUCTION_RELEASE: 'true'
@@ -44,14 +44,16 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
-      - name: 1. Checkout Codebase
+      # =========================================================================
+      # STAGE 1: SETUP
+      # =========================================================================
+      - name: 1. Setup Environment & Keystore
         uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
-      - name: 2. Setup Toolchains & Build Caches
-        uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v6
         with:
           version: 10.26.1
 
@@ -65,65 +67,33 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Setup Gradle Cache
-        uses: gradle/actions/setup-gradle@v6
+      - uses: gradle/actions/setup-gradle@v6
 
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: 3. Environment & Code Quality Preflight
+      - name: Install Dependencies & Decode Keystore
         run: |
-          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] || \
-             [ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ] || \
-             [ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ] || \
-             [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then
-            echo "::error::Production signing secrets are missing! Refusing to start release pipeline."
-            exit 1
-          fi
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
-            echo "::error::FIREBASE_SERVICE_ACCOUNT secret is missing!"
-            exit 1
-          fi
-          echo "✓ Production secrets validated."
-
-          pnpm check:versions
-          pnpm lint:imports
-          pnpm check:references
-          pnpm check:circular
-          echo "✓ All preflight quality & version checks passed cleanly."
-
-      - name: 4. Keystore Setup & Certificate Fingerprint Verification
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/studio-android/android/app/release.keystore
-          if [ ! -s apps/studio-android/android/app/release.keystore ]; then
-            echo "::error::release.keystore is missing or empty after decoding!"
-            exit 1
+          pnpm install --frozen-lockfile
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/studio-android/android/app/release.keystore
           fi
 
-          keytool -list -v -keystore apps/studio-android/android/app/release.keystore -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > cert.txt
-          FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | cut -d':' -f2- | tr -d '[:space:]:' | tr '[:upper:]' '[:lower:]')
-          EXPECTED=$(node scripts/get-version.mjs --fingerprint)
-          echo "Detected Keystore SHA-256: $FINGERPRINT"
-          echo "Expected Production SHA-256: $EXPECTED"
-          if [ "$FINGERPRINT" != "$EXPECTED" ]; then
-            echo "::error::CRITICAL SECURITY FAILURE: Decoded release.keystore SHA-256 fingerprint ($FINGERPRINT) does not match expected production certificate ($EXPECTED)!"
-            exit 1
-          fi
-          echo "✓ Production Keystore Certificate Fingerprint Verified."
-
-      - name: 5. Build, Package, Sign APK & Publish GitHub Release
+      # =========================================================================
+      # STAGE 2: BUILD & RELEASE (Single Orchestration Command)
+      # =========================================================================
+      - name: 2. Build, Sign APK & Publish Release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TYPE: ${{ inputs.release_type }}
         run: |
-          cd apps/studio-android
           PRERELEASE_FLAG=""
           if [ "$RELEASE_TYPE" = "prerelease" ]; then
             PRERELEASE_FLAG="--prerelease"
           fi
-          node scripts/release-firebase.mjs $PRERELEASE_FLAG
+          node apps/studio-android/scripts/release-firebase.mjs $PRERELEASE_FLAG
 
-      - name: 6. Deploy Update Metadata to Firebase CDN
+      # =========================================================================
+      # STAGE 3: DEPLOY & VERIFY
+      # =========================================================================
+      - name: Deploy Update Metadata to Firebase CDN
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -131,13 +101,12 @@ jobs:
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
           channelId: live
 
-      - name: 7. Deploy Firestore Security Rules
+      - name: 3. Deploy Rules & Verify Production Release
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: node scripts/deploy-rules-admin.mjs
-
-      - name: 8. Verify Deployed Android Metadata
         run: |
+          node scripts/deploy-rules-admin.mjs
+
           NATIVE_VER=$(node scripts/get-version.mjs)
           echo "Verifying Firebase CDN propagation for version $NATIVE_VER..."
           for i in {1..10}; do

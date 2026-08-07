@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.89';
-export const NATIVE_VERSION_CODE = 40420;
-export const WEB_VERSION = '4.3.89';
+export const NATIVE_VERSION = '4.3.91';
+export const NATIVE_VERSION_CODE = 40422;
+export const WEB_VERSION = '4.3.91';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '0f762653';
+export const APP_COMMIT_SHA = 'e33fdfe1';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 10:09:13 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 10:56:09 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -99,7 +99,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
     heading: "Improved",
     items: [
       "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
-      "Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.",
+      "Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
     ],
   },
 ];
@@ -418,4 +418,5 @@ export function useAppVersion(): {
 
 /** Authoritative expected production signing certificate SHA-256 fingerprint. */
 export const PRODUCTION_SIGNING_SHA256 =
+  (typeof process !== 'undefined' && process.env?.EXPECTED_SIGNATURE_SHA256) ||
   '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';

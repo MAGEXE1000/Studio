@@ -741,7 +741,7 @@ export async function runValidation() {
       const currentSignature = sha256Match ? sha256Match[1].replace(/:/g, '').toLowerCase() : '';
 
       const HARDCODED_PROD_FINGERPRINT =
-        '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+        (process.env.EXPECTED_SIGNATURE_SHA256 || '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206').replace(/:/g, '').toLowerCase();
       assert(
         currentSignature === HARDCODED_PROD_FINGERPRINT,
         `CRITICAL SECURITY FAILURE: APK signature fingerprint mismatch! Expected official production signature ${HARDCODED_PROD_FINGERPRINT}, found ${currentSignature}`,

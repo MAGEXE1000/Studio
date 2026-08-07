@@ -853,9 +853,13 @@ console.log(`release-firebase: Target commit for release tag: ${currentCommit}`)
 
 const runGh = (args) => {
   const env = { ...process.env };
+  if (env.GH_TOKEN) {
+    env.GITHUB_TOKEN = env.GH_TOKEN;
+  }
   if (
     env.GITHUB_TOKEN &&
     !env.GITHUB_TOKEN.startsWith('ghp_') &&
+    !env.GITHUB_TOKEN.startsWith('gho_') &&
     !env.GITHUB_TOKEN.startsWith('github_pat_')
   ) {
     delete env.GITHUB_TOKEN;

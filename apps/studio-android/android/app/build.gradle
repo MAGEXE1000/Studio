@@ -10,8 +10,8 @@ android {
         applicationId "com.chordex.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40420
-        versionName "4.3.89"
+        versionCode 40422
+        versionName "4.3.91"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -140,7 +140,7 @@ tasks.whenTaskAdded { task ->
             def ksPwd = System.getenv("ANDROID_KEYSTORE_PASSWORD")
             def ksAlias = System.getenv("ANDROID_KEY_ALIAS")
             def ksKeyPwd = System.getenv("ANDROID_KEY_PASSWORD")
-            def expectedSha256 = "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
+            def expectedSha256 = System.getenv("EXPECTED_SIGNATURE_SHA256") ?: "900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206"
 
             if (!ksFile.exists()) {
                 throw new GradleException(

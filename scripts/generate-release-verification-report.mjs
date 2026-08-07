@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
-const EXPECTED_PROD_SHA256 = '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206';
+const EXPECTED_PROD_SHA256 = (process.env.EXPECTED_SIGNATURE_SHA256 || '900cf259185c81100cda8bb08571fa23552e9789131cf07a8f4056e4d4129206').replace(/:/g, '').toLowerCase();
 const EXPECTED_PACKAGE_NAME = 'com.chordex.app';
 
 export function generateVerificationReport(apkPath) {

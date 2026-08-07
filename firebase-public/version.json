@@ -1,17 +1,17 @@
 {
   "platform": "web",
-  "version": "4.2.14",
-  "commit": "6e8fbe6a",
-  "releasedAt": "undefined",
-  "buildTimestamp": "undefined",
+  "version": "4.3.90",
+  "commit": "e33fdfe1",
+  "releasedAt": "8/6/2026, 10:44:41 PM CST",
+  "buildTimestamp": "8/6/2026, 10:44:41 PM CST",
   "updateMode": "refresh",
-  "description": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
-  "whatsNew": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
-  "changelog": "â€¢ Standard production release build for Studio Android v4.2.14.\nâ€¢ End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment.",
+  "description": "â€¢ Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\nâ€¢ Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.",
+  "whatsNew": "â€¢ Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\nâ€¢ Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.",
+  "changelog": "â€¢ Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\nâ€¢ Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.",
   "releaseNotes": {
-    "added": [
-      "Standard production release build for Studio Android v4.2.14.",
-      "End-to-end automated SLSA provenance generation, APK signing, stable GitHub Release creation, and Firebase metadata deployment."
+    "improved": [
+      "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
+      "Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization."
     ]
   },
   "mandatory": false

@@ -7,13 +7,21 @@ copies the bullet list under the section that matches the current
 "Update available" modal always shows the actual changes that ship in
 that bundle.
 
-## 4.3.89
+## 4.3.91
 
 Release Date: 2026-08-06
 
 ### Improved
 - Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
-- Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.
+- Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.
+
+## 4.3.90
+
+Release Date: 2026-08-06
+
+### Improved
+- Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
+- Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.
 
 ## 4.3.88
 

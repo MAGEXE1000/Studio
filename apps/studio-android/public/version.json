@@ -1,19 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.89",
-  "versionName": "4.3.89",
-  "versionCode": 40420,
-  "version_code": 40420,
-  "commit": "0f762653",
-  "releasedAt": "8/6/2026, 10:09:13 PM CST",
-  "buildTimestamp": "8/6/2026, 10:09:13 PM CST",
+  "version": "4.3.91",
+  "versionName": "4.3.91",
+  "versionCode": 40422,
+  "version_code": 40422,
+  "commit": "e33fdfe1",
+  "releasedAt": "8/6/2026, 10:56:09 PM CST",
+  "buildTimestamp": "8/6/2026, 10:56:09 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.",
-  "whatsNew": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.",
+  "changelog": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
+  "whatsNew": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
   "releaseNotes": {
     "improved": [
       "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
-      "Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization."
+      "Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization."
     ]
   },
   "mandatory": false

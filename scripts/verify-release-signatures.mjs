@@ -86,7 +86,7 @@ if (apkExists) {
   }
 
   if (detectedFingerprint === 'NOT_DETECTED') {
-    const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || '';
+    const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || 'C:\\Users\\ayuda\\AppData\\Local\\Android\\Sdk';
     let apksignerCmd = 'apksigner';
     if (androidHome) {
       const buildToolsDir = path.join(androidHome, 'build-tools');

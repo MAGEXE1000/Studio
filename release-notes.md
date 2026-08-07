@@ -1,5 +1,5 @@
 Release Date: 2026-08-07
 
 ### Added
-- Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.
-- Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.
+- Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.
+- Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.

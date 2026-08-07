@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.1';
-export const NATIVE_VERSION_CODE = 40501;
-export const WEB_VERSION = '4.5.1';
+export const NATIVE_VERSION = '4.5.2';
+export const NATIVE_VERSION_CODE = 40502;
+export const WEB_VERSION = '4.5.2';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '68e4d555';
+export const APP_COMMIT_SHA = '64abaaa0';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 11:52:33 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 12:06:57 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,8 +98,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.",
-      "Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.",
+      "Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.",
+      "Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.",
     ],
   },
 ];

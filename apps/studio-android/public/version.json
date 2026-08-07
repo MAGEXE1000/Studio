@@ -1,19 +1,19 @@
 {
   "platform": "android",
-  "version": "4.5.1",
-  "versionName": "4.5.1",
-  "versionCode": 40501,
-  "version_code": 40501,
-  "commit": "68e4d555",
-  "releasedAt": "8/6/2026, 11:52:33 PM CST",
-  "buildTimestamp": "8/6/2026, 11:52:33 PM CST",
+  "version": "4.5.2",
+  "versionName": "4.5.2",
+  "versionCode": 40502,
+  "version_code": 40502,
+  "commit": "64abaaa0",
+  "releasedAt": "8/7/2026, 12:06:57 AM CST",
+  "buildTimestamp": "8/7/2026, 12:06:57 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.\n• Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.",
-  "whatsNew": "• Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.\n• Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.",
+  "changelog": "• Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.\n• Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.",
+  "whatsNew": "• Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.\n• Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.",
   "releaseNotes": {
     "added": [
-      "Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.",
-      "Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication."
+      "Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.",
+      "Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification."
     ]
   },
   "mandatory": false

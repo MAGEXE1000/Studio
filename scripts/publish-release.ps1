@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.5.1"
-$VersionCode = "40501"
-$ReleaseNote = "Implemented production-grade Diagnostic Intelligence Layer with pattern recognition, confidence scoring, file prioritization, RootApp analyzers, and error deduplication."
+$VersionName = "4.5.2"
+$VersionCode = "40502"
+$ReleaseNote = "Redesigned RootApp error report UI with structured cards, instant search, component tree visualization, and restored GitHub Release Pipeline #703."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

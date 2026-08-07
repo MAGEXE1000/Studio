@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.2';
-export const NATIVE_VERSION_CODE = 40502;
-export const WEB_VERSION = '4.5.2';
+export const NATIVE_VERSION = '4.5.3';
+export const NATIVE_VERSION_CODE = 40503;
+export const WEB_VERSION = '4.5.3';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '64abaaa0';
+export const APP_COMMIT_SHA = 'cc870b5d';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/7/2026, 12:06:57 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 5:49:27 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,8 +98,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.",
-      "Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.",
+      "Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.",
+      "Restored release pipeline behavior to parity with Run #703 including certificate verification.",
     ],
   },
 ];

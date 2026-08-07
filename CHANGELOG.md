@@ -7,6 +7,14 @@ copies the bullet list under the section that matches the current
 "Update available" modal always shows the actual changes that ship in
 that bundle.
 
+## 4.5.3
+
+Release Date: 2026-08-07
+
+### Added
+- Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.
+- Restored release pipeline behavior to parity with Run #703 including certificate verification.
+
 ## 4.5.2
 
 Release Date: 2026-08-07

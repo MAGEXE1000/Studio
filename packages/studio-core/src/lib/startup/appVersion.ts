@@ -9,7 +9,7 @@
  *
  * The `public/version.json` file shipped alongside the bundle is
  * generated from `APP_VERSION` at build time by
- * `scripts/sync-version.mjs` (wired in via the `prebuild` npm hook),
+ * `scripts/sync-versions.mjs` (wired in via the `prebuild` npm hook),
  * so the freshly-deployed bundle and its companion manifest are
  * always in lockstep.
  *
@@ -65,19 +65,19 @@ export const APP_VERSION_LABEL = APP_VERSION;
 
 /**
  * Local date this build was stamped (e.g. "July 24, 2026").
- * Stamped by `scripts/sync-version.mjs` on build.
+ * Stamped by `scripts/sync-versions.mjs` on build.
  */
 export const APP_VERSION_DATE = '8/1/2026';
 
 /**
  * Git commit hash this build was generated from.
- * Stamped by `scripts/sync-version.mjs` on build.
+ * Stamped by `scripts/sync-versions.mjs` on build.
  */
 export const APP_COMMIT_SHA = 'b5d70d4e';
 
 /**
  * Unix epoch timestamp this build was generated.
- * Stamped by `scripts/sync-version.mjs` on build.
+ * Stamped by `scripts/sync-versions.mjs` on build.
  */
 export const APP_BUILD_TIMESTAMP = '8/7/2026, 9:28:27 AM CST';
 

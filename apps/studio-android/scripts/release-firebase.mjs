@@ -327,9 +327,9 @@ if (!supabaseUrl || !supabaseAnonKey || syncBackendProvider !== 'supabase-realti
 console.log('release-firebase: âœ“ Supabase build gate validation passed.');
 
 // Update other version configurations
-console.log('release-firebase: â†’ Running version-sync...');
-const syncResult = spawnSync('node', ['scripts/sync-version.mjs'], {
-  cwd: pkgRoot,
+console.log('release-firebase: → Running version-sync...');
+const syncResult = spawnSync('node', [path.join(repoRoot, 'scripts/sync-versions.mjs')], {
+  cwd: repoRoot,
   stdio: 'inherit',
   shell: process.platform === 'win32',
 });

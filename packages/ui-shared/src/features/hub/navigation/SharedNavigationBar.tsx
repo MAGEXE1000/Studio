@@ -863,6 +863,15 @@ export function SharedNavigationBar({
     }
   );
 
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const isScrubbingRef = useRef(false);
+  const scrubbingIndexRef = useRef(activeIndex);
+
+  const startXRef = useRef(0);
+  const lastXRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
   // Derived continuous pill movement (direct 1:1 synchronization during drag, spring interpolation after drag)
   const pillX = useTransform([activeIdxRaw, activeIdxSpring, dragXRaw], ([rawIdx, springIdx, dragVal]) => {
@@ -920,14 +929,7 @@ export function SharedNavigationBar({
   const profileCardScale = useTransform(profileOpenSpring, [0, 1], [0.94, 1]);
   const profileBackdropOpacity = useTransform(profileOpenSpring, [0, 1], [0, 1]);
 
-  const [isScrubbing, setIsScrubbing] = useState(false);
-  const isScrubbingRef = useRef(false);
-  const scrubbingIndexRef = useRef(activeIndex);
 
-  const startXRef = useRef(0);
-  const lastXRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;

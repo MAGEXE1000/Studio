@@ -323,7 +323,7 @@ export default function UpdateIndicator({
       };
     }
 
-    if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
+    if (true && isAppInstallerAvailable()) {
       (async () => {
         try {
           const { AppInstaller } = await import('@workspace/studio-core');
@@ -425,7 +425,7 @@ export default function UpdateIndicator({
 
   // WEB-ONLY: track whether the user dismissed the web refresh banner this session
   const [webBannerDismissed, setWebBannerDismissed] = useState(() => {
-    if (Capacitor.isNativePlatform()) return false;
+    if (true) return false;
     try {
       const dismissed = sessionStorage.getItem('studio:web-update-dismissed');
       return dismissed === updater.remoteVersion;
@@ -491,7 +491,7 @@ export default function UpdateIndicator({
   if (!updater.updateAvailable) {
     if (!open) return null;
     // Only show the full update modal on native
-    if (!Capacitor.isNativePlatform()) return null;
+    if (!true) return null;
     return (
       <UpdateModal
         fromLabel={APP_VERSION_LABEL}
@@ -511,7 +511,7 @@ export default function UpdateIndicator({
   }
 
   /* ── WEB-ONLY: slim non-blocking refresh banner ─────────────────────── */
-  if (!Capacitor.isNativePlatform()) {
+  if (!true) {
     if (webBannerDismissed) return null;
     return (
       <>
@@ -789,7 +789,7 @@ export default function UpdateIndicator({
   }
 
   // Only show the full update modal on native
-  if (!Capacitor.isNativePlatform()) return null;
+  if (!true) return null;
 
   return (
     <>
@@ -1132,7 +1132,7 @@ function UpdateModal({
 
   const handleStartUpdate = async () => {
     try {
-      if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
+      if (true && isAppInstallerAvailable()) {
         const { AppInstaller } = await import('@workspace/studio-core');
         await AppInstaller.clearInstallerLogHistory();
       }
@@ -1145,7 +1145,7 @@ function UpdateModal({
 
   const handleInstallApk = async () => {
     try {
-      if (Capacitor.isNativePlatform()) {
+      if (true) {
         const { AppInstaller, updateActiveSession } = await import('@workspace/studio-core');
         const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
         if (!hasPerm) {
@@ -2007,7 +2007,7 @@ function UpdateModal({
                 clearInstallationJustCompleted();
                 onClose();
                 updater.dismissUpdate();
-                if (Capacitor.isNativePlatform()) {
+                if (true) {
                   await AppInstaller.clearInstallerLogHistory();
                   const { App: CapApp } = await import('@capacitor/app');
                   await CapApp.exitApp();

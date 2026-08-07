@@ -96,6 +96,7 @@ for (const script of qualityScripts) {
   const scriptPath = path.join(repoRoot, 'scripts', script.file);
   if (existsSync(scriptPath)) {
     const res = spawnSync('node', [scriptPath], {
+      cwd: repoRoot,
       stdio: 'inherit',
       shell: process.platform === 'win32',
     });

@@ -8,8 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
 // Run Repository-Wide Reference & Navigation Integrity Auditors first
-execSync('node scripts/verify-all-references.mjs', { stdio: 'inherit' });
-execSync('node scripts/verify-navigation-integrity.mjs', { stdio: 'inherit' });
+execSync('node scripts/verify-all-references.mjs', { cwd: repoRoot, stdio: 'inherit' });
+execSync('node scripts/verify-navigation-integrity.mjs', { cwd: repoRoot, stdio: 'inherit' });
 
 const paths = {
   rootPkg: path.join(repoRoot, 'package.json'),

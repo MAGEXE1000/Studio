@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.85';
-export const NATIVE_VERSION_CODE = 40415;
-export const WEB_VERSION = '4.3.85';
+export const NATIVE_VERSION = '4.3.86';
+export const NATIVE_VERSION_CODE = 40416;
+export const WEB_VERSION = '4.3.86';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||

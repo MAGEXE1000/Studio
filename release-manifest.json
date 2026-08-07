@@ -1,9 +1,9 @@
 {
   "$schema": "https://livex.app/schemas/release-manifest.v1.json",
   "manifestVersion": "1.0.0",
-  "version": "4.3.77",
-  "versionCode": 40415,
-  "releaseTag": "v4.3.77",
+  "version": "4.3.86",
+  "versionCode": 40416,
+  "releaseTag": "v4.3.86",
   "buildTimestampUtc": "2026-08-05T00:10:00.000Z",
   "git": {
     "commitSha": "cd21b2750b5b6a7a85cb75098b8ff9a843649693",
@@ -12,7 +12,7 @@
     "previousTag": "v4.3.52"
   },
   "artifact": {
-    "filename": "studio-4.3.55.apk",
+    "filename": "studio-4.3.86.apk",
     "sizeBytes": 52607278,
     "sizeFormatted": "50.17 MB",
     "sha256": "032bc2a0132388558d9bbe8956ed4047e5e1dfb5d528222989d6b5cd927d1f7f",
@@ -39,6 +39,6 @@
     "otaMetadataVersion": "4.0.0",
     "firebaseHostingChannel": "live"
   },
-  "releaseVersion": "4.3.85",
-  "versionName": "4.3.85"
+  "releaseVersion": "4.3.86",
+  "versionName": "4.3.86"
 }

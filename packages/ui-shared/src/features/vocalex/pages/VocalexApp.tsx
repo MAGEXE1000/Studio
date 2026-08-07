@@ -1,5 +1,4 @@
-import {
-  useBackHandler,
+import { useBackHandler,
   useChordStore,
   ACCENT_COLORS,
   type AppKey,
@@ -16,22 +15,11 @@ import {
   useScrollHide,
   useBottomNavigationStore,
   useSettingsStore,
-  vocalexRepository,
-} from '@workspace/studio-core';
+  vocalexRepository, useSessionStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
-import {
-  SharedNavigationBar,
-  type SharedNavigationItem,
-} from '../../hub/navigation/SharedNavigationBar';
 
-import { subscribeVocalexBack } from '../utils/headerBack';
-import {
-  SHARED_NAV_TRANSITION,
-  getSharedNavTransform,
-  getSharedNavOpacity,
-} from '../../hub/navigation/navStyles';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
 import { AnimatedNavigationIcon } from '../../hub/navigation/AnimatedNavigationIcon';
@@ -52,98 +40,6 @@ type VocalexPanel = 'coach' | 'recorder' | 'takes' | 'preferences';
 
 const NAV_ORDER: VocalexPanel[] = ['coach', 'recorder', 'takes', 'preferences'];
 
-function IconMic({ active }: { active: boolean }) {
-  const sw = active ? 2 : 1.6;
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={22}
-      height={22}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ display: 'block' }}
-    >
-      <rect x="9" y="5" width="6" height="10" rx="3" strokeWidth={sw} />
-      <path d="M5 12a7 7 0 0 0 14 0" strokeWidth={sw} />
-      <line x1="12" y1="19" x2="12" y2="22" strokeWidth={sw} />
-      <line x1="8" y1="22" x2="16" y2="22" strokeWidth={sw} />
-    </svg>
-  );
-}
-
-function IconCoach({ active }: { active: boolean }) {
-  const sw = active ? 2 : 1.6;
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={22}
-      height={22}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ display: 'block' }}
-    >
-      <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" strokeWidth={sw} />
-      <path d="M12 14c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z" strokeWidth={sw} />
-      <path d="M18 6a3 3 0 0 1 0 4" strokeWidth={sw} />
-      <path d="M20.5 4.5a6 6 0 0 1 0 7" strokeWidth={sw} />
-    </svg>
-  );
-}
-
-function IconTakes({ active }: { active: boolean }) {
-  const sw = active ? 2 : 1.6;
-  const ao = active ? 1 : 0;
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={22}
-      height={22}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ display: 'block' }}
-    >
-      <rect x="3" y="3" width="18" height="18" rx="3" strokeWidth={sw} />
-      <path d="M3 9h18" strokeWidth={sw} />
-      <circle
-        cx="12"
-        cy="15"
-        r="3"
-        fill="currentColor"
-        fillOpacity={ao}
-        strokeWidth={sw}
-        style={{ transition: 'fill-opacity 140ms ease' }}
-      />
-    </svg>
-  );
-}
-
-function IconPreferences({ active }: { active: boolean }) {
-  const sw = active ? 2 : 1.6;
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={22}
-      height={22}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ display: 'block' }}
-    >
-      <circle cx="12" cy="12" r="3" strokeWidth={sw} />
-      <path
-        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-        strokeWidth={sw}
-      />
-    </svg>
-  );
-}
 
 export default function VocalexApp() {
   const isWebDesktop = useIsWebDesktop();
@@ -170,7 +66,7 @@ export default function VocalexApp() {
       const def = s.settings.defaultVocalexTab as any;
       return def === 'practice' || def === 'vocalLab' || def === 'pitch' ? 'coach' : def || 'coach';
     }
-    const saved = s.lastSession?.vocalexTab as any;
+    const saved = useSessionStore.getState().lastSession?.vocalexTab as any;
     return saved === 'coach' || saved === 'recorder' || saved === 'takes' || saved === 'preferences'
       ? (saved as VocalexPanel)
       : 'coach';
@@ -184,7 +80,7 @@ export default function VocalexApp() {
 
   // Persist the active tab on every change so cold-start can resume here.
   useEffect(() => {
-    useSettingsStore.getState().setLastSession({ vocalexTab: activeTab });
+    useSessionStore.getState().setLastSession({ vocalexTab: activeTab });
     resetNav();
   }, [activeTab]);
 
@@ -238,23 +134,6 @@ export default function VocalexApp() {
     };
   }, []);
 
-  const NAV_ITEMS: { panel: VocalexPanel; Icon: React.FC<{ active: boolean }>; label: string }[] = [
-    { panel: 'coach', Icon: IconCoach, label: vt.navCoach || 'Coach' },
-    { panel: 'recorder', Icon: IconMic, label: vt.navRecorder || 'Recorder' },
-    { panel: 'takes', Icon: IconTakes, label: vt.navTakes },
-    { panel: 'preferences', Icon: IconSettings, label: vt.navPreferences || 'Preferences' },
-  ];
-
-  const navRef = useRef<HTMLElement | null>(null);
-  // Fixed nav height - same rationale as BottomNav: always 64px, dynamic
-  // measurement was a race condition that returned 64 anyway.
-  const NAV_HEIGHT_PX = 60;
-  const [expandedW, setExpandedW] = useState(350);
-  useEffect(() => {
-    if (navRef.current) setExpandedW(navRef.current.offsetWidth);
-  }, []);
-  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const prevIdxRef = useRef(0);
 
   const pitchScrollRef = useRef<HTMLDivElement | null>(null);
   const recorderScrollRef = useRef<HTMLDivElement | null>(null);
@@ -274,78 +153,7 @@ export default function VocalexApp() {
 
   useEffect(() => {}, []);
 
-  const navHidden = useNavHidden();
-  const navCollapsed = useNavCollapsed();
-  const [headerBack, setHeaderBack] = useState<(() => void) | null>(null);
-  useEffect(() => subscribeVocalexBack((fn) => setHeaderBack(() => fn)), []);
 
-  useBackHandler(
-    'nested',
-    () => {
-      if (headerBack) {
-        headerBack();
-        return true;
-      }
-      return false;
-    },
-    [headerBack]
-  );
-
-  const stretchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [pill, setPill] = useState<{ left: number; right: number; ready: boolean }>({
-    left: 0,
-    right: 0,
-    ready: false,
-  });
-  const [pressedPanel, setPressedPanel] = useState<VocalexPanel | null>(null);
-
-  const measureBtn = (idx: number): { left: number; right: number } | null => {
-    const btn = btnRefs.current[idx];
-    const nav = navRef.current;
-    if (!btn || !nav) return null;
-    const navRect = nav.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    return { left: btnRect.left - navRect.left, right: btnRect.right - navRect.left };
-  };
-
-  useEffect(() => {
-    // Measure the button for the actual initial tab, not always index 0.
-    const initIdx = NAV_ORDER.indexOf(initialVocalexTab);
-    const m = measureBtn(initIdx >= 0 ? initIdx : 0);
-    if (m) setPill({ left: m.left, right: m.right, ready: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const newIdx = NAV_ORDER.indexOf(activeTab);
-    const oldIdx = prevIdxRef.current;
-    if (newIdx === oldIdx) return;
-    prevIdxRef.current = newIdx;
-    setNavCollapsed(false);
-    const newM = measureBtn(newIdx);
-    if (!newM) return;
-
-    if (stretchTimeoutRef.current) {
-      clearTimeout(stretchTimeoutRef.current);
-      stretchTimeoutRef.current = null;
-      setPill((p) => ({ ...p, left: newM.left, right: newM.right }));
-      return;
-    }
-
-    if (newIdx > oldIdx) {
-      setPill((p) => ({ ...p, right: newM.right }));
-      stretchTimeoutRef.current = setTimeout(() => {
-        setPill((p) => ({ ...p, left: newM.left }));
-        stretchTimeoutRef.current = null;
-      }, 90);
-    } else {
-      setPill((p) => ({ ...p, left: newM.left }));
-      stretchTimeoutRef.current = setTimeout(() => {
-        setPill((p) => ({ ...p, right: newM.right }));
-        stretchTimeoutRef.current = null;
-      }, 90);
-    }
-  }, [activeTab]);
 
   const amoledBg = isLight
     ? activeVis.amoledMode

@@ -1,3 +1,4 @@
+import { SpringPresets } from '@workspace/studio-core';
 "use client";
 
 import type { Transition } from "motion/react";
@@ -16,12 +17,7 @@ interface LayersIconProps extends HTMLAttributes<HTMLDivElement> {
   size?: number;
 }
 
-const DEFAULT_TRANSITION: Transition = {
-  type: "spring",
-  stiffness: 100,
-  damping: 14,
-  mass: 1,
-};
+const DEFAULT_TRANSITION: Transition = SpringPresets.icon as Transition;
 
 const LayersIcon = forwardRef<LayersIconHandle, LayersIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {

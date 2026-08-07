@@ -13,7 +13,8 @@ import ElasticSlider from '../../../shared/progress/ElasticSlider';
 import { useGroovexStore } from '../state/useGroovexStore';
 // // import { groovexStemRepository,   type SongCacheInfo } from "@workspace/studio-core";
 import { SONG_CATALOG } from '../services/songCatalog';
-import { Toggle, SettingSection, SettingRow } from '../../../shared/typography/SettingControls';
+import { Toggle, SettingSection, SettingRow } from '../../../shared/settings/SettingControls';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
 
 export default function GroovexPreferences() {
@@ -99,51 +100,43 @@ export default function GroovexPreferences() {
       >
         {isWebDesktop ? (
           <div className="mb-6">
-            <h2
-              style={{
+            <StudioHeader
+              title={t.groovex.audioEngine}
+              subtitle={t.groovex.audioEngineDesc}
+              titleStyle={{
                 fontSize: '18px',
                 fontWeight: 800,
                 letterSpacing: '-0.02em',
                 color: 'var(--c-text-primary)',
                 fontFamily: 'var(--font-headline)',
               }}
-            >
-              {t.groovex.audioEngine}
-            </h2>
-            <p
-              style={{
+              subtitleStyle={{
                 color: 'var(--c-text-secondary)',
                 fontFamily: 'var(--font-body)',
                 fontSize: '11px',
                 marginTop: '2px',
               }}
-            >
-              {t.groovex.audioEngineDesc}
-            </p>
+            />
           </div>
         ) : (
           <section style={{ paddingTop: 32, marginBottom: 32 }}>
-            <h2
-              style={{
+            <StudioHeader
+              title={t.groovex.audioEngine}
+              subtitle={t.groovex.audioEngineDesc}
+              titleStyle={{
                 fontSize: 28,
                 fontWeight: 800,
                 letterSpacing: '-0.03em',
                 margin: '0 0 6px',
                 color: 'var(--c-text-primary)',
               }}
-            >
-              {t.groovex.audioEngine}
-            </h2>
-            <p
-              style={{
+              subtitleStyle={{
                 fontSize: 13,
                 color: 'var(--c-text-secondary)',
                 fontFamily: 'var(--font-body)',
                 margin: 0,
               }}
-            >
-              {t.groovex.audioEngineDesc}
-            </p>
+            />
           </section>
         )}
 

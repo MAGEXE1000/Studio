@@ -5,6 +5,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { SpringPresets } from '@workspace/studio-core';
 
 export interface CompassIconHandle {
   startAnimation: () => void;
@@ -73,11 +74,7 @@ const CompassIcon = forwardRef<CompassIconHandle, CompassIconProps>(
           <motion.polygon
             animate={controls}
             points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"
-            transition={{
-              type: "spring",
-              stiffness: 120,
-              damping: 15,
-            }}
+            transition={SpringPresets.icon}
             variants={{
               normal: {
                 rotate: 0,

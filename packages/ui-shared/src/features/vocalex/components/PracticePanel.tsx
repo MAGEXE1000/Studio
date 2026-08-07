@@ -1,7 +1,8 @@
 import { useT } from '@workspace/studio-core';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { setVocalexBack } from '../utils/headerBack';
-import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
+import { StaggeredReveal } from '../../../shared/animation';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
 interface Tip {
   title: string;
@@ -367,7 +368,7 @@ export default function PracticePanel() {
 
   return (
     <div style={{ padding: '16px 20px', minHeight: '100%' }}>
-      <AnimatedAppHeader
+      <StudioHeader
         title={t.vocalex.tipsTitle}
         subtitle={t.vocalex.tipsSubtitle}
         titleStyle={{

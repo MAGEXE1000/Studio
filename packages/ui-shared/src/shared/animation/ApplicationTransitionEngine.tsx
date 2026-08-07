@@ -62,6 +62,7 @@ export function ApplicationTransitionEngine({
     stagex: '#3b82f6',
     groovex: '#10b981',
     vocalex: '#f59e0b',
+    devtools: '#ef4444',
   };
   const accentColor = appColors[appKey] || '#ffffff';
 

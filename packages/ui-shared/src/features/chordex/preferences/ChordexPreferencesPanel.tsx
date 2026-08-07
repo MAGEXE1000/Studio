@@ -13,7 +13,7 @@ import {
   type Instrument,
 } from '@workspace/studio-core';
 import React, { useRef } from 'react';
-import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shared/typography/SettingControls';
+import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shared/settings/SettingControls';
 import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
 import InkThemeToggle from '../../../shared/typography/InkThemeToggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';

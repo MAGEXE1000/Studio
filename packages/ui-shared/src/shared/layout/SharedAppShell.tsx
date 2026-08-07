@@ -38,10 +38,10 @@ import {
 
 import { StudioHubSkeleton } from '../loading/StudioSkeleton';
 import { ErrorBoundary } from '../feedback/ErrorBoundary';
-import { AppEntryTransition, useAnimationSpeed } from '../../features/hub/animations/AppAnimationSystem';
+import { AppEntryTransition, useAnimationSpeed } from '../../shared/animation';
 import { SubAppScaffold, ScreenScaffold } from './StudioLayoutSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
-import { ApplicationTransitionEngine } from '../../features/hub/animations/ApplicationTransitionEngine';
+import { ApplicationTransitionEngine } from '../../shared/animation';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 
@@ -58,6 +58,7 @@ export interface SharedAppShellProps {
   
   hubElement: React.ReactNode;
   subApps: {
+    devtools?: React.ReactNode;
     groovex: React.ReactNode;
     vocalex: React.ReactNode;
     stagex: React.ReactNode;
@@ -73,266 +74,7 @@ export interface SharedAppShellProps {
 }
 
 
-/* ── INSPECTOR ROUTE TRACER DEBUG TOOL ────────────────────────────────── */
-function InspectorRouteTracer() {
-  const history = useNavigationStore((s) => s.history);
-  const settings = useSettingsStore((state) => state.settings);
-  const isSwitcherOpen = useBottomNavigationStore((s) => s.isSwitcherOpen);
-  const isProfileMenuOpen = useBottomNavigationStore((s) => s.isProfileMenuOpen);
-  const isSearchOpen = useBottomNavigationStore((s) => s.isSearchOpen);
-
-  const [activeModalsCount, setActiveModalsCount] = useState(0);
-  const [activeSheetsCount, setActiveSheetsCount] = useState(0);
-  const [minimized, setMinimized] = useState(true);
-
-  useEffect(() => {
-    return activeOverlaysRegistry.subscribe(() => {
-      setActiveModalsCount(activeOverlaysRegistry.modals.size);
-      setActiveSheetsCount(activeOverlaysRegistry.sheets.size);
-    });
-  }, []);
-
-  const isDev = typeof process !== 'undefined' ? process.env.NODE_ENV !== 'production' : true;
-  if (!isDev) return null;
-
-  const currentRoute = history[history.length - 1] || { app: 'hub' };
-
-  const appMap: Record<string, string> = {
-    hub: 'Hub',
-    chordex: 'Chordex',
-    drumex: 'Drumex',
-    stagex: 'Stagex',
-    groovex: 'Groovex',
-    vocalex: 'Vocalex',
-  };
-
-  const currentApp = appMap[currentRoute.app] || currentRoute.app;
-  
-  let currentModule = 'Livex Hub';
-  if (currentRoute.app === 'hub') {
-    if (currentRoute.tab === 'settings') currentModule = 'Livex Settings';
-    else if (currentRoute.tab === 'profile') currentModule = 'User Profile';
-    else if (currentRoute.tab === 'help') currentModule = 'FAQ & Support';
-  } else {
-    currentModule = currentApp;
-  }
-
-  let currentScreen = 'Home';
-  if (currentRoute.page) {
-    currentScreen = currentRoute.page.charAt(0).toUpperCase() + currentRoute.page.slice(1);
-  } else if (currentRoute.tab) {
-    currentScreen = currentRoute.tab.charAt(0).toUpperCase() + currentRoute.tab.slice(1);
-  }
-
-  let currentPath = `/${currentRoute.app}`;
-  if (currentRoute.tab) currentPath += `/${currentRoute.tab}`;
-  if (currentRoute.page && currentRoute.page !== 'main' && currentRoute.page !== currentRoute.tab) {
-    currentPath += `/${currentRoute.page}`;
-  }
-
-  let currentNested = '';
-  if (currentRoute.subView) currentNested += `/${currentRoute.subView}`;
-  if (currentRoute.id) currentNested += `/${currentRoute.id}`;
-  if (!currentNested) currentNested = 'None';
-
-  const stackString = history.map((r) => {
-    let s = r.app;
-    if (r.page) s += '/' + r.page;
-    return s;
-  }).join(' -> ');
-
-  let layoutComp = 'HubScaffold';
-  if (currentRoute.page && currentRoute.page !== 'main') {
-    layoutComp = 'SettingsLayout';
-  } else if (currentRoute.app !== 'hub') {
-    layoutComp = 'SubAppScaffold';
-  }
-
-  let headerComp = 'HubHeader';
-  if (currentRoute.page && currentRoute.page !== 'main') {
-    headerComp = 'SharedFloatingHeader';
-  } else if (currentRoute.app !== 'hub') {
-    headerComp = 'SubAppHeader';
-  }
-
-  const bottomNavComp = useBottomNavigationStore.getState().visible ? 'SharedBottomNavigation' : 'None';
-  const currentModal = activeModalsCount > 0 ? 'Dialog' : 'None';
-  const currentSheet = activeSheetsCount > 0 ? 'Sheet' : 'None';
-  const currentOverlay = isSwitcherOpen ? 'AppSwitcher' : isProfileMenuOpen ? 'ProfileMenu' : isSearchOpen ? 'Search' : 'None';
-
-  const densityMode = settings.displayDensity 
-    ? settings.displayDensity.charAt(0).toUpperCase() + settings.displayDensity.slice(1) 
-    : 'Standard';
-  
-  const currentTheme = settings.theme 
-    ? settings.theme.charAt(0).toUpperCase() + settings.theme.slice(1) 
-    : 'Dark';
-
-  const appearanceMode = settings.amoledMode ? 'AMOLED' : (settings.theme === 'light' ? 'Light' : 'Dark');
-
-  if (minimized) {
-    return (
-      <button
-        onClick={() => setMinimized(false)}
-        style={{
-          position: 'fixed',
-          bottom: '80px',
-          right: '16px',
-          zIndex: 999999,
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          background: 'rgba(0,0,0,0.85)',
-          border: '1px solid rgba(255,255,255,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#10b981',
-          cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>route</span>
-      </button>
-    );
-  }
-
-  const itemStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-    paddingBottom: 4,
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: 9,
-    textTransform: 'uppercase',
-    color: '#8e8e93',
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-  };
-
-  const valStyle: React.CSSProperties = {
-    fontSize: 12,
-    color: '#ffffff',
-    fontWeight: 600,
-    fontFamily: 'monospace',
-  };
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: '80px',
-        right: '16px',
-        zIndex: 999999,
-        width: '240px',
-        maxHeight: '400px',
-        overflowY: 'auto',
-        background: 'rgba(0,0,0,0.92)',
-        border: '1px solid rgba(255,255,255,0.15)',
-        borderRadius: '12px',
-        padding: '12px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        color: '#ffffff',
-        fontFamily: 'Inter, sans-serif',
-      }}
-      className="no-scrollbar"
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: 6 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#10b981' }}>route</span>
-          <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#10b981' }}>Route Tracer</span>
-        </div>
-        <button
-          onClick={() => setMinimized(true)}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: '#8e8e93',
-            cursor: 'pointer',
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Current App</span>
-          <span style={valStyle}>{currentApp}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Module</span>
-          <span style={valStyle}>{currentModule}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Screen</span>
-          <span style={valStyle}>{currentScreen}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Route</span>
-          <span style={valStyle}>{currentPath}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Nested Route</span>
-          <span style={valStyle}>{currentNested}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Stack</span>
-          <span style={{ ...valStyle, fontSize: 10, wordBreak: 'break-all' }}>{stackString}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Layout</span>
-          <span style={valStyle}>{layoutComp}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Shared Layout</span>
-          <span style={valStyle}>ScreenScaffold</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Header</span>
-          <span style={valStyle}>{headerComp}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Bottom Navigation</span>
-          <span style={valStyle}>{bottomNavComp}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Modal</span>
-          <span style={valStyle}>{currentModal}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Sheet</span>
-          <span style={valStyle}>{currentSheet}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Overlay</span>
-          <span style={valStyle}>{currentOverlay}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Density</span>
-          <span style={valStyle}>{densityMode}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Theme</span>
-          <span style={valStyle}>{currentTheme}</span>
-        </div>
-        <div style={itemStyle}>
-          <span style={labelStyle}>Appearance Mode</span>
-          <span style={valStyle}>{appearanceMode}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const InspectorRouteTracer = lazy(() => import('./InspectorRouteTracer').then(m => ({ default: m.InspectorRouteTracer })));
 
 export function SharedAppShell({
   isAndroid,
@@ -368,9 +110,7 @@ export function SharedAppShell({
       // Monitor startup progress if needed
     });
 
-    void StartupCoordinator.run(() => {
-      console.log('[StartupCoordinator] App bootstrap complete via SharedAppShell.');
-    });
+    void StartupCoordinator.run(() => {});
 
     return () => {
       unsub();
@@ -401,38 +141,7 @@ export function SharedAppShell({
     enforcePortrait();
   }, [routeApp]);
 
-  // Bi-directional synchronization between navigation stack and settings
-  const lastSyncedRouteAppRef = useRef<string | null>(null);
-  const lastSyncedSettingsAppRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    const settingsApp = settings.appMode || 'hub';
-    if (routeApp !== settingsApp) {
-      const routeChanged = lastSyncedRouteAppRef.current !== null && routeApp !== lastSyncedRouteAppRef.current;
-      const settingsChanged = lastSyncedSettingsAppRef.current !== null && settingsApp !== lastSyncedSettingsAppRef.current;
-
-      if (routeChanged && !settingsChanged) {
-        updateSettings({ appMode: routeApp as any });
-      } else if (settingsChanged && !routeChanged) {
-        if (settingsApp === 'hub') {
-          NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
-        } else {
-          const currentHistory = useNavigationStore.getState().history;
-          const isCurrentlySubApp = currentHistory.length > 1 && currentHistory[currentHistory.length - 1].app !== 'hub';
-          if (isCurrentlySubApp) {
-            NavigationDispatcher.replace({ app: settingsApp as any });
-          } else {
-            NavigationDispatcher.push({ app: settingsApp as any });
-          }
-        }
-      } else {
-        updateSettings({ appMode: routeApp as any });
-      }
-    }
-
-    lastSyncedRouteAppRef.current = routeApp;
-    lastSyncedSettingsAppRef.current = settingsApp;
-  }, [routeApp, settings.appMode, updateSettings]);
+  // Sync loop removed
 
   useEffect(() => {
     document.documentElement.style.setProperty('--motion-speed-scale', String(speedScale));
@@ -448,38 +157,38 @@ export function SharedAppShell({
   } = useApplicationTransitionStore();
 
   const splashVisible = transitionState !== 'IDLE';
-  const transitionPreviousAppModeRef = useRef<AppKey | 'hub'>(settings.appMode || 'hub');
+  const transitionPreviousAppModeRef = useRef<AppKey | 'hub'>(routeApp || 'hub');
   const transitionActive = useNavigationStore((s) => s.isTransitioning);
 
   useEffect(() => {
-    const appMode = settings.appMode || 'hub';
+    const appMode = routeApp || 'hub';
     if (appMode !== transitionPreviousAppModeRef.current) {
-      const ok = requestTransition(appMode);
+      const ok = requestTransition(appMode as any);
       if (ok) {
-        transitionPreviousAppModeRef.current = appMode;
+        transitionPreviousAppModeRef.current = appMode as any;
         if (appMode === 'hub') {
           setAppPreloaded(true);
         }
       }
     }
-  }, [settings.appMode, requestTransition, setAppPreloaded]);
+  }, [routeApp, requestTransition, setAppPreloaded]);
 
   const handleAppPreloaded = useCallback(
     (app: AppKey) => {
-      if (useSettingsStore.getState().settings.appMode !== app) return;
+      if (routeApp !== app) return;
       setAppPreloaded(true);
     },
-    [setAppPreloaded]
+    [routeApp, setAppPreloaded]
   );
 
-  const appMode = settings.appMode || 'hub';
+  const appMode = routeApp || 'hub';
   const isSubAppActive = appMode !== 'hub' || launchingApp !== null;
   const stableKey = launchingApp || appMode;
 
   // Forensics watchdogs (kept globally so Web benefits from resilient recovering)
   useEffect(() => {
     (window as any).__runRootWatchdogCheck = (name: string) => {
-      const currentMode = useSettingsStore.getState().settings.appMode || 'hub';
+      const currentMode = NavigationDispatcher.currentApp() || 'hub';
       const rootNode = document.getElementById('root');
       const appContainer = document.querySelector('.app-container');
       if (currentMode === 'hub' && rootNode && !appContainer) {
@@ -488,7 +197,7 @@ export function SharedAppShell({
         }
         // @ts-ignore - injected global watchdog variable
         window.studioTransitionActive = false;
-        useSettingsStore.getState().updateSettings({ appMode: 'hub' });
+        NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
       }
     };
     return () => {
@@ -630,7 +339,7 @@ export function SharedAppShell({
       </ErrorBoundary>
       {renderLaunchOverlay?.()}
       {renderEmergencyOverlay?.()}
-      {settings.developerMode && isInspectorEnabled && showRouteTracer && <InspectorRouteTracer />}
+      {settings.developerMode && isInspectorEnabled && showRouteTracer && <Suspense fallback={null}><InspectorRouteTracer /></Suspense>}
     </div>
   );
 
@@ -698,6 +407,19 @@ const SubAppWrapper = memo(function SubAppWrapper({
 
   return (
     <>
+      {cachedApp === 'devtools' && subApps.devtools && (
+        <SubAppScaffold appKey="devtools">
+          <ErrorBoundary moduleName="DevTools">
+            <Suspense fallback={<FallbackTracker app="devtools"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
+              <AppReadyNotifier app="devtools" onReady={onReady} />
+              <AppEntryTransition>
+                {subApps.devtools}
+              </AppEntryTransition>
+            </Suspense>
+          </ErrorBoundary>
+        </SubAppScaffold>
+      )}
+
       {cachedApp === 'groovex' && subApps.groovex && (
         <SubAppScaffold appKey="groovex">
           <ErrorBoundary moduleName="Groovex">

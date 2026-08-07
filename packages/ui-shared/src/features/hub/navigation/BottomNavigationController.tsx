@@ -21,7 +21,7 @@ import { IconSongs, IconLibrary, IconSettings } from '../icons/NavIcons';
 import { motion, AnimatePresence } from 'motion/react';
 import { activeOverlaysRegistry } from '../../../shared/design-system/dialogs';
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && localStorage.getItem('studio_debug_mode') === 'true') {
   (window as any).__navMetrics = (window as any).__navMetrics || {
     mounts: 0,
     unmounts: 0,
@@ -113,7 +113,7 @@ export function BottomNavigationController() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).__navMetrics.controllerRecreations++;
+      (window as any).__navMetrics && (window as any).__navMetrics.controllerRecreations++;
     }
   }, []);
 
@@ -304,7 +304,7 @@ export function BottomNavigationController() {
     if (currentApp !== lastAppRef.current) {
       lastAppRef.current = currentApp;
       if (typeof window !== 'undefined') {
-        (window as any).__navMetrics.itemRebuilds++;
+        (window as any).__navMetrics && (window as any).__navMetrics.itemRebuilds++;
       }
     }
 

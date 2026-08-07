@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioPageTransition } from '../components/StudioPageTransition';
-import { InspectorOverlayRenderer, GlobalDeveloperInspectorDock } from '../features/devtools/inspector';
+import { InspectorOverlayRenderer } from '../features/devtools/inspector';
 
 interface SharedNavigationContainerProps {
   activeView: string;
@@ -25,7 +25,7 @@ export function SharedNavigationContainer({
         {children(activeView)}
       </StudioPageTransition>
       <InspectorOverlayRenderer />
-      <GlobalDeveloperInspectorDock />
+      
     </div>
   );
 }

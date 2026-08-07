@@ -12,7 +12,8 @@ import NoResultsLottie from '../../../shared/lottie/NoResultsLottie';
 import { SONG_CATALOG, getArtists, getGenres } from '../services/songCatalog';
 import type { SongMeta } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
-import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
+import { StaggeredReveal } from '../../../shared/animation';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { SearchBar } from '../../../shared/design-system/StudioDesignSystem';
 
 export default function GroovexLibrary() {
@@ -118,7 +119,7 @@ export default function GroovexLibrary() {
         <section
           style={{ paddingTop: isWebDesktop ? 24 : 32, marginBottom: isWebDesktop ? 24 : 32 }}
         >
-          <AnimatedAppHeader
+          <StudioHeader
             title={t.groovex.libraryTitle}
             subtitle={t.groovex.sessionsAvailable(SONG_CATALOG.length)}
             titleStyle={{

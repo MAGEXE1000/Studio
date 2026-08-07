@@ -72,7 +72,7 @@ Additionally, calling `requestTransition()` while a previous transition was stil
 ## Files Modified
 
 - [useApplicationTransitionStore.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/navigation/useApplicationTransitionStore.ts) — State machine reset logic and dual-state guard
-- [ApplicationTransitionEngine.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/launch/ApplicationTransitionEngine.tsx) — Watchdog safety timer
+- [ApplicationTransitionEngine.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/shared/animation/ApplicationTransitionEngine.tsx) — Watchdog safety timer
 
 ## Architecture Changes
 

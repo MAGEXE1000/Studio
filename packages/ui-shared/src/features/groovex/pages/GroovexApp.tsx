@@ -1,4 +1,4 @@
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, setNavCollapsed, useBottomNavigationStore, setNavHidden, useSettingsStore } from '@workspace/studio-core';
+import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, setNavCollapsed, useBottomNavigationStore, setNavHidden, useSettingsStore, useSessionStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from '../state/useGroovexStore';
@@ -25,7 +25,7 @@ export default function GroovexApp() {
   const initialGroovexView: GroovexView = (() => {
     const s = useSettingsStore.getState();
     if (!s.settings.restoreLastSession) return s.settings.defaultGroovexView || 'library';
-    const saved = s.lastSession?.groovexView;
+    const saved = useSessionStore.getState().lastSession?.groovexView;
     return saved === 'library' || saved === 'player' || saved === 'preferences'
       ? saved
       : s.settings.defaultGroovexView || 'library';
@@ -40,7 +40,7 @@ export default function GroovexApp() {
 
   // Persist the active tab on every change so cold-start can resume here.
   useEffect(() => {
-    useSettingsStore.getState().setLastSession({ groovexView: view });
+    useSessionStore.getState().setLastSession({ groovexView: view });
   }, [view]);
   const activeSongId = useGroovexStore(useShallow((s) => s.activeSongId));
   const [isLargeDesktop, setIsLargeDesktop] = useState(() => {

@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import {
   getAllChords,
   getChordById,
@@ -26,6 +27,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { SongCardGrid } from '../components/SongCardGrid';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
+import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
 import MusicNotesLottie from '../../../shared/lottie/MusicNotesLottie';
@@ -34,12 +37,8 @@ import CustomChordBuilder, {
   CustomMiniDiagram,
 } from '../../chordex/components/CustomChordBuilder';
 import ChordDiagram from '../../chordex/diagrams/ChordDiagram';
-import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
-import {
-  DialogScaffold,
-  ScreenScaffold,
-  ScrollScaffold,
-} from '../../../shared/layout/StudioLayoutSystem';
+import { StaggeredReveal } from '../../../shared/animation';
+import { ScreenScaffold, ScrollScaffold,  } from '../../../shared/layout/StudioLayoutSystem';
 import {
   Button,
   EmptyState,
@@ -2600,7 +2599,7 @@ function JsonExportSheet({
   };
 
   return (
-    <DialogScaffold open={true} onClose={onClose} title="Export JSON">
+    <Dialog open={true} onClose={onClose} title="Export JSON">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <p
           style={{
@@ -2650,7 +2649,7 @@ function JsonExportSheet({
           </Button>
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }
 
@@ -2897,7 +2896,7 @@ function ImportSongModal({
   };
 
   return (
-    <DialogScaffold open={true} onClose={onClose} title={getTitle()}>
+    <Dialog open={true} onClose={onClose} title={getTitle()}>
       {/* ── IDLE: file picker ── */}
       {stage === 'idle' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -3351,7 +3350,7 @@ function ImportSongModal({
           </div>
         </div>
       )}
-    </DialogScaffold>
+    </Dialog>
   );
 }
 
@@ -3421,7 +3420,7 @@ function ChordPicker({
   };
 
   return (
-    <DialogScaffold
+    <Dialog
       open={true}
       onClose={onClose}
       title={selected.length > 0 ? t.songs.selectedCount(selected.length) : t.songs.addChord}
@@ -3794,7 +3793,7 @@ function ChordPicker({
           )}
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }
 
@@ -3871,7 +3870,7 @@ function PresetForm({
   };
 
   return (
-    <DialogScaffold
+    <Dialog
       open={true}
       onClose={onCancel}
       title={initial ? t.songs.editSong : t.songs.newSong}
@@ -3938,7 +3937,7 @@ function PresetForm({
           />
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }
 
@@ -6060,7 +6059,7 @@ export default function SongsPanel() {
 
         {/* Section picker sheet */}
         {showSectionPicker && (
-          <DialogScaffold
+          <Dialog
             open={true}
             onClose={() => setShowSectionPicker(false)}
             title={t.songs.addSection}
@@ -6180,12 +6179,12 @@ export default function SongsPanel() {
                 Cancel
               </Button>
             </div>
-          </DialogScaffold>
+          </Dialog>
         )}
 
         {/* Section selector â€” pick where to add chord */}
         {showSectionSelector && activePreset.sections && (
-          <DialogScaffold
+          <Dialog
             open={true}
             onClose={() => setShowSectionSelector(false)}
             title="Add chord toâ€¦"
@@ -6239,7 +6238,7 @@ export default function SongsPanel() {
                 Cancel
               </Button>
             </div>
-          </DialogScaffold>
+          </Dialog>
         )}
 
         {showForm && (
@@ -6513,7 +6512,7 @@ export default function SongsPanel() {
         )}
 
         {showDeleteId && (
-          <DialogScaffold
+          <Dialog
             open={true}
             onClose={() => setShowDeleteId(null)}
             title={t.songs.confirmDelete}
@@ -6539,7 +6538,7 @@ export default function SongsPanel() {
             <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '13px' }}>
               Are you sure you want to delete this song preset? This action cannot be undone.
             </p>
-          </DialogScaffold>
+          </Dialog>
         )}
 
         {exportModalPreset && (
@@ -6665,7 +6664,7 @@ export default function SongsPanel() {
 
       {/* Delete confirmation sheet */}
       {showDeleteId && (
-        <DialogScaffold
+        <Dialog
           open={true}
           onClose={() => setShowDeleteId(null)}
           title={t.songs.confirmDelete}
@@ -6691,7 +6690,7 @@ export default function SongsPanel() {
           <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '13px' }}>
             Are you sure you want to delete this song preset? This action cannot be undone.
           </p>
-        </DialogScaffold>
+        </Dialog>
       )}
 
       {/* Export config modal */}

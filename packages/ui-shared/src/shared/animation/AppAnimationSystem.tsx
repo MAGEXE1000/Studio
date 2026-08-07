@@ -39,9 +39,9 @@ export const AnimationCoordinator = {
     }
     const duration = this.getDuration(durationPreset, speedSetting);
     if (preset === 'spring') {
-      return { ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any, duration };
+      return { ...SpringPresets.stiff, duration };
     }
-    return { type: "spring", stiffness: 220, damping: 22, mass: 0.85, duration };
+    return { ...SpringPresets.medium, duration };
   },
 
   startTransition(durationMs: number = 300) {
@@ -290,7 +290,7 @@ export function StaggeredReveal({
             initial={{ opacity: 0, y: 12, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
-              ...{ type: "spring", stiffness: 500, damping: 25, mass: 0.4 } as any,
+              ...SpringPresets.stiff,
               delay,
             }}
             style={{
@@ -308,64 +308,7 @@ export function StaggeredReveal({
   );
 }
 
-// ── 7. Text Animations (AnimatedAppHeader) ───────────────────────────────────
-export function AnimatedAppHeader({
-  title,
-  subtitle,
-  titleClassName = 'font-extrabold tracking-tighter leading-none mb-3',
-  subtitleClassName = '',
-  titleStyle = {},
-  subtitleStyle = {},
-  staggerInterval = 20, // ms per character
-  delayOffset = 0.06,
-}: {
-  title: string;
-  subtitle?: string;
-  titleClassName?: string;
-  subtitleClassName?: string;
-  titleStyle?: React.CSSProperties;
-  subtitleStyle?: React.CSSProperties;
-  staggerInterval?: number;
-  delayOffset?: number;
-}) {
-  const prefersReduced = usePrefersReducedMotion();
-  const speedScale = useAnimationSpeed();
 
-  const mergedTitleStyle: React.CSSProperties = {
-    fontFamily: 'Manrope, sans-serif',
-    fontWeight: 900,
-    fontSize: '2.6rem',
-    color: 'var(--c-text-primary)',
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
-    marginTop: '12px',
-    marginBottom: '8px',
-    ...titleStyle,
-  };
-
-  const mergedSubtitleStyle: React.CSSProperties = {
-    fontFamily: 'Inter, sans-serif',
-    fontSize: '13px',
-    color: 'var(--c-text-secondary)',
-    marginTop: '4px',
-    marginBottom: '24px',
-    lineHeight: 1.4,
-    ...subtitleStyle,
-  };
-
-  return (
-    <>
-      <h2 className={titleClassName} style={mergedTitleStyle}>
-        {title}
-      </h2>
-      {subtitle && (
-        <p className={subtitleClassName} style={mergedSubtitleStyle}>
-          {subtitle}
-        </p>
-      )}
-    </>
-  );
-}
 
 // ── 8. Centralized M3 Transition Helpers ─────────────────────────────────────
 export interface M3TransitionProps {
@@ -405,9 +348,7 @@ export function FadeThroughTransition({
           initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.92 }}
-          transition={{
-            type: "spring", stiffness: 400, damping: 20, mass: 0.35,
-            duration: DurationPresets.normal * speedScale,
+          transition={{ ...SpringPresets.expressive, duration: DurationPresets.normal * speedScale,
           }}
         >
           {children}
@@ -474,9 +415,7 @@ export function SharedAxisTransition({
           animate="animate"
           exit="exit"
           variants={variants}
-          transition={{
-            type: "spring", stiffness: 220, damping: 22, mass: 0.85,
-            duration: DurationPresets.normal * speedScale,
+          transition={{ ...SpringPresets.expressive, duration: DurationPresets.normal * speedScale,
           }}
         >
           {children}
@@ -521,7 +460,7 @@ export function ContainerTransform({
       className={className}
       style={{ ...style, willChange: 'transform, opacity' }}
       transition={{
-        ...{ type: "spring", stiffness: 220, damping: 22, mass: 0.85 } as any as any,
+        ...SpringPresets.medium as any,
       }}
       onClick={onClick}
     >

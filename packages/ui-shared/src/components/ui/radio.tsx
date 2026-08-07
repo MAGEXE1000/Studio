@@ -1,3 +1,4 @@
+import { SpringPresets } from '@workspace/studio-core';
 "use client";
 
 import type { Variants } from "motion/react";
@@ -29,12 +30,7 @@ const VARIANTS: Variants = {
   },
   fadeIn: (i: number) => ({
     opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 20,
-      delay: i * 0.1,
-    },
+    transition: SpringPresets.icon as any,
   }),
 };
 

@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import { NavigationDispatcher } from '@workspace/studio-core';
 import { useChordStore, ACCENT_COLORS, type AppKey, useT, useSettingsStore } from '@workspace/studio-core';
 import React, { useState, useEffect } from 'react';
@@ -9,7 +10,7 @@ import {
   GroovexLogo,
   VocalexLogo,
 } from '../icons/ChordexLogo';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
 
 interface AppCard {
@@ -68,7 +69,7 @@ export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetPro
   }
 
   return (
-    <DialogScaffold
+    <Dialog
       open={show}
       onClose={onClose}
       title={t.applyTo.title}
@@ -179,6 +180,6 @@ export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetPro
           })}
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }

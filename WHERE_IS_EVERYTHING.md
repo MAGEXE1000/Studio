@@ -78,8 +78,8 @@
 | Bottom nav scroll-hide | `packages/studio-core/src/lib/navigation/navScroll.ts` |
 | Search index | `packages/studio-core/src/lib/navigation/searchIndex.ts` |
 | Panel switcher (UI) | `packages/ui-shared/src/navigation/SharedNavigationContainer.tsx` |
-| Bottom nav bar (UI) | `packages/ui-shared/src/navigation/SharedNavigationBar.tsx` |
-| Nav controller (UI) | `packages/ui-shared/src/navigation/BottomNavigationController.tsx` |
+| Bottom nav bar (UI) | `packages/ui-shared/src/features/hub/navigation/SharedNavigationBar.tsx` |
+| Nav controller (UI) | `packages/ui-shared/src/features/hub/navigation/BottomNavigationController.tsx` |
 
 ---
 
@@ -159,11 +159,12 @@
 
 | Concept | Location |
 |---------|----------|
-| Master hub shell | `packages/ui-shared/src/components/StudioHub.tsx` → actual component |
-| Layout scaffolds | `packages/ui-shared/src/components/StudioLayoutSystem.tsx` → actual component |
-| Loading gate | `packages/ui-shared/src/components/SmartLoading.tsx` → actual component |
-| Error boundary | `packages/ui-shared/src/components/ErrorBoundary.tsx` → actual component |
-| Skeleton loaders | `packages/ui-shared/src/components/StudioSkeleton.tsx` → actual component |
+| Shared app shell | `packages/ui-shared/src/shared/layout/SharedAppShell.tsx` → cross-platform entry point |
+| Master hub shell | `packages/ui-shared/src/features/hub/components/StudioHub.tsx` → actual component |
+| Layout scaffolds | `packages/ui-shared/src/shared/layout/StudioLayoutSystem.tsx` → actual component |
+| Loading gate | `packages/ui-shared/src/shared/loading/SmartLoading.tsx` → actual component |
+| Error boundary | `packages/ui-shared/src/shared/feedback/ErrorBoundary.tsx` → actual component |
+| Skeleton loaders | `packages/ui-shared/src/shared/loading/StudioSkeleton.tsx` → actual component |
 | Sidebar (web) | `packages/ui-web/src/components/WebSidebarLayout.tsx`, `StudioSidebar.tsx` |
 | Lottie wrappers | `packages/ui-shared/src/components/lottie/` |
 | Icons | `packages/ui-shared/src/components/icons/` (AnimatedIcon, bakaiIconLibrary) |

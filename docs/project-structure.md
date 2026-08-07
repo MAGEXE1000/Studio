@@ -11,25 +11,25 @@ This document defines the codebase layout, module entry points, component struct
   - **Android Native App Shell**: `apps/studio-android/android/app/src/main/java/com/chordex/app/MainActivity.java`
   - **Web App**: `apps/studio-web/src/main.tsx` & `apps/studio-web/src/App.tsx`
 - **Studio Hub (Settings Dashboard)**:
-  - [StudioHub.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/StudioHub.tsx)
+  - [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/hub/components/StudioHub.tsx)
 - **Chordex (Practice & Chords Library)**:
-  - **Discover & Songs catalog**: [SongsPanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/panels/SongsPanel.tsx)
-  - **Practice Screen**: [SongPracticeView.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/SongPracticeView.tsx)
-  - **Chord Library**: [LibraryPanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/panels/LibraryPanel.tsx)
+  - **Discover & Songs catalog**: [SongsPanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/chordex/pages/SongsPanel.tsx)
+  - **Practice Screen**: [SongPracticeView.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/chordex/pages/SongPracticeView.tsx)
+  - **Chord Library**: [LibraryPanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/chordex/pages/LibraryPanel.tsx)
 - **Stagex (Interactive Layout Stage)**:
-  - **Android Screen Wrapper**: [StageCorePanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-android/src/components/StageCorePanel.tsx)
-  - **Web Screen Wrapper**: [StageCorePanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/StageCorePanel.tsx)
-  - **Static iframe App**: [app.js](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/apps/studio-android/public/stage-core/app.js) & [features.js](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/apps/studio-android/public/stage-core/features.js)
+  - **Android Screen Wrapper**: [StageCorePanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx)
+  - **Web Screen Wrapper**: [StageCorePanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx)
+  - **Static iframe App**: [app.js](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/public/stage-core/app.js) & [features.js](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/public/stage-core/features.js)
 - **Drumex (Sequencer & Drum Pads)**:
-  - **Sequencer UI**: [DrumEditor.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/panels/DrumEditor.tsx)
-  - **Audio Sampler Logic**: [drumAudio.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/drumAudio.ts)
+  - **Sequencer UI**: [DrumEditor.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/drumex/pages/DrumEditor.tsx)
+  - **Audio Sampler Logic**: [drumAudio.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/drumAudio.ts)
 - **Groovex (Interactive Backing Tracks)**:
-  - **Sequencer UI & Player**: `packages/ui-shared/src/groovex/`
+  - **Sequencer UI & Player**: `packages/ui-shared/src/features/groovex/`
 - **Vocalex (Vocal Tuning & Takes)**:
-  - **App Shell**: `packages/ui-shared/src/vocalex/VocalexApp.tsx`
-  - **Tuner Lab**: `packages/ui-shared/src/vocalex/LabPanel.tsx`
+  - **App Shell**: `packages/ui-shared/src/features/vocalex/pages/VocalexApp.tsx`
+  - **Tuner Lab**: `packages/ui-shared/src/features/vocalex/components/LabPanel.tsx`
 - **Update System**:
-  - **Update UI Indicator overlay**: [UpdateIndicator.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/update/UpdateIndicator.tsx)
+  - **Update UI Indicator overlay**: [UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/updater/components/UpdateIndicator.tsx)
 - **Release Metadata Locations**:
   - **Vite Companion Manifest**: `apps/studio-android/public/version.json`
   - **Android build configurations**: `apps/studio-android/android/app/build.gradle` (versionCode & versionName)

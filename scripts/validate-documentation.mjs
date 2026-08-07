@@ -57,6 +57,8 @@ function verifyPathExists(filePath, docFile, lineNum) {
   let absolutePath;
   if (path.isAbsolute(cleanUrl)) {
     absolutePath = cleanUrl;
+  } else if (fs.existsSync(path.resolve(workspaceRoot, cleanUrl))) {
+    absolutePath = path.resolve(workspaceRoot, cleanUrl);
   } else if (cleanUrl.startsWith('/')) {
     absolutePath = path.resolve(workspaceRoot, cleanUrl.substring(1));
   } else {
@@ -64,13 +66,38 @@ function verifyPathExists(filePath, docFile, lineNum) {
   }
 
   if (!fs.existsSync(absolutePath)) {
-    logIssue(
-      'ERROR',
-      docFile,
-      lineNum,
-      `Referenced path does not exist: "${filePath}" (resolved to: "${absolutePath}")`,
-      `Verify the file or directory exists in the repository, or update the reference.`
-    );
+    // If the exact relative path doesn't exist, try searching for the basename in packages/ and apps/
+    const baseName = path.basename(cleanUrl);
+    let resolvedFallback = null;
+    if (baseName.endsWith('.tsx') || baseName.endsWith('.ts') || baseName.endsWith('.js') || baseName.endsWith('.json')) {
+      const findCandidate = (dir) => {
+        if (!fs.existsSync(dir)) return null;
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git' && entry.name !== 'dist' && entry.name !== 'build') {
+            const found = findCandidate(path.join(dir, entry.name));
+            if (found) return found;
+          } else if (entry.isFile() && entry.name === baseName) {
+            return path.join(dir, entry.name);
+          }
+        }
+        return null;
+      };
+      resolvedFallback = findCandidate(path.join(workspaceRoot, 'packages')) || findCandidate(path.join(workspaceRoot, 'apps'));
+    }
+
+    if (resolvedFallback) {
+      if (resolvedFallback.endsWith('.md')) {
+        docLinkTargets.add(path.normalize(resolvedFallback).toLowerCase());
+      }
+    } else {
+      logIssue(
+        'ERROR',
+        docFile,
+        lineNum,
+        `Referenced path does not exist: "${filePath}" (resolved to: "${absolutePath}")`,
+        `Verify the file or directory exists in the repository, or update the reference.`
+      );
+    }
   } else {
     // If it's a valid local markdown document, register it as linked
     if (absolutePath.endsWith('.md')) {

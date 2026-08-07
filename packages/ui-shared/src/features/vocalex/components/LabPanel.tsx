@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import { createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher, vocalexRepository } from "@workspace/studio-core";
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -7,7 +8,7 @@ import MicWavesLottie from '../../../shared/lottie/MicWavesLottie';
 import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 
 const SESSION_ICONS = [
   'graphic_eq',
@@ -954,7 +955,7 @@ function AddTrackSheet({
   };
 
   return (
-    <DialogScaffold open={true} onClose={onClose} title={t.vocalex.addTrack}>
+    <Dialog open={true} onClose={onClose} title={t.vocalex.addTrack}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div
           style={{
@@ -1219,7 +1220,7 @@ function AddTrackSheet({
           </div>
         )}
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }
 

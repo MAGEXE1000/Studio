@@ -104,6 +104,7 @@ export const EasingPresets = {
 };
 
 export const SpringPresets = {
+  icon: { type: 'spring' as const, stiffness: 160, damping: 17, mass: 1 },
   // Softer M3-style springs (formerly from AppAnimationSystem)
   gentle: { type: 'spring' as const, stiffness: 150, damping: 25, mass: 1.0 },
   medium: { type: 'spring' as const, stiffness: 220, damping: 22, mass: 0.85 },

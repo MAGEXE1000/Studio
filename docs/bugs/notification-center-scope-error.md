@@ -65,7 +65,7 @@ const unreadCount = useNotificationService(
 
 ## Files Modified
 
-- [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/hub/StudioHub.tsx) — Added `unreadCount` selector inside `HubSettings` (line 3200)
+- [StudioHub.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/hub/components/StudioHub.tsx) — Added `unreadCount` selector inside `HubSettings` (line 3200)
 
 ## Architecture Changes
 

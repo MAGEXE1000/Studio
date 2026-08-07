@@ -21,7 +21,7 @@ export { LibraryPanel } from './features/chordex';
 export { AnimatedIcon } from './shared/icons/AnimatedIcon';
 export * from './shared/icons/bakaiIconLibrary';
 export { LiquidSurfaceEngine } from './shared/liquid/LiquidSurfaceEngine';
-export { LiquidBottomNav } from './features/hub/navigation/LiquidBottomNav';
+
 export { SaxophonePracticePanel } from './features/chordex/pages/SaxophonePracticePanel';
 export { SaxophoneView } from './features/chordex/components/SaxophoneView';
 export { default as SettingsPanel } from './panels/SettingsPanel';
@@ -35,7 +35,7 @@ export { VocalexApp } from './features/vocalex';
 export { StageCorePanel } from './features/stagex';
 export { default as StudioHub } from './features/hub/components/StudioHub';
 export * from './features/hub/icons/NavIcons';
-export * from './features/hub/animations/AppAnimationSystem';
+export * from './shared/animation';
 export { SongPracticeView } from './features/chordex/pages/SongPracticeView';
 
 // Remaining components in ui-shared/components
@@ -48,7 +48,7 @@ export * from './shared/icons/DownloadIcon';
 export { default as PendingDeletionScreen } from './features/auth/screens/PendingDeletionScreen';
 export { default as ProgressionGenerator } from './features/chordex/components/ProgressionGenerator';
 export * from './shared/typography/ScrollFade';
-export * from './shared/typography/SettingControls';
+export * from './shared/settings/SettingControls';
 export { default as StudioAuthCard } from './features/auth/components/StudioAuthCard';
 export { default as StudioPricingSection } from './features/auth/components/StudioPricingSection';
 export { default as StudioUpdateScreen } from './features/updater/components/StudioUpdateScreen';
@@ -74,21 +74,23 @@ export * from './shared/ui/encrypted-text';
 export { useGroovexStore } from './features/groovex';
 export { default as WebAppSectionDock } from './shared/layout/WebAppSectionDock';
 export { default as DevToolsDashboard } from './features/devtools/components/DevToolsDashboard';
+export { default as DevToolsApp } from './features/devtools/DevToolsApp';
 
 // BottomNav removed (architectural unification)
 export { default as UpdateIndicator } from './features/updater/components/UpdateIndicator';
-export { default as UpdateDiagnosticsSheet } from './features/updater/sheets/UpdateDiagnosticsSheet';
+
 export * from './shared/layout/StudioLayoutSystem';
 export { ProgressiveBlur } from './shared/design-system/ProgressiveBlur';
+export { StudioHeader } from './shared/layout/StudioHeader';
 export { ActionButton } from './shared/design-system/StudioDesignSystem';
 export { SharedNavigationBar } from './features/hub/navigation/SharedNavigationBar';
 export { BottomNavigationController } from './features/hub/navigation/BottomNavigationController';
 export {
   LaunchAnimationEngine,
   type LaunchPreset,
-} from './features/hub/animations/LaunchAnimationEngine';
-export { ApplicationTransitionEngine } from './features/hub/animations/ApplicationTransitionEngine';
-export { default as InkThemeOverlay } from './shared/theme/InkThemeOverlay';
+} from './shared/animation';
+export { ApplicationTransitionEngine } from './shared/animation';
+
 export { default as html2canvas } from 'html2canvas';
 export * from './shared/design-system';
 export * from './features/devtools/inspector';

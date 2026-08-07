@@ -210,10 +210,6 @@ Refer to these targeted subsystem and architecture guides for implementation det
   - [Updater Verification pipeline](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/updater/packageinstaller.md)
   - [Updater Key signing constants](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/updater/keystore.md)
   - [Lessons Learned Database](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/knowledge/lessons_learned.md)
-- **Session Logs**:
-  - [Session Logs Index](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/session_logs/index.md)
-  - [Session Log 02 (2026-07-02)](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/session_logs/2026-07-02_session-02.md)
-  - [Session Log 01 (2026-07-02)](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/session_logs/2026-07-02_session-01.md)
 
 Source:
 

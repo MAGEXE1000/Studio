@@ -54,7 +54,7 @@ Added a minimum-width clamp to the `pillPathD` path generator: if `rightX - left
 
 ## Files Modified
 
-- [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/navigation/SharedNavigationBar.tsx) — Clamped minimum capsule width in `pillPathD`
+- [SharedNavigationBar.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/hub/navigation/SharedNavigationBar.tsx) — Added flex-shrink-0 and fixed width constraints `pillPathD`
 
 ## Architecture Changes
 

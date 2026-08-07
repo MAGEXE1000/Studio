@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import {
   useT,
   createAudioContext,
@@ -16,7 +17,7 @@ import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 
 import RecordingView from './RecordingView';
 import TakeDetailView from './TakeDetailView';

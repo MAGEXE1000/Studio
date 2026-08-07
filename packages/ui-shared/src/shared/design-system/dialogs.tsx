@@ -24,7 +24,8 @@ export const activeOverlaysRegistry = {
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
+import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets, useIsWebDesktop } from '@workspace/studio-core';
+import { ProgressiveBlur } from './ProgressiveBlur';
 // ── 4. Dialog ──────────────────────────────────────────────────────────────
 export interface DialogProps {
   open: boolean;
@@ -36,6 +37,8 @@ export interface DialogProps {
 
 export function Dialog({ open, onClose, title, children, footer }: DialogProps) {
   const [mounted, setMounted] = useState(false);
+  const isLargeScreen = useIsWebDesktop();
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -63,11 +66,13 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
             inset: 0,
             zIndex: 99999,
             display: 'flex',
-            alignItems: 'center',
+            alignItems: isLargeScreen ? 'center' : 'flex-end',
             justifyContent: 'center',
-            padding: 16,
+            padding: isLargeScreen ? '16px' : 0,
           }}
+          className="studio-dialog-scaffold-root"
         >
+          {/* Backdrop Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -76,39 +81,75 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
             style={{
               position: 'absolute',
               inset: 0,
-              backgroundColor: 'rgba(0,0,0,0.75)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              backgroundColor: 'rgba(0,0,0,0.50)',
+              overflow: 'hidden',
             }}
-          />
+          >
+            <ProgressiveBlur
+              direction="bottom"
+              blurLayers={5}
+              maxBlur={12}
+              className="absolute inset-0"
+            />
+          </motion.div>
+
+          {/* Dialog Body */}
           <motion.div
-            initial={{ scale: 0.94, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.94, opacity: 0 }}
-            transition={SpringPresets.expressive}
+            initial={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
+            animate={isLargeScreen ? { scale: 1, opacity: 1 } : { y: 0 }}
+            exit={isLargeScreen ? { scale: 0.95, opacity: 0 } : { y: '100%' }}
+            transition={isLargeScreen ? SpringPresets.expressive : SpringPresets.medium}
             style={{
               position: 'relative',
               width: '100%',
               maxWidth: '480px',
               backgroundColor: 'var(--c-surface-highest)',
-              borderRadius: 'var(--radius-2xl)',
+              borderRadius: isLargeScreen
+                ? 'var(--radius-2xl)'
+                : 'var(--radius-3xl) var(--radius-3xl) 0 0',
               border: `1px solid var(--c-border)`,
               boxShadow: 'var(--elevation-high)',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              maxHeight: '85vh',
+              maxHeight: isLargeScreen
+                ? 'min(640px, 85vh)'
+                : 'calc(100vh - env(safe-area-inset-top, 0px) - 24px)',
+              paddingBottom: isLargeScreen ? 0 : 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
               transition: 'background-color 200ms ease, border-color 200ms ease',
             }}
           >
+            {/* Top Indicator handle for bottom sheet */}
+            {!isLargeScreen && (
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: '12px 0 8px',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '4px',
+                    borderRadius: '2px',
+                    backgroundColor: 'var(--c-border)',
+                  }}
+                />
+              </div>
+            )}
+
             {title && (
               <div
                 style={{
-                  padding: '16px 20px',
+                  padding: isLargeScreen ? '16px 20px' : '8px 20px 16px',
                   borderBottom: `1px solid var(--c-border)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  flexShrink: 0,
                 }}
               >
                 <h3
@@ -117,6 +158,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
                     fontSize: '16px',
                     fontWeight: 800,
                     fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary)',
                   }}
                 >
                   {title}
@@ -140,6 +182,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
             )}
 
             <div
+              className="no-scrollbar"
               style={{
                 padding: '20px',
                 overflowY: 'auto',
@@ -162,6 +205,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
                   display: 'flex',
                   justifyContent: 'flex-end',
                   gap: '8px',
+                  flexShrink: 0,
                 }}
               >
                 {footer}

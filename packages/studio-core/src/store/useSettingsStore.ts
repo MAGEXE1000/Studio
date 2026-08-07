@@ -9,7 +9,7 @@ import type { Instrument } from '../data/chords';
 export type Theme = 'dark' | 'light' | 'system' | 'dynamic';
 export type ActivePanel = 'library' | 'preferences' | 'songs';
 export type AccentColor = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal' | 'custom';
-export type AppKey = 'hub' | 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex';
+export type AppKey = 'hub' | 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex' | 'devtools';
 export type AppRoute = NavigationRoute;
 
 export interface PerAppVisuals {
@@ -88,17 +88,11 @@ export interface AppSettings {
 
 export interface SettingsStore {
   settings: AppSettings;
-  lastSession: {
-    app?: AppKey;
-    vocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
-    stagexView?: string;
-    drumexTab?: 'songs' | 'patterns' | 'prefs';
-    groovexView?: 'library' | 'player' | 'preferences';
-  };
+
 
   updateSettings: (settings: Partial<AppSettings>) => void;
   updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => void;
-  setLastSession: (patch: Partial<SettingsStore['lastSession']>) => void;
+
 }
 
 
@@ -189,20 +183,18 @@ const DEFAULT_SETTINGS: AppSettings = {
     stagex: { theme: 'light', accentColor: 'blue', amoledMode: false },
     vocalex: { theme: 'light', accentColor: 'blue', amoledMode: false },
     groovex: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    devtools: { theme: 'light', accentColor: 'blue', amoledMode: false },
   },
 };
 
-const DEFAULT_LAST_SESSION = { app: 'hub' as AppKey };
 
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
       settings: DEFAULT_SETTINGS,
-      lastSession: DEFAULT_LAST_SESSION,
 
       updateSettings: (newSettings) => {
         set((state) => {
-          const nextSession = state.lastSession;
           const updatedSettings = { ...state.settings, ...newSettings };
 
           if (newSettings.theme || newSettings.accentColor || newSettings.amoledMode !== undefined) {
@@ -220,13 +212,8 @@ export const useSettingsStore = create<SettingsStore>()(
 
           return {
             settings: updatedSettings,
-            lastSession: nextSession,
           };
         });
-      },
-
-      setLastSession: (patch) => {
-        set((state) => ({ lastSession: { ...state.lastSession, ...patch } }));
       },
 
       updatePerApp: (apps, patch) => {
@@ -250,10 +237,8 @@ export const useSettingsStore = create<SettingsStore>()(
               const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
               if (parsed && parsed.state) {
                 const oldSettings = parsed.state.settings || {};
-                const oldLastSession = parsed.state.lastSession || {};
                 return {
                   settings: { ...DEFAULT_SETTINGS, ...oldSettings },
-                  lastSession: { ...DEFAULT_LAST_SESSION, ...oldLastSession },
                 };
               }
             }
@@ -269,13 +254,9 @@ export const useSettingsStore = create<SettingsStore>()(
         const settings = persistedState.settings
           ? { ...currentState.settings, ...persistedState.settings }
           : currentState.settings;
-        const lastSession = persistedState.lastSession
-          ? { ...currentState.lastSession, ...persistedState.lastSession }
-          : currentState.lastSession;
         return {
           ...currentState,
           settings,
-          lastSession,
         };
       },
       storage: createJSONStorage(() => ({

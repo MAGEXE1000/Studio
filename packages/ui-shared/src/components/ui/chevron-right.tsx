@@ -1,3 +1,4 @@
+import { SpringPresets } from '@workspace/studio-core';
 "use client";
 
 import type { Transition } from "motion/react";
@@ -16,10 +17,7 @@ interface ChevronRightIconProps extends HTMLAttributes<HTMLDivElement> {
   size?: number;
 }
 
-const DEFAULT_TRANSITION: Transition = {
-  times: [0, 0.4, 1],
-  duration: 0.5,
-};
+const DEFAULT_TRANSITION: Transition = SpringPresets.icon as Transition;
 
 const ChevronRightIcon = forwardRef<
   ChevronRightIconHandle,

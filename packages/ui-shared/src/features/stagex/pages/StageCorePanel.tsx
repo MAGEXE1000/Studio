@@ -1,5 +1,5 @@
 import { Button, Toolbar } from '../../../shared/design-system/StudioDesignSystem';
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets, CollaborationService, authRepository, APP_VERSION, getFirebaseConfigDetails, getFirestoreDiagnostics } from '@workspace/studio-core';
+import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets, CollaborationService, authRepository, APP_VERSION, getFirebaseConfigDetails, getFirestoreDiagnostics, useSessionStore } from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
@@ -502,7 +502,7 @@ export default function StagexPanel() {
   curViewRef.current = curView;
 
   useEffect(() => {
-    useSettingsStore.getState().setLastSession({ stagexView: curView });
+    useSessionStore.getState().setLastSession({ stagexView: curView });
   }, [curView]);
 
   const returnToStudioHub = useCallback(() => {

@@ -1,6 +1,7 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import { subscribeSyncStatus, getSyncStatus, syncNow, settingsController, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP, useSettingsStore, userRepository } from "@workspace/studio-core";
 import { useEffect, useRef, useState } from 'react';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
 import { createPortal } from 'react-dom';
 import AppSpinner from '../../../shared/loading/AppSpinner';
@@ -71,7 +72,7 @@ async function selectAvatarIcon(user: AuthUser | null, icon: AvatarIcon | null) 
   }
 }
 import { Capacitor } from '@capacitor/core';
-import { Toggle } from '../../../shared/typography/SettingControls';
+import { Toggle } from '../../../shared/settings/SettingControls';
 import { subscribeUserProfile, isAdminUser, isBetaTesterUser, hasCoreAccessUser, hasProAccessUser, type UserProfile, type UserRole } from "@workspace/studio-core";
 
 const CLOUD_SYNC_FEATURE_ENABLED = false;
@@ -1523,7 +1524,7 @@ function AvatarPickerSheet({
   onClose,
 }: AvatarPickerSheetProps) {
   return (
-    <DialogScaffold
+    <Dialog
       open={true}
       onClose={onClose}
       title={t.avatarPickerTitle}
@@ -1602,7 +1603,7 @@ function AvatarPickerSheet({
           })}
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }
 
@@ -7945,7 +7946,7 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
   const isEs = lang === 'es';
 
   return (
-    <DialogScaffold
+    <Dialog
       open={true}
       onClose={() => onClose('notNow')}
       title={isEs ? '¿Sincronizar tus datos de Studio?' : 'Sync your existing Studio data?'}
@@ -8098,7 +8099,7 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
           </button>
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }
 

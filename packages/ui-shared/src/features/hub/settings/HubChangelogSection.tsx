@@ -1,6 +1,6 @@
 import React from 'react';
 import { RELEASE_HISTORY, APP_VERSION_LABEL, ACCENT_COLORS, useSettingsStore, sanitizeUTF8String } from '@workspace/studio-core';
-import { SectionHeader } from '../../../shared/typography/SettingControls';
+import { SectionHeader } from '../../../shared/settings/SettingControls';
 
 export default function HubChangelogSection() {
   const settings = useSettingsStore((s) => s.settings);

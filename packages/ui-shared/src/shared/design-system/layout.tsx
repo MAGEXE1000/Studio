@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
-import { AnimatedAppHeader } from '../../features/hub/animations/AppAnimationSystem';
+import { StudioHeader as AnimatedAppHeader } from '../layout/StudioHeader';
 import { ProgressiveBlur } from './ProgressiveBlur';
 // ── 5. Toolbar ─────────────────────────────────────────────────────────────
 export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {

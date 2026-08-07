@@ -74,35 +74,32 @@
 
 ## 2. Code Files Over 2000 Lines
 
-- **[StageCorePanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-android/src/components/StageCorePanel.tsx)** (Android): 131.9 KB / 3,078 lines — Android Stagex wrapper (safe to split sheets, do not touch now).
-- **[StageCorePanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/StageCorePanel.tsx)** (Shared): 124.7 KB / 2,883 lines — Web Stagex wrapper (safe to split, do not touch now).
-- **[sync.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/sync.ts)**: 108.7 KB / 2,866 lines — Sync engine transactions (concurrency state-machine locks. **RISKY — DO NOT TOUCH**).
-- **[App.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/apps/studio-android/src/App.tsx)**: 95.5 KB / 2,682 lines — Android app navigator (safe to split routes, do not touch now).
-- **[DevToolsDashboard.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/DevToolsDashboard.tsx)**: 97.3 KB / 2,403 lines — Diagnostics view.
-- **[progressions.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/data/progressions.ts)**: 108.9 KB / 2,201 lines — Discover lyrics progression maps (heavy database object. Safe to split into dynamic JSON files in the future).
-- **[drumAudio.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/drumAudio.ts)**: 99.6 KB / 2,140 lines — Audio buffer buffers mapping (no-touch).
-- **[index.css](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/apps/studio-android/src/index.css)**: 64.5 KB / 2,001 lines — App stylesheet.
+- **[StageCorePanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx)** (Shared): 124.7 KB / 2,883 lines — Web Stagex wrapper (safe to split, do not touch now).
+- **[sync.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/sync.ts)**: 108.7 KB / 2,866 lines — Sync engine transactions (concurrency state-machine locks. **RISKY — DO NOT TOUCH**).
+- **[App.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/src/App.tsx)**: 95.5 KB / 2,682 lines — Android app navigator (safe to split routes, do not touch now).
+- **[DevToolsDashboard.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/devtools/components/DevToolsDashboard.tsx)**: 97.3 KB / 2,403 lines — Diagnostics view.
+- **[progressions.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/data/progressions.ts)**: 108.9 KB / 2,201 lines — Discover lyrics progression maps (heavy database object. Safe to split into dynamic JSON files in the future).
+- **[drumAudio.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/drumAudio.ts)**: 99.6 KB / 2,140 lines — Audio buffer buffers mapping (no-touch).
+- **[index.css](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/apps/studio-android/src/index.css)**: 64.5 KB / 2,001 lines — App stylesheet.
 
 ---
 
 ## 3. Code Files Over 1000 Lines
 
-- **[UpdateIndicator.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/components/UpdateIndicator.tsx)**: 65.2 KB / 1,841 lines — OTA UI mapping.
-- ****: 69.1 KB / 1,812 lines — OTA client downloader logic.
-- **[LibraryPanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/panels/LibraryPanel.tsx)**: 86.2 KB / 1,683 lines — Chords selector.
-- **[supabaseRealtime.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/supabaseRealtime.ts)**: 45.0 KB / 1,354 lines — Realtime sync backend.
-- **[firebaseLegacy.ts](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/firebaseLegacy.ts)**: 42.7 KB / 1,332 lines — Legacy firebase sync.
-- **[LabPanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/vocalex/LabPanel.tsx)**: 57.0 KB / 1,268 lines — Vocalex tuner view.
-- **[CHANGELOG.md](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/CHANGELOG.md)**: 46.5 KB / 1,100 lines.
-- **[GroovexPlayer.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/groovex/GroovexPlayer.tsx)**: 44.6 KB / 1,098 lines — Groovex backing track player interface.
-- **[TakesPanel.tsx](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/vocalex/TakesPanel.tsx)**: 41.3 KB / 1,057 lines — Vocalex takes explorer.
+- **[UpdateIndicator.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/updater/components/UpdateIndicator.tsx)**: 65.2 KB / 1,841 lines — OTA UI mapping.
+- **[LibraryPanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/chordex/pages/LibraryPanel.tsx)**: 86.2 KB / 1,683 lines — Chords selector.
+- **[supabaseRealtime.ts](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/lib/syncBackends/supabaseRealtime.ts)**: 45.0 KB / 1,354 lines — Realtime sync backend.
+- **[LabPanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/components/LabPanel.tsx)**: 57.0 KB / 1,268 lines — Vocalex tuner view.
+- **[CHANGELOG.md](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/CHANGELOG.md)**: 46.5 KB / 1,100 lines.
+- **[GroovexPlayer.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/groovex/components/GroovexPlayer.tsx)**: 44.6 KB / 1,098 lines — Groovex backing track player interface.
+- **[TakesPanel.tsx](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/ui-shared/src/features/vocalex/components/TakesPanel.tsx)**: 41.3 KB / 1,057 lines — Vocalex takes explorer.
 
 ---
 
 ## 4. Largest JSON Files in Source
 
-1. **[en.json](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/i18n/en.json)**: 61.8 KB / 1,043 lines — English translation values.
-2. **[es.json](file:///c:/Users/ayuda/.gemini/antigravity/scratch/Studio/packages/studio-core/src/i18n/es.json)**: 47.6 KB / 998 lines — Spanish translation values.
+1. **[en.json](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/i18n/en.json)**: 61.8 KB / 1,043 lines — English translation values.
+2. **[es.json](file:///c:/Users/ayuda/Documents/.gemini/antigravity/scratch/Studio/packages/studio-core/src/i18n/es.json)**: 47.6 KB / 998 lines — Spanish translation values.
 
 ---
 

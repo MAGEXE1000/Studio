@@ -1,3 +1,4 @@
+import { SpringPresets } from '@workspace/studio-core';
 "use client";
 
 import type { Transition } from "motion/react";
@@ -16,12 +17,7 @@ interface CopyIconProps extends HTMLAttributes<HTMLDivElement> {
   size?: number;
 }
 
-const DEFAULT_TRANSITION: Transition = {
-  type: "spring",
-  stiffness: 160,
-  damping: 17,
-  mass: 1,
-};
+const DEFAULT_TRANSITION: Transition = SpringPresets.icon as Transition;
 
 const CopyIcon = forwardRef<CopyIconHandle, CopyIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {

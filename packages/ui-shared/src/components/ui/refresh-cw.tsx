@@ -5,6 +5,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { SpringPresets } from '@workspace/studio-core';
 
 export interface RefreshCCWIconWIcon {
   startAnimation: () => void;
@@ -59,7 +60,7 @@ const RefreshCWIcon = forwardRef<RefreshCCWIconWIcon, RefreshCCWIcoWIcon>(
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
-          transition={{ type: "spring", stiffness: 250, damping: 25 }}
+          transition={SpringPresets.icon}
           variants={{
             normal: { rotate: "0deg" },
             animate: { rotate: "50deg" },

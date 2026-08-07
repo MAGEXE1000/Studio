@@ -13,9 +13,9 @@ import {
   SettingRow,
   SegmentedControl,
   Toggle,
-} from '../../../shared/typography/SettingControls';
+} from '../../../shared/settings/SettingControls';
 import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
-import { Dialog, Sheet } from '../../../shared/design-system/dialogs';
+import { LanguagePickerSheet, SUPPORTED_LANGUAGES } from '../../../shared/settings/LanguagePickerSheet';
 
 /**
  * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
@@ -30,19 +30,7 @@ export default function StudioHubSettingsPanel() {
   const t = useT();
   const [isLanguageOpen, setIsLanguageOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    console.log('[APPEARANCE-RUNTIME-PROOF]', {
-      component: 'StudioHubSettingsPanel',
-      filename: 'StudioHubSettingsPanel.tsx',
-      importPath: '@workspace/ui-shared/src/features/hub/settings/StudioHubSettingsPanel.tsx',
-      renderPath:
-        'App.tsx -> SharedAppShell -> StudioHub -> renderActivePageContent -> StudioHubSettingsPanel',
-      mountedAt: new Date().toISOString(),
-    });
-    try {
-      (window as any).__lastMountedAppearanceComponent = 'StudioHubSettingsPanel';
-    } catch (_) {}
-  }, []);
+
 
   const acc = React.useMemo(() => {
     const hubAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'purple';
@@ -147,17 +135,7 @@ export default function StudioHubSettingsPanel() {
                 }}
               >
                 <span>
-                  {(([
-                    { code: 'en', label: 'English' },
-                    { code: 'es', label: 'Español' },
-                    { code: 'de', label: 'Deutsch' },
-                    { code: 'fr', label: 'Français' },
-                    { code: 'zh', label: '中文' },
-                    { code: 'pt', label: 'Português' },
-                    { code: 'it', label: 'Italiano' },
-                    { code: 'ja', label: '日本語' },
-                    { code: 'ko', label: '한국어' },
-                  ] as const).find((l) => l.code === (settings.language ?? 'en'))?.label || 'English')}
+                  {SUPPORTED_LANGUAGES.find((l) => l.code === (settings.language ?? 'en'))?.label || 'English'}
                 </span>
                 <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>
                   expand_more
@@ -200,57 +178,7 @@ export default function StudioHubSettingsPanel() {
         </div>
       </div>
 
-      <Dialog open={isLanguageOpen} onClose={() => setIsLanguageOpen(false)} title="Select Language">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {([
-            { code: 'en', label: 'English' },
-            { code: 'es', label: 'Español' },
-            { code: 'de', label: 'Deutsch' },
-            { code: 'fr', label: 'Français' },
-            { code: 'zh', label: '中文' },
-            { code: 'pt', label: 'Português' },
-            { code: 'it', label: 'Italiano' },
-            { code: 'ja', label: '日本語' },
-            { code: 'ko', label: '한국어' },
-          ] as const).map(({ code, label }) => {
-            const isSelected = (settings.language ?? 'en') === code;
-            return (
-              <button
-                key={code}
-                type="button"
-                onClick={() => {
-                  settingsController.updateSettings({ language: code as any });
-                  setIsLanguageOpen(false);
-                }}
-                style={{
-                  padding: '12px 16px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: isSelected
-                    ? `linear-gradient(135deg, ${acc.from}18, ${acc.to}10)`
-                    : 'transparent',
-                  color: isSelected ? acc.from : 'var(--c-text-primary)',
-                  fontSize: 14,
-                  fontWeight: isSelected ? 700 : 500,
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  transition: 'background 200ms ease, color 200ms ease',
-                }}
-              >
-                <span>{label}</span>
-                {isSelected && (
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: acc.from }}>
-                    check
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </Dialog>
+      <LanguagePickerSheet open={isLanguageOpen} onClose={() => setIsLanguageOpen(false)} />
     </StudioPageTransition>
   );
 }

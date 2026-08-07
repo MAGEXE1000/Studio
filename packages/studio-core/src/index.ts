@@ -2,6 +2,7 @@
 export { useShallow } from 'zustand/react/shallow';
 export * from './store/useChordStore';
 export * from './store/useDrumStore';
+export * from './store/useSessionStore';
 export * from './hooks/useIsWebDesktop';
 export * from './hooks/useStudioPreferences';
 export * from './hooks/useStudioShortcuts';

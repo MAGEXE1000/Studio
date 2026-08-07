@@ -1,7 +1,6 @@
 export {
   SharedNavigationBar,
   UpdateIndicator,
-  UpdateDiagnosticsSheet,
   StudioUpdateScreen,
 } from '@workspace/ui-shared';
 

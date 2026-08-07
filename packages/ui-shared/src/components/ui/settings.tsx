@@ -5,6 +5,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { SpringPresets } from '@workspace/studio-core';
 
 export interface SettingsIconHandle {
   startAnimation: () => void;
@@ -66,7 +67,7 @@ const SettingsIcon = forwardRef<SettingsIconHandle, SettingsIconProps>(
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
-          transition={{ type: "spring", stiffness: 50, damping: 10 }}
+          transition={SpringPresets.icon}
           variants={{
             normal: {
               rotate: 0,

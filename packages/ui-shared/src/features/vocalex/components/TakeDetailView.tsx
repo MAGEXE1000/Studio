@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import {
   useT,
   createAudioContext,
@@ -16,7 +17,7 @@ import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
@@ -247,7 +248,7 @@ export default function TakeDetailView({
       )}
 
       {/* Delete confirmation */}
-      <DialogScaffold
+      <Dialog
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         title={t.vocalex.deleteConfirmTitle}
@@ -277,7 +278,7 @@ export default function TakeDetailView({
             </Button>
           </div>
         </div>
-      </DialogScaffold>
+      </Dialog>
 
       {/* Take info */}
       <div style={{ marginBottom: 20 }}>

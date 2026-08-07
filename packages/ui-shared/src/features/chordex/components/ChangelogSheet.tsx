@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useSettingsStore } from '@workspace/studio-core';
 import React from 'react';
 import {
@@ -8,7 +9,7 @@ import {
   type ChangelogSection,
   sanitizeUTF8String,
 } from '@workspace/studio-core';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 
 type Props = {
   open: boolean;
@@ -48,7 +49,7 @@ export default function ChangelogSheet({
   );
 
   return (
-    <DialogScaffold open={open} onClose={onClose} title={`v${version}`}>
+    <Dialog open={open} onClose={onClose} title={`v${version}`}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Date / Category line */}
         <div
@@ -151,6 +152,6 @@ export default function ChangelogSheet({
           ))}
         </div>
       </div>
-    </DialogScaffold>
+    </Dialog>
   );
 }

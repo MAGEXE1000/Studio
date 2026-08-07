@@ -7,15 +7,15 @@ export { HubAppGrid } from './components/HubAppGrid';
 // Navigation
 export { SharedNavigationBar } from './navigation/SharedNavigationBar';
 export { BottomNavigationController } from './navigation/BottomNavigationController';
-export { LiquidBottomNav } from './navigation/LiquidBottomNav';
+
 
 // Animations
-export * from './animations/AppAnimationSystem';
+
 export {
   LaunchAnimationEngine,
   type LaunchPreset,
-} from './animations/LaunchAnimationEngine';
-export { ApplicationTransitionEngine } from './animations/ApplicationTransitionEngine';
+} from '../../shared/animation/LaunchAnimationEngine';
+
 
 // Settings
 export { default as StudioHubSettingsPanel } from './settings/StudioHubSettingsPanel';

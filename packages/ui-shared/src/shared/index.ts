@@ -31,7 +31,7 @@ export { default as StudioCountUpPercentage } from './progress/StudioCountUpPerc
 export { default as InkThemeToggle } from './typography/InkThemeToggle';
 export { default as StudioTitleReveal } from './typography/StudioTitleReveal';
 export * from './typography/ScrollFade';
-export * from './typography/SettingControls';
+export * from './settings/SettingControls';
 
 // Cards
 export { default as GradientBorderCard } from './cards/GradientBorderCard';
@@ -54,10 +54,10 @@ export { default as StudioSpinner } from './animata/progress/spinner';
 export { LiquidSurfaceEngine } from './liquid/LiquidSurfaceEngine';
 
 // Theme
-export { default as InkThemeOverlay } from './theme/InkThemeOverlay';
+
 
 // Placeholder
-export { default as ComingSoonPlaceholder } from './placeholder/ComingSoonPlaceholder';
+
 
 // UI
 export { EncryptedText } from './ui/encrypted-text';

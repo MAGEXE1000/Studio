@@ -21,6 +21,7 @@ const DrumEditor = lazy(() => import('@workspace/ui-shared').then((m) => ({ defa
 const GroovexApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.GroovexApp })));
 const VocalexApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.VocalexApp })));
 const StageCorePanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.StageCorePanel })));
+const DevToolsApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.DevToolsApp })));
 
 import {
   WebSidebarLayout,
@@ -137,6 +138,7 @@ export default function App() {
       )}
       hubElement={<StudioHub />}
       subApps={{
+        devtools: <DevToolsApp />,
         groovex: <GroovexApp />,
         vocalex: <VocalexApp />,
         stagex: <StageCorePanel />,

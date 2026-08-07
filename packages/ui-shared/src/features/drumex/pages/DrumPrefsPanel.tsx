@@ -10,7 +10,8 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useRef, useState, useEffect } from 'react';
-import { Toggle, SectionHeader, SettingRow } from '../../../shared/typography/SettingControls';
+import { Toggle, SectionHeader, SettingRow } from '../../../shared/settings/SettingControls';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
 import { AnimatedNavigationIcon } from '../../hub/navigation/AnimatedNavigationIcon';
 
@@ -410,8 +411,10 @@ export default function DrumPrefsPanel() {
         }}
       >
         <div style={{ marginTop: 12, marginBottom: 24 }}>
-          <h2
-            style={{
+          <StudioHeader
+            title={dp.title}
+            subtitle={dp.subtitle}
+            titleStyle={{
               fontFamily: 'var(--font-headline)',
               fontWeight: 900,
               fontSize: '2.6rem',
@@ -420,19 +423,14 @@ export default function DrumPrefsPanel() {
               lineHeight: 1,
               margin: 0,
             }}
-          >
-            {dp.title}
-          </h2>
-          <p
-            style={{
+            subtitleStyle={{
               color: 'var(--c-text-secondary)',
               fontFamily: 'var(--font-body)',
               fontSize: 13,
               marginTop: 4,
+              margin: 0,
             }}
-          >
-            {dp.subtitle}
-          </p>
+          />
         </div>
 
         <SectionHeader icon="edit_note" title={dp.editorBehavior} />

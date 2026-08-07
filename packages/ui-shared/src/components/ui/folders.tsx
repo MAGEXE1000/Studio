@@ -5,6 +5,7 @@ import type { HTMLAttributes } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { SpringPresets } from '@workspace/studio-core';
 
 export interface FoldersIconHandle {
   startAnimation: () => void;
@@ -72,11 +73,7 @@ const FoldersIcon = forwardRef<FoldersIconHandle, FoldersIconProps>(
           <motion.path
             animate={controls}
             d="M20 17a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.9a2 2 0 0 1-1.69-.9l-.81-1.2a2 2 0 0 0-1.67-.9H8a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2Z"
-            transition={{
-              type: "spring",
-              stiffness: 250,
-              damping: 25,
-            }}
+            transition={SpringPresets.icon}
             variants={{
               normal: {
                 translateX: 0,
@@ -91,11 +88,7 @@ const FoldersIcon = forwardRef<FoldersIconHandle, FoldersIconProps>(
           <motion.path
             animate={controls}
             d="M2 8v11a2 2 0 0 0 2 2h14"
-            transition={{
-              type: "spring",
-              stiffness: 250,
-              damping: 25,
-            }}
+            transition={SpringPresets.icon}
             variants={{
               normal: {
                 translateX: 0,

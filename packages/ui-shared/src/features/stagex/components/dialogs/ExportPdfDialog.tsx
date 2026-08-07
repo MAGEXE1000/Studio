@@ -1,6 +1,7 @@
+import { Dialog } from '../../../../shared/design-system/dialogs';
 import React from 'react';
 import { Button, Input } from '../../../../shared/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../../shared/layout/StudioLayoutSystem';
+;
 // Note: You will need to fix imports if they are missing.
 
 interface ExportPdfDialogProps {
@@ -45,7 +46,7 @@ export const ExportPdfDialog: React.FC<ExportPdfDialogProps> = ({
   cancelLabel,
 }) => {
   return (
-          <DialogScaffold
+          <Dialog
             open={open}
             onClose={() => onClose()}
             title={title}
@@ -183,6 +184,6 @@ export const ExportPdfDialog: React.FC<ExportPdfDialogProps> = ({
                 </Button>
               </div>
             </div>
-          </DialogScaffold>
+          </Dialog>
   );
 };

@@ -1,6 +1,6 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import { Capacitor } from '@capacitor/core';
-import {
-  useChordStore,
+import { useChordStore,
   ACCENT_COLORS,
   useT,
   useBackHandler,
@@ -17,8 +17,7 @@ import {
   unregisterDebugProvider,
   useNavigationStore,
   NavigationDispatcher,
-  useSettingsStore,
-} from '@workspace/studio-core';
+  useSettingsStore, useSessionStore } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { DrumTransportBar } from '../components/DrumTransportBar';
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -55,8 +54,7 @@ import {
 import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
-import {
-  useDrumStore,
+import { useDrumStore,
   KIT_INSTRUMENTS,
   INSTRUMENT_COLOR,
   INSTRUMENT_NAME,
@@ -94,10 +92,8 @@ import {
   type InstFX,
   type InstPlugin,
   type LoopRange,
-  useBottomNavigationStore,
-} from '@workspace/studio-core';
-import {
-  drumScheduler,
+  useBottomNavigationStore } from '@workspace/studio-core';
+import { drumScheduler,
   samplePool,
   loadDrumSamples,
   loadHouseKit,
@@ -116,22 +112,18 @@ import {
   setInstPluginMap,
   getAudioCtx,
   type SampleStatus,
-  type HouseInstName,
-} from '@workspace/studio-core';
+  type HouseInstName } from '@workspace/studio-core';
 
 import DrumPrefsPanel from './DrumPrefsPanel';
-import { AnimatedAppHeader, StaggeredReveal } from '../../hub/animations/AppAnimationSystem';
+import { StaggeredReveal } from '../../../shared/animation';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
-import {
-  DialogScaffold,
-  ScreenScaffold,
-  ScrollScaffold,
-} from '../../../shared/layout/StudioLayoutSystem';
+import { ScreenScaffold, ScrollScaffold,  } from '../../../shared/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input } from '../../../shared/design-system/StudioDesignSystem';
 import {
   Toggle as ToggleComponent,
   SegmentedControl,
-} from '../../../shared/typography/SettingControls';
+} from '../../../shared/settings/SettingControls';
 
 // â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LABEL_W = 72;
@@ -2572,7 +2564,7 @@ function DrumImportModal({
   const totalBars = preview ? preview.patterns.reduce((n, p) => n + p.measures.length, 0) : 0;
 
   return (
-    <DialogScaffold open={true} onClose={onClose} title="Import Beat">
+    <Dialog open={true} onClose={onClose} title="Import Beat">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {stage === 'idle' && (
           <div
@@ -2779,7 +2771,7 @@ function DrumImportModal({
         style={{ display: 'none' }}
         onChange={handleFileInput}
       />
-    </DialogScaffold>
+    </Dialog>
   );
 }
 
@@ -3160,7 +3152,7 @@ export default function DrumEditor() {
     }
     const st = useSettingsStore.getState();
     if (st.settings.restoreLastSession) {
-      const last = st.lastSession?.drumexTab;
+      const last = useSessionStore.getState().lastSession?.drumexTab;
       if (last === 'songs' || last === 'patterns' || last === 'prefs') return last;
     }
     const dt = st.settings.defaultDrumTab;
@@ -3174,7 +3166,7 @@ export default function DrumEditor() {
 
   // Persist the active Drumex tab on every change.
   useEffect(() => {
-    useSettingsStore.getState().setLastSession({ drumexTab: activeTab });
+    useSessionStore.getState().setLastSession({ drumexTab: activeTab });
   }, [activeTab]);
 
   const activePatternIdRef = useRef(activePatternId);
@@ -6664,7 +6656,7 @@ export default function DrumEditor() {
                       >
                         {!isWebDesktop && (
                           <div style={{ padding: '0 20px', marginTop: 12, marginBottom: 24 }}>
-                            <AnimatedAppHeader title="Beats" subtitle="Your drum songs" />
+                            <StudioHeader title="Beats" subtitle="Your drum songs" />
                           </div>
                         )}
 
@@ -10765,7 +10757,7 @@ export default function DrumEditor() {
 
       {/* â”€â”€ Save Groove sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {showSaveGroove && (
-        <DialogScaffold
+        <Dialog
           open={true}
           onClose={() => setShowSaveGroove(false)}
           title="Save to Groove Library"
@@ -10851,12 +10843,12 @@ export default function DrumEditor() {
               Save Groove
             </Button>
           </div>
-        </DialogScaffold>
+        </Dialog>
       )}
 
       {/* â”€â”€ Quick Mixer sheet (EQ button in editor toolbar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {showMixerSheet && inEditor && (
-        <DialogScaffold open={true} onClose={() => setShowMixerSheet(false)} title="Pattern Mixer">
+        <Dialog open={true} onClose={() => setShowMixerSheet(false)} title="Pattern Mixer">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Master Volume row */}
             <div
@@ -11029,7 +11021,7 @@ export default function DrumEditor() {
               })}
             </div>
           </div>
-        </DialogScaffold>
+        </Dialog>
       )}
 
       {/* â”€â”€ Per-instrument FX sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -11097,7 +11089,7 @@ export default function DrumEditor() {
           ];
           const presets = INST_PRESETS[fxInst] ?? [];
           return (
-            <DialogScaffold open={true} onClose={() => setShowFXSheet(false)} title="Instrument FX">
+            <Dialog open={true} onClose={() => setShowFXSheet(false)} title="Instrument FX">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div
                   style={{
@@ -11381,7 +11373,7 @@ export default function DrumEditor() {
                   </div>
                 </div>
               </div>
-            </DialogScaffold>
+            </Dialog>
           );
         })()}
 
@@ -11411,7 +11403,7 @@ export default function DrumEditor() {
       {showCreateForm &&
         (() => {
           return (
-            <DialogScaffold open={true} onClose={() => setShowCreateForm(false)} title="New Beat">
+            <Dialog open={true} onClose={() => setShowCreateForm(false)} title="New Beat">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {/* â”€â”€ Beat info â”€â”€ */}
                 <div>
@@ -11551,7 +11543,7 @@ export default function DrumEditor() {
                   </Button>
                 </div>
               </div>
-            </DialogScaffold>
+            </Dialog>
           );
         })()}
     </div>

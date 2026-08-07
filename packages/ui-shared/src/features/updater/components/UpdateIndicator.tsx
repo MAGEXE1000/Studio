@@ -1,3 +1,4 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import { Capacitor } from '@capacitor/core';
 import { useAppUpdate, type StructuredReleaseNotes, updateDiagnostics, updateDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder, useSettingsStore, DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
 import {
@@ -46,9 +47,9 @@ import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import StudioSpinner from '../../../shared/animata/progress/spinner';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import StudioUpdateScreen from './StudioUpdateScreen';
-import UpdateDiagnosticsSheet from '../sheets/UpdateDiagnosticsSheet';
+
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 import { DownloadIcon } from '../../../shared/icons/DownloadIcon';
 import CossProgress from '../../../components/ui/progress';
 

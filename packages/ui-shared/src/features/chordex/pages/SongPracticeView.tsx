@@ -1,9 +1,10 @@
+import { Dialog } from '../../../shared/design-system/dialogs';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useChordStore, setNavLocked, setNavHidden, getChordByName, normalizeChordName, useT, useBackHandler, getChordChart, importChartFromUrl, type NormalizedChordChart, type NormalizedSection, type NormalizedLyricsLine, type NormalizedChordMarker, type SongChart, type SongChartSection, useSettingsStore, SpringPresets } from '@workspace/studio-core';
 import ChordDiagram from '../diagrams/ChordDiagram';
 import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
-import { DialogScaffold } from '../../../shared/layout/StudioLayoutSystem';
+;
 
 
 interface SongPracticeViewProps {
@@ -1291,7 +1292,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
       )}
 
       {/* Settings Dialog */}
-      <DialogScaffold
+      <Dialog
         open={showSettings}
         onClose={() => setShowSettings(false)}
         title={t.practice.settingsTitle}
@@ -1608,11 +1609,11 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
             </button>
           )}
         </div>
-      </DialogScaffold>
+      </Dialog>
 
       {/* Importer Modal */}
       {showImportModal && (
-        <DialogScaffold open={true} onClose={() => setShowImportModal(false)} title="Import Chords">
+        <Dialog open={true} onClose={() => setShowImportModal(false)} title="Import Chords">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div
               style={{
@@ -1900,12 +1901,12 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
               </>
             )}
           </div>
-        </DialogScaffold>
+        </Dialog>
       )}
 
       {/* Preview Dialog */}
       {showPreviewModal && previewChart && (
-        <DialogScaffold
+        <Dialog
           open={true}
           onClose={() => setShowPreviewModal(false)}
           title={isSpanish ? 'Vista Previa del Diagrama' : 'Chart Import Preview'}
@@ -2159,7 +2160,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
               </Button>
             </div>
           </div>
-        </DialogScaffold>
+        </Dialog>
       )}
 
       {/* Bottom Playback Control Bar */}

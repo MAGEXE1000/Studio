@@ -49,7 +49,7 @@ import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
 export const NATIVE_VERSION = '4.3.87';
-export const NATIVE_VERSION_CODE = 40417;
+export const NATIVE_VERSION_CODE = 40418;
 export const WEB_VERSION = '4.3.87';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||

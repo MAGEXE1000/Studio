@@ -340,15 +340,7 @@ Release Date: 2026-08-02
 - Created operation-based synchronization engine with conflict resolution and offline queuing.
 - Added a Collaborate button and dialog popup in both mobile and desktop views.
 
-## 4.5.0
 
-Release Date: 2026-08-07
-
-### Fixed
-- Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by enforcing a single dedicated `motion-vendor` chunk in the Rollup bundler configuration, completely eliminating temporal dead zones caused by Rollup's lazy code-splitting of `motion/react`.
-
-### Added
-- Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.
 
 ## 4.3.43
 

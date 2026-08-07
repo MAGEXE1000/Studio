@@ -81,6 +81,9 @@ jobs:
       - name: Install Node Dependencies (Cached)
         run: pnpm install --frozen-lockfile
 
+      - name: Synchronize SSOT Version Across Repository
+        run: node scripts/sync-versions.mjs
+
       - name: Validate Mandatory Release Changelog System
         run: node scripts/validate-release-changelog.mjs
 

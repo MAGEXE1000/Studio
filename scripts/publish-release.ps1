@@ -1,38 +1,54 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.5.6"
-$VersionCode = "40506"
-$ReleaseNote = "Fixed critical RootApp TDZ crash caused by synchronous useTransform evaluation in SharedNavigationBar."
+param (
+    [string]$BumpType = "patch",
+    [string]$ReleaseNote = "Automated release via Single Source of Truth architecture."
+)
 
-# Get current branch name
+# 1. Single Source of Truth Version Bump
+Write-Host "1. Bumping Single Source of Truth (root package.json)..."
+$npmResult = npm version $BumpType --no-git-tag-version
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to bump root package.json version."
+    exit 1
+}
+
+$VersionName = $npmResult.Trim().Substring(1) # Remove 'v' prefix
+Write-Host "New Version: $VersionName"
+
+# 2. Synchronize versions across the repository
+Write-Host "2. Synchronizing version across all manifests..."
+node scripts/sync-versions.mjs
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to synchronize versions."
+    exit 1
+}
+
+# 3. Commit and push
 $BranchName = (git symbolic-ref --short HEAD).Trim()
 Write-Host "Current branch: $BranchName"
 
-Write-Host "1. Bumping Android and Web versions to $VersionName ($VersionCode)..."
-pnpm version:android --name $VersionName --code $VersionCode
-pnpm version:web -- $VersionName
-node apps/studio-android/scripts/sync-version.mjs
-node apps/studio-web/scripts/sync-version.mjs
-
-Write-Host "2. Committing and pushing version changes to Git..."
+Write-Host "3. Committing and pushing version changes to Git..."
 git add .
-
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {
     git commit -m "Release v${VersionName} - ${ReleaseNote}" --no-verify
 }
+
 Write-Host "Pushing HEAD to origin/$BranchName..."
 git push origin HEAD
 
-Write-Host "3. Triggering GitHub Actions Release Pipeline on branch $BranchName..."
+# 4. Trigger Pipeline
+Write-Host "4. Triggering GitHub Actions Release Pipeline on branch $BranchName..."
 gh workflow run release.yml --ref $BranchName -f note="$ReleaseNote"
 
 Write-Host "Waiting 15 seconds for the workflow run to initialize..."
 Start-Sleep -Seconds 15
 
-Write-Host "4. Finding the active workflow run..."
+# 5. Monitor Pipeline
+Write-Host "5. Finding the active workflow run..."
 $CommitSha = (git rev-parse HEAD).Trim()
 $RunId = $null
 $RunStatusLabel = "unknown"
@@ -53,7 +69,7 @@ if (-not $RunId) {
 }
 Write-Host "Found run ID: $RunId. Status: $RunStatusLabel"
 
-Write-Host "5. Monitoring workflow run $RunId until completion..."
+Write-Host "6. Monitoring workflow run $RunId until completion..."
 while ($true) {
     $RunStatus = gh run view $RunId --json status,conclusion | ConvertFrom-Json
     $Status = $RunStatus.status
@@ -69,7 +85,8 @@ while ($true) {
     Start-Sleep -Seconds 20
 }
 
-Write-Host "6. Verifying GitHub Release..."
+# 6. Verify Artifacts
+Write-Host "7. Verifying GitHub Release..."
 $Release = gh release view "v$VersionName" --json assets | ConvertFrom-Json
 if (-not $Release) {
     Write-Error "GitHub Release v$VersionName not found!"
@@ -91,7 +108,7 @@ if (-not $ShaAsset) {
 }
 Write-Host "Release SHA asset exists."
 
-Write-Host "7. Verifying Firebase Metadata & In-App Updater..."
+Write-Host "8. Verifying Firebase Metadata & In-App Updater..."
 Write-Host "Fetching app-release.json from production..."
 $AppReleaseJson = Invoke-RestMethod -Uri "https://studio-30f44.web.app/app-release.json" -Headers @{ "Cache-Control" = "no-cache" }
 Write-Host "Production app-release.json version: $($AppReleaseJson.version), versionCode: $($AppReleaseJson.versionCode)"

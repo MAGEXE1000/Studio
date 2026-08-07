@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.6';
-export const NATIVE_VERSION_CODE = 40506;
-export const WEB_VERSION = '4.5.6';
+export const NATIVE_VERSION = '4.5.7';
+export const NATIVE_VERSION_CODE = 40507;
+export const WEB_VERSION = '4.5.7';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'b3eb6ede';
+export const APP_COMMIT_SHA = 'b5d70d4e';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/7/2026, 7:38:59 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 9:28:27 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,8 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.",
-      "Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703.",
+      "Fixed critical RootApp TDZ crash caused by synchronous useTransform evaluation in SharedNavigationBar.",
     ],
   },
 ];

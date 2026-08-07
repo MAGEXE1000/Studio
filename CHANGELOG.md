@@ -1,5 +1,16 @@
 # Studio Changelog
 
+## 4.5.8
+
+### Added
+- Automated regression test for version 4.5.8 release pipeline.
+
+## 4.5.7
+
+### Added
+- Automated regression test for version 4.5.7 release pipeline.
+
+
 Each release on the OTA channel is described in its own section below.
 The release script (`scripts/release-firebase.mjs`) reads this file and
 copies the bullet list under the section that matches the current

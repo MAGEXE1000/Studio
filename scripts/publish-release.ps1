@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.3.85"
-$VersionCode = "40415"
-$ReleaseNote = "Optimized Color Picker performance to 60 FPS continuous dragging with zero input lag, clamped saturation selector thumb strictly within container boundaries, fixed hue 360-degree reset jump, polished Light theme transition performance and synchronized application-wide repaints, added automatic updater check on application startup initialization, and ensured bottom navigation icon entrance animations play consistently whenever entering tabs across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex."
+$VersionName = "4.5.0"
+$VersionCode = "40500"
+$ReleaseNote = "Fixed StudioHub startup crash by configuring Rollup bundling to prevent motion-vendor temporal dead zones, and completed full migration to BeUI components."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

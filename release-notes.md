@@ -1,5 +1,7 @@
-Release Date: 2026-08-06
+Release Date: 2026-08-07
 
-### Improved
-- Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
-- Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.
+### Fixed
+- Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.
+
+### Added
+- Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.

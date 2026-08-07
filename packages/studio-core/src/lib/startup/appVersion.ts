@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.91';
-export const NATIVE_VERSION_CODE = 40422;
-export const WEB_VERSION = '4.3.91';
+export const NATIVE_VERSION = '4.5.0';
+export const NATIVE_VERSION_CODE = 40500;
+export const WEB_VERSION = '4.5.0';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'e33fdfe1';
+export const APP_COMMIT_SHA = '8f01b586';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 10:56:09 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 11:25:31 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,10 +96,15 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Improved",
+    heading: "Added",
     items: [
-      "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
-      "Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
+      "Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.",
+    ],
+  },
+  {
+    heading: "Fixed",
+    items: [
+      "Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.",
     ],
   },
 ];

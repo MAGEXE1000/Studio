@@ -1,19 +1,21 @@
 {
   "platform": "android",
-  "version": "4.3.91",
-  "versionName": "4.3.91",
-  "versionCode": 40422,
-  "version_code": 40422,
-  "commit": "e33fdfe1",
-  "releasedAt": "8/6/2026, 10:56:09 PM CST",
-  "buildTimestamp": "8/6/2026, 10:56:09 PM CST",
+  "version": "4.5.0",
+  "versionName": "4.5.0",
+  "versionCode": 40500,
+  "version_code": 40500,
+  "commit": "8f01b586",
+  "releasedAt": "8/6/2026, 11:25:31 PM CST",
+  "buildTimestamp": "8/6/2026, 11:25:31 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
-  "whatsNew": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
+  "changelog": "• Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.\n• Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.",
+  "whatsNew": "• Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.\n• Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.",
   "releaseNotes": {
-    "improved": [
-      "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
-      "Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization."
+    "added": [
+      "Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders."
+    ],
+    "fixed": [
+      "Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones."
     ]
   },
   "mandatory": false

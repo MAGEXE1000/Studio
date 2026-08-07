@@ -7,6 +7,14 @@ copies the bullet list under the section that matches the current
 "Update available" modal always shows the actual changes that ship in
 that bundle.
 
+## 4.5.1
+
+Release Date: 2026-08-07
+
+### Added
+- Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.
+- Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.
+
 ## 4.5.0
 
 Release Date: 2026-08-07

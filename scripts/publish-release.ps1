@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.5.0"
-$VersionCode = "40500"
-$ReleaseNote = "Fixed StudioHub startup crash by configuring Rollup bundling to prevent motion-vendor temporal dead zones, and completed full migration to BeUI components."
+$VersionName = "4.5.1"
+$VersionCode = "40501"
+$ReleaseNote = "Implemented production-grade Diagnostic Intelligence Layer with pattern recognition, confidence scoring, file prioritization, RootApp analyzers, and error deduplication."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

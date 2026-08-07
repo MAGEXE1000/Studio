@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.0';
-export const NATIVE_VERSION_CODE = 40500;
-export const WEB_VERSION = '4.5.0';
+export const NATIVE_VERSION = '4.5.1';
+export const NATIVE_VERSION_CODE = 40501;
+export const WEB_VERSION = '4.5.1';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '3a3b8127';
+export const APP_COMMIT_SHA = '68e4d555';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 11:31:56 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 11:52:33 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,13 +98,8 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.",
-    ],
-  },
-  {
-    heading: "Fixed",
-    items: [
-      "Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.",
+      "Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.",
+      "Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.",
     ],
   },
 ];

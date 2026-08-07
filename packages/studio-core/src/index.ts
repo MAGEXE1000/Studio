@@ -54,6 +54,7 @@ export * from './lib/syncBackends/index';
 
 export { type Language, default as translations } from './lib/i18n';
 export * from './lib/devTools';
+export * from './lib/diagnostics/index';
 export * from './lib/devtools/developerInspectorStore';
 export * from './lib/lyricsService';
 export * from './data/authorizedChords';

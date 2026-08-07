@@ -1,4 +1,4 @@
-import { NavigationDispatcher, addError } from '@workspace/studio-core';
+import { NavigationDispatcher, addError, processDiagnosticReport } from '@workspace/studio-core';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { useChordStore, globalUpdateState, useSettingsStore, useBottomNavigationStore } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
@@ -424,7 +424,25 @@ Recommended Fix: ${decoded.fix}
     }
   }
 
-  return `=== SYMBOLICATED REACT ERROR REPORT ===
+  const diagReport = processDiagnosticReport(logEntry.message, symbolicatedStack || logEntry.stack, {
+    module: logEntry.activeSubApp || logEntry.appMode || 'RootApp',
+    source: `ErrorBoundary:${exactComponent}`,
+    componentStack: symbolicatedComponentStack || logEntry.componentStack,
+    activeSubApp: logEntry.activeSubApp,
+    appMode: logEntry.appMode,
+    lastNavigationAction: logEntry.lastNavigationAction,
+    navSnapshot: logEntry.navSnapshot,
+    currentUpdaterState: logEntry.currentUpdaterState,
+    fiberDiagnostics: logEntry.fiberDiagnostics,
+    symbolicatedStack,
+  });
+
+  return `${diagReport.formattedSummary}
+
+========================================
+Technical Details (Expandable)
+
+=== RUNTIME METRICS ===
 Timestamp: ${new Date(logEntry.timestamp).toISOString()}
 App Mode: ${logEntry.appMode}
 Active Sub-App: ${logEntry.activeSubApp}

@@ -2,7 +2,7 @@
 // beui.dev/components/motion/theme-toggle
 
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useSettingsStore } from "@workspace/studio-core";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useState, type ComponentPropsWithoutRef } from "react";
 import { ActionSwapIcon } from "./action-swap";
@@ -127,7 +127,10 @@ export function useThemeToggle({
   variant = "rectangle",
   start = "bottom-up",
 }: { variant?: ThemeVariant; start?: RectStart } = {}) {
-  const { setTheme, resolvedTheme } = useTheme();
+  const theme = useSettingsStore((s) => s.settings.theme);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const resolvedTheme = theme === "light" ? "light" : "dark";
+  const setTheme = (t: string) => updateSettings({ theme: t as any });
   const reduce = useReducedMotion() ?? false;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

@@ -1,21 +1,19 @@
 {
   "platform": "android",
-  "version": "4.5.0",
-  "versionName": "4.5.0",
-  "versionCode": 40500,
-  "version_code": 40500,
-  "commit": "3a3b8127",
-  "releasedAt": "8/6/2026, 11:31:56 PM CST",
-  "buildTimestamp": "8/6/2026, 11:31:56 PM CST",
+  "version": "4.5.1",
+  "versionName": "4.5.1",
+  "versionCode": 40501,
+  "version_code": 40501,
+  "commit": "68e4d555",
+  "releasedAt": "8/6/2026, 11:52:33 PM CST",
+  "buildTimestamp": "8/6/2026, 11:52:33 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.\n• Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.",
-  "whatsNew": "• Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.\n• Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.",
+  "changelog": "• Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.\n• Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.",
+  "whatsNew": "• Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.\n• Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.",
   "releaseNotes": {
     "added": [
-      "Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders."
-    ],
-    "fixed": [
-      "Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones."
+      "Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.",
+      "Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication."
     ]
   },
   "mandatory": false

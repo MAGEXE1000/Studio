@@ -1,15 +1,19 @@
 {
   "platform": "android",
-  "version": "4.5.7",
-  "versionName": "4.5.7",
-  "versionCode": 40507,
-  "version_code": 40507,
-  "commit": "b5d70d4e",
-  "releasedAt": "8/7/2026, 9:28:27 AM CST",
-  "buildTimestamp": "8/7/2026, 9:28:27 AM CST",
+  "version": "4.5.8",
+  "versionName": "4.5.8",
+  "versionCode": 40508,
+  "version_code": 40508,
+  "commit": "4490e54e",
+  "releasedAt": "8/7/2026, 10:23:07 AM CST",
+  "buildTimestamp": "8/7/2026, 10:23:07 AM CST",
   "updateMode": "refresh",
-  "changelog": "",
-  "whatsNew": "",
-  "releaseNotes": {},
+  "changelog": "• Automated regression test for version 4.5.8 release pipeline.",
+  "whatsNew": "• Automated regression test for version 4.5.8 release pipeline.",
+  "releaseNotes": {
+    "added": [
+      "Automated regression test for version 4.5.8 release pipeline."
+    ]
+  },
   "mandatory": false
 }

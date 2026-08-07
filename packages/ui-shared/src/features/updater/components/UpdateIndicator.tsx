@@ -2156,9 +2156,6 @@ function UpdateModal({
   // Render buttons
   const actionButtons = renderButtons();
 
-  const rawProgress = typeof updater.progress === 'number' ? updater.progress : 0;
-  const downloadPct = Math.min(100, Math.max(0, Math.round(rawProgress * 100)));
-
   const progressComponent = undefined;
 
   return (

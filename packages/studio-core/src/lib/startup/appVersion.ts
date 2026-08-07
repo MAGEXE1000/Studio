@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.4';
-export const NATIVE_VERSION_CODE = 40504;
-export const WEB_VERSION = '4.5.4';
+export const NATIVE_VERSION = '4.5.5';
+export const NATIVE_VERSION_CODE = 40505;
+export const WEB_VERSION = '4.5.5';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '01f65bcb';
+export const APP_COMMIT_SHA = '27801c13';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/7/2026, 6:15:48 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 6:33:11 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,11 +96,10 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.",
-      "Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.",
-      "Restored Release Pipeline to match #703 parity.",
+      "Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.",
+      "Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703.",
     ],
   },
 ];

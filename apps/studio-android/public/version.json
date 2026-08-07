@@ -1,20 +1,19 @@
 {
   "platform": "android",
-  "version": "4.5.4",
-  "versionName": "4.5.4",
-  "versionCode": 40504,
-  "version_code": 40504,
-  "commit": "01f65bcb",
-  "releasedAt": "8/7/2026, 6:15:48 AM CST",
-  "buildTimestamp": "8/7/2026, 6:15:48 AM CST",
+  "version": "4.5.5",
+  "versionName": "4.5.5",
+  "versionCode": 40505,
+  "version_code": 40505,
+  "commit": "27801c13",
+  "releasedAt": "8/7/2026, 6:33:11 AM CST",
+  "buildTimestamp": "8/7/2026, 6:33:11 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.\n• Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.\n• Restored Release Pipeline to match #703 parity.",
-  "whatsNew": "• Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.\n• Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.\n• Restored Release Pipeline to match #703 parity.",
+  "changelog": "• Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.\n• Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703.",
+  "whatsNew": "• Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.\n• Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703.",
   "releaseNotes": {
-    "added": [
-      "Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.",
-      "Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.",
-      "Restored Release Pipeline to match #703 parity."
+    "fixed": [
+      "Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.",
+      "Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703."
     ]
   },
   "mandatory": false

@@ -85,11 +85,6 @@ export { StudioHeader } from './shared/layout/StudioHeader';
 export { ActionButton } from './shared/design-system/StudioDesignSystem';
 export { SharedNavigationBar } from './features/hub/navigation/SharedNavigationBar';
 export { BottomNavigationController } from './features/hub/navigation/BottomNavigationController';
-export {
-  LaunchAnimationEngine,
-  type LaunchPreset,
-} from './shared/animation';
-export { ApplicationTransitionEngine } from './shared/animation';
 
 export { default as html2canvas } from 'html2canvas';
 export * from './shared/design-system';

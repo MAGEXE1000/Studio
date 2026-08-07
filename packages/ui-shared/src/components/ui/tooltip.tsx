@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { cn } from "../../lib/utils";
 import { spring } from "../../lib/springs";
 import { fontWeights } from "../../lib/font-weight";

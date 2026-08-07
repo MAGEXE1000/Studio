@@ -16,7 +16,7 @@ node apps/studio-android/scripts/sync-version.mjs
 node apps/studio-web/scripts/sync-version.mjs
 
 Write-Host "2. Committing and pushing version changes to Git..."
-git add -u
+git add .
 
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."

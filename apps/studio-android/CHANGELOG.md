@@ -9,6 +9,27 @@ that bundle.
 
 Conventions:
 
+## 4.3.87
+
+Release Date: 2026-08-06
+
+### Fixed
+- Fixed application load latency across all apps by pre-compiling sub-app entry points synchronously without dynamic promise fallbacks.
+- Resolved SubAppWrapper mounting sequence ensuring navigation routes render immediately without empty screens.
+- Eliminated artificial transition timeouts in ApplicationTransitionEngine to achieve 60 FPS smooth launch.
+- Synchronized bottom navigation highlight indicator directly with drag gestures, removing smoothing delay.
+- Optimized color pickers and theme updates to decouple store mutations from pointer events.
+- Restored rotating app animation in About panel and fixed native Android updater interface.
+
+## 4.3.86
+
+Release Date: 2026-08-06
+
+### Improved
+- Refactored Release Pipeline into 3 clean, consolidated stages in GitHub Actions.
+- Consolidated preflight code quality and version consistency checks into release-firebase.mjs.
+- Accelerated pipeline execution speed by eliminating redundant workflow steps.
+
 ## 4.3.85
 
 Release Date: 2026-08-06

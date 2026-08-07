@@ -394,85 +394,64 @@ const SubAppWrapper = memo(function SubAppWrapper({
   onReady: (app: AppKey) => void;
   subApps: SharedAppShellProps['subApps'];
 }) {
-  const [cachedApp] = useState<AppKey>(app);
-  const [cachedPanel, setCachedPanel] = useState(activePanel);
-
-  useEffect(() => {
-    setCachedPanel(activePanel);
-  }, [activePanel]);
-
-  const isActive = settings.appMode === cachedApp;
-
-  if (!isActive) return null;
-
   return (
     <>
-      {cachedApp === 'devtools' && subApps.devtools && (
+      {app === 'devtools' && subApps.devtools && (
         <SubAppScaffold appKey="devtools">
           <ErrorBoundary moduleName="DevTools">
-            <Suspense fallback={<FallbackTracker app="devtools"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="devtools" onReady={onReady} />
-              <AppEntryTransition>
-                {subApps.devtools}
-              </AppEntryTransition>
-            </Suspense>
+            <AppReadyNotifier app="devtools" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.devtools}
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'groovex' && subApps.groovex && (
+      {app === 'groovex' && subApps.groovex && (
         <SubAppScaffold appKey="groovex">
           <ErrorBoundary moduleName="Groovex">
-            <Suspense fallback={<FallbackTracker app="groovex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="groovex" onReady={onReady} />
-              <AppEntryTransition>
-                {subApps.groovex}
-              </AppEntryTransition>
-            </Suspense>
+            <AppReadyNotifier app="groovex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.groovex}
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'vocalex' && subApps.vocalex && (
+      {app === 'vocalex' && subApps.vocalex && (
         <SubAppScaffold appKey="vocalex">
           <ErrorBoundary moduleName="Vocalex">
-            <Suspense fallback={<FallbackTracker app="vocalex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="vocalex" onReady={onReady} />
-              <AppEntryTransition>
-                {subApps.vocalex}
-              </AppEntryTransition>
-            </Suspense>
+            <AppReadyNotifier app="vocalex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.vocalex}
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'stagex' && subApps.stagex && (
+      {app === 'stagex' && subApps.stagex && (
         <SubAppScaffold appKey="stagex">
           <ErrorBoundary moduleName="Stagex">
-            <Suspense fallback={<FallbackTracker app="stagex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="stagex" onReady={onReady} />
-              <AppEntryTransition>
-                {subApps.stagex}
-              </AppEntryTransition>
-            </Suspense>
+            <AppReadyNotifier app="stagex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.stagex}
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'drumex' && subApps.drumex && (
+      {app === 'drumex' && subApps.drumex && (
         <SubAppScaffold appKey="drumex">
           <ErrorBoundary moduleName="Drumex">
-            <Suspense fallback={<FallbackTracker app="drumex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-              <AppReadyNotifier app="drumex" onReady={onReady} />
-              <AppEntryTransition>
-                {subApps.drumex}
-              </AppEntryTransition>
-            </Suspense>
+            <AppReadyNotifier app="drumex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.drumex}
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
 
-      {cachedApp === 'chordex' && subApps.chordex && (
+      {app === 'chordex' && subApps.chordex && (
         <SubAppScaffold appKey="chordex">
           <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
             <AppEntryTransition className="flex flex-col w-full overflow-hidden select-none" style={{ position: 'relative', height: '100%' } as any}>
@@ -480,19 +459,17 @@ const SubAppWrapper = memo(function SubAppWrapper({
                 {subApps.chordex.sidebar}
                 <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
                   <ErrorBoundary moduleName="Chordex">
-                    <Suspense fallback={<FallbackTracker app="chordex"><div style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }} /></FallbackTracker>}>
-                      <AppReadyNotifier app="chordex" onReady={onReady} />
-                      <SharedNavigationContainer activeView={cachedPanel} viewOrder={ALL_PANELS}>
-                        {(panel) => (
-                          <>
-                            {panel === 'songs' && subApps.chordex?.songs}
-                            {panel === 'practice' && subApps.chordex?.practice}
-                            {panel === 'library' && subApps.chordex?.library}
-                            {panel === 'preferences' && subApps.chordex?.preferences}
-                          </>
-                        )}
-                      </SharedNavigationContainer>
-                    </Suspense>
+                    <AppReadyNotifier app="chordex" onReady={onReady} />
+                    <SharedNavigationContainer activeView={activePanel} viewOrder={ALL_PANELS}>
+                      {(panel) => (
+                        <>
+                          {panel === 'songs' && subApps.chordex?.songs}
+                          {panel === 'practice' && subApps.chordex?.practice}
+                          {panel === 'library' && subApps.chordex?.library}
+                          {panel === 'preferences' && subApps.chordex?.preferences}
+                        </>
+                      )}
+                    </SharedNavigationContainer>
                   </ErrorBoundary>
                 </div>
               </div>

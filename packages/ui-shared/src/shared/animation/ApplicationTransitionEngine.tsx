@@ -25,17 +25,9 @@ export function ApplicationTransitionEngine({
 
   const isHub = appKey === 'hub';
 
-  // Icon formation takes exactly 750ms (instantly complete for hub)
   useEffect(() => {
-    if (isHub) {
-      setLogoFormed(true);
-      return;
-    }
-    const timer = setTimeout(() => {
-      setLogoFormed(true);
-    }, 750);
-    return () => clearTimeout(timer);
-  }, [isHub, setLogoFormed]);
+    setLogoFormed(true);
+  }, [setLogoFormed]);
 
   const startZoom =
     state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
@@ -44,7 +36,7 @@ export function ApplicationTransitionEngine({
     if (startZoom) {
       const timer = setTimeout(() => {
         completeTransition();
-      }, 1500);
+      }, 300);
       return () => clearTimeout(timer);
     }
     return () => {};

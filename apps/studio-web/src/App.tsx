@@ -7,21 +7,19 @@ import {
 } from '@workspace/studio-core';
 
 import {
+  SharedAppShell,
   StudioHub,
   WebAppSectionDock,
+  LibraryPanel,
+  SettingsPanel,
+  SaxophonePracticePanel,
+  SongsPanel,
+  DrumEditor,
+  GroovexApp,
+  VocalexApp,
+  StageCorePanel,
+  DevToolsApp,
 } from '@workspace/ui-shared';
-
-import { SharedAppShell } from '@workspace/ui-shared/src/shared/layout/SharedAppShell';
-
-const LibraryPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel })));
-const SettingsPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel })));
-const SaxophonePracticePanel = lazy(() => import('@workspace/ui-shared').then((m: any) => ({ default: m.SaxophonePracticePanel })));
-const SongsPanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.SongsPanel })));
-const DrumEditor = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.DrumEditor })));
-const GroovexApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.GroovexApp })));
-const VocalexApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.VocalexApp })));
-const StageCorePanel = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.StageCorePanel })));
-const DevToolsApp = lazy(() => import('@workspace/ui-shared').then((m) => ({ default: m.DevToolsApp })));
 
 import {
   WebSidebarLayout,

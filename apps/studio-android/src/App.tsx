@@ -4,41 +4,21 @@ import { tolgee, useSettingsStore } from '@workspace/studio-core';
 
 import { TolgeeProvider } from '@tolgee/react';
 
-import { LaunchAnimationEngine, BottomNavigationController } from '@workspace/ui-shared';
-
-const SharedNavigationBar = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.SharedNavigationBar }))
-);
-const StudioHub = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.StudioHub }))
-);
-const LibraryPanel = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.LibraryPanel }))
-);
-const SettingsPanel = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.SettingsPanel }))
-);
-const SaxophonePracticePanel = lazy(() =>
-  import('@workspace/ui-shared').then((m: any) => ({ default: m.SaxophonePracticePanel }))
-);
-const SongsPanel = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.SongsPanel }))
-);
-const DrumEditor = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.DrumEditor }))
-);
-const GroovexApp = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.GroovexApp }))
-);
-const VocalexApp = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.VocalexApp }))
-);
-const StageCorePanel = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.StageCorePanel }))
-);
-const DevToolsApp = lazy(() =>
-  import('@workspace/ui-shared').then((m) => ({ default: m.DevToolsApp }))
-);
+import {
+  LaunchAnimationEngine,
+  BottomNavigationController,
+  SharedNavigationBar,
+  StudioHub,
+  LibraryPanel,
+  SettingsPanel,
+  SaxophonePracticePanel,
+  SongsPanel,
+  DrumEditor,
+  GroovexApp,
+  VocalexApp,
+  StageCorePanel,
+  DevToolsApp,
+} from '@workspace/ui-shared';
 import './index.css';
 
 if (typeof window !== 'undefined') {

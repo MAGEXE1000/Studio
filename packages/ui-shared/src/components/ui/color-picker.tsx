@@ -1605,7 +1605,7 @@ const ColorPicker = forwardRef<HTMLDivElement, ColorPickerProps>(
       if (!isControlled) return;
       const emitted = lastEmittedRef.current;
       const cur = value as string;
-      if (cur === emitted) return;
+      if (!cur || cur.toLowerCase() === emitted.toLowerCase()) return;
       const p = parseColor(cur);
       if (!p) return;
       oklchHueRef.current = null;

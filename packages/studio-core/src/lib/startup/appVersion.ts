@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.86';
-export const NATIVE_VERSION_CODE = 40416;
-export const WEB_VERSION = '4.3.86';
+export const NATIVE_VERSION = '4.3.87';
+export const NATIVE_VERSION_CODE = 40417;
+export const WEB_VERSION = '4.3.87';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'd225fa77';
+export const APP_COMMIT_SHA = 'cc262522';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 7:18:25 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 7:51:58 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,13 +96,14 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Improved",
+    heading: "Fixed",
     items: [
-      "Optimized Color Picker performance to 60 FPS continuous dragging by decoupling Zustand store commits from pointermove events and applying instant CSS variables.",
-      "Clamped Color Picker saturation selector thumb strictly within container boundaries and fixed hue 360-degree reset jump.",
-      "Polished Light theme transition and synchronized application-wide repaints in a single atomic pass.",
-      "Added automatic update check during application startup initialization after Phase 5 completes.",
-      "Ensured bottom navigation icon entrance animations play consistently whenever entering tabs across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex.",
+      "Fixed application load latency across all apps by pre-compiling sub-app entry points synchronously without dynamic promise fallbacks.",
+      "Resolved SubAppWrapper mounting sequence ensuring navigation routes render immediately without empty screens.",
+      "Eliminated artificial transition timeouts in ApplicationTransitionEngine to achieve 60 FPS smooth launch.",
+      "Synchronized bottom navigation highlight indicator directly with drag gestures, removing smoothing delay.",
+      "Optimized color pickers and theme updates to decouple store mutations from pointer events.",
+      "Restored rotating app animation in About panel and fixed native Android updater interface.",
     ],
   },
 ];

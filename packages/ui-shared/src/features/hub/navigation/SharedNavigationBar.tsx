@@ -864,8 +864,11 @@ export function SharedNavigationBar({
   );
 
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
-  const pillX = useTransform([activeIdxSpring, dragXRaw], ([idxVal, dragVal]) => {
-    const idx = Math.max(0, Math.min(totalSlots - 1, idxVal as number));
+  // Derived continuous pill movement (direct 1:1 synchronization during drag, spring interpolation after drag)
+  const pillX = useTransform([activeIdxRaw, activeIdxSpring, dragXRaw], ([rawIdx, springIdx, dragVal]) => {
+    const isScrubbingActive = isScrubbingRef.current;
+    const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
+    const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
     const lowerIdx = Math.floor(idx);
     const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
     const frac = idx - lowerIdx;
@@ -889,9 +892,10 @@ export function SharedNavigationBar({
   });
 
   const pillWidthVal = useTransform(
-    activeIdxSpring,
-    (idxVal) => {
-      const idx = Math.max(0, Math.min(totalSlots - 1, idxVal as number));
+    [activeIdxRaw, activeIdxSpring],
+    ([rawIdx, springIdx]) => {
+      const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
+      const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
       const lowerIdx = Math.floor(idx);
       const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
       const frac = idx - lowerIdx;
@@ -941,48 +945,16 @@ export function SharedNavigationBar({
     scrubbingIndexRef.current = activeIndex;
 
     animate(pressPressureRaw, 5, { ...SpringPresets.stiff });
-
-    if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
-    pressTimerRef.current = setTimeout(() => {
-      isScrubbingRef.current = true;
-      setIsScrubbing(true);
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch (err) {}
-
-      if (
-        typeof window !== 'undefined' &&
-        window.navigator &&
-        typeof window.navigator.vibrate === 'function'
-      ) {
-        try {
-          window.navigator.vibrate(15);
-        } catch (err) {}
-      }
-
-      dragXRaw.set(clampedX - getPillX(activeIndex));
-    }, 250);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const dragDistance = Math.abs(e.clientX - startXRef.current);
-    if (!isScrubbingRef.current && dragDistance > 10) {
-      if (pressTimerRef.current) clearTimeout(pressTimerRef.current);
+    if (!isScrubbingRef.current && dragDistance > 2) {
       isScrubbingRef.current = true;
       setIsScrubbing(true);
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch (err) {}
-
-      if (
-        typeof window !== 'undefined' &&
-        window.navigator &&
-        typeof window.navigator.vibrate === 'function'
-      ) {
-        try {
-          window.navigator.vibrate(8);
-        } catch (err) {}
-      }
     }
 
     if (!isScrubbingRef.current) return;

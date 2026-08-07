@@ -6283,10 +6283,94 @@ User Agent: [Automatically Generated]
     );
   }
 
+  function renderUpdaterContent() {
+    const isNative = Capacitor.isNativePlatform();
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', paddingBottom: 24 }}>
+        <div
+          style={{
+            padding: 20,
+            background: 'var(--app-surface-high, rgba(128, 128, 128, 0.06))',
+            borderRadius: 16,
+            border: '1px solid rgba(128, 128, 128, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 28, color: accent.from }}>
+                {isNative ? 'system_update' : 'cloud_done'}
+              </span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
+                  {isNative ? 'Android System Updater' : 'Studio Web Client'}
+                </h3>
+                <span style={{ fontSize: 12, color: 'var(--c-text-secondary)' }}>
+                  Current Version: v{APP_VERSION} ({isNative ? 'Native Android App' : 'PWA Web Version'})
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => updater.checkNow()}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                background: accent.from,
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              {updater.loading ? 'Checking...' : 'Check Now'}
+            </button>
+          </div>
+
+          <div style={{ height: 1, background: 'rgba(128, 128, 128, 0.08)', margin: '4px 0' }} />
+
+          <div style={{ fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
+            {updater.updateAvailable ? (
+              <span style={{ color: '#10b981', fontWeight: 600 }}>
+                Update available: v{updater.remoteVersion}
+              </span>
+            ) : (
+              <span>Your application is fully up to date.</span>
+            )}
+          </div>
+
+          {isNative && updater.updateAvailable && (
+            <button
+              onClick={() => updater.applyUpdate()}
+              style={{
+                marginTop: 8,
+                padding: '10px 20px',
+                borderRadius: 10,
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              Download & Install Update
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   function renderActivePageContent(activePageId: SettingsPageId) {
     switch (activePageId as any) {
       case 'general':
         return renderGeneralContent();
+      case 'updater':
+        return renderUpdaterContent();
       case 'appearance':
         console.log('[APPEARANCE-RUNTIME-PROOF] StudioHub renderActivePageContent rendering StudioHubSettingsPanel for page: appearance');
         return <StudioHubSettingsPanel />;

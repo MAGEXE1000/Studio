@@ -395,7 +395,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
   try {
     const res = await AppInstaller.verifySha256({ filePath, expectedHash });
     try {
-      const { updateDebugLogs } = await import('../updater/diagnostics');
+      const { updateDebugLogs } = await import('../updater/debugLogs');
       updateDebugLogs.downloadedApkSha256 = res.computedHash;
     } catch {}
     await AppInstaller.appendLog({
@@ -410,7 +410,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
     );
     // Write error to updateDebugLogs if possible
     try {
-      const { updateDebugLogs } = await import('../updater/diagnostics');
+      const { updateDebugLogs } = await import('../updater/debugLogs');
       const errMsg = err instanceof Error ? err.message : String(err);
       updateDebugLogs.installError = `Native verifySha256 failed: ${errMsg}`;
       updateDebugLogs.downloadedApkSha256 = `ERROR: Native verifySha256 failed - ${errMsg}`;
@@ -425,7 +425,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
       const base64Data = typeof result.data === 'string' ? result.data : '';
       if (!base64Data) {
         try {
-          const { updateDebugLogs } = await import('../updater/diagnostics');
+          const { updateDebugLogs } = await import('../updater/debugLogs');
           updateDebugLogs.downloadedApkSha256 = 'ERROR: Empty file read';
         } catch {}
         return false;
@@ -442,7 +442,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
       const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
       try {
-        const { updateDebugLogs } = await import('../updater/diagnostics');
+        const { updateDebugLogs } = await import('../updater/debugLogs');
         updateDebugLogs.downloadedApkSha256 = hashHex;
       } catch {}
 
@@ -451,7 +451,7 @@ export async function verifyApkSha256(filePath: string, expectedHash: string): P
     } catch (jsErr) {
       console.error('[apkDownloader] JS Fallback verification failed:', jsErr);
       try {
-        const { updateDebugLogs } = await import('../updater/diagnostics');
+        const { updateDebugLogs } = await import('../updater/debugLogs');
         const errMsg = jsErr instanceof Error ? jsErr.message : String(jsErr);
         updateDebugLogs.installError += `\nJS Fallback failed: ${errMsg}`;
         updateDebugLogs.downloadedApkSha256 = `ERROR: JS Fallback failed - ${errMsg}`;

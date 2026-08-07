@@ -1,19 +1,20 @@
 {
   "platform": "android",
-  "version": "4.5.3",
-  "versionName": "4.5.3",
-  "versionCode": 40503,
-  "version_code": 40503,
-  "commit": "cc870b5d",
-  "releasedAt": "8/7/2026, 5:49:27 AM CST",
-  "buildTimestamp": "8/7/2026, 5:49:27 AM CST",
+  "version": "4.5.4",
+  "versionName": "4.5.4",
+  "versionCode": 40504,
+  "version_code": 40504,
+  "commit": "7e396206",
+  "releasedAt": "8/7/2026, 6:11:04 AM CST",
+  "buildTimestamp": "8/7/2026, 6:11:04 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.\n• Restored release pipeline behavior to parity with Run #703 including certificate verification.",
-  "whatsNew": "• Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.\n• Restored release pipeline behavior to parity with Run #703 including certificate verification.",
+  "changelog": "• Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.\n• Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.\n• Restored Release Pipeline to match #703 parity.",
+  "whatsNew": "• Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.\n• Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.\n• Restored Release Pipeline to match #703 parity.",
   "releaseNotes": {
     "added": [
-      "Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.",
-      "Restored release pipeline behavior to parity with Run #703 including certificate verification."
+      "Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.",
+      "Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.",
+      "Restored Release Pipeline to match #703 parity."
     ]
   },
   "mandatory": false

@@ -5,15 +5,17 @@ import { getGlobalUpdateState, invokeStartUpdateSession } from './stateMachineAc
 export async function logProgressStage(stage: string, message?: string, exceptionStack?: string) {
   if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
     try {
-      const { AppInstaller } = await import('../apkDownloader');
-      const state = getGlobalUpdateState();
-      await AppInstaller.appendLog({
-        stage,
-        status: 0,
-        message: message || '',
-        exceptionStack: exceptionStack || '',
-        packageName: state.packageName || 'com.chordex.app',
-      });
+      const AppInstaller = (Capacitor as any).Plugins?.AppInstaller;
+      if (AppInstaller) {
+        const state = getGlobalUpdateState();
+        await AppInstaller.appendLog({
+          stage,
+          status: 0,
+          message: message || '',
+          exceptionStack: exceptionStack || '',
+          packageName: state.packageName || 'com.chordex.app',
+        });
+      }
     } catch (e) {
     }
   }

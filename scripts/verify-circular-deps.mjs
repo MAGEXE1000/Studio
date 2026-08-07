@@ -77,6 +77,12 @@ function resolveImport(importPath, containingFile) {
 
   if (!resolved) return null;
 
+  if (resolved.endsWith('.js')) {
+    resolved = resolved.slice(0, -3);
+  } else if (resolved.endsWith('.jsx')) {
+    resolved = resolved.slice(0, -4);
+  }
+
   const extensions = ['', '.ts', '.tsx', '/index.ts', '/index.tsx'];
   for (const ext of extensions) {
     const candidate = resolved + ext;

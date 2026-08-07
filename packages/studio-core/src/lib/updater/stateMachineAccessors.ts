@@ -1,4 +1,4 @@
-import type { CentralizedUpdateState } from './stateMachine';
+import type { CentralizedUpdateState } from './types';
 
 export interface StateMachineAccessors {
   getGlobalUpdateState: () => CentralizedUpdateState;

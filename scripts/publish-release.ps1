@@ -1,9 +1,9 @@
 # scripts/publish-release.ps1
 # Automate version bump, git push, GitHub workflow trigger, monitoring, and post-deploy verification.
 
-$VersionName = "4.5.3"
-$VersionCode = "40503"
-$ReleaseNote = "Redesigned RootApp crash report analyzer engine and visual dashboard UI, restored release pipeline to behavior of Run #703."
+$VersionName = "4.5.4"
+$VersionCode = "40504"
+$ReleaseNote = "Redesigned RootApp crash screen and developer report UI, broken circular dependencies, restored release pipeline to behavior of Run #703."
 
 # Get current branch name
 $BranchName = (git symbolic-ref --short HEAD).Trim()

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.3';
-export const NATIVE_VERSION_CODE = 40503;
-export const WEB_VERSION = '4.5.3';
+export const NATIVE_VERSION = '4.5.4';
+export const NATIVE_VERSION_CODE = 40504;
+export const WEB_VERSION = '4.5.4';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'cc870b5d';
+export const APP_COMMIT_SHA = '7e396206';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/7/2026, 5:49:27 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 6:11:04 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,8 +98,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.",
-      "Restored release pipeline behavior to parity with Run #703 including certificate verification.",
+      "Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.",
+      "Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.",
+      "Restored Release Pipeline to match #703 parity.",
     ],
   },
 ];

@@ -30,11 +30,8 @@ permissions:
   deployments: write
 
 jobs:
-  # =========================================================================
-  # SINGLE UNIFIED JOB: BUILD, PACKAGE, SIGN & DEPLOY (1 Runner Allocation)
-  # =========================================================================
   build_package_publish:
-    name: 1. Build, Package, Sign & Deploy
+    name: Build, Package, Sign & Deploy
     runs-on: ubuntu-latest
     env:
       STUDIO_PRODUCTION_RELEASE: 'true'
@@ -47,49 +44,14 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
-      - name: 🔍 Pipeline Queue & Diagnostic Inspection
-        run: |
-          echo "=== RELEASE PIPELINE QUEUE DIAGNOSTICS ==="
-          echo "Selected Concurrency Group: release-${{ github.ref_name }}-${{ github.event_name }}"
-          echo "Runner Requested: ubuntu-latest"
-          echo "Workflow Event: ${{ github.event_name }}"
-          echo "Target Ref: ${{ github.ref }}"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Allocation Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          echo "=========================================="
-
-      - uses: actions/checkout@v7
+      - name: 1. Checkout Codebase
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
 
-      - name: Assert Required Environment Secrets
-        run: |
-          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] || \
-             [ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ] || \
-             [ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ] || \
-             [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then
-            echo "::error::Production signing secrets are missing! Refusing to start release pipeline."
-            exit 1
-          fi
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
-            echo "::error::FIREBASE_SERVICE_ACCOUNT secret is missing!"
-            exit 1
-          fi
-          echo "✓ All required signing & deployment secrets validated."
-
-      - name: Verify Release Tag Uniqueness
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION=$(node scripts/get-version.mjs)
-          TAG="v$VERSION"
-          if gh release view "$TAG" > /dev/null 2>&1; then
-            echo "Notice: Tag $TAG already exists."
-          fi
-          echo "✓ Tag uniqueness preflight complete."
-
-      - uses: pnpm/action-setup@v6
+      - name: 2. Setup Toolchains & Build Caches
+        uses: pnpm/action-setup@v6
         with:
           version: 10.26.1
 
@@ -106,47 +68,38 @@ jobs:
       - name: Setup Gradle Cache
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Install Node Dependencies (Cached)
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate Mandatory Release Changelog System
-        run: node scripts/validate-release-changelog.mjs
-
-      - name: Validate Multi-Manifest Version Consistency & CHANGELOG
-        run: pnpm check:versions
-
-      - name: Enforce Import Boundaries
-        run: pnpm lint:imports
-
-      - name: Run Reference Audit
-        run: pnpm check:references
-
-      - name: Run Circular Dependency Check
-        run: pnpm check:circular
-
-      - name: Run Fast Preflight Validation
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
+      - name: 3. Environment & Code Quality Preflight
         run: |
-          cd apps/studio-android
-          node scripts/release-firebase.mjs --validate-only
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] || \
+             [ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ] || \
+             [ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ] || \
+             [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then
+            echo "::error::Production signing secrets are missing! Refusing to start release pipeline."
+            exit 1
+          fi
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT secret is missing!"
+            exit 1
+          fi
+          echo "✓ Production secrets validated."
 
-      - name: Decode Android Keystore
+          pnpm check:versions
+          pnpm lint:imports
+          pnpm check:references
+          pnpm check:circular
+          echo "✓ All preflight quality & version checks passed cleanly."
+
+      - name: 4. Keystore Setup & Certificate Fingerprint Verification
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > apps/studio-android/android/app/release.keystore
           if [ ! -s apps/studio-android/android/app/release.keystore ]; then
-            echo "::error::release.keystore is missing or empty!"
+            echo "::error::release.keystore is missing or empty after decoding!"
             exit 1
           fi
 
-      - name: Verify Pre-Build Production Keystore Fingerprint
-        run: |
           keytool -list -v -keystore apps/studio-android/android/app/release.keystore -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" > cert.txt
           FINGERPRINT=$(grep "SHA256:" cert.txt | head -n 1 | cut -d':' -f2- | tr -d '[:space:]:' | tr '[:upper:]' '[:lower:]')
           EXPECTED=$(node scripts/get-version.mjs --fingerprint)
@@ -156,9 +109,9 @@ jobs:
             echo "::error::CRITICAL SECURITY FAILURE: Decoded release.keystore SHA-256 fingerprint ($FINGERPRINT) does not match expected production certificate ($EXPECTED)!"
             exit 1
           fi
-          echo "✓ Production Keystore Pre-Build Fingerprint Verified."
+          echo "✓ Production Keystore Certificate Fingerprint Verified."
 
-      - name: Run Android Release Orchestration Script
+      - name: 5. Build, Package, Sign APK & Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TYPE: ${{ inputs.release_type }}
@@ -170,7 +123,7 @@ jobs:
           fi
           node scripts/release-firebase.mjs $PRERELEASE_FLAG
 
-      - name: Deploy Update Metadata to Firebase Hosting
+      - name: 6. Deploy Update Metadata to Firebase CDN
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -178,12 +131,12 @@ jobs:
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
           channelId: live
 
-      - name: Deploy Firestore Security Rules
+      - name: 7. Deploy Firestore Security Rules
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/deploy-rules-admin.mjs
 
-      - name: Verify Deployed Android Metadata
+      - name: 8. Verify Deployed Android Metadata
         run: |
           NATIVE_VER=$(node scripts/get-version.mjs)
           echo "Verifying Firebase CDN propagation for version $NATIVE_VER..."
@@ -198,27 +151,3 @@ jobs:
           done
           echo "::error::Deployed app-release.json version mismatch! Expected $NATIVE_VER, got $APP_LIVE"
           exit 1
-
-      - name: Generate Pipeline Performance Summary Report
-        if: always()
-        run: |
-          VERSION=$(node scripts/get-version.mjs)
-          echo "# 🚀 Livex Enterprise Release Infrastructure Summary (v$VERSION)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## 📋 Master Release Checklist" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Git Cleanliness**: Working tree clean, zero modified or untracked files" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **12-Way Version Consistency**: All manifests aligned at v$VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Mandatory CHANGELOG**: Verified structured entries for v$VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Preflight Fail-Fast**: Validation completed in <10s" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Build Acceleration**: Gradle build & config cache, pnpm cache active" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **APK Signing & Badging**: apksigner & aapt verified" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Automated Smoke Tests**: Puppeteer boot & Hub mount assertions PASSED" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Release Manifest**: \`release-manifest.json\` generated" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Release Audit Log**: \`release-audit.json\` generated" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Release History**: Appended record to \`release-history.json\`" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Release Delta Report**: \`release-delta.json\` & \`release-delta.md\` generated" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **SLSA Build Provenance**: \`release-slsa-provenance.json\` generated" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Cryptographic Signatures**: \`release-manifest.sig\`, \`release-audit.sig\`, \`apk.sig\` attached" >> $GITHUB_STEP_SUMMARY
-          echo "- [x] **Rollback & Downgrade Safety**: Prior release URL & checksum verified" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔒 READY FOR PRODUCTION RELEASE" >> $GITHUB_STEP_SUMMARY

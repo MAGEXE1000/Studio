@@ -92,6 +92,7 @@ import {
   getSessionIndex,
 } from './hubConstants';
 import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
+import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
 
 const ALL_SHORTCUT_OPTIONS = [
   {
@@ -8808,167 +8809,106 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
         }}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--density-section-gap, 16px)' }}>
-        {releases.map((rel) => {
-          const isExpanded = !!expandedVersions[rel.version];
-          return (
-            <div key={rel.version} style={{ position: 'relative' }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  left: -16,
-                  top: 22,
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: rel.isCurrent ? `linear-gradient(135deg, ${accent.from}, ${accent.to})` : 'var(--app-surface-highest)',
-                  border: rel.isCurrent ? 'none' : '2px solid rgba(128, 128, 128, 0.3)',
-                  boxShadow: rel.isCurrent ? `0 0 8px ${accent.from}40` : 'none',
-                  zIndex: 5,
-                }}
-              />
-
-              <div
-                onClick={() => toggleExpand(rel.version)}
-                className="btn-smooth"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '100%',
-                  padding: 'var(--density-row-pad, 16px)',
-                  background: isExpanded ? 'var(--app-surface-high, rgba(128, 128, 128, 0.08))' : 'var(--app-surface-low, rgba(128, 128, 128, 0.04))',
-                  borderRadius: 'var(--density-card-radius, var(--radius-lg))',
-                  border: isExpanded ? '1px solid rgba(128, 128, 128, 0.12)' : '1px solid rgba(128, 128, 128, 0.06)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  boxSizing: 'border-box',
-                  transition: 'background-color 200ms, border-color 200ms',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.02em' }}>
-                      v{rel.version}
-                    </span>
-                    {rel.isCurrent && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          fontFamily: 'Manrope',
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: `linear-gradient(135deg, ${accent.from}1a, ${accent.to}1a)`,
-                          color: accent.from,
-                          border: `1px solid ${accent.from}33`,
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {lang === 'es' ? 'Instalado' : 'Installed'}
-                      </span>
-                    )}
-                    {rel.isLatest && !rel.isCurrent && (
-                      <span
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 800,
-                          fontFamily: 'Manrope',
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: 'rgba(52, 211, 153, 0.12)',
-                          color: '#10b981',
-                          border: '1px solid rgba(52, 211, 153, 0.2)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {lang === 'es' ? 'Más Reciente' : 'Latest'}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8 }}>
-                      {rel.date}
-                    </span>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: 18,
-                        color: 'var(--c-text-secondary)',
-                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 200ms ease',
-                        opacity: 0.6
-                      }}
-                    >
-                      expand_more
-                    </span>
-                  </div>
-                </div>
-
-                <AnimatePresence initial={false}>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                      animate={{ height: 'auto', opacity: 1, marginTop: 14 }}
-                      exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
-                      style={{ overflow: 'hidden' }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {rel.sections.length === 0 ? (
-                        <div style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontStyle: 'italic', paddingLeft: 4 }}>
-                          {lang === 'es' ? 'No hay detalles de cambios disponibles.' : 'No detailed changes available.'}
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                          {rel.sections.map((sec, sIdx) => {
-                            const cStyle = getCategoryStyles(sec.heading);
-                            return (
-                              <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                <div style={{ display: 'flex' }}>
-                                  <span
-                                    style={{
-                                      fontSize: 9,
-                                      fontWeight: 800,
-                                      fontFamily: 'Manrope',
-                                      padding: '2px 8px',
-                                      borderRadius: 999,
-                                      background: cStyle.bg,
-                                      color: cStyle.fg,
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.04em',
-                                    }}
-                                  >
-                                    {sec.heading}
-                                  </span>
-                                </div>
-                                <ul style={{ margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                  {sec.items.map((item, iIdx) => (
-                                    <li
-                                      key={iIdx}
-                                      style={{
-                                        fontSize: 12.5,
-                                        color: 'var(--c-text-secondary)',
-                                        fontFamily: 'Inter',
-                                        lineHeight: 1.4,
-                                      }}
-                                    >
-                                      {item}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+      <BouncyAccordion
+        items={releases.map((rel) => ({
+          id: rel.version,
+          title: (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.02em' }}>
+                v{rel.version}
+              </span>
+              {rel.isCurrent && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    fontFamily: 'Manrope',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    background: `linear-gradient(135deg, ${accent.from}1a, ${accent.to}1a)`,
+                    color: accent.from,
+                    border: `1px solid ${accent.from}33`,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {lang === 'es' ? 'Instalado' : 'Installed'}
+                </span>
+              )}
+              {rel.isLatest && !rel.isCurrent && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    fontFamily: 'Manrope',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    background: 'rgba(52, 211, 153, 0.12)',
+                    color: '#10b981',
+                    border: '1px solid rgba(52, 211, 153, 0.2)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {lang === 'es' ? 'Más Reciente' : 'Latest'}
+                </span>
+              )}
+              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8, marginLeft: 'auto' }}>
+                {rel.date}
+              </span>
             </div>
-          );
-        })}
-      </div>
+          ),
+          description: (
+            rel.sections.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontStyle: 'italic', paddingLeft: 4 }}>
+                {lang === 'es' ? 'No hay detalles de cambios disponibles.' : 'No detailed changes available.'}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {rel.sections.map((sec, sIdx) => {
+                  const cStyle = getCategoryStyles(sec.heading);
+                  return (
+                    <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div style={{ display: 'flex' }}>
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontWeight: 800,
+                            fontFamily: 'Manrope',
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            background: cStyle.bg,
+                            color: cStyle.fg,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          {sec.heading}
+                        </span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {sec.items.map((item, iIdx) => (
+                          <li
+                            key={iIdx}
+                            style={{
+                              fontSize: 12.5,
+                              color: 'var(--c-text-secondary)',
+                              fontFamily: 'Inter',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ),
+        }))}
+        value={Object.keys(expandedVersions).find((v) => expandedVersions[v]) || null}
+        onValueChange={(val) => setExpandedVersions(val ? { [val]: true } : {})}
+      />
     </div>
   );
 }

@@ -1095,3 +1095,13 @@ export function isUpdateDismissed(version: string, isManual = false): boolean {
     return false;
   }
 }
+
+import { registerStateMachineAccessors } from './stateMachineAccessors';
+registerStateMachineAccessors({
+  getGlobalUpdateState: () => globalUpdateState,
+  getActivePipelineContext: () => activePipelineContext,
+  getActiveUpdateSession: () => activeUpdateSession,
+  getTransitionListeners: () => transitionListeners,
+  startUpdateSession: (triggerType, reason) => startUpdateSession(triggerType, reason),
+});
+

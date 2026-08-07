@@ -163,3 +163,7 @@ export const useChordStore = create<ChordStore>()(
     }
   )
 );
+
+import { setChordStoreAccessorForActivityLogger } from '../lib/diagnostics/activityLogger';
+setChordStoreAccessorForActivityLogger(() => useChordStore);
+

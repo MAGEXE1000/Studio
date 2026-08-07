@@ -1,18 +1,18 @@
 import { isAppInstallerAvailable, updateSessions, activeSessionId, saveSessions, getActiveSession, deleteAllUpdateSessions, TimelineEvent } from './updateSessions';
-import { startUpdateSession } from './stateMachine';
 import { Capacitor } from '@capacitor/core';
-import { globalUpdateState, activePipelineContext } from './stateMachine';
+import { getGlobalUpdateState, invokeStartUpdateSession } from './stateMachineAccessors';
 
 export async function logProgressStage(stage: string, message?: string, exceptionStack?: string) {
   if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
     try {
       const { AppInstaller } = await import('../apkDownloader');
+      const state = getGlobalUpdateState();
       await AppInstaller.appendLog({
         stage,
         status: 0,
         message: message || '',
         exceptionStack: exceptionStack || '',
-        packageName: globalUpdateState.packageName || 'com.chordex.app',
+        packageName: state.packageName || 'com.chordex.app',
       });
     } catch (e) {
     }
@@ -110,6 +110,7 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
     '.' +
     String(ms).padStart(3, '0');
 
+  const state = getGlobalUpdateState();
   const ev: TimelineEvent = {
     timestamp: formatTime,
     absoluteTimestamp: now,
@@ -117,15 +118,15 @@ export function logTimelineEvent(module: string, event: string, reason = '', dur
     offsetMs,
     module,
     event,
-    state: globalUpdateState.updateState,
+    state: state.updateState,
     reason,
     durationMs,
   };
 
   if (session) {
     session.timeline.push(ev);
-    if (globalUpdateState.remoteVersion) {
-      session.version = globalUpdateState.remoteVersion;
+    if (state.remoteVersion) {
+      session.version = state.remoteVersion;
     }
     saveSessions();
   }
@@ -163,7 +164,7 @@ export function logInstallLockEvent(
       timeStr,
       type,
       caller,
-      state: globalUpdateState.updateState,
+      state: getGlobalUpdateState().updateState,
       reason,
       trigger: extras?.trigger,
       locked: true, // always true at point of recording (it was locked to cause the event)
@@ -213,7 +214,7 @@ export function getInstallLockReport(): string {
 
 
 export function interceptIllegalCall(functionName: string, reason: string) {
-  const current = globalUpdateState.updateState;
+  const current = getGlobalUpdateState().updateState;
   const isInstalling = [
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
@@ -310,5 +311,5 @@ export const installLockTimeline: InstallLockEvent[] = [];
 // Keep legacy interfaces for compatibility if needed
 
 export function startDiagnosticsSession() {
-  startUpdateSession('manual', 'Manual diagnostics session trigger');
+  invokeStartUpdateSession('manual', 'Manual diagnostics session trigger');
 }export const MAX_INSTALL_LOCK_EVENTS = 200;

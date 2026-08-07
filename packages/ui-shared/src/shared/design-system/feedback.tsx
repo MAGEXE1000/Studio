@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
-import AppSpinner from '../loading/AppSpinner';
+import { Loader } from '../../components/motion/loader';
 import { Button } from './buttons';
 // ── 14. Skeleton ───────────────────────────────────────────────────────────
 export interface SkeletonProps {
@@ -58,7 +58,7 @@ export function Loading({ statusText = 'Loading...', overlay = false }: LoadingP
         gap: '12px',
       }}
     >
-      <AppSpinner size={32} color="var(--c-accent-from)" />
+      <Loader variant="spinner" size={32} />
       {statusText && (
         <span
           style={{

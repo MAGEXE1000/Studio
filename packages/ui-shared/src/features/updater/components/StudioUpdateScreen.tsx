@@ -2,6 +2,9 @@ import React, { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UpdaterFlightRecorder, DurationPresets, EasingPresets } from '@workspace/studio-core';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
+import { Loader } from '../../../components/motion/loader';
+import { MorphingModal } from '../../../components/motion/morphing-modal';
+
 
 interface StudioUpdateScreenProps {
   state: string;
@@ -126,59 +129,15 @@ export default memo(function StudioUpdateScreen({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: DurationPresets.fast, ease: EasingPresets.decelerate }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 99999,
-        overflow: 'hidden',
-        overscrollBehavior: 'none',
-        background: isLight ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px 16px',
-        boxSizing: 'border-box',
-        fontFamily: 'Manrope, sans-serif',
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="updater-dialog-title"
+    <MorphingModal
+      viewId={state || 'update'}
+      onClose={canClose && onClose ? onClose : () => {}}
+      placement="center"
+      className="glow-animation max-w-sm w-full p-8 text-center flex flex-col items-center gap-6"
     >
       <style>{customKeyframes}</style>
+      <div className="relative w-full flex flex-col items-center gap-6 text-center">
 
-      {/* Glassmorphic Card Container matching official HTML spec */}
-      <motion.div
-        layout
-        transition={emphasizedTransition}
-        className="glow-animation"
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: 384,
-          background: isLight ? 'rgba(255, 255, 255, 0.92)' : 'rgba(31, 32, 32, 0.75)',
-          border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(72, 72, 72, 0.25)',
-          borderRadius: 24,
-          padding: 32,
-          boxSizing: 'border-box',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          gap: 24,
-          color: isLight ? '#0f172a' : '#e7e5e4',
-          boxShadow: isLight ? '0 20px 50px rgba(0, 0, 0, 0.12)' : '0 24px 48px rgba(0, 0, 0, 0.4)',
-        }}
-      >
         {/* Close Button matching HTML spec */}
         {canClose && onClose && (
           <button
@@ -243,7 +202,7 @@ export default memo(function StudioUpdateScreen({
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
               >
                 {showSpinner ? (
-                  <AnimatedIcon name="loader-circle" state="loading" size={36} color="#679cff" />
+                  <Loader variant="percent" size={36} />
                 ) : (
                   <AnimatedIcon
                     name={getSymbolName()}
@@ -507,7 +466,9 @@ export default memo(function StudioUpdateScreen({
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-    </motion.div>
+      </div>
+    </MorphingModal>
+
   );
 });
+

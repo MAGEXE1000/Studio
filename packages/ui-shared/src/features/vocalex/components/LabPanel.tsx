@@ -761,62 +761,50 @@ function TrackChannel({
           {t.vocalex.harmonize || 'Harmonize'}
         </button>
 
-        {confirmDel ? (
-          <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
-            <button
-              onClick={() => {
-                onDelete();
-                setConfirmDel(false);
-              }}
-              style={{
-                background: '#7f2927',
-                border: 'none',
-                borderRadius: 6,
-                padding: '4px 8px',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-                fontSize: 9,
-                fontWeight: 700,
-                color: '#ff9993',
-              }}
-            >
-              {t.vocalex.deleteTake || 'Delete'}
-            </button>
-            <button
-              onClick={() => setConfirmDel(false)}
-              style={{
-                background: 'var(--vx-input)',
-                border: 'none',
-                borderRadius: 6,
-                padding: '4px 8px',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-                fontSize: 9,
-                fontWeight: 700,
-                color: 'var(--vx-text-2)',
-              }}
-            >
-              {t.vocalex.cancelAction || 'Cancel'}
-            </button>
+        <button
+          onClick={() => setConfirmDel(true)}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 4,
+            color: 'var(--vx-text-4)',
+            display: 'flex',
+            marginLeft: 'auto',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+            delete
+          </span>
+        </button>
+
+        <Dialog
+          open={confirmDel}
+          onClose={() => setConfirmDel(false)}
+          title={t.vocalex.deleteConfirmTitle || 'Delete Layer'}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)' }}>
+              {t.vocalex.deleteConfirmBody || 'Are you sure you want to delete this layer?'}
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Button onClick={() => setConfirmDel(false)} style={{ flex: 1 }}>
+                {t.vocalex.cancelAction || 'Cancel'}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  onDelete();
+                  setConfirmDel(false);
+                }}
+                style={{ flex: 1, background: 'var(--c-error, #ef4444)', color: '#fff' }}
+              >
+                {t.vocalex.deleteTake || 'Delete'}
+              </Button>
+            </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setConfirmDel(true)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 4,
-              color: 'var(--vx-text-4)',
-              display: 'flex',
-              marginLeft: 'auto',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-              delete
-            </span>
-          </button>
-        )}
+        </Dialog>
+
       </div>
 
       <div

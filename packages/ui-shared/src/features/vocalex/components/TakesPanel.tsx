@@ -363,64 +363,53 @@ function TakeListItem({
         <MiniWaveform peaks={take.waveformPeaks} />
       </div>
 
-      {confirming ? (
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <button
-            onClick={() => {
-              onDelete();
-              setConfirming(false);
-            }}
-            style={{
-              background: 'rgba(239,68,68,0.15)',
-              border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 8,
-              padding: '6px 10px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-              fontSize: 11,
-              fontWeight: 600,
-              color: '#ef4444',
-            }}
-          >
-            {t.vocalex.deleteTake}
-          </button>
-          <button
-            onClick={() => setConfirming(false)}
-            style={{
-              background: 'var(--vx-input)',
-              border: 'none',
-              borderRadius: 8,
-              padding: '6px 10px',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-              fontSize: 11,
-              fontWeight: 600,
-              color: 'var(--vx-text-2)',
-            }}
-          >
-            {t.vocalex.cancelAction}
-          </button>
+      <button
+        onClick={() => setConfirming(true)}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 6,
+          flexShrink: 0,
+          color: 'var(--vx-text-4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          delete
+        </span>
+      </button>
+
+      <Dialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        title={t.vocalex.deleteConfirmTitle}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)' }}>
+            {t.vocalex.deleteConfirmBody}
+          </p>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Button onClick={() => setConfirming(false)} style={{ flex: 1 }}>
+
+              {t.vocalex.cancelAction}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                onDelete();
+                setConfirming(false);
+              }}
+              style={{ flex: 1, background: 'var(--c-error, #ef4444)', color: '#fff' }}
+            >
+              {t.vocalex.deleteTake}
+            </Button>
+          </div>
         </div>
-      ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 6,
-            flexShrink: 0,
-            color: 'var(--vx-text-4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            delete
-          </span>
-        </button>
-      )}
+      </Dialog>
+
     </div>
   );
 }

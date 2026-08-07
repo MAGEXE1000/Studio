@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useChordStore, NATIVE_VERSION, useSettingsStore } from '@workspace/studio-core';
-import { ActionButton } from '@workspace/ui-shared';
+import { ActionButton, MorphingModal, BouncyAccordion } from '@workspace/ui-shared';
+
+
+
 
 interface BlockerInfo {
   tag: string;
@@ -2032,76 +2035,35 @@ page:  (${webViewDiag.visualViewport.pageLeft}, ${webViewDiag.visualViewport.pag
         <div style={cardStyle}>
           <div style={cardTitleStyle}>ElementsFromPoint Stacks (Full)</div>
 
-          <details style={{ marginBottom: '8px' }}>
-            <summary
-              style={{
-                cursor: 'pointer',
-                color: '#c084fc',
-                fontWeight: 'bold',
-                fontSize: '10.5px',
-              }}
-            >
-              Center Stack ({Math.round(w / 2)}, {Math.round(h / 2)}) ({centerStack.length})
-            </summary>
-            <div style={{ marginTop: '6px' }}>{formatStackList(centerStack)}</div>
-          </details>
-
-          <details style={{ marginBottom: '8px' }}>
-            <summary
-              style={{
-                cursor: 'pointer',
-                color: '#c084fc',
-                fontWeight: 'bold',
-                fontSize: '10.5px',
-              }}
-            >
-              Top Center Stack ({Math.round(w / 2)}, {Math.round(h * 0.1)}) ({topStack.length})
-            </summary>
-            <div style={{ marginTop: '6px' }}>{formatStackList(topStack)}</div>
-          </details>
-
-          <details style={{ marginBottom: '8px' }}>
-            <summary
-              style={{
-                cursor: 'pointer',
-                color: '#c084fc',
-                fontWeight: 'bold',
-                fontSize: '10.5px',
-              }}
-            >
-              Bottom Center Stack ({Math.round(w / 2)}, {Math.round(h * 0.9)}) ({bottomStack.length}
-              )
-            </summary>
-            <div style={{ marginTop: '6px' }}>{formatStackList(bottomStack)}</div>
-          </details>
-
-          <details style={{ marginBottom: '8px' }}>
-            <summary
-              style={{
-                cursor: 'pointer',
-                color: '#c084fc',
-                fontWeight: 'bold',
-                fontSize: '10.5px',
-              }}
-            >
-              Left Center Stack ({Math.round(w * 0.1)}, {Math.round(h / 2)}) ({leftStack.length})
-            </summary>
-            <div style={{ marginTop: '6px' }}>{formatStackList(leftStack)}</div>
-          </details>
-
-          <details style={{ marginBottom: '8px' }}>
-            <summary
-              style={{
-                cursor: 'pointer',
-                color: '#c084fc',
-                fontWeight: 'bold',
-                fontSize: '10.5px',
-              }}
-            >
-              Right Center Stack ({Math.round(w * 0.9)}, {Math.round(h / 2)}) ({rightStack.length})
-            </summary>
-            <div style={{ marginTop: '6px' }}>{formatStackList(rightStack)}</div>
-          </details>
+          <BouncyAccordion
+            items={[
+              {
+                id: 'center',
+                title: `Center Stack (${Math.round(w / 2)}, ${Math.round(h / 2)}) (${centerStack.length})`,
+                description: <div style={{ marginTop: '6px' }}>{formatStackList(centerStack)}</div>,
+              },
+              {
+                id: 'top',
+                title: `Top Center Stack (${Math.round(w / 2)}, ${Math.round(h * 0.1)}) (${topStack.length})`,
+                description: <div style={{ marginTop: '6px' }}>{formatStackList(topStack)}</div>,
+              },
+              {
+                id: 'bottom',
+                title: `Bottom Center Stack (${Math.round(w / 2)}, ${Math.round(h * 0.9)}) (${bottomStack.length})`,
+                description: <div style={{ marginTop: '6px' }}>{formatStackList(bottomStack)}</div>,
+              },
+              {
+                id: 'left',
+                title: `Left Center Stack (${Math.round(w * 0.1)}, ${Math.round(h / 2)}) (${leftStack.length})`,
+                description: <div style={{ marginTop: '6px' }}>{formatStackList(leftStack)}</div>,
+              },
+              {
+                id: 'right',
+                title: `Right Center Stack (${Math.round(w * 0.9)}, ${Math.round(h / 2)}) (${rightStack.length})`,
+                description: <div style={{ marginTop: '6px' }}>{formatStackList(rightStack)}</div>,
+              },
+            ]}
+          />
         </div>
       </div>
     );
@@ -3405,48 +3367,46 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
 
                     {/* Collapsible stack trace */}
                     {snap.topmostElementsStack && snap.topmostElementsStack.length > 0 && (
-                      <details style={{ marginTop: '2px' }}>
-                        <summary
-                          style={{
-                            cursor: 'pointer',
-                            color: 'rgb(168, 85, 247)',
-                            fontSize: '9.5px',
-                            outline: 'none',
-                          }}
-                        >
-                          Topmost Element Stack ({snap.topmostElementsStack.length})
-                        </summary>
-                        <div
-                          style={{
-                            marginTop: '4px',
-                            background: 'rgba(0,0,0,0.2)',
-                            padding: '6px',
-                            borderRadius: '4px',
-                            fontFamily: 'monospace',
-                            fontSize: '9px',
-                            maxHeight: '80px',
-                            overflowY: 'auto',
-                          }}
-                        >
-                          {snap.topmostElementsStack.map((el: any, sidx: number) => (
-                            <div
-                              key={sidx}
-                              style={{
-                                color: sidx === 0 ? '#f43f5e' : 'rgba(255,255,255,0.6)',
-                                borderBottom: '1px solid rgba(255,255,255,0.03)',
-                                padding: '2px 0',
-                              }}
-                            >
-                              #{sidx}: &lt;{el.tag}
-                              {el.id ? ` id="${el.id}"` : ''}
-                              {el.className
-                                ? ` class="${el.className.split(' ').slice(0, 2).join(' ')}"`
-                                : ''}
-                              &gt; (z-index: {el.zIndex}, opacity: {el.opacity})
-                            </div>
-                          ))}
-                        </div>
-                      </details>
+                      <BouncyAccordion
+                        items={[
+                          {
+                            id: 'topmost-stack',
+                            title: `Topmost Element Stack (${snap.topmostElementsStack.length})`,
+                            description: (
+                              <div
+                                style={{
+                                  marginTop: '4px',
+                                  background: 'rgba(0,0,0,0.2)',
+                                  padding: '6px',
+                                  borderRadius: '4px',
+                                  fontFamily: 'monospace',
+                                  fontSize: '9px',
+                                  maxHeight: '80px',
+                                  overflowY: 'auto',
+                                }}
+                              >
+                                {snap.topmostElementsStack.map((el: any, sidx: number) => (
+                                  <div
+                                    key={sidx}
+                                    style={{
+                                      color: sidx === 0 ? '#f43f5e' : 'rgba(255,255,255,0.6)',
+                                      borderBottom: '1px solid rgba(255,255,255,0.03)',
+                                      padding: '2px 0',
+                                    }}
+                                  >
+                                    #{sidx}: &lt;{el.tag}
+                                    {el.id ? ` id="${el.id}"` : ''}
+                                    {el.className
+                                      ? ` class="${el.className.split(' ').slice(0, 2).join(' ')}"`
+                                      : ''}
+                                    &gt; (z-index: {el.zIndex}, opacity: {el.opacity})
+                                  </div>
+                                ))}
+                              </div>
+                            ),
+                          },
+                        ]}
+                      />
                     )}
                   </div>
                 </div>
@@ -4910,28 +4870,14 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
       )}
 
       {/* Main Debug Panel Modal */}
-      {isOpen && (
-        <div
-          id="livex-emergency-panel"
-          style={{
-            position: 'fixed',
-            inset: '16px',
-            bottom: '80px',
-            background: 'rgba(10, 10, 14, 0.98)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '2px solid rgba(168, 85, 247, 0.4)',
-            borderRadius: '16px',
-            zIndex: 2147483647,
-            boxShadow: '0 24px 64px rgba(0,0,0,0.85)',
-            display: 'flex',
-            flexDirection: 'column',
-            color: '#fff',
-            fontFamily: 'monospace',
-            overflow: 'hidden',
-            pointerEvents: 'auto',
-          }}
-        >
+      <MorphingModal
+        viewId={isOpen ? 'emergency-debug-panel' : null}
+        onClose={() => setIsOpen(false)}
+        placement="center"
+        className="max-w-4xl w-full h-[80vh] p-0 bg-[#0a0a0e]/98 border-2 border-purple-500/40 text-white rounded-2xl flex flex-col overflow-hidden font-mono"
+      >
+        <div id="livex-emergency-panel" className="flex flex-col h-full w-full">
+
           {/* Header */}
           <div
             style={{
@@ -5636,8 +5582,9 @@ activeSubApp:    ${hubRootMissingCapture.activeSubApp}`}
             )}
           </div>
         </div>
-      )}
+      </MorphingModal>
     </div>,
+
     overlayRoot
   );
 }

@@ -9,6 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { extractWaveformPeaks, blobToAudioBuffer, type TakeRecord, vocalexRepository } from "@workspace/studio-core";
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
+import { Loader } from '../../../components/motion/loader';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { VocalexTakesSkeleton } from '../../../shared/loading/StudioSkeleton';
 import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
@@ -475,19 +476,13 @@ export default function TakeDetailView({
               textAlign: 'center',
               background: 'var(--vx-card-2)',
               borderRadius: 14,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 12,
             }}
           >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                border: '2px solid var(--studio-accent)',
-                borderTopColor: 'transparent',
-                borderRadius: '50%',
-                animation: 'spin 0.8s linear infinite',
-                margin: '0 auto 12px',
-              }}
-            />
+            <Loader variant="metaballs" size={32} />
             <p
               style={{
                 fontFamily: 'var(--font-body)',
@@ -498,7 +493,6 @@ export default function TakeDetailView({
             >
               {t.vocalex.analyzing}
             </p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         ) : analysis ? (
           <>

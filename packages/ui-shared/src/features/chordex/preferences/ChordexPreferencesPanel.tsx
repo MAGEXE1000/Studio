@@ -15,7 +15,7 @@ import {
 import React, { useRef } from 'react';
 import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shared/settings/SettingControls';
 import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
-import InkThemeToggle from '../../../shared/typography/InkThemeToggle';
+import { ThemeToggle } from '../../../components/motion/theme-toggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 
 export default function ChordexPreferencesPanel() {
@@ -246,6 +246,9 @@ export default function ChordexPreferencesPanel() {
 
           {/* ── DISPLAY ── */}
           <SettingSection title={t.settings.sections.display}>
+            <SettingRow label="App Theme" desc="Switch between Light and Dark themes">
+              <ThemeToggle variant="circle-blur" start="bottom-up" />
+            </SettingRow>
             <SettingRow label={t.settings.rows.chordColors} desc={t.settings.rows.chordColorsDesc}>
               <Toggle
                 value={settings.showChordQualityColors}
@@ -593,6 +596,9 @@ export default function ChordexPreferencesPanel() {
         {/* ── DISPLAY ── */}
         <SectionHeader icon="dashboard" title={t.settings.sections.display} />
         <div style={cardStyle}>
+          <SettingRow label="App Theme" desc="Switch between Light and Dark themes">
+            <ThemeToggle variant="circle-blur" start="bottom-up" />
+          </SettingRow>
           <SettingRow label={t.settings.rows.chordColors} desc={t.settings.rows.chordColorsDesc}>
             <Toggle
               value={settings.showChordQualityColors}

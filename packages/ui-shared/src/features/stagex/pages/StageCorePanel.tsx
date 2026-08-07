@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import SmartLoading from '../../../shared/loading/SmartLoading';
+import { Loader } from '../../../components/motion/loader';
 import { StagexPanelSkeleton } from '../../../shared/loading/StudioSkeleton';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import { SharedNavigationBar } from '../../../features/hub/navigation/SharedNavigationBar';
@@ -12,6 +13,7 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { SegmentedOtpInput } from '../components/SegmentedOtpInput';
+import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -2084,72 +2086,36 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         : isLight
           ? 'rgba(0,0,0,0.55)'
           : 'rgba(255, 255, 255, 0.4)';
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          borderBottom: isLight
-            ? '1px solid rgba(0,0,0,0.05)'
-            : '1px solid rgba(255, 255, 255, 0.04)',
-          paddingBottom: isCollapsed ? 6 : 10,
-        }}
-      >
-        <div
-          onClick={() => setExpandedCats((prev) => ({ ...prev, [id]: !prev[id] }))}
-          className={`btn-smooth ${isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'}`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 10px',
-            background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255, 255, 255, 0.01)',
-            border: isLight ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(255, 255, 255, 0.03)',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: '16px', color: headerColor }}
-            >
-              {icon}
-            </span>
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: isCollapsed
-                  ? isLight
-                    ? 'rgba(0,0,0,0.55)'
-                    : 'rgba(255,255,255,0.7)'
-                  : isLight
-                    ? '#000'
-                    : '#fff',
-              }}
-            >
-              {title}
-            </span>
-          </div>
+
+    const item: BouncyAccordionItem = {
+      id,
+      title: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: headerColor }}>
+            {icon}
+          </span>
           <span
-            className="material-symbols-outlined"
             style={{
-              fontSize: '14px',
-              color: isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.3)',
-              transition: 'transform 200ms',
-              transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+              fontSize: '10px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
             }}
           >
-            expand_more
+            {title}
           </span>
         </div>
-        {!isCollapsed && <div style={{ padding: '4px 2px 0 2px' }}>{content}</div>}
-      </div>
+      ),
+      description: <div style={{ padding: '4px 2px 0 2px' }}>{content}</div>,
+    };
+
+    return (
+      <BouncyAccordion
+        key={id}
+        items={[item]}
+        value={!isCollapsed ? id : null}
+        onValueChange={(val) => setExpandedCats((prev) => ({ ...prev, [id]: val === id }))}
+      />
     );
   };
 
@@ -4119,15 +4085,12 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       </Dialog>
 
           {/* ── Collaboration Modal ── */}
-          {collabModalOpen && (
-            <>
-              <div
-                onClick={() => !collabLoading && setCollabModalOpen(false)}
-                className="absolute inset-0 bg-black/70 backdrop-blur-md z-[9998] transition-opacity duration-300"
-              />
-              <div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-full max-w-[480px] bg-[#1f1f1f] rounded-[28px] border border-white/10 shadow-2xl overflow-hidden dialog-entrance flex flex-col text-[#e2e2e2] font-body-md"
-              >
+          <Dialog
+            open={collabModalOpen}
+            onClose={() => !collabLoading && setCollabModalOpen(false)}
+          >
+            <div className="w-full max-w-[480px] text-[#e2e2e2] font-body-md">
+
                 {/* Header */}
                 <div className="p-6 pb-0 flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -4287,9 +4250,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           </div>
                           {/* Sync Status Badge */}
                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/8 text-[11px] font-semibold text-[#c1c6d7]">
-                            <span className={`material-symbols-outlined text-[14px] ${pendingOpsCount > 0 ? 'text-amber-400 animate-spin' : 'text-green-400'}`}>
-                              {pendingOpsCount > 0 ? 'sync' : 'check_circle'}
-                            </span>
+                            {pendingOpsCount > 0 ? (
+                              <Loader variant="comet" size={14} />
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-green-400">
+                                check_circle
+                              </span>
+                            )}
                             {pendingOpsCount > 0 ? `Syncing (${pendingOpsCount})` : 'Synced'}
                           </div>
                         </div>
@@ -4435,8 +4402,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   </p>
                 </footer>
               </div>
-            </>
-          )}
+          </Dialog>
+
         </div>
       </div>
     </div>

@@ -1,19 +1,19 @@
 {
   "platform": "android",
-  "version": "4.3.88",
-  "versionName": "4.3.88",
-  "versionCode": 40419,
-  "version_code": 40419,
-  "commit": "936e8718",
-  "releasedAt": "8/6/2026, 9:03:40 PM CST",
-  "buildTimestamp": "8/6/2026, 9:03:40 PM CST",
+  "version": "4.3.89",
+  "versionName": "4.3.89",
+  "versionCode": 40420,
+  "version_code": 40420,
+  "commit": "0f762653",
+  "releasedAt": "8/6/2026, 10:09:13 PM CST",
+  "buildTimestamp": "8/6/2026, 10:09:13 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Validated complete application runtime performance, theme engine stability, and gesture navigation responsiveness.\n• Executed production Android release pipeline v4.3.88 (versionCode 40419) with signed APK and metadata synchronization.",
-  "whatsNew": "• Validated complete application runtime performance, theme engine stability, and gesture navigation responsiveness.\n• Executed production Android release pipeline v4.3.88 (versionCode 40419) with signed APK and metadata synchronization.",
+  "changelog": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.",
+  "whatsNew": "• Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\n• Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.",
   "releaseNotes": {
     "improved": [
-      "Validated complete application runtime performance, theme engine stability, and gesture navigation responsiveness.",
-      "Executed production Android release pipeline v4.3.88 (versionCode 40419) with signed APK and metadata synchronization."
+      "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
+      "Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization."
     ]
   },
   "mandatory": false

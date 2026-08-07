@@ -1,5 +1,10 @@
-import { useChordStore } from '../../store/useChordStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
+
+let chordStoreAccessor: (() => any) | null = null;
+
+export function setChordStoreAccessorForActivityLogger(accessor: () => any) {
+  chordStoreAccessor = accessor;
+}
 
 export type ActivityType =
   | 'app_launch'
@@ -23,7 +28,9 @@ export interface ActivityEvent {
 }
 
 export function logActivity(type: ActivityType, title: string, subtitle?: string) {
-  const store = useChordStore.getState();
+  const storeApi = chordStoreAccessor ? chordStoreAccessor() : null;
+  if (!storeApi) return;
+  const store = storeApi.getState();
   const enabled = useSettingsStore.getState().settings.activityHistoryEnabled !== false;
   if (!enabled) return;
 
@@ -38,7 +45,7 @@ export function logActivity(type: ActivityType, title: string, subtitle?: string
   const currentLog = store.activityLog || [];
   const updatedLog = [newEvent, ...currentLog].slice(0, 25);
 
-  useChordStore.setState({ activityLog: updatedLog });
+  storeApi.setState({ activityLog: updatedLog });
 }
 
 export function getActivityEmoji(type: ActivityType, subtitle?: string): string {

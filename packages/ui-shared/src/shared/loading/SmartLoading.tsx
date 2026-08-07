@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { type AppKey } from '@workspace/studio-core';
+import { Loader } from '../../components/motion/loader';
 import {
   ChordexLogo,
   DrumexLogo,
@@ -106,10 +107,12 @@ export function AppLoadingScreen({ app }: { app: AppKey }) {
           color: 'var(--c-text-secondary)',
           fontWeight: 500,
           margin: 0,
+          marginBottom: '16px',
         }}
       >
         {config.desc}
       </p>
+      <Loader variant="comet" size={28} />
     </div>
   );
 }
@@ -150,8 +153,8 @@ export default function SmartLoading({
     return subtleLoading ? (
       <>{subtleLoading}</>
     ) : (
-      <div className="studio-accent-loader">
-        <div className="studio-accent-loader-bar" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+        <Loader variant="spinner" size={24} />
       </div>
     );
   }
@@ -172,3 +175,4 @@ export default function SmartLoading({
     </div>
   );
 }
+

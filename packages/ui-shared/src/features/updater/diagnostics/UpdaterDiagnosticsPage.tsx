@@ -16,6 +16,7 @@ import {
 } from '@workspace/studio-core';
 import { copyToClipboard } from './centralizedClipboard';
 import { CopyIcon } from '../../../components/ui/copy';
+import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
 
 // Simple reactive state hook to poll mutable arrays/objects
 function useForceUpdate() {
@@ -511,740 +512,605 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
         {/* Collapsible details list */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           
-          {/* Section 1: Production Actions */}
-          <details
-            style={{
-              background: 'rgba(25, 26, 26, 0.3)',
-              borderRadius: '16px',
-              border: '1px solid rgba(128,128,128,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <summary
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                cursor: 'pointer',
-                listStyle: 'none',
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>settings_suggest</span>
-                <span>Production Actions</span>
-              </div>
-              <span className="material-symbols-outlined">expand_more</span>
-            </summary>
-            <div style={{ padding: '16px', paddingTop: 0 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
-                <button
-                  onClick={() => checkNow()}
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(128,128,128,0.1)',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>refresh</span>
+          <BouncyAccordion
+            defaultValue="live-logs"
+            items={[
+              {
+                id: 'production-actions',
+                title: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>settings_suggest</span>
+                    <span>Production Actions</span>
                   </div>
-                  <div>
-                    <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Check for Updates</span>
-                    <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Poll remote registry</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => downloadUpdate('diagnostics_manual')}
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(128,128,128,0.1)',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>download</span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Download APK</span>
-                    <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Fetch latest binary</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => applyUpdate('diagnostics_manual')}
-                  style={{
-                    background: 'rgba(103, 156, 255, 0.15)',
-                    border: '1px solid rgba(103, 156, 255, 0.3)',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    color: '#679cff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>play_arrow</span>
-                  </div>
-                  <div>
-                    <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', color: '#fff' }}>Apply Update</span>
-                    <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>Complete flow cycle</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </details>
-
-          {/* Section 2: Live Logs (Open by default) */}
-          <details
-            open
-            style={{
-              background: 'rgba(25, 26, 26, 0.3)',
-              borderRadius: '16px',
-              border: '1px solid rgba(128,128,128,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <summary
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                cursor: 'pointer',
-                listStyle: 'none',
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>terminal</span>
-                <span>Live Logs</span>
-              </div>
-              <span className="material-symbols-outlined">expand_more</span>
-            </summary>
-            <div style={{ padding: '16px', paddingTop: 0 }}>
-              <div
-                style={{
-                  background: '#050505',
-                  border: '1px solid rgba(128,128,128,0.1)',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '320px',
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Logs toolbar */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 14px',
-                    background: 'rgba(25,26,26,0.5)',
-                    borderBottom: '1px solid rgba(128,128,128,0.08)',
-                  }}
-                >
-                  <div
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      background: 'rgba(0,0,0,0.3)',
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(128,128,128,0.15)',
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)' }}>
-                      search
-                    </span>
-                    <input
-                      value={logSearch}
-                      onChange={e => setLogSearch(e.target.value)}
-                      placeholder="Search logs..."
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        color: '#fff',
-                        fontSize: '11px',
-                        width: '100%',
-                        fontFamily: 'monospace',
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {(['ALL', 'INFO', 'DEBUG', 'ERROR'] as const).map(lvl => (
-                      <span
-                        key={lvl}
-                        onClick={() => setLogFilter(lvl)}
+                ),
+                description: (
+                  <div style={{ padding: '16px', paddingTop: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                      <button
+                        onClick={() => checkNow()}
                         style={{
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          padding: '4px 8px',
-                          borderRadius: '4px',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(128,128,128,0.1)',
+                          padding: '16px',
+                          borderRadius: '12px',
+                          color: '#fff',
                           cursor: 'pointer',
-                          background: logFilter === lvl ? '#679cff' : 'rgba(255,255,255,0.04)',
-                          color: logFilter === lvl ? '#000' : 'rgba(255,255,255,0.5)',
-                          transition: 'all 200ms ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                          textAlign: 'left',
                         }}
                       >
-                        {lvl}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>refresh</span>
+                        </div>
+                        <div>
+                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Check for Updates</span>
+                          <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Poll remote registry</span>
+                        </div>
+                      </button>
 
-                {/* Logs Terminal Area */}
-                <div
-                  style={{
-                    flex: 1,
-                    padding: '12px',
-                    overflowY: 'auto',
-                    fontFamily: 'monospace',
-                    fontSize: '11px',
-                    lineHeight: '1.6',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
-                  {filteredLogs.length === 0 ? (
-                    <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: '100px' }}>
-                      No logs record matches filters
+                      <button
+                        onClick={() => downloadUpdate('diagnostics_manual')}
+                        style={{
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(128,128,128,0.1)',
+                          padding: '16px',
+                          borderRadius: '12px',
+                          color: '#fff',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>download</span>
+                        </div>
+                        <div>
+                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Download APK</span>
+                          <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Fetch latest binary</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => applyUpdate('diagnostics_manual')}
+                        style={{
+                          background: 'rgba(103, 156, 255, 0.15)',
+                          border: '1px solid rgba(103, 156, 255, 0.3)',
+                          padding: '16px',
+                          borderRadius: '12px',
+                          color: '#679cff',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: '12px',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>play_arrow</span>
+                        </div>
+                        <div>
+                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', color: '#fff' }}>Apply Update</span>
+                          <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>Complete flow cycle</span>
+                        </div>
+                      </button>
                     </div>
-                  ) : (
-                    filteredLogs.map((log, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '8px' }}>
-                        <span style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
-                          {formatTime(log.timestamp)}
-                        </span>
-                        <span style={{ color: log.color, flexShrink: 0, fontWeight: 700 }}>
-                          {log.tag}
-                        </span>
-                        <span
+                  </div>
+                ),
+              },
+              {
+                id: 'live-logs',
+                title: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>terminal</span>
+                    <span>Live Logs</span>
+                  </div>
+                ),
+                description: (
+                  <div style={{ padding: '16px', paddingTop: 0 }}>
+                    <div
+                      style={{
+                        background: '#050505',
+                        border: '1px solid rgba(128,128,128,0.1)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '320px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '10px 14px',
+                          background: 'rgba(25,26,26,0.5)',
+                          borderBottom: '1px solid rgba(128,128,128,0.08)',
+                        }}
+                      >
+                        <div
                           style={{
-                            color: log.level === 'ERROR' ? '#f43f5e' : log.level === 'DEBUG' ? '#a78bfa' : '#e7e5e4',
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: 'rgba(0,0,0,0.3)',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(128,128,128,0.15)',
                           }}
                         >
-                          {log.message}
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)' }}>
+                            search
+                          </span>
+                          <input
+                            value={logSearch}
+                            onChange={e => setLogSearch(e.target.value)}
+                            placeholder="Search logs..."
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              outline: 'none',
+                              color: '#fff',
+                              fontSize: '11px',
+                              width: '100%',
+                              fontFamily: 'monospace',
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {(['ALL', 'INFO', 'DEBUG', 'ERROR'] as const).map(lvl => (
+                            <span
+                              key={lvl}
+                              onClick={() => setLogFilter(lvl)}
+                              style={{
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                background: logFilter === lvl ? '#679cff' : 'rgba(255,255,255,0.04)',
+                                color: logFilter === lvl ? '#000' : 'rgba(255,255,255,0.5)',
+                                transition: 'all 200ms ease',
+                              }}
+                            >
+                              {lvl}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          overflowY: 'auto',
+                          fontFamily: 'monospace',
+                          fontSize: '11px',
+                          lineHeight: '1.6',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                        }}
+                      >
+                        {filteredLogs.length === 0 ? (
+                          <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: '100px' }}>
+                            No logs record matches filters
+                          </div>
+                        ) : (
+                          filteredLogs.map((log, idx) => (
+                            <div key={idx} style={{ display: 'flex', gap: '8px' }}>
+                              <span style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
+                                {formatTime(log.timestamp)}
+                              </span>
+                              <span style={{ color: log.color, flexShrink: 0, fontWeight: 700 }}>
+                                {log.tag}
+                              </span>
+                              <span
+                                style={{
+                                  color: log.level === 'ERROR' ? '#f43f5e' : log.level === 'DEBUG' ? '#a78bfa' : '#e7e5e4',
+                                }}
+                              >
+                                {log.message}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                id: 'diagnostics-traces',
+                title: (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
+                    <span>Diagnostics Traces</span>
+                  </div>
+                ),
+                description: (
+                  <div style={{ padding: '16px', paddingTop: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div
+                        onClick={() => handleCopySection('Native Logs Trace', nativeLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
+                        style={{
+                          background: 'rgba(25, 26, 26, 0.5)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          transition: 'background-color 200ms ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>history</span>
+                          <span style={{ fontSize: '13px', fontWeight: 500 }}>Native Logs Trace</span>
+                        </div>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                          content_copy
                         </span>
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </details>
 
-          {/* Section 3: Diagnostics Subsystems */}
-          <details
-            style={{
-              background: 'rgba(25, 26, 26, 0.3)',
-              borderRadius: '16px',
-              border: '1px solid rgba(128,128,128,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <summary
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                cursor: 'pointer',
-                listStyle: 'none',
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
-                <span>Diagnostics Traces</span>
-              </div>
-              <span className="material-symbols-outlined">expand_more</span>
-            </summary>
-            <div style={{ padding: '16px', paddingTop: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div
-                  onClick={() => handleCopySection('Native Logs Trace', nativeLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
-                  style={{
-                    background: 'rgba(25, 26, 26, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    transition: 'background-color 200ms ease',
-                  }}
-                >
+                      <div
+                        onClick={() => handleCopySection('JS Execution Context', jsLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
+                        style={{
+                          background: 'rgba(25, 26, 26, 0.5)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          transition: 'background-color 200ms ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>javascript</span>
+                          <span style={{ fontSize: '13px', fontWeight: 500 }}>JS Execution Context</span>
+                        </div>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                          content_copy
+                        </span>
+                      </div>
+
+                      <div
+                        onClick={() => handleCopySection('Rejected Transitions', rejectedHist.map(h => `[${formatTime(h.timestamp)}] Attempted transition from ${h.from} to ${h.attempted}: ${h.reason}`).join('\n'))}
+                        style={{
+                          background: 'rgba(25, 26, 26, 0.5)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          transition: 'background-color 200ms ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>box</span>
+                          <span style={{ fontSize: '13px', fontWeight: 500 }}>Transition Rejection History</span>
+                        </div>
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                          content_copy
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                id: 'simulation-lab',
+                title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>history</span>
-                    <span style={{ fontSize: '13px', fontWeight: 500 }}>Native Logs Trace</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>science</span>
+                    <span>Simulation Lab</span>
                   </div>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
-                    content_copy
-                  </span>
-                </div>
+                ),
+                description: (
+                  <div style={{ padding: '16px', paddingTop: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                      <button
+                        onClick={() => {
+                          updaterSimulation.forceUpdateAvailable = !updaterSimulation.forceUpdateAvailable;
+                          updaterSimulation.forceNoUpdate = false;
+                          jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceUpdateAvailable toggled to ${updaterSimulation.forceUpdateAvailable}` });
+                          forceUpdate();
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          background: 'rgba(25,26,26,0.5)',
+                          border: '1px solid rgba(128,128,128,0.08)',
+                          color: '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Update Available</span>
+                        <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceUpdateAvailable ? '#10b981' : 'rgba(255,255,255,0.2)' }}>
+                          {updaterSimulation.forceUpdateAvailable ? 'check_circle' : 'chevron_right'}
+                        </span>
+                      </button>
 
-                <div
-                  onClick={() => handleCopySection('JS Execution Context', jsLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
-                  style={{
-                    background: 'rgba(25, 26, 26, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    transition: 'background-color 200ms ease',
-                  }}
-                >
+                      <button
+                        onClick={() => {
+                          updaterSimulation.forceDownloadFailure = !updaterSimulation.forceDownloadFailure;
+                          jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceDownloadFailure toggled to ${updaterSimulation.forceDownloadFailure}` });
+                          forceUpdate();
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          background: 'rgba(25,26,26,0.5)',
+                          border: '1px solid rgba(128,128,128,0.08)',
+                          color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Failure</span>
+                        <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : 'rgba(255,255,255,0.2)' }}>
+                          {updaterSimulation.forceDownloadFailure ? 'warning' : 'chevron_right'}
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          updaterSimulation.simulateDownloadThrottling = !updaterSimulation.simulateDownloadThrottling;
+                          jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] simulateDownloadThrottling toggled to ${updaterSimulation.simulateDownloadThrottling}` });
+                          forceUpdate();
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          background: 'rgba(25,26,26,0.5)',
+                          border: '1px solid rgba(128,128,128,0.08)',
+                          color: '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Toggle Network Throttling</span>
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '16px',
+                            background: updaterSimulation.simulateDownloadThrottling ? '#679cff' : 'rgba(255,255,255,0.08)',
+                            borderRadius: '9999px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '2px',
+                            justifyContent: updaterSimulation.simulateDownloadThrottling ? 'flex-end' : 'flex-start',
+                            transition: 'all 200ms ease',
+                          }}
+                        >
+                          <div style={{ width: '12px', height: '12px', background: '#000', borderRadius: '50%' }} />
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={handleResetSimulation}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '10px',
+                          background: 'rgba(25,26,26,0.5)',
+                          border: '1px solid rgba(128,128,128,0.08)',
+                          color: '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Reset Simulator Settings</span>
+                        <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                          restart_alt
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                id: 'state-machine',
+                title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>javascript</span>
-                    <span style={{ fontSize: '13px', fontWeight: 500 }}>JS Execution Context</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>account_tree</span>
+                    <span>Update State Machine</span>
                   </div>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
-                    content_copy
-                  </span>
-                </div>
+                ),
+                description: (
+                  <div style={{ padding: '16px', paddingTop: 0 }}>
+                    <div
+                      style={{
+                        background: 'rgba(0,0,0,0.15)',
+                        padding: '24px',
+                        borderRadius: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '24px',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: '35px',
+                          top: '32px',
+                          bottom: '32px',
+                          width: '2px',
+                          background: 'rgba(255,255,255,0.05)',
+                        }}
+                      />
 
-                <div
-                  onClick={() => handleCopySection('Rejected Transitions', rejectedHist.map(h => `[${formatTime(h.timestamp)}] Attempted transition from ${h.from} to ${h.attempted}: ${h.reason}`).join('\n'))}
-                  style={{
-                    background: 'rgba(25, 26, 26, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    transition: 'background-color 200ms ease',
-                  }}
-                >
+                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: isCheckedCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                            color: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isCheckedCompleted ? '#10b981' : '#e7e5e4' }}>
+                            Update Checked
+                          </h4>
+                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                            Registry connection checks finalized
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: isAvailableCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                            color: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isAvailableCompleted ? '#10b981' : '#e7e5e4' }}>
+                            Update Available
+                          </h4>
+                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                            Found version: {remoteVersion || 'None'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: isDownloadingActive ? 'rgba(103,156,255,0.15)' : isDownloadingCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : '#e7e5e4' }}>
+                            Downloading
+                          </h4>
+                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                            Progress: {progress}%
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            background: isReadyCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isReadyCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isReadyCompleted ? '#10b981' : '#e7e5e4' }}>
+                            Ready for Install
+                          </h4>
+                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                            Package downloaded and verified successfully
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                id: 'engineering-report',
+                title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>box</span>
-                    <span style={{ fontSize: '13px', fontWeight: 500 }}>Transition Rejection History</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>description</span>
+                    <span>Engineering Report Preview</span>
                   </div>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
-                    content_copy
-                  </span>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          {/* Section 4: Simulation Lab */}
-          <details
-            style={{
-              background: 'rgba(25, 26, 26, 0.3)',
-              borderRadius: '16px',
-              border: '1px solid rgba(128,128,128,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <summary
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                cursor: 'pointer',
-                listStyle: 'none',
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>science</span>
-                <span>Simulation Lab</span>
-              </div>
-              <span className="material-symbols-outlined">expand_more</span>
-            </summary>
-            <div style={{ padding: '16px', paddingTop: 0 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
-                
-                {/* Simulation button 1 */}
-                <button
-                  onClick={() => {
-                    updaterSimulation.forceUpdateAvailable = !updaterSimulation.forceUpdateAvailable;
-                    updaterSimulation.forceNoUpdate = false;
-                    jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceUpdateAvailable toggled to ${updaterSimulation.forceUpdateAvailable}` });
-                    forceUpdate();
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    background: 'rgba(25,26,26,0.5)',
-                    border: '1px solid rgba(128,128,128,0.08)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Update Available</span>
-                  <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceUpdateAvailable ? '#10b981' : 'rgba(255,255,255,0.2)' }}>
-                    {updaterSimulation.forceUpdateAvailable ? 'check_circle' : 'chevron_right'}
-                  </span>
-                </button>
-
-                {/* Simulation button 2 */}
-                <button
-                  onClick={() => {
-                    updaterSimulation.forceDownloadFailure = !updaterSimulation.forceDownloadFailure;
-                    jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceDownloadFailure toggled to ${updaterSimulation.forceDownloadFailure}` });
-                    forceUpdate();
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    background: 'rgba(25,26,26,0.5)',
-                    border: '1px solid rgba(128,128,128,0.08)',
-                    color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : '#fff',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Failure</span>
-                  <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : 'rgba(255,255,255,0.2)' }}>
-                    {updaterSimulation.forceDownloadFailure ? 'warning' : 'chevron_right'}
-                  </span>
-                </button>
-
-                {/* Simulation button 3 */}
-                <button
-                  onClick={() => {
-                    updaterSimulation.simulateDownloadThrottling = !updaterSimulation.simulateDownloadThrottling;
-                    jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] simulateDownloadThrottling toggled to ${updaterSimulation.simulateDownloadThrottling}` });
-                    forceUpdate();
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    background: 'rgba(25,26,26,0.5)',
-                    border: '1px solid rgba(128,128,128,0.08)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Toggle Network Throttling</span>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '16px',
-                      background: updaterSimulation.simulateDownloadThrottling ? '#679cff' : 'rgba(255,255,255,0.08)',
-                      borderRadius: '9999px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '2px',
-                      justifyContent: updaterSimulation.simulateDownloadThrottling ? 'flex-end' : 'flex-start',
-                      transition: 'all 200ms ease',
-                    }}
-                  >
-                    <div style={{ width: '12px', height: '12px', background: '#000', borderRadius: '50%' }} />
+                ),
+                description: (
+                  <div style={{ padding: '16px', paddingTop: 0 }}>
+                    <div
+                      style={{
+                        background: 'rgba(25, 26, 26, 0.6)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(128,128,128,0.08)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '11px',
+                          color: 'rgba(255,255,255,0.5)',
+                          lineHeight: '1.6',
+                          whiteSpace: 'pre-wrap',
+                          maxHeight: '220px',
+                          overflowY: 'auto',
+                        }}
+                      >
+                        <p style={{ color: '#679cff', margin: '0 0 8px 0' }}># UPDATER_DIAGNOSTICS_REPORT_V1</p>
+                        <p style={{ margin: '0 0 4px 0' }}>VERSION: <span style={{ color: '#fff' }}>{APP_VERSION}</span></p>
+                        <p style={{ margin: '0 0 4px 0' }}>CODE: <span style={{ color: '#fff' }}>{NATIVE_VERSION_CODE}</span></p>
+                        <p style={{ margin: '0 0 4px 0' }}>UPDATE_STATE: <span style={{ color: '#fff' }}>{updateState}</span></p>
+                        <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
+                        <p style={{ color: '#679cff', margin: '0 0 8px 0' }}>## STATE_SNAPSHOT</p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>• current_state: <span style={{ color: '#679cff' }}>{updateState}</span></p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>• update_available: <span style={{ color: '#fff' }}>{String(updateAvailable)}</span></p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>• consecutive_failures: <span style={{ color: '#fff' }}>{consecutiveFailures}</span></p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>• cache_source: <span style={{ color: '#fff' }}>{releaseMetadataInspector.cacheSource || 'None'}</span></p>
+                        <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
+                        <p style={{ fontStyle: 'italic', fontSize: '10px', margin: 0 }}>
+                          Report automatically generated. Confidential technical data.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </button>
-
-                {/* Simulation button 4 */}
-                <button
-                  onClick={handleResetSimulation}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    background: 'rgba(25,26,26,0.5)',
-                    border: '1px solid rgba(128,128,128,0.08)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Reset Simulator Settings</span>
-                  <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    restart_alt
-                  </span>
-                </button>
-              </div>
-            </div>
-          </details>
-
-          {/* Section 5: State Machine Timeline (Open by default) */}
-          <details
-            open
-            style={{
-              background: 'rgba(25, 26, 26, 0.3)',
-              borderRadius: '16px',
-              border: '1px solid rgba(128,128,128,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <summary
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                cursor: 'pointer',
-                listStyle: 'none',
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>account_tree</span>
-                <span>Update State Machine</span>
-              </div>
-              <span className="material-symbols-outlined">expand_more</span>
-            </summary>
-            <div style={{ padding: '16px', paddingTop: 0 }}>
-              <div
-                style={{
-                  background: 'rgba(0,0,0,0.15)',
-                  padding: '24px',
-                  borderRadius: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  position: 'relative',
-                }}
-              >
-                {/* Connector vertical line */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '35px',
-                    top: '32px',
-                    bottom: '32px',
-                    width: '2px',
-                    background: 'rgba(255,255,255,0.05)',
-                  }}
-                />
-
-                {/* State Node 1: Check */}
-                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: isCheckedCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                      color: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isCheckedCompleted ? '#10b981' : '#e7e5e4' }}>
-                      Update Checked
-                    </h4>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
-                      Registry connection checks finalized
-                    </p>
-                  </div>
-                </div>
-
-                {/* State Node 2: Available */}
-                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: isAvailableCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                      color: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isAvailableCompleted ? '#10b981' : '#e7e5e4' }}>
-                      Update Available
-                    </h4>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
-                      Found version: {remoteVersion || 'None'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* State Node 3: Downloading */}
-                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: isDownloadingActive ? 'rgba(103,156,255,0.15)' : isDownloadingCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : '#e7e5e4' }}>
-                      Downloading
-                    </h4>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
-                      Progress: {progress}%
-                    </p>
-                  </div>
-                </div>
-
-                {/* State Node 4: Ready */}
-                <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: isReadyCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isReadyCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isReadyCompleted ? '#10b981' : '#e7e5e4' }}>
-                      Ready for Install
-                    </h4>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
-                      Package downloaded and verified successfully
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </details>
-
-          {/* Section 6: Engineering Report Preview */}
-          <details
-            style={{
-              background: 'rgba(25, 26, 26, 0.3)',
-              borderRadius: '16px',
-              border: '1px solid rgba(128,128,128,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            <summary
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                cursor: 'pointer',
-                listStyle: 'none',
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.7)',
-                fontSize: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>description</span>
-                <span>Engineering Report Preview</span>
-              </div>
-              <span className="material-symbols-outlined">expand_more</span>
-            </summary>
-            <div style={{ padding: '16px', paddingTop: 0 }}>
-              <div
-                style={{
-                  background: 'rgba(25, 26, 26, 0.6)',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(128,128,128,0.08)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'monospace',
-                    fontSize: '11px',
-                    color: 'rgba(255,255,255,0.5)',
-                    lineHeight: '1.6',
-                    whiteSpace: 'pre-wrap',
-                    maxHeight: '220px',
-                    overflowY: 'auto',
-                  }}
-                >
-                  <p style={{ color: '#679cff', margin: '0 0 8px 0' }}># UPDATER_DIAGNOSTICS_REPORT_V1</p>
-                  <p style={{ margin: '0 0 4px 0' }}>VERSION: <span style={{ color: '#fff' }}>{APP_VERSION}</span></p>
-                  <p style={{ margin: '0 0 4px 0' }}>CODE: <span style={{ color: '#fff' }}>{NATIVE_VERSION_CODE}</span></p>
-                  <p style={{ margin: '0 0 4px 0' }}>UPDATE_STATE: <span style={{ color: '#fff' }}>{updateState}</span></p>
-                  <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
-                  <p style={{ color: '#679cff', margin: '0 0 8px 0' }}>## STATE_SNAPSHOT</p>
-                  <p style={{ margin: '0 0 4px 0 16px' }}>• current_state: <span style={{ color: '#679cff' }}>{updateState}</span></p>
-                  <p style={{ margin: '0 0 4px 0 16px' }}>• update_available: <span style={{ color: '#fff' }}>{String(updateAvailable)}</span></p>
-                  <p style={{ margin: '0 0 4px 0 16px' }}>• consecutive_failures: <span style={{ color: '#fff' }}>{consecutiveFailures}</span></p>
-                  <p style={{ margin: '0 0 4px 0 16px' }}>• cache_source: <span style={{ color: '#fff' }}>{releaseMetadataInspector.cacheSource || 'None'}</span></p>
-                  <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
-                  <p style={{ fontStyle: 'italic', fontSize: '10px', margin: 0 }}>
-                    Report automatically generated. Confidential technical data.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </details>
+                ),
+              },
+            ]}
+          />
 
         </section>
       </main>

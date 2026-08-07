@@ -1,5 +1,6 @@
 import CopyButton from './CopyButton';
 import CopyDropdown from './CopyDropdown';
+import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { compressReportText,
@@ -110,64 +111,38 @@ const AccordionSection = ({
   collapsed,
   onToggle,
   children}: AccordionSectionProps) => {
-  return (
-    <div
-      style={{
-        background: 'rgba(25, 26, 26, 0.6)',
-        border: '1px solid rgba(72, 72, 72, 0.15)',
-        borderRadius: 16,
-        marginBottom: 12,
-        overflow: 'hidden'}}
-    >
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle();
-        }}
-        style={{
-          width: '100%',
-          padding: '16px 20px',
-          background: 'transparent',
-          border: 'none',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: 'pointer',
-          outline: 'none'}}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span
-            className="material-symbols-outlined"
-            style={{ color: collapsed ? '#9d9da6' : '#007aff', fontSize: 20 }}
-          >
-            {icon}
-          </span>
-          <span style={{ fontWeight: 700, fontSize: 14, color: '#e7e5e4', fontFamily: 'Manrope' }}>
-            {title}
-          </span>
-        </div>
+  const item: BouncyAccordionItem = {
+    id: 'section',
+    title: (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span
           className="material-symbols-outlined"
-          style={{
-            color: '#acabaa',
-            fontSize: 20,
-            transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-            transition: 'transform 0.2s ease'}}
+          style={{ color: collapsed ? '#9d9da6' : '#007aff', fontSize: 20 }}
         >
-          expand_more
+          {icon}
         </span>
-      </button>
-      {!collapsed && (
-        <div
-          style={{
-            padding: '0 20px 20px 20px',
-            borderTop: '1px solid rgba(72, 72, 72, 0.15)',
-            paddingTop: '16px'}}
-        >
-          {children}
-        </div>
-      )}
-    </div>
+        <span style={{ fontWeight: 700, fontSize: 14, color: '#e7e5e4', fontFamily: 'Manrope' }}>
+          {title}
+        </span>
+      </div>
+    ),
+    description: (
+      <div
+        style={{
+          padding: '0 4px 16px 4px',
+          paddingTop: '12px'}}
+      >
+        {children}
+      </div>
+    ),
+  };
+
+  return (
+    <BouncyAccordion
+      items={[item]}
+      value={!collapsed ? 'section' : null}
+      onValueChange={() => onToggle()}
+    />
   );
 };
 

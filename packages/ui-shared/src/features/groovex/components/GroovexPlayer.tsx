@@ -10,6 +10,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import VinylLottie from '../../../shared/lottie/VinylLottie';
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
+import { Loader } from '../../../components/motion/loader';
 import { GroovexMixerSkeleton } from '../../../shared/loading/StudioSkeleton';
 import { SONG_CATALOG } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
@@ -674,7 +675,7 @@ export default function GroovexPlayer() {
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <LoadingLottie width={26} />
+                  <Loader variant="percent" size={26} />
                   <div>
                     <p
                       style={{

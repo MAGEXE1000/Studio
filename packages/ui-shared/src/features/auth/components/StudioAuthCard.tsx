@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import AppSpinner from '../../../shared/loading/AppSpinner';
+import { Loader } from '../../../components/motion/loader';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import { motion } from 'motion/react';
 import { Input } from '../../../shared/design-system/StudioDesignSystem';
@@ -312,7 +313,7 @@ export default function StudioAuthCard({
                   cursor: 'pointer',
                 }}
               >
-                {busy && <AppSpinner size={14} color="white" strokeWidth={2} />}
+                {busy && <Loader variant="dots" size={14} />}
                 {mode === 'email-signin' ? t.signIn : t.register}
               </AnimatedActionButton>
             </div>

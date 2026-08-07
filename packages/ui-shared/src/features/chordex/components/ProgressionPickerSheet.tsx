@@ -1,5 +1,7 @@
 import React from 'react';
 import { useT, type SongPreset } from '@workspace/studio-core';
+import { MorphingModal } from '../../../components/motion/morphing-modal';
+
 
 interface PresetPickerProps {
   accent: { from: string; to: string; mid: string };
@@ -26,31 +28,13 @@ export function PresetPickerSheet({
       : t.chord.chordsCountOther.replace('{count}', String(chordCount));
 
   return (
-    <div
-      className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center ${closing ? 'overlay-fade-out' : 'overlay-fade-in'}`}
-      style={{
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
-      }}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t.chord.chooseSongPreset}
+    <MorphingModal
+      viewId={closing ? null : 'preset-picker'}
+      onClose={onClose}
+      placement="bottom"
+      className="w-full sm:max-w-md max-h-[80vh] flex flex-col p-0 overflow-hidden"
     >
-      <div
-        className={`w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl ${closing ? 'sheet-exit' : 'sheet-enter'}`}
-        style={{
-          background: 'var(--app-surface)',
-          maxHeight: '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 -10px 40px rgba(0,0,0,0.4)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-          willChange: 'transform, opacity',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+
         {/* Header */}
         <div className="flex items-start justify-between px-5 pt-5 pb-3">
           <div style={{ minWidth: 0 }}>
@@ -244,7 +228,7 @@ export function PresetPickerSheet({
             </ul>
           )}
         </div>
-      </div>
-    </div>
+    </MorphingModal>
   );
 }
+

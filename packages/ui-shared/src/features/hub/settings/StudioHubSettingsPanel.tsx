@@ -1,4 +1,4 @@
-import PremiumThemeSwitcher from './PremiumThemeSwitcher';
+import { ThemeToggle } from '../../../components/motion/theme-toggle';
 import React from 'react';
 import {
   useSettingsStore,
@@ -69,8 +69,8 @@ export default function StudioHubSettingsPanel() {
         >
           {/* Theme Section */}
           <SettingSection title="Appearance Theme">
-            <SettingRow label="Theme Mode" desc="Switch between Light, Dark, or AMOLED themes">
-              <PremiumThemeSwitcher />
+            <SettingRow label="Theme Mode" desc="Switch between Light and Dark themes">
+              <ThemeToggle variant="circle-blur" start="bottom-up" />
             </SettingRow>
           </SettingSection>
 

@@ -1,7 +1,7 @@
-import { activePipelineContext } from './stateMachine';
+import { getGlobalUpdateState, getActivePipelineContext, getActiveUpdateSession, invokeStartUpdateSession } from './stateMachineAccessors';
+import type { CentralizedUpdateState } from './stateMachine';
 import { Capacitor } from '@capacitor/core';
 import { APP_VERSION } from '../appVersion';
-import { globalUpdateState, startUpdateSession, activeUpdateSession, transitionListeners } from './stateMachine';
 import { UpdaterFlightRecorder, type FlightRecorderEvent } from './flightRecorder';
 import { logProgressStage, parseStackTrace, logTimelineEvent } from './logger';
 import {
@@ -325,11 +325,12 @@ export async function populateDiagnostics(err: any, reason: string) {
     updateDiagnostics.exceptionMessage = err instanceof Error ? err.message : String(err);
     updateDiagnostics.failureReason =
       reason + (err instanceof Error && err.stack ? `\nStack: ${err.stack}` : '');
+    const state = getGlobalUpdateState();
     updateDiagnostics.downloadUrl =
-      globalUpdateState.apkUrl || globalUpdateState.downloadUrl || 'N/A';
+      state.apkUrl || state.downloadUrl || 'N/A';
     updateDiagnostics.apkPath = apkPath;
     updateDiagnostics.fileSize = fileSize;
-    updateDiagnostics.shaExpected = globalUpdateState.apkSha256 || 'N/A';
+    updateDiagnostics.shaExpected = state.apkSha256 || 'N/A';
     updateDiagnostics.shaCalculated = shaCalculated;
     updateDiagnostics.installerResult = updateDebugLogs.installError || 'N/A';
     updateDiagnostics.permissionState = permissionState;
@@ -435,16 +436,17 @@ export async function getDiagnosticsReport(): Promise<string> {
     } catch {}
   }
 
+  const state = getGlobalUpdateState();
   return `=== STUDIO UPDATER HEALTH & DIAGNOSTICS REPORT ===
 Timestamp: ${new Date().toISOString()}
-Current State: ${globalUpdateState.updateState}
-Update Available: ${globalUpdateState.updateAvailable}
-Remote Version: ${globalUpdateState.remoteVersion}
+Current State: ${state.updateState}
+Update Available: ${state.updateAvailable}
+Remote Version: ${state.remoteVersion}
 Download Source: ${updateDebugLogs.currentDownloadSource || 'None'}
 SHA Status: ${updateDebugLogs.shaVerification || 'N/A'}
-Consecutive Failures: ${globalUpdateState.consecutiveFailures}
-Active Fallback: ${globalUpdateState.activeFallback || 'None'}
-Recovery Mode Active: ${globalUpdateState.recoveryMode}
+Consecutive Failures: ${state.consecutiveFailures}
+Active Fallback: ${state.activeFallback || 'None'}
+Recovery Mode Active: ${state.recoveryMode}
 
 --- Platform Health ---
 Overall Status: ${health.status.toUpperCase()}
@@ -557,7 +559,9 @@ export function recordStateTransition(fromState: string, toState: string, reason
   const lifecycleState =
     typeof document !== 'undefined' ? (document.hidden ? 'background' : 'foreground') : 'unknown';
   const packageInstallerStatus = (window as any).__studioInstallerStatus || 'none';
-  const progress = globalUpdateState.progress;
+  const state = getGlobalUpdateState();
+  const progress = state.progress;
+  const activePipeline = getActivePipelineContext();
 
   const trans: WorkflowTransition = {
     timestamp: formatTime,
@@ -571,7 +575,7 @@ export function recordStateTransition(fromState: string, toState: string, reason
     thread: 'JS Main Thread',
     elapsedTimeMs,
     sessionId: session ? session.id : 'N/A',
-    pipelineId: activePipelineContext ? activePipelineContext.checkId : null,
+    pipelineId: activePipeline ? activePipeline.checkId : null,
     durationMs,
     screen,
     lifecycleState,
@@ -606,9 +610,11 @@ export function recordStateTransition(fromState: string, toState: string, reason
       const caller = parseStackTrace();
       const lifecycleState = typeof document !== 'undefined' ? document.visibilityState : 'unknown';
       const activityState = (window as any).__studioActivityState || 'active';
+      const activePipeline = getActivePipelineContext();
+      const activeSession = getActiveUpdateSession();
       const pipelineIdStr = String(
-        activePipelineContext?.checkId ??
-          (activeUpdateSession ? activeUpdateSession.pipelineId : 'N/A')
+        activePipeline?.checkId ??
+          (activeSession ? activeSession.pipelineId : 'N/A')
       );
       const sessionIdStr = session.id || 'N/A';
 
@@ -664,7 +670,7 @@ export function recordCloseEvent(reason: string) {
   }
 
   const caller = parseStackTrace();
-  const current = globalUpdateState.updateState;
+  const current = getGlobalUpdateState().updateState;
 
   let prev: string = current;
   if (session && session.transitions.length > 0) {
@@ -718,7 +724,7 @@ export function recordUpToDatePopup(reason: string, isAutomatic: boolean) {
   }
 
   const caller = parseStackTrace();
-  const current = globalUpdateState.updateState;
+  const current = getGlobalUpdateState().updateState;
   let prev: string = current;
   if (session && session.transitions.length > 0) {
     prev = session.transitions[session.transitions.length - 1].previousState;
@@ -814,7 +820,7 @@ export function startDiagnosticsHistorySession(trigger = 'unknown', reason = 'un
     endTime: null,
     durationMs: null,
     result: 'IN_PROGRESS',
-    version: globalUpdateState.remoteVersion,
+    version: getGlobalUpdateState().remoteVersion,
     buildType: Capacitor.isNativePlatform() ? 'Native Android' : 'Web',
     deviceModel: model,
     androidVersion: osVer,
@@ -976,7 +982,7 @@ export function getUpdateSessions(): UpdateSession[] {
       endTime,
       durationMs,
       result,
-      version: globalUpdateState.remoteVersion,
+      version: getGlobalUpdateState().remoteVersion,
       buildType: Capacitor.isNativePlatform() ? 'Native Android' : 'Web',
       deviceModel: 'Android Device',
       androidVersion: 'Android OS',

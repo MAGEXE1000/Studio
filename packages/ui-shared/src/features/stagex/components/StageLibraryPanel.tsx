@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { StageLibraryItem } from '../types';
 import { STAGEX_LIBRARY, CATEGORY_LABELS, CATEGORY_ICONS, STAGEX_ICON_MAP } from '../constants';
+import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
 
 interface StageLibraryPanelProps {
   isLight: boolean;
@@ -173,73 +174,43 @@ export const StageLibraryPanel = React.memo(
         : isLight
           ? 'rgba(0,0,0,0.55)'
           : 'rgba(255, 255, 255, 0.4)';
-    return (
-      <div
-        key={id}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          borderBottom: isLight
-            ? '1px solid rgba(0,0,0,0.05)'
-            : '1px solid rgba(255, 255, 255, 0.04)',
-          paddingBottom: isCollapsed ? 6 : 10,
-        }}
-      >
-        <div
-          onClick={() => setExpandedCats((prev) => ({ ...prev, [id]: !prev[id] }))}
-          className={`btn-smooth ${isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'}`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 10px',
-            background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255, 255, 255, 0.01)',
-            border: isLight ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(255, 255, 255, 0.03)',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: '16px', color: headerColor }}
-            >
-              {icon}
-            </span>
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: isCollapsed
-                  ? isLight
-                    ? 'rgba(0,0,0,0.55)'
-                    : 'rgba(255,255,255,0.7)'
-                  : isLight
-                    ? '#000'
-                    : '#fff',
-              }}
-            >
-              {title}
-            </span>
-          </div>
+
+    const item: BouncyAccordionItem = {
+      id,
+      title: (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: headerColor }}>
+            {icon}
+          </span>
           <span
-            className="material-symbols-outlined"
             style={{
-              fontSize: '14px',
-              color: isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.3)',
-              transition: 'transform 200ms',
-              transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+              fontSize: '10px',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: isCollapsed
+                ? isLight
+                  ? 'rgba(0,0,0,0.55)'
+                  : 'rgba(255,255,255,0.7)'
+                : isLight
+                  ? '#000'
+                  : '#fff',
             }}
           >
-            expand_more
+            {title}
           </span>
         </div>
-        {!isCollapsed && <div style={{ padding: '4px 2px 0 2px' }}>{content}</div>}
-      </div>
+      ),
+      description: <div style={{ padding: '4px 2px 0 2px' }}>{content}</div>,
+    };
+
+    return (
+      <BouncyAccordion
+        key={id}
+        items={[item]}
+        value={!isCollapsed ? id : null}
+        onValueChange={(val) => setExpandedCats((prev) => ({ ...prev, [id]: val === id }))}
+      />
     );
   };
 

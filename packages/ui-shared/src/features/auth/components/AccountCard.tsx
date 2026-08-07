@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import AppSpinner from '../../../shared/loading/AppSpinner';
 import { Circle, Layers3, BadgeCheck, FlaskConical, ShieldCheck } from 'lucide-react';
 import StudioSpinner from '../../../shared/animata/progress/spinner';
+import { Loader } from '../../../components/motion/loader';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import StudioAuthCard from './StudioAuthCard';
 import { isFirebaseConfigured, type AuthUser, authRepository } from "@workspace/studio-core";
@@ -807,12 +808,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
 
         <div style={{ ...rowStyle, alignItems: 'center', gap: 10 }}>
           {isSyncing ? (
-            <StudioSpinner
-              outerSize="h-[18px] w-[18px]"
-              childSize="h-[14px] w-[14px]"
-              colorFrom={iconColor}
-              colorTo={iconColor}
-            />
+            <Loader variant="comet" size={18} />
           ) : (
             <span
               className={`material-symbols-outlined sync-icon ${justSynced ? 'sync-pop' : ''}`}
@@ -2785,12 +2781,7 @@ export function AccountSettingsPage({
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               {isSyncing ? (
-                <StudioSpinner
-                  outerSize="h-[18px] w-[18px]"
-                  childSize="h-[14px] w-[14px]"
-                  colorFrom={accent.from}
-                  colorTo={accent.from}
-                />
+                <Loader variant="comet" size={18} />
               ) : (
                 <span
                   className={`material-symbols-outlined sync-icon ${justSynced ? 'sync-pop' : ''}`}
@@ -7154,12 +7145,7 @@ export function AccountSettingsPage({
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               {sync.phase === 'syncing' ? (
-                                <StudioSpinner
-                                  outerSize="h-[18px] w-[18px]"
-                                  childSize="h-[14px] w-[14px]"
-                                  colorFrom={accent.from}
-                                  colorTo={accent.to}
-                                />
+                                <Loader variant="comet" size={18} />
                               ) : (
                                 <span
                                   className={sync.phase === 'success' ? 'sync-pop' : ''}

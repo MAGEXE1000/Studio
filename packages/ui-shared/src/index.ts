@@ -7,6 +7,7 @@ export { SharedNavigationContainer } from './navigation/SharedNavigationContaine
 export { StudioPageTransition, UNIFIED_NAV_TRANSITION } from './components/StudioPageTransition';
 export { default as StudioCountUpPercentage } from './shared/progress/StudioCountUpPercentage';
 export { default as StudioProgressBar } from './shared/progress/StudioProgressBar';
+export * from './components/motion';
 export { default as InkThemeToggle } from './shared/typography/InkThemeToggle';
 export { default as StudioTitleReveal } from './shared/typography/StudioTitleReveal';
 export { default as StudioUpdateAuroraBackground } from './features/updater/components/StudioUpdateAuroraBackground';
@@ -58,6 +59,10 @@ export { default as ProfileDropdown } from './features/auth/components/ProfileDr
 export { default as AnimatedActionButton } from './shared/animata/container/animated-border-trail';
 export { default as StudioSpinner } from './shared/animata/progress/spinner';
 
+// Motion
+export { Loader, type LoaderProps, type LoaderVariant } from './components/motion';
+
+
 // Lottie
 export { default as AppLottie } from './shared/lottie/AppLottie';
 export { default as EmptyStateLottie } from './shared/lottie/EmptyStateLottie';
@@ -90,3 +95,7 @@ export { default as html2canvas } from 'html2canvas';
 export * from './shared/design-system';
 export * from './features/devtools/inspector';
 export { SharedAppShell, type SharedAppShellProps } from './shared/layout/SharedAppShell';
+export * from './components/motion';
+export { MorphingModal, type MorphingModalProps } from './components/motion/morphing-modal';
+
+

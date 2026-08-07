@@ -1,4 +1,5 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
+import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
 import { Capacitor } from '@capacitor/core';
 import { useChordStore,
   ACCENT_COLORS,
@@ -53,6 +54,7 @@ import {
 } from '../../hub/navigation/SharedNavigationBar';
 import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
+import { Loader } from '../../../components/motion/loader';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
 import { useDrumStore,
   KIT_INSTRUMENTS,
@@ -4698,69 +4700,34 @@ export default function DrumEditor() {
     content: React.ReactNode
   ) => {
     const isCollapsed = collapsedState[id];
-    const borderB = isLight
-      ? '1px solid rgba(0, 0, 0, 0.06)'
-      : '1px solid rgba(255, 255, 255, 0.04)';
-    const bg = isLight ? 'rgba(0, 0, 0, 0.015)' : 'rgba(255, 255, 255, 0.01)';
-    const border = isLight
-      ? '1px solid rgba(0, 0, 0, 0.06)'
-      : '1px solid rgba(255, 255, 255, 0.03)';
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
-          borderBottom: borderB,
-          paddingBottom: isCollapsed ? 6 : 10,
-        }}
-      >
-        <div
-          onClick={() => onToggle(id)}
-          className={`btn-smooth ${isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'}`}
+    const item: BouncyAccordionItem = {
+      id,
+      title: (
+        <span
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 10px',
-            background: bg,
-            border: border,
-            borderRadius: '6px',
-            cursor: 'pointer',
-            userSelect: 'none',
+            fontSize: '10px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
           }}
         >
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: isCollapsed ? 'var(--c-text-secondary)' : 'var(--c-text-primary)',
-            }}
-          >
-            {title}
-          </span>
-          <span
-            className="material-symbols-outlined"
-            style={{
-              fontSize: '14px',
-              color: 'var(--c-text-muted)',
-              transition: 'transform 200ms',
-              transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
-            }}
-          >
-            expand_more
-          </span>
+          {title}
+        </span>
+      ),
+      description: (
+        <div style={{ padding: '6px 4px 2px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {content}
         </div>
-        {!isCollapsed && (
-          <div
-            style={{ padding: '6px 4px 2px', display: 'flex', flexDirection: 'column', gap: 10 }}
-          >
-            {content}
-          </div>
-        )}
-      </div>
+      ),
+    };
+
+    return (
+      <BouncyAccordion
+        key={id}
+        items={[item]}
+        value={!isCollapsed ? id : null}
+        onValueChange={(val) => onToggle(id)}
+      />
     );
   };
   const menuItemSt: React.CSSProperties = {
@@ -5996,7 +5963,7 @@ export default function DrumEditor() {
                   </div>
                   {!houseLoaded && (
                     <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <LoadingLottie width={16} />
+                      <Loader variant="dots" size={16} />
                       <span
                         style={{
                           fontSize: 10.5,

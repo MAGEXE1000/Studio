@@ -10,12 +10,13 @@ import { useNavigationStore } from '../../store/useNavigationStore';
 import { useChordStore } from '../../store/useChordStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { logProgressStage } from './logger';
-import { globalUpdateState } from './stateMachine';
+import { getGlobalUpdateState } from './stateMachineAccessors';
 
 export function logDiagnosticEvent(event: string, details?: any) {
   const timestamp = new Date().toISOString();
-  const sessionId = globalUpdateState.sessionId || 'N/A';
-  const installState = globalUpdateState.updateState;
+  const state = getGlobalUpdateState();
+  const sessionId = state.sessionId || 'N/A';
+  const installState = state.updateState;
 
   let navState = 'unknown';
   try {
@@ -60,40 +61,4 @@ export function logDetailedJsTrace(
 ) {
   const timestamp = Date.now();
   const thread = 'Main JS Thread';
-  let stackTrace = 'N/A';
-  let caller = 'Unknown';
-  try {
-    const err = new Error();
-    if (err.stack) {
-      stackTrace = err.stack;
-      const lines = err.stack.split('\n');
-      if (lines.length > 2) {
-        caller = lines[2].trim();
-      }
-    }
-  } catch {}
-
-  const logObj = {
-    timestamp,
-    thread,
-    caller,
-    function: functionName,
-    file: fileName,
-    line,
-    stackTrace,
-    durationMs: extra?.durationMs ?? null,
-    sessionId:
-      extra?.sessionId ??
-      globalUpdateState.sessionId ??
-      localStorage.getItem('studio:installer_session_id') ??
-      'N/A',
-    prevState: extra?.prevState ?? globalUpdateState.updateState,
-    nextState: extra?.nextState ?? null,
-    reason: extra?.reason ?? null,
-    details,
-  };
-  void logProgressStage(
-    `[JS_TRACE] ${functionName}`,
-    `${details} | State: ${globalUpdateState.updateState}`
-  );
 }

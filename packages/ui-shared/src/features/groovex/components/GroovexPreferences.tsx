@@ -15,7 +15,9 @@ import { useGroovexStore } from '../state/useGroovexStore';
 import { SONG_CATALOG } from '../services/songCatalog';
 import { Toggle, SettingSection, SettingRow } from '../../../shared/settings/SettingControls';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
-import { Card } from '../../../shared/design-system/StudioDesignSystem';
+import { Card, Button } from '../../../shared/design-system/StudioDesignSystem';
+import { Dialog } from '../../../shared/design-system/dialogs';
+
 
 export default function GroovexPreferences() {
   const t = useT();
@@ -215,45 +217,8 @@ export default function GroovexPreferences() {
                     {formatBytes(cacheInfo.totalBytes)}
                   </p>
                 </div>
-                {cacheInfo.songCount > 0 &&
-                  (confirmDeleteAll ? (
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button
-                        onClick={handleClearAll}
-                        disabled={deletingId !== null}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 8,
-                          border: 'none',
-                          cursor: 'pointer',
-                          background: '#ee7d77',
-                          color: '#fff',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          fontFamily: 'var(--font-body)',
-                          opacity: deletingId ? 0.5 : 1,
-                        }}
-                      >
-                        {t.groovex.confirm}
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteAll(false)}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 8,
-                          cursor: 'pointer',
-                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)',
-                          color: 'var(--c-text-primary)',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          fontFamily: 'var(--font-body)',
-                          border: isLight ? '1px solid rgba(0,0,0,0.08)' : 'none',
-                        }}
-                      >
-                        {t.groovex.cancel}
-                      </button>
-                    </div>
-                  ) : (
+                {cacheInfo.songCount > 0 && (
+                  <>
                     <button
                       onClick={() => setConfirmDeleteAll(true)}
                       disabled={deletingId !== null}
@@ -272,7 +237,30 @@ export default function GroovexPreferences() {
                     >
                       {t.groovex.deleteAll}
                     </button>
-                  ))}
+                    <Dialog
+                      open={confirmDeleteAll}
+                      onClose={() => setConfirmDeleteAll(false)}
+                      title={t.groovex.deleteAll}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <p style={{ margin: 0 }}>Are you sure you want to delete all downloaded song caches?</p>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                          <Button onClick={() => setConfirmDeleteAll(false)} style={{ flex: 1 }}>
+                            {t.groovex.cancel}
+                          </Button>
+                          <Button
+                            variant="primary"
+                            onClick={handleClearAll}
+                            style={{ flex: 1, background: '#ee7d77', color: '#fff' }}
+                          >
+                            {t.groovex.confirm}
+                          </Button>
+                        </div>
+                      </div>
+                    </Dialog>
+                  </>
+                )}
+
               </div>
 
               {songCaches.length > 0 && (

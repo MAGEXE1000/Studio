@@ -1,5 +1,4 @@
-import AppLottie from './AppLottie';
-import loadingData from '../../lottie/loading-dots.json';
+import { Loader } from '../../components/motion/loader';
 
 interface LoadingLottieProps {
   width?: number;
@@ -9,16 +8,9 @@ interface LoadingLottieProps {
 
 export default function LoadingLottie({ width = 48, isLight, style }: LoadingLottieProps) {
   return (
-    <AppLottie
-      animationData={loadingData}
-      loop
-      autoplay
-      isLight={isLight}
-      style={{
-        width,
-        height: Math.round(width * (16 / 56)),
-        ...style,
-      }}
-    />
+    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }}>
+      <Loader variant="dots" size={width} className={isLight ? 'text-white' : undefined} />
+    </div>
   );
 }
+

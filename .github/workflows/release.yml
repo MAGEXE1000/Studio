@@ -38,9 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
 
       - name: Assert Required Environment Secrets
         run: |
@@ -130,9 +127,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
 
       - uses: pnpm/action-setup@v6
         with:
@@ -243,9 +237,6 @@ jobs:
       VITE_SYNC_BACKEND_PROVIDER: 'supabase-realtime'
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
 
       - uses: pnpm/action-setup@v6
         with:

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.87';
-export const NATIVE_VERSION_CODE = 40418;
-export const WEB_VERSION = '4.3.87';
+export const NATIVE_VERSION = '4.3.88';
+export const NATIVE_VERSION_CODE = 40419;
+export const WEB_VERSION = '4.3.88';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_COMMIT_SHA = '23adbe6f';
+export const APP_COMMIT_SHA = '68d70f18';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-version.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 8:27:44 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/6/2026, 8:52:40 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,14 +96,10 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Fixed",
+    heading: "Improved",
     items: [
-      "Fixed application load latency across all apps by pre-compiling sub-app entry points synchronously without dynamic promise fallbacks.",
-      "Resolved SubAppWrapper mounting sequence ensuring navigation routes render immediately without empty screens.",
-      "Eliminated artificial transition timeouts in ApplicationTransitionEngine to achieve 60 FPS smooth launch.",
-      "Synchronized bottom navigation highlight indicator directly with drag gestures, removing smoothing delay.",
-      "Optimized color pickers and theme updates to decouple store mutations from pointer events.",
-      "Restored rotating app animation in About panel and fixed native Android updater interface.",
+      "Validated complete application runtime performance, theme engine stability, and gesture navigation responsiveness.",
+      "Executed production Android release pipeline v4.3.88 (versionCode 40419) with signed APK and metadata synchronization.",
     ],
   },
 ];

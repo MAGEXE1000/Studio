@@ -6333,13 +6333,24 @@ const renderSubViewHeader = (title: string) => {
   return (
     <div
       style={{
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        width: isWebDesktop ? '420px' : '90vw',
+        maxWidth: '440px',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
-        background: 'var(--app-bg)',
+        background: 'var(--app-surface-glass-bg, rgba(15, 15, 20, 0.95))',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: '-8px 0 32px rgba(0,0,0,0.5)',
+        borderLeft: '1px solid var(--c-border, rgba(255,255,255,0.1))',
         color: 'var(--c-text-primary)',
         fontFamily: 'Manrope, sans-serif',
-        overflowX: 'hidden'}}
+        overflowX: 'hidden',
+        zIndex: 99990,
+      }}
     >
       {renderDashboardContent()}
 

@@ -165,45 +165,48 @@ export function SharedFloatingHeader({
   headerBgRef,
   titleRef,
 }: SharedFloatingHeaderProps) {
+  const isLight = typeof document !== 'undefined' ? !document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('amoled') : true;
+  const logoColor = isLight ? '#000000' : '#ffffff';
+
   return (
     <div
       style={{
         position: 'absolute',
-        top: 'calc(max(0px, env(safe-area-inset-top, 0px) - 16px))',
+        top: 'calc(env(safe-area-inset-top, 0px) + 2px)',
         left: 0,
         right: 0,
-        height: 56,
+        height: 44,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 110,
         pointerEvents: 'none',
-        padding: '0 16px',
+        padding: '0 12px',
       }}
     >
-      {/* Floating rounded header card with live theme adaptive blur */}
+      {/* Floating rounded header card aligned with content boundaries */}
       <div
         ref={headerBgRef}
         style={{
           position: 'absolute',
-          top: 6,
-          left: 12,
-          right: 12,
-          bottom: 6,
-          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.65))',
-          borderRadius: '24px',
+          top: 2,
+          left: 8,
+          right: 8,
+          bottom: 2,
+          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.75))',
+          borderRadius: '16px',
           border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
           backdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
           WebkitBackdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
           opacity: 0,
-          transform: 'scale(0.96) translateY(-4px)',
+          transform: 'scale(0.98) translateY(-2px)',
           transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
           zIndex: -1,
           pointerEvents: 'auto',
         }}
       />
 
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 12, height: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 8, height: '100%', padding: '0 4px' }}>
         {!hideBack && onBack && (
           <button
             onClick={onBack}
@@ -212,11 +215,11 @@ export function SharedFloatingHeader({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 34,
-              height: 34,
+              width: 30,
+              height: 30,
               borderRadius: '50%',
-              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.06))',
-              border: '1px solid rgba(128, 128, 128, 0.08)',
+              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.08))',
+              border: '1px solid rgba(128, 128, 128, 0.1)',
               color: 'var(--c-text-primary)',
               cursor: 'pointer',
               transition: 'background-color 200ms',
@@ -224,33 +227,28 @@ export function SharedFloatingHeader({
               flexShrink: 0,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               arrow_back
             </span>
           </button>
         )}
 
-        {/* Small Sticky Title */}
-        {/* Small Sticky Title & Livex Logo Container */}
+        {/* Section Title next to Back Button */}
         <div
           ref={titleRef}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
             opacity: 0,
-            transform: 'translateY(8px)',
+            transform: 'translateY(4px)',
             transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
             flex: 1,
             minWidth: 0,
           }}
         >
-          <div style={{ color: 'var(--c-accent-from, #679cff)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-            <StudioLogo size={18} />
-          </div>
           <span
             style={{
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 800,
               color: 'var(--c-text-primary)',
               letterSpacing: '-0.02em',
@@ -258,7 +256,6 @@ export function SharedFloatingHeader({
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              flex: 1,
             }}
           >
             {title}
@@ -266,10 +263,15 @@ export function SharedFloatingHeader({
         </div>
 
         {toolbarActions && (
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             {toolbarActions}
           </div>
         )}
+
+        {/* Livex Logo on RIGHT side — Strictly theme dependent (black in White, white in Dark/AMOLED) */}
+        <div style={{ color: logoColor, display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: 4 }}>
+          <StudioLogo size={16} />
+        </div>
       </div>
     </div>
   );

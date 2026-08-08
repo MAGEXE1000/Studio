@@ -1,21 +1,22 @@
 {
   "platform": "android",
-  "version": "4.5.11",
-  "versionName": "4.5.11",
-  "versionCode": 40511,
-  "version_code": 40511,
-  "commit": "1317ec72",
-  "releasedAt": "8/7/2026, 8:58:54 PM CST",
-  "buildTimestamp": "8/7/2026, 8:58:54 PM CST",
+  "version": "4.5.12",
+  "versionName": "4.5.12",
+  "versionCode": 40512,
+  "version_code": 40512,
+  "commit": "0aaa0ed7",
+  "releasedAt": "8/7/2026, 9:38:08 PM CST",
+  "buildTimestamp": "8/7/2026, 9:38:08 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.\n• Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.\n• Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.\n• Integrated official Fluid Functionalism ColorPicker component for StageX element styling.",
-  "whatsNew": "• Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.\n• Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.\n• Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.\n• Integrated official Fluid Functionalism ColorPicker component for StageX element styling.",
+  "changelog": "• Completely separated Chordex preferences from Hub/Studio Settings and removed App Theme control from Chordex Preferences.\n• Redesigned floating top header (shorter 44px height, wider horizontal width, higher position) aligned with card boundaries below.\n• Positioned Livex logo on the right side of the floating header with theme-dependent color (black in Light, white in Dark/AMOLED, never accent color).\n• Accelerated app intro animations by 30% across all 6 applications (Hub, Chordex, StageX, Groovex, Drumex, Vocalex) with theme-stable initial frames.\n• Made Developer Inspector compact (floating drawer panel) and repaired debug controls.",
+  "whatsNew": "• Completely separated Chordex preferences from Hub/Studio Settings and removed App Theme control from Chordex Preferences.\n• Redesigned floating top header (shorter 44px height, wider horizontal width, higher position) aligned with card boundaries below.\n• Positioned Livex logo on the right side of the floating header with theme-dependent color (black in Light, white in Dark/AMOLED, never accent color).\n• Accelerated app intro animations by 30% across all 6 applications (Hub, Chordex, StageX, Groovex, Drumex, Vocalex) with theme-stable initial frames.\n• Made Developer Inspector compact (floating drawer panel) and repaired debug controls.",
   "releaseNotes": {
     "fixed": [
-      "Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.",
-      "Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.",
-      "Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.",
-      "Integrated official Fluid Functionalism ColorPicker component for StageX element styling."
+      "Completely separated Chordex preferences from Hub/Studio Settings and removed App Theme control from Chordex Preferences.",
+      "Redesigned floating top header (shorter 44px height, wider horizontal width, higher position) aligned with card boundaries below.",
+      "Positioned Livex logo on the right side of the floating header with theme-dependent color (black in Light, white in Dark/AMOLED, never accent color).",
+      "Accelerated app intro animations by 30% across all 6 applications (Hub, Chordex, StageX, Groovex, Drumex, Vocalex) with theme-stable initial frames.",
+      "Made Developer Inspector compact (floating drawer panel) and repaired debug controls."
     ]
   },
   "mandatory": false

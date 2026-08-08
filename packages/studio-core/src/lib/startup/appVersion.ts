@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.11';
-export const NATIVE_VERSION_CODE = 40511;
-export const WEB_VERSION = '4.5.11';
+export const NATIVE_VERSION = '4.5.12';
+export const NATIVE_VERSION_CODE = 40512;
+export const WEB_VERSION = '4.5.12';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '1317ec72';
+export const APP_COMMIT_SHA = '0aaa0ed7';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/7/2026, 8:58:54 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 9:38:08 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.",
-      "Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.",
-      "Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.",
-      "Integrated official Fluid Functionalism ColorPicker component for StageX element styling.",
+      "Completely separated Chordex preferences from Hub/Studio Settings and removed App Theme control from Chordex Preferences.",
+      "Redesigned floating top header (shorter 44px height, wider horizontal width, higher position) aligned with card boundaries below.",
+      "Positioned Livex logo on the right side of the floating header with theme-dependent color (black in Light, white in Dark/AMOLED, never accent color).",
+      "Accelerated app intro animations by 30% across all 6 applications (Hub, Chordex, StageX, Groovex, Drumex, Vocalex) with theme-stable initial frames.",
+      "Made Developer Inspector compact (floating drawer panel) and repaired debug controls.",
     ],
   },
 ];

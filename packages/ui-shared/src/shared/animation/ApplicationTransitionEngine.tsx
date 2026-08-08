@@ -32,7 +32,7 @@ export function ApplicationTransitionEngine({
     }
     const timer = setTimeout(() => {
       setLogoFormed(true);
-    }, 500);
+    }, 350);
     return () => clearTimeout(timer);
   }, [isHub, setLogoFormed]);
 
@@ -43,7 +43,7 @@ export function ApplicationTransitionEngine({
     if (startZoom) {
       const timer = setTimeout(() => {
         completeTransition();
-      }, isHub ? 250 : 650);
+      }, isHub ? 175 : 455);
       return () => clearTimeout(timer);
     }
     return () => {};
@@ -51,7 +51,7 @@ export function ApplicationTransitionEngine({
 
   const bgColor = isAmoled ? '#000000' : isLight ? '#f8f9fa' : '#0a0a0c';
 
-  const baseColor = isLight ? '#1f2937' : '#ffffff';
+  const baseColor = isLight ? '#000000' : '#ffffff';
 
   // App Specific Colors
   const appColors: Record<AppKey, string> = {
@@ -73,8 +73,8 @@ export function ApplicationTransitionEngine({
       : { backgroundColor: 'rgba(0,0,0,0)', opacity: [1, 1, 0] };
 
   const containerTransition: any = isHub
-    ? { duration: 0.25, ease: 'easeOut' }
-    : { duration: 0.65, ease: [0.6, 0.01, 0.05, 0.95] };
+    ? { duration: 0.175, ease: 'easeOut' }
+    : { duration: 0.455, ease: [0.6, 0.01, 0.05, 0.95] };
 
   // Render progressive icons
   const renderIcon = () => {

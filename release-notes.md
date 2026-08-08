@@ -1,8 +1,7 @@
-Release Date: 2026-08-07
+Release Date: 2026-08-08
 
 ### Fixed
-- Enforced single canonical responsive content-width architecture across all settings, preferences, updater, developer options, and profile screens.
-- Refined floating top bar capsule geometry to match beUI Pro proportions and removed Livex logo for visual balance.
-- Fixed Updater What's New section to render release notes automatically upon update detection.
-- Stacked Developer Inspector floating control button directly above Route Tracer control button.
+- Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.
+- Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.
+- Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.
 - Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.

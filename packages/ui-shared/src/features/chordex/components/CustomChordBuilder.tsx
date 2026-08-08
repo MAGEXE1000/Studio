@@ -953,7 +953,7 @@ export default function CustomChordBuilder({
   useScrollHide(scrollRef);
   const settings = useSettingsStore((s) => s.settings);
   const t = useT();
-  const resolvedAccent = ACCENT_COLORS[settings.accentColor];
+  const resolvedAccent = ACCENT_COLORS.blue;
   const instLabels: Record<Instrument, string> = {
     guitar: t.customBuilder.guitar,
     piano: t.customBuilder.piano,

@@ -152,10 +152,7 @@ export default function DrumPrefsPanel() {
     resetNav();
   }, []);
 
-  const acc =
-    ACCENT_COLORS[
-      (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
-    ] ?? ACCENT_COLORS.blue;
+  const acc = ACCENT_COLORS.blue;
   const cardStyle: React.CSSProperties = {
     background: 'var(--app-surface)',
     borderRadius: '1.5rem',
@@ -240,10 +237,7 @@ export default function DrumPrefsPanel() {
         </PrefsRow>
       );
     }
-    const acc =
-      ACCENT_COLORS[
-        (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
-      ] ?? ACCENT_COLORS.blue;
+    const acc = ACCENT_COLORS.blue;
     return (
       <SettingRow label={label} desc={desc}>
         <Toggle

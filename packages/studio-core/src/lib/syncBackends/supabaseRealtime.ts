@@ -161,7 +161,6 @@ export class SupabaseRealtimeProvider implements SyncBackendProvider {
     sameUidConfirmed: true,
     sameProjectConfirmed: true,
     cloudTheme: 'N/A',
-    cloudAccentColor: 'N/A',
     cloudDisplayName: 'N/A',
     cloudPhotoURL: 'N/A',
     cloudPreferences: null,

@@ -39,8 +39,7 @@ export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetPro
   const t = useT();
   const appKey = (NavigationDispatcher.currentApp()) as AppKey;
   const perApp = settings.perApp;
-  const vis = perApp?.[appKey] ?? { accentColor: 'blue' };
-  const accent = ACCENT_COLORS[vis.accentColor as keyof typeof ACCENT_COLORS];
+  const accent = ACCENT_COLORS.blue;
 
   const [selected, setSelected] = useState<Set<AppKey>>(
     new Set(['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'])

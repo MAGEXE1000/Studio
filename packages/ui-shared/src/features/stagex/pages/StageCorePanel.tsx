@@ -111,10 +111,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
     const cur = store.settings.defaultStageView ?? 'Editor';
-    const accentKey = (store.settings.perApp?.stagex?.accentColor ??
-      store.settings.accentColor ??
-      'blue') as keyof typeof ACCENT_COLORS;
-    const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
+    const accent = ACCENT_COLORS.blue;
 
     const section = doc.createElement('div');
     section.id = 'sc-start-on-injected';
@@ -172,12 +169,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
           .getState()
           .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
-        const a2 =
-          ACCENT_COLORS[
-            (useSettingsStore.getState().settings.perApp?.stagex?.accentColor ??
-              useSettingsStore.getState().settings.accentColor ??
-              'blue') as keyof typeof ACCENT_COLORS
-          ] ?? ACCENT_COLORS.blue;
+        const a2 = ACCENT_COLORS.blue;
         btnWrap.querySelectorAll('button').forEach((b, idx) => {
           const isActive = views[idx].value === updated;
           (b as HTMLButtonElement).style.border = isActive
@@ -1231,13 +1223,9 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   const stageVis = settings.perApp?.stagex ?? {
     theme: 'dark' as const,
-    accentColor: 'blue' as const,
     amoledMode: false,
   };
-  const accentKey = (stageVis.accentColor ??
-    settings.accentColor ??
-    'blue') as keyof typeof ACCENT_COLORS;
-  const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const isLight = (() => {
     if (stageVis.theme === 'light') return true;
     if (stageVis.theme === 'system') {

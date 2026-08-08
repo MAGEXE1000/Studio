@@ -21,9 +21,7 @@ import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 export default function ChordexPreferencesPanel() {
   const settings = useSettingsStore((s) => s.settings);
 
-  const acc =
-    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
-    ACCENT_COLORS.blue;
+  const acc = ACCENT_COLORS.blue;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);

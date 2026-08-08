@@ -7,10 +7,9 @@ export function useStudioDesignSystem() {
   const appKey = (NavigationDispatcher.currentApp()) as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
     theme: settings.theme ?? 'dark',
-    accentColor: settings.accentColor ?? 'blue',
     amoledMode: settings.amoledMode ?? false,
   };
-  const accent = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&

@@ -614,9 +614,7 @@ function ToggleRow({
     (settings.theme === 'system' &&
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
-  const acc =
-    ACCENT_COLORS[settings.perApp?.groovex?.accentColor as keyof typeof ACCENT_COLORS] ??
-    ACCENT_COLORS.blue;
+  const acc = ACCENT_COLORS.blue;
 
   if (isWebDesktop) {
     return (

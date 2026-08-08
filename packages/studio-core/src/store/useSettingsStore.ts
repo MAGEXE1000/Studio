@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { applyThemeTokens, rawAccentColors } from '../lib/preferences/themeEngine';
+import { applyThemeTokens } from '../lib/preferences/themeEngine';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
 import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n';
@@ -8,13 +8,11 @@ import type { Instrument } from '../data/chords';
 
 export type Theme = 'dark' | 'light' | 'system' | 'dynamic';
 export type ActivePanel = 'library' | 'preferences' | 'songs';
-export type AccentColor = 'blue' | 'purple' | 'green' | 'orange' | 'pink' | 'teal' | 'custom';
 export type AppKey = 'hub' | 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex' | 'devtools';
 export type AppRoute = NavigationRoute;
 
 export interface PerAppVisuals {
   theme: Theme;
-  accentColor: AccentColor;
   amoledMode: boolean;
 }
 
@@ -30,7 +28,6 @@ export interface AppSettings {
   showIntervals: boolean;
   tuning: string;
   amoledMode: boolean;
-  accentColor: AccentColor;
   leftHanded: boolean;
   showFretNumbers: boolean;
   showFingerNumbers: boolean;
@@ -68,7 +65,6 @@ export interface AppSettings {
   autoHideSidebarInApps: boolean;
   swipeBackBehavior: 'exit-to-hub' | 'manual-only';
   perApp: Record<AppKey, PerAppVisuals>;
-  customAccentHue: number;
   dynamicLightStart: number;
   dynamicLightEnd: number;
   privacyAnalytics: boolean;
@@ -97,24 +93,15 @@ export interface SettingsStore {
 
 
 
-export const ACCENT_COLORS = new Proxy(rawAccentColors, {
-  get(target, prop) {
-    if (prop === 'custom') {
-      try {
-        const state = useSettingsStore.getState();
-        const hue = state?.settings?.customAccentHue ?? 220;
-        return {
-          from: `hsl(${hue}, 75%, 65%)`,
-          mid: `hsl(${hue}, 80%, 55%)`,
-          to: `hsl(${(hue + 25) % 360}, 85%, 42%)`,
-        };
-      } catch (e) {
-        return target.custom;
-      }
-    }
-    return target[prop as keyof typeof target] || target.blue;
-  },
-}) as typeof rawAccentColors;
+export const ACCENT_COLORS = {
+  blue: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  purple: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  green: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  orange: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  pink: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  teal: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  custom: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+};
 
 // Default values to use if there is no previous state.
 const DEFAULT_SETTINGS: AppSettings = {
@@ -124,7 +111,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   showIntervals: false,
   tuning: 'Standard (EADGBE)',
   amoledMode: false,
-  accentColor: 'blue',
   leftHanded: false,
   showFretNumbers: true,
   showFingerNumbers: false,
@@ -160,7 +146,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   restoreLastSession: false,
   autoHideSidebarInApps: true,
   swipeBackBehavior: 'exit-to-hub',
-  customAccentHue: 220,
   dynamicLightStart: 7,
   dynamicLightEnd: 20,
   privacyAnalytics: false,
@@ -177,13 +162,13 @@ const DEFAULT_SETTINGS: AppSettings = {
   syncBackendProvider: (import.meta.env.VITE_SYNC_BACKEND_PROVIDER as any) || 'supabase-realtime',
   launchAnimationPreset: 'fluid_surface',
   perApp: {
-    hub: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    chordex: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    drumex: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    stagex: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    vocalex: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    groovex: { theme: 'light', accentColor: 'blue', amoledMode: false },
-    devtools: { theme: 'light', accentColor: 'blue', amoledMode: false },
+    hub: { theme: 'light', amoledMode: false },
+    chordex: { theme: 'light', amoledMode: false },
+    drumex: { theme: 'light', amoledMode: false },
+    stagex: { theme: 'light', amoledMode: false },
+    vocalex: { theme: 'light', amoledMode: false },
+    groovex: { theme: 'light', amoledMode: false },
+    devtools: { theme: 'light', amoledMode: false },
   },
 };
 
@@ -197,13 +182,12 @@ export const useSettingsStore = create<SettingsStore>()(
         set((state) => {
           const updatedSettings = { ...state.settings, ...newSettings };
 
-          if (newSettings.theme || newSettings.accentColor || newSettings.amoledMode !== undefined) {
+          if (newSettings.theme || newSettings.amoledMode !== undefined) {
             const updatedPerApp = { ...updatedSettings.perApp };
             (Object.keys(updatedPerApp) as AppKey[]).forEach((app) => {
               updatedPerApp[app] = {
                 ...updatedPerApp[app],
                 ...(newSettings.theme && { theme: newSettings.theme }),
-                ...(newSettings.accentColor && { accentColor: newSettings.accentColor }),
                 ...(newSettings.amoledMode !== undefined && { amoledMode: newSettings.amoledMode }),
               };
             });

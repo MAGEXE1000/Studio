@@ -4277,9 +4277,7 @@ export default function SongsPanel() {
   const reorderSection = useChordStore(useShallow((s) => s.reorderSection));
   const convertToSections = useChordStore(useShallow((s) => s.convertToSections));
   const deduplicateAllPresets = useChordStore(useShallow((s) => s.deduplicateAllPresets));
-  const accent =
-    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
-    ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const preferFlats = settings.preferFlats ?? false;
   const isNative =
     typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();

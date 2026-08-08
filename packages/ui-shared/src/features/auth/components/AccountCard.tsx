@@ -5934,10 +5934,7 @@ export function AccountSettingsPage({
                             <strong>Cloud Theme:</strong>{' '}
                             <code style={codeBreakStyle}>{sync.cloudTheme || 'N/A'}</code>
                           </p>
-                          <p style={{ margin: 0, color: 'var(--c-text-secondary)' }}>
-                            <strong>Cloud Accent Color:</strong>{' '}
-                            <code style={codeBreakStyle}>{sync.cloudAccentColor || 'N/A'}</code>
-                          </p>
+
                           <p style={{ margin: 0, color: 'var(--c-text-secondary)' }}>
                             <strong>Cloud Display Name:</strong>{' '}
                             <code style={codeBreakStyle}>{sync.cloudDisplayName || 'N/A'}</code>

@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   useChordStore,
-  ACCENT_COLORS,
   useIsWebDesktop,
   useStudioPreferences,
   logActivity,

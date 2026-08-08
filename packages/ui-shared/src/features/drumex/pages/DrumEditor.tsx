@@ -3079,10 +3079,7 @@ export default function DrumEditor() {
     () => patterns.find((p) => p.id === activePatternId) ?? patterns[0],
     [patterns, activePatternId]
   );
-  const accent =
-    ACCENT_COLORS[
-      (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
-    ] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const spm = stepsPerMeasure(pattern);
   const stepsPerBeat = pattern.subdivision / pattern.timeSignature[1];
   const kit = kitType ?? 'house';

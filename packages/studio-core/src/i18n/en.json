@@ -330,7 +330,6 @@
       "themeDark": "Dark",
       "amoledMode": "Pure AMOLED Mode",
       "amoledModeDesc": "True black backgrounds",
-      "accentColor": "Accent Color",
       "animSpeed": "Animation Speed",
       "animSpeedDesc": "Controls all panel and element transitions",
       "fast": "Fast",

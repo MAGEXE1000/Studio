@@ -92,10 +92,9 @@ export default function VocalexApp() {
   const appKey = 'vocalex' as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
     theme: 'dark' as const,
-    accentColor: 'blue' as const,
     amoledMode: false,
   };
-  const accent = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const isLight = (() => {
     if (activeVis.theme === 'light') return true;
     if (activeVis.theme === 'system') {
@@ -114,8 +113,6 @@ export default function VocalexApp() {
 
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
-  const activeVisAccentRef = useRef(activeVis.accentColor);
-  activeVisAccentRef.current = activeVis.accentColor;
   const isLightRef = useRef(isLight);
   isLightRef.current = isLight;
 
@@ -125,7 +122,6 @@ export default function VocalexApp() {
       name: 'Vocalex App',
       getDebugState: () => ({
         activeTab: activeTabRef.current,
-        accentColor: activeVisAccentRef.current,
         isLight: isLightRef.current,
       }),
     });
@@ -267,8 +263,8 @@ function VocalexPreferences() {
 
   const t = useT();
   const vt = t.vocalex as any;
-  const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', accentColor: 'blue' };
-  const acc = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', amoledMode: false };
+  const acc = ACCENT_COLORS.blue;
   const isLight =
     activeVis.theme === 'light' ||
     (activeVis.theme === 'system' &&

@@ -43,7 +43,7 @@ export interface LiveModeState {
 
 export function useLiveModeState(preset: SongPreset, onClose: () => void, transposeOffset: number = 0): LiveModeState {
   const settings = useSettingsStore((s) => s.settings);
-  const accent = ACCENT_COLORS[settings.accentColor];
+  const accent = ACCENT_COLORS.blue;
 
   const [currentIdx, setCurrentIdx] = useState(0);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');

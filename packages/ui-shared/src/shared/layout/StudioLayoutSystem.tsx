@@ -367,6 +367,36 @@ export function SettingsScaffold({
 }
 
 
+export interface SettingsContentContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+export function SettingsContentContainer({
+  children,
+  style,
+  className = '',
+  ...props
+}: SettingsContentContainerProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--density-section-gap, 16px)',
+        width: '100%',
+        boxSizing: 'border-box',
+        background: 'transparent',
+        ...style,
+      }}
+      className={`studio-settings-content-container ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+
 // ── 5. HubScaffold ──────────────────────────────────────────────────────────
 // Responsive Scaffold structure specifically optimized for main Studio Hub dashboard layouts.
 export interface HubScaffoldProps {

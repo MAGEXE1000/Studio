@@ -84,6 +84,8 @@ const NavigationItem = React.memo(
     onMeasureGeometry,
     innerWrapperRef,
     animationEpoch,
+    scrollOffsetSpring,
+    distanceToCenter,
   }: {
     item: any;
     index: number;
@@ -95,6 +97,8 @@ const NavigationItem = React.memo(
     onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
     innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
     animationEpoch?: number;
+    scrollOffsetSpring: any;
+    distanceToCenter: number;
   }) => {
     const isIconString = typeof item.icon === 'string';
     const contentRef = useRef<HTMLDivElement | null>(null);
@@ -105,16 +109,23 @@ const NavigationItem = React.memo(
     const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
     const iconScale = useTransform(distance, [0, 0.45], [1.08, 0.98]);
 
+    // Scroll collapse: translate item horizontally towards center and fade it out
+    const scrollX = useTransform(scrollOffsetSpring, (offset: number) => {
+      return -offset * distanceToCenter;
+    });
+    const scrollOpacity = useTransform(scrollOffsetSpring, [0, 0.6], [1, 0]);
+
     const handleMeasure = useCallback(() => {
       if (contentRef.current && onMeasureGeometry) {
-        const rect = contentRef.current.getBoundingClientRect();
-        const parentRect = innerWrapperRef?.current?.getBoundingClientRect();
-        if (rect.width > 0 && parentRect) {
-          const leftOffset = rect.left - parentRect.left;
-          onMeasureGeometry(index, rect.width, leftOffset);
+        const contentEl = contentRef.current;
+        const itemEl = contentEl.parentElement;
+        const width = contentEl.offsetWidth || contentEl.getBoundingClientRect().width;
+        if (width > 0) {
+          const leftOffset = itemEl ? itemEl.offsetLeft + contentEl.offsetLeft : contentEl.offsetLeft;
+          onMeasureGeometry(index, width, leftOffset);
         }
       }
-    }, [index, onMeasureGeometry, innerWrapperRef]);
+    }, [index, onMeasureGeometry]);
 
     useEffect(() => {
       handleMeasure();
@@ -158,6 +169,8 @@ const NavigationItem = React.memo(
           padding: '0 6px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
+          x: scrollX,
+          opacity: scrollOpacity,
         }}
       >
 
@@ -704,17 +717,17 @@ export function SharedNavigationBar({
 
   React.useLayoutEffect(() => {
     if (!innerWrapperRef.current) return;
-    const parentRect = innerWrapperRef.current.getBoundingClientRect();
-    if (!parentRect.width) return;
     const itemEls = innerWrapperRef.current.querySelectorAll('[data-nav-item-index]');
     if (!itemEls.length) return;
     const newGeom: Record<number, { width: number; centerLeft: number }> = {};
     itemEls.forEach((el) => {
       const idx = Number(el.getAttribute('data-nav-item-index'));
-      const contentEl = (el.querySelector('[data-nav-content]') as HTMLElement) || (el as HTMLElement);
-      const rect = contentEl.getBoundingClientRect();
-      const centerLeft = rect.left - parentRect.left + rect.width / 2;
-      newGeom[idx] = { width: rect.width, centerLeft };
+      const htmlEl = el as HTMLElement;
+      const contentEl = (el.querySelector('[data-nav-content]') as HTMLElement) || htmlEl;
+      const width = contentEl.offsetWidth || contentEl.getBoundingClientRect().width;
+      const leftOffset = htmlEl.offsetLeft + contentEl.offsetLeft;
+      const centerLeft = leftOffset + width / 2;
+      newGeom[idx] = { width, centerLeft };
     });
     setMeasuredContentGeometry(newGeom);
     setHasMeasuredInitial(true);
@@ -824,18 +837,29 @@ export function SharedNavigationBar({
     scrollOffsetSpring.jump(0);
   }, [currentApp, items, scrollOffsetRaw, scrollOffsetSpring]);
 
-  // Scale navigation by 15% towards center-center (1.00 -> 0.85) on scroll down with zero vertical translation or hiding
-  const containerScale = useTransform(
-    [scrollOffsetSpring, searchOpenSpring],
-    ([offset, search]) => {
-      if ((search as number) > 0.1) return 1.0;
-      return 1.00 - (offset as number) * 0.15;
+  // MotionValues for unscaled barWidth updates
+  const barWidthRaw = useMotionValue(barWidth);
+  useEffect(() => {
+    barWidthRaw.set(barWidth);
+  }, [barWidth]);
+
+  // Collapsed container dimensions driven by scrollOffsetSpring
+  const containerWidth = useTransform(
+    [scrollOffsetSpring, barWidthRaw],
+    ([offset, width]) => {
+      return (width as number) - (offset as number) * ((width as number) - 130);
     }
   );
 
+  const containerHeight = useTransform(scrollOffsetSpring, [0, 1], [64, 24]);
+  const containerBorderRadius = useTransform(scrollOffsetSpring, [0, 1], [32, 12]);
+  const containerTranslateY = useTransform(scrollOffsetSpring, [0, 1], [0, 46]);
+
+  const pillOpacity = useTransform(scrollOffsetSpring, [0, 0.6], [1, 0]);
+  const switcherScale = useTransform(scrollOffsetSpring, [0, 0.4], [1, 0]);
+  const switcherOpacity = useTransform(scrollOffsetSpring, [0, 0.4], [1, 0]);
+
   // Dynamic composition centering for all 6 modules (Hub, Chordex, Drumex, Stagex, Groovex, Vocalex):
-  // On scroll down (1.00 -> 0.85 scale), glass-nav translates subtly right (+10px) towards screen composition center,
-  // and floating right bubble translates left (-12px) toward glass-nav so both elements converge symmetrically.
   const targetDockShift = useMemo(() => {
     if (!hasRightBubble) return 0;
     return 10;
@@ -1032,10 +1056,22 @@ export function SharedNavigationBar({
         targetItem.onClick();
       }
     } else {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const relativeX = e.clientX - rect.left;
-      const progress = relativeX / usableWidth;
-      const clickIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
+      // Resolve exact tapped DOM tab item using pointer coordinates
+      const hitElement =
+        document.elementFromPoint(e.clientX, e.clientY) || (e.target as HTMLElement | null);
+      const tabButton = hitElement?.closest('[data-nav-item-index]') as HTMLElement | null;
+
+      let clickIndex = -1;
+      if (tabButton && tabButton.dataset.navItemIndex !== undefined) {
+        clickIndex = parseInt(tabButton.dataset.navItemIndex, 10);
+      } else {
+        // Fallback to relative position if pointer coordinates fell slightly outside padding
+        const rect = e.currentTarget.getBoundingClientRect();
+        const relativeX = e.clientX - rect.left;
+        const progress = relativeX / usableWidth;
+        clickIndex = Math.max(0, Math.min(N - 1, Math.floor(progress * N)));
+      }
+
       const clickedItem = currentItems[clickIndex];
 
       if (clickedItem) {
@@ -1426,10 +1462,9 @@ export function SharedNavigationBar({
             style={{
               pointerEvents: 'auto',
               justifySelf: 'center',
-              width: `${barWidth}px`,
-              maxWidth: `${barWidth}px`,
-              height: '64px',
-              borderRadius: '9999px',
+              width: containerWidth,
+              height: containerHeight,
+              borderRadius: containerBorderRadius,
               border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
               background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
               boxShadow: isLight
@@ -1445,9 +1480,8 @@ export function SharedNavigationBar({
               touchAction: 'none',
               userSelect: 'none',
               transformOrigin: 'center center',
-              scale: containerScale,
               x: navX,
-              transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+              y: containerTranslateY,
             }}
           >
             <div
@@ -1492,6 +1526,7 @@ export function SharedNavigationBar({
                     skewX: dragSkewRaw,
                     scale: pillPressScale,
                     willChange: 'transform, width',
+                    opacity: pillOpacity,
                   }}
                 />
               )}
@@ -1509,6 +1544,8 @@ export function SharedNavigationBar({
                 >
                   {currentItems.map((item, index) => {
                     const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
+                    const geom = measuredContentGeometry[index];
+                    const distanceToCenter = geom ? geom.centerLeft - barWidth / 2 : (index + 0.5) * itemWidth - barWidth / 2;
                     return (
                       <NavigationItem
                         key={item.key}
@@ -1527,6 +1564,8 @@ export function SharedNavigationBar({
                         onMeasureGeometry={handleMeasureGeometry}
                         innerWrapperRef={innerWrapperRef}
                         animationEpoch={navigationEpoch}
+                        scrollOffsetSpring={scrollOffsetSpring}
+                        distanceToCenter={distanceToCenter}
                       />
                     );
                   })}
@@ -1638,7 +1677,8 @@ export function SharedNavigationBar({
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
                   transformOrigin: 'center center',
-                  scale: containerScale,
+                  scale: switcherScale,
+                  opacity: switcherOpacity,
                   x: switcherX,
                 }}
               >
@@ -1675,7 +1715,8 @@ export function SharedNavigationBar({
                   outline: 'none',
                   WebkitTapHighlightColor: 'transparent',
                   transformOrigin: 'center center',
-                  scale: containerScale,
+                  scale: switcherScale,
+                  opacity: switcherOpacity,
                   x: switcherX,
                 }}
               >

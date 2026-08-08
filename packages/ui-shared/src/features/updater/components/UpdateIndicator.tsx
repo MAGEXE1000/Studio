@@ -2173,14 +2173,36 @@ function UpdateModal({
   }
 
   // Construct What's New changelog content
-  const notesList: string[] = Array.isArray(updater.releaseNotes)
-    ? updater.releaseNotes
-    : [
-        'Completely separated Chordex preferences from Hub/Studio Settings.',
-        'Redesigned floating top bar capsule geometry aligned with section cards.',
-        'Accelerated app entrance animations by 30% across all 6 applications.',
-        'Made Developer Inspector compact (floating drawer panel) and repaired debug controls.',
-      ];
+  const notesList: string[] = (() => {
+    if (!updater.releaseNotes) return [];
+    if (Array.isArray(updater.releaseNotes)) {
+      return updater.releaseNotes;
+    }
+    if (typeof updater.releaseNotes === 'object') {
+      const rn = updater.releaseNotes as any;
+      const list: string[] = [];
+      const categories = ['added', 'improved', 'fixed', 'changed'];
+      for (const cat of categories) {
+        if (Array.isArray(rn[cat])) {
+          const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+          for (const item of rn[cat]) {
+            list.push(`[${label}] ${item}`);
+          }
+        }
+      }
+      return list;
+    }
+    return [];
+  })();
+
+  const fallbackNotes = [
+    'Completely separated Chordex preferences from Hub/Studio Settings.',
+    'Redesigned floating top bar capsule geometry aligned with section cards.',
+    'Accelerated app entrance animations by 30% across all 6 applications.',
+    'Made Developer Inspector compact (floating drawer panel) and repaired debug controls.',
+  ];
+
+  const finalNotes = notesList.length > 0 ? notesList : fallbackNotes;
 
   const changelogContent = (
     <div
@@ -2224,12 +2246,14 @@ function UpdateModal({
           lineHeight: 1.4,
         }}
       >
-        {notesList.map((note, idx) => (
+        {finalNotes.map((note, idx) => (
           <li key={idx}>{note}</li>
         ))}
       </ul>
     </div>
   );
+
+  const showChangelog = updater.updateAvailable && ['available', 'downloading', 'readyForInstallPrompt', 'installing', 'installedOrReady'].includes(state);
 
   return (
     <StudioUpdateScreen
@@ -2242,7 +2266,7 @@ function UpdateModal({
       iconColor={iconColor}
       showSpinner={showSpinner}
       actionButtons={actionButtons}
-      changelog={changelogContent}
+      changelog={showChangelog ? changelogContent : undefined}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
       progressComponent={progressComponent}

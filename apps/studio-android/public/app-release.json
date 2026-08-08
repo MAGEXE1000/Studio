@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.5.13",
-  "versionName": "4.5.13",
-  "versionCode": 40513,
-  "version_code": 40513,
-  "commit": "50f2e824",
-  "releasedAt": "8/7/2026, 10:09:36 PM CST",
-  "buildTimestamp": "8/7/2026, 10:09:36 PM CST",
+  "version": "4.5.14",
+  "versionName": "4.5.14",
+  "versionCode": 40514,
+  "version_code": 40514,
+  "commit": "4696b23e",
+  "releasedAt": "8/8/2026, 2:49:51 PM CST",
+  "buildTimestamp": "8/8/2026, 2:49:51 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Enforced single canonical responsive content-width architecture across all settings, preferences, updater, developer options, and profile screens.\n• Refined floating top bar capsule geometry to match beUI Pro proportions and removed Livex logo for visual balance.\n• Fixed Updater What's New section to render release notes automatically upon update detection.\n• Stacked Developer Inspector floating control button directly above Route Tracer control button.\n• Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
-  "whatsNew": "• Enforced single canonical responsive content-width architecture across all settings, preferences, updater, developer options, and profile screens.\n• Refined floating top bar capsule geometry to match beUI Pro proportions and removed Livex logo for visual balance.\n• Fixed Updater What's New section to render release notes automatically upon update detection.\n• Stacked Developer Inspector floating control button directly above Route Tracer control button.\n• Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
+  "changelog": "• Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.\n• Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.\n• Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.\n• Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
+  "whatsNew": "• Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.\n• Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.\n• Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.\n• Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
   "releaseNotes": {
     "fixed": [
-      "Enforced single canonical responsive content-width architecture across all settings, preferences, updater, developer options, and profile screens.",
-      "Refined floating top bar capsule geometry to match beUI Pro proportions and removed Livex logo for visual balance.",
-      "Fixed Updater What's New section to render release notes automatically upon update detection.",
-      "Stacked Developer Inspector floating control button directly above Route Tracer control button.",
+      "Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.",
+      "Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.",
+      "Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.",
       "Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering."
     ]
   },

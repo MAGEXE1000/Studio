@@ -22,16 +22,7 @@ interface LanguagePickerSheetProps {
 export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps) {
   const settings = useSettingsStore((s) => s.settings);
   
-  const acc = React.useMemo(() => {
-    const hubAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'purple';
-    return hubAccentKey === 'custom'
-      ? {
-          from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-          mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-          to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
-        }
-      : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.purple);
-  }, [settings.perApp?.hub?.accentColor, settings.accentColor, settings.customAccentHue]);
+  const acc = ACCENT_COLORS.blue;
 
   return (
     <Dialog open={open} onClose={onClose} title="Select Language">

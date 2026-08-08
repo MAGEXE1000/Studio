@@ -214,8 +214,6 @@ export type SyncStatus = {
   lastPhotoUploadError?: string;
   cloudTheme?: string;
   localTheme?: string;
-  cloudAccentColor?: string;
-  localAccentColor?: string;
   cloudDisplayName?: string;
   localDisplayName?: string;
   cloudPhotoURL?: string;
@@ -338,7 +336,6 @@ let lastAppearanceSyncMs: number | null = null;
 let lastPreferencesSyncMs: number | null = null;
 let lastSyncError: string | null = null;
 let remoteTheme: string | null = null;
-let remoteAccentColor: string | null = null;
 let remotePhotoURL: string | null = null;
 let remoteDisplayName: string | null = null;
 let lastRemoteUpdateTimestamp: number | null = null;
@@ -398,7 +395,6 @@ let lastPreferencesWriteError = 'None';
 let lastPhotoUploadError = 'None';
 
 let cloudTheme = 'N/A';
-let cloudAccentColor = 'N/A';
 let cloudDisplayName = 'N/A';
 let cloudPhotoURL = 'N/A';
 
@@ -434,8 +430,6 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
     const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
     await provider.updateAppearanceSettings({
       theme: themeValue,
-      accentColor: settings.accentColor,
-      customAccentHue: settings.customAccentHue ?? 220,
       palette: 'default',
       language: settings.language,
     });
@@ -515,7 +509,6 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
     const appData = await provider.getAppearanceSettings();
     if (appData) {
       remoteTheme = appData.theme || null;
-      remoteAccentColor = appData.accentColor || null;
       lastRemoteUpdateTimestamp = appData.updatedAt || null;
       
       isApplyingRemoteUpdate = true;
@@ -525,9 +518,7 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
         useSettingsStore.getState().updateSettings({
           theme: nextTheme as any,
           amoledMode: nextAmoled,
-          accentColor: (appData.accentColor || 'blue') as any,
           language: (appData.language || 'en') as any,
-          customAccentHue: appData.customAccentHue ?? 220,
         });
       } finally {
         isApplyingRemoteUpdate = false;
@@ -654,8 +645,6 @@ let status: SyncStatus = {
   lastPhotoUploadError: 'None',
   cloudTheme: 'N/A',
   localTheme: 'N/A',
-  cloudAccentColor: 'N/A',
-  localAccentColor: 'N/A',
   cloudDisplayName: 'N/A',
   localDisplayName: 'N/A',
   cloudPhotoURL: 'N/A',
@@ -2396,8 +2385,6 @@ export function attachSyncEngine(): void {
     const appearanceChanged =
       settings.theme !== lastSettings.theme ||
       settings.amoledMode !== lastSettings.amoledMode ||
-      settings.accentColor !== lastSettings.accentColor ||
-      settings.customAccentHue !== lastSettings.customAccentHue ||
       settings.language !== lastSettings.language;
       
     const provider = getActiveSyncProvider();
@@ -2411,8 +2398,6 @@ export function attachSyncEngine(): void {
         const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
         provider.updateAppearanceSettings({
           theme: themeValue,
-          accentColor: settings.accentColor,
-          customAccentHue: settings.customAccentHue ?? 220,
           palette: 'default',
           language: settings.language,
         }).then(() => {
@@ -2493,7 +2478,6 @@ export function attachSyncEngine(): void {
       stopDeviceHeartbeat();
 
       remoteTheme = null;
-      remoteAccentColor = null;
       remotePhotoURL = null;
       remoteDisplayName = null;
       lastRemoteUpdateTimestamp = null;
@@ -2590,10 +2574,8 @@ export function attachSyncEngine(): void {
       unsubAppearanceListener = provider.subscribeAppearanceSettings((data) => {
         if (data) {
           remoteTheme = data.theme || null;
-          remoteAccentColor = data.accentColor || null;
           lastRemoteUpdateTimestamp = data.updatedAt || 0;
           cloudTheme = data.theme || 'N/A';
-          cloudAccentColor = data.accentColor || 'N/A';
           
           const localLast = parseInt(localStorage.getItem(`sync_last_local_update_appearance`) ?? '0', 10);
           const remoteLast = data.updatedAt || 0;
@@ -2608,9 +2590,7 @@ export function attachSyncEngine(): void {
                 useSettingsStore.getState().updateSettings({
                   theme: nextTheme as any,
                   amoledMode: nextAmoled,
-                  accentColor: (data.accentColor || 'blue') as any,
                   language: (data.language || 'en') as any,
-                  customAccentHue: data.customAccentHue ?? 220,
                 });
               } finally {
                 isApplyingRemoteUpdate = false;
@@ -2622,8 +2602,6 @@ export function attachSyncEngine(): void {
               const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
               provider.updateAppearanceSettings({
                 theme: themeValue,
-                accentColor: settings.accentColor,
-                customAccentHue: settings.customAccentHue ?? 220,
                 palette: 'default',
                 language: settings.language,
               }).catch(console.warn);
@@ -2638,8 +2616,6 @@ export function attachSyncEngine(): void {
           const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
           provider.updateAppearanceSettings({
             theme: themeValue,
-            accentColor: settings.accentColor,
-            customAccentHue: settings.customAccentHue ?? 220,
             palette: 'default',
             language: settings.language,
           }).catch(console.warn);

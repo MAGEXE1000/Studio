@@ -25,7 +25,7 @@ function useForceUpdate() {
   return update;
 }
 
-export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
+export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void; hideHeader?: boolean }> = ({ onBack, hideHeader }) => {
   const forceUpdate = useForceUpdate();
   const [toast, setToast] = useState<string | null>(null);
   const [logSearch, setLogSearch] = useState('');
@@ -251,88 +251,90 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
       }}
     >
       {/* Top App Bar */}
-      <header
-        style={{
-          width: '100%',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          backgroundColor: '#0e0e0e',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 24px',
-          boxSizing: 'border-box',
-          borderBottom: '1px solid rgba(128,128,128,0.1)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {onBack && (
+      {!hideHeader && (
+        <header
+          style={{
+            width: '100%',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            backgroundColor: '#0e0e0e',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            boxSizing: 'border-box',
+            borderBottom: '1px solid rgba(128,128,128,0.1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {onBack && (
+              <button
+                onClick={onBack}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: 'none',
+                  color: '#e7e5e4',
+                  cursor: 'pointer',
+                }}
+              >
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+            )}
+            <div>
+              <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                Updater Diagnostics
+              </h1>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0', fontWeight: 500 }}>
+                OTA Diagnostics & Debug Tools
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Copy Report Button */}
             <button
-              onClick={onBack}
+              onClick={handleCopy}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '40px',
+                height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.03)',
-                border: 'none',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(128,128,128,0.15)',
                 color: '#e7e5e4',
                 cursor: 'pointer',
+                transition: 'background-color 200ms ease',
+              }}
+              title="Copy Full Report"
+            >
+              <CopyIcon size={18} />
+            </button>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                background: 'rgba(79, 70, 229, 0.15)',
+                color: '#818cf8',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
             >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-          )}
-          <div>
-            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-              Updater Diagnostics
-            </h1>
-            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0', fontWeight: 500 }}>
-              OTA Diagnostics & Debug Tools
-            </p>
+              Dev Mode
+            </span>
           </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Copy Report Button */}
-          <button
-            onClick={handleCopy}
-            style={{
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '10px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(128,128,128,0.15)',
-              color: '#e7e5e4',
-              cursor: 'pointer',
-              transition: 'background-color 200ms ease',
-            }}
-            title="Copy Full Report"
-          >
-            <CopyIcon size={18} />
-          </button>
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              background: 'rgba(79, 70, 229, 0.15)',
-              color: '#818cf8',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Dev Mode
-          </span>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Grid View */}
       <main

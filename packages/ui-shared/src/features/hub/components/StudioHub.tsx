@@ -34,7 +34,6 @@ import {
   SectionHeader,
   SettingRow,
   SegmentedControl,
-  COLOR_OPTIONS,
   BentoSettingCard,
   BentoSettingRow,
   SettingSection,
@@ -52,7 +51,7 @@ import {
 import ProfileDropdown from '../../auth/components/ProfileDropdown';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../../../shared/loading/StudioSkeleton';
-import { SettingsScaffold } from '../../../shared/layout/StudioLayoutSystem';
+import { SettingsScaffold, SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
 import { ProgressiveBlur } from '../../../shared/design-system/ProgressiveBlur';
 import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
 import { StaggeredReveal } from '../../../shared/animation';
@@ -383,18 +382,7 @@ export default function StudioHub() {
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
-  const hubAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'blue';
-  const accent = useMemo(
-    () =>
-      hubAccentKey === 'custom'
-        ? {
-            from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-            mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-            to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
-          }
-        : (ACCENT_COLORS[hubAccentKey] ?? ACCENT_COLORS.blue),
-    [hubAccentKey, settings.customAccentHue]
-  );
+  const accent = ACCENT_COLORS.blue;
   const isHubLight = (() => {
     const hubTheme = settings.perApp?.hub?.theme ?? settings.theme ?? 'dark';
     if (hubTheme === 'light') return true;
@@ -3230,7 +3218,6 @@ function HubSettings({
 
   const hubVis: PerAppVisuals = settings.perApp?.hub ?? {
     theme: 'dark',
-    accentColor: 'blue',
     amoledMode: false,
   };
   const [changelogOpen, setChangelogOpen] = useState(false);
@@ -3239,7 +3226,6 @@ function HubSettings({
     const ALL_APPS: AppKey[] = ['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'];
     updatePerApp(ALL_APPS, patch);
     if (patch.theme) settingsController.updateSettings({ theme: patch.theme });
-    if (patch.accentColor) settingsController.updateSettings({ accentColor: patch.accentColor });
     if (patch.amoledMode !== undefined)
       settingsController.updateSettings({ amoledMode: patch.amoledMode });
   }
@@ -5561,8 +5547,6 @@ User Agent: [Automatically Generated]
             <DevInfoRow label="Remote Display Name" value={diag.remoteDisplayName} />
             <DevInfoRow label="Local Theme" value={diag.localTheme} />
             <DevInfoRow label="Remote Theme" value={diag.remoteTheme} />
-            <DevInfoRow label="Local Accent Color" value={diag.localAccentColor} />
-            <DevInfoRow label="Remote Accent Color" value={diag.remoteAccentColor} />
             <DevInfoRow label="Local Photo URL" value={diag.localPhotoURL} canCopy />
             <DevInfoRow label="Remote Photo URL" value={diag.remotePhotoURL} canCopy />
             <DevInfoRow
@@ -5834,15 +5818,7 @@ User Agent: [Automatically Generated]
         };
 
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          width: '100%',
-          paddingBottom: 24,
-        }}
-      >
+      <SettingsContentContainer style={{ paddingBottom: 24 }}>
         <div style={heroCardStyle}>
           <StudioFamilyOrbit items={subAppLogos} onLogoPress={handleLogoTap} />
           <p
@@ -6033,7 +6009,7 @@ User Agent: [Automatically Generated]
             {t.settings.about.footer}
           </p>
         </div>
-      </div>
+      </SettingsContentContainer>
     );
   }
 

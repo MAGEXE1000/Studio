@@ -58,12 +58,22 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
     }, 4500);
 
     set({
-      state: 'LOGO_FORMATION',
+      state: 'PREPARING',
       launchingApp: targetApp,
-      appPreloaded: true,
-      logoFormed: true,
+      appPreloaded: false,
+      logoFormed: targetApp === 'hub',
     });
-    get().startZoom();
+
+    setTimeout(() => {
+      const current = get();
+      if (current.state === 'PREPARING') {
+        set({ state: 'LOGO_FORMATION' });
+        if (current.appPreloaded && current.logoFormed) {
+          get().startZoom();
+        }
+      }
+    }, 20);
+
     return true;
   },
 
@@ -103,7 +113,7 @@ export const useApplicationTransitionStore = create<ApplicationTransitionState>(
       if (current.state === 'FORMATION_COMPLETE' && current.appPreloaded) {
         set({ state: 'ZOOM_TRANSITION' });
       }
-    }, 180);
+    }, 120);
   },
 
   completeTransition: () => {

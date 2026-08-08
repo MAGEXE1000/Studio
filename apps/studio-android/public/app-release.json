@@ -4,12 +4,19 @@
   "versionName": "4.5.11",
   "versionCode": 40511,
   "version_code": 40511,
-  "commit": "f9876aa2",
-  "releasedAt": "8/7/2026, 8:58:26 PM CST",
-  "buildTimestamp": "8/7/2026, 8:58:26 PM CST",
+  "commit": "1317ec72",
+  "releasedAt": "8/7/2026, 8:58:54 PM CST",
+  "buildTimestamp": "8/7/2026, 8:58:54 PM CST",
   "updateMode": "refresh",
-  "changelog": "",
-  "whatsNew": "",
-  "releaseNotes": {},
+  "changelog": "• Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.\n• Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.\n• Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.\n• Integrated official Fluid Functionalism ColorPicker component for StageX element styling.",
+  "whatsNew": "• Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.\n• Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.\n• Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.\n• Integrated official Fluid Functionalism ColorPicker component for StageX element styling.",
+  "releaseNotes": {
+    "fixed": [
+      "Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.",
+      "Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.",
+      "Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.",
+      "Integrated official Fluid Functionalism ColorPicker component for StageX element styling."
+    ]
+  },
   "mandatory": false
 }

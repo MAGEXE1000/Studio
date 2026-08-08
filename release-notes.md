@@ -1,3 +1,7 @@
+# Version 4.5.11
+
+Release Date: 2026-08-07
+
 Release Date: 2026-08-07
 
 ### Fixed

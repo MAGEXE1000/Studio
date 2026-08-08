@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 import { useScrollHide, SpringPresets } from '@workspace/studio-core';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
+import { StudioLogo } from '../../features/chordex/icons/ChordexLogo';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -153,7 +154,7 @@ export interface SharedFloatingHeaderProps {
   hideBack?: boolean;
   toolbarActions?: React.ReactNode;
   headerBgRef?: React.RefObject<HTMLDivElement | null>;
-  titleRef?: React.RefObject<HTMLSpanElement | null>;
+  titleRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export function SharedFloatingHeader({
@@ -230,25 +231,39 @@ export function SharedFloatingHeader({
         )}
 
         {/* Small Sticky Title */}
-        <span
+        {/* Small Sticky Title & Livex Logo Container */}
+        <div
           ref={titleRef}
           style={{
-            fontSize: '14px',
-            fontWeight: 800,
-            color: 'var(--c-text-primary)',
-            letterSpacing: '-0.02em',
-            fontFamily: 'Manrope',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
             opacity: 0,
             transform: 'translateY(8px)',
             transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
             flex: 1,
+            minWidth: 0,
           }}
         >
-          {title}
-        </span>
+          <div style={{ color: 'var(--c-accent-from, #679cff)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+            <StudioLogo size={18} />
+          </div>
+          <span
+            style={{
+              fontSize: '14px',
+              fontWeight: 800,
+              color: 'var(--c-text-primary)',
+              letterSpacing: '-0.02em',
+              fontFamily: 'Manrope',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flex: 1,
+            }}
+          >
+            {title}
+          </span>
+        </div>
 
         {toolbarActions && (
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
@@ -269,7 +284,7 @@ export function SettingsScaffold({
 }: SettingsScaffoldProps) {
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const headerBgRef = React.useRef<HTMLDivElement | null>(null);
-  const titleRef = React.useRef<HTMLSpanElement | null>(null);
+  const titleRef = React.useRef<HTMLDivElement | null>(null);
   const largeTitleRef = React.useRef<HTMLHeadingElement | null>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {

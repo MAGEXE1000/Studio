@@ -51,7 +51,7 @@ import StudioUpdateScreen from './StudioUpdateScreen';
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
 ;
 import { DownloadIcon } from '../../../shared/icons/DownloadIcon';
-import CossProgress from '../../../components/ui/progress';
+import { Progress } from '@base-ui/react/progress';
 
 import { enableLiquidGlass, tagLiquidTarget, untagLiquidTarget } from '@workspace/studio-core';
 
@@ -895,7 +895,9 @@ const DownloadProgressIndicator = React.memo(
     }
 
     return (
-      <div
+      <Progress.Root
+        value={pct}
+        max={100}
         style={{
           width: '100%',
           overflow: 'hidden',
@@ -919,7 +921,7 @@ const DownloadProgressIndicator = React.memo(
           <span>{pct}%</span>
         </div>
 
-        <div
+        <Progress.Track
           style={{
             width: '100%',
             height: 6,
@@ -929,16 +931,17 @@ const DownloadProgressIndicator = React.memo(
             position: 'relative',
           }}
         >
-          <div
+          <Progress.Indicator
             style={{
               height: '100%',
               width: `${pct}%`,
               background: `linear-gradient(90deg, ${accentFrom || '#679cff'}, ${accentTo || '#007aff'})`,
               transition: 'width 120ms ease-out',
+              borderRadius: 3,
             }}
           />
-        </div>
-      </div>
+        </Progress.Track>
+      </Progress.Root>
     );
   },
   (prev: any, next: any) => {
@@ -2156,7 +2159,18 @@ function UpdateModal({
   // Render buttons
   const actionButtons = renderButtons();
 
-  const progressComponent = undefined;
+  let progressComponent: React.ReactNode = undefined;
+  if (state === 'downloading' && !isNearCompletion) {
+    progressComponent = (
+      <DownloadProgressIndicator
+        updater={updater}
+        toVersion={toVersion}
+        accentFrom={accentFrom}
+        accentTo={accentTo}
+        isLight={isLight}
+      />
+    );
+  }
 
   return (
     <StudioUpdateScreen

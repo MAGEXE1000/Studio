@@ -1871,7 +1871,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   const hasWebHeader = !isWebDesktop || curView === 'Editor' || curView === 'Export' || showBack;
   const collapseHeader =
     (isLandscape && curView === 'Editor') || liveMode || !hasWebHeader || isStageExpanded;
-  const hideBottomNav = curView === 'Export' || isStageExpanded || fabOpen || propPanelOpen;
+  const hideBottomNav = curView === 'Export' || isStageExpanded || propPanelOpen;
   const isLandscapeEditor = isLandscape && curView === 'Editor';
 
   const navTabs: { view: string; label: string; icon: string }[] = [
@@ -3042,6 +3042,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               flexShrink: 0,
               overflow: collapseHeader ? 'hidden' : 'visible',
               height: collapseHeader ? 0 : 'calc(env(safe-area-inset-top) + 68px)',
+              background: stageHdr,
               // In the Export view we want the header to disappear instantly on
               // scroll-down (no animation). In landscape Editor mode we still
               // animate the collapse for a smooth rotation feel.
@@ -3051,7 +3052,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             <div
               style={{
                 height: 'env(safe-area-inset-top)',
-                background: 'transparent',
+                background: stageHdr,
                 flexShrink: 0,
               }}
             />

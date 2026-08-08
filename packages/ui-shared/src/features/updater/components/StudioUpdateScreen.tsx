@@ -343,63 +343,7 @@ export default memo(function StudioUpdateScreen({
         {/* Linear Progress Section */}
         {progressComponent}
 
-        {/* Indeterminate Installing Progress Bar */}
-        <AnimatePresence>
-          {isInstalling && (
-            <motion.div
-              key="installing-progress-container"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={emphasizedTransition}
-              style={{
-                width: '100%',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fontFamily: 'Manrope, sans-serif',
-                  color: '#e7e5e4',
-                }}
-              >
-                <span>Installing update</span>
-                <span>In progress</span>
-              </div>
-              <div
-                style={{
-                  width: '100%',
-                  height: 4,
-                  borderRadius: 2,
-                  background: isLight ? 'rgba(0, 0, 0, 0.06)' : '#252626',
-                  overflow: 'hidden',
-                  position: 'relative',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    width: '45%',
-                    background: `linear-gradient(135deg, var(--accent-from, ${accentFrom || '#679cff'}) 0%, var(--accent-to, ${accentTo || '#007aff'}) 100%)`,
-                    borderRadius: 2,
-                    animation: reducedMotion
-                      ? 'none'
-                      : 'updater-shimmer-fast 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1)',
-                  }}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Indeterminate Installing Progress Bar - REMOVED per spec A4/A5 */}
 
         {/* Mandatory Requirement Flag */}
         <AnimatePresence>

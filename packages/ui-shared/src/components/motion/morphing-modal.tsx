@@ -47,9 +47,10 @@ export function MorphingModal({
       aria-hidden={!open}
       inert={!open}
       className={cn(
-        "fixed inset-0 z-[80]",
+        "fixed inset-0 z-[80] overscroll-contain",
         open ? "pointer-events-auto" : "pointer-events-none",
       )}
+      style={{ touchAction: "none" }}
     >
       <AnimatePresence>
         {open && (
@@ -87,9 +88,10 @@ export function MorphingModal({
               }}
               transition={SPRING_PANEL}
               className={cn(
-                "pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl border border-border bg-background shadow-2xl will-change-transform",
+                "pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl border border-border bg-background shadow-2xl will-change-transform overscroll-contain",
                 className,
               )}
+              style={{ touchAction: "pan-y" }}
             >
               <motion.div layout="position" className="p-5">
                 <AnimatePresence mode="popLayout" initial={false}>

@@ -50,16 +50,37 @@ function getNormalizedIconName(key: string): string {
   return norm;
 }
 
-export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
-  itemKey,
-  iconName,
-  iconNode,
-  size = 24,
-  color = 'currentColor',
-  strokeWidth = 2,
-  isActive,
-  animationEpoch,
-}) => {
+const MATCHED_NAMES = new Set([
+  'activity',
+  'audio-lines',
+  'blocks',
+  'cog',
+  'drum',
+  'gallery-vertical-end',
+  'graduation-cap',
+  'home',
+  'layers',
+  'layout-panel-top',
+  'mic',
+  'search',
+  'settings',
+  'sliders-horizontal',
+  'user'
+]);
+
+export const AnimatedNavigationIcon = React.forwardRef<any, AnimatedNavigationIconProps>((
+  {
+    itemKey,
+    iconName,
+    iconNode,
+    size = 24,
+    color = 'currentColor',
+    strokeWidth = 2,
+    isActive,
+    animationEpoch,
+  },
+  ref
+) => {
   const navAnim = useNavigationAnimation();
   const direction = navAnim ? navAnim.direction : 'forward';
   const dirSign = direction === 'reverse' ? -1 : 1;
@@ -93,6 +114,8 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
   const variantGetter = getMotionVariantForIcon(resolvedName, direction);
   const iconVariants = variantGetter();
 
+  const isMatched = MATCHED_NAMES.has(resolvedName);
+
   if (isActive && typeof window !== 'undefined') {
     let computedRotation = '0';
     if (resolvedName === 'settings') {
@@ -107,15 +130,21 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
     console.log(`[AnimatedNavigationIcon] LUCIDE ACTIVE - name: ${resolvedName}, direction: ${direction}, computedRotation: ${computedRotation}deg`);
   }
 
+  const outerVariants = isMatched ? {
+    active: { opacity: 1 },
+    inactive: { opacity: 0.85 },
+  } : iconVariants;
+
   return (
     <motion.div
       key={`nav-icon-${resolvedName}-${animationEpoch ?? 0}-${isActive}-${direction}`}
       initial="initial"
       animate={isActive ? 'active' : 'inactive'}
-      variants={iconVariants}
+      variants={outerVariants}
       style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
     >
       <AnimatedIcon
+        ref={ref}
         name={resolvedName}
         size={size}
         color={color}
@@ -125,4 +154,6 @@ export const AnimatedNavigationIcon: React.FC<AnimatedNavigationIconProps> = ({
       />
     </motion.div>
   );
-};
+});
+
+AnimatedNavigationIcon.displayName = 'AnimatedNavigationIcon';

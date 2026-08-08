@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import { useScrollHide, SpringPresets } from '@workspace/studio-core';
+import { useScrollHide, SpringPresets, useSettingsStore } from '@workspace/studio-core';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
 import { StudioLogo } from '../../features/chordex/icons/ChordexLogo';
 
@@ -165,14 +165,21 @@ export function SharedFloatingHeader({
   headerBgRef,
   titleRef,
 }: SharedFloatingHeaderProps) {
+  const { isLargeScreen } = useLayoutMetrics();
+  const sideMargin = isLargeScreen ? '20%' : '12%';
+
+  // Read current theme to apply warm tinted translucency
+  const settings = useSettingsStore((s) => s.settings);
+  const isLight = settings.theme === 'light';
+
   return (
     <div
       style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 4px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
         left: 0,
         right: 0,
-        height: 40,
+        height: 48,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -187,24 +194,32 @@ export function SharedFloatingHeader({
         style={{
           position: 'absolute',
           top: 0,
-          left: 12,
-          right: 12,
+          left: sideMargin,
+          right: sideMargin,
           bottom: 0,
-          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.82))',
-          borderRadius: '9999px',
-          border: '1px solid var(--c-border, rgba(128, 128, 128, 0.18))',
-          backdropFilter: 'var(--c-surface-glass-blur, blur(24px))',
-          WebkitBackdropFilter: 'var(--c-surface-glass-blur, blur(24px))',
+          background: isLight ? 'rgba(255, 250, 245, 0.72)' : 'rgba(28, 22, 18, 0.62)',
+          borderRadius: '24px',
+          border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px) saturate(1.6)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
-          opacity: 0,
-          transform: 'scale(0.98) translateY(-2px)',
-          transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-          zIndex: -1,
+          opacity: 1, // Always visible
           pointerEvents: 'auto',
+          zIndex: -1,
         }}
       />
 
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 10, height: '100%', padding: '0 8px' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: isLargeScreen ? '60%' : '76%',
+        margin: '0 auto',
+        pointerEvents: 'auto',
+        gap: 10,
+        height: '100%',
+        padding: '0 16px'
+      }}>
         {!hideBack && onBack && (
           <button
             onClick={onBack}
@@ -213,10 +228,10 @@ export function SharedFloatingHeader({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               borderRadius: '50%',
-              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.12))',
+              background: 'rgba(128, 128, 128, 0.12)',
               border: '1px solid rgba(128, 128, 128, 0.15)',
               color: 'var(--c-text-primary)',
               cursor: 'pointer',
@@ -225,7 +240,7 @@ export function SharedFloatingHeader({
               flexShrink: 0,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
               arrow_back
             </span>
           </button>
@@ -237,20 +252,18 @@ export function SharedFloatingHeader({
           style={{
             display: 'flex',
             alignItems: 'center',
-            opacity: 0,
-            transform: 'translateY(4px)',
-            transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+            opacity: 1, // Always visible
             flex: 1,
             minWidth: 0,
           }}
         >
           <span
             style={{
-              fontSize: '13.5px',
+              fontSize: '14px',
               fontWeight: 800,
               color: 'var(--c-text-primary)',
               letterSpacing: '-0.02em',
-              fontFamily: 'Manrope',
+              fontFamily: 'Manrope, sans-serif',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -283,21 +296,7 @@ export function SettingsScaffold({
   const largeTitleRef = React.useRef<HTMLHeadingElement | null>(null);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop;
-    // Transition range: 0px to 48px
-    const progress = Math.min(1, Math.max(0, scrollTop / 48));
-
-    if (headerBgRef.current) {
-      headerBgRef.current.style.opacity = String(progress);
-      headerBgRef.current.style.transform = `scale(${0.96 + progress * 0.04}) translateY(${Math.max(0, (1 - progress) * -4)}px)`;
-    }
-    if (titleRef.current) {
-      titleRef.current.style.opacity = String(progress);
-      titleRef.current.style.transform = `translateY(${Math.max(0, 8 - progress * 8)}px)`;
-    }
-    if (largeTitleRef.current) {
-      largeTitleRef.current.style.opacity = String(Math.max(0, 1 - progress * 1.5));
-    }
+    // Empty scroll handler because floating header is unified and always visible
   };
 
   return (
@@ -341,17 +340,11 @@ export function SettingsScaffold({
         }}
         className="no-scrollbar"
       >
-        {/* Large scrolling title */}
+        {/* Large scrolling title hidden to match single unified BEUI header pill standard */}
         <h2
           ref={largeTitleRef}
           style={{
-            fontSize: 'var(--font-hero, 28px)',
-            fontWeight: 800,
-            color: 'var(--c-text-primary)',
-            margin: '0 0 20px 4px',
-            letterSpacing: '-0.03em',
-            fontFamily: 'Manrope',
-            transition: 'opacity 100ms linear',
+            display: 'none',
           }}
         >
           {title}

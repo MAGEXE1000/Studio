@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.5.14",
-  "versionName": "4.5.14",
-  "versionCode": 40514,
-  "version_code": 40514,
-  "commit": "4696b23e",
-  "releasedAt": "8/8/2026, 2:49:51 PM CST",
-  "buildTimestamp": "8/8/2026, 2:49:51 PM CST",
+  "version": "4.5.15",
+  "versionName": "4.5.15",
+  "versionCode": 40515,
+  "version_code": 40515,
+  "commit": "3aa920bb",
+  "releasedAt": "8/8/2026, 5:28:49 PM CST",
+  "buildTimestamp": "8/8/2026, 5:28:49 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.\n• Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.\n• Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.\n• Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
-  "whatsNew": "• Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.\n• Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.\n• Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.\n• Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
+  "changelog": "• Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.\n• Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.\n• Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.\n• Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines.",
+  "whatsNew": "• Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.\n• Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.\n• Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.\n• Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines.",
   "releaseNotes": {
     "fixed": [
-      "Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.",
-      "Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.",
-      "Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.",
-      "Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering."
+      "Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.",
+      "Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.",
+      "Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.",
+      "Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines."
     ]
   },
   "mandatory": false

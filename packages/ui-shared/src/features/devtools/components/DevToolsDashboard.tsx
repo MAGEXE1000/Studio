@@ -5752,7 +5752,7 @@ const renderSubViewHeader = (title: string) => {
               {viewId === 'dashboard' && (
                 <>
                   {/* HEADER */}
-                  {isWebDesktop && (
+                  {false && isWebDesktop && (
                     <div
                       style={{
                         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
@@ -5841,7 +5841,7 @@ const renderSubViewHeader = (title: string) => {
                   )}
 
                   {/* SYSTEM HEALTH GRID */}
-                  {!isWebDesktop ? (
+                  {true ? (
                     <SettingsScaffold
                       title="Developer Options"
                       onBack={onBack}
@@ -5978,7 +5978,7 @@ const renderSubViewHeader = (title: string) => {
               )}
 
               {viewId === 'apps' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Apps Diagnostics"
                     onBack={handleSubViewBack}
@@ -6010,7 +6010,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'stagex' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Stagex Diagnostics"
                     onBack={handleSubViewBack}
@@ -6042,7 +6042,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'updater_diagnostics' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Updater Diagnostics"
                     onBack={handleSubViewBack}
@@ -6056,7 +6056,7 @@ const renderSubViewHeader = (title: string) => {
                         paddingBottom:
                           'calc(env(safe-area-inset-bottom, 0px) + var(--content-bottom-pad, 96px) + 20px)'}}
                     >
-                      <UpdaterDiagnosticsPage hideHeader={!isWebDesktop} />
+                      <UpdaterDiagnosticsPage hideHeader={true} />
                     </SettingsContentContainer>
                   </SettingsScaffold>
                 ) : (
@@ -6077,13 +6077,13 @@ const renderSubViewHeader = (title: string) => {
                         paddingRight: 20,
                         paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
                     >
-                      <UpdaterDiagnosticsPage />
+                      <UpdaterDiagnosticsPage hideHeader={true} />
                     </div>
                   </div>
                 ))}
 
               {viewId === 'system' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="System Diagnostics"
                     onBack={handleSubViewBack}
@@ -6183,7 +6183,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'logs' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Logs"
                     onBack={handleSubViewBack}
@@ -6205,7 +6205,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'performance' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Performance Diagnostics"
                     onBack={handleSubViewBack}
@@ -6247,7 +6247,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'network' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Network Sniffer"
                     onBack={handleSubViewBack}
@@ -6318,19 +6318,13 @@ const renderSubViewHeader = (title: string) => {
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        width: isWebDesktop ? '420px' : '90vw',
-        maxWidth: '440px',
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'var(--app-surface-glass-bg, rgba(15, 15, 20, 0.95))',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: '-8px 0 32px rgba(0,0,0,0.5)',
-        borderLeft: '1px solid var(--c-border, rgba(255,255,255,0.1))',
+        background: 'var(--c-background)',
         color: 'var(--c-text-primary)',
         fontFamily: 'Manrope, sans-serif',
         overflowX: 'hidden',

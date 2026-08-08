@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.14';
-export const NATIVE_VERSION_CODE = 40514;
-export const WEB_VERSION = '4.5.14';
+export const NATIVE_VERSION = '4.5.15';
+export const NATIVE_VERSION_CODE = 40515;
+export const WEB_VERSION = '4.5.15';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '4696b23e';
+export const APP_COMMIT_SHA = '3aa920bb';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/8/2026, 2:49:51 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/8/2026, 5:28:49 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.",
-      "Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.",
-      "Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.",
-      "Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.",
+      "Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.",
+      "Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.",
+      "Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.",
+      "Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines.",
     ],
   },
 ];

@@ -1492,10 +1492,12 @@ export function SharedNavigationBar({
               onPointerCancel={handlePointerCancel}
               style={{
                 display: 'flex',
-                width: '100%',
+                width: barWidth,
                 height: '100%',
                 alignItems: 'center',
-                position: 'relative',
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
                 touchAction: 'none',
               }}
             >

@@ -1259,8 +1259,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   const iframeSrc = useRef(
     `${baseOrigin}/stage-core/index.html#${isLight ? 'light' : 'dark'},${encodeURIComponent(accent.from)},${encodeURIComponent(accent.to)},${isAmoled ? '1' : '0'}`
   ).current;
-  const stageBg = isLight ? '#f2f1ef' : '#000000';
-  const stageHdr = isLight ? '#f2f1ef' : '#000000';
+  const stageBg = isLight ? '#f2f1ef' : isAmoled ? '#000000' : '#0e0e0e';
+  const stageHdr = isLight ? '#f2f1ef' : isAmoled ? '#000000' : '#0e0e0e';
 
   const showBack =
     curView === 'Rider' ||

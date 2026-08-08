@@ -1,18 +1,25 @@
 {
   "platform": "android",
-  "version": "4.5.8",
-  "versionName": "4.5.8",
-  "versionCode": 40508,
-  "version_code": 40508,
-  "commit": "4490e54e",
-  "releasedAt": "8/7/2026, 10:23:07 AM CST",
-  "buildTimestamp": "8/7/2026, 10:23:07 AM CST",
+  "version": "4.5.9",
+  "versionName": "4.5.9",
+  "versionCode": 40509,
+  "version_code": 40509,
+  "commit": "0ac195c1",
+  "releasedAt": "8/7/2026, 7:32:14 PM CST",
+  "buildTimestamp": "8/7/2026, 7:32:14 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Automated regression test for version 4.5.8 release pipeline.",
-  "whatsNew": "• Automated regression test for version 4.5.8 release pipeline.",
+  "changelog": "• Restored spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).\n• Repaired theme cycle state-machine to correctly cycle White → Dark → AMOLED → White.\n• Restored canonical circular rotating loader component (variant=\"spinner\") in foreground update checking state.\n• Fixed About Page orbit animation orbiter collapse bug by using inline coordinates fallback.\n• Corrected alignment of about content button rows by standardizing horizontal paddings.\n• Repaired StageX outer panel theme contrast mismatch in standard Dark Mode.\n• Resolved Developer Options/Updater Diagnostics horizontally squashed mobile layout and log viewer word-wrapping.\n• Polished MorphingModal fade/scale animation and eliminated persistent backdrop-filter blur when modals are closed.",
+  "whatsNew": "• Restored spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).\n• Repaired theme cycle state-machine to correctly cycle White → Dark → AMOLED → White.\n• Restored canonical circular rotating loader component (variant=\"spinner\") in foreground update checking state.\n• Fixed About Page orbit animation orbiter collapse bug by using inline coordinates fallback.\n• Corrected alignment of about content button rows by standardizing horizontal paddings.\n• Repaired StageX outer panel theme contrast mismatch in standard Dark Mode.\n• Resolved Developer Options/Updater Diagnostics horizontally squashed mobile layout and log viewer word-wrapping.\n• Polished MorphingModal fade/scale animation and eliminated persistent backdrop-filter blur when modals are closed.",
   "releaseNotes": {
-    "added": [
-      "Automated regression test for version 4.5.8 release pipeline."
+    "fixed": [
+      "Restored spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).",
+      "Repaired theme cycle state-machine to correctly cycle White → Dark → AMOLED → White.",
+      "Restored canonical circular rotating loader component (variant=\"spinner\") in foreground update checking state.",
+      "Fixed About Page orbit animation orbiter collapse bug by using inline coordinates fallback.",
+      "Corrected alignment of about content button rows by standardizing horizontal paddings.",
+      "Repaired StageX outer panel theme contrast mismatch in standard Dark Mode.",
+      "Resolved Developer Options/Updater Diagnostics horizontally squashed mobile layout and log viewer word-wrapping.",
+      "Polished MorphingModal fade/scale animation and eliminated persistent backdrop-filter blur when modals are closed."
     ]
   },
   "mandatory": false

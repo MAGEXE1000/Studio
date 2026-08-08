@@ -337,7 +337,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
       {/* Main Grid View */}
       <main
         style={{
-          padding: '24px',
+          padding: '16px',
           maxWidth: '850px',
           margin: '0 auto',
           display: 'flex',
@@ -371,7 +371,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
         <section
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
             gap: '12px',
           }}
         >
@@ -490,7 +490,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 {error ? 'Failures Detected' : 'All Systems Nominal'}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
                   Registry Connection
@@ -629,10 +629,12 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
+                          justifyContent: 'space-between',
                           gap: '12px',
                           padding: '10px 14px',
                           background: 'rgba(25,26,26,0.5)',
                           borderBottom: '1px solid rgba(128,128,128,0.08)',
+                          flexWrap: 'wrap',
                         }}
                       >
                         <div
@@ -716,6 +718,8 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                               <span
                                 style={{
                                   color: log.level === 'ERROR' ? '#f43f5e' : log.level === 'DEBUG' ? '#a78bfa' : '#e7e5e4',
+                                  wordBreak: 'break-word',
+                                  whiteSpace: 'pre-wrap',
                                 }}
                               >
                                 {log.message}

@@ -30,7 +30,28 @@ $BranchName = (git symbolic-ref --short HEAD).Trim()
 Write-Host "Current branch: $BranchName"
 
 Write-Host "3. Committing and pushing version changes to Git..."
-git add .
+git add package.json
+git add CHANGELOG.md
+git add apps/studio-android/package.json
+git add apps/studio-android/android/app/build.gradle
+git add apps/studio-android/public/app-release.json
+git add apps/studio-android/public/version.json
+git add apps/studio-web/package.json
+git add packages/studio-core/src/lib/startup/appVersion.ts
+git add packages/ui-shared/src/components/motion/morphing-modal.tsx
+git add packages/ui-shared/src/components/motion/theme-toggle.tsx
+git add packages/ui-shared/src/features/hub/components/StudioHub.tsx
+git add packages/ui-shared/src/features/stagex/pages/StageCorePanel.tsx
+git add packages/ui-shared/src/features/updater/components/StudioUpdateScreen.tsx
+git add packages/ui-shared/src/features/updater/diagnostics/UpdaterDiagnosticsPage.tsx
+git add packages/ui-shared/src/components/ui/color-picker.tsx
+git add packages/ui-shared/src/components/ui/InspiraColorPicker.tsx
+git add packages/ui-shared/src/components/ui/slider.tsx
+git add packages/ui-shared/src/components/ui/tooltip.tsx
+git add release-manifest.json
+git add release-notes.md
+git add scripts/publish-release.ps1
+
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."
 } else {

@@ -202,7 +202,7 @@ export default memo(function StudioUpdateScreen({
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
               >
                 {showSpinner ? (
-                  <Loader variant="percent" size={36} />
+                  <Loader variant="spinner" size={36} />
                 ) : (
                   <AnimatedIcon
                     name={getSymbolName()}

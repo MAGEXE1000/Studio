@@ -128,9 +128,9 @@ export function useThemeToggle({
   start = "bottom-up",
 }: { variant?: ThemeVariant; start?: RectStart } = {}) {
   const theme = useSettingsStore((s) => s.settings.theme);
+  const amoledMode = useSettingsStore((s) => s.settings.amoledMode);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
   const resolvedTheme = theme === "light" ? "light" : "dark";
-  const setTheme = (t: string) => updateSettings({ theme: t as any });
   const reduce = useReducedMotion() ?? false;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -141,13 +141,29 @@ export function useThemeToggle({
     el.textContent = VT_CSS;
     document.head.appendChild(el);
   }, []);
-  const isDark = mounted && resolvedTheme === "dark";
+  const isDark = mounted && (resolvedTheme === "dark" || amoledMode);
+
+  const cycleTheme = () => {
+    let nextTheme: "light" | "dark" = "light";
+    let nextAmoled = false;
+
+    if (theme === "light") {
+      nextTheme = "dark";
+      nextAmoled = false;
+    } else if (theme === "dark" && !amoledMode) {
+      nextTheme = "dark";
+      nextAmoled = true;
+    } else {
+      nextTheme = "light";
+      nextAmoled = false;
+    }
+
+    updateSettings({ theme: nextTheme, amoledMode: nextAmoled });
+  };
 
   const toggle = () => {
-    const next = isDark ? "light" : "dark";
-
     if (reduce || !("startViewTransition" in document)) {
-      setTheme(next);
+      cycleTheme();
       return;
     }
 
@@ -168,7 +184,7 @@ export function useThemeToggle({
       document as Document & {
         startViewTransition(cb: () => void): { finished: Promise<void> };
       }
-    ).startViewTransition(() => setTheme(next));
+    ).startViewTransition(() => cycleTheme());
 
     vt.finished.finally(() => {
       delete root.dataset.beuiVt;

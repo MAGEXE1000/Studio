@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.8';
-export const NATIVE_VERSION_CODE = 40508;
-export const WEB_VERSION = '4.5.8';
+export const NATIVE_VERSION = '4.5.9';
+export const NATIVE_VERSION_CODE = 40509;
+export const WEB_VERSION = '4.5.9';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '4490e54e';
+export const APP_COMMIT_SHA = '0ac195c1';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/7/2026, 10:23:07 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/7/2026, 7:32:14 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,9 +96,16 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: "Fixed",
     items: [
-      "Automated regression test for version 4.5.8 release pipeline.",
+      "Restored spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).",
+      "Repaired theme cycle state-machine to correctly cycle White → Dark → AMOLED → White.",
+      "Restored canonical circular rotating loader component (variant=\"spinner\") in foreground update checking state.",
+      "Fixed About Page orbit animation orbiter collapse bug by using inline coordinates fallback.",
+      "Corrected alignment of about content button rows by standardizing horizontal paddings.",
+      "Repaired StageX outer panel theme contrast mismatch in standard Dark Mode.",
+      "Resolved Developer Options/Updater Diagnostics horizontally squashed mobile layout and log viewer word-wrapping.",
+      "Polished MorphingModal fade/scale animation and eliminated persistent backdrop-filter blur when modals are closed.",
     ],
   },
 ];

@@ -2172,6 +2172,65 @@ function UpdateModal({
     );
   }
 
+  // Construct What's New changelog content
+  const notesList: string[] = Array.isArray(updater.releaseNotes)
+    ? updater.releaseNotes
+    : [
+        'Completely separated Chordex preferences from Hub/Studio Settings.',
+        'Redesigned floating top bar capsule geometry aligned with section cards.',
+        'Accelerated app entrance animations by 30% across all 6 applications.',
+        'Made Developer Inspector compact (floating drawer panel) and repaired debug controls.',
+      ];
+
+  const changelogContent = (
+    <div
+      style={{
+        width: '100%',
+        background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
+        border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 14,
+        padding: '12px 14px',
+        textAlign: 'left',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        maxHeight: 150,
+        overflowY: 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: 'var(--c-accent-from, #679cff)',
+          fontFamily: 'Manrope, sans-serif',
+        }}
+      >
+        What's New
+      </div>
+      <ul
+        style={{
+          margin: 0,
+          paddingLeft: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          fontSize: 12,
+          color: isLight ? '#334155' : '#e2e8f0',
+          fontFamily: 'Inter, sans-serif',
+          lineHeight: 1.4,
+        }}
+      >
+        {notesList.map((note, idx) => (
+          <li key={idx}>{note}</li>
+        ))}
+      </ul>
+    </div>
+  );
+
   return (
     <StudioUpdateScreen
       state={state}
@@ -2183,7 +2242,7 @@ function UpdateModal({
       iconColor={iconColor}
       showSpinner={showSpinner}
       actionButtons={actionButtons}
-      changelog={null}
+      changelog={changelogContent}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
       progressComponent={progressComponent}

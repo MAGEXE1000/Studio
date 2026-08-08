@@ -1,12 +1,8 @@
-# Version 4.5.12
-
-Release Date: 2026-08-07
-
 Release Date: 2026-08-07
 
 ### Fixed
-- Completely separated Chordex preferences from Hub/Studio Settings and removed App Theme control from Chordex Preferences.
-- Redesigned floating top header (shorter 44px height, wider horizontal width, higher position) aligned with card boundaries below.
-- Positioned Livex logo on the right side of the floating header with theme-dependent color (black in Light, white in Dark/AMOLED, never accent color).
-- Accelerated app intro animations by 30% across all 6 applications (Hub, Chordex, StageX, Groovex, Drumex, Vocalex) with theme-stable initial frames.
-- Made Developer Inspector compact (floating drawer panel) and repaired debug controls.
+- Enforced single canonical responsive content-width architecture across all settings, preferences, updater, developer options, and profile screens.
+- Refined floating top bar capsule geometry to match beUI Pro proportions and removed Livex logo for visual balance.
+- Fixed Updater What's New section to render release notes automatically upon update detection.
+- Stacked Developer Inspector floating control button directly above Route Tracer control button.
+- Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.

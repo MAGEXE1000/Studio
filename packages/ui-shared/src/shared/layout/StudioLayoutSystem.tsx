@@ -165,39 +165,37 @@ export function SharedFloatingHeader({
   headerBgRef,
   titleRef,
 }: SharedFloatingHeaderProps) {
-  const isLight = typeof document !== 'undefined' ? !document.documentElement.classList.contains('dark') && !document.documentElement.classList.contains('amoled') : true;
-  const logoColor = isLight ? '#000000' : '#ffffff';
-
   return (
     <div
       style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) + 2px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 4px)',
         left: 0,
         right: 0,
-        height: 44,
+        height: 40,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 110,
         pointerEvents: 'none',
-        padding: '0 12px',
+        padding: '0 16px',
       }}
     >
-      {/* Floating rounded header card aligned with content boundaries */}
+      {/* Floating rounded capsule header card matching beUI Pro reference */}
       <div
         ref={headerBgRef}
         style={{
           position: 'absolute',
-          top: 2,
-          left: 8,
-          right: 8,
-          bottom: 2,
-          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.75))',
-          borderRadius: '16px',
-          border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
-          backdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
-          WebkitBackdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
+          top: 0,
+          left: 12,
+          right: 12,
+          bottom: 0,
+          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.82))',
+          borderRadius: '9999px',
+          border: '1px solid var(--c-border, rgba(128, 128, 128, 0.18))',
+          backdropFilter: 'var(--c-surface-glass-blur, blur(24px))',
+          WebkitBackdropFilter: 'var(--c-surface-glass-blur, blur(24px))',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
           opacity: 0,
           transform: 'scale(0.98) translateY(-2px)',
           transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
@@ -206,7 +204,7 @@ export function SharedFloatingHeader({
         }}
       />
 
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 8, height: '100%', padding: '0 4px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 10, height: '100%', padding: '0 8px' }}>
         {!hideBack && onBack && (
           <button
             onClick={onBack}
@@ -215,11 +213,11 @@ export function SharedFloatingHeader({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 30,
-              height: 30,
+              width: 28,
+              height: 28,
               borderRadius: '50%',
-              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.08))',
-              border: '1px solid rgba(128, 128, 128, 0.1)',
+              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.12))',
+              border: '1px solid rgba(128, 128, 128, 0.15)',
               color: 'var(--c-text-primary)',
               cursor: 'pointer',
               transition: 'background-color 200ms',
@@ -233,7 +231,7 @@ export function SharedFloatingHeader({
           </button>
         )}
 
-        {/* Section Title next to Back Button */}
+        {/* Section Title */}
         <div
           ref={titleRef}
           style={{
@@ -248,7 +246,7 @@ export function SharedFloatingHeader({
         >
           <span
             style={{
-              fontSize: '13px',
+              fontSize: '13.5px',
               fontWeight: 800,
               color: 'var(--c-text-primary)',
               letterSpacing: '-0.02em',
@@ -267,11 +265,6 @@ export function SharedFloatingHeader({
             {toolbarActions}
           </div>
         )}
-
-        {/* Livex Logo on RIGHT side — Strictly theme dependent (black in White, white in Dark/AMOLED) */}
-        <div style={{ color: logoColor, display: 'flex', alignItems: 'center', flexShrink: 0, paddingLeft: 4 }}>
-          <StudioLogo size={16} />
-        </div>
       </div>
     </div>
   );

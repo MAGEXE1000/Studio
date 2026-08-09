@@ -1,7 +1,7 @@
-Release Date: 2026-08-08
+Release Date: 2026-08-09
 
 ### Fixed
-- Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.
-- Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.
-- Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.
-- Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines.
+- Fixed icon reverse animations on tab exit by preserving tab icon mounting state during navigation.
+- Centered the section header title independently against the floating capsule bounds and aligned its font size to the standard type-scale.
+- Refined floating header translucency, position elevation, and scroll-reveal threshold state machine clamping.
+- Verified tab highlight alignment geometry, collapse container transforms, and stationary back button layout.

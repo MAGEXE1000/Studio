@@ -229,6 +229,7 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       if (isActiveState) {
         if (innerIconRef.current && (!isAnimatingRef.current || epochChanged)) {
           isAnimatingRef.current = true;
+          console.log(`[AnimatedIcon] START ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`);
           innerIconRef.current.stopAnimation?.();
           innerIconRef.current.startAnimation?.();
           setTimeout(() => {
@@ -237,6 +238,7 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
         }
       } else {
         if (innerIconRef.current) {
+          console.log(`[AnimatedIcon] STOP (REVERSE) ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`);
           innerIconRef.current.stopAnimation?.();
           isAnimatingRef.current = false;
         }
@@ -397,7 +399,14 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
           size={size}
           color={color}
           strokeWidth={strokeWidth}
-          style={{ overflow: 'visible' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: size,
+            height: size,
+            overflow: 'visible',
+          }}
         />
       </motion.div>
     );

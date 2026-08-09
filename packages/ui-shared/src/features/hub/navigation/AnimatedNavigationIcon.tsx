@@ -137,8 +137,8 @@ export const AnimatedNavigationIcon = React.forwardRef<any, AnimatedNavigationIc
 
   return (
     <motion.div
-      key={`nav-icon-${resolvedName}-${animationEpoch ?? 0}-${isActive}-${direction}`}
-      initial="initial"
+      key={`nav-icon-${resolvedName}`}
+      initial="inactive"
       animate={isActive ? 'active' : 'inactive'}
       variants={outerVariants}
       style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}

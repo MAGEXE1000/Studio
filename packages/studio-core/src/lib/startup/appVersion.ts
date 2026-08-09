@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.15';
-export const NATIVE_VERSION_CODE = 40515;
-export const WEB_VERSION = '4.5.15';
+export const NATIVE_VERSION = '4.5.16';
+export const NATIVE_VERSION_CODE = 40516;
+export const WEB_VERSION = '4.5.16';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '3aa920bb';
+export const APP_COMMIT_SHA = '8ab0927b';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/8/2026, 5:28:49 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/9/2026, 12:45:26 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Fixed",
     items: [
-      "Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.",
-      "Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.",
-      "Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.",
-      "Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines.",
+      "Fixed icon reverse animations on tab exit by preserving tab icon mounting state during navigation.",
+      "Centered the section header title independently against the floating capsule bounds and aligned its font size to the standard type-scale.",
+      "Refined floating header translucency, position elevation, and scroll-reveal threshold state machine clamping.",
+      "Verified tab highlight alignment geometry, collapse container transforms, and stationary back button layout.",
     ],
   },
 ];

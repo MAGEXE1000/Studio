@@ -1,20 +1,19 @@
 {
   "platform": "android",
-  "version": "4.5.17",
-  "versionName": "4.5.17",
-  "versionCode": 40517,
-  "version_code": 40517,
-  "commit": "584877ad",
-  "releasedAt": "8/9/2026, 2:47:07 PM CST",
-  "buildTimestamp": "8/9/2026, 2:47:07 PM CST",
+  "version": "4.5.18",
+  "versionName": "4.5.18",
+  "versionCode": 40518,
+  "version_code": 40518,
+  "commit": "d16af938",
+  "releasedAt": "8/9/2026, 5:27:29 PM CST",
+  "buildTimestamp": "8/9/2026, 5:27:29 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.\n• Scaled up the Top Bar title font size slightly and centered it.\n• Removed all custom and shared back buttons associated with page headers and top bars from the entire application.",
-  "whatsNew": "• Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.\n• Scaled up the Top Bar title font size slightly and centered it.\n• Removed all custom and shared back buttons associated with page headers and top bars from the entire application.",
+  "changelog": "• Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.\n• Moved the shared Top Bar 15% higher and increased background transparency.",
+  "whatsNew": "• Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.\n• Moved the shared Top Bar 15% higher and increased background transparency.",
   "releaseNotes": {
     "fixed": [
-      "Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.",
-      "Scaled up the Top Bar title font size slightly and centered it.",
-      "Removed all custom and shared back buttons associated with page headers and top bars from the entire application."
+      "Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.",
+      "Moved the shared Top Bar 15% higher and increased background transparency."
     ]
   },
   "mandatory": false

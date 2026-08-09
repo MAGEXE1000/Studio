@@ -268,25 +268,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {onBack && (
-              <button
-                onClick={onBack}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: 'none',
-                  color: '#e7e5e4',
-                  cursor: 'pointer',
-                }}
-              >
-                <span className="material-symbols-outlined">arrow_back</span>
-              </button>
-            )}
+
             <div>
               <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
                 Updater Diagnostics

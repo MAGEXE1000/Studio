@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.5.16",
-  "versionName": "4.5.16",
-  "versionCode": 40516,
-  "version_code": 40516,
-  "commit": "8ab0927b",
-  "releasedAt": "8/9/2026, 12:45:26 PM CST",
-  "buildTimestamp": "8/9/2026, 12:45:26 PM CST",
+  "version": "4.5.17",
+  "versionName": "4.5.17",
+  "versionCode": 40517,
+  "version_code": 40517,
+  "commit": "584877ad",
+  "releasedAt": "8/9/2026, 2:47:07 PM CST",
+  "buildTimestamp": "8/9/2026, 2:47:07 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed icon reverse animations on tab exit by preserving tab icon mounting state during navigation.\n• Centered the section header title independently against the floating capsule bounds and aligned its font size to the standard type-scale.\n• Refined floating header translucency, position elevation, and scroll-reveal threshold state machine clamping.\n• Verified tab highlight alignment geometry, collapse container transforms, and stationary back button layout.",
-  "whatsNew": "• Fixed icon reverse animations on tab exit by preserving tab icon mounting state during navigation.\n• Centered the section header title independently against the floating capsule bounds and aligned its font size to the standard type-scale.\n• Refined floating header translucency, position elevation, and scroll-reveal threshold state machine clamping.\n• Verified tab highlight alignment geometry, collapse container transforms, and stationary back button layout.",
+  "changelog": "• Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.\n• Scaled up the Top Bar title font size slightly and centered it.\n• Removed all custom and shared back buttons associated with page headers and top bars from the entire application.",
+  "whatsNew": "• Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.\n• Scaled up the Top Bar title font size slightly and centered it.\n• Removed all custom and shared back buttons associated with page headers and top bars from the entire application.",
   "releaseNotes": {
     "fixed": [
-      "Fixed icon reverse animations on tab exit by preserving tab icon mounting state during navigation.",
-      "Centered the section header title independently against the floating capsule bounds and aligned its font size to the standard type-scale.",
-      "Refined floating header translucency, position elevation, and scroll-reveal threshold state machine clamping.",
-      "Verified tab highlight alignment geometry, collapse container transforms, and stationary back button layout."
+      "Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.",
+      "Scaled up the Top Bar title font size slightly and centered it.",
+      "Removed all custom and shared back buttons associated with page headers and top bars from the entire application."
     ]
   },
   "mandatory": false

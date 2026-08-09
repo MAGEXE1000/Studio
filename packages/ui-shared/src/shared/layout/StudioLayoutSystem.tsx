@@ -184,7 +184,7 @@ export function SharedFloatingHeader({
     <div
       style={{
         position: 'absolute',
-        top: 'max(4px, env(safe-area-inset-top, 4px))',
+        top: 'env(safe-area-inset-top, 0px)',
         left: 0,
         right: 0,
         height: 48,
@@ -205,7 +205,7 @@ export function SharedFloatingHeader({
           left: sideMargin,
           right: sideMargin,
           bottom: 0,
-          background: isLight ? 'rgba(255, 250, 245, 0.55)' : 'rgba(24, 20, 16, 0.45)',
+          background: isLight ? 'rgba(255, 250, 245, 0.25)' : 'rgba(24, 20, 16, 0.20)',
           borderRadius: '24px',
           border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px) saturate(1.6)',
@@ -237,7 +237,7 @@ export function SharedFloatingHeader({
       >
         <span
           style={{
-            fontSize: '16px',
+            fontSize: '17px',
             fontWeight: 800,
             color: 'var(--c-text-primary)',
             letterSpacing: '-0.02em',
@@ -253,46 +253,6 @@ export function SharedFloatingHeader({
           {title}
         </span>
       </motion.div>
-
-      {/* Left Back Button Layer - Always visible & interactive */}
-      {!hideBack && onBack && (
-        <div
-          style={{
-            position: 'absolute',
-            left: `calc(${sideMargin} + 12px)`,
-            top: 0,
-            bottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-            zIndex: 2,
-            pointerEvents: 'auto',
-          }}
-        >
-          <button
-            onClick={onBack}
-            className="premium-back-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              background: 'rgba(128, 128, 128, 0.12)',
-              border: '1px solid rgba(128, 128, 128, 0.15)',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              transition: 'background-color 200ms',
-              outline: 'none',
-              flexShrink: 0,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-              arrow_back
-            </span>
-          </button>
-        </div>
-      )}
 
       {/* Right Toolbar Actions Layer */}
       {toolbarActions && (

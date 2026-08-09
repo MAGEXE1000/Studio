@@ -1765,29 +1765,7 @@ const renderSubViewHeader = (title: string) => {
           zIndex: 100}}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
-          <button
-            onClick={() => {
-              addJsLog('BUTTON PRESSED:\nBack to Developer Panel');
-              handleGoBack();
-            }}
-            className="btn-smooth"
-            style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: 'none',
-              borderRadius: '999px',
-              width: 36,
-              height: 36,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: 'var(--studio-accent-from, #679cff)',
-              transition: 'all 0.15s ease'}}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-              arrow_back
-            </span>
-          </button>
+
           <div>
             <h1
               style={{
@@ -5769,25 +5747,7 @@ const renderSubViewHeader = (title: string) => {
                         zIndex: 100}}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <button
-                          onClick={onBack}
-                          className="btn-smooth"
-                          style={{
-                            background: 'var(--app-surface-high)',
-                            border: 'none',
-                            borderRadius: '999px',
-                            width: 36,
-                            height: 36,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: 'var(--c-text-primary)'}}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                            arrow_back
-                          </span>
-                        </button>
+
                         <div>
                           <h2
                             style={{
@@ -5895,25 +5855,7 @@ const renderSubViewHeader = (title: string) => {
                             zIndex: 100}}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <button
-                              onClick={onBack}
-                              className="btn-smooth"
-                              style={{
-                                background: 'var(--app-surface-high)',
-                                border: 'none',
-                                borderRadius: '999px',
-                                width: 36,
-                                height: 36,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                color: 'var(--c-text-primary)'}}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                                arrow_back
-                              </span>
-                            </button>
+
                             <div>
                               <h2
                                 style={{

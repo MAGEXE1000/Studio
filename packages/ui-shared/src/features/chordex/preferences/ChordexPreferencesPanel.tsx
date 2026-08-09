@@ -17,6 +17,7 @@ import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shar
 import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
 import { ThemeToggle } from '../../../components/motion/theme-toggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
 export default function ChordexPreferencesPanel() {
   const settings = useSettingsStore((s) => s.settings);
@@ -48,33 +49,10 @@ export default function ChordexPreferencesPanel() {
 
   if (isWebDesktop) {
     return (
-      <div className="flex flex-col h-full overflow-hidden bg-[var(--app-bg)] p-6">
-        {/* Page title */}
-        <div className="mb-6">
-          <h2
-            style={{
-              fontSize: '18px',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
-            }}
-          >
-            {t.settings.title}
-          </h2>
-          <p
-            style={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'Inter',
-              fontSize: '11px',
-              marginTop: '2px',
-            }}
-          >
-            {t.settings.subtitle}
-          </p>
-        </div>
+      <div className="flex flex-col h-full overflow-hidden bg-[var(--app-bg)]">
+        <StudioHeader title={t.settings.title} subtitle={t.settings.subtitle} />
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar space-y-6">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar space-y-6 px-6 pb-6">
           {/* ── INSTRUMENT ── */}
           <SettingSection title="Global Instrument">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
@@ -362,37 +340,15 @@ export default function ChordexPreferencesPanel() {
     <div className="flex flex-col h-full overflow-hidden app-bg">
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto no-scrollbar px-5"
+        className="flex-1 overflow-y-auto no-scrollbar px-0"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
           paddingTop: isWebDesktop ? '20px' : '0',
         }}
       >
-        {/* Page title */}
-        <div className="mt-3 mb-6">
-          <h2
-            style={{
-              fontSize: 'var(--font-hero)',
-              fontWeight: 800,
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-              color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
-            }}
-          >
-            {t.settings.title}
-          </h2>
-          <p
-            style={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'Inter',
-              fontSize: 'var(--font-sm)',
-              marginTop: '4px',
-            }}
-          >
-            {t.settings.subtitle}
-          </p>
-        </div>
+        <StudioHeader title={t.settings.title} subtitle={t.settings.subtitle} />
+
+        <div className="px-6">
 
         {/* ── INSTRUMENT ── */}
         <SectionHeader icon="music_note" title="Global Instrument" />
@@ -720,6 +676,7 @@ export default function ChordexPreferencesPanel() {
               </SettingRow>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

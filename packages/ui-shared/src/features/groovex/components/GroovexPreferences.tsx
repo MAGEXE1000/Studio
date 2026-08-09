@@ -96,51 +96,14 @@ export default function GroovexPreferences() {
         style={{
           maxWidth: 600,
           margin: isWebDesktop ? '0' : '0 auto',
-          padding: isWebDesktop ? '24px' : '0 20px',
+          padding: '0 24px',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
         }}
       >
-        {isWebDesktop ? (
-          <div className="mb-6">
-            <StudioHeader
-              title={t.groovex.audioEngine}
-              subtitle={t.groovex.audioEngineDesc}
-              titleStyle={{
-                fontSize: '18px',
-                fontWeight: 800,
-                letterSpacing: '-0.02em',
-                color: 'var(--c-text-primary)',
-                fontFamily: 'var(--font-headline)',
-              }}
-              subtitleStyle={{
-                color: 'var(--c-text-secondary)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '11px',
-                marginTop: '2px',
-              }}
-            />
-          </div>
-        ) : (
-          <section style={{ paddingTop: 32, marginBottom: 32 }}>
-            <StudioHeader
-              title={t.groovex.audioEngine}
-              subtitle={t.groovex.audioEngineDesc}
-              titleStyle={{
-                fontSize: 28,
-                fontWeight: 800,
-                letterSpacing: '-0.03em',
-                margin: '0 0 6px',
-                color: 'var(--c-text-primary)',
-              }}
-              subtitleStyle={{
-                fontSize: 13,
-                color: 'var(--c-text-secondary)',
-                fontFamily: 'var(--font-body)',
-                margin: 0,
-              }}
-            />
-          </section>
-        )}
+        <StudioHeader
+          title={t.groovex.audioEngine}
+          subtitle={t.groovex.audioEngineDesc}
+        />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <PrefCard

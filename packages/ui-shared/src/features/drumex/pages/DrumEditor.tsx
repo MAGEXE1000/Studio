@@ -6615,13 +6615,11 @@ export default function DrumEditor() {
                     return (
                       <div
                         onScroll={drumScrollHide}
-                        style={{ overflowY: 'auto', paddingBottom: 100 }}
+                        style={{ overflowY: 'auto', paddingBottom: 100, paddingLeft: 24, paddingRight: 24 }}
                         className="no-scrollbar flex flex-col w-full h-full"
                       >
                         {!isWebDesktop && (
-                          <div style={{ padding: '0 20px', marginTop: 12, marginBottom: 24 }}>
-                            <StudioHeader title="Beats" subtitle="Your drum songs" />
-                          </div>
+                          <StudioHeader title="Beats" subtitle="Your drum songs" />
                         )}
 
                         {/* Desktop Secondary Toolbar */}

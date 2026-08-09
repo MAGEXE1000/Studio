@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/re
 import { useScrollHide, SpringPresets, useSettingsStore } from '@workspace/studio-core';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
 import { StudioLogo } from '../../features/chordex/icons/ChordexLogo';
+import { StudioHeader } from './StudioHeader';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -184,7 +185,7 @@ export function SharedFloatingHeader({
     <div
       style={{
         position: 'absolute',
-        top: 'env(safe-area-inset-top, 0px)',
+        top: 'calc(env(safe-area-inset-top, 0px) * 0.85)',
         left: 0,
         right: 0,
         height: 48,
@@ -205,7 +206,7 @@ export function SharedFloatingHeader({
           left: sideMargin,
           right: sideMargin,
           bottom: 0,
-          background: isLight ? 'rgba(255, 250, 245, 0.25)' : 'rgba(24, 20, 16, 0.20)',
+          background: isLight ? 'rgba(255, 250, 245, 0.15)' : 'rgba(24, 20, 16, 0.12)',
           borderRadius: '24px',
           border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px) saturate(1.6)',
@@ -334,7 +335,7 @@ export function SettingsScaffold({
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
-          padding: 'var(--density-pad, 16px)',
+          padding: '0',
           paddingTop: 'calc(env(safe-area-inset-top, 0px) + 58px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
@@ -342,21 +343,16 @@ export function SettingsScaffold({
       >
         {/* Large scrolling title crossfades into floating header pill on scroll */}
         {showLargeTitle && (
-          <motion.h2
+          <motion.div
             ref={largeTitleRef}
             style={{
-              fontSize: '24px',
-              fontWeight: 800,
-              color: 'var(--c-text-primary)',
-              letterSpacing: '-0.03em',
-              fontFamily: 'Manrope, sans-serif',
-              margin: '0 0 16px 4px',
               opacity: largeTitleOpacity,
               y: largeTitleY,
+              width: '100%',
             }}
           >
-            {title}
-          </motion.h2>
+            <StudioHeader title={title} containerStyle={{ paddingLeft: '24px', paddingRight: '24px' }} />
+          </motion.div>
         )}
 
         {/* Content Canvas */}
@@ -388,6 +384,8 @@ export function SettingsContentContainer({
         width: '100%',
         boxSizing: 'border-box',
         background: 'transparent',
+        paddingLeft: '24px',
+        paddingRight: '24px',
         ...style,
       }}
       className={`studio-settings-content-container ${className}`}

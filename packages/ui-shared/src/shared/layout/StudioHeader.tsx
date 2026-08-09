@@ -8,6 +8,7 @@ export interface StudioHeaderProps {
   subtitleClassName?: string;
   titleStyle?: React.CSSProperties;
   subtitleStyle?: React.CSSProperties;
+  containerStyle?: React.CSSProperties;
   staggerInterval?: number;
   delayOffset?: number;
 }
@@ -15,10 +16,11 @@ export interface StudioHeaderProps {
 export function StudioHeader({
   title,
   subtitle,
-  titleClassName = 'font-extrabold tracking-tighter leading-none mb-3',
+  titleClassName = '',
   subtitleClassName = '',
   titleStyle = {},
   subtitleStyle = {},
+  containerStyle = {},
   staggerInterval = 20,
   delayOffset = 0.06,
 }: StudioHeaderProps) {
@@ -27,28 +29,39 @@ export function StudioHeader({
 
   const mergedTitleStyle: React.CSSProperties = {
     fontFamily: 'Manrope, sans-serif',
-    fontWeight: 900,
-    fontSize: '2.6rem',
     color: 'var(--c-text-primary)',
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
-    marginTop: '12px',
-    marginBottom: '8px',
+    lineHeight: 1.2,
     ...titleStyle,
+    fontSize: '18px',
+    fontWeight: 800,
+    letterSpacing: '-0.02em',
+    marginTop: 0,
+    marginBottom: 0,
   };
 
   const mergedSubtitleStyle: React.CSSProperties = {
     fontFamily: 'Inter, sans-serif',
-    fontSize: '13px',
     color: 'var(--c-text-secondary)',
-    marginTop: '4px',
-    marginBottom: '24px',
     lineHeight: 1.4,
     ...subtitleStyle,
+    fontSize: '11px',
+    marginTop: '4px',
+    marginBottom: 0,
   };
 
   return (
-    <>
+    <div
+      style={{
+        paddingTop: '48px',
+        paddingBottom: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+        width: '100%',
+        ...containerStyle,
+      }}
+      className="studio-header-container"
+    >
       <h2 className={titleClassName} style={mergedTitleStyle}>
         {title}
       </h2>
@@ -57,6 +70,6 @@ export function StudioHeader({
           {subtitle}
         </p>
       )}
-    </>
+    </div>
   );
 }

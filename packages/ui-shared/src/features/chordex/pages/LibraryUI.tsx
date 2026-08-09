@@ -13,6 +13,7 @@ import GuitarDiagram from '../diagrams/GuitarDiagram';
 import PianoDiagram from '../diagrams/PianoDiagram';
 import FourStringDiagram from '../diagrams/FourStringDiagram';
 import { CATEGORIES } from './LibraryCategories';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
 export function RelatedPlayBtn({
   guitar,
@@ -279,34 +280,10 @@ export function LibraryMainView({ state }: { state: any }) {
 
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
-      <header className="relative z-10 px-6 pt-12 pb-4 flex justify-between items-start">
-        <div>
-          <h1
-            style={{
-              fontSize: '24px',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
-              fontFamily: 'var(--font-headline)',
-              marginBottom: '2px',
-            }}
-          >
-            Library
-          </h1>
-          <p
-            style={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              opacity: 0.6,
-            }}
-          >
-            Explore {allChords.length} Chords
-          </p>
-        </div>
-      </header>
+      <StudioHeader
+        title="Library"
+        subtitle={`Explore ${allChords.length} Chords`}
+      />
 
       <div className="px-6 mb-4 flex gap-2">
         <button

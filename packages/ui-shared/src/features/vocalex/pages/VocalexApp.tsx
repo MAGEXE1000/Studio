@@ -22,6 +22,7 @@ import { SharedNavigationContainer } from '../../../navigation/SharedNavigationC
 
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { AnimatedNavigationIcon } from '../../hub/navigation/AnimatedNavigationIcon';
 
 import { IconSettings } from '../../hub/icons/NavIcons';
@@ -280,33 +281,11 @@ function VocalexPreferences() {
   ];
 
   return (
-    <div style={{ padding: '24px 20px', minHeight: '100%' }}>
-      <div style={{ marginBottom: 28 }}>
-        <h2
-          style={{
-            fontFamily: 'var(--font-headline)',
-            fontWeight: 800,
-            fontSize: 34,
-            letterSpacing: '-0.03em',
-            color: 'var(--c-text-primary)',
-            margin: '0 0 8px',
-            lineHeight: 1,
-          }}
-        >
-          {vt.settingsTitle || 'Preferences'}
-        </h2>
-        <p
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 13,
-            color: 'var(--c-text-secondary)',
-            margin: 0,
-            lineHeight: 1.5,
-          }}
-        >
-          Configure default behaviors for Vocalex.
-        </p>
-      </div>
+    <div style={{ padding: '0 24px', minHeight: '100%' }}>
+      <StudioHeader
+        title={vt.settingsTitle || 'Preferences'}
+        subtitle="Configure default behaviors for Vocalex."
+      />
 
       <Card
         style={{

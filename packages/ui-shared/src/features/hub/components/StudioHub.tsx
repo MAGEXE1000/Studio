@@ -52,6 +52,7 @@ import ProfileDropdown from '../../auth/components/ProfileDropdown';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../../../shared/loading/StudioSkeleton';
 import { SettingsScaffold, SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { ProgressiveBlur } from '../../../shared/design-system/ProgressiveBlur';
 import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
 import { StaggeredReveal } from '../../../shared/animation';
@@ -6595,38 +6596,13 @@ User Agent: [Automatically Generated]
                       flex: 1,
                       overflowY: 'auto',
                       overflowX: 'hidden',
-                      padding: '0 20px',
+                      padding: '0 24px',
                       paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
                       WebkitOverflowScrolling: 'touch',
                     }}
                     className="no-scrollbar"
                   >
-                    <div style={{ paddingTop: 32, paddingBottom: 16 }}>
-                      <p
-                        style={{
-                          fontSize: 32,
-                          fontWeight: 800,
-                          color: 'var(--c-text-primary)',
-                          margin: 0,
-                          letterSpacing: '-0.03em',
-                          fontFamily: 'Manrope',
-                        }}
-                      >
-                        Settings
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 10,
-                          color: 'var(--c-text-secondary)',
-                          margin: '5px 0 0',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.2em',
-                        }}
-                      >
-                        Livex System
-                      </p>
-                    </div>
+                    <StudioHeader title="Settings" subtitle="Livex System" />
 
                     {/* Minimal Update Card */}
                     {updater.updateAvailable && (

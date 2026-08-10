@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.18';
-export const NATIVE_VERSION_CODE = 40518;
-export const WEB_VERSION = '4.5.18';
+export const NATIVE_VERSION = '4.5.19';
+export const NATIVE_VERSION_CODE = 40519;
+export const WEB_VERSION = '4.5.19';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'd16af938';
+export const APP_COMMIT_SHA = '192b0098';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/9/2026, 5:27:29 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/9/2026, 9:24:39 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,10 +96,16 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
+    heading: "Added",
+    items: [
+      "Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.",
+      "Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback.",
+    ],
+  },
+  {
     heading: "Fixed",
     items: [
-      "Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.",
-      "Moved the shared Top Bar 15% higher and increased background transparency.",
+      "Resolved version comparison regression test suite failures by aligning downgrade validation assertions.",
     ],
   },
 ];

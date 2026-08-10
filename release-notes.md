@@ -1,5 +1,8 @@
 Release Date: 2026-08-09
 
+### Added
+- Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.
+- Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback.
+
 ### Fixed
-- Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.
-- Moved the shared Top Bar 15% higher and increased background transparency.
+- Resolved version comparison regression test suite failures by aligning downgrade validation assertions.

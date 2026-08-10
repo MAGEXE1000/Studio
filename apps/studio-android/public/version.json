@@ -1,19 +1,22 @@
 {
   "platform": "android",
-  "version": "4.5.18",
-  "versionName": "4.5.18",
-  "versionCode": 40518,
-  "version_code": 40518,
-  "commit": "d16af938",
-  "releasedAt": "8/9/2026, 5:27:29 PM CST",
-  "buildTimestamp": "8/9/2026, 5:27:29 PM CST",
+  "version": "4.5.19",
+  "versionName": "4.5.19",
+  "versionCode": 40519,
+  "version_code": 40519,
+  "commit": "192b0098",
+  "releasedAt": "8/9/2026, 9:24:39 PM CST",
+  "buildTimestamp": "8/9/2026, 9:24:39 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.\n• Moved the shared Top Bar 15% higher and increased background transparency.",
-  "whatsNew": "• Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.\n• Moved the shared Top Bar 15% higher and increased background transparency.",
+  "changelog": "• Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.\n• Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback.\n• Resolved version comparison regression test suite failures by aligning downgrade validation assertions.",
+  "whatsNew": "• Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.\n• Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback.\n• Resolved version comparison regression test suite failures by aligning downgrade validation assertions.",
   "releaseNotes": {
+    "added": [
+      "Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.",
+      "Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback."
+    ],
     "fixed": [
-      "Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.",
-      "Moved the shared Top Bar 15% higher and increased background transparency."
+      "Resolved version comparison regression test suite failures by aligning downgrade validation assertions."
     ]
   },
   "mandatory": false

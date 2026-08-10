@@ -18,6 +18,7 @@
   "registries": {
     "@lucide-animated": "https://lucide-animated.com/r/{name}.json",
     "@beui": "https://beui.dev/r/{name}.json",
-    "@ncdai": "https://chanhdai.com/r/{name}.json"
+    "@ncdai": "https://chanhdai.com/r/{name}.json",
+    "@soundcn": "https://soundcn.xyz/r/{name}.json"
   }
 }

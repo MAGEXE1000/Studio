@@ -29,6 +29,7 @@ import {
   GroovexLogo,
   VocalexLogo,
 } from '../../chordex/icons/ChordexLogo';
+import { SpotlightLogo } from '../../../components/spotlight-logo';
 import {
   Toggle,
   SectionHeader,
@@ -2153,145 +2154,7 @@ export default function StudioHub() {
   );
 }
 
-// ── StudioFamilyOrbit ─────────────────────────────────────────────────────────
-// Clean monochrome orbit — Studio sine-wave in a neutral dark circle at center,
-// 5 sub-app icons orbiting in white-outlined circles (no color gradients).
-// Uses the canonical animata double-rotate trick so icons stay upright.
-function StudioFamilyOrbit({
-  items,
-  onLogoPress,
-}: {
-  items: { key: string; node: React.ReactNode; label: string }[];
-  onLogoPress?: () => void;
-}) {
-  const RADIUS = 96;
-  const SPEED = 22;
-  const SIZE = 240;
-  const N = items.length;
 
-  const keyframes = items
-    .map((_, i) => {
-      const a = (i / N) * 360;
-      return `
-      @keyframes family-orbit-${i} {
-        from { transform: rotate(${a}deg) translateX(${RADIUS}px) rotate(${-a}deg); }
-        to   { transform: rotate(${a + 360}deg) translateX(${RADIUS}px) rotate(${-(a + 360)}deg); }
-      }
-    `;
-    })
-    .join('\n');
-
-  return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: SIZE,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      <style>{`
-        ${keyframes}
-        @keyframes family-orbit-bob {
-          0%,100% { transform: translateY(0); }
-          50%     { transform: translateY(-3px); }
-        }
-      `}</style>
-
-      {/* Subtle neutral glow */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 200,
-          height: 200,
-          marginTop: -100,
-          marginLeft: -100,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Dashed orbit ring */}
-      <div
-        style={{
-          position: 'absolute',
-          width: RADIUS * 2,
-          height: RADIUS * 2,
-          borderRadius: '50%',
-          border: '1px dashed rgba(128,128,128,0.22)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Center Studio logo — neutral dark circle, no pink gradient */}
-      <div
-        onClick={onLogoPress}
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          width: 84,
-          height: 84,
-          borderRadius: '50%',
-          background: 'var(--c-surface-2, rgba(255,255,255,0.05))',
-          border: '1px solid rgba(255,255,255,0.10)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--c-text-primary)',
-          animation: 'family-orbit-bob 3.2s ease-in-out infinite',
-          cursor: onLogoPress ? 'pointer' : 'default',
-        }}
-      >
-        <StudioLogo size={48} />
-      </div>
-
-      {/* clean white-outlined circles */}
-      {items.map(({ key, node }, i) => (
-        <div
-          key={key}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: 0,
-            height: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: `rotate(${(i / N) * 360}deg) translateX(${RADIUS}px) rotate(${-(i / N) * 360}deg)`,
-            animation: `family-orbit-${i} ${SPEED}s linear infinite`,
-            zIndex: 1,
-          }}
-        >
-          <div
-            style={{
-              width: 46,
-              height: 46,
-              minWidth: 46,
-              minHeight: 46,
-              flexShrink: 0,
-              borderRadius: '50%',
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.22)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--c-text-primary)',
-            }}
-          >
-            {React.cloneElement(node as React.ReactElement<{ size: number }>, { size: 24 })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // ── App row (list item inside the combined card) ───────────────────────────────
 function AppRow({
@@ -5721,7 +5584,7 @@ User Agent: [Automatically Generated]
     return (
       <SettingsContentContainer style={{ paddingBottom: 24 }}>
         <div style={heroCardStyle}>
-          <StudioFamilyOrbit items={subAppLogos} onLogoPress={handleLogoTap} />
+          <SpotlightLogo onClick={handleLogoTap} />
           <p
             style={{
               margin: '16px 0 0',
@@ -6184,15 +6047,7 @@ User Agent: [Automatically Generated]
           ) : (
             <div style={{ paddingBottom: 80 }}>
               <div style={{ marginBottom: 16 }}>
-                <StudioFamilyOrbit
-                  items={[
-                    { key: 'chordex', label: 'Chordex', node: <ChordexLogo size={34} /> },
-                    { key: 'drumex', label: 'Drumex', node: <DrumexLogo size={34} /> },
-                    { key: 'stagex', label: 'Stagex', node: <StagexLogoIcon size={34} /> },
-                    { key: 'groovex', label: 'Groovex', node: <GroovexLogo size={34} /> },
-                    { key: 'vocalex', label: 'Vocalex', node: <VocalexLogo size={34} /> },
-                  ]}
-                />
+                <SpotlightLogo onClick={handleLogoTap} />
               </div>
               <AccountCard
                 accent={accent}

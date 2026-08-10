@@ -1325,7 +1325,7 @@ export default function StudioHub() {
                                     width: '48px',
                                     height: '48px',
                                     borderRadius: '50%',
-                                    background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(12, 12, 14, 0.45)',
+                                    background: 'var(--surface-float-bg)',
                                     border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
                                     backdropFilter: 'blur(25px)',
                                     WebkitBackdropFilter: 'blur(25px)',
@@ -2755,7 +2755,7 @@ function SettingsSectionLabel({
     >
       <span
         style={{
-          fontSize: 11,
+          fontSize: 'var(--font-section-label)',
           fontWeight: 800,
           color: 'var(--c-text-secondary)',
           letterSpacing: '0.15em',
@@ -4460,7 +4460,7 @@ User Agent: [Automatically Generated]
         return (
           <div
             style={{
-              padding: '14px 20px',
+              padding: 'var(--density-row-pad)',
               borderBottom: '1px solid rgba(128,128,128,0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -4532,7 +4532,7 @@ User Agent: [Automatically Generated]
         value: string;
         canCopy?: boolean;
       }) => (
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+        <div style={{ padding: 'var(--density-row-pad)', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
           <div
             style={{
               display: 'flex',
@@ -4624,7 +4624,7 @@ User Agent: [Automatically Generated]
       }) => {
         const [open, setOpen] = useState(false);
         return (
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+          <div style={{ padding: 'var(--density-row-pad)', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
             <div
               style={{
                 display: 'flex',
@@ -5933,7 +5933,7 @@ User Agent: [Automatically Generated]
             <div
               key={idx}
               style={{
-                padding: '14px 20px',
+                padding: 'var(--density-row-pad)',
                 borderBottom: idx === licenses.length - 1 ? 'none' : '1px solid rgba(128,128,128,0.08)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -6064,7 +6064,7 @@ User Agent: [Automatically Generated]
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h2
                 style={{
-                  fontSize: 18,
+                  fontSize: 'var(--font-page-title)',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
                   margin: 0,
@@ -6382,7 +6382,7 @@ User Agent: [Automatically Generated]
         {/* About this Update */}
         {updater.updateAvailable && updater.changelog && (
           <SettingSection title={lang === 'es' ? 'ACERCA DE ESTA ACTUALIZACIÓN' : 'ABOUT THIS UPDATE'}>
-            <div style={{ padding: '14px 20px', color: 'var(--c-text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
+            <div style={{ padding: 'var(--density-row-pad)', color: 'var(--c-text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
               <p style={{ margin: '0 0 10px 0', fontWeight: 700, color: 'var(--c-text-primary)' }}>
                 {lang === 'es' ? 'Novedades en v' : "What's new in v"}{updater.remoteVersion}:
               </p>
@@ -6925,10 +6925,10 @@ User Agent: [Automatically Generated]
                     </div>
 
                     {/* System & About Group */}
-                    <div style={{ marginBottom: 24 }}>
+                    <div style={{ marginBottom: 'var(--space-6)' }}>
                       <h3
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--font-section-label)',
                           fontWeight: 700,
                           textTransform: 'uppercase',
                           letterSpacing: '0.12em',
@@ -7286,7 +7286,7 @@ User Agent: [Automatically Generated]
           >
             <h2
               style={{
-                fontSize: 18,
+                fontSize: 'var(--font-page-title)',
                 fontWeight: 800,
                 color: 'var(--c-text-primary)',
                 margin: 0,
@@ -7378,7 +7378,7 @@ User Agent: [Automatically Generated]
         <div
           style={{
             flex: 1,
-            padding: '32px 48px',
+            padding: 'var(--space-8) var(--space-12)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -7388,7 +7388,7 @@ User Agent: [Automatically Generated]
           <div
             key={activePageId}
             className="settings-content-animate"
-            style={{ maxWidth: '640px', width: '100%', margin: '0 auto' }}
+            style={{ maxWidth: 'var(--content-max-w)', width: '100%', margin: '0 auto' }}
           >
             <div
               style={{
@@ -7399,7 +7399,7 @@ User Agent: [Automatically Generated]
             >
               <h1
                 style={{
-                  fontSize: 28,
+                  fontSize: 'var(--font-display-page)',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
                   margin: 0,
@@ -8496,7 +8496,7 @@ User Agent: [Automatically Generated]
         <div
           style={{
             flex: 1,
-            padding: '32px 48px',
+            padding: 'var(--space-8) var(--space-12)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -8507,7 +8507,7 @@ User Agent: [Automatically Generated]
           <div
             key={activePageId}
             className="settings-content-animate"
-            style={{ maxWidth: '640px', width: '100%', margin: '0 auto' }}
+            style={{ maxWidth: 'var(--content-max-w)', width: '100%', margin: '0 auto' }}
           >
             <div
               style={{
@@ -8518,7 +8518,7 @@ User Agent: [Automatically Generated]
             >
               <h1
                 style={{
-                  fontSize: 28,
+                  fontSize: 'var(--font-display-page)',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
                   margin: 0,
@@ -8830,7 +8830,7 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-10) 0', gap: 12 }}>
         <div style={{ width: 32, height: 32, border: `3px solid rgba(128,128,128,0.1)`, borderTopColor: accent.from, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <span style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
           {lang === 'es' ? 'Cargando historial de cambios...' : 'Loading changelog history...'}

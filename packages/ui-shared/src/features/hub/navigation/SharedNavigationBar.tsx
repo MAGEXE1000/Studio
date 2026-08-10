@@ -1166,7 +1166,7 @@ export function SharedNavigationBar({
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px 12px', borderBottom: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 var(--space-4) var(--space-3)', borderBottom: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(128,128,128,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(128,128,128,0.08)' }}>
             {customPhoto || user?.photoURL ? (
               <img
@@ -1369,7 +1369,7 @@ export function SharedNavigationBar({
                 const results = getSearchResults(searchQuery);
                 if (results.length === 0) {
                   return (
-                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '24px', fontSize: '13px' }}>
+                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: 'var(--space-6)', fontSize: '13px' }}>
                       {lang === 'es' ? `No hay resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
                     </div>
                   );
@@ -1466,7 +1466,7 @@ export function SharedNavigationBar({
               height: containerHeight,
               borderRadius: containerBorderRadius,
               border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-              background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
+              background: 'var(--surface-float-bg)',
               boxShadow: isLight
                 ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
                 : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
@@ -1664,7 +1664,7 @@ export function SharedNavigationBar({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
+                  background: 'var(--surface-float-bg)',
                   border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
                   backdropFilter: 'blur(25px)',
                   WebkitBackdropFilter: 'blur(25px)',
@@ -1700,7 +1700,7 @@ export function SharedNavigationBar({
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
+                  background: 'var(--surface-float-bg)',
                   border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
                   backdropFilter: 'blur(25px)',
                   WebkitBackdropFilter: 'blur(25px)',

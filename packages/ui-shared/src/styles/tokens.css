@@ -56,6 +56,7 @@
   --radius-2xl: 2.25rem;
   --radius-3xl: 2.75rem;
   --radius-full: 9999px;
+  --expo-out: linear(0 0%, 0.1684 2.66%, 0.3165 5.49%, 0.446 8.52%, 0.5581 11.78%, 0.6535 15.29%, 0.7341 19.11%, 0.8011 23.3%, 0.8557 27.93%, 0.8962 32.68%, 0.9283 38.01%, 0.9529 44.08%, 0.9711 51.14%, 0.9833 59.06%, 0.9915 68.74%, 1 100%);
 }
 
 /* ===== Livex Appearance HTML Spec Helper Styles ===== */
@@ -200,8 +201,6 @@
     --c-text-secondary 300ms cubic-bezier(0.4, 0, 0.2, 1),
     --c-text-muted 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-
 
 :root.amoled {
   --app-bg: #000000;
@@ -422,6 +421,41 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
     -moz-osx-font-smoothing: grayscale;
     touch-action: manipulation;
     overscroll-behavior: none;
+  }
+  ::view-transition-group(root) {
+    animation-duration: 0.7s;
+    animation-timing-function: var(--expo-out);
+  }
+  ::view-transition-new(root) {
+    animation-name: reveal-light;
+    animation-fill-mode: both;
+  }
+  ::view-transition-old(root),.dark::view-transition-old(root) {
+    animation: none;
+    animation-fill-mode: both;
+    z-index: -1;
+  }
+  .dark::view-transition-new(root) {
+    animation-name: reveal-dark;
+    animation-fill-mode: both;
+  }
+
+@keyframes reveal-dark {
+  from {
+    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
+    }
+  to {
+    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
+    }
+  }
+
+@keyframes reveal-light {
+  from {
+    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
+    }
+  to {
+    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
+    }
   }
 }
 
@@ -1117,6 +1151,87 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --density-row-pad: 14px 20px;
   --density-gap: 12px;
   --density-card-gap: 10px;
+}
+
+/* ============================================================
+   Studio Layout Tokens — Fix V
+   Canonical spacing scale, typography sizes, content-widths,
+   and floating-surface values for all Hub & app pages.
+   Consumers reference these vars; hardcoded literals in the
+   scope are migrated in Fix W (Hub/Settings) and Fix X+
+   (per-app). Do not add app-specific overrides here.
+   ============================================================ */
+:root {
+  /* ── Spacing scale (4px base) ──────────────────────────────
+     Maps to the values found across all page containers in
+     the Fix U audit. No mid-values (e.g. 10px, 14px) appear
+     here — those are density-level concerns handled by
+     --density-row-pad. Use the nearest step for migration.   */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;   /* canonical page horizontal inset */
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;   /* desktop outer pad / StudioHeader top */
+
+  /* ── Page structural insets ─────────────────────────────── */
+  --page-inset-h:        var(--space-6);   /* 24px horizontal page padding  */
+  --page-inset-v-top:    var(--space-12);  /* 48px header top-padding       */
+  --page-inset-v-bottom: var(--space-6);   /* 24px scroll-bottom clearance  */
+
+  /* ── Content max-widths ─────────────────────────────────── */
+  --content-max-w:      640px;   /* settings / hub right-pane default   */
+  --content-max-w-wide: 720px;   /* 1024px+ breakpoint override         */
+
+  /* ── Typography additions ───────────────────────────────────
+     Extends the existing --font-base/sm/xs/lg/xl set.
+     --font-page-title is the already-landed Fix R value (18px)
+     locked in StudioHeader; display-* covers the 24–36px hero
+     range found in Library / Player / LabPanel views.         */
+  --font-page-title:    18px;   /* settings / sub-page h2 (Fix R ref) */
+  --font-section-label: 11px;   /* uppercase group-header labels       */
+  --font-display-page:  28px;   /* desktop settings right-pane h1      */
+  --font-display-sm:    24px;   /* mid-weight section heroes           */
+  --font-display-md:    32px;   /* large numeric / metric displays     */
+  --font-display-lg:    36px;   /* full-hero titles (player, lab)      */
+
+  /* ── Floating-surface tokens — dark (default) ───────────── */
+  --surface-float-bg:   rgba(12, 12, 14, 0.45);                        /* bottom nav / pill bar    */
+  --surface-topbar-bg:  rgba(12, 12, 14, 0.12);                        /* top bar (Fix O value)    */
+  --surface-float-blur: blur(20px) saturate(180%) brightness(1.04);    /* shared backdrop-filter   */
+  --surface-modal-bg:   rgba(0, 0, 0, 0.60);                           /* sheet / modal scrim      */
+
+  /* ── Semantic surface aliases ───────────────────────────────
+     Thin wrappers over --app-* so migration sites reference a
+     stable semantic name rather than the raw ramp token.      */
+  --surface-page:        var(--app-bg);
+  --surface-card:        var(--app-surface);
+  --surface-card-raised: var(--app-surface-high);
+}
+
+/* Light-theme overrides */
+:root.light {
+  --surface-float-bg:  rgba(255, 255, 255, 0.78);
+  --surface-topbar-bg: rgba(255, 255, 255, 0.15);
+  --surface-modal-bg:  rgba(0, 0, 0, 0.35);
+}
+
+/* AMOLED overrides — slightly higher alpha so bars stay
+   visible against pure-black (#000) backgrounds.           */
+:root.amoled {
+  --surface-float-bg:  rgba(0, 0, 0, 0.55);
+  --surface-topbar-bg: rgba(0, 0, 0, 0.18);
+  --surface-modal-bg:  rgba(0, 0, 0, 0.75);
+}
+
+/* Light + AMOLED (pure-white) — same as light */
+:root.light.amoled {
+  --surface-float-bg:  rgba(255, 255, 255, 0.78);
+  --surface-topbar-bg: rgba(255, 255, 255, 0.15);
+  --surface-modal-bg:  rgba(0, 0, 0, 0.35);
 }
 
 /* ===== Groovex design tokens ===== */

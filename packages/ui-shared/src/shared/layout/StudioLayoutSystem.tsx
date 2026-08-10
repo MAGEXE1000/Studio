@@ -185,7 +185,7 @@ export function SharedFloatingHeader({
     <div
       style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) * 0.85)',
+        top: 'calc(env(safe-area-inset-top, 0px) * 0.70)',
         left: 0,
         right: 0,
         height: 48,
@@ -206,7 +206,7 @@ export function SharedFloatingHeader({
           left: sideMargin,
           right: sideMargin,
           bottom: 0,
-          background: isLight ? 'rgba(255, 250, 245, 0.15)' : 'rgba(24, 20, 16, 0.12)',
+          background: isLight ? 'rgba(255, 250, 245, 0.12)' : 'rgba(24, 20, 16, 0.10)',
           borderRadius: '24px',
           border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px) saturate(1.6)',
@@ -336,28 +336,41 @@ export function SettingsScaffold({
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
           padding: '0',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 58px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 48px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
         className="no-scrollbar"
       >
-        {/* Large scrolling title crossfades into floating header pill on scroll */}
-        {showLargeTitle && (
-          <motion.div
-            ref={largeTitleRef}
-            style={{
-              opacity: largeTitleOpacity,
-              y: largeTitleY,
-              width: '100%',
-            }}
-          >
-            <StudioHeader title={title} containerStyle={{ paddingLeft: '24px', paddingRight: '24px' }} />
-          </motion.div>
-        )}
+        {/* Centered page column wrapper to align title and content perfectly */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '640px',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            boxSizing: 'border-box',
+            paddingLeft: '24px',
+            paddingRight: '24px',
+          }}
+        >
+          {/* Large scrolling title crossfades into floating header pill on scroll */}
+          {showLargeTitle && (
+            <motion.div
+              ref={largeTitleRef}
+              style={{
+                opacity: largeTitleOpacity,
+                y: largeTitleY,
+                width: '100%',
+              }}
+            >
+              <StudioHeader title={title} containerStyle={{ paddingTop: '24px', paddingLeft: 0, paddingRight: 0 }} />
+            </motion.div>
+          )}
 
-        {/* Content Canvas */}
-        <div style={{ width: '100%' }}>
-          {children}
+          {/* Content Canvas */}
+          <div style={{ width: '100%' }}>
+            {children}
+          </div>
         </div>
       </div>
     </div>
@@ -384,8 +397,6 @@ export function SettingsContentContainer({
         width: '100%',
         boxSizing: 'border-box',
         background: 'transparent',
-        paddingLeft: '24px',
-        paddingRight: '24px',
         ...style,
       }}
       className={`studio-settings-content-container ${className}`}

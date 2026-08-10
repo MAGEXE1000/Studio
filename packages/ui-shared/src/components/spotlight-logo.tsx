@@ -8,9 +8,6 @@ import {
   useTransform,
 } from "motion/react"
 
-import { metalClickSound } from "../lib/metal-click"
-import { useSound } from "../hooks/use-sound"
-
 export function SpotlightLogo({ onClick }: { onClick?: () => void }) {
   const id = useId()
   const ids = {
@@ -19,8 +16,6 @@ export function SpotlightLogo({ onClick }: { onClick?: () => void }) {
   }
 
   const ref = useRef<SVGSVGElement>(null)
-
-  const [play] = useSound(metalClickSound)
 
   const shouldReduceMotion = useReducedMotion()
   const isInView = useInView(ref, { margin: "80px" })
@@ -75,7 +70,6 @@ export function SpotlightLogo({ onClick }: { onClick?: () => void }) {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onTap={() => {
-        play()
         onClick?.()
       }}
     >
@@ -97,11 +91,11 @@ export function SpotlightLogo({ onClick }: { onClick?: () => void }) {
           gradientUnits="userSpaceOnUse"
         >
           <stop
-            stopColor="var(--c-accent-from, #679cff)"
+            stopColor="rgba(255, 255, 255, 0.45)"
           />
           <stop
             offset="1"
-            stopColor="var(--c-accent-to, #007aff)"
+            stopColor="rgba(255, 255, 255, 0)"
             stopOpacity="0"
           />
         </motion.radialGradient>

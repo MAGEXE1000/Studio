@@ -1,32 +1,64 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect, useCallback, useRef, forwardRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
 import { AnimatedIcon } from '../icons/AnimatedIcon';
+import { EASE_OUT, SPRING_PRESS } from '../../lib/ease';
+import { useHoverCapable } from '../../lib/hooks/use-hover-capable';
 
-const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
+type Ripple = { id: number; x: number; y: number; size: number };
+
 // ── 1. Button ──────────────────────────────────────────────────────────────
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
   loading?: boolean;
   icon?: string;
+  ripple?: boolean;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       variant = 'secondary',
       size = 'md',
       loading = false,
       icon,
+      ripple = false,
       children,
       style,
       className = '',
       disabled,
+      onPointerDown,
       ...props
     },
     ref
   ) => {
+    const reduce = useReducedMotion();
+    const canHover = useHoverCapable();
+    const [ripples, setRipples] = useState<Ripple[]>([]);
+    const nextId = useRef(0);
+
+    const handlePointerDown = useCallback(
+      (event: React.PointerEvent<HTMLButtonElement>) => {
+        if (ripple && !reduce && !disabled && !loading) {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const sizeVal = Math.max(rect.width, rect.height) * 2;
+          const id = nextId.current++;
+          setRipples((prev) => [
+            ...prev,
+            {
+              id,
+              x: event.clientX - rect.left,
+              y: event.clientY - rect.top,
+              size: sizeVal,
+            },
+          ]);
+        }
+        onPointerDown?.(event);
+      },
+      [ripple, reduce, disabled, loading, onPointerDown]
+    );
+
     const getColors = () => {
       if (variant === 'primary') {
         return {
@@ -49,6 +81,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           border: 'transparent',
         };
       }
+      if (variant === 'outline') {
+        return {
+          bg: 'transparent',
+          text: 'var(--c-text-primary)',
+          border: 'var(--c-border)',
+        };
+      }
       return {
         bg: 'var(--c-surface-high)',
         text: 'var(--c-text-primary)',
@@ -57,20 +96,60 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const colors = getColors();
-    const pad = size === 'sm' ? '6px 12px' : size === 'lg' ? '12px 24px' : '10px 18px';
-    const fontSize = size === 'sm' ? '11px' : size === 'lg' ? '14px' : '12px';
+
+    // Size mappings matching BeUI standards
+    const getPaddingAndHeight = () => {
+      if (size === 'icon') {
+        return {
+          height: '32px',
+          width: '32px',
+          padding: '0',
+          fontSize: '12px',
+          borderRadius: '8px',
+        };
+      }
+      if (size === 'sm') {
+        return {
+          height: '32px',
+          padding: '0 14px',
+          fontSize: '11px',
+          borderRadius: '24px',
+        };
+      }
+      if (size === 'lg') {
+        return {
+          height: '48px',
+          padding: '0 24px',
+          fontSize: '15px',
+          borderRadius: '24px',
+        };
+      }
+      return {
+        height: '40px',
+        padding: '0 18px',
+        fontSize: '13px',
+        borderRadius: '24px',
+      };
+    };
+
+    const dims = getPaddingAndHeight();
 
     return (
       <motion.button
         ref={ref}
-        whileTap={disabled || loading ? undefined : { scale: 0.96 }}
-        transition={SpringPresets.soft}
+        type="button"
+        whileTap={disabled || loading || reduce ? undefined : { scale: 0.93 }}
+        whileHover={disabled || loading || reduce || !canHover ? undefined : { scale: 1.02 }}
+        transition={SPRING_PRESS}
+        onPointerDown={handlePointerDown}
         style={{
-          padding: pad,
-          fontSize,
-          fontFamily: 'var(--font-headline)',
+          height: dims.height,
+          width: (dims as any).width,
+          padding: dims.padding,
+          fontSize: dims.fontSize,
+          borderRadius: dims.borderRadius,
+          fontFamily: 'var(--font-headline, Manrope, sans-serif)',
           fontWeight: 700,
-          borderRadius: 'var(--radius-md)',
           backgroundColor: colors.bg,
           color: colors.text,
           border: `1.5px solid ${colors.border}`,
@@ -81,6 +160,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           cursor: disabled || loading ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.5 : 1,
           outline: 'none',
+          boxSizing: 'border-box',
+          position: 'relative',
+          overflow: ripple && !reduce ? 'hidden' : 'visible',
+          userSelect: 'none',
+          WebkitTapHighlightColor: 'transparent',
           transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
           ...style,
         }}
@@ -88,6 +172,34 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={`btn-smooth ${className}`}
         {...(props as any)}
       >
+        {ripple && !reduce ? (
+          <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+            <AnimatePresence>
+              {ripples.map((r) => (
+                <motion.span
+                  key={r.id}
+                  className="absolute rounded-full bg-current"
+                  style={{
+                    left: r.x,
+                    top: r.y,
+                    width: r.size,
+                    height: r.size,
+                    x: '-50%',
+                    y: '-50%',
+                  }}
+                  initial={{ scale: 0.05, opacity: 0.25 }}
+                  animate={{ scale: 1, opacity: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.2, ease: EASE_OUT }}
+                  onAnimationComplete={() =>
+                    setRipples((prev) => prev.filter((x) => x.id !== r.id))
+                  }
+                />
+              ))}
+            </AnimatePresence>
+          </span>
+        ) : null}
+
         {loading ? (
           <AnimatedIcon name="loader-circle" state="loading" size={16} />
         ) : icon ? (
@@ -101,30 +213,36 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-// ── 12. Floating Button ────────────────────────────────────────────────────
+// ── 2. Floating Button ────────────────────────────────────────────────────
 export interface FloatingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string;
 }
 
 export function FloatingButton({ icon, style, className = '', ...props }: FloatingButtonProps) {
+  const reduce = useReducedMotion();
+  const canHover = useHoverCapable();
+
   return (
     <motion.button
-      whileHover={isHoverable ? { scale: 1.06, y: -2 } : undefined}
-      whileTap={{ scale: 0.94, y: 0 }}
-      transition={SpringPresets.medium}
+      whileHover={reduce || !canHover ? undefined : { scale: 1.02, y: -1 }}
+      whileTap={reduce ? undefined : { scale: 0.93, y: 0 }}
+      transition={SPRING_PRESS}
       style={{
         width: '56px',
         height: '56px',
-        borderRadius: 'var(--radius-3xl)',
+        borderRadius: 'var(--radius-3xl, 24px)',
         backgroundColor: 'var(--c-accent-from)',
         color: '#ffffff',
         border: 'none',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: 'var(--elevation-high)',
+        boxShadow: 'var(--elevation-high, 0 8px 32px rgba(0, 0, 0, 0.25))',
         cursor: 'pointer',
         outline: 'none',
+        boxSizing: 'border-box',
+        userSelect: 'none',
+        WebkitTapHighlightColor: 'transparent',
         ...style,
       }}
       className={`studio-fab ${className}`}
@@ -135,6 +253,7 @@ export function FloatingButton({ icon, style, className = '', ...props }: Floati
   );
 }
 
+// ── 3. Action Button ──────────────────────────────────────────────────────
 export type ActionButtonVariant =
   | 'copy'
   | 'share'
@@ -183,6 +302,8 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   const [success, setSuccess] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const reduce = useReducedMotion();
+  const canHover = useHoverCapable();
 
   // Reset success state after a delay
   useEffect(() => {
@@ -317,9 +438,6 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     }
   };
 
-  // Spring transition presets
-  const springTransition = { type: 'spring' as const, stiffness: 350, damping: 18, mass: 0.8 };
-
   // Color matching variants
   const getButtonStyles = () => {
     let bg = 'rgba(255, 255, 255, 0.05)';
@@ -348,53 +466,6 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 
   const { bg, border, color, shadow } = getButtonStyles();
 
-  // Custom morph rotations/scales per variant
-  const getIconAnimationProps = (): any => {
-    if (success) {
-      return {
-        initial: { scale: 0.4, rotate: -45, opacity: 0 },
-        animate: { scale: 1, rotate: 0, opacity: 1 },
-        exit: { scale: 0.4, rotate: 45, opacity: 0 },
-        transition: springTransition,
-      };
-    }
-
-    switch (variant) {
-      case 'refresh':
-        return {
-          animate: activeLoading ? { rotate: 360 } : { rotate: 0 },
-          transition: activeLoading
-            ? { repeat: Infinity, duration: 1, ease: 'linear' as const }
-            : springTransition,
-        };
-      case 'visibility':
-        return {
-          initial: { scale: 0.8, opacity: 0.5 },
-          animate: { scale: 1, opacity: 1, rotate: isVisible ? 0 : 180 },
-          transition: springTransition,
-        };
-      case 'edit':
-        return {
-          whileHover: { rotate: [0, -10, 10, -10, 0], transition: { duration: 0.4 } },
-        };
-      case 'favorite':
-        return {
-          animate: { scale: isFavorite ? [1, 1.3, 1] : 1 },
-          transition: springTransition,
-        };
-      case 'upload':
-        return {
-          whileHover: { y: -2, transition: springTransition },
-        };
-      case 'download':
-        return {
-          whileHover: { y: 2, transition: springTransition },
-        };
-      default:
-        return {};
-    }
-  };
-
   return (
     <motion.button
       type="button"
@@ -402,9 +473,12 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
       disabled={isButtonDisabled}
       aria-label={getAriaLabel()}
       whileHover={
-        isButtonDisabled ? {} : { scale: 1.05, boxShadow: '0 6px 16px rgba(0,0,0,0.25)', y: -1 }
+        isButtonDisabled || reduce || !canHover
+          ? undefined
+          : { scale: 1.02, boxShadow: '0 6px 16px rgba(0,0,0,0.25)', y: -1 }
       }
-      whileTap={isButtonDisabled ? {} : { scale: 0.95 }}
+      whileTap={isButtonDisabled || reduce ? undefined : { scale: 0.93 }}
+      transition={SPRING_PRESS}
       style={{
         position: 'relative',
         display: 'inline-flex',
@@ -481,3 +555,4 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 };
 
 ActionButton.displayName = 'ActionButton';
+

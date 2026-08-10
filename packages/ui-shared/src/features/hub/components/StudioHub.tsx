@@ -6451,13 +6451,24 @@ User Agent: [Automatically Generated]
                       flex: 1,
                       overflowY: 'auto',
                       overflowX: 'hidden',
-                      padding: '0 24px',
+                      padding: '0',
                       paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
                       WebkitOverflowScrolling: 'touch',
                     }}
                     className="no-scrollbar"
                   >
-                    <StudioHeader title="Settings" subtitle="Livex System" />
+                    <div
+                      style={{
+                        width: '100%',
+                        maxWidth: '640px',
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
+                        boxSizing: 'border-box',
+                        paddingLeft: '24px',
+                        paddingRight: '24px',
+                      }}
+                    >
+                      <StudioHeader title="Settings" subtitle="Livex System" containerStyle={{ paddingLeft: 0, paddingRight: 0 }} />
 
                     {/* Minimal Update Card */}
                     {updater.updateAvailable && (
@@ -7018,6 +7029,7 @@ User Agent: [Automatically Generated]
                       </div>
                     </div>
                   </div>
+                </div>
                 </div>
               );
             }

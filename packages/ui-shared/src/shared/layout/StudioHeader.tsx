@@ -30,30 +30,34 @@ export function StudioHeader({
   const mergedTitleStyle: React.CSSProperties = {
     fontFamily: 'Manrope, sans-serif',
     color: 'var(--c-text-primary)',
-    lineHeight: 1.2,
-    ...titleStyle,
-    fontSize: '18px',
+    lineHeight: 1.15,
+    fontSize: '32px',
     fontWeight: 800,
-    letterSpacing: '-0.02em',
+    letterSpacing: '-0.03em',
+    textAlign: 'left',
     marginTop: 0,
     marginBottom: 0,
+    ...titleStyle,
   };
 
   const mergedSubtitleStyle: React.CSSProperties = {
     fontFamily: 'Inter, sans-serif',
     color: 'var(--c-text-secondary)',
     lineHeight: 1.4,
-    ...subtitleStyle,
-    fontSize: '11px',
-    marginTop: '4px',
+    fontSize: '13px',
+    fontWeight: 500,
+    marginTop: '6px',
     marginBottom: 0,
+    ...subtitleStyle,
   };
 
   return (
     <div
       style={{
-        paddingTop: '48px',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)',
         paddingBottom: '16px',
+        paddingLeft: '24px',
+        paddingRight: '24px',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',

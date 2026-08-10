@@ -1,8 +1,8 @@
 Release Date: 2026-08-09
 
 ### Added
-- Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.
-- Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback.
-
-### Fixed
-- Resolved version comparison regression test suite failures by aligning downgrade validation assertions.
+- Replaced the About page illustration with the visual-only, click-sound-free, neutral SpotlightLogo.
+- Refactored global page titles to a prominent 32px typography size, left-aligned, standard weight, and vertically aligned env(safe-area-inset-top) + 72px page geometry.
+- Constrained Settings sub-pages content max-width to 640px centered, with padding-left/right of 24px, and centered main settings dashboard list.
+- Moved the shared floating top bar 15% higher and increased transparency slightly.
+- Refactored the central button component library to use BeUI button physics (0.93 scale on tap, 1.02 on hover on fine-pointer devices, spring dynamics, and touch ripple).

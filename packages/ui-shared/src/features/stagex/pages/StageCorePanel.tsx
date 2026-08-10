@@ -14,6 +14,7 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { SegmentedOtpInput } from '../components/SegmentedOtpInput';
 import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
+import { ShareMenu } from '../../../components/share-menu';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -4193,23 +4194,17 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                             </span>
                             {collabCopied ? 'Copied!' : 'Copy Invite Code'}
                           </button>
-                          <button
-                            onClick={() => {
-                              if (navigator.share) {
-                                navigator.share({
-                                  title: 'StageX Collaborative Session',
-                                  text: `Join my StageX collaboration session with room code: ${collabRoom.shortCode}`,
-                                  url: window.location.href,
-                                }).catch(() => {});
-                              } else {
-                                alert(`Room Code: ${collabRoom.shortCode}`);
-                              }
-                            }}
-                            className="px-6 border border-white/15 text-[#e2e2e2] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all"
+                          <ShareMenu
+                            title="StageX Collaborative Session"
+                            url={window.location.href}
                           >
-                            <span className="material-symbols-outlined text-[18px]">share</span>
-                            Share
-                          </button>
+                            <button
+                              className="px-6 border border-white/15 text-[#e2e2e2] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">share</span>
+                              Share
+                            </button>
+                          </ShareMenu>
                         </div>
                       </section>
 

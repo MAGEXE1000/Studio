@@ -43,6 +43,7 @@ import { SharedNavigationContainer } from '../../navigation/SharedNavigationCont
 import { ApplicationTransitionEngine } from '../../shared/animation';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Toaster } from '../../components/ui/sonner';
 
 const ALL_PANELS = ['songs', 'library', 'preferences'] as const;
 
@@ -476,6 +477,7 @@ const SubAppWrapper = memo(function SubAppWrapper({
           </ScreenScaffold>
         </SubAppScaffold>
       )}
+      <Toaster />
     </>
   );
 });

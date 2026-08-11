@@ -28,7 +28,7 @@
     <div class="score-box">
       <div>
         <div style="font-size: 14px; color: #94a3b8;">Overall Release Ecosystem Health</div>
-        <div class="score">83%</div>
+        <div class="score">50%</div>
       </div>
       <div>
         <span class="badge bg-fail" style="font-size: 16px; padding: 8px 16px;">
@@ -49,19 +49,19 @@
       </thead>
       <tbody>
         
-      <tr class="pass">
+      <tr class="fail">
         <td><strong>GitHub Release</strong></td>
-        <td><span class="badge bg-pass">PASS</span></td>
-        <td>HTTP Fallback</td>
-        <td>Tag: v4.5.16, Title: 4.5.16, Assets: 0</td>
+        <td><span class="badge bg-fail">FAILED</span></td>
+        <td>None</td>
+        <td>GitHub Release tag 'v4.5.22' not found.</td>
       </tr>
     
 
-      <tr class="pass">
+      <tr class="fail">
         <td><strong>Git Tag</strong></td>
-        <td><span class="badge bg-pass">PASS</span></td>
+        <td><span class="badge bg-fail">FAILED</span></td>
         <td>N/A</td>
-        <td>Tag v4.5.16 points to commit 21c7785b</td>
+        <td>Git tag 'v4.5.22' not found locally or on origin repository.</td>
       </tr>
     
 
@@ -77,7 +77,7 @@
         <td><strong>Firebase</strong></td>
         <td><span class="badge bg-pass">PASS</span></td>
         <td>N/A</td>
-        <td>Deployed Version: 4.5.15 (versionCode: 40515)</td>
+        <td>Deployed Version: 4.5.21 (versionCode: 40521)</td>
       </tr>
     
 
@@ -85,7 +85,7 @@
         <td><strong>OTA</strong></td>
         <td><span class="badge bg-pass">PASS</span></td>
         <td>N/A</td>
-        <td>NATIVE_VERSION: 4.5.16</td>
+        <td>NATIVE_VERSION: 4.5.22</td>
       </tr>
     
 
@@ -101,7 +101,25 @@
 
     <h2>Actionable Failure Diagnostics</h2>
       <div class="card card-fail">
-        <h3>[Failure 1] Component: APK</h3>
+        <h3>[Failure 1] Component: GitHub Release</h3>
+        <p><strong>Priority:</strong> CRITICAL</p>
+        <p><strong>Root Cause:</strong> GitHub Release tag 'v4.5.22' not found.</p>
+        <p><strong>Suggested Fix:</strong> <code>Publish GitHub Release 'v4.5.22' with title '4.5.22' and release APK asset.</code></p>
+        <p><strong>Expected Resolution:</strong> GitHub Release exists and is visible on GitHub.</p>
+      </div>
+    
+
+      <div class="card card-fail">
+        <h3>[Failure 2] Component: Git Tag</h3>
+        <p><strong>Priority:</strong> MEDIUM</p>
+        <p><strong>Root Cause:</strong> Git tag 'v4.5.22' not found locally or on origin repository.</p>
+        <p><strong>Suggested Fix:</strong> <code>Create and push tag 'v4.5.22' during application release publication stage.</code></p>
+        <p><strong>Expected Resolution:</strong> Git tag 'v4.5.22' exists on origin repository.</p>
+      </div>
+    
+
+      <div class="card card-fail">
+        <h3>[Failure 3] Component: APK</h3>
         <p><strong>Priority:</strong> HIGH</p>
         <p><strong>Root Cause:</strong> Compiled APK not found at C:\Users\ayuda\Documents\Studio\chordex-app\apps\studio-android\android\app\build\outputs\apk\release\app-release.apk.</p>
         <p><strong>Suggested Fix:</strong> <code>Run pnpm build:android before running release checks or building release bundle.</code></p>
@@ -109,7 +127,7 @@
       </div>
     
 
-    <div class="timestamp">Generated: 2026-08-09T18:52:13.676Z</div>
+    <div class="timestamp">Generated: 2026-08-11T23:21:30.632Z</div>
   </div>
 </body>
 </html>

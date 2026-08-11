@@ -16,6 +16,7 @@ import {
 import { SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
 
 import { LanguagePickerSheet, SUPPORTED_LANGUAGES } from '../../../shared/settings/LanguagePickerSheet';
+import { Button } from '../../../shared/design-system/buttons';
 
 /**
  * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
@@ -36,7 +37,7 @@ export default function StudioHubSettingsPanel() {
     <StudioPageTransition pageKey="hub-settings-panel">
       <SettingsContentContainer
         style={{
-          paddingTop: 'var(--spacing-md, 16px)',
+          paddingTop: 'var(--space-4)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
           color: 'var(--c-text-primary)',
         }}
@@ -81,22 +82,15 @@ export default function StudioHubSettingsPanel() {
           {/* Language Section */}
           <SettingSection title="Language">
             <SettingRow label="App Language" desc="Change the display language for Studio">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsLanguageOpen(true)}
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: 10,
                   border: '1.5px solid var(--c-outline-variant, rgba(128,128,128,0.18))',
                   background: 'var(--c-surface-container, rgba(255,255,255,0.04))',
                   color: 'var(--c-text-primary, #ffffff)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'border-color 200ms ease, background 200ms ease',
+                  borderRadius: 10,
                 }}
               >
                 <span>
@@ -105,7 +99,7 @@ export default function StudioHubSettingsPanel() {
                 <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>
                   expand_more
                 </span>
-              </button>
+              </Button>
             </SettingRow>
           </SettingSection>
 

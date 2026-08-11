@@ -556,3 +556,197 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 
 ActionButton.displayName = 'ActionButton';
 
+// ── 4. ButtonLink ──────────────────────────────────────────────────────────
+export interface ButtonLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
+  icon?: string;
+}
+
+export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
+  (
+    {
+      variant = 'secondary',
+      size = 'md',
+      icon,
+      children,
+      style,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const reduce = useReducedMotion();
+    const canHover = useHoverCapable();
+
+    const getColors = () => {
+      if (variant === 'primary') {
+        return {
+          bg: 'var(--c-accent-from)',
+          text: '#ffffff',
+          border: 'transparent',
+        };
+      }
+      if (variant === 'danger') {
+        return {
+          bg: 'var(--c-error-container)',
+          text: 'var(--c-error)',
+          border: 'var(--c-error-container)',
+        };
+      }
+      if (variant === 'ghost') {
+        return {
+          bg: 'transparent',
+          text: 'var(--c-text-primary)',
+          border: 'transparent',
+        };
+      }
+      if (variant === 'outline') {
+        return {
+          bg: 'transparent',
+          text: 'var(--c-text-primary)',
+          border: 'var(--c-border)',
+        };
+      }
+      return {
+        bg: 'var(--c-surface-high)',
+        text: 'var(--c-text-primary)',
+        border: 'var(--c-border)',
+      };
+    };
+
+    const colors = getColors();
+
+    const getPaddingAndHeight = () => {
+      if (size === 'icon') {
+        return {
+          height: '32px',
+          width: '32px',
+          padding: '0',
+          fontSize: '12px',
+          borderRadius: '8px',
+        };
+      }
+      if (size === 'sm') {
+        return {
+          height: '32px',
+          padding: '0 14px',
+          fontSize: '11px',
+          borderRadius: '24px',
+        };
+      }
+      if (size === 'lg') {
+        return {
+          height: '48px',
+          padding: '0 24px',
+          fontSize: '15px',
+          borderRadius: '24px',
+        };
+      }
+      return {
+        height: '40px',
+        padding: '0 18px',
+        fontSize: '13px',
+        borderRadius: '24px',
+      };
+    };
+
+    const dims = getPaddingAndHeight();
+
+    return (
+      <motion.a
+        ref={ref}
+        whileTap={reduce ? undefined : { scale: 0.93 }}
+        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
+        transition={SPRING_PRESS}
+        style={{
+          height: dims.height,
+          width: (dims as any).width,
+          padding: dims.padding,
+          fontSize: dims.fontSize,
+          borderRadius: dims.borderRadius,
+          fontFamily: 'var(--font-headline, Manrope, sans-serif)',
+          fontWeight: 700,
+          backgroundColor: colors.bg,
+          color: colors.text,
+          border: `1.5px solid ${colors.border}`,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          cursor: 'pointer',
+          outline: 'none',
+          boxSizing: 'border-box',
+          position: 'relative',
+          userSelect: 'none',
+          textDecoration: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
+          ...style,
+        }}
+        className={`btn-smooth ${className}`}
+        {...(props as any)}
+      >
+        {icon && <AnimatedIcon name={icon} size={16} />}
+        {children}
+      </motion.a>
+    );
+  }
+);
+
+ButtonLink.displayName = 'ButtonLink';
+
+// ── 5. StatefulButton ──────────────────────────────────────────────────────
+export interface StatefulButtonProps extends Omit<ButtonProps, 'onClick'> {
+  state: 'idle' | 'loading' | 'success' | 'error';
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>;
+  successIcon?: string;
+  errorIcon?: string;
+}
+
+export const StatefulButton = forwardRef<HTMLButtonElement, StatefulButtonProps>(
+  (
+    {
+      state,
+      onClick,
+      variant = 'primary',
+      size = 'md',
+      loading = false,
+      icon,
+      successIcon = 'check',
+      errorIcon = 'error',
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
+    const isActuallyLoading = state === 'loading' || loading;
+    const isActuallyDisabled = disabled || isActuallyLoading;
+
+    const getIcon = () => {
+      if (state === 'success') return successIcon;
+      if (state === 'error') return errorIcon;
+      return icon;
+    };
+
+    return (
+      <Button
+        ref={ref}
+        variant={state === 'error' ? 'danger' : variant}
+        size={size}
+        loading={isActuallyLoading}
+        icon={getIcon()}
+        disabled={isActuallyDisabled}
+        onClick={onClick}
+        {...props}
+      >
+        {children}
+      </Button>
+    );
+  }
+);
+
+StatefulButton.displayName = 'StatefulButton';
+
+

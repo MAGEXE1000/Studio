@@ -2,7 +2,7 @@ import { Dialog } from '../../../shared/design-system/dialogs';
 import { subscribeSyncStatus, getSyncStatus, syncNow, settingsController, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP, useSettingsStore, userRepository } from "@workspace/studio-core";
 import { useEffect, useRef, useState } from 'react';
 ;
-import { Button } from '../../../shared/design-system/StudioDesignSystem';
+import { Button, StatefulButton } from '../../../shared/design-system/StudioDesignSystem';
 import { createPortal } from 'react-dom';
 import AppSpinner from '../../../shared/loading/AppSpinner';
 import { Circle, Layers3, BadgeCheck, FlaskConical, ShieldCheck } from 'lucide-react';
@@ -826,13 +826,23 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
             )}
           </div>
           {isError ? (
-            <button onClick={doRetry} disabled={busy} style={pillBtn(accent, true)}>
+            <StatefulButton
+              state="error"
+              onClick={doRetry}
+              disabled={busy}
+              size="sm"
+            >
               {t.retry}
-            </button>
+            </StatefulButton>
           ) : (
-            <button onClick={doSyncNow} disabled={busy || isSyncing} style={pillBtn(accent)}>
+            <StatefulButton
+              state={isSyncing ? 'loading' : 'idle'}
+              onClick={doSyncNow}
+              disabled={busy}
+              size="sm"
+            >
               {t.syncNow}
-            </button>
+            </StatefulButton>
           )}
         </div>
 
@@ -1070,18 +1080,22 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
             {t.dangerZoneNote}
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button onClick={() => openSheet('signout')} style={{ ...dangerOutlineBtn(), flex: 1 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                logout
-              </span>
+            <Button
+              variant="outline"
+              onClick={() => openSheet('signout')}
+              style={{ flex: 1, color: '#ff6b6b', borderColor: 'rgba(255,107,107,0.35)' }}
+              icon="logout"
+            >
               {t.signOut}
-            </button>
-            <button onClick={() => openSheet('delete')} style={{ ...dangerSolidBtn(), flex: 1 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                delete_forever
-              </span>
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => openSheet('delete')}
+              style={{ flex: 1 }}
+              icon="delete_forever"
+            >
               {t.deleteAccount}
-            </button>
+            </Button>
           </div>
           {err && <p style={{ fontSize: 11, color: '#ff6b6b', margin: 0 }}>{err}</p>}
         </div>
@@ -1113,21 +1127,16 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
                 >
                   {t.signOutConfirmTitle}
                 </p>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={closeSheet}
-                  className="btn-smooth"
-                  style={{
-                    color: 'var(--c-text-secondary)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 4,
-                  }}
+                  style={{ color: 'var(--c-text-secondary)', minWidth: 32 }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
                     close
                   </span>
-                </button>
+                </Button>
               </div>
               <p
                 style={{
@@ -1141,21 +1150,21 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
                 {t.signOutConfirmBody}
               </p>
               <div style={{ display: 'flex', gap: 10, padding: '0 16px' }}>
-                <button
+                <Button
+                  variant="secondary"
                   onClick={closeSheet}
-                  style={{ ...secondaryBtn(), flex: 1, padding: '13px 0' }}
+                  style={{ flex: 1 }}
                 >
                   {t.cancel}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={doSignOut}
-                  style={{ ...dangerOutlineBtn(), flex: 1, padding: '13px 0' }}
+                  style={{ flex: 1, color: '#ff6b6b', borderColor: 'rgba(255,107,107,0.35)' }}
+                  icon="logout"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                    logout
-                  </span>
                   {t.signOut}
-                </button>
+                </Button>
               </div>
             </div>
           </div>,
@@ -1248,35 +1257,24 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
                 {err && <p style={{ fontSize: 11, color: '#ff6b6b', margin: 0 }}>{err}</p>}
               </div>
               <div style={{ display: 'flex', gap: 10, padding: '0 16px' }}>
-                <button
+                <Button
+                  variant="secondary"
                   onClick={closeSheet}
                   disabled={deleting}
-                  style={{ ...secondaryBtn(), flex: 1, padding: '13px 0' }}
+                  style={{ flex: 1 }}
                 >
                   {t.cancel}
-                </button>
-                <button
+                </Button>
+                <StatefulButton
+                  state={deleting ? 'loading' : 'idle'}
                   onClick={doDeleteAccount}
                   disabled={!canDelete}
-                  style={{
-                    ...dangerSolidBtn(),
-                    flex: 1,
-                    padding: '13px 0',
-                    opacity: canDelete ? 1 : 0.45,
-                    cursor: canDelete ? 'pointer' : 'not-allowed',
-                  }}
+                  variant="danger"
+                  style={{ flex: 1 }}
+                  icon="delete_forever"
                 >
-                  {deleting ? (
-                    <span className="material-symbols-outlined sync-spin" style={{ fontSize: 16 }}>
-                      progress_activity
-                    </span>
-                  ) : (
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                      delete_forever
-                    </span>
-                  )}
                   {t.deleteAccountFinal}
-                </button>
+                </StatefulButton>
               </div>
             </div>
           </div>,
@@ -7204,34 +7202,18 @@ export function AccountSettingsPage({
                                 </p>
                               </div>
                             </div>
-                            <button
+                            <StatefulButton
+                              state={sync.phase === 'syncing' ? 'loading' : sync.phase === 'error' ? 'error' : 'idle'}
                               onClick={sync.phase === 'error' ? doRetry : doSyncNow}
-                              disabled={busy || sync.phase === 'syncing'}
-                              style={{
-                                ...pillBtn(accent, sync.phase === 'error'),
-                                width: '100%',
-                                padding: '10px 0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 6,
-                                borderRadius: 10,
-                              }}
+                              disabled={busy}
+                              style={{ width: '100%', borderRadius: 10 }}
                             >
-                              <span
-                                className={`material-symbols-outlined ${sync.phase === 'syncing' ? 'sync-spin' : ''}`}
-                                style={{ fontSize: 16 }}
-                              >
-                                sync
-                              </span>
-                              {sync.phase === 'error'
-                                ? lang === 'es'
-                                  ? 'Reintentar'
-                                  : 'Retry'
-                                : lang === 'es'
-                                  ? 'Sincronizar ahora'
-                                  : 'Sync Now'}
-                            </button>
+                              {sync.phase === 'syncing'
+                                ? (lang === 'es' ? 'Sincronizando...' : 'Syncing...')
+                                : sync.phase === 'error'
+                                  ? (lang === 'es' ? 'Reintentar' : 'Retry')
+                                  : (lang === 'es' ? 'Sincronizar ahora' : 'Sync Now')}
+                            </StatefulButton>
                           </div>
                         )}
                       </div>
@@ -7733,60 +7715,34 @@ export function AccountSettingsPage({
                       </div>
 
                       <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                        <button
+                        <Button
+                          variant="outline"
                           onClick={doExportData}
                           style={{
                             flex: 1,
-                            padding: '10px 0',
-                            borderRadius: 12,
                             background: `${accent.from}15`,
-                            border: `1px solid ${accent.from}30`,
+                            borderColor: `${accent.from}30`,
                             color: accent.from,
-                            fontFamily: 'Manrope',
-                            fontWeight: 700,
-                            fontSize: 13,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 8,
-                            cursor: 'pointer',
                           }}
                         >
                           <DownloadIconSVG />
                           {lang === 'es' ? 'Exportar datos' : 'Export Data'}
-                        </button>
-                        <button
+                        </Button>
+                        <StatefulButton
+                          state={clearingCache ? 'loading' : 'idle'}
                           onClick={doClearCache}
                           disabled={clearingCache}
+                          variant="danger"
                           style={{
                             flex: 1,
-                            padding: '10px 0',
-                            borderRadius: 12,
                             background: 'rgba(255,107,107,0.08)',
-                            border: '1px solid rgba(255,107,107,0.20)',
+                            borderColor: 'rgba(255,107,107,0.20)',
                             color: '#ff6b6b',
-                            fontFamily: 'Manrope',
-                            fontWeight: 700,
-                            fontSize: 13,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 8,
-                            cursor: clearingCache ? 'not-allowed' : 'pointer',
                           }}
                         >
-                          {clearingCache ? (
-                            <span
-                              className="material-symbols-outlined sync-spin"
-                              style={{ fontSize: 16 }}
-                            >
-                              progress_activity
-                            </span>
-                          ) : (
-                            <TrashIconSVG />
-                          )}
+                          {!clearingCache && <TrashIconSVG />}
                           {lang === 'es' ? 'Borrar caché' : 'Clear Cache'}
-                        </button>
+                        </StatefulButton>
                       </div>
                     </>
                   )}

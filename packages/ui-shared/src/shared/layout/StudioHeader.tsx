@@ -56,8 +56,8 @@ export function StudioHeader({
       style={{
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)',
         paddingBottom: '16px',
-        paddingLeft: '24px',
-        paddingRight: '24px',
+        paddingLeft: 'var(--page-inset-h)',
+        paddingRight: 'var(--page-inset-h)',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',

@@ -1,5 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
+import { Button } from '../../../shared/design-system/buttons';
 import {
   KEYS,
   SCALE_TYPES,
@@ -548,77 +549,47 @@ export default function ProgressionGenerator({
             </div>
 
             <div className="mt-4 flex gap-2">
-              <button
+              <Button
+                variant="primary"
                 data-testid="use-progression-btn"
                 onClick={handleUse}
                 disabled={!activeChordIds.length}
-                className="btn-smooth flex-1 py-3 font-bold"
                 style={{
+                  flex: 1,
                   background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                   color: 'white',
                   borderRadius: 9999,
-                  fontFamily: 'Manrope',
-                  fontSize: 13,
                   boxShadow: `0 4px 20px ${accent.to}40`,
-                  border: 'none',
-                  cursor: activeChordIds.length ? 'pointer' : 'not-allowed',
-                  opacity: activeChordIds.length ? 1 : 0.5,
                 }}
               >
                 Use Progression
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 data-testid="load-to-song-btn"
                 onClick={() => setPresetPickerOpen(true)}
                 disabled={!activeChordIds.length}
-                className="btn-smooth py-3 px-4 font-bold"
                 aria-label={t.chord.loadToSong}
                 title={t.chord.loadToSong}
                 style={{
-                  background: 'var(--app-surface-high)',
-                  color: accent.from,
                   borderRadius: 9999,
-                  fontFamily: 'Manrope',
-                  fontSize: 13,
-                  border: 'none',
-                  cursor: activeChordIds.length ? 'pointer' : 'not-allowed',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  opacity: activeChordIds.length ? 1 : 0.5,
+                  color: accent.from,
                 }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  queue_music
-                </span>
-              </button>
-              <button
+                icon="queue_music"
+              />
+              <Button
+                variant="secondary"
                 data-testid="save-progression-favorite-btn"
                 onClick={() => setSavePromptOpen(true)}
                 disabled={!activeChordIds.length}
-                className="btn-smooth py-3 px-4 font-bold"
                 aria-label="Save as favorite"
                 title="Save as favorite"
                 style={{
-                  background: 'var(--app-surface-high)',
-                  color: accent.from,
                   borderRadius: 9999,
-                  fontFamily: 'Manrope',
-                  fontSize: 13,
-                  border: 'none',
-                  cursor: activeChordIds.length ? 'pointer' : 'not-allowed',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  opacity: activeChordIds.length ? 1 : 0.5,
+                  color: accent.from,
                 }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  bookmark_add
-                </span>
-              </button>
+                icon="bookmark_add"
+              />
             </div>
 
             {savePromptOpen && (
@@ -642,23 +613,19 @@ export default function ProgressionGenerator({
                     if (e.key === 'Escape') setSavePromptOpen(false);
                   }}
                 />
-                <button
+                <Button
+                  variant="primary"
                   data-testid="save-favorite-confirm"
                   onClick={handleSaveConfirm}
                   disabled={!progName.trim()}
-                  className="btn-smooth px-5 py-2.5 font-bold text-sm"
                   style={{
+                    borderRadius: 9999,
                     background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                     color: 'white',
-                    borderRadius: 9999,
-                    fontFamily: 'Manrope',
-                    border: 'none',
-                    cursor: progName.trim() ? 'pointer' : 'not-allowed',
-                    opacity: progName.trim() ? 1 : 0.5,
                   }}
                 >
                   Save
-                </button>
+                </Button>
               </div>
             )}
           </div>

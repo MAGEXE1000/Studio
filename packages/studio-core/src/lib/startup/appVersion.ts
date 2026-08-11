@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.20';
-export const NATIVE_VERSION_CODE = 40520;
-export const WEB_VERSION = '4.5.20';
+export const NATIVE_VERSION = '4.5.21';
+export const NATIVE_VERSION_CODE = 40521;
+export const WEB_VERSION = '4.5.21';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '35643d48';
+export const APP_COMMIT_SHA = 'e2dc09dc';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/9/2026, 10:10:47 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/11/2026, 9:57:52 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,11 +98,17 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: "Added",
     items: [
-      "Replaced the About page illustration with the visual-only, click-sound-free, neutral SpotlightLogo.",
-      "Refactored global page titles to a prominent 32px typography size, left-aligned, standard weight, and vertically aligned env(safe-area-inset-top) + 72px page geometry.",
-      "Constrained Settings sub-pages content max-width to 640px centered, with padding-left/right of 24px, and centered main settings dashboard list.",
-      "Moved the shared floating top bar 15% higher and increased transparency slightly.",
-      "Refactored the central button component library to use BeUI button physics (0.93 scale on tap, 1.02 on hover on fine-pointer devices, spring dynamics, and touch ripple).",
+      "Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.",
+      "Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.",
+      "Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.",
+      "Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.",
+      "Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.",
+      "Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.",
+      "Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.",
+      "Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.",
+      "Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.",
+      "Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.",
+      "Fixed tab scrubbing gestures via continuous fractional pointer indexing.",
     ],
   },
 ];

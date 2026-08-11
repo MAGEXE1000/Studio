@@ -232,7 +232,7 @@ export default memo(function StudioUpdateScreen({
               margin: 0,
               fontFamily: 'Manrope, sans-serif',
               fontWeight: 700,
-              fontSize: 24,
+              fontSize: 'var(--font-display-sm)',
               color: isLight ? '#0f172a' : '#e7e5e4',
               lineHeight: 1.25,
             }}

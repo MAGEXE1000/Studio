@@ -1214,7 +1214,7 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
 /* Light-theme overrides */
 :root.light {
-  --surface-float-bg:  rgba(255, 255, 255, 0.78);
+  --surface-float-bg:  rgba(255, 255, 255, 0.60);
   --surface-topbar-bg: rgba(255, 255, 255, 0.15);
   --surface-modal-bg:  rgba(0, 0, 0, 0.35);
 }
@@ -1229,7 +1229,7 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
 /* Light + AMOLED (pure-white) — same as light */
 :root.light.amoled {
-  --surface-float-bg:  rgba(255, 255, 255, 0.78);
+  --surface-float-bg:  rgba(255, 255, 255, 0.60);
   --surface-topbar-bg: rgba(255, 255, 255, 0.15);
   --surface-modal-bg:  rgba(0, 0, 0, 0.35);
 }

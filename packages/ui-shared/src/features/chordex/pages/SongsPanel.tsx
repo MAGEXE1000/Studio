@@ -1988,14 +1988,13 @@ function ExportModal({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <button
+            <Button
+              variant="secondary"
+              size="icon"
               onClick={handleClose}
-              className="premium-back-btn"
-            >
-              <span className="material-symbols-outlined">
-                arrow_back
-              </span>
-            </button>
+              style={{ borderRadius: '50%', width: 36, height: 36 }}
+              icon="arrow_back"
+            />
             <p
               style={{
                 fontFamily: 'var(--font-headline)',
@@ -2828,27 +2827,13 @@ function ImportSongModal({
         flexShrink: 0,
       }}
     >
-      <button
+      <Button
+        variant="secondary"
+        size="icon"
         onClick={onClose}
-        className="btn-smooth"
-        style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '50%',
-          background: 'var(--app-surface-high)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <span
-          className="material-symbols-outlined"
-          style={{ color: 'var(--c-text-primary)', fontSize: '20px' }}
-        >
-          close
-        </span>
-      </button>
+        style={{ borderRadius: '50%', width: 38, height: 38 }}
+        icon="close"
+      />
       <p
         style={{
           fontFamily: 'var(--font-headline)',
@@ -4135,99 +4120,63 @@ const PresetCard = React.memo(
 
         {/* Quick action row: Live | Export PDF | Edit | Delete */}
         <div style={{ display: 'flex', borderTop: '1px solid rgba(72,72,72,0.07)' }}>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleLiveClick}
-            className="btn-smooth"
             style={{
               flex: 1,
-              padding: '9px 6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
               color: accent.from,
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 700,
-              fontSize: '11px',
               borderRight: '1px solid rgba(72,72,72,0.07)',
-              whiteSpace: 'nowrap',
+              borderRadius: 0,
             }}
             data-testid={`live-${preset.id}`}
+            icon="play_circle"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>
-              play_circle
-            </span>
             Live
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handlePdfClick}
-            className="btn-smooth"
             data-testid={`pdf-${preset.id}`}
             style={{
               flex: 1,
-              padding: '9px 6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
               color: '#9d9da6',
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 700,
-              fontSize: '11px',
               borderRight: '1px solid rgba(72,72,72,0.07)',
-              whiteSpace: 'nowrap',
+              borderRadius: 0,
             }}
+            icon="picture_as_pdf"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>
-              picture_as_pdf
-            </span>
             PDF
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleEditClick}
-            className="btn-smooth"
             style={{
               flex: 1,
-              padding: '9px 6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
               color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 700,
-              fontSize: '11px',
               borderRight: '1px solid rgba(72,72,72,0.07)',
-              whiteSpace: 'nowrap',
+              borderRadius: 0,
             }}
+            icon="edit"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>
-              edit
-            </span>
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleDeleteClick}
-            className="btn-smooth"
             style={{
               flex: 1,
-              padding: '9px 6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
               color: '#ee7d77',
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 700,
-              fontSize: '11px',
-              whiteSpace: 'nowrap',
+              borderRadius: 0,
             }}
+            icon="delete"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px', flexShrink: 0 }}>
-              delete
-            </span>
             Delete
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -4901,31 +4850,14 @@ export default function SongsPanel() {
           >
             {/* Back button */}
             {!isWebDesktop && (
-              <button
+              <Button
+                variant="secondary"
+                size="icon"
                 onClick={() => setActivePreset(null)}
                 data-testid="preset-back"
-                className="btn-smooth"
-                style={{
-                  flexShrink: 0,
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  background: 'var(--app-surface-high)',
-                  border: '1px solid rgba(128,128,128,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  animation: 'spring-in 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
-                  transition: 'background 500ms cubic-bezier(0.4,0,0.2,1)',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: 'var(--c-text-primary)', fontSize: '18px' }}
-                >
-                  arrow_back
-                </span>
-              </button>
+                style={{ borderRadius: '50%', width: 36, height: 36 }}
+                icon="arrow_back"
+              />
             )}
             <div style={{ flex: 1, minWidth: 0 }}>
               <h2
@@ -4966,131 +4898,60 @@ export default function SongsPanel() {
                   activePreset.chords.length > 0 ||
                   (activePreset.sections ?? []).some((s) => s.chords.length > 0);
                 return hasChords ? (
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={() => setShowLive(true)}
                     data-testid="enter-live-mode"
-                    className="btn-smooth"
                     style={{
                       height: '34px',
                       padding: '0 11px 0 9px',
-                      borderRadius: '9999px',
                       background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                       boxShadow: `0 2px 12px ${accent.to}55`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
                     }}
+                    icon="play_circle"
                   >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ color: '#fff', fontSize: '16px' }}
-                    >
-                      play_circle
-                    </span>
-                    <span
-                      style={{
-                        color: '#fff',
-                        fontFamily: 'var(--font-headline)',
-                        fontWeight: 800,
-                        fontSize: '11px',
-                        letterSpacing: '0.02em',
-                      }}
-                    >
-                      {t.songs.liveMode}
-                    </span>
-                  </button>
+                    {t.songs.liveMode}
+                  </Button>
                 ) : null;
               })()}
-              <button
+              <Button
+                variant="secondary"
+                size="icon"
                 onClick={() =>
                   Capacitor.isNativePlatform()
                     ? setJsonExportPreset(activePreset)
                     : exportPresetToJSON(activePreset, 'share')
                 }
-                className="btn-smooth"
                 title={t.songs.exportAsJson}
-                style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '50%',
-                  background: 'var(--app-surface-high)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}
-                >
-                  data_object
-                </span>
-              </button>
-              <button
+                style={{ borderRadius: '50%', width: 34, height: 34 }}
+                icon="data_object"
+              />
+              <Button
+                variant="secondary"
+                size="icon"
                 onClick={() => setExportModal(activePreset)}
-                className="btn-smooth"
                 title={t.songs.exportToPdf}
-                style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '50%',
-                  background: 'var(--app-surface-high)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}
-                >
-                  picture_as_pdf
-                </span>
-              </button>
-              <button
+                style={{ borderRadius: '50%', width: 34, height: 34 }}
+                icon="picture_as_pdf"
+              />
+              <Button
+                variant="secondary"
+                size="icon"
                 onClick={() => {
                   setEditingId(activePreset.id);
                   setShowForm(true);
                 }}
-                className="btn-smooth"
-                style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '50%',
-                  background: 'var(--app-surface-high)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: 'var(--c-text-secondary)', fontSize: '17px' }}
-                >
-                  edit
-                </span>
-              </button>
+                style={{ borderRadius: '50%', width: 34, height: 34 }}
+                icon="edit"
+              />
               {isWebDesktop && (
-                <button
+                <Button
+                  variant="danger"
+                  size="icon"
                   onClick={() => setShowDeleteId(activePreset.id)}
-                  className="btn-smooth"
-                  style={{
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '50%',
-                    background: 'rgba(238,125,119,0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ color: '#ee7d77', fontSize: '17px' }}
-                  >
-                    delete
-                  </span>
-                </button>
+                  style={{ borderRadius: '50%', width: 34, height: 34 }}
+                  icon="delete"
+                />
               )}
             </div>
           </div>
@@ -5987,38 +5848,29 @@ export default function SongsPanel() {
             gap: '8px',
           }}
         >
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               setCustomSectionName('');
               setCustomSectionMode(false);
               setShowSectionPicker(true);
             }}
             data-testid="add-section-btn"
-            className="btn-smooth"
             style={{
               flex: 1,
-              padding: '10px 12px',
               borderRadius: '9999px',
               background: 'rgba(72,72,72,0.35)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.07)',
+              borderColor: 'rgba(255,255,255,0.07)',
               color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 700,
-              fontSize: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '5px',
             }}
+            icon="segment"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-              segment
-            </span>
             {t.songs.addSection}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => {
               const secs = activePreset.sections;
               if (secs && secs.length > 0) {
@@ -6029,30 +5881,16 @@ export default function SongsPanel() {
               }
             }}
             data-testid="add-chord-btn"
-            className="btn-smooth"
             style={{
               flex: 1,
-              padding: '10px 12px',
               borderRadius: '9999px',
-              background: 'rgba(72,72,72,0.35)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.07)',
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 700,
-              fontSize: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '5px',
             }}
+            icon="add"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-              library_music
-            </span>
-            {t.songs.addChord}
-          </button>
+            {t.songs.addChord || 'Add Chord'}
+          </Button>
         </div>
 
         {/* Section picker sheet */}

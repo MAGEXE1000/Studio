@@ -18,6 +18,7 @@ import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
 import { ThemeToggle } from '../../../components/motion/theme-toggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
+import { Button } from '../../../shared/design-system/buttons';
 
 export default function ChordexPreferencesPanel() {
   const settings = useSettingsStore((s) => s.settings);
@@ -243,18 +244,23 @@ export default function ChordexPreferencesPanel() {
                     {tabs.map(({ value, Icon }) => {
                       const active = cur === value;
                       return (
-                        <button
+                        <Button
                           key={value}
+                          variant="ghost"
+                          size="icon"
                           onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
                           style={{
+                            width: 36,
+                            height: 36,
                             background: active ? 'var(--c-surface-high)' : 'transparent',
                             color: active ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
                             borderColor: active ? 'var(--c-border-strong)' : 'var(--c-border)',
+                            borderRadius: '8px',
+                            borderWidth: '1.5px',
                           }}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all"
                         >
                           <Icon active={active} />
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -568,28 +574,25 @@ export default function ChordexPreferencesPanel() {
                   {tabs.map(({ value, Icon }) => {
                     const active = cur === value;
                     return (
-                      <button
-                        key={value}
-                        onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: '10px',
-                          border: active ? `2px solid ${acc.from}` : '2px solid transparent',
-                          background: active
-                            ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
-                            : 'var(--app-surface-low)',
-                          color: active ? acc.from : 'var(--c-text-secondary)',
-                          cursor: 'pointer',
-                          transition: 'all 150ms ease',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Icon active={active} />
-                      </button>
+                        <Button
+                          key={value}
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '10px',
+                            border: active ? `2.5px solid ${acc.from}` : '2px solid transparent',
+                            background: active
+                              ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
+                              : 'var(--app-surface-low)',
+                            color: active ? acc.from : 'var(--c-text-secondary)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Icon active={active} />
+                        </Button>
                     );
                   })}
                 </div>

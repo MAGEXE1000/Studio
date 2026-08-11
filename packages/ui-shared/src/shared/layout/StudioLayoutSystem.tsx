@@ -206,11 +206,11 @@ export function SharedFloatingHeader({
           left: sideMargin,
           right: sideMargin,
           bottom: 0,
-          background: isLight ? 'rgba(255, 250, 245, 0.12)' : 'rgba(24, 20, 16, 0.10)',
+          background: 'var(--surface-topbar-bg)',
           borderRadius: '24px',
           border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'blur(20px) saturate(1.6)',
-          WebkitBackdropFilter: 'blur(20px) saturate(1.6)',
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
           opacity: bgOpacity,
           pointerEvents: 'auto',
@@ -345,12 +345,12 @@ export function SettingsScaffold({
         <div
           style={{
             width: '100%',
-            maxWidth: '640px',
+            maxWidth: 'var(--content-max-w)',
             marginLeft: 'auto',
             marginRight: 'auto',
             boxSizing: 'border-box',
-            paddingLeft: '24px',
-            paddingRight: '24px',
+            paddingLeft: 'var(--page-inset-h)',
+            paddingRight: 'var(--page-inset-h)',
           }}
         >
           {/* Large scrolling title crossfades into floating header pill on scroll */}
@@ -363,7 +363,7 @@ export function SettingsScaffold({
                 width: '100%',
               }}
             >
-              <StudioHeader title={title} containerStyle={{ paddingTop: '24px', paddingLeft: 0, paddingRight: 0 }} />
+              <StudioHeader title={title} containerStyle={{ paddingTop: 'var(--space-6)', paddingLeft: 0, paddingRight: 0 }} />
             </motion.div>
           )}
 

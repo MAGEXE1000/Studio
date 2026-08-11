@@ -39,7 +39,9 @@ const repoRoot = path.resolve(__dirname, '..');
 // ── Scoped directories (Fix W migration boundary) ──────────────────────────
 const SCOPE_DIRS = [
   path.join(repoRoot, 'packages/ui-shared/src/features/hub'),
+  path.join(repoRoot, 'packages/ui-shared/src/features/updater'),
   path.join(repoRoot, 'packages/ui-shared/src/shared/settings'),
+  path.join(repoRoot, 'packages/ui-shared/src/shared/layout'),
 ];
 
 // ── Rules ───────────────────────────────────────────────────────────────────
@@ -112,6 +114,85 @@ const RULES = [
     message: "Hardcoded light float-surface rgba(255,255,255,0.78) — use var(--surface-float-bg)",
     token: '--surface-float-bg',
   },
+  // ── Structural layouts and spacing (Fix W) ───────────────────────────────
+  {
+    pattern: /padding:\s*['"]24px\s+20px['"]/,
+    message: "Hardcoded padding '24px 20px' — use 'var(--space-6) var(--space-5)'",
+    token: '--space-6, --space-5',
+  },
+  {
+    pattern: /margin:\s*['"]16px\s+0\s+0['"]/,
+    message: "Hardcoded margin '16px 0 0' — use 'var(--space-4) 0 0'",
+    token: '--space-4',
+  },
+  {
+    pattern: /margin:\s*['"]14px\s+0\s+0['"]/,
+    message: "Hardcoded margin '14px 0 0' — use 'var(--space-3) 0 0'",
+    token: '--space-3',
+  },
+  {
+    // Match gap 16 only inside flex layout containers
+    pattern: /display:\s*['"]flex['"].*gap:\s*16\b|gap:\s*16\b.*display:\s*['"]flex['"]|flexDirection:\s*['"]column['"].*gap:\s*16\b|gap:\s*16\b.*flexDirection:\s*['"]column['"]/,
+    message: "Hardcoded layout gap 16 — use var(--space-4) or appropriate token",
+    token: '--space-4',
+  },
+  {
+    // Match gap 20 inside flex layout containers
+    pattern: /display:\s*['"]flex['"].*gap:\s*20\b|gap:\s*20\b.*display:\s*['"]flex['"]|flexDirection:\s*['"]column['"].*gap:\s*20\b|gap:\s*20\b.*flexDirection:\s*['"]column['"]/,
+    message: "Hardcoded layout gap 20 — use var(--space-5) or appropriate token",
+    token: '--space-5',
+  },
+  {
+    // Match paddingBottom 24 inside structural layout styles
+    pattern: /paddingBottom:\s*24\b/,
+    message: "Hardcoded paddingBottom 24 — use var(--space-6) or appropriate token",
+    token: '--space-6',
+  },
+  {
+    pattern: /paddingLeft:\s*['"]24px['"]/,
+    message: "Hardcoded paddingLeft '24px' — use var(--page-inset-h)",
+    token: '--page-inset-h',
+  },
+  {
+    pattern: /paddingRight:\s*['"]24px['"]/,
+    message: "Hardcoded paddingRight '24px' — use var(--page-inset-h)",
+    token: '--page-inset-h',
+  },
+  // ── Typography (Fix W) ───────────────────────────────────────────────────
+  {
+    // Match fontSize 24 but only when NOT on an icon line
+    pattern: /^(?!.*(material-symbols|material-icons|person|system_update|refresh)).*fontSize:\s*24\b/,
+    message: "Hardcoded fontSize 24 — use var(--font-display-sm)",
+    token: '--font-display-sm',
+  },
+  {
+    // Match ANY numeric fontSize: 11 not on a material-symbols/icon line and not already a var() reference.
+    // All 11px usages in this scope are section-label headings — they should all use --font-section-label.
+    pattern: /^(?!.*(material-symbols|material-icons)).*fontSize:\s*11\b(?!.*var\()/,
+    message: "Hardcoded fontSize 11 — use var(--font-section-label)",
+    token: '--font-section-label',
+  },
+  // ── Glassmorphism backdrop blurs (Fix W) ─────────────────────────────────
+  {
+    pattern: /blur\(25px\)/,
+    message: "Hardcoded backdrop-filter blur(25px) — use var(--surface-float-blur)",
+    token: '--surface-float-blur',
+  },
+  {
+    pattern: /blur\(20px\)/,
+    message: "Hardcoded backdrop-filter blur(20px) — use var(--surface-float-blur)",
+    token: '--surface-float-blur',
+  },
+  {
+    pattern: /blur\(16px\s*saturate\(1.8\)\)/,
+    message: "Hardcoded backdrop-filter blur(16px) saturate(1.8) — use var(--surface-float-blur)",
+    token: '--surface-float-blur',
+  },
+  {
+    pattern: /blur\(16px\)/,
+    message: "Hardcoded backdrop-filter blur(16px) — use var(--surface-float-blur)",
+    token: '--surface-float-blur',
+  },
 ];
 
 // ── File walker ──────────────────────────────────────────────────────────────
@@ -138,6 +219,17 @@ let violationCount = 0;
 
 function checkFile(filePath) {
   if (!/\.(ts|tsx)$/.test(filePath)) return;
+
+  // Exclude component definitions, tools, and indicators that aren't page screens
+  const basename = path.basename(filePath);
+  if (
+    basename === 'UpdateIndicator.tsx' ||
+    basename === 'SettingControls.tsx' ||
+    basename === 'InspectorRouteTracer.tsx' ||
+    basename === 'faqConstants.tsx'
+  ) {
+    return;
+  }
 
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split('\n');

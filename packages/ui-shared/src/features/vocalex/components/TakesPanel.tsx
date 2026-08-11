@@ -164,53 +164,30 @@ export default function TakesPanel() {
       </div>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-        <button
+        <Button
+          variant="secondary"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '10px 18px',
-            borderRadius: 9999,
             background: 'var(--vx-edge)',
-            border: 'none',
             color: 'var(--vx-text)',
-            fontFamily: 'var(--font-headline)',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: 'pointer',
+            borderRadius: 9999,
           }}
+          icon="sort"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-            sort
-          </span>
           {t.vocalex.recent}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
           onClick={() => NavigationDispatcher.push({ app: 'vocalex', page: 'recorder' })}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '10px 20px',
-            borderRadius: 9999,
             background: 'var(--studio-accent)',
-            border: 'none',
             color: '#fff',
-            fontFamily: 'var(--font-headline)',
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
+            borderRadius: 9999,
             boxShadow: 'var(--studio-accent-glow)',
           }}
+          icon="mic"
         >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 16, fontVariationSettings: "'FILL' 1" }}
-          >
-            mic
-          </span>
           {t.vocalex.newTake}
-        </button>
+        </Button>
       </div>
 
       {loading ? (
@@ -363,24 +340,17 @@ function TakeListItem({
         <MiniWaveform peaks={take.waveformPeaks} />
       </div>
 
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => setConfirming(true)}
         style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: 6,
-          flexShrink: 0,
           color: 'var(--vx-text-4)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          minWidth: 30,
+          height: 30,
         }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-          delete
-        </span>
-      </button>
+        icon="delete"
+      />
 
       <Dialog
         open={confirming}

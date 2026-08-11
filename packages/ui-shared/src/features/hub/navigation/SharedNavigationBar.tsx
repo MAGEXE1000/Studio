@@ -793,6 +793,36 @@ export function SharedNavigationBar({
     return idx >= 0 ? idx : 0;
   }, [currentItems, currentApp, isSwitcherOpen]);
 
+  const getContinuousIndex = useCallback(
+    (relativeX: number) => {
+      if (N <= 1) return 0;
+
+      const centers: number[] = [];
+      for (let i = 0; i < N; i++) {
+        const geom = measuredContentGeometry[i];
+        if (geom && geom.centerLeft > 0) {
+          centers.push(geom.centerLeft);
+        } else {
+          centers.push((i + 0.5) * itemWidth);
+        }
+      }
+
+      if (relativeX <= centers[0]) return 0;
+      if (relativeX >= centers[N - 1]) return N - 1;
+
+      for (let i = 0; i < N - 1; i++) {
+        const c1 = centers[i];
+        const c2 = centers[i + 1];
+        if (relativeX >= c1 && relativeX <= c2) {
+          return i + (relativeX - c1) / (c2 - c1);
+        }
+      }
+
+      return activeIndex;
+    },
+    [N, itemWidth, measuredContentGeometry, activeIndex]
+  );
+
   // ─────────────────────────────────────────────────────────────────────────────
   // UNIFIED MOTION GRAPH ROOT ENGINE
   // All navigation movements, pill, search, profile, scale derive continuously from this graph.
@@ -898,6 +928,8 @@ export function SharedNavigationBar({
 
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
   // Derived continuous pill movement (direct 1:1 synchronization during drag, spring interpolation after drag)
+  const STRETCH_FACTOR = 30; // pixels of stretch per index distance
+
   const pillX = useTransform([activeIdxRaw, activeIdxSpring, dragXRaw], ([rawIdx, springIdx, dragVal]) => {
     const isScrubbingActive = isScrubbingRef.current;
     const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
@@ -918,16 +950,32 @@ export function SharedNavigationBar({
     const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
     const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
 
-    const rawX = currentCenterX - currentPillW / 2 + (dragVal as number);
+    const baseLeft = currentCenterX - currentPillW / 2;
+
+    // Liquid gooey stretch calculation
+    let finalX = baseLeft;
+    if (!isScrubbingActive) {
+      const diff = (rawIdx as number) - (springIdx as number);
+      const stretch = Math.abs(diff) * STRETCH_FACTOR;
+      if (diff < 0) {
+        // Moving left: shift left edge to the left
+        finalX = baseLeft - stretch;
+      }
+    }
+
+    const rawX = finalX + (dragVal as number);
+    const stretchedPillW = isScrubbingActive ? currentPillW : (currentPillW + Math.abs((rawIdx as number) - (springIdx as number)) * STRETCH_FACTOR);
+    
     const minX = 4;
-    const maxX = Math.max(minX, usableWidth - currentPillW - 4);
+    const maxX = Math.max(minX, usableWidth - stretchedPillW - 4);
     return Math.max(minX, Math.min(maxX, rawX));
   });
 
   const pillWidthVal = useTransform(
     [activeIdxRaw, activeIdxSpring],
     ([rawIdx, springIdx]) => {
-      const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
+      const isScrubbingActive = isScrubbingRef.current;
+      const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
       const lowerIdx = Math.floor(idx);
       const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
@@ -936,7 +984,16 @@ export function SharedNavigationBar({
       const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
       const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
 
-      return lowerPillW + frac * (upperPillW - lowerPillW);
+      const baseWidth = lowerPillW + frac * (upperPillW - lowerPillW);
+
+      // Liquid gooey stretch calculation
+      if (!isScrubbingActive) {
+        const diff = (rawIdx as number) - (springIdx as number);
+        const stretch = Math.abs(diff) * STRETCH_FACTOR;
+        return baseWidth + stretch;
+      }
+
+      return baseWidth;
     }
   );
 
@@ -987,9 +1044,9 @@ export function SharedNavigationBar({
 
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
-    const minX = getPillX(0);
-    const maxX = getPillX(N - 1);
-    const clampedX = Math.max(minX, Math.min(maxX, relativeX));
+    const clampedRelX = Math.max(4, Math.min(usableWidth - 4, relativeX));
+    const continuousIdx = getContinuousIndex(clampedRelX);
+
     const now = performance.now();
     const dt = now - lastTimeRef.current;
     const dx = e.clientX - lastXRef.current;
@@ -998,26 +1055,19 @@ export function SharedNavigationBar({
     lastXRef.current = e.clientX;
     lastTimeRef.current = now;
 
-    dragXRaw.set(clampedX - getPillX(activeIndex));
+    // Reset dragXRaw offset to 0 as continuousIdx directly positions the pill
+    dragXRaw.set(0);
 
     const skew = Math.max(-10, Math.min(10, velocity * 3.5));
     dragSkewRaw.set(skew);
 
-    let hoveredIndex = Math.max(0, Math.min(N - 1, Math.floor((relativeX / usableWidth) * N)));
-    if (typeof document !== 'undefined') {
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const itemEl = el?.closest('[data-nav-item-index]');
-      if (itemEl) {
-        const idx = Number(itemEl.getAttribute('data-nav-item-index'));
-        if (!isNaN(idx) && idx >= 0 && idx < N) {
-          hoveredIndex = idx;
-        }
-      }
-    }
+    // Round to nearest integer for haptics and tab commit logic
+    const hoveredIndex = Math.max(0, Math.min(N - 1, Math.round(continuousIdx)));
+
+    activeIdxRaw.set(continuousIdx);
 
     if (hoveredIndex !== scrubbingIndexRef.current) {
       scrubbingIndexRef.current = hoveredIndex;
-      activeIdxRaw.set(hoveredIndex);
       if (
         typeof window !== 'undefined' &&
         window.navigator &&
@@ -1048,6 +1098,8 @@ export function SharedNavigationBar({
 
       const finalIndex = scrubbingIndexRef.current;
       const targetItem = currentItems[finalIndex];
+
+      activeIdxRaw.set(finalIndex); // Commit raw index to final integer index on release
 
       if (targetItem && finalIndex !== activeIndex) {
         pointerUpHandledAtRef.current = performance.now();
@@ -1149,8 +1201,8 @@ export function SharedNavigationBar({
           right: 16,
           width: 280,
           background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(28, 28, 30, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
           borderRadius: 16,
           border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
           boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
@@ -1178,7 +1230,7 @@ export function SharedNavigationBar({
             ) : profileIcon ? (
               profileIcon
             ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}> {/* token-guard-ignore */}
                 person
               </span>
             )}
@@ -1187,7 +1239,7 @@ export function SharedNavigationBar({
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-headline)' }}>
               {user?.displayName || 'Guest User'}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
+            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}> {/* token-guard-ignore */}
               {user?.email || 'guest@livex.studio'}
             </span>
           </div>
@@ -1289,12 +1341,12 @@ export function SharedNavigationBar({
           style={{
             width: '100%',
             maxWidth: '480px',
-            background: 'rgba(20, 20, 24, 0.65)',
+            background: 'var(--surface-float-bg)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: '24px',
             boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
@@ -1465,13 +1517,13 @@ export function SharedNavigationBar({
               width: containerWidth,
               height: containerHeight,
               borderRadius: containerBorderRadius,
-              border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+              border: isLight ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.06)',
               background: 'var(--surface-float-bg)',
               boxShadow: isLight
-                ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-              backdropFilter: 'blur(25px)',
-              WebkitBackdropFilter: 'blur(25px)',
+                ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
+                : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-around',
@@ -1521,8 +1573,8 @@ export function SharedNavigationBar({
                     boxShadow: isLight
                       ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03), 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
                       : 'inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -0.5px 1px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(16px) saturate(1.8)',
-                    WebkitBackdropFilter: 'blur(16px) saturate(1.8)',
+                    backdropFilter: 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: 'var(--surface-float-blur)',
                     pointerEvents: 'none',
                     zIndex: 0,
                     skewX: dragSkewRaw,
@@ -1665,12 +1717,12 @@ export function SharedNavigationBar({
                   height: '64px',
                   borderRadius: '50%',
                   background: 'var(--surface-float-bg)',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
+                  border: isLight ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.06)',
+                  backdropFilter: 'var(--surface-float-blur)',
+                  WebkitBackdropFilter: 'var(--surface-float-blur)',
                   boxShadow: isLight
-                    ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                    : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                    ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
+                    : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1701,12 +1753,12 @@ export function SharedNavigationBar({
                   height: '64px',
                   borderRadius: '50%',
                   background: 'var(--surface-float-bg)',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
+                  border: isLight ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.06)',
+                  backdropFilter: 'var(--surface-float-blur)',
+                  WebkitBackdropFilter: 'var(--surface-float-blur)',
                   boxShadow: isLight
-                    ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                    : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                    ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
+                    : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

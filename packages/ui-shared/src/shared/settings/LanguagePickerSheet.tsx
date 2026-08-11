@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSettingsStore, settingsController, ACCENT_COLORS } from '@workspace/studio-core';
 import { Dialog } from '../design-system/dialogs';
+import { Button } from '../design-system/buttons';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -30,14 +31,15 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
         {SUPPORTED_LANGUAGES.map(({ code, label }) => {
           const isSelected = (settings.language ?? 'en') === code;
           return (
-            <button
+            <Button
               key={code}
-              type="button"
+              variant="ghost"
               onClick={() => {
                 settingsController.updateSettings({ language: code as any });
                 onClose();
               }}
               style={{
+                width: '100%',
                 padding: '12px 16px',
                 borderRadius: 10,
                 border: 'none',
@@ -45,14 +47,8 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
                   ? `linear-gradient(135deg, ${acc.from}18, ${acc.to}10)`
                   : 'transparent',
                 color: isSelected ? acc.from : 'var(--c-text-primary)',
-                fontSize: 14,
                 fontWeight: isSelected ? 700 : 500,
-                cursor: 'pointer',
-                textAlign: 'left',
-                display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                transition: 'background 200ms ease, color 200ms ease',
               }}
             >
               <span>{label}</span>
@@ -61,7 +57,7 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
                   check
                 </span>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>

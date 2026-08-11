@@ -207,26 +207,6 @@ const NavigationItem = React.memo(
             />
           )}
 
-          {item.label && !isSwitcherOpen && (
-            <motion.span
-              style={{
-                fontSize: '12px',
-                fontWeight: 700,
-                color: isLight ? '#0f172a' : '#ffffff',
-                whiteSpace: 'nowrap',
-                letterSpacing: '-0.01em',
-                display: 'inline-block',
-                lineHeight: 1,
-                opacity: labelOpacity,
-                scale: labelScale,
-                maxWidth: isActive ? '120px' : '0px',
-                overflow: 'hidden',
-                transition: 'max-width 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease',
-              }}
-            >
-              {item.label}
-            </motion.span>
-          )}
         </motion.div>
       </motion.button>
     );
@@ -741,9 +721,7 @@ export function SharedNavigationBar({
         // Real DOM measured width + 24px fixed horizontal padding (12px left, 12px right)
         return Math.max(48, Math.round(geom.width + 24));
       }
-      const labelStr = typeof item?.label === 'string' ? item.label : '';
-      const len = labelStr.length;
-      const contentW = 20 + (len > 0 ? 6 + Math.ceil(len * 6.4) : 0);
+      const contentW = 20;
       return Math.max(48, Math.round(contentW + 24));
     },
     [isSwitcherOpen, measuredContentGeometry]

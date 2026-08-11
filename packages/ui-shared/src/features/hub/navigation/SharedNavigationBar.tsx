@@ -1498,8 +1498,8 @@ export function SharedNavigationBar({
               border: isLight ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.06)',
               background: 'var(--surface-float-bg)',
               boxShadow: isLight
-                ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
-                : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
+                ? '0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03), inset 0.5px 0.8px 0 0 rgba(0, 180, 255, 0.30), inset -0.5px -0.6px 0 0 rgba(255, 0, 100, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.20)'
+                : '0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15), inset 0.6px 1px 0 0 rgba(0, 240, 255, 0.22), inset -0.6px -0.8px 0 0 rgba(255, 0, 128, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.03)',
               backdropFilter: 'var(--surface-float-blur)',
               WebkitBackdropFilter: 'var(--surface-float-blur)',
               display: 'flex',

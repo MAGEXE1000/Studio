@@ -1199,9 +1199,9 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --font-display-lg:    36px;   /* full-hero titles (player, lab)      */
 
   /* ── Floating-surface tokens — dark (default) ───────────── */
-  --surface-float-bg:   rgba(12, 12, 14, 0.45);                        /* bottom nav / pill bar    */
+  --surface-float-bg:   rgba(12, 12, 14, 0.25);                        /* bottom nav / pill bar    */
   --surface-topbar-bg:  rgba(12, 12, 14, 0.12);                        /* top bar (Fix O value)    */
-  --surface-float-blur: blur(20px) saturate(180%) brightness(1.04);    /* shared backdrop-filter   */
+  --surface-float-blur: blur(24px) saturate(190%) brightness(1.02);    /* shared backdrop-filter   */
   --surface-modal-bg:   rgba(0, 0, 0, 0.60);                           /* sheet / modal scrim      */
 
   /* ── Semantic surface aliases ───────────────────────────────
@@ -1214,7 +1214,7 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
 /* Light-theme overrides */
 :root.light {
-  --surface-float-bg:  rgba(255, 255, 255, 0.60);
+  --surface-float-bg:  rgba(255, 255, 255, 0.38);
   --surface-topbar-bg: rgba(255, 255, 255, 0.15);
   --surface-modal-bg:  rgba(0, 0, 0, 0.35);
 }
@@ -1222,14 +1222,14 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 /* AMOLED overrides — slightly higher alpha so bars stay
    visible against pure-black (#000) backgrounds.           */
 :root.amoled {
-  --surface-float-bg:  rgba(0, 0, 0, 0.55);
+  --surface-float-bg:  rgba(0, 0, 0, 0.32);
   --surface-topbar-bg: rgba(0, 0, 0, 0.18);
   --surface-modal-bg:  rgba(0, 0, 0, 0.75);
 }
 
 /* Light + AMOLED (pure-white) — same as light */
 :root.light.amoled {
-  --surface-float-bg:  rgba(255, 255, 255, 0.60);
+  --surface-float-bg:  rgba(255, 255, 255, 0.38);
   --surface-topbar-bg: rgba(255, 255, 255, 0.15);
   --surface-modal-bg:  rgba(0, 0, 0, 0.35);
 }

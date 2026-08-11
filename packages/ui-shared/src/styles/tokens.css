@@ -495,11 +495,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
     /* Prevent the blur from leaking into parent stacking contexts */
     isolation: isolate;
     transition:
-      transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-radius 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
       background-color 250ms ease,
-      border-color 250ms ease,
-      box-shadow 250ms ease !important;
+      border-color 250ms ease !important;
   }
 
   /* ===== Panel Transitions ===== */
@@ -778,19 +775,7 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
   /* Direct-DOM scroll collapse for the bottom nav bar (zero-React) */
   html[data-nav-collapsed='true']:not([data-nav-hidden='true']) .glass-nav {
-    background: var(--c-surface-glass-bg) !important;
-    border-color: transparent !important;
     pointer-events: none !important;
-    box-shadow: none !important;
-  }
-
-  html[data-nav-collapsed='true'] .glass-nav > div {
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-  .glass-nav > div {
-    transition: opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   /* ===== Panel section transitions — unified across all apps =================

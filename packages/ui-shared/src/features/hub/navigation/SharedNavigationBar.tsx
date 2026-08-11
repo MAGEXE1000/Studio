@@ -1563,14 +1563,14 @@ export function SharedNavigationBar({
                 />
               )}
               {!searchOpen ? (
-                <div
+                <motion.div
                   style={{
                     display: 'flex',
                     width: '100%',
                     height: '100%',
                     alignItems: 'center',
                     justifyContent: 'space-around',
-                    opacity: 1,
+                    opacity: pillOpacity,
                     pointerEvents: 'auto',
                   }}
                 >
@@ -1601,7 +1601,7 @@ export function SharedNavigationBar({
                       />
                     );
                   })}
-                </div>
+                </motion.div>
               ) : (
                 /* Embedded Search Input inside stretched bar */
                 <div

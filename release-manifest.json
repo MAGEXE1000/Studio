@@ -1,21 +1,21 @@
 {
   "$schema": "https://livex.app/schemas/release-manifest.v1.json",
   "manifestVersion": "1.0.0",
-  "version": "4.5.22",
-  "versionCode": 40522,
-  "releaseTag": "v4.5.22",
-  "buildTimestampUtc": "2026-08-11T23:27:01.604Z",
+  "version": "4.5.23",
+  "versionCode": 40523,
+  "releaseTag": "v4.5.23",
+  "buildTimestampUtc": "2026-08-11T23:34:23.633Z",
   "git": {
-    "commitSha": "fe9ae287c8bd7f4b4cdfd5df7fdf7faa72d8a06f",
-    "shortSha": "fe9ae287",
+    "commitSha": "2d872e0736ed10bf40f5c66009c06294ae1e1de6",
+    "shortSha": "2d872e07",
     "branch": "main",
     "previousTag": "v4.5.21"
   },
   "artifact": {
-    "filename": "studio-4.5.22.apk",
-    "sizeBytes": 53259856,
+    "filename": "studio-4.5.23.apk",
+    "sizeBytes": 53259932,
     "sizeFormatted": "50.79 MB",
-    "sha256": "5cc9d6d6e6b3898b25ce4527b0bc29ad9580a4461ede0dda64a8f45aa9a9d303",
+    "sha256": "439c83238ad815c0b10faae8b5895e55894d9e920e5e4b64db0282b74fc91b97",
     "signingCertFingerprint": "58b9bf2de5064c62ac3ca181b5608fe135c6894a8359ff6588e19218cd384764"
   },
   "timingMetrics": {

@@ -54,7 +54,7 @@ export function StudioHeader({
   return (
     <div
       style={{
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 40px)',
         paddingBottom: '16px',
         paddingLeft: 'var(--page-inset-h)',
         paddingRight: 'var(--page-inset-h)',

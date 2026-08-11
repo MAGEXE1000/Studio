@@ -859,8 +859,8 @@ export function SharedNavigationBar({
     }
   );
 
-  const containerHeight = useTransform(scrollOffsetSpring, [0, 1], [64, 24]);
-  const containerBorderRadius = useTransform(scrollOffsetSpring, [0, 1], [32, 12]);
+  const containerHeight = useTransform(scrollOffsetSpring, [0, 1], [48, 24]);
+  const containerBorderRadius = useTransform(scrollOffsetSpring, [0, 1], [24, 12]);
   const containerTranslateY = useTransform(scrollOffsetSpring, [0, 1], [0, 46]);
 
   const pillOpacity = useTransform(scrollOffsetSpring, [0, 0.6], [1, 0]);
@@ -1505,7 +1505,7 @@ export function SharedNavigationBar({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-around',
-              padding: '6px 8px',
+              padding: '0 8px',
               position: 'relative',
               touchAction: 'none',
               userSelect: 'none',

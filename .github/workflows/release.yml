@@ -54,6 +54,43 @@ jobs:
           fi
           echo "✓ All required signing & deployment secrets validated."
 
+      - name: Canonical Version Guard (Fail-Fast before any build work)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CANDIDATE=$(node scripts/get-version.mjs)
+          echo "Release candidate version: $CANDIDATE"
+          # Derive candidate versionCode (same formula as sync-versions)
+          IFS='.' read -r MAJ MIN PAT <<< "$CANDIDATE"
+          CANDIDATE_CODE=$(( MAJ * 10000 + MIN * 100 + PAT ))
+          echo "Candidate versionCode: $CANDIDATE_CODE"
+          # Get production latest release tag (excluding the candidate itself)
+          PROD_TAG=$(gh release list --limit 20 --json tagName,isLatest --repo MAGEXE1000/Studio 2>/dev/null \
+            | node -e "
+              let d = '';
+              process.stdin.on('data', c => d += c);
+              process.stdin.on('end', () => {
+                const releases = JSON.parse(d || '[]');
+                const candidate = 'v$CANDIDATE';
+                const latest = releases.find(r => r.isLatest && r.tagName !== candidate)
+                  || releases.find(r => r.tagName !== candidate);
+                process.stdout.write(latest ? latest.tagName : '');
+              });
+            " || echo '')
+          if [ -z "$PROD_TAG" ]; then
+            echo "⚠  No prior production release found. Treating as first release — guard skipped."
+            exit 0
+          fi
+          PROD_VER=${PROD_TAG#v}
+          IFS='.' read -r PMAJ PMIN PPAT <<< "$PROD_VER"
+          PROD_CODE=$(( PMAJ * 10000 + PMIN * 100 + PPAT ))
+          echo "Production baseline: $PROD_VER (versionCode $PROD_CODE)"
+          if [ "$CANDIDATE_CODE" -le "$PROD_CODE" ]; then
+            echo "::error::VERSION GUARD FAILED: Candidate versionCode ($CANDIDATE_CODE) must be > production ($PROD_CODE). Production is already $PROD_VER."
+            exit 1
+          fi
+          echo "✓ Version guard PASSED ($CANDIDATE_CODE > $PROD_CODE)"
+
       - name: Verify Release Tag Uniqueness
         env:
           GH_TOKEN: ${{ github.token }}

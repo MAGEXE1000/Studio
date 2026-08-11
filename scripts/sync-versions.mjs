@@ -2,9 +2,29 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import crypto from 'node:crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
+
+// ─── Idempotent write helper ────────────────────────────────────────────────
+// Only writes the file when content has actually changed. This prevents
+// spurious `git status --porcelain` dirty state in CI caused by timestamp-only
+// rewrites that produce identical logical content.
+function writeIfChanged(filePath, newContent, label) {
+  if (fs.existsSync(filePath)) {
+    const existing = fs.readFileSync(filePath, 'utf8');
+    const existingHash = crypto.createHash('sha256').update(existing).digest('hex');
+    const newHash = crypto.createHash('sha256').update(newContent).digest('hex');
+    if (existingHash === newHash) {
+      console.log(`sync-versions: • ${label || path.relative(repoRoot, filePath)} is already up to date (idempotent skip)`);
+      return false; // no write
+    }
+  }
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, newContent, 'utf8');
+  return true; // wrote
+}
 
 // --- 1. Identify the Single Source of Truth ---
 const rootPkgPath = path.join(repoRoot, 'package.json');
@@ -54,8 +74,8 @@ for (const pkgPath of secondaryPkgPaths) {
     const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
     if (pkg.version !== version) {
       pkg.version = version;
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-      console.log(`sync-versions: ✓ Synchronized ${path.relative(repoRoot, pkgPath)} to ${version}`);
+      const wrote = writeIfChanged(pkgPath, JSON.stringify(pkg, null, 2) + '\n', path.relative(repoRoot, pkgPath));
+      if (wrote) console.log(`sync-versions: ✓ Synchronized ${path.relative(repoRoot, pkgPath)} to ${version}`);
     } else {
       console.log(`sync-versions: • ${path.relative(repoRoot, pkgPath)} is already ${version}`);
     }
@@ -78,8 +98,8 @@ if (fs.existsSync(gradlePath)) {
   }
 
   if (updated) {
-    fs.writeFileSync(gradlePath, gradleSrc, 'utf8');
-    console.log(`sync-versions: ✓ Synchronized build.gradle (versionName: ${version}, versionCode: ${versionCode})`);
+    const wrote = writeIfChanged(gradlePath, gradleSrc, 'build.gradle');
+    if (wrote) console.log(`sync-versions: ✓ Synchronized build.gradle (versionName: ${version}, versionCode: ${versionCode})`);
   } else {
     console.log(`sync-versions: • build.gradle is already perfectly synchronized`);
   }
@@ -89,35 +109,62 @@ if (fs.existsSync(gradlePath)) {
 const appVersionTsPath = path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts');
 if (fs.existsSync(appVersionTsPath)) {
   let src = fs.readFileSync(appVersionTsPath, 'utf8');
+
+  // Detect whether the version constants already match the target version.
+  // If version is already correct, skip timestamp-dependent fields to prevent
+  // spurious dirty state from APP_BUILD_TIMESTAMP changing every run.
+  const versionAlreadyCorrect =
+    src.includes(`NATIVE_VERSION = '${version}'`) &&
+    src.includes(`NATIVE_VERSION_CODE = ${versionCode}`) &&
+    src.includes(`WEB_VERSION = '${version}'`);
+
   let updated = false;
 
-  const replacements = [
+  const versionReplacements = [
     { regex: /export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/, repl: `export const NATIVE_VERSION = '${version}'` },
     { regex: /export\s+const\s+NATIVE_VERSION_CODE\s*=\s*\d+/, repl: `export const NATIVE_VERSION_CODE = ${versionCode}` },
     { regex: /export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/, repl: `export const WEB_VERSION = '${version}'` },
-    { regex: /export\s+const\s+APP_COMMIT_SHA\s*=\s*['"]([^'"]+)['"]/, repl: `export const APP_COMMIT_SHA = '${gitCommitSha}'` },
-    { regex: /export\s+const\s+APP_BUILD_TIMESTAMP\s*=\s*['"]([^'"]+)['"]/, repl: `export const APP_BUILD_TIMESTAMP = '${buildTimestamp}'` }
   ];
 
-  for (const { regex, repl } of replacements) {
+  // Always update version/versionCode constants (these are version-dependent)
+  for (const { regex, repl } of versionReplacements) {
     if (!src.includes(repl)) {
       src = src.replace(regex, repl);
       updated = true;
     }
   }
 
+  // Only update timestamp-dependent fields when version actually changed.
+  // This is the critical fix: if version was already correct, re-running
+  // sync-versions will not touch APP_COMMIT_SHA/APP_BUILD_TIMESTAMP,
+  // preventing spurious git dirty state in CI.
+  if (!versionAlreadyCorrect) {
+    const timestampReplacements = [
+      { regex: /export\s+const\s+APP_COMMIT_SHA\s*=\s*['"]([^'"]+)['"]/, repl: `export const APP_COMMIT_SHA = '${gitCommitSha}'` },
+      { regex: /export\s+const\s+APP_BUILD_TIMESTAMP\s*=\s*['"]([^'"]+)['"]/, repl: `export const APP_BUILD_TIMESTAMP = '${buildTimestamp}'` },
+    ];
+    for (const { regex, repl } of timestampReplacements) {
+      if (!src.includes(repl)) {
+        src = src.replace(regex, repl);
+        updated = true;
+      }
+    }
+  } else {
+    console.log(`sync-versions: • Skipping APP_COMMIT_SHA/APP_BUILD_TIMESTAMP update (version unchanged — prevents dirty tree)`);
+  }
+
   // --- 6. Parse CHANGELOG.md for release notes and update appVersion.ts ---
   function cleanMojibake(str) {
     if (!str) return '';
     return str.replace(/â€¢/g, '•').replace(/â€‹/g, '').replace(/â€¦/g, '…')
-      .replace(/â€”/g, '—').replace(/â€“/g, '–').replace(/â€™/g, "'")
+      .replace(/â€"/g, '—').replace(/â€"/g, '–').replace(/â€™/g, "'")
       .replace(/â€\x9d/g, '"').replace(/â€\x9c/g, '"');
   }
 
   const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
   let changelogPayload = '';
   let releaseNotesPayload = {};
-  
+
   if (fs.existsSync(changelogPath)) {
     const changelogText = cleanMojibake(fs.readFileSync(changelogPath, 'utf8'));
     const changelogRawLines = changelogText.split(/\r?\n/);
@@ -142,11 +189,11 @@ if (fs.existsSync(appVersionTsPath)) {
       console.warn(`sync-versions: ⚠ Warning: Missing or empty changelog entry for version ${version} in CHANGELOG.md`);
     } else {
       const sectionContent = sectionLines.join('\n').trim();
-      
-      // Write release-notes.md for GitHub releases
+
+      // Idempotent write of release-notes.md
       const releaseNotesMdPath = path.join(repoRoot, 'release-notes.md');
-      fs.writeFileSync(releaseNotesMdPath, sectionContent + '\n', 'utf8');
-      console.log(`sync-versions: ✓ Wrote release-notes.md from CHANGELOG.md`);
+      const wrote = writeIfChanged(releaseNotesMdPath, sectionContent + '\n', 'release-notes.md');
+      if (wrote) console.log(`sync-versions: ✓ Wrote release-notes.md from CHANGELOG.md`);
 
       const categories = { added: [], improved: [], fixed: [], changed: [] };
       let currentCategory = null;
@@ -193,51 +240,78 @@ if (fs.existsSync(appVersionTsPath)) {
 
       const changelogSectionsPat = /export\s+const\s+APP_CHANGELOG_SECTIONS:\s*ChangelogSection\[\]\s*=\s*\[([\s\S]*?)\]\s*;/;
       if (changelogSectionsPat.test(src)) {
-        src = src.replace(changelogSectionsPat, tsSections);
-        updated = true;
+        const newSrc = src.replace(changelogSectionsPat, tsSections);
+        if (newSrc !== src) {
+          src = newSrc;
+          updated = true;
+        }
       }
     }
   }
 
   if (updated) {
-    fs.writeFileSync(appVersionTsPath, src, 'utf8');
-    console.log(`sync-versions: ✓ Synchronized appVersion.ts`);
+    const wrote = writeIfChanged(appVersionTsPath, src, 'appVersion.ts');
+    if (wrote) console.log(`sync-versions: ✓ Synchronized appVersion.ts`);
   } else {
     console.log(`sync-versions: • appVersion.ts is already perfectly synchronized`);
   }
 
-  // --- 7. Generate Manifests ---
-  const payload = {
-    platform: 'android',
-    version,
-    versionName: version,
-    versionCode,
-    version_code: versionCode,
-    commit: gitCommitSha,
-    releasedAt: buildTimestamp,
-    buildTimestamp,
-    updateMode: 'refresh',
-    changelog: changelogPayload,
-    whatsNew: changelogPayload,
-    releaseNotes: releaseNotesPayload,
-    mandatory: false,
-  };
+  // --- 7. Generate Manifests (idempotent) ---
+  // When the manifest file already has the correct version/versionCode, preserve
+  // the existing commit/timestamp fields to avoid spurious dirty-tree mutations.
+  function buildManifestPayload(platform) {
+    const manifestPath = path.join(repoRoot,
+      platform === 'web'
+        ? 'apps/studio-web/public/version.json'
+        : platform === 'app-release'
+          ? 'apps/studio-android/public/app-release.json'
+          : 'apps/studio-android/public/version.json'
+    );
+    // If existing manifest already has correct version, preserve its timestamp fields
+    let existingCommit = gitCommitSha;
+    let existingTimestamp = buildTimestamp;
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const existing = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        if (existing.version === version && existing.versionCode === versionCode) {
+          // Version already correct: preserve timestamps to avoid dirty state
+          existingCommit = existing.commit || gitCommitSha;
+          existingTimestamp = existing.releasedAt || buildTimestamp;
+        }
+      } catch (_) {}
+    }
+    return {
+      platform: platform === 'app-release' ? 'android' : platform,
+      version,
+      versionName: version,
+      versionCode,
+      version_code: versionCode,
+      commit: existingCommit,
+      releasedAt: existingTimestamp,
+      buildTimestamp: existingTimestamp,
+      updateMode: 'refresh',
+      changelog: changelogPayload,
+      whatsNew: changelogPayload,
+      releaseNotes: releaseNotesPayload,
+      mandatory: false,
+    };
+  }
 
   const manifests = [
-    { path: 'apps/studio-android/public/version.json', data: payload },
-    { path: 'apps/studio-web/public/version.json', data: { ...payload, platform: 'web' } },
-    { path: 'apps/studio-android/public/app-release.json', data: payload }
+    { path: 'apps/studio-android/public/version.json', data: buildManifestPayload('android') },
+    { path: 'apps/studio-web/public/version.json', data: buildManifestPayload('web') },
+    { path: 'apps/studio-android/public/app-release.json', data: buildManifestPayload('app-release') }
   ];
 
   for (const m of manifests) {
     const fullPath = path.join(repoRoot, m.path);
-    fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-    fs.writeFileSync(fullPath, JSON.stringify(m.data, null, 2) + '\n', 'utf8');
-    console.log(`sync-versions: ✓ Wrote manifest ${m.path}`);
+    const content = JSON.stringify(m.data, null, 2) + '\n';
+    const wrote = writeIfChanged(fullPath, content, m.path);
+    if (wrote) console.log(`sync-versions: ✓ Wrote manifest ${m.path}`);
   }
 }
 
-// Update release-manifest.json if present
+// Update release-manifest.json if present (idempotent)
 const releaseManifestPath = path.join(repoRoot, 'release-manifest.json');
 if (fs.existsSync(releaseManifestPath)) {
   const rm = JSON.parse(fs.readFileSync(releaseManifestPath, 'utf8'));
@@ -245,8 +319,8 @@ if (fs.existsSync(releaseManifestPath)) {
     rm.releaseVersion = version;
     rm.versionName = version;
     rm.versionCode = versionCode;
-    fs.writeFileSync(releaseManifestPath, JSON.stringify(rm, null, 2) + '\n', 'utf8');
-    console.log(`sync-versions: ✓ Synchronized release-manifest.json`);
+    const wrote = writeIfChanged(releaseManifestPath, JSON.stringify(rm, null, 2) + '\n', 'release-manifest.json');
+    if (wrote) console.log(`sync-versions: ✓ Synchronized release-manifest.json`);
   }
 }
 

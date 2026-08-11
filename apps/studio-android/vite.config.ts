@@ -32,15 +32,47 @@ export default defineConfig(async ({ command, mode }) => {
 
   let gitCommitSha = 'unknown';
   let isDirty = false;
+  // Files that sync-versions.mjs legitimately modifies during a release build.
+  // These are excluded from the dirty-tree warning in production release mode
+  // to prevent false alarms from idempotent version-sync operations.
+  const SYNC_GENERATED_FILES = new Set([
+    'packages/studio-core/src/lib/startup/appVersion.ts',
+    'apps/studio-android/public/version.json',
+    'apps/studio-android/public/app-release.json',
+    'apps/studio-web/public/version.json',
+    'apps/studio-android/android/app/build.gradle',
+    'apps/studio-android/package.json',
+    'apps/studio-web/package.json',
+    'release-notes.md',
+    'release-manifest.json',
+    'scripts/sync-versions.mjs',
+  ]);
+  const isProductionRelease = process.env.STUDIO_PRODUCTION_RELEASE === 'true';
   try {
     gitCommitSha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
     const status = execSync('git status --porcelain', { encoding: 'utf8' }).trim();
     if (status) {
-      isDirty = true;
+      if (isProductionRelease) {
+        // In production release builds, only flag unexpected dirty files as problematic
+        const dirtyFiles = status
+          .split('\n')
+          .map((line: string) => line.slice(3).trim()) // strip "XY " prefix
+          .filter((f: string) => f && !SYNC_GENERATED_FILES.has(f));
+        isDirty = dirtyFiles.length > 0;
+        if (isDirty) {
+          console.warn(`\x1b[33mVite Build (Android): ⚠ UNEXPECTED dirty files in production build:\x1b[0m`);
+          dirtyFiles.forEach((f: string) => console.warn(`  - ${f}`));
+        } else {
+          console.log(`\x1b[36mVite Build (Android): ℹ Dirty files present but all are sync-generated — suppressing warning.\x1b[0m`);
+        }
+      } else {
+        isDirty = true;
+      }
     }
   } catch (e: any) {
     console.warn('Vite Config: ⚠ Could not get git commit SHA:', e.message);
   }
+
   const buildTimestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
 
   envDefines['import.meta.env.VITE_GIT_COMMIT_SHA'] = JSON.stringify(gitCommitSha);

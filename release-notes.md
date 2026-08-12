@@ -2,8 +2,6 @@
 
 Release Date: 2026-08-11
 
-Release Date: 2026-08-11
-
 ### Added
 
 - Hardened the Android production release pipeline to make it deterministic, safe, and fast.

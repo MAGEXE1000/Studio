@@ -242,8 +242,8 @@ if (fs.existsSync(appVersionTsPath)) {
       let tsSections = 'export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [\n';
       for (const [key, heading] of Object.entries({added: 'Added', improved: 'Improved', fixed: 'Fixed', changed: 'Changed'})) {
         if (categories[key].length > 0) {
-          tsSections += `  {\n    heading: "${heading}",\n    items: [\n` +
-            categories[key].map((i) => `      ${JSON.stringify(i)},`).join('\n') +
+          tsSections += `  {\n    heading: '${heading}',\n    items: [\n` +
+            categories[key].map((i) => `      '${i.replace(/'/g, "\\'")}',`).join('\n') +
             '\n    ],\n  },\n';
         }
       }

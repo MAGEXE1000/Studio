@@ -36,6 +36,8 @@ jobs:
   preflight:
     name: 1. Preflight
     runs-on: ubuntu-latest
+    outputs:
+      release_state_hash: ${{ steps.emit_hash.outputs.release_state_hash }}
     steps:
       - uses: actions/checkout@v7
 
@@ -117,6 +119,22 @@ jobs:
       - name: Synchronize SSOT Version Across Repository
         run: node scripts/sync-versions.mjs
 
+      - name: Validate VersionCode Collision Safety (Fail-Fast)
+        run: |
+          # Reject any version whose MIN or PAT >= 100, which causes formula collisions
+          # under MAJ*10000+MIN*100+PAT. Must run before expensive Gradle work.
+          node scripts/validate-version-code.mjs
+
+      - name: Emit Canonical Release State Hash
+        id: emit_hash
+        run: |
+          # Compute a deterministic SHA-256 hash of all release-critical version files.
+          # This hash is passed to the Build job so it can verify its checkout is byte-identical
+          # to the state Preflight validated — providing explicit proof of state equivalence.
+          HASH=$(node scripts/compute-release-state-hash.mjs | grep '^RELEASE_STATE_HASH=' | cut -d= -f2)
+          echo "release_state_hash=$HASH" >> $GITHUB_OUTPUT
+          echo "Preflight release state hash: $HASH"
+
       - name: Validate Mandatory Release Changelog System
         run: node scripts/validate-release-changelog.mjs
 
@@ -173,6 +191,18 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      - name: Verify Release State Hash (Assert Preflight == Build)
+        run: |
+          # Prove the Build checkout is byte-identical to the state Preflight validated.
+          # Both jobs use GITHUB_SHA with no ref: override. Under normal operation they are
+          # the same commit. This check also catches concurrent branch mutations between
+          # Preflight completion and Build checkout, or any workspace divergence.
+          # Runs with only Node.js (no pnpm install needed) — fails BEFORE any compilation.
+          EXPECTED_HASH="${{ needs.preflight.outputs.release_state_hash }}"
+          echo "Expected hash from Preflight: $EXPECTED_HASH"
+          node scripts/compute-release-state-hash.mjs --verify "$EXPECTED_HASH"
+
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -180,6 +210,7 @@ jobs:
 
       - name: Setup Gradle Cache
         uses: gradle/actions/setup-gradle@v6
+
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

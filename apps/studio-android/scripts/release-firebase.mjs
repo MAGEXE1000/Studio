@@ -164,6 +164,7 @@ try {
 
 // B. PREFLIGHT CODE QUALITY & VERSION CONSISTENCY CHECKS
 const qualityScripts = [
+  { file: 'validate-version-code.mjs', label: 'VersionCode Collision Safety' },
   { file: 'verify-versions-consistency.mjs', label: 'Version Consistency' },
   { file: 'enforce-import-boundaries.mjs', label: 'Import Boundaries' },
   { file: 'verify-all-references.mjs', label: 'Reference Audit' },

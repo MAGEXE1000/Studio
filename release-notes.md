@@ -1,9 +1,7 @@
-# Version 4.5.28
+# Version 4.5.29
 
-Release Date: 2026-08-11
+Release Date: 2026-08-12
 
 ### Added
 
-- Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.
-- Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.
-- Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.
+- Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.

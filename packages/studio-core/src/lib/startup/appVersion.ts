@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.28';
-export const NATIVE_VERSION_CODE = 40528;
-export const WEB_VERSION = '4.5.28';
+export const NATIVE_VERSION = '4.5.29';
+export const NATIVE_VERSION_CODE = 40529;
+export const WEB_VERSION = '4.5.29';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -67,19 +67,19 @@ export const APP_VERSION_LABEL = APP_VERSION;
  * Local date this build was stamped (e.g. "July 24, 2026").
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_VERSION_DATE = '8/11/2026';
+export const APP_VERSION_DATE = '8/12/2026';
 
 /**
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'ef42b09a';
+export const APP_COMMIT_SHA = 'aabbd4b4';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/11/2026, 10:06:30 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/12/2026, 5:44:00 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,9 +98,7 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.',
-      'Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.',
-      'Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.',
+      "Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.",
     ],
   },
 ];

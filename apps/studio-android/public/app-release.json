@@ -1,20 +1,18 @@
 {
   "platform": "android",
-  "version": "4.5.28",
-  "versionName": "4.5.28",
-  "versionCode": 40528,
-  "version_code": 40528,
-  "commit": "ef42b09a",
-  "releasedAt": "8/11/2026, 10:07:12 PM CST",
-  "buildTimestamp": "8/11/2026, 10:07:12 PM CST",
+  "version": "4.5.29",
+  "versionName": "4.5.29",
+  "versionCode": 40529,
+  "version_code": 40529,
+  "commit": "aabbd4b4",
+  "releasedAt": "8/12/2026, 5:44:26 AM CST",
+  "buildTimestamp": "8/12/2026, 5:44:26 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.\n• Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.\n• Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.",
-  "whatsNew": "• Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.\n• Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.\n• Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.",
+  "changelog": "• Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.",
+  "whatsNew": "• Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.",
   "releaseNotes": {
     "added": [
-      "Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.",
-      "Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.",
-      "Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes."
+      "Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx."
     ]
   },
   "mandatory": false

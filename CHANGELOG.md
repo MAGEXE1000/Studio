@@ -1,5 +1,13 @@
 # Studio Changelog
 
+## 4.5.29
+
+Release Date: 2026-08-12
+
+### Added
+
+- Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.
+
 ## 4.5.28
 
 Release Date: 2026-08-11
